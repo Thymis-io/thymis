@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "controller"
+version = "0.1.0"
+description = ""
+authors = ["Adrian Block <adrian.block@thymis.io>", "Eli Kogan-Wang <eli.kogan-wang@thymis.io", "Maximilian Schmöcker <maximilian.schmoecker@thymis.io>", "Florian Schönlau <florian.schoenlau@thymis.io"]
+license = "AGPLv3"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.103.2"
+pydantic = "^2.4.2"
+uvicorn = "^0.23.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
