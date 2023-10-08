@@ -5,9 +5,13 @@
     nixpkgs.url = "nixpkgs/nixos-23.05";
     home-manager.url = "github:nix-community/home-manager/release-23.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    poetry2nix = {
+      url = "github:nix-community/poetry2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = inputs@{ self, nixpkgs, home-manager }: 
+  outputs = inputs@{ self, nixpkgs, home-manager, poetry2nix }: 
   let 
     supported-systems = [ "x86_64-linux" "aarch64-linux" ];
     forAllSystems = nixpkgs.lib.genAttrs supported-systems;
@@ -32,6 +36,7 @@
       in
       {
         thymis-frontend = pkgs.callPackage ./frontend { };
+        thymis-controller = pkgs.callPackage ./controller { poetry2nix = poetry2nix.legacyPackages.${system}; };
       }
     );
     nixosModules.thymis = ./thymis-nixos-module.nix;
