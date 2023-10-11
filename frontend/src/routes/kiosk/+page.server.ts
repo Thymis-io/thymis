@@ -5,6 +5,8 @@ export const load = (async () => {
 	let ip = null;
 	try {
 		ip = await getMyIp();
-	} catch (e) { /* empty */ }
+	} catch (e) {
+		/* empty */
+	}
 	return { ip };
 }) satisfies PageServerLoad;

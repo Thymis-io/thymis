@@ -28,8 +28,8 @@ const myExecFile = (file, args) => {
 };
 
 export const getMyIp = async () => {
-    // run `ip route get 1.2.3.4 | awk '{print $7}'` in bash
-    const args = ['-c', 'ip route get 1.2.3.4 | awk \'{print $7}\''];
-    const { stdout, stderr } = await myExecFile('bash', args);
-    return stdout;
-}
+	// run `ip route get 1.2.3.4 | awk '{print $7}'` in bash
+	const args = ['-c', "ip route get 1.2.3.4 | awk '{print $7}'"];
+	const { stdout, stderr } = await myExecFile('bash', args);
+	return stdout;
+};
