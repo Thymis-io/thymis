@@ -1,10 +1,17 @@
 <script lang="ts">
-	import { AppShell, AppRail, AppRailTile, AppRailAnchor } from '@skeletonlabs/skeleton';
+	import { AppShell, AppRail, AppRailTile, AppRailAnchor, AppBar } from '@skeletonlabs/skeleton';
+	import Modules from '../lib/Modules.svelte';
 	let currentTile: number = 0;
 </script>
 
 <AppShell>
-	<svelte:fragment slot="header">Header</svelte:fragment>
+	<svelte:fragment slot="header">
+		<AppBar>
+			<svelte:fragment slot="lead">(icon)</svelte:fragment>
+			Thymis
+			<svelte:fragment slot="trail">(actions)</svelte:fragment>
+		</AppBar>
+	</svelte:fragment>
 	<svelte:fragment slot="sidebarLeft">
 		<AppRail>
 			<svelte:fragment slot="lead">
@@ -33,6 +40,11 @@
 	<!-- (pageHeader) -->
 	<!-- Router Slot -->
 	<slot />
+	<div class="m-8">
+		{#if currentTile === 0}
+			<Modules />
+		{/if}
+	</div>
 	<!-- ---- / ---- -->
 	<svelte:fragment slot="pageFooter">Page Footer</svelte:fragment>
 	<!-- (footer) -->
