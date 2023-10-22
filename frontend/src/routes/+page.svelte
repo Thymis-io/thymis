@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { AppShell, AppRail, AppRailTile, AppRailAnchor, AppBar } from '@skeletonlabs/skeleton';
 	import Modules from '../lib/Modules.svelte';
+	import History from '$lib/History.svelte';
 	let currentTile: number = 0;
 </script>
 
@@ -43,6 +44,9 @@
 	<div class="m-8">
 		{#if currentTile === 0}
 			<Modules />
+		{/if}
+		{#if currentTile === 1}
+			<History />
 		{/if}
 	</div>
 	<!-- ---- / ---- -->
