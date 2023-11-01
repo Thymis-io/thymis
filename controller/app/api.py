@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.openapi.docs import get_swagger_ui_html
+from app.routes import router
 
 description = """
 API to control Nix operating system 🎛️
@@ -21,6 +22,8 @@ app = FastAPI(
         "url": "https://www.gnu.org/licenses/agpl-3.0.en.html",
     },
 )
+
+app.include_router(router.router)
 
 def run():
     import uvicorn
