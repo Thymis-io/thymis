@@ -3,9 +3,9 @@ from . import Module, Setting
 
 class NodeRed(Module):
     enabled: Setting = Setting(
-        "services.node-red.enable",
-        bool,
-        False,
-        "Whether to enable the Node-RED service.",
-        "true",
+        name="services.node-red.enable",
+        type=bool,
+        default=False,
+        description="Whether to enable the Node-RED service.",
+        example="true",
     )

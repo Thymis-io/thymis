@@ -1,11 +1,12 @@
 from typing import List
-from . import Setting
+from pydantic import BaseModel
+from app import models
 
 
-class Module:
+class Module(BaseModel):
     name: str
-    enabled: Setting = Setting(
-        "enabled", bool, False, "Whether the module is enabled", "true"
+    enabled: models.Setting = models.Setting(
+        name="enabled", type="bool", default=False, description="Whether the module is enabled", example="true"
     )
 
     def write_to_state():
