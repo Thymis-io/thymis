@@ -23,10 +23,15 @@ jobs:
       - name: run nix-eval-jobs
         run: nix run nixpkgs#nix-eval-jobs -- --gc-roots-dir gcroots --flake .#all-download-images | tee jobs.json
       - name: convert jobs json
-        # run: nix run nixpkgs#jq -- -r '.attr + " " + .drvPath' < jobs.json > jobs
-        run: nix run nixpkgs#jq -- -r 'select(.system == "x86_64-linux") | .attr + " " + .drvPath' < jobs.json > jobs
+        run: nix run nixpkgs#jq -- -r 'select(.system == "x86_64-linux") | .attr + " " + .drvPath + " " + .name' < jobs.json > jobs
       - name: build jobs
         run: |
-          while read -r attr drvPath; do
-            nix build "$drvPath^*" --out-link "result-$attr" --print-build-logs
+          mkdir -p results
+          while read -r attr drvPath name; do
+            nix build "$drvPath^*" --out-link "results/$attr-$name" --print-build-logs
           done < jobs
+      - name: upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: results
+          path: results
