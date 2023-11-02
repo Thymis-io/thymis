@@ -1,0 +1,23 @@
+name: "Build"
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v6
+      - name: run nix-eval-jobs
+        run: nix run nixpkgs#nix-eval-jobs -- --gc-roots-dir gcroots --flake .#all-download-images > jobs.json
+      - name: convert jobs json
+        run: nix run nixpkgs#jq -- -r '.attr + " " + .drvPath' < jobs.json > jobs
+      - name: build jobs
+        run: |
+          while read -r attr drvPath; do
+            nix build "$drvPath" --out-link "result-$attr"
+          done < jobs
