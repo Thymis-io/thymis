@@ -8,10 +8,7 @@
     nixos-generators.url = "github:nix-community/nixos-generators";
     nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
-    systems.url = "path:./flake.systems.nix";
-    systems.flake = false;
     flake-utils.url = "github:numtide/flake-utils";
-    flake-utils.inputs.systems.follows = "systems";
     poetry2nix = {
       url = "github:nix-community/poetry2nix/1.42.1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -19,9 +16,9 @@
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, home-manager, poetry2nix, flake-utils, systems, ... }:
+  outputs = inputs@{ self, nixpkgs, home-manager, poetry2nix, flake-utils, ... }:
     let
-      eachSystem = nixpkgs.lib.genAttrs (import systems);
+      eachSystem = nixpkgs.lib.genAttrs (import ./flake.systems.nix);
     in
     rec {
       formatter = eachSystem (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);

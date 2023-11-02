@@ -2,9 +2,7 @@
   "nodes": {
     "flake-utils": {
       "inputs": {
-        "systems": [
-          "systems"
-        ]
+        "systems": "systems"
       },
       "locked": {
         "lastModified": 1694529238,
@@ -138,21 +136,22 @@
         "nixos-generators": "nixos-generators",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
-        "poetry2nix": "poetry2nix",
-        "systems": "systems"
+        "poetry2nix": "poetry2nix"
       }
     },
     "systems": {
-      "flake": false,
       "locked": {
-        "lastModified": 1,
-        "narHash": "sha256-ZHILufSPRwngc+5GNWTpJUXH7n1RuxvkAv7S0ScwYhQ=",
-        "path": "./flake.systems.nix",
-        "type": "path"
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
       },
       "original": {
-        "path": "./flake.systems.nix",
-        "type": "path"
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
       }
     }
   },
