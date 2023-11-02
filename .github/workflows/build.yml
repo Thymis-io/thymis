@@ -13,7 +13,7 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v6
       - name: run nix-eval-jobs
-        run: nix run nixpkgs#nix-eval-jobs -- --gc-roots-dir gcroots --flake .#all-download-images > jobs.json
+        run: nix run nixpkgs#nix-eval-jobs -- --gc-roots-dir gcroots --flake .#all-download-images | tee jobs.json
       - name: convert jobs json
         run: nix run nixpkgs#jq -- -r '.attr + " " + .drvPath' < jobs.json > jobs
       - name: build jobs
