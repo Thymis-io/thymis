@@ -11,7 +11,10 @@ let
       generic-x86_64 = {
         formatConfigs = lib.mkForce {
           qcow = { imports = [ inputs.nixos-generators.nixosModules.qcow ]; };
-          install-iso = { imports = [ inputs.nixos-generators.nixosModules.install-iso ]; };
+          install-iso = {
+            imports = [ inputs.nixos-generators.nixosModules.install-iso ];
+            isoImage.squashfsCompression = "zstd -Xcompression-level 6";
+          };
         };
         nixpkgs.hostPlatform = "x86_64-linux";
       };
