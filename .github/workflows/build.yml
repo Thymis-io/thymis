@@ -24,5 +24,5 @@ jobs:
       - name: build jobs
         run: |
           while read -r attr drvPath; do
-            nix build "$drvPath^*" --out-link "result-$attr"
+            nix build "$drvPath^*" --out-link "result-$attr" --print-build-logs
           done < jobs
