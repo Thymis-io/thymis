@@ -19,15 +19,7 @@ jobs:
         with:
           extra_nix_config: |
             system-features = kvm
-      - run: nix path-info /nix/store/4563gldw8ibz76f1a3x69zq3a1vhdpz9-libidn2-2.3.4 --json --store https://cache.nixos.org/
-      - run: nix path-info /nix/store/4563gldw8ibz76f1a3x69zq3a1vhdpz9-libidn2-2.3.4 --json
-      - run: nix hash path /nix/store/4563gldw8ibz76f1a3x69zq3a1vhdpz9-libidn2-2.3.4
-      - run: nix hash to-base32 $(nix hash path /nix/store/4563gldw8ibz76f1a3x69zq3a1vhdpz9-libidn2-2.3.4)
       - uses: DeterminateSystems/magic-nix-cache-action@v2
-      - run: nix path-info /nix/store/4563gldw8ibz76f1a3x69zq3a1vhdpz9-libidn2-2.3.4 --json --store https://cache.nixos.org/
-      - run: nix path-info /nix/store/4563gldw8ibz76f1a3x69zq3a1vhdpz9-libidn2-2.3.4 --json
-      - run: nix hash path /nix/store/4563gldw8ibz76f1a3x69zq3a1vhdpz9-libidn2-2.3.4
-      - run: nix hash to-base32 $(nix hash path /nix/store/4563gldw8ibz76f1a3x69zq3a1vhdpz9-libidn2-2.3.4)
       - name: run nix-eval-jobs
         run: nix run nixpkgs#nix-eval-jobs -- --gc-roots-dir gcroots --flake .#all-download-images | tee jobs.json
       - name: convert jobs json
