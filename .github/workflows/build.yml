@@ -13,7 +13,7 @@ jobs:
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v6
         with:
-          extra_conf: |
+          extra-conf: |
             system-features = kvm
       - uses: DeterminateSystems/magic-nix-cache-action@v2
       - name: run nix-eval-jobs
