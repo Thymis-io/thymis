@@ -11,10 +11,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v6
+        # uses: DeterminateSystems/nix-installer-action@v6
+        # with:
+        #   extra-conf: |
+        #     system-features = kvm
+        uses: cachix/install-nix-action@v22
         with:
-          extra-conf: |
+          extra_nix_config: |
             system-features = kvm
+
       - run: nix store delete --ignore-liveness /nix/store/4563gldw8ibz76f1a3x69zq3a1vhdpz9-libidn2-2.3.4
       - run: nix build /nix/store/4563gldw8ibz76f1a3x69zq3a1vhdpz9-libidn2-2.3.4
       - run: nix path-info /nix/store/4563gldw8ibz76f1a3x69zq3a1vhdpz9-libidn2-2.3.4 --json --store https://cache.nixos.org/
