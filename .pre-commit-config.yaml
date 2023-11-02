@@ -1,0 +1,31 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+      - id: check-ast
+      - id: check-yaml
+      - id: check-json
+        exclude: "^frontend/tsconfig.json$"
+      - id: check-toml
+      - id: mixed-line-ending
+  - repo: https://github.com/psf/black
+    rev: "23.10.1"
+    hooks:
+      - id: black
+  - repo: https://github.com/nix-community/nixpkgs-fmt
+    rev: v1.3.0
+    hooks:
+      - id: nixpkgs-fmt
+  - repo: local
+    hooks:
+      - id: npm-runs
+        name: npm run check, format, lint in ./frontend
+        entry: bash -c 'cd frontend && npm run check && npm run format && npm run lint'
+        language: system
+        files: "frontend/.*"
+        pass_filenames: false

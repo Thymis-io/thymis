@@ -1,36 +1,50 @@
-{ inputs, modulesPath, ... }:
-let sharedConfig = {
-  imports = [
-    inputs.nixos-generators.nixosModules.all-formats
-  ];
-};
+args@{ ... }:
+let
+  inherit (args) inputs lib;
+  sharedConfig = {
+    imports = [
+      inputs.nixos-generators.nixosModules.all-formats
+    ];
+  };
+  deviceConfig = builtins.mapAttrs (name: config: sharedConfig // config)
+    {
+      generic-x86_64 = {
+        formatConfigs = lib.mkForce {
+          qcow = { imports = [ inputs.nixos-generators.nixosModules.qcow ]; };
+          install-iso = { imports = [ inputs.nixos-generators.nixosModules.install-iso ]; };
+        };
+        nixpkgs.hostPlatform = "x86_64-linux";
+      };
+      generic-aarch64 = {
+        formatConfigs = lib.mkForce {
+          qcow = { imports = [ inputs.nixos-generators.nixosModules.qcow ]; };
+        };
+        nixpkgs.hostPlatform = "aarch64-linux";
+      };
+      raspberry-pi-4 = {
+        formatConfigs = lib.mkForce {
+          sd-card-image = {
+            imports = [
+              inputs.nixos-generators.nixosModules.sd-aarch64
+              inputs.nixos-hardware.nixosModules.raspberry-pi-4
+            ];
+          };
+        };
+        nixpkgs.hostPlatform = "aarch64-linux";
+      };
+      # raspberry-pi-zero = {
+      #   formatConfigs = lib.mkForce {
+      #     sd-card-image = {
+      #       imports = [
+      #         "${inputs.nixpkgs}/nixos/modules/installer/sd-card/sd-image-raspberrypi.nix"
+      #       ];
+      #       formatAttr = "sdImage";
+      #     };
+      #   };
+      #   nixpkgs.hostPlatform = "armv6l-linux";
+      #   nixpkgs.buildPlatform = "x86_64-linux";
+      # };
+      # rock-pi-4 = {};
+    };
 in
-builtins.mapAttrs (name: config: sharedConfig // config)
-{
-  generic-x86_64 = {
-    formatConfigs = lib.mkDefault {
-      qcow = { imports = [ inputs.nixos-generators.nixosModules.qcow2 ]; };
-      install-iso = { imports = [ inputs.nixos-generators.nixosModules.install-iso ]; };
-    };
-  };
-  generic-aarch64 = {
-    qcow = { imports = [ inputs.nixos-generators.nixosModules.qcow2 ]; };
-  };
-  raspberry-pi-4 = {
-    sd-card-image = {
-      imports = [
-        inputs.nixos-generators.nixosModules.sd-aarch64
-        inputs.nixos-hardware.nixosModules.raspberry-pi-4
-      ];
-    };
-  };
-  raspberry-pi-zero = {
-    sd-card-image = {
-      imports = [
-        "${modulesPath}/installer/sd-card/sd-image-raspberrypi.nix"
-      ];
-      formatAttr = "sdImage";
-    };
-  };
-  # rock-pi-4 = {};
-}
+deviceConfig

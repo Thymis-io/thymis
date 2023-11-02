@@ -5,40 +5,82 @@
     nixpkgs.url = "nixpkgs/nixos-23.05";
     home-manager.url = "github:nix-community/home-manager/release-23.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    nixos-generators.url = "github:nix-community/nixos-generators";
+    nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
+    nixos-hardware.url = "github:NixOS/nixos-hardware";
+    systems.url = "path:./flake.systems.nix";
+    systems.flake = false;
+    flake-utils.url = "github:numtide/flake-utils";
+    flake-utils.inputs.systems.follows = "systems";
     poetry2nix = {
-      url = "github:nix-community/poetry2nix";
+      url = "github:nix-community/poetry2nix/1.42.1";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, home-manager, poetry2nix }: 
-  let 
-    supported-systems = [ "x86_64-linux" "aarch64-linux" ];
-    forAllSystems = nixpkgs.lib.genAttrs supported-systems;
-  in rec {
+  outputs = inputs@{ self, nixpkgs, home-manager, poetry2nix, flake-utils, systems, ... }:
+    let
+      eachSystem = nixpkgs.lib.genAttrs (import systems);
+    in
+    rec {
+      formatter = eachSystem (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
+      devShells = eachSystem (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          default = pkgs.mkShell {
+            packages = [
+              pkgs.poetry
+              pkgs.nodejs
+              pkgs.pre-commit
+            ];
+          };
+        });
+      download-image = { thymis-config ? throw "thymis-config is required. Provide with --argstr" }:
+        let
+          thymis-config-parsed = builtins.fromJSON thymis-config;
+        in
+        (nixpkgs.lib.nixosSystem {
+          modules = [
+            nixosModules.thymis
+            { system.stateVersion = "23.05"; }
+          ];
+          specialArgs = {
+            inherit inputs;
+            thymis-config = thymis-config-parsed;
+          };
+        });
+      all-download-images =
+        let
+          devices = import ./devices.nix { lib = nixpkgs.lib; };
+          device-formats = builtins.mapAttrs
+            (name: device:
+              let
+                thymis-config = {
+                  device-type = name;
+                  password = "";
+                };
+              in
+              (download-image { thymis-config = builtins.toJSON thymis-config; }).config.formats // {
+                recurseForDerivations = true;
+              })
+            devices;
 
-    download-image = { thymis-config ? throw "thymis-config is required. Provide with --argstr" }:
-      let
-        thymis-config-parsed = builtins.fromJSON thymis-config;
-      in
-      (nixpkgs.lib.nixosSystem {
-        modules = [
-          nixosModules.thymis
-        ];
-        specialArgs = {
-          inherit inputs;
-          thymis-config = thymis-config-parsed;
+        in
+        device-formats // {
+          recurseForDerivations = true;
         };
-      }).config.system.build.download-path;
-    packages = forAllSystems (system: 
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in
-      {
-        thymis-frontend = pkgs.callPackage ./frontend { };
-        thymis-controller = pkgs.callPackage ./controller { poetry2nix = poetry2nix.legacyPackages.${system}; };
-      }
-    );
-    nixosModules.thymis = ./thymis-nixos-module.nix;
-  };
+      packages = eachSystem (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          thymis-frontend = pkgs.callPackage ./frontend { };
+          thymis-controller = pkgs.callPackage ./controller { poetry2nix = poetry2nix.legacyPackages.${system}; };
+        }
+      );
+      nixosModules.thymis = ./thymis-nixos-module.nix;
+    };
 }

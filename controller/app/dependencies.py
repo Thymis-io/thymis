@@ -3,6 +3,7 @@ from pathlib import Path
 
 from . import models
 
+
 def get_state():
     if not Path("./state.json").is_file():
         return [

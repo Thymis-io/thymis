@@ -5,18 +5,11 @@ let
   # Define the settings format used for this program
   settingsFormat = pkgs.formats.json { };
 in
-assert lib.assertMsg
-  (builtins.elem thymis-config.device-type [ "generic-x86_64" "raspberry_pi_4b" ])
-  "thymis-config.device-type must be one of [ \"generic-x86_64\" \"raspberry_pi_4b\" ]. Got ${thymis-config.device-type}";
+
 {
-  imports = (lib.optionals (thymis-config.device-type == "generic-x86_64") [
-    "${modulesPath}/profiles/all-hardware.nix"
-    # "${modulesPath}/installer/cd-dvd/iso-image.nix"
-    "${modulesPath}/installer/cd-dvd/installation-cd-graphical-base.nix"
-  ]) ++ (lib.optionals (thymis-config.device-type == "raspberry_pi_4b") [
-    "${modulesPath}/installer/sd-card/sd-image-aarch64-installer.nix"
-  ]) ++ [
+  imports = [
     inputs.home-manager.nixosModules.default
+    ./devices-module.nix
     "${modulesPath}/profiles/base.nix"
   ];
   options = {
@@ -93,7 +86,10 @@ assert lib.assertMsg
       services.xserver.windowManager.i3.configFile = pkgs.writeText "i3-config" ''
         bar mode invisible;
         exec ${pkgs.firefox}/bin/firefox --kiosk http://localhost:3000/kiosk
-        '';
+      '';
+      networking.firewall = {
+        allowedTCPPorts = [ 22 3000 ];
+      };
       systemd.services.thymis-frontend = {
         description = "Thymis frontend";
         after = [ "network.target" ];
@@ -121,28 +117,5 @@ assert lib.assertMsg
         };
       };
     }
-    (lib.optionalAttrs (thymis-config.device-type == "generic-x86_64") {
-      nixpkgs.hostPlatform = "x86_64-linux";
-      isoImage.squashfsCompression = "lz4";
-      isoImage.isoBaseName = "thymis-${cfg.hostname}";
-      system.build.download-path = pkgs.writeText "download-path" (
-        let
-          drv = config.system.build.isoImage;
-        in
-        drv + "/iso/${drv.name}"
-      );
-    })
-    (lib.optionalAttrs (thymis-config.device-type == "raspberry_pi_4b") {
-      nixpkgs.hostPlatform = "aarch64-linux";
-      sdImage.compressImage = false;
-      sdImage.imageBaseName = "thymis-${cfg.hostname}";
-      system.build.download-path = pkgs.writeText "download-path" (
-        let
-          drv = config.system.build.sdImage;
-        in
-        drv + "/sd-image/${drv.name}"
-      );
-    })
   ];
-
 }
