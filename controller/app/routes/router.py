@@ -6,7 +6,7 @@ from app import models
 router = APIRouter()
 
 
-@router.get("/state", response_model=List[models.Module])
+@router.get("/state")
 def get_state(state=Depends(get_state)):
     return state
 
