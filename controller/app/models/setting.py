@@ -1,10 +1,10 @@
-from typing import Type
+from typing import Optional, Type
 from pydantic import BaseModel
 
 
 class Setting(BaseModel):
     name: str
-    type: str
+    type: str | object
     default: object
     description: str
-    example: str
+    example: Optional[str] = None

@@ -12,6 +12,7 @@ def get_state():
     if not Path("./state.json").is_file():
         init_state = [
             models.Module(name="M1"),
+            models.Minio(name="Minio Module"),
         ]
 
         with open("./state.json", "w+") as f:
