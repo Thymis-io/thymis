@@ -15,13 +15,16 @@ def get_state():
         ]
 
         with open("./state.json", "w+") as f:
-            json.dump([{'__type__': get_type_identifier(module), **module.model_dump()} for module in init_state], f)
+            json.dump({
+                    "version": "0.1.0",
+                    "modules": [{"__type__": get_type_identifier(module), **module.model_dump()} for module in init_state],
+                }, f, indent=2)
 
     with open("./state.json", "r") as f:
         raw_state = json.load(f)
 
     state = []
-    for entry in raw_state:
+    for entry in raw_state["modules"]:
         loaded_class = locate(entry["__type__"])
         state.append(loaded_class(**entry))
     
