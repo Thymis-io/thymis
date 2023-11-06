@@ -2,7 +2,7 @@ from . import Module, Setting
 
 
 class NodeRed(Module):
-    enabled: Setting = Setting(
+    enable: Setting = Setting(
         name="services.node-red.enable",
         type="bool",
         default=False,
@@ -10,7 +10,7 @@ class NodeRed(Module):
         example="true",
     )
 
-    enabled2: Setting = Setting(
+    enable2: Setting = Setting(
         name="services.node-red.enable",
         type="bool",
         default=False,

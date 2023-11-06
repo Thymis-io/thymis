@@ -6,6 +6,6 @@ from app import models
 class Module(BaseModel):
     name: str
 
-    enabled: models.Setting = models.Setting(
-        name="enabled", type="bool", default=False, description="Whether the module is enabled", example="true"
+    enable: models.Setting = models.Setting(
+        name="enable", type="bool", default=False, description="Whether the module is enable", example="true"
     )
