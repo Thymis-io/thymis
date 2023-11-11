@@ -26,11 +26,14 @@ def load():
     with open(state_path, "r") as f:
         raw_state = json.load(f)
 
+    return convert(raw_state["modules"])
+
+
+def convert(raw):
     state = []
-    for entry in raw_state["modules"]:
-        loaded_class = locate(entry["__type__"])
-        state.append(loaded_class(**entry))
-    
+    for entry in raw:
+            loaded_class = locate(entry["type"])
+            state.append(loaded_class(**entry))
     return state
 
 
@@ -38,5 +41,5 @@ def save(state):
     with open(state_path, "w+") as f:
         json.dump({
                 "version": "0.1.0",
-                "modules": [{"__type__": get_type_identifier(module), **module.model_dump()} for module in state],
+                "modules": [{**module.model_dump(), "type": get_type_identifier(module)} for module in state],
             }, f, indent=2)

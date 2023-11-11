@@ -1,9 +1,10 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 from app import models
 
 
 class Module(BaseModel):
+    type: Optional[str] = None
     name: str
 
     enable: models.Setting = models.Setting(
