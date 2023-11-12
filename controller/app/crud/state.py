@@ -16,10 +16,12 @@ def is_initalized():
 
 
 def initalize():
-    save([
-        models.Module(name="M1"),
-        models.Minio(name="Minio Module"),
-    ])
+    save(
+        [
+            models.Module(name="M1"),
+            models.Minio(name="Minio Module"),
+        ]
+    )
 
 
 def load():
@@ -32,14 +34,21 @@ def load():
 def convert(raw):
     state = []
     for entry in raw:
-            loaded_class = locate(entry["type"])
-            state.append(loaded_class(**entry))
+        loaded_class = locate(entry["type"])
+        state.append(loaded_class(**entry))
     return state
 
 
 def save(state):
     with open(state_path, "w+") as f:
-        json.dump({
+        json.dump(
+            {
                 "version": "0.1.0",
-                "modules": [{**module.model_dump(), "type": get_type_identifier(module)} for module in state],
-            }, f, indent=2)
+                "modules": [
+                    {**module.model_dump(), "type": get_type_identifier(module)}
+                    for module in state
+                ],
+            },
+            f,
+            indent=2,
+        )
