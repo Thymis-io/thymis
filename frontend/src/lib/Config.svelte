@@ -19,7 +19,7 @@
 	}
 
 	let state: Module[] = [];
-	let selected: Module | null = null;
+	let selected: number | null = null;
 
 	async function loadConfig() {
 		const response = await fetch('http://localhost:8000/state', {
@@ -33,7 +33,7 @@
 		console.log(state);
 
 		if (state.length >= 1) {
-			selected = state[0];
+			selected = 0;
 		}
 	}
 
@@ -54,7 +54,7 @@
 	<div>
 		<ListBox>
 			{#each state as module}
-				<ListBoxItem bind:group={selected} value={module} name={module.name}>
+				<ListBoxItem bind:group={selected} value={state.indexOf(module)} name={module.name}>
 					{module.name}
 				</ListBoxItem>
 			{/each}
@@ -65,20 +65,20 @@
 	</div>
 	<div class="col-span-4 grid grid-cols-4 gap-8 gap-x-10">
 		{#if selected}
-			{#each Object.keys(selected) as settingKey}
+			{#each Object.keys(state[selected]) as settingKey}
 				{#if settingKey !== 'name' && settingKey !== 'type'}
-					<div class="col-span-1">{selected[settingKey].name}</div>
+					<div class="col-span-1">{state[selected][settingKey].name}</div>
 					<div class="col-span-1">
-						{#if selected[settingKey].type == 'bool'}
-							<ConfigBool name={selected[settingKey].name} />
-						{:else if selected[settingKey].type == 'string'}
+						{#if state[selected][settingKey].type == 'bool'}
+							<ConfigBool name={state[selected][settingKey].name} />
+						{:else if state[selected][settingKey].type == 'string'}
 							<ConfigString
-								bind:value={selected[settingKey].value}
-								placeholder={selected[settingKey].default}
+								bind:value={state[selected][settingKey].value}
+								placeholder={state[selected][settingKey].default}
 							/>
 						{/if}
 					</div>
-					<div class="col-span-2">{selected[settingKey].description}</div>
+					<div class="col-span-2">{state[selected][settingKey].description}</div>
 				{/if}
 			{/each}
 		{/if}
