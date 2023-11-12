@@ -9,3 +9,9 @@ class Setting(BaseModel):
     default: object
     description: str
     example: Optional[str] = None
+
+    def get_value(self):
+        if self.value is not None:
+            return self.value
+        else:
+            return self.default

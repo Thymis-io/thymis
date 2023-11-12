@@ -1,4 +1,5 @@
 from typing import List
+from app.models.state import State
 from fastapi import APIRouter, Depends, Request
 from ..dependencies import get_state
 from app import models
@@ -20,6 +21,4 @@ def get_guistate():
 
 @router.patch("/state")
 async def update_state(new_state: Request):
-    converted = state.convert((await new_state.json()))
-    state.save(converted)
-    return state.load()
+    return state.update(await new_state.json())

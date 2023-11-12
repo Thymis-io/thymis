@@ -5,4 +5,4 @@ def get_state():
     if not state.is_initalized():
         state.initalize()
 
-    return state.load()
+    return state.load_from_file()

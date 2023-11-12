@@ -2,9 +2,10 @@ import json
 from pydoc import locate
 from pathlib import Path
 from app import models
+from app.models.state import State
 
 
-state_path = "./state.json"
+REPO_PATH: str = "/home/elikoga/Dev/thymis/testrepo"
 
 
 def get_type_identifier(module):
@@ -12,43 +13,36 @@ def get_type_identifier(module):
 
 
 def is_initalized():
-    return Path(state_path).is_file()
+    # return Path(REPO_PATH).is_dir() and (Path(REPO_PATH)  / "state.json").is_file()
+    return False
 
 
 def initalize():
-    save(
-        [
+    # save(
+    #     [
+    #         models.Module(name="M1"),
+    #         models.Minio(name="Minio Module"),
+    #     ]
+    # )
+    Path(REPO_PATH).mkdir(exist_ok=True)
+    state = State(
+        version="0.0.1",
+        modules=[
             models.Module(name="M1"),
             models.Minio(name="Minio Module"),
-        ]
+            models.Thymis(name="Thymis Module"),
+        ],
     )
+    update(state.model_dump())
 
 
-def load():
-    with open(state_path, "r") as f:
-        raw_state = json.load(f)
-
-    return convert(raw_state["modules"])
-
-
-def convert(raw):
-    state = []
-    for entry in raw:
-        loaded_class = locate(entry["type"])
-        state.append(loaded_class(**entry))
-    return state
+def load_from_file():
+    with open(Path(REPO_PATH) / "state.json", "r") as f:
+        state_dict = json.load(f)
+    return State.load_from_dict(state_dict)
 
 
-def save(state):
-    with open(state_path, "w+") as f:
-        json.dump(
-            {
-                "version": "0.1.0",
-                "modules": [
-                    {**module.model_dump(), "type": get_type_identifier(module)}
-                    for module in state
-                ],
-            },
-            f,
-            indent=2,
-        )
+def update(d):
+    state = State.load_from_dict(d)
+    state.save(REPO_PATH)
+    state.write_nix(REPO_PATH)

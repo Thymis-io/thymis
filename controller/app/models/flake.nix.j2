@@ -1,0 +1,46 @@
+{
+  description = "Thymis";
+
+  inputs = {
+    # thymis.url = "github:thymis-io/thymis";
+    thymis.url = "git+file:///home/elikoga/Dev/thymis/thymis";
+    nixpkgs.url = "nixpkgs/nixos-23.05";
+    home-manager.url = "github:nix-community/home-manager/release-23.05";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    nixos-generators.url = "github:nix-community/nixos-generators";
+    nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
+    nixos-hardware.url = "github:NixOS/nixos-hardware";
+    flake-utils.url = "github:numtide/flake-utils";
+    poetry2nix = {
+      url = "github:nix-community/poetry2nix/1.42.1";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
+    };
+  };
+
+  outputs = inputs@{ self, nixpkgs, home-manager, poetry2nix, flake-utils, thymis, ... }:
+    let
+      eachSystem = nixpkgs.lib.genAttrs (import ./flake.systems.nix);
+    in
+    {
+      nixosConfigurations.system = nixpkgs.lib.nixosSystem {
+        modules = [
+          thymis.nixosModules.thymis
+        ] ++ (
+          let
+            dir = builtins.readDir ./modules;
+            nix-files = nixpkgs.lib.filterAttrs
+              (f: t: ((
+                (builtins.length (builtins.match ".*\\.nix$" f)) > 0
+              ) && (t == "regular")))
+              dir;
+          in
+          nixpkgs.lib.mapAttrsToList (name: _: ./modules/${name}) nix-files
+        );
+        specialArgs = {
+          inherit inputs;
+          thymis-config = builtins.fromJSON (builtins.readFile ./thymis-settings.json);
+        };
+      };
+    };
+}

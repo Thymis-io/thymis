@@ -1,13 +1,14 @@
 { buildNpmPackage
 , runtimeShell
 , nodejs
+, lib
 ,
 }:
 buildNpmPackage {
   pname = "thymis-frontend";
   version = "0.0.1";
   src = ./.;
-  npmDepsHash = "sha256-erQgDhhjcstY8BtGWMSSnbeh5zz9VCNiudLBgvSqGBw=";
+  npmDepsHash = "sha256-hIB80CbzzGCwDQO1T4zuH1D3TF9gjLUPmHMEWc536yw=";
   postInstall = ''
     mkdir -p $packageOut/build
     cp -r ./build/* $packageOut/build

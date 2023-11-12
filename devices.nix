@@ -26,10 +26,13 @@ let
       };
       raspberry-pi-4 = {
         formatConfigs = lib.mkForce {
+          imports = [
+            inputs.nixos-hardware.nixosModules.raspberry-pi-4
+            "${inputs.nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+          ];
           sd-card-image = {
             imports = [
               inputs.nixos-generators.nixosModules.sd-aarch64
-              inputs.nixos-hardware.nixosModules.raspberry-pi-4
             ];
           };
         };

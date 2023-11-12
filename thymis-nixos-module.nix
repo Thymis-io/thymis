@@ -94,7 +94,7 @@ in
         description = "Thymis frontend";
         after = [ "network.target" ];
         wantedBy = [ "multi-user.target" ];
-        script = "${inputs.self.packages.${config.nixpkgs.hostPlatform.system}.thymis-frontend}/bin/thymis-frontend";
+        script = "${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-frontend}/bin/thymis-frontend";
         environment = {
           HOST = "127.0.0.1";
           PORT = "3000";
@@ -104,7 +104,7 @@ in
         description = "Thymis controller";
         after = [ "network.target" ];
         wantedBy = [ "multi-user.target" ];
-        script = "${inputs.self.packages.${config.nixpkgs.hostPlatform.system}.thymis-controller}/bin/thymis-controller";
+        script = "${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-controller}/bin/thymis-controller";
       };
       services.nginx = {
         enable = true;
