@@ -70,7 +70,10 @@
 					<div class="col-span-1">{state[selected][settingKey].name}</div>
 					<div class="col-span-1">
 						{#if state[selected][settingKey].type == 'bool'}
-							<ConfigBool name={state[selected][settingKey].name} />
+							<ConfigBool
+								bind:value={state[selected][settingKey].value}
+								name={state[selected][settingKey].name}
+							/>
 						{:else if state[selected][settingKey].type == 'string'}
 							<ConfigString
 								bind:value={state[selected][settingKey].value}
