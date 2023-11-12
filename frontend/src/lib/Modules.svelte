@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import ModuleCard from './ModuleCard.svelte';
 	import { modules } from './modules';
 	let searchInput = '';

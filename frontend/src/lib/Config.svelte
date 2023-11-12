@@ -54,13 +54,14 @@
 	<div>
 		<ListBox>
 			{#each state as module}
-				<ListBoxItem bind:group={selected} value={module} name={module.name}
-					>{module.name}</ListBoxItem
-				>
+				<ListBoxItem bind:group={selected} value={module} name={module.name}>
+					{module.name}
+				</ListBoxItem>
 			{/each}
 		</ListBox>
-		<button type="button" class="btn variant-filled mt-8" on:click={() => saveConfig()}>save</button
-		>
+		<button type="button" class="btn variant-filled mt-8" on:click={() => saveConfig()}>
+			save
+		</button>
 	</div>
 	<div class="col-span-4 grid grid-cols-4 gap-8 gap-x-10">
 		{#if selected}
