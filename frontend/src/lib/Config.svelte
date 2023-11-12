@@ -3,20 +3,30 @@
 	import ConfigBool from './config/ConfigBool.svelte';
 	import ConfigString from './config/ConfigString.svelte';
 
-	interface Setting {
+	type SettingTypes =
+		| {
+				type: 'bool';
+				value: boolean;
+		  }
+		| {
+				type: 'string';
+				value: string;
+		  }
+		| {
+				type: 'path';
+				value: string;
+		  };
+
+	type Setting = SettingTypes & {
 		name: string;
-		value: any;
+		// value: unknown;
 		default: string;
 		description: string;
 		example: string | null;
-		type: string;
-	}
+		// type: string;
+	};
 
-	interface Module {
-		name: string;
-
-		[x: string]: Setting;
-	}
+	type Module = { name: string } & Record<string, Setting>;
 
 	let state: Module[] = [];
 	let selected: number | null = null;
@@ -38,7 +48,7 @@
 	}
 
 	async function saveConfig() {
-		const response = await fetch('http://localhost:8000/state', {
+		await fetch('http://localhost:8000/state', {
 			method: 'PATCH',
 			headers: {
 				'content-type': 'application/json'
