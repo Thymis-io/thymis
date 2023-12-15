@@ -9,6 +9,12 @@ env = Environment(
     loader=PackageLoader("app", "models"),
 )
 
+ALL_MODULES = [
+    models.Module,
+    models.Minio,
+    models.Thymis,
+]
+
 
 class State(BaseModel):
     version: str
@@ -27,6 +33,14 @@ class State(BaseModel):
         # write modules
         for module in self.modules:
             module.write_nix(modules_path, env)
+
+    def available_modules(self):
+        # return all modules that are not already included in the state
+        out = []
+        for module in ALL_MODULES:
+            if module not in [type(m) for m in self.modules]:
+                out.append(module())
+        return out
 
     @classmethod
     def load_from_dict(cls, d):

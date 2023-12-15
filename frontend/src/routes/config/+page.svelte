@@ -4,6 +4,7 @@
 	import ConfigString from '$lib/config/ConfigString.svelte';
 	import type { PageData } from './$types';
 	import { queryParam } from 'sveltekit-search-params';
+	import { invalidate } from '$app/navigation';
 	const selected = queryParam<number>('selected', {
 		decode: (value) => (value ? parseInt(value, 10) : 0),
 		encode: (value) => value.toString()
@@ -13,13 +14,15 @@
 	$: state = data.state;
 
 	async function saveConfig() {
-		await fetch('http://localhost:8000/state', {
+		await fetch('http://0.0.0.0:8000/state', {
 			method: 'PATCH',
 			headers: {
 				'content-type': 'application/json'
 			},
 			body: JSON.stringify(state)
 		});
+		await invalidate('http://0.0.0.0:8000/state');
+		await invalidate('http://0.0.0.0:8000/available_modules');
 	}
 
 	$: console.log(selected);
@@ -27,16 +30,50 @@
 
 <div class="grid grid-flow-row grid-cols-5 gap-12">
 	<div>
-		<ListBox>
-			{#each state.modules as module, i}
-				<ListBoxItem bind:group={$selected} value={i} name={module.name}>
-					{module.name}
-				</ListBoxItem>
-			{/each}
-		</ListBox>
-		<button type="button" class="btn variant-filled mt-8" on:click={() => saveConfig()}>
-			save
-		</button>
+		<div>
+			Available Modules
+			<ul class="list">
+				{#each data.availableModules as module}
+					<li>
+						<span>(icon)</span>
+						<span class="flex-auto">{module.name}</span>
+						<button
+							class="btn"
+							on:click={() => {
+								state.modules = [...state.modules, module];
+							}}
+						>
+							add
+						</button>
+					</li>
+				{:else}
+					<li>no modules available</li>
+				{/each}
+			</ul>
+		</div>
+		<div>
+			Installed Modules
+			<ListBox>
+				{#each state.modules as module, i}
+					<ListBoxItem bind:group={$selected} value={i} name={module.name}>
+						<div class="flex place-content-between">
+							<div>{module.name}</div>
+							<button
+								class="btn"
+								on:click={() => {
+									state.modules = state.modules.filter((_, index) => index !== i);
+								}}
+							>
+								delete
+							</button>
+						</div>
+					</ListBoxItem>
+				{/each}
+			</ListBox>
+			<button type="button" class="btn variant-filled mt-8" on:click={() => saveConfig()}>
+				save
+			</button>
+		</div>
 	</div>
 	<div class="col-span-4 grid grid-cols-4 gap-8 gap-x-10">
 		{#if $selected != null && $selected < state.modules.length}

@@ -12,24 +12,18 @@ def get_type_identifier(module):
     return f"{module.__class__.__module__}.{module.__class__.__name__}"
 
 
-def is_initalized():
-    # return Path(REPO_PATH).is_dir() and (Path(REPO_PATH)  / "state.json").is_file()
-    return False
+def is_initialized():
+    return Path(REPO_PATH).is_dir() and (Path(REPO_PATH) / "state.json").is_file()
+    # return False
 
 
-def initalize():
-    # save(
-    #     [
-    #         models.Module(name="M1"),
-    #         models.Minio(name="Minio Module"),
-    #     ]
-    # )
+def initialize():
     Path(REPO_PATH).mkdir(exist_ok=True)
     state = State(
         version="0.0.1",
         modules=[
-            models.Module(name="M1"),
-            models.Minio(name="Minio Module"),
+            # models.Module(name="M1"),
+            # models.Minio(name="Minio Module"),
             models.Thymis(name="Thymis Module"),
         ],
     )

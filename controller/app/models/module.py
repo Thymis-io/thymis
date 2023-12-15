@@ -1,5 +1,6 @@
 import os
 from typing import List, Optional
+from typing_extensions import Unpack
 from jinja2 import Environment
 from pydantic import (
     BaseModel,
@@ -9,6 +10,8 @@ from pydantic import (
 )
 from app import models
 from pydoc import locate
+
+from pydantic.config import ConfigDict
 
 
 def convert_python_value_to_nix(value):
@@ -33,6 +36,17 @@ class Module(BaseModel):
         description="Whether the module is enable",
         example="true",
     )
+
+    def __init__(self, **data):
+        # super().__init__(**data)
+        # # also set name from classname if not set
+        # if self.name is None:
+        #     self.name = self.__class__.__name__.lower()
+
+        # first set name then call super
+        if "name" not in data:
+            data["name"] = self.__class__.__name__.lower()
+        super().__init__(**data)
 
     def write_nix(self, path: os.PathLike, env: Environment):
         # filename = f"{self.name}.nix"

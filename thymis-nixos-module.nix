@@ -22,10 +22,10 @@ in
             default = "generic-x86_64";
             description = "Type of the device";
           };
-          hostname = lib.mkOption {
+          device-name = lib.mkOption {
             type = lib.types.str;
             default = "thymis";
-            description = "Hostname of the device";
+            description = "Name of the device";
           };
           password = lib.mkOption {
             type = lib.types.str;
@@ -57,7 +57,7 @@ in
         enable = true;
         settings.PermitRootLogin = "yes";
       };
-      networking.hostName = cfg.hostname;
+      networking.hostName = cfg.device-name;
       networking.wireless = lib.mkIf use-wifi {
         enable = true;
         networks = {

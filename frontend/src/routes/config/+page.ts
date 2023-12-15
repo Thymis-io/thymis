@@ -29,19 +29,24 @@ type State = {
 	modules: Module[];
 };
 
-export const load = (async () => {
-	const response = await fetch('http://0.0.0.0:8000/state', {
+export const load = (async ({ fetch }) => {
+	const stateResponse = await fetch('http://0.0.0.0:8000/state', {
 		method: 'GET',
 		headers: {
 			'content-type': 'application/json'
 		}
 	});
-	// return {
-	//     state: response.json() as Promise<State>
-	// };
-	const state = (await response.json()) as State;
-	console.log(state);
+	const state = (await stateResponse.json()) as State;
+	const availableModulesResponse = await fetch('http://0.0.0.0:8000/available_modules', {
+		method: 'GET',
+		headers: {
+			'content-type': 'application/json'
+		}
+	});
+	const availableModules = (await availableModulesResponse.json()) as Module[];
+	// console.log(state);
 	return {
-		state: state
+		state: state,
+		availableModules: availableModules
 	};
 }) satisfies PageLoad;

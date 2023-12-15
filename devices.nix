@@ -6,7 +6,7 @@ let
       inputs.nixos-generators.nixosModules.all-formats
     ];
   };
-  deviceConfig = builtins.mapAttrs (name: config: sharedConfig // config)
+  deviceConfig = builtins.mapAttrs (name: config: lib.attrsets.recursiveUpdate sharedConfig config)
     {
       generic-x86_64 = {
         formatConfigs = lib.mkForce {
@@ -25,17 +25,27 @@ let
         nixpkgs.hostPlatform = "aarch64-linux";
       };
       raspberry-pi-4 = {
+        imports = [
+          inputs.nixos-generators.nixosModules.all-formats
+          inputs.nixos-hardware.nixosModules.raspberry-pi-4
+          inputs.nixos-generators.nixosModules.sd-aarch64
+
+        ];
         formatConfigs = lib.mkForce {
-          imports = [
-            inputs.nixos-hardware.nixosModules.raspberry-pi-4
-            "${inputs.nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
-          ];
           sd-card-image = {
             imports = [
               inputs.nixos-generators.nixosModules.sd-aarch64
             ];
+            sdImage.compressImage = false;
+            fileExtension = ".img";
           };
         };
+        nixpkgs.overlays = [
+          (final: super: {
+            makeModulesClosure = x:
+              super.makeModulesClosure (x // { allowMissing = true; });
+          })
+        ];
         nixpkgs.hostPlatform = "aarch64-linux";
       };
       # raspberry-pi-zero = {
