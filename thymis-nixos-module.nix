@@ -83,6 +83,11 @@ in
           user = "nixos";
         };
       };
+      users.users.nixos = {
+        isNormalUser = true;
+        createHome = true;
+        password = cfg.password;
+      };
       services.xserver.windowManager.i3.enable = true;
       services.xserver.windowManager.i3.configFile = pkgs.writeText "i3-config" ''
         bar mode invisible;
