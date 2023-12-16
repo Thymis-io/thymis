@@ -90,6 +90,7 @@ in
       };
       services.xserver.windowManager.i3.enable = true;
       services.xserver.windowManager.i3.configFile = pkgs.writeText "i3-config" ''
+        # i3 config file (v4)
         bar mode invisible;
         exec ${pkgs.firefox}/bin/firefox --kiosk http://localhost:3000/kiosk
       '';
