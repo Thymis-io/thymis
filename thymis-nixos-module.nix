@@ -72,6 +72,7 @@ in
       '';
       system.nixos.distroName = "Thymis - NixOS";
       services.getty.autologinUser = lib.mkForce null;
+      services.xserver.enable = true;
       services.xserver.displayManager = {
         gdm = {
           enable = true;
