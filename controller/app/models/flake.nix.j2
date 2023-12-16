@@ -32,7 +32,7 @@
             dir = builtins.readDir ./modules;
             nix-files = nixpkgs.lib.filterAttrs
               (f: t: ((
-                (builtins.length (builtins.match ".*\\.nix$" f)) > 0
+                (builtins.length (builtins.match "(.*\.nix)" f)) > 0
               ) && (t == "regular")))
               dir;
           in
