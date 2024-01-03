@@ -1,14 +1,15 @@
 <script lang="ts">
 	import '../app.postcss';
 	import { AppShell, AppRail, AppRailAnchor, AppBar } from '@skeletonlabs/skeleton';
-	import { Grid2x2Icon, SettingsIcon, HistoryIcon } from 'lucide-svelte';
+	import { Grid2x2Icon, SettingsIcon, HistoryIcon, LayoutDashboard } from 'lucide-svelte';
 	import { page } from '$app/stores';
+	import Logo from '$lib/Logo.svelte';
 </script>
 
 <AppShell>
 	<svelte:fragment slot="header">
 		<AppBar>
-			<svelte:fragment slot="lead">(icon)</svelte:fragment>
+			<svelte:fragment slot="lead"><Logo /></svelte:fragment>
 			Thymis
 			<svelte:fragment slot="trail">(actions)</svelte:fragment>
 		</AppBar>
@@ -17,8 +18,8 @@
 		<AppRail>
 			<svelte:fragment slot="lead">
 				<AppRailAnchor href="/">
-					<svelte:fragment slot="lead">(icon)</svelte:fragment>
-					<span>Thymis</span>
+					<svelte:fragment slot="lead"><LayoutDashboard /></svelte:fragment>
+					<span>Overview</span>
 				</AppRailAnchor>
 			</svelte:fragment>
 			<!-- --- -->
