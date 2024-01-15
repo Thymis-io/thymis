@@ -55,5 +55,5 @@ class State(BaseModel):
 
     def save(self, path: os.PathLike = "./"):
         path = os.path.join(path, "state.json")
-        with open(path, "w+") as f:
+        with open(path, "w+", encoding="utf-8") as f:
             f.write(self.model_dump_json(indent=2))
