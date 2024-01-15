@@ -1,4 +1,4 @@
-from typing import Optional, Type
+from typing import Dict, Optional, Type
 from pydantic import BaseModel
 
 
@@ -15,3 +15,11 @@ class Setting(BaseModel):
             return self.value
         else:
             return self.default
+
+class SettingValue(BaseModel):
+    value: object = None
+
+
+class ModuleSettings(BaseModel):
+    type: str
+    settings: Dict[str, SettingValue]

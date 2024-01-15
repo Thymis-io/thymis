@@ -19,6 +19,8 @@ ALL_MODULES = [
 class State(BaseModel):
     version: str
     modules: List[SerializeAsAny[models.Module]]
+    tags: List[models.Tag]
+    devices: List[models.Device]
 
     def write_nix(self, path: os.PathLike):
         path = pathlib.Path(path)
@@ -47,6 +49,8 @@ class State(BaseModel):
         return cls(
             version=d["version"],
             modules=[models.Module.from_dict(module) for module in d["modules"]],
+            tags=d["tags"] if "tags" in d else [],
+            devices=d["devices"] if "devices" in d else [],
         )
 
     def save(self, path: os.PathLike = "./"):

@@ -26,6 +26,8 @@ def initialize():
             # models.Minio(name="Minio Module"),
             models.Thymis(name="Thymis Module"),
         ],
+        tags=[],
+        devices=[],
     )
     update(state.model_dump())
 
