@@ -14,15 +14,15 @@
 	$: state = data.state;
 
 	async function saveConfig() {
-		await fetch('http://0.0.0.0:8000/state', {
+		await fetch('http://localhost:8000/state', {
 			method: 'PATCH',
 			headers: {
 				'content-type': 'application/json'
 			},
 			body: JSON.stringify(state)
 		});
-		await invalidate('http://0.0.0.0:8000/state');
-		await invalidate('http://0.0.0.0:8000/available_modules');
+		await invalidate('http://localhost:8000/state');
+		await invalidate('http://localhost:8000/available_modules');
 	}
 
 	$: console.log(selected);
