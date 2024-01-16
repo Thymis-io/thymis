@@ -2,17 +2,17 @@ import type { PageLoad } from './$types';
 
 type SettingTypes =
 	| {
-			type: 'bool';
-			value: boolean;
-	  }
+		type: 'bool';
+		value: boolean;
+	}
 	| {
-			type: 'string';
-			value: string;
-	  }
+		type: 'string';
+		value: string;
+	}
 	| {
-			type: 'path';
-			value: string;
-	  };
+		type: 'path';
+		value: string;
+	};
 
 type Setting = SettingTypes & {
 	name: string;
@@ -30,14 +30,14 @@ type State = {
 };
 
 export const load = (async ({ fetch }) => {
-	const stateResponse = await fetch('http://0.0.0.0:8000/state', {
+	const stateResponse = await fetch('http://localhost:8000/state', {
 		method: 'GET',
 		headers: {
 			'content-type': 'application/json'
 		}
 	});
 	const state = (await stateResponse.json()) as State;
-	const availableModulesResponse = await fetch('http://0.0.0.0:8000/available_modules', {
+	const availableModulesResponse = await fetch('http://localhost:8000/available_modules', {
 		method: 'GET',
 		headers: {
 			'content-type': 'application/json'
