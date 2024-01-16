@@ -17,7 +17,7 @@
 	<svelte:fragment slot="sidebarLeft">
 		<AppRail>
 			<svelte:fragment slot="lead">
-				<AppRailAnchor href="/">
+				<AppRailAnchor href="/overview">
 					<svelte:fragment slot="lead"><LayoutDashboard /></svelte:fragment>
 					<span>Overview</span>
 				</AppRailAnchor>
