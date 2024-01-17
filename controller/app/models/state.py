@@ -32,9 +32,32 @@ class State(BaseModel):
         modules_path.mkdir(exist_ok=True)
         for module in modules_path.glob("*.nix"):
             module.unlink()
-        # write modules
-        for module in self.modules:
-            module.write_nix(modules_path, env)
+        # create and empty hosts, tags folder
+        (path / "hosts").mkdir(exist_ok=True)
+        (path / "tags").mkdir(exist_ok=True)
+        # empty hosts, tags folder
+        for module in (path / "hosts").glob("*.nix"):
+            module.unlink()
+        for module in (path / "tags").glob("*.nix"):
+            module.unlink()
+        # for each host create its own folder
+        for device in self.devices:
+            device_path = path / "hosts" / device.hostname
+            device_path.mkdir(exist_ok=True)
+            # write its modules
+            for module_settings in device.modules:
+                # module holds settings right now.
+                module = next(m for m in self.modules if m.type == module_settings.type)
+                module.write_nix(device_path, env, module_settings)
+        # for each tag create its own folder
+        for tag in self.tags:
+            tag_path = path / "tags" / tag.name
+            tag_path.mkdir(exist_ok=True)
+            # write its modules
+            for module_settings in tag.modules:
+                # module holds settings right now.
+                module = next(m for m in self.modules if m.type == module_settings.type)
+                module.write_nix(tag_path, env, module_settings)
 
     def available_modules(self):
         # return all modules that are not already included in the state

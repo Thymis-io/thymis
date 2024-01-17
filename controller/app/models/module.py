@@ -14,28 +14,9 @@ from pydoc import locate
 from pydantic.config import ConfigDict
 
 
-def convert_python_value_to_nix(value):
-    if isinstance(value, bool):
-        return str(value).lower()
-    elif isinstance(value, str):
-        return f'"{value}"'
-    elif isinstance(value, list):
-        return f"[{' '.join([convert_python_value_to_nix(v) for v in value])}]"
-    else:
-        return str(value)
-
-
 class Module(BaseModel):
     type: Optional[str] = None
     name: str
-
-    enable: models.Setting = models.Setting(
-        name="enable",
-        type="bool",
-        default=False,
-        description="Whether the module is enable",
-        example="true",
-    )
 
     def __init__(self, **data):
         # super().__init__(**data)
@@ -48,25 +29,6 @@ class Module(BaseModel):
             data["name"] = self.__class__.__name__.lower()
         super().__init__(**data)
 
-    def write_nix(self, path: os.PathLike, env: Environment):
-        # filename = f"{self.name}.nix"
-        # use classname, but first letter lowercase
-        classname = self.__class__.__name__
-        filename = f"{classname[0].lower()}{classname[1:]}.nix"
-
-        with open(path / filename, "w+") as f:
-            f.write("{ pkgs, lib, ... }:\n")
-            f.write("{\n")
-            # for attr in dir(self):
-            # use model_fields_set
-            for attr in self.model_fields_set:
-                attr = getattr(self, attr)
-                if isinstance(attr, models.Setting):
-                    f.write(
-                        f"  {attr.name} = {convert_python_value_to_nix(attr.get_value())};\n"
-                    )
-            f.write("}\n")
-
     @classmethod
     def from_dict(cls, d):
         return locate(d["type"])(**d)
@@ -76,3 +38,22 @@ class Module(BaseModel):
         d = nxt(self)
         d["type"] = f"{self.__class__.__module__}.{self.__class__.__name__}"
         return d
+
+    def write_nix(
+        self,
+        path: os.PathLike,
+        env: Environment,
+        module_settings: models.ModuleSettings,
+    ):
+        filename = f"{self.type}.nix"
+
+        with open(path / filename, "w+") as f:
+            f.write("{ pkgs, lib, ... }:\n")
+            f.write("{\n")
+
+            for attr, value in module_settings.settings.items():
+                my_attr = getattr(self, attr)
+                assert isinstance(my_attr, models.Setting)
+                my_attr.write_nix(f, value, module_settings.priority)
+
+            f.write("}\n")
