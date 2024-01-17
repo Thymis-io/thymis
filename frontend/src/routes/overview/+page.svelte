@@ -1,10 +1,9 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { getModalStore } from '@skeletonlabs/skeleton';
-	import { saveState } from '$lib/state';
+	import { saveState, type Device } from '$lib/state';
 
 	export let data: PageData;
-	$: devices = data.devices;
 	$: state = data.state;
 
 	const modalStore = getModalStore();
@@ -16,11 +15,18 @@
 			title: 'Create a new device',
 			response: (r) => {
 				if (r) {
-					devices.push({ ...r, tags: [], modules: [] });
+					state.devices.push({ ...r, tags: [], modules: [] });
 					saveState(state);
 				}
 			}
 		});
+	}
+
+	function deleteDevice(device: Device) {
+		state.devices = state.devices.filter(
+			(d) => d.hostname !== device.hostname && d.displayName !== device.displayName
+		);
+		saveState(state);
 	}
 </script>
 
@@ -41,7 +47,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each devices as device}
+				{#each state.devices as device}
 					<tr>
 						<td class="border-t border-slate-200 p-2">{device.displayName}</td>
 						<td class="border-t border-slate-200 p-2">{device.hostname}</td>
@@ -54,6 +60,9 @@
 						<td class="border-t border-slate-200 p-2">
 							<a class="btn variant-filled" href="/config?device={device.hostname}">Edit</a>
 							<a class="btn variant-filled">Download Image</a>
+							<button class="btn variant-filled" on:click={() => deleteDevice(device)}>
+								Delete
+							</button>
 						</td>
 						<td class="border-t border-slate-200 p-2">Online</td>
 					</tr>

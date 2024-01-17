@@ -10,10 +10,8 @@ export const load = (async ({ fetch }) => {
     });
 
     const state = (await stateResponse.json()) as State;
-    const devices = state.devices as Device[];
 
     return {
         state: state,
-        devices: devices,
     };
 }) satisfies PageLoad;
