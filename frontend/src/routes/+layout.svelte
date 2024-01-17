@@ -4,8 +4,12 @@
 	import { Grid2x2Icon, SettingsIcon, HistoryIcon, LayoutDashboard } from 'lucide-svelte';
 	import { page } from '$app/stores';
 	import Logo from '$lib/Logo.svelte';
+	import { Modal, initializeStores } from '@skeletonlabs/skeleton';
+
+	initializeStores();
 </script>
 
+<Modal />
 <AppShell>
 	<svelte:fragment slot="header">
 		<AppBar>
