@@ -19,7 +19,7 @@ module.exports = {
 	plugins: [
 		forms,
 		skeleton({
-			themes: { preset: ['crimson'] }
+			themes: { preset: ['hamlindigo'] }
 		})
 	]
 };

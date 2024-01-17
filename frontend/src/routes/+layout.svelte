@@ -32,7 +32,7 @@
 	<svelte:fragment slot="sidebarLeft">
 		<AppRail>
 			<svelte:fragment slot="lead">
-				<AppRailAnchor href="/overview">
+				<AppRailAnchor href="/overview" selected={$page.url.pathname === '/overview'}>
 					<svelte:fragment slot="lead"><LayoutDashboard /></svelte:fragment>
 					<span>Overview</span>
 				</AppRailAnchor>
