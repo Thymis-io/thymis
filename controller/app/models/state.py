@@ -15,6 +15,8 @@ ALL_MODULES = [
     models.Thymis,
 ]
 
+HOST_PRIORITY = 100
+
 
 class State(BaseModel):
     version: str
@@ -48,7 +50,7 @@ class State(BaseModel):
             for module_settings in device.modules:
                 # module holds settings right now.
                 module = next(m for m in self.modules if m.type == module_settings.type)
-                module.write_nix(device_path, env, module_settings)
+                module.write_nix(device_path, env, module_settings, HOST_PRIORITY)
         # for each tag create its own folder
         for tag in self.tags:
             tag_path = path / "tags" / tag.name
@@ -57,7 +59,7 @@ class State(BaseModel):
             for module_settings in tag.modules:
                 # module holds settings right now.
                 module = next(m for m in self.modules if m.type == module_settings.type)
-                module.write_nix(tag_path, env, module_settings)
+                module.write_nix(tag_path, env, module_settings, tag.priority)
 
     def available_modules(self):
         # return all modules that are not already included in the state

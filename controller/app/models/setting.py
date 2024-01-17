@@ -29,5 +29,4 @@ class SettingValue(BaseModel):
 
 class ModuleSettings(BaseModel):
     type: str  # type of module this settings object is for
-    priority: int
     settings: Dict[str, SettingValue]

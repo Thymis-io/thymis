@@ -42,8 +42,8 @@ class Module(BaseModel):
     def write_nix(
         self,
         path: os.PathLike,
-        env: Environment,
         module_settings: models.ModuleSettings,
+        priority: int,
     ):
         filename = f"{self.type}.nix"
 
@@ -54,6 +54,6 @@ class Module(BaseModel):
             for attr, value in module_settings.settings.items():
                 my_attr = getattr(self, attr)
                 assert isinstance(my_attr, models.Setting)
-                my_attr.write_nix(f, value, module_settings.priority)
+                my_attr.write_nix(f, value, i)
 
             f.write("}\n")
