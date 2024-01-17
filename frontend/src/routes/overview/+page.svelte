@@ -1,11 +1,28 @@
 <script lang="ts">
-	import type { PageData } from '../$types';
+	import type { PageData } from './$types';
+	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { saveState } from '$lib/state';
 
 	export let data: PageData;
-
 	$: devices = data.devices;
+	$: state = data.state;
+
+	const modalStore = getModalStore();
 </script>
 
+<button
+	class="btn variant-filled mb-8"
+	on:click={() =>
+		modalStore.trigger({
+			type: 'component',
+			component: 'CreateDeviceModal',
+			title: 'Create a new device',
+			response: (r) => {
+				devices.push({ ...r, tags: [], modules: [] });
+				saveState(state);
+			}
+		})}>Create New Device</button
+>
 <div class="border rounded-lg p-4 pb-2 bg-surface-100">
 	<table class="table-auto w-full text-left">
 		<thead>

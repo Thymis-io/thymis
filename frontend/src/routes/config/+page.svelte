@@ -4,27 +4,15 @@
 	import ConfigString from '$lib/config/ConfigString.svelte';
 	import type { PageData } from './$types';
 	import { queryParam } from 'sveltekit-search-params';
-	import { invalidate } from '$app/navigation';
+	import { saveState } from '$lib/state';
+
 	const selected = queryParam<number>('selected', {
 		decode: (value) => (value ? parseInt(value, 10) : 0),
 		encode: (value) => value.toString()
 	});
+
 	export let data: PageData;
-
 	$: state = data.state;
-
-	async function saveConfig() {
-		await fetch('http://localhost:8000/state', {
-			method: 'PATCH',
-			headers: {
-				'content-type': 'application/json'
-			},
-			body: JSON.stringify(state)
-		});
-		await invalidate('http://localhost:8000/state');
-		await invalidate('http://localhost:8000/available_modules');
-	}
-
 	$: console.log(selected);
 </script>
 
@@ -70,7 +58,7 @@
 					</ListBoxItem>
 				{/each}
 			</ListBox>
-			<button type="button" class="btn variant-filled mt-8" on:click={() => saveConfig()}>
+			<button type="button" class="btn variant-filled mt-8" on:click={() => saveState(state)}>
 				save
 			</button>
 		</div>

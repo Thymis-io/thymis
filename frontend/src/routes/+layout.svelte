@@ -1,11 +1,26 @@
 <script lang="ts">
 	import '../app.postcss';
-	import { AppShell, AppRail, AppRailAnchor, AppBar } from '@skeletonlabs/skeleton';
+	import {
+		AppShell,
+		AppRail,
+		AppRailAnchor,
+		AppBar,
+		type ModalComponent
+	} from '@skeletonlabs/skeleton';
 	import { Grid2x2Icon, SettingsIcon, HistoryIcon, LayoutDashboard } from 'lucide-svelte';
 	import { page } from '$app/stores';
 	import Logo from '$lib/Logo.svelte';
+	import { Modal, initializeStores } from '@skeletonlabs/skeleton';
+	import CreateDeviceModal from '$lib/CreateDeviceModal.svelte';
+
+	const modalRegistry: Record<string, ModalComponent> = {
+		CreateDeviceModal: { ref: CreateDeviceModal }
+	};
+
+	initializeStores();
 </script>
 
+<Modal components={modalRegistry} />
 <AppShell>
 	<svelte:fragment slot="header">
 		<AppBar>

@@ -1,33 +1,5 @@
+import type { Module, State } from '$lib/state';
 import type { PageLoad } from './$types';
-
-type SettingTypes =
-	| {
-		type: 'bool';
-		value: boolean;
-	}
-	| {
-		type: 'string';
-		value: string;
-	}
-	| {
-		type: 'path';
-		value: string;
-	};
-
-type Setting = SettingTypes & {
-	name: string;
-	// value: unknown;
-	default: string;
-	description: string;
-	example: string | null;
-	// type: string;
-};
-
-type Module = { name: string } & Record<string, Setting>;
-
-type State = {
-	modules: Module[];
-};
 
 export const load = (async ({ fetch }) => {
 	const stateResponse = await fetch('http://localhost:8000/state', {

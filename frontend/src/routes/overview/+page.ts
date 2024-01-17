@@ -1,8 +1,5 @@
 import type { PageLoad } from './$types';
-
-type SettingValue = { value: any }
-type ModuleSettings = { type: string, settings: { [key: string]: SettingValue } };
-type Device = { hostname: string, displayName: string, modules: ModuleSettings[], tags: string[] };
+import type { State, Device } from '$lib/state';
 
 export const load = (async ({ fetch }) => {
     const stateResponse = await fetch('http://localhost:8000/state', {
@@ -11,8 +8,12 @@ export const load = (async ({ fetch }) => {
             'content-type': 'application/json'
         }
     });
-    const devices = (await stateResponse.json())["devices"] as Device[];
+
+    const state = (await stateResponse.json()) as State;
+    const devices = state.devices as Device[];
+
     return {
+        state: state,
         devices: devices,
     };
 }) satisfies PageLoad;
