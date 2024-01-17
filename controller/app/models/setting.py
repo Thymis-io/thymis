@@ -5,21 +5,14 @@ from pydantic import BaseModel
 
 class Setting(BaseModel):
     name: str
-    value: object = None
     type: str | object
     default: object
     description: str
     example: Optional[str] = None
 
-    def get_value(self):
-        if self.value is not None:
-            return self.value
-        else:
-            return self.default
-
-    def write_nix(self, f, priority):
+    def write_nix(self, f, value, priority):
         f.write(
-            f"  {self.name} = lib.mkOverride {priority} {convert_python_value_to_nix(self.get_value())};\n"
+            f"  {self.name} = lib.mkOverride {priority} {convert_python_value_to_nix(value.value)};\n"
         )
 
 

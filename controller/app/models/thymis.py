@@ -4,6 +4,8 @@ from jinja2 import Environment
 from . import Module, Setting
 import pathlib
 
+from app import models
+
 
 class Thymis(Module):
     repo_dir: Setting = Setting(
@@ -35,7 +37,7 @@ class Thymis(Module):
         example="",
     )
 
-    def write_nix(self, path: os.PathLike, env: Environment):
+    def write_nix(self, path: os.PathLike, module_settings: models.ModuleSettings, priority: int):
         # return super().write_nix(path, env)
         path = pathlib.Path(path)
         with open(path / ".." / "thymis-settings.json", "w+") as f:

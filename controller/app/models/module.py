@@ -54,6 +54,6 @@ class Module(BaseModel):
             for attr, value in module_settings.settings.items():
                 my_attr = getattr(self, attr)
                 assert isinstance(my_attr, models.Setting)
-                my_attr.write_nix(f, value, i)
+                my_attr.write_nix(f, value, priority)
 
             f.write("}\n")
