@@ -33,7 +33,7 @@ def initialize():
 
 
 def load_from_file():
-    with open(Path(REPO_PATH) / "state.json", "r") as f:
+    with open(Path(REPO_PATH) / "state.json", "r", encoding="utf-8") as f:
         state_dict = json.load(f)
     return State.load_from_dict(state_dict)
 
