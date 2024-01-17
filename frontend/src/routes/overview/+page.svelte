@@ -15,8 +15,10 @@
 			component: 'CreateDeviceModal',
 			title: 'Create a new device',
 			response: (r) => {
-				devices.push({ ...r, tags: [], modules: [] });
-				saveState(state);
+				if (r) {
+					devices.push({ ...r, tags: [], modules: [] });
+					saveState(state);
+				}
 			}
 		});
 	}
