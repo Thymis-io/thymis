@@ -12,9 +12,11 @@
 	import Logo from '$lib/Logo.svelte';
 	import { Modal, initializeStores } from '@skeletonlabs/skeleton';
 	import CreateDeviceModal from '$lib/CreateDeviceModal.svelte';
+	import EditTagModal from '$lib/EditTagModal.svelte';
 
 	const modalRegistry: Record<string, ModalComponent> = {
-		CreateDeviceModal: { ref: CreateDeviceModal }
+		CreateDeviceModal: { ref: CreateDeviceModal },
+		EditTagModal: { ref: EditTagModal }
 	};
 
 	initializeStores();

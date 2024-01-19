@@ -2,6 +2,7 @@
 	import type { PageData } from './$types';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { saveState, type Device } from '$lib/state';
+	import { Pen } from 'lucide-svelte';
 
 	export let data: PageData;
 	$: state = data.state;
@@ -16,6 +17,23 @@
 			response: (r) => {
 				if (r) {
 					state.devices.push({ ...r, tags: [], modules: [] });
+					saveState(state);
+				}
+			}
+		});
+	}
+
+	function openEditTagModal(device: Device | undefined) {
+		if (!device) return;
+
+		modalStore.trigger({
+			type: 'component',
+			component: 'EditTagModal',
+			title: 'Edit tags',
+			meta: { tags: device.tags, availableTags: state.tags.map((t) => t.name) },
+			response: (r) => {
+				if (r) {
+					device.tags = r;
 					saveState(state);
 				}
 			}
@@ -51,11 +69,21 @@
 					<tr>
 						<td class="border-t border-slate-200 p-2">{device.displayName}</td>
 						<td class="border-t border-slate-200 p-2">{device.hostname}</td>
-						<td class="border-t border-slate-200 p-2">
+						<td class="border-t border-slate-200 p-2 flex gap-1 group">
 							{#each device.tags as tag, i}
-								<a class="underline" href="/config?tag={tag}">{tag}</a
-								>{#if i < device.tags.length - 1}{', '}{/if}
+								<span>
+									<a class="underline" href="/config?tag={tag}">{tag}</a
+									>{#if i < device.tags.length - 1}{', '}{/if}
+								</span>
 							{/each}
+							<div class="w-8">
+								<button
+									class="btn ml-2 p-0 hidden group-hover:block"
+									on:click={() => openEditTagModal(device)}
+								>
+									<Pen size="20" />
+								</button>
+							</div>
 						</td>
 						<td class="border-t border-slate-200 p-2">
 							<a class="btn variant-filled" href="/config?device={device.hostname}">Edit</a>
