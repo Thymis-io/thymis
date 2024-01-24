@@ -7,8 +7,6 @@
 	let change = (e: Event) => {
 		onChange((e.target as HTMLInputElement).value);
 	};
-
-	$: console.log(value);
 </script>
 
 <input

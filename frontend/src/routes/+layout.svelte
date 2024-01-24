@@ -13,6 +13,8 @@
 	import { Modal, initializeStores } from '@skeletonlabs/skeleton';
 	import CreateDeviceModal from '$lib/CreateDeviceModal.svelte';
 	import EditTagModal from '$lib/EditTagModal.svelte';
+	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
+	import { storePopup } from '@skeletonlabs/skeleton';
 
 	const modalRegistry: Record<string, ModalComponent> = {
 		CreateDeviceModal: { ref: CreateDeviceModal },
@@ -20,6 +22,7 @@
 	};
 
 	initializeStores();
+	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
 </script>
 
 <Modal components={modalRegistry} />

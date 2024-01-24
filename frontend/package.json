@@ -15,6 +15,7 @@
 		"test:unit": "vitest"
 	},
 	"devDependencies": {
+		"@floating-ui/dom": "^1.5.4",
 		"@playwright/test": "^1.28.1",
 		"@skeletonlabs/skeleton": "^2.3.0",
 		"@skeletonlabs/tw-plugin": "^0.2.2",

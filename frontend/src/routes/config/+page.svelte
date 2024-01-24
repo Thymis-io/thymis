@@ -1,12 +1,13 @@
 <script lang="ts">
-	import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
+	import { popup } from '@skeletonlabs/skeleton';
+	import { ListBox, ListBoxItem, type PopupSettings } from '@skeletonlabs/skeleton';
 	import ConfigBool from '$lib/config/ConfigBool.svelte';
 	import ConfigString from '$lib/config/ConfigString.svelte';
 	import type { PageData } from './$types';
 	import { queryParam } from 'sveltekit-search-params';
 	import { saveState, type Module } from '$lib/state';
 	import { page } from '$app/stores';
-	import { get } from 'svelte/store';
+	import { Info, RotateCcw } from 'lucide-svelte';
 
 	const selected = queryParam<number>('selected', {
 		decode: (value) => (value ? parseInt(value, 10) : 0),
@@ -24,13 +25,14 @@
 
 	$: getModuleSettings = () => {
 		if (tag) {
-			return tag.modules;
+			return tag.modules.map((m) => ({ origin: tag?.name, ...m }));
 		}
 
 		if (device) {
+			let usedTags = device.tags.flatMap((t) => state.tags.find((tag) => tag.name === t) ?? []);
 			return [
-				...device.modules,
-				...device.tags.flatMap((t) => state.tags.find((tag) => tag.name === t)?.modules ?? [])
+				...device.modules.map((m) => ({ origin: device?.hostname, ...m })),
+				...usedTags.flatMap((t) => t.modules.map((m) => ({ origin: t.name, ...m })))
 			];
 		}
 	};
@@ -60,11 +62,19 @@
 		}
 	};
 
-	$: getSetting = (module: Module, settingKey: string) => {
+	$: getSettings = (module: Module, settingKey: string) => {
 		let settings = getModuleSettings();
-		return settings?.find(
+		return settings?.filter(
 			(s) => s.type === module.type && Object.keys(s.settings).includes(settingKey)
-		)?.settings[settingKey].value as any;
+		);
+	};
+
+	$: getSetting = (module: Module, settingKey: string) => {
+		let settings = getSettings(module, settingKey);
+
+		if (settings && settings.length >= 1) {
+			return settings[0].settings[settingKey].value;
+		}
 	};
 
 	$: setSetting = (module: Module, settingKey: string, value: any) => {
@@ -141,24 +151,56 @@
 		{#if $selected != null && $selected < modules.length}
 			{#each Object.keys(modules[$selected]) as settingKey}
 				{#if settingKey !== 'name' && settingKey !== 'type'}
+					{@const setting = getSetting(modules[$selected], settingKey)}
+					{@const effectingSettings = getSettings(modules[$selected], settingKey)}
+					{@const popupHover = {
+						event: 'hover',
+						target: `popupHover-${settingKey}`,
+						placement: 'top'
+					}}
 					<div class="col-span-1">{modules[$selected][settingKey].name}</div>
-					<div class="col-span-1">
-						{#if modules[$selected][settingKey].type == 'bool'}
-							<ConfigBool
-								value={getSetting(modules[$selected], settingKey)}
-								name={modules[$selected][settingKey].name}
-								onChange={(value) => {
-									if ($selected != null) setSetting(modules[$selected], settingKey, value);
-								}}
-							/>
-						{:else if modules[$selected][settingKey].type == 'string'}
-							<ConfigString
-								value={getSetting(modules[$selected], settingKey)}
-								placeholder={modules[$selected][settingKey].default}
-								onChange={(value) => {
-									if ($selected != null) setSetting(modules[$selected], settingKey, value);
-								}}
-							/>
+					<div class="col-span-1 flex">
+						<div class="flex-1">
+							{#if modules[$selected][settingKey].type == 'bool'}
+								<ConfigBool
+									value={setting}
+									name={modules[$selected][settingKey].name}
+									onChange={(value) => {
+										if ($selected != null) setSetting(modules[$selected], settingKey, value);
+									}}
+								/>
+							{:else if modules[$selected][settingKey].type == 'string'}
+								<ConfigString
+									value={setting}
+									placeholder={modules[$selected][settingKey].default}
+									onChange={(value) => {
+										if ($selected != null) setSetting(modules[$selected], settingKey, value);
+									}}
+								/>
+							{/if}
+						</div>
+						{#if effectingSettings && effectingSettings.length >= 1}
+							<div class="mt-1.5 ml-2">
+								<button class="btn p-0 [&>*]:pointer-events-none" use:popup={popupHover}>
+									<Info color="#0080c0" />
+								</button>
+								<div
+									class="card p-4 variant-filled-primary z-40"
+									data-popup="popupHover-{settingKey}"
+								>
+									{#each effectingSettings.reverse() as effectingSetting}
+										<p>{effectingSetting.origin}: {effectingSetting.settings[settingKey].value}</p>
+									{/each}
+									<div class="arrow variant-filled-primary" />
+								</div>
+								<button
+									class="btn p-0"
+									on:click={() => {
+										if ($selected != null) setSetting(modules[$selected], settingKey, undefined);
+									}}
+									><RotateCcw color="#0080c0" />
+								</button>
+							</div>
 						{/if}
 					</div>
 					<div class="col-span-2">{modules[$selected][settingKey].description}</div>

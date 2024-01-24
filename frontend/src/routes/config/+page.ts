@@ -16,7 +16,6 @@ export const load = (async ({ fetch }) => {
 		}
 	});
 	const availableModules = (await availableModulesResponse.json()) as Module[];
-	// console.log(state);
 	return {
 		state: state,
 		availableModules: availableModules
