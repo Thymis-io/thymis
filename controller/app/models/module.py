@@ -27,6 +27,8 @@ class Module(BaseModel):
         # first set name then call super
         if "name" not in data:
             data["name"] = self.__class__.__name__.lower()
+        if "type" not in data:
+            data["type"] = f"{self.__class__.__module__}.{self.__class__.__name__}"
         super().__init__(**data)
 
     @classmethod
@@ -35,9 +37,7 @@ class Module(BaseModel):
 
     @model_serializer(mode="wrap")
     def ser_model(self, nxt: SerializerFunctionWrapHandler):
-        d = nxt(self)
-        d["type"] = f"{self.__class__.__module__}.{self.__class__.__name__}"
-        return d
+        return nxt(self)
 
     def write_nix(
         self,

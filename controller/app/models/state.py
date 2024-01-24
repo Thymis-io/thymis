@@ -9,10 +9,10 @@ env = Environment(
     loader=PackageLoader("app", "models"),
 )
 
-ALL_MODULES = [
-    models.Module,
-    models.Minio,
-    models.Thymis,
+ALL_MODULES: List[models.Module] = [
+    models.Module(),
+    models.Minio(),
+    models.Thymis(),
 ]
 
 HOST_PRIORITY = 100
@@ -49,7 +49,7 @@ class State(BaseModel):
             # write its modules
             for module_settings in device.modules:
                 # module holds settings right now.
-                module = next(m for m in self.modules if m.type == module_settings.type)
+                module = next(m for m in self.available_modules() if m.type == module_settings.type)
                 module.write_nix(device_path, module_settings, HOST_PRIORITY)
         # for each tag create its own folder
         for tag in self.tags:
@@ -58,16 +58,11 @@ class State(BaseModel):
             # write its modules
             for module_settings in tag.modules:
                 # module holds settings right now.
-                module = next(m for m in self.modules if m.type == module_settings.type)
+                module = next(m for m in self.available_modules() if m.type == module_settings.type)
                 module.write_nix(tag_path, module_settings, tag.priority)
 
     def available_modules(self):
-        # return all modules that are not already included in the state
-        out = []
-        for module in ALL_MODULES:
-            if module not in [type(m) for m in self.modules]:
-                out.append(module())
-        return out
+        return ALL_MODULES
 
     @classmethod
     def load_from_dict(cls, d):
