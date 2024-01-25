@@ -85,6 +85,13 @@
           };
         }
       );
-      nixosModules.thymis = ./thymis-nixos-module.nix;
+      nixosModules = {
+        thymis = ./thymis-nixos-module.nix;
+      } // nixpkgs.lib.mapAttrs'
+        (name: value: {
+          name = "thymis-device-${name}";
+          value = value;
+        })
+        (import ./devices.nix { inherit inputs; lib = nixpkgs.lib; });
     };
 }

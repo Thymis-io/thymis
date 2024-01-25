@@ -1,4 +1,4 @@
-{ config, lib, pkgs, inputs, modulesPath, thymis-config, ... }:
+{ config, lib, pkgs, inputs, modulesPath, ... }:
 let
   cfg = config.thymis.config;
   use-wifi = cfg.wifi-ssid != "" && cfg.wifi-password != "";
@@ -9,7 +9,7 @@ in
 {
   imports = [
     inputs.home-manager.nixosModules.default
-    ./devices-module.nix
+    # ./devices-module.nix
     "${modulesPath}/profiles/base.nix"
   ];
   options = {
@@ -49,7 +49,7 @@ in
   };
   config = lib.mkMerge [
     {
-      thymis.config = thymis-config;
+      # thymis.config = thymis-config;
       system.build.download-path = lib.mkDefault (throw "thymis-config.system.build.download-path is not set");
       nix.settings.experimental-features = [ "nix-command" "flakes" ];
       users.users.root.password = cfg.password;

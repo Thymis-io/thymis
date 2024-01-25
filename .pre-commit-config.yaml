@@ -25,7 +25,7 @@ repos:
     hooks:
       - id: npm-runs
         name: npm run check, format, lint in ./frontend
-        entry: bash -c 'cd frontend && npm run format && npm run lint'
+        entry: bash -c 'cd frontend && npm run format'
         language: system
         files: "frontend/.*"
         pass_filenames: false

@@ -1,5 +1,6 @@
 import json
 import os
+from app.models.setting import ModuleSettings
 from jinja2 import Environment
 from . import Module, Setting
 import pathlib
@@ -9,41 +10,60 @@ from app import models
 
 class Thymis(Module):
     repo_dir: Setting = Setting(
-        name="repo-dir",
+        name="thymis.config.repo-dir",
         type="string",
         default="/var/lib/thymis",
         description="The directory where the thymis repository is located.",
         example="/var/lib/thymis",
     )
     device_type: Setting = Setting(
-        name="device-type",
+        name="thymis.config.device-type",
         type="string",
         default="",
         description="The device type of the thymis device.",
         example="",
     )
     device_name: Setting = Setting(
-        name="device-name",
+        name="thymis.config.device-name",
         type="string",
         default="",
         description="The device name of the thymis device.",
         example="",
     )
     password: Setting = Setting(
-        name="password",
+        name="thymis.config.password",
         type="string",
         default="",
         description="The password of the thymis device.",
         example="",
     )
 
-    def write_nix(self, path: os.PathLike, module_settings: models.ModuleSettings, priority: int):
-        # return super().write_nix(path, env)
-        path = pathlib.Path(path)
-        with open(path / ".." / "thymis-settings.json", "w+") as f:
-            d = {}
-            for attr in self.model_fields_set:
-                attr = getattr(self, attr)
-                if isinstance(attr, Setting):
-                    d[attr.name] = attr.get_value()
-            f.write(json.dumps(d, indent=2))
+    def write_nix(
+        self,
+        path: os.PathLike,
+        module_settings: models.ModuleSettings,
+        priority: int,
+    ):
+        filename = f"{self.type}.nix"
+
+        device_type = (
+            module_settings.settings["device_type"].value
+            if "device_type" in module_settings.settings
+            else self.device_type.default
+        )
+
+        with open(path / filename, "w+") as f:
+            f.write("{ inputs, pkgs, lib, ... }:\n")
+            f.write("{\n")
+
+            f.write(f"  imports = [\n")
+            # imports inputs.thymis.nixosModules.thymis-device-<device_type>
+            f.write(f"    inputs.thymis.nixosModules.thymis-device-{device_type}\n")
+            f.write(f"  ];\n")
+
+            for attr, value in module_settings.settings.items():
+                my_attr = getattr(self, attr)
+                assert isinstance(my_attr, models.Setting)
+                my_attr.write_nix(f, value, priority)
+
+            f.write("}\n")

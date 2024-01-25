@@ -48,19 +48,6 @@ let
         ];
         nixpkgs.hostPlatform = "aarch64-linux";
       };
-      # raspberry-pi-zero = {
-      #   formatConfigs = lib.mkForce {
-      #     sd-card-image = {
-      #       imports = [
-      #         "${inputs.nixpkgs}/nixos/modules/installer/sd-card/sd-image-raspberrypi.nix"
-      #       ];
-      #       formatAttr = "sdImage";
-      #     };
-      #   };
-      #   nixpkgs.hostPlatform = "armv6l-linux";
-      #   nixpkgs.buildPlatform = "x86_64-linux";
-      # };
-      # rock-pi-4 = {};
     };
 in
 deviceConfig

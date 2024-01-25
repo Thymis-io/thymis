@@ -87,7 +87,7 @@
 						</td>
 						<td class="border-t border-slate-200 p-2">
 							<a class="btn variant-filled" href="/config?device={device.hostname}">Edit</a>
-							<a class="btn variant-filled">Download Image</a>
+							<a href="." class="btn variant-filled">Download Image</a>
 							<button class="btn variant-filled" on:click={() => deleteDevice(device)}>
 								Delete
 							</button>

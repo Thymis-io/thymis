@@ -77,7 +77,7 @@
 		}
 	};
 
-	$: setSetting = (module: Module, settingKey: string, value: any) => {
+	$: setSetting = (module: Module, settingKey: string, value: unknown) => {
 		addModule(module);
 
 		if (tag) {
