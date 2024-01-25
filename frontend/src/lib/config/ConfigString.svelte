@@ -2,10 +2,10 @@
 	export let placeholder: string | null;
 	export let value: unknown;
 
-	export let onChange: (value: string) => void = () => {};
+	export let change: (value: string) => void = () => {};
 
-	let change = (e: Event) => {
-		onChange((e.target as HTMLInputElement).value);
+	let changeInternal = (e: Event) => {
+		change((e.target as HTMLInputElement).value);
 	};
 </script>
 
@@ -14,5 +14,5 @@
 	type="text"
 	{placeholder}
 	value={value || ''}
-	on:change={change}
+	on:change={changeInternal}
 />

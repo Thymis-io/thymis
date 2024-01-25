@@ -46,13 +46,12 @@ export type State = {
 };
 
 export async function saveState(state: State) {
-	await fetch('http://localhost:8000/state', {
-		method: 'PATCH',
-		headers: {
-			'content-type': 'application/json'
-		},
-		body: JSON.stringify(state)
-	});
-	await invalidate('http://localhost:8000/state');
-	await invalidate('http://localhost:8000/available_modules');
+    await fetch('http://localhost:8000/state', {
+        method: 'PATCH',
+        headers: {
+            'content-type': 'application/json'
+        },
+        body: JSON.stringify(state)
+    });
+    await invalidate(url => url.pathname === '/state' || url.pathname === '/available_modules');
 }

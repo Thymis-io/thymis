@@ -5,7 +5,7 @@
 	import ConfigString from '$lib/config/ConfigString.svelte';
 	import type { PageData } from './$types';
 	import { queryParam } from 'sveltekit-search-params';
-	import { saveState, type Module } from '$lib/state';
+	import { saveState, type Module, type Tag, type Device } from '$lib/state';
 	import { page } from '$app/stores';
 	import { Info, RotateCcw } from 'lucide-svelte';
 
@@ -15,21 +15,23 @@
 	});
 
 	export let data: PageData;
-	$: state = data.state;
 
 	let tagParam = $page.url.searchParams.get('tag');
 	let deviceParam = $page.url.searchParams.get('device');
 
-	$: tag = state.tags.find((t) => t.name === tagParam);
-	$: device = state.devices.find((d) => d.hostname === deviceParam);
+	$: tag = data.state.tags.find((t) => t.name === tagParam);
+	$: device = data.state.devices.find((d) => d.hostname === deviceParam);
+	$: modules = getModules(tag, device);
 
-	$: getModuleSettings = () => {
+	const getModuleSettings = (tag: Tag | undefined, device: Device | undefined) => {
 		if (tag) {
 			return tag.modules.map((m) => ({ origin: tag?.name, ...m }));
 		}
 
 		if (device) {
-			let usedTags = device.tags.flatMap((t) => state.tags.find((tag) => tag.name === t) ?? []);
+			let usedTags = device.tags.flatMap(
+				(t) => data.state.tags.find((tag) => tag.name === t) ?? []
+			);
 			return [
 				...device.modules.map((m) => ({ origin: device?.hostname, ...m })),
 				...usedTags.flatMap((t) => t.modules.map((m) => ({ origin: t.name, ...m })))
@@ -37,22 +39,22 @@
 		}
 	};
 
-	$: getModules = () => {
-		let settings = getModuleSettings();
+	const getModules = (tag: Tag | undefined, device: Device | undefined) => {
+		let settings = getModuleSettings(tag, device);
 		return data.availableModules.filter((m) => settings?.find((s) => s.type === m.type));
 	};
 
-	$: addModule = (module: Module) => {
+	const addModule = (module: Module) => {
 		if (tag && !tag.modules.find((m) => m.type === module.type)) {
-			tag.modules.push({ type: module.type, priority: 5, settings: {} });
+			tag.modules = [...tag.modules, { type: module.type, priority: 5, settings: {} }];
 		}
 
 		if (device && !device.modules.find((m) => m.type === module.type)) {
-			device.modules.push({ type: module.type, settings: {} });
+			device.modules = [...device.modules, { type: module.type, settings: {} }];
 		}
 	};
 
-	$: removeModule = (module: Module) => {
+	const removeModule = (module: Module) => {
 		if (tag) {
 			tag.modules = tag.modules.filter((m) => m.type !== module.type);
 		}
@@ -62,22 +64,32 @@
 		}
 	};
 
-	$: getSettings = (module: Module, settingKey: string) => {
-		let settings = getModuleSettings();
+	const getSettings = (
+		module: Module,
+		settingKey: string,
+		tag: Tag | undefined,
+		device: Device | undefined
+	) => {
+		let settings = getModuleSettings(tag, device);
 		return settings?.filter(
 			(s) => s.type === module.type && Object.keys(s.settings).includes(settingKey)
 		);
 	};
 
-	$: getSetting = (module: Module, settingKey: string) => {
-		let settings = getSettings(module, settingKey);
+	const getSetting = (
+		module: Module,
+		settingKey: string,
+		tag: Tag | undefined,
+		device: Device | undefined
+	) => {
+		let settings = getSettings(module, settingKey, tag, device);
 
 		if (settings && settings.length >= 1) {
 			return settings[0].settings[settingKey].value;
 		}
 	};
 
-	$: setSetting = (module: Module, settingKey: string, value: unknown) => {
+	const setSetting = (module: Module, settingKey: string, value: any) => {
 		addModule(module);
 
 		if (tag) {
@@ -94,8 +106,6 @@
 			}
 		}
 	};
-
-	$: modules = getModules();
 </script>
 
 <div class="grid grid-flow-row grid-cols-5 gap-12">
@@ -131,7 +141,12 @@
 								class="btn"
 								on:click={() => {
 									removeModule(module);
-									$selected = null;
+
+									if ($selected && getModules(tag, device).length > 0) {
+										$selected = Math.max(0, $selected - 1);
+									} else {
+										$selected = null;
+									}
 								}}
 							>
 								delete
@@ -142,7 +157,7 @@
 			</ListBox>
 		</div>
 		<div class="mt-6">
-			<button type="button" class="btn variant-filled mt-8" on:click={() => saveState(state)}>
+			<button type="button" class="btn variant-filled mt-8" on:click={() => saveState(data.state)}>
 				save
 			</button>
 		</div>
@@ -151,8 +166,8 @@
 		{#if $selected != null && $selected < modules.length}
 			{#each Object.keys(modules[$selected]) as settingKey}
 				{#if settingKey !== 'name' && settingKey !== 'type'}
-					{@const setting = getSetting(modules[$selected], settingKey)}
-					{@const effectingSettings = getSettings(modules[$selected], settingKey)}
+					{@const setting = getSetting(modules[$selected], settingKey, tag, device)}
+					{@const effectingSettings = getSettings(modules[$selected], settingKey, tag, device)}
 					{@const popupHover = {
 						event: 'hover',
 						target: `popupHover-${settingKey}`,
@@ -165,7 +180,7 @@
 								<ConfigBool
 									value={setting}
 									name={modules[$selected][settingKey].name}
-									onChange={(value) => {
+									change={(value) => {
 										if ($selected != null) setSetting(modules[$selected], settingKey, value);
 									}}
 								/>
@@ -173,7 +188,7 @@
 								<ConfigString
 									value={setting}
 									placeholder={modules[$selected][settingKey].default}
-									onChange={(value) => {
+									change={(value) => {
 										if ($selected != null) setSetting(modules[$selected], settingKey, value);
 									}}
 								/>

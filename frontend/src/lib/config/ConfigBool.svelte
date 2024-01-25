@@ -3,11 +3,11 @@
 
 	export let name: string;
 	export let value: boolean | undefined = false;
-	export let onChange: (value: boolean) => void = () => {};
+	export let change: (value: boolean) => void = () => {};
 
-	let change = (e: Event) => {
-		onChange((e.target as HTMLInputElement).checked);
+	let changeInternal = (e: Event) => {
+		change((e.target as HTMLInputElement).checked);
 	};
 </script>
 
-<SlideToggle class="mt-1.5" size="sm" {name} checked={value} on:change={change} />
+<SlideToggle class="mt-1.5" size="sm" {name} checked={value} on:change={changeInternal} />
