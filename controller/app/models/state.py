@@ -137,6 +137,7 @@ class State(BaseModel):
                 q[0] = {
                     "status": "failed",
                     "stdout": stdout.decode("utf-8"),
+                    "stderr": stderr.decode("utf-8"),
                 }
                 return
 
