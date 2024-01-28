@@ -20,7 +20,7 @@
 
   outputs = inputs@{ self, nixpkgs, home-manager, poetry2nix, flake-utils, thymis, ... }:
     let
-      eachSystem = nixpkgs.lib.genAttrs (import ./flake.systems.nix);
+      eachSystem = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ];
       state-json = builtins.fromJSON (builtins.readFile ./state.json);
       device-to-nixosConfigurations = d:
         let
@@ -56,16 +56,28 @@
             modules = device-modules
               ++ tag-modules
               ++ [
-                thymis.nixosModules.thymis
-              ];
+              thymis.nixosModules.thymis
+            ];
             specialArgs = {
               inherit inputs;
             };
           };
         };
     in
-    {
+    rec {
       nixosConfigurations = builtins.listToAttrs
         (builtins.map device-to-nixosConfigurations state-json.devices);
+      packages = eachSystem (system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        {
+          thymis = pkgs.writeText "thymis.json"
+            (builtins.toJSON (
+              builtins.mapAttrs
+                (name: nixosCfg: nixosCfg.config.system.build.toplevel)
+                nixosConfigurations
+            ));
+        });
     };
 }

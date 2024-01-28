@@ -16,6 +16,15 @@ env = Environment(
 HOST_PRIORITY = 100
 
 
+def del_path(path):
+    if path.is_dir():
+        for p in path.iterdir():
+            del_path(p)
+        path.rmdir()
+    else:
+        path.unlink()
+
+
 class State(BaseModel):
     version: str
     modules: List[SerializeAsAny[models.Module]]
@@ -29,17 +38,13 @@ class State(BaseModel):
             f.write(env.get_template("flake.nix.j2").render(state=self))
         # create modules folder if not exists
         modules_path = path / "modules"
+        del_path(modules_path)
         modules_path.mkdir(exist_ok=True)
-        for module in modules_path.glob("*.nix"):
-            module.unlink()
         # create and empty hosts, tags folder
+        del_path(path / "hosts")
+        del_path(path / "tags")
         (path / "hosts").mkdir(exist_ok=True)
         (path / "tags").mkdir(exist_ok=True)
-        # empty hosts, tags folder
-        for module in (path / "hosts").glob("*.nix"):
-            module.unlink()
-        for module in (path / "tags").glob("*.nix"):
-            module.unlink()
         # for each host create its own folder
         for device in self.devices:
             # assert: hostname cannot be empty
