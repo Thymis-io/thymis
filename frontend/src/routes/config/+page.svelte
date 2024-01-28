@@ -92,17 +92,26 @@
 	const setSetting = (module: Module, settingKey: string, value: any) => {
 		addModule(module);
 
-		if (tag) {
-			let tagModule = tag.modules.find((m) => m.type === module.type);
-			if (tagModule) {
+		let tagModule = tag?.modules.find((m) => m.type === module.type);
+
+		if (tag && tagModule) {
+			if (value !== undefined && value !== null) {
 				tagModule.settings[settingKey] = { ...tagModule.settings[settingKey], value: value };
+			} else {
+				delete tagModule.settings[settingKey];
 			}
 		}
 
-		if (device) {
-			let deviceModule = device.modules.find((m) => m.type === module.type);
-			if (deviceModule) {
-				deviceModule.settings[settingKey] = { ...deviceModule.settings[settingKey], value: value };
+		let deviceModule = device?.modules.find((m) => m.type === module.type);
+
+		if (device && deviceModule) {
+			if (value !== undefined && value !== null) {
+				deviceModule.settings[settingKey] = {
+					...deviceModule.settings[settingKey],
+					value: value
+				};
+			} else {
+				delete deviceModule.settings[settingKey];
 			}
 		}
 	};
