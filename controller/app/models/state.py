@@ -25,6 +25,17 @@ def del_path(path):
         path.unlink()
 
 
+other_procs = []
+
+
+async def terminate_other_procs():
+    for proc in other_procs:
+        proc.terminate()
+    # wait for them to terminate
+    for proc in other_procs:
+        await proc.wait()
+
+
 class State(BaseModel):
     version: str
     modules: List[SerializeAsAny[models.Module]]
@@ -95,6 +106,7 @@ class State(BaseModel):
         return REPO_PATH
 
     async def build_nix(self, q: List):
+        terminate_other_procs()
         q[0] = {"status": "started building"}
         # runs a nix command to build the flake
         # async run commands using asyncio.subprocess
@@ -124,6 +136,7 @@ class State(BaseModel):
         }
 
     async def deploy(self, q: List):
+        terminate_other_procs()
         q[0] = {"status": "started deploying"}
         # for each device in the state
         # runs a command to deploy the flake
