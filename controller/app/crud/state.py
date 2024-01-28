@@ -1,11 +1,11 @@
 import json
 from pydoc import locate
 from pathlib import Path
-from app import models
+from app.models.modules import ALL_MODULES
 from app.models.state import State
+import os
 
-
-REPO_PATH: str = "/home/elikoga/Dev/thymis/testrepo"
+REPO_PATH = os.getenv("REPO_PATH")
 
 
 def get_type_identifier(module):
@@ -21,11 +21,7 @@ def initialize():
     Path(REPO_PATH).mkdir(exist_ok=True)
     state = State(
         version="0.0.1",
-        modules=[
-            # models.Module(name="M1"),
-            # models.Minio(name="Minio Module"),
-            models.Thymis(name="Thymis Module"),
-        ],
+        modules=ALL_MODULES,
         tags=[],
         devices=[],
     )

@@ -1,19 +1,17 @@
+import asyncio
 from typing import List, Optional
 from pydantic import BaseModel, SerializeAsAny
 from app import models
 import os
 from jinja2 import Environment, PackageLoader
 import pathlib
+from app.models.modules import ALL_MODULES
+
+REPO_PATH = os.getenv("REPO_PATH")
 
 env = Environment(
     loader=PackageLoader("app", "models"),
 )
-
-ALL_MODULES: List[models.Module] = [
-    models.Module(),
-    models.Minio(),
-    models.Thymis(),
-]
 
 HOST_PRIORITY = 100
 
@@ -87,3 +85,49 @@ class State(BaseModel):
         path = os.path.join(path, "state.json")
         with open(path, "w+", encoding="utf-8") as f:
             f.write(self.model_dump_json(indent=2))
+
+    def repo_dir(self):
+        return REPO_PATH
+
+    async def build_nix(self, q: asyncio.Queue):
+        # runs a nix command to build the flake
+        # async run commands using asyncio.subprocess
+        # we will run
+        # nix build REPO_PATH#thymis --out-link /tmp/thymis
+        cmd = f"nix build {self.repo_dir()}#thymis --out-link /tmp/thymis"
+
+        proc = await asyncio.create_subprocess_shell(
+            cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+
+        stdout, stderr = await proc.communicate()
+
+        if proc.returncode != 0:
+            q.put_nowait("failed")
+            return
+
+        q.put_nowait("success")
+
+    async def deploy(self, q: asyncio.Queue):
+        # for each device in the state
+        # runs a command to deploy the flake
+
+        # nixos-rebuild --flake REPO_PATH#thymis-devices.<device_name> switch --target-host <hostname>
+        for device in self.devices:
+            cmd = f"nixos-rebuild --flake {self.repo_dir()}#thymis-devices.{device.device_name} switch --target-host {device.hostname}"
+
+            proc = await asyncio.create_subprocess_shell(
+                cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+
+            stdout, stderr = await proc.communicate()
+
+            if proc.returncode != 0:
+                q.put_nowait("failed")
+                return
+
+            q.put_nowait("success")

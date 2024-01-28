@@ -1,4 +1,4 @@
-from . import Module, Setting
+from app.models import Module, Setting
 
 
 class NodeRed(Module):

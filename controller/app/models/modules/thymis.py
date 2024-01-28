@@ -2,13 +2,14 @@ import json
 import os
 from app.models.setting import ModuleSettings
 from jinja2 import Environment
-from . import Module, Setting
+from app.models import Module, Setting
+
 import pathlib
 
 from app import models
 
 
-class Thymis(Module):
+class ThymisController(Module):
     repo_dir: Setting = Setting(
         name="thymis.config.repo-dir",
         type="string",
@@ -16,6 +17,9 @@ class Thymis(Module):
         description="The directory where the thymis repository is located.",
         example="/var/lib/thymis",
     )
+
+
+class ThymisDevice(Module):
     device_type: Setting = Setting(
         name="thymis.config.device-type",
         type="string",

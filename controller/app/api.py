@@ -4,6 +4,13 @@ from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import router
 
+# add dotenv
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+
 description = """
 API to control Nix operating system 🎛️
 """

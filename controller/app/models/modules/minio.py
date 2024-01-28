@@ -1,5 +1,5 @@
 from typing import Literal
-from . import Module, Setting
+from app.models import Module, Setting
 
 
 class Minio(Module):
