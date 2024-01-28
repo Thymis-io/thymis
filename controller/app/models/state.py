@@ -89,7 +89,7 @@ class State(BaseModel):
     def repo_dir(self):
         return REPO_PATH
 
-    async def build_nix(self, q: List[str]):
+    async def build_nix(self, q: List):
         # runs a nix command to build the flake
         # async run commands using asyncio.subprocess
         # we will run
@@ -105,17 +105,25 @@ class State(BaseModel):
         stdout, stderr = await proc.communicate()
 
         if proc.returncode != 0:
-            q[0] = "failed"
+            q[0] = {
+                "status": "failed",
+                "stdout": stdout.decode("utf-8"),
+                "stderr": stderr.decode("utf-8"),
+            }
 
-        q[0] = "success"
+        q[0] = {
+            "status": "success",
+            "stdout": stdout.decode("utf-8"),
+            "stderr": stderr.decode("utf-8"),
+        }
 
-    async def deploy(self, q: List[str]):
+    async def deploy(self, q: List):
         # for each device in the state
         # runs a command to deploy the flake
 
         # nixos-rebuild --flake REPO_PATH#thymis-devices.<device_name> switch --target-host <hostname>
         for device in self.devices:
-            cmd = f"nixos-rebuild --flake {self.repo_dir()}#thymis-devices.{device.device_name} switch --target-host {device.hostname}"
+            cmd = f"nixos-rebuild --flake {self.repo_dir()}#thymis-devices.{device.hostname} switch --target-host {device.hostname}"
 
             proc = await asyncio.create_subprocess_shell(
                 cmd,
@@ -126,7 +134,14 @@ class State(BaseModel):
             stdout, stderr = await proc.communicate()
 
             if proc.returncode != 0:
-                q[0] = "failed"
+                q[0] = {
+                    "status": "failed",
+                    "stdout": stdout.decode("utf-8"),
+                }
                 return
 
-            q[0] = "success"
+            q[0] = {
+                "status": "success",
+                "stdout": stdout.decode("utf-8"),
+                "stderr": stderr.decode("utf-8"),
+            }

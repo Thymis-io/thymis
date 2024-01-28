@@ -43,7 +43,7 @@ def build_nix(
 def get_build_status():
     if last_build_status[0] is None:
         return {"status": "no build running"}
-    return {"status": last_build_status[0]}
+    return last_build_status[0]
 
 
 @router.post("/action/deploy")
