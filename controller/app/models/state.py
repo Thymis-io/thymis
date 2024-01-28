@@ -123,7 +123,7 @@ class State(BaseModel):
 
         # nixos-rebuild --flake REPO_PATH#thymis-devices.<device_name> switch --target-host <hostname>
         for device in self.devices:
-            cmd = f"nixos-rebuild --flake {self.repo_dir()}#thymis-devices.{device.hostname} switch --target-host {device.hostname}"
+            cmd = f"nixos-rebuild --flake {self.repo_dir()}#{device.hostname} switch --target-host {device.hostname}"
 
             proc = await asyncio.create_subprocess_shell(
                 cmd,
