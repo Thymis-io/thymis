@@ -52,6 +52,8 @@
 		if (device && !device.modules.find((m) => m.type === module.type)) {
 			device.modules = [...device.modules, { type: module.type, settings: {} }];
 		}
+
+		saveState(data.state);
 	};
 
 	const removeModule = (module: Module) => {
@@ -62,6 +64,8 @@
 		if (device) {
 			device.modules = device.modules.filter((m) => m.type !== module.type);
 		}
+
+		saveState(data.state);
 	};
 
 	const getSettings = (
@@ -114,6 +118,8 @@
 				delete deviceModule.settings[settingKey];
 			}
 		}
+
+		saveState(data.state);
 	};
 </script>
 
@@ -164,11 +170,6 @@
 					</ListBoxItem>
 				{/each}
 			</ListBox>
-		</div>
-		<div class="mt-6">
-			<button type="button" class="btn variant-filled mt-8" on:click={() => saveState(data.state)}>
-				save
-			</button>
 		</div>
 	</div>
 	<div class="col-span-4 grid grid-cols-4 gap-8 gap-x-10">
