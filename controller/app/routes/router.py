@@ -35,5 +35,5 @@ def build_nix(background_tasks: BackgroundTasks):
 
 
 @router.post("/action/deploy")
-def deploy(background_tasks: BackgroundTasks):
+def deploy(summary: str, background_tasks: BackgroundTasks):
     return

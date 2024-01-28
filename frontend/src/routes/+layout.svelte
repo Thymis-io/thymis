@@ -7,22 +7,44 @@
 		AppBar,
 		type ModalComponent
 	} from '@skeletonlabs/skeleton';
-	import { Grid2x2Icon, SettingsIcon, HistoryIcon, LayoutDashboard } from 'lucide-svelte';
+	import {
+		Grid2x2Icon,
+		SettingsIcon,
+		HistoryIcon,
+		LayoutDashboard,
+		Play,
+		CloudCog
+	} from 'lucide-svelte';
 	import { page } from '$app/stores';
 	import Logo from '$lib/Logo.svelte';
 	import { Modal, initializeStores } from '@skeletonlabs/skeleton';
 	import CreateDeviceModal from '$lib/CreateDeviceModal.svelte';
+	import DeployModal from '$lib/DeployModal.svelte';
 	import EditTagModal from '$lib/EditTagModal.svelte';
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
-	import { storePopup } from '@skeletonlabs/skeleton';
+	import { storePopup, getModalStore } from '@skeletonlabs/skeleton';
 
 	const modalRegistry: Record<string, ModalComponent> = {
 		CreateDeviceModal: { ref: CreateDeviceModal },
-		EditTagModal: { ref: EditTagModal }
+		EditTagModal: { ref: EditTagModal },
+		DeployModal: { ref: DeployModal }
 	};
 
 	initializeStores();
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
+	let modalStore = getModalStore();
+
+	const build = async () => {
+		await fetch('http://localhost:8000/action/build', { method: 'POST' });
+	};
+
+	const openDeploy = () => {
+		modalStore.trigger({
+			type: 'component',
+			component: 'DeployModal',
+			title: 'Deploy'
+		});
+	};
 </script>
 
 <Modal components={modalRegistry} />
@@ -31,7 +53,14 @@
 		<AppBar>
 			<svelte:fragment slot="lead"><Logo /></svelte:fragment>
 			Thymis
-			<svelte:fragment slot="trail">(actions)</svelte:fragment>
+			<svelte:fragment slot="trail">
+				<button class="btn variant-filled" on:click={build}>
+					<span><Play /></span><span>Build</span>
+				</button>
+				<button class="btn variant-filled" on:click={openDeploy}>
+					<span><CloudCog /></span><span>Deploy</span>
+				</button>
+			</svelte:fragment>
 		</AppBar>
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarLeft">
