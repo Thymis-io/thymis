@@ -4,8 +4,8 @@ from .node_red import NodeRed
 from .thymis import ThymisController, ThymisDevice
 
 ALL_MODULES = [
-    Minio,
-    NodeRed,
-    ThymisController,
-    ThymisDevice,
+    Minio(),
+    NodeRed(),
+    ThymisController(),
+    ThymisDevice(),
 ]
