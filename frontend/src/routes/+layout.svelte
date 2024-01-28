@@ -17,12 +17,20 @@
 	} from 'lucide-svelte';
 	import { page } from '$app/stores';
 	import Logo from '$lib/Logo.svelte';
-	import { Modal, initializeStores } from '@skeletonlabs/skeleton';
 	import CreateDeviceModal from '$lib/CreateDeviceModal.svelte';
 	import DeployModal from '$lib/DeployModal.svelte';
 	import EditTagModal from '$lib/EditTagModal.svelte';
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
-	import { storePopup, getModalStore } from '@skeletonlabs/skeleton';
+	import {
+		Modal,
+		initializeStores,
+		popup,
+		storePopup,
+		getModalStore,
+		type PopupSettings
+	} from '@skeletonlabs/skeleton';
+	import { buildStatus } from '$lib/buildstatus';
+	import { Info, AlertTriangle } from 'lucide-svelte';
 
 	const modalRegistry: Record<string, ModalComponent> = {
 		CreateDeviceModal: { ref: CreateDeviceModal },
@@ -45,6 +53,18 @@
 			title: 'Deploy'
 		});
 	};
+
+	const stdoutPopupHover: PopupSettings = {
+		event: 'hover',
+		target: 'stdoutPopup',
+		placement: 'top'
+	};
+
+	const stderrPopupHover: PopupSettings = {
+		event: 'hover',
+		target: 'stderrPopup',
+		placement: 'top'
+	};
 </script>
 
 <Modal components={modalRegistry} />
@@ -54,6 +74,31 @@
 			<svelte:fragment slot="lead"><Logo /></svelte:fragment>
 			Thymis
 			<svelte:fragment slot="trail">
+				<span>
+					Build Status: {$buildStatus?.status}
+				</span>
+				{#if $buildStatus?.stdout}
+					<div class="mt-1.5 ml-2">
+						<button class="btn p-0 [&>*]:pointer-events-none" use:popup={stdoutPopupHover}>
+							<Info color="#0080c0" />
+						</button>
+						<div class="card p-4 variant-filled-primary z-40" data-popup="stdoutPopup">
+							<p>{$buildStatus?.stdout}</p>
+							<div class="arrow variant-filled-primary" />
+						</div>
+					</div>
+				{/if}
+				{#if $buildStatus?.stderr}
+					<div class="mt-1.5 ml-2">
+						<button class="btn p-0 [&>*]:pointer-events-none" use:popup={stderrPopupHover}>
+							<AlertTriangle color="#c4c400" />
+						</button>
+						<div class="card p-4 variant-filled-primary z-40" data-popup="stderrPopup">
+							<p>{$buildStatus?.stderr}</p>
+							<div class="arrow variant-filled-primary" />
+						</div>
+					</div>
+				{/if}
 				<button class="btn variant-filled" on:click={build}>
 					<span><Play /></span><span>Build</span>
 				</button>
