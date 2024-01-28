@@ -1,14 +1,9 @@
+import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import router
-
-# add dotenv
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
 
 
 description = """
