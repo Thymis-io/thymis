@@ -23,9 +23,19 @@
 	$: device = data.state.devices.find((d) => d.hostname === deviceParam);
 	$: modules = getModules(tag, device);
 
+	const getOrigin = (tag: Tag | undefined, device: Device | undefined) => {
+		if (tag) {
+			return tag.name;
+		}
+
+		if (device) {
+			return device.hostname;
+		}
+	};
+
 	const getModuleSettings = (tag: Tag | undefined, device: Device | undefined) => {
 		if (tag) {
-			return tag.modules.map((m) => ({ origin: tag?.name, ...m }));
+			return tag.modules.map((m) => ({ origin: getOrigin(tag, undefined), ...m }));
 		}
 
 		if (device) {
@@ -33,8 +43,10 @@
 				(t) => data.state.tags.find((tag) => tag.name === t) ?? []
 			);
 			return [
-				...device.modules.map((m) => ({ origin: device?.hostname, ...m })),
-				...usedTags.flatMap((t) => t.modules.map((m) => ({ origin: t.name, ...m })))
+				...device.modules.map((m) => ({ origin: getOrigin(undefined, device), ...m })),
+				...usedTags.flatMap((t) =>
+					t.modules.map((m) => ({ origin: getOrigin(t, undefined), ...m }))
+				)
 			];
 		}
 	};
@@ -218,13 +230,15 @@
 									{/each}
 									<div class="arrow variant-filled-primary" />
 								</div>
-								<button
-									class="btn p-0"
-									on:click={() => {
-										if ($selected != null) setSetting(modules[$selected], settingKey, undefined);
-									}}
-									><RotateCcw color="#0080c0" />
-								</button>
+								{#if effectingSettings.reverse()[0].origin == getOrigin(tag, device)}
+									<button
+										class="btn p-0"
+										on:click={() => {
+											if ($selected != null) setSetting(modules[$selected], settingKey, undefined);
+										}}
+										><RotateCcw color="#0080c0" />
+									</button>
+								{/if}
 							</div>
 						{/if}
 					</div>
