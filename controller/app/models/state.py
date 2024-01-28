@@ -95,6 +95,7 @@ class State(BaseModel):
         return REPO_PATH
 
     async def build_nix(self, q: List):
+        q[0] = {"status": "started building"}
         # runs a nix command to build the flake
         # async run commands using asyncio.subprocess
         # we will run
@@ -123,6 +124,7 @@ class State(BaseModel):
         }
 
     async def deploy(self, q: List):
+        q[0] = {"status": "started deploying"}
         # for each device in the state
         # runs a command to deploy the flake
 
