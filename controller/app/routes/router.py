@@ -25,7 +25,7 @@ async def update_state(new_state: Request):
     return state.update(await new_state.json())
 
 
-last_build_status = asyncio.Queue(maxsize=1)
+last_build_status = [None]
 
 
 @router.post("/action/build")
@@ -41,11 +41,9 @@ def build_nix(
 
 @router.get("/build_status")
 def get_build_status():
-    if last_build_status.empty():
+    if last_build_status[0] is None:
         return {"status": "no build running"}
-
-    # peek
-    return {"status": last_build_status._queue[0]}
+    return {"status": last_build_status[0]}
 
 
 @router.post("/action/deploy")

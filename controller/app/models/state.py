@@ -89,7 +89,7 @@ class State(BaseModel):
     def repo_dir(self):
         return REPO_PATH
 
-    async def build_nix(self, q: asyncio.Queue):
+    async def build_nix(self, q: List[str]):
         # runs a nix command to build the flake
         # async run commands using asyncio.subprocess
         # we will run
@@ -105,12 +105,11 @@ class State(BaseModel):
         stdout, stderr = await proc.communicate()
 
         if proc.returncode != 0:
-            q.put_nowait("failed")
-            return
+            q[0] = "failed"
 
-        q.put_nowait("success")
+        q[0] = "success"
 
-    async def deploy(self, q: asyncio.Queue):
+    async def deploy(self, q: List[str]):
         # for each device in the state
         # runs a command to deploy the flake
 
@@ -127,7 +126,7 @@ class State(BaseModel):
             stdout, stderr = await proc.communicate()
 
             if proc.returncode != 0:
-                q.put_nowait("failed")
+                q[0] = "failed"
                 return
 
-            q.put_nowait("success")
+            q[0] = "success"
