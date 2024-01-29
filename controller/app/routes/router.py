@@ -1,7 +1,8 @@
 import asyncio
+import json
 from typing import List
 from app.models.state import State
-from fastapi import APIRouter, Depends, Request, BackgroundTasks
+from fastapi import APIRouter, Depends, Request, BackgroundTasks, WebSocket
 from ..dependencies import get_or_init_state
 from app import models
 from app.crud import state
@@ -39,11 +40,18 @@ def build_nix(
     return {"message": "nix build started"}
 
 
-@router.get("/build_status")
-def get_build_status():
-    if last_build_status[0] is None:
-        return {"status": "no build running"}
-    return last_build_status[0]
+@router.websocket("/build_status")
+async def build_status(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            if last_build_status[0] is None:
+                await websocket.send_text(json.dumps({"status": "no build running"}))
+            else:
+                await websocket.send_text(json.dumps(last_build_status[0]))
+            await asyncio.sleep(0.2)
+    except:
+        await websocket.close()
 
 
 @router.post("/action/deploy")

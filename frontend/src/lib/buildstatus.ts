@@ -1,3 +1,4 @@
+import { browser } from '$app/environment';
 import { writable } from 'svelte/store';
 
 type BuildStatus = {
@@ -6,9 +7,21 @@ type BuildStatus = {
 	stderr: string;
 };
 
+let socket: WebSocket | undefined;
+
 export let buildStatus = writable<BuildStatus | undefined>();
 
-setInterval(async () => {
-	const response = await fetch('http://localhost:8000/build_status');
-	buildStatus.set(await response.json());
-}, 200);
+const startSocket = () => {
+	console.log('starting socket');
+	socket = new WebSocket('ws://localhost:8000/build_status');
+	socket.onmessage = (event) => {
+		buildStatus.set(JSON.parse(event.data));
+	};
+	socket.onclose = () => {
+		setTimeout(startSocket, 1000);
+	};
+}
+
+if (browser) {
+	startSocket();
+}
