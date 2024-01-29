@@ -30,10 +30,12 @@ other_procs = []
 
 async def terminate_other_procs():
     for proc in other_procs:
-        proc.terminate()
+        if proc.returncode is None:
+            proc.terminate()
     # wait for them to terminate
     for proc in other_procs:
         await proc.wait()
+    other_procs.clear()
 
 
 class State(BaseModel):
@@ -120,14 +122,44 @@ class State(BaseModel):
             stderr=asyncio.subprocess.PIPE,
         )
 
-        stdout, stderr = await proc.communicate()
+        stdout = bytearray()
+        stderr = bytearray()
 
-        if proc.returncode != 0:
+        async def stdout_reader():
+            while True:
+                line = await proc.stdout.readline()
+                if not line:
+                    break
+                stdout.extend(line)
+                q[0] = {
+                    "status": "building",
+                    "stdout": stdout.decode("utf-8"),
+                    "stderr": stderr.decode("utf-8"),
+                }
+
+        async def stderr_reader():
+            while True:
+                line = await proc.stderr.readline()
+                if not line:
+                    break
+                stderr.extend(line)
+                q[0] = {
+                    "status": "building",
+                    "stdout": stdout.decode("utf-8"),
+                    "stderr": stderr.decode("utf-8"),
+                }
+
+        other_procs.append(proc)
+        asyncio.create_task(stdout_reader())
+        asyncio.create_task(stderr_reader())
+        r = await proc.wait()
+        if r != 0:
             q[0] = {
                 "status": "failed",
                 "stdout": stdout.decode("utf-8"),
                 "stderr": stderr.decode("utf-8"),
             }
+            return
 
         q[0] = {
             "status": "success",
@@ -151,9 +183,38 @@ class State(BaseModel):
                 stderr=asyncio.subprocess.PIPE,
             )
 
-            stdout, stderr = await proc.communicate()
+            stdout = bytearray()
+            stderr = bytearray()
 
-            if proc.returncode != 0:
+            async def stdout_reader():
+                while True:
+                    line = await proc.stdout.readline()
+                    if not line:
+                        break
+                    stdout.extend(line)
+                    q[0] = {
+                        "status": "deploying",
+                        "stdout": stdout.decode("utf-8"),
+                        "stderr": stderr.decode("utf-8"),
+                    }
+
+            async def stderr_reader():
+                while True:
+                    line = await proc.stderr.readline()
+                    if not line:
+                        break
+                    stderr.extend(line)
+                    q[0] = {
+                        "status": "deploying",
+                        "stdout": stdout.decode("utf-8"),
+                        "stderr": stderr.decode("utf-8"),
+                    }
+
+            other_procs.append(proc)
+            asyncio.create_task(stdout_reader())
+            asyncio.create_task(stderr_reader())
+            r = await proc.wait()
+            if r != 0:
                 q[0] = {
                     "status": "failed",
                     "stdout": stdout.decode("utf-8"),

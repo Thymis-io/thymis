@@ -83,7 +83,7 @@
 							<Info color="#0080c0" />
 						</button>
 						<div class="card p-4 variant-filled-primary z-40" data-popup="stdoutPopup">
-							<p>{$buildStatus?.stdout}</p>
+							<pre>{$buildStatus?.stdout}</pre>
 							<div class="arrow variant-filled-primary" />
 						</div>
 					</div>
@@ -94,7 +94,7 @@
 							<AlertTriangle color="#c4c400" />
 						</button>
 						<div class="card p-4 variant-filled-primary z-40" data-popup="stderrPopup">
-							<p>{$buildStatus?.stderr}</p>
+							<pre>{$buildStatus?.stderr}</pre>
 							<div class="arrow variant-filled-primary" />
 						</div>
 					</div>
