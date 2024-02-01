@@ -16,7 +16,10 @@ env = Environment(
 HOST_PRIORITY = 100
 
 
-def del_path(path):
+def del_path(path: os.PathLike):
+    if not path.exists():
+        return
+
     if path.is_dir():
         for p in path.iterdir():
             del_path(p)
