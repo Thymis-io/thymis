@@ -20,6 +20,7 @@
 	import CreateDeviceModal from '$lib/CreateDeviceModal.svelte';
 	import DeployModal from '$lib/DeployModal.svelte';
 	import EditTagModal from '$lib/EditTagModal.svelte';
+	import LogModal from '$lib/LogModal.svelte';
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
 	import {
 		Modal,
@@ -35,7 +36,8 @@
 	const modalRegistry: Record<string, ModalComponent> = {
 		CreateDeviceModal: { ref: CreateDeviceModal },
 		EditTagModal: { ref: EditTagModal },
-		DeployModal: { ref: DeployModal }
+		DeployModal: { ref: DeployModal },
+		LogModal: { ref: LogModal }
 	};
 
 	initializeStores();
@@ -53,6 +55,24 @@
 			title: 'Deploy'
 		});
 	};
+
+	function openStdoutModal() {
+		modalStore.trigger({
+			type: 'component',
+			component: 'LogModal',
+			title: 'Stdout',
+			meta: { log: $buildStatus?.stdout }
+		});
+	}
+
+	function openStderrModal() {
+		modalStore.trigger({
+			type: 'component',
+			component: 'LogModal',
+			title: 'Stderr',
+			meta: { log: $buildStatus?.stderr }
+		});
+	}
 
 	const stdoutPopupHover: PopupSettings = {
 		event: 'hover',
@@ -79,7 +99,11 @@
 				</span>
 				{#if $buildStatus?.stdout}
 					<div class="mt-1.5 ml-2">
-						<button class="btn p-0 [&>*]:pointer-events-none" use:popup={stdoutPopupHover}>
+						<button
+							class="btn p-0 [&>*]:pointer-events-none"
+							use:popup={stdoutPopupHover}
+							on:click={openStdoutModal}
+						>
 							<Info color="#0080c0" />
 						</button>
 						<div class="card p-4 variant-filled-primary z-40" data-popup="stdoutPopup">
@@ -90,7 +114,11 @@
 				{/if}
 				{#if $buildStatus?.stderr}
 					<div class="mt-1.5 ml-2">
-						<button class="btn p-0 [&>*]:pointer-events-none" use:popup={stderrPopupHover}>
+						<button
+							class="btn p-0 [&>*]:pointer-events-none"
+							use:popup={stderrPopupHover}
+							on:click={openStderrModal}
+						>
 							<AlertTriangle color="#c4c400" />
 						</button>
 						<div class="card p-4 variant-filled-primary z-40" data-popup="stderrPopup">
