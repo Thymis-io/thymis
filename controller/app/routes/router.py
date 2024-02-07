@@ -56,8 +56,10 @@ async def build_status(websocket: WebSocket):
 
 @router.post("/action/deploy")
 def deploy(
-    background_tasks: BackgroundTasks, state: State = Depends(get_or_init_state)
+    summary: str, background_tasks: BackgroundTasks, state: State = Depends(get_or_init_state)
 ):
+    state.commit(summary)
+
     # runs a nix command to deploy the flake
     background_tasks.add_task(state.deploy, last_build_status)
 

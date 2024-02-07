@@ -4,6 +4,7 @@ from pydantic import BaseModel, SerializeAsAny
 from app import models
 import os
 from jinja2 import Environment, PackageLoader
+from git import Repo
 import pathlib
 from app.models.modules import ALL_MODULES
 
@@ -120,6 +121,17 @@ class State(BaseModel):
             "stdout": self.__stdout.decode("utf-8"),
             "stderr": self.__stderr.decode("utf-8"),
         }
+
+    def commit(self, summary: str):
+        repo = Repo.init(self.repo_dir())
+        repo.git.add(".")
+
+        try:
+            # commit fails if there are no changes
+            repo.git.commit("-m", summary)
+            print("commited changes", summary)
+        except:
+            pass
 
     async def stream_reader(self, stream: asyncio.StreamReader | None, out: bytearray):
         while True:
