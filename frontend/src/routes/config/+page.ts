@@ -2,7 +2,7 @@ import type { Module, State } from '$lib/state';
 import type { PageLoad } from './$types';
 
 export const load = (async ({ fetch }) => {
-	console.log('loading');
+	console.log('loading state');
 	const stateResponse = await fetch('http://localhost:8000/state', {
 		method: 'GET',
 		headers: {

@@ -28,7 +28,6 @@
 	}
 
 	function onSubmit(): void {
-		console.log('onSubmit', tags, availableTags, $modalStore[0].response);
 		if ($modalStore[0].response) {
 			$modalStore[0].response({ deviceTags: tags, availableTags: availableTags });
 		}
