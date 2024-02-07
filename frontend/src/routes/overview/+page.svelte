@@ -30,10 +30,11 @@
 			type: 'component',
 			component: 'EditTagModal',
 			title: 'Edit tags',
-			meta: { tags: device.tags, availableTags: state.tags.map((t) => t.name) },
+			meta: { tags: device.tags, availableTags: state.tags },
 			response: (r) => {
 				if (r) {
-					device.tags = r;
+					state.tags = r.availableTags;
+					device.tags = r.deviceTags;
 					saveState(state);
 				}
 			}
