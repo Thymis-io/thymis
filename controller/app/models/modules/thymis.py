@@ -42,32 +42,31 @@ class ThymisDevice(Module):
         example="",
     )
 
-    def write_nix(
-        self,
-        path: os.PathLike,
-        module_settings: models.ModuleSettings,
-        priority: int,
-    ):
-        filename = f"{self.type}.nix"
+    wifi_ssid: Setting = Setting(
+        name="thymis.config.wifi-ssid",
+        type="string",
+        default="",
+        description="The wifi ssid of the thymis device.",
+        example="",
+    )
 
+    wifi_password: Setting = Setting(
+        name="thymis.config.wifi-password",
+        type="string",
+        default="",
+        description="The wifi password of the thymis device.",
+        example="",
+    )
+
+    def write_nix_settings(self, f, module_settings: ModuleSettings, priority: int):
         device_type = (
             module_settings.settings["device_type"].value
             if "device_type" in module_settings.settings
             else self.device_type.default
         )
 
-        with open(path / filename, "w+") as f:
-            f.write("{ inputs, pkgs, lib, ... }:\n")
-            f.write("{\n")
+        f.write(f"  imports = [\n")
+        f.write(f"    inputs.thymis.nixosModules.thymis-device-{device_type}\n")
+        f.write(f"  ];\n")
 
-            f.write(f"  imports = [\n")
-            # imports inputs.thymis.nixosModules.thymis-device-<device_type>
-            f.write(f"    inputs.thymis.nixosModules.thymis-device-{device_type}\n")
-            f.write(f"  ];\n")
-
-            for attr, value in module_settings.settings.items():
-                my_attr = getattr(self, attr)
-                assert isinstance(my_attr, models.Setting)
-                my_attr.write_nix(f, value, priority)
-
-            f.write("}\n")
+        return super().write_nix_settings(f, module_settings, priority)

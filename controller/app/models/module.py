@@ -48,12 +48,17 @@ class Module(BaseModel):
         filename = f"{self.type}.nix"
 
         with open(path / filename, "w+") as f:
-            f.write("{ pkgs, lib, ... }:\n")
+            f.write("{ pkgs, lib, inputs, ... }:\n")
             f.write("{\n")
 
-            for attr, value in module_settings.settings.items():
-                my_attr = getattr(self, attr)
-                assert isinstance(my_attr, models.Setting)
-                my_attr.write_nix(f, value, priority)
+            self.write_nix_settings(f, module_settings, priority)
 
             f.write("}\n")
+
+    def write_nix_settings(
+        self, f, module_settings: models.ModuleSettings, priority: int
+    ):
+        for attr, value in module_settings.settings.items():
+            my_attr = getattr(self, attr)
+            assert isinstance(my_attr, models.Setting)
+            my_attr.write_nix(f, value, priority)

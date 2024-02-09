@@ -3,6 +3,7 @@
 	import { ListBox, ListBoxItem, type PopupSettings } from '@skeletonlabs/skeleton';
 	import ConfigBool from '$lib/config/ConfigBool.svelte';
 	import ConfigString from '$lib/config/ConfigString.svelte';
+	import ConfigTextarea from '$lib/config/ConfigTextarea.svelte';
 	import type { PageData } from './$types';
 	import { queryParam } from 'sveltekit-search-params';
 	import { saveState, type Module, type Tag, type Device } from '$lib/state';
@@ -208,6 +209,14 @@
 								/>
 							{:else if modules[$selected][settingKey].type == 'string'}
 								<ConfigString
+									value={setting}
+									placeholder={modules[$selected][settingKey].default}
+									change={(value) => {
+										if ($selected != null) setSetting(modules[$selected], settingKey, value);
+									}}
+								/>
+							{:else if modules[$selected][settingKey].type == 'textarea'}
+								<ConfigTextarea
 									value={setting}
 									placeholder={modules[$selected][settingKey].default}
 									change={(value) => {

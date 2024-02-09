@@ -12,6 +12,10 @@ export type SettingTypes =
 	| {
 			type: 'path';
 			value: string;
+	  }
+	| {
+			type: 'textarea';
+			value: string;
 	  };
 
 export type Setting = SettingTypes & {

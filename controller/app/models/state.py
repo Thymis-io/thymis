@@ -7,6 +7,7 @@ from jinja2 import Environment, PackageLoader
 from git import Repo
 import pathlib
 from app.models.modules import ALL_MODULES
+import subprocess
 
 REPO_PATH = os.getenv("REPO_PATH")
 
@@ -72,6 +73,8 @@ class State(BaseModel):
             assert device.hostname, "hostname cannot be empty"
             device_path = path / "hosts" / device.hostname
             device_path.mkdir(exist_ok=True)
+            # create a empty .gitignore file
+            os.mknod(device_path / ".gitignore")
             # write its modules
             for module_settings in device.modules:
                 # module holds settings right now.
@@ -85,6 +88,8 @@ class State(BaseModel):
         for tag in self.tags:
             tag_path = path / "tags" / tag.name
             tag_path.mkdir(exist_ok=True)
+            # create a empty .gitignore file
+            os.mknod(tag_path / ".gitignore")
             # write its modules
             for module_settings in tag.modules:
                 # module holds settings right now.
@@ -94,6 +99,9 @@ class State(BaseModel):
                     if m.type == module_settings.type
                 )
                 module.write_nix(tag_path, module_settings, tag.priority)
+        # run git add
+        repo = Repo.init(self.repo_dir())
+        repo.git.add(".")
 
     def available_modules(self):
         return ALL_MODULES
@@ -169,6 +177,30 @@ class State(BaseModel):
             self.update_status("failed")
         else:
             self.update_status("success")
+
+    async def build_image_path(self, q: List, hostname: str):
+        await terminate_other_procs()
+        self.__q = q
+        self.__stdout = bytearray()
+        self.__stderr = bytearray()
+        self.update_status("started building")
+
+        cmd = f"nix build {self.repo_dir()}#nixosConfigurations.{hostname}.config.formats.sd-card-image --out-link /tmp/thymis-devices.{hostname}"
+
+        proc = await asyncio.create_subprocess_shell(
+            cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+
+        other_procs.append(proc)
+        asyncio.create_task(self.stream_reader(proc.stdout, self.__stdout))
+        asyncio.create_task(self.stream_reader(proc.stderr, self.__stderr))
+
+        r = await proc.wait()
+        if proc.returncode != 0:
+            raise Exception(f"failed to build image for {hostname}")
+        return f"/tmp/thymis-devices.{hostname}"
 
     async def deploy(self, q: List):
         await terminate_other_procs()

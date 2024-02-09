@@ -47,6 +47,20 @@
 		);
 		saveState(state);
 	}
+
+	const downloadUri = (uri: string) => {
+		const link = document.createElement('a');
+		link.href = uri;
+		link.download = 'image.img';
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+	};
+
+	const buildAndDownloadImage = (device: Device) => {
+		console.log('Building and downloading image');
+		downloadUri(`http://localhost:8000/action/build-download-image?hostname=${device.hostname}`);
+	};
 </script>
 
 <button class="btn variant-filled mb-8" on:click={() => openCreateDeviceModal()}>
@@ -88,7 +102,10 @@
 						</td>
 						<td class="border-t border-slate-200 p-2">
 							<a class="btn variant-filled" href="/config?device={device.hostname}">Edit</a>
-							<a href="." class="btn variant-filled">Download Image</a>
+							<!-- <a href="." class="btn variant-filled">Download Image</a> -->
+							<button class="btn variant-filled" on:click={() => buildAndDownloadImage(device)}>
+								Download Image
+							</button>
 							<button class="btn variant-filled" on:click={() => deleteDevice(device)}>
 								Delete
 							</button>

@@ -21,7 +21,7 @@ const startSocket = () => {
 		console.log('build_status socket closed');
 		setTimeout(startSocket, 1000);
 	};
-}
+};
 
 if (browser) {
 	startSocket();

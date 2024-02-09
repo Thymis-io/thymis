@@ -3,10 +3,11 @@ import json
 from typing import List
 from app.models.state import State
 from fastapi import APIRouter, Depends, Request, BackgroundTasks, WebSocket
+from fastapi.responses import FileResponse
 from ..dependencies import get_or_init_state
 from app import models
 from app.crud import state
-
+import subprocess
 
 router = APIRouter()
 
@@ -56,7 +57,9 @@ async def build_status(websocket: WebSocket):
 
 @router.post("/action/deploy")
 def deploy(
-    summary: str, background_tasks: BackgroundTasks, state: State = Depends(get_or_init_state)
+    summary: str,
+    background_tasks: BackgroundTasks,
+    state: State = Depends(get_or_init_state),
 ):
     state.commit(summary)
 
@@ -64,3 +67,19 @@ def deploy(
     background_tasks.add_task(state.deploy, last_build_status)
 
     return {"message": "nix deploy started"}
+
+
+@router.get("/action/build-download-image")
+async def build_download_image(
+    hostname: str,
+    background_tasks: BackgroundTasks,
+    state: State = Depends(get_or_init_state),
+):
+    image_path = await state.build_image_path(q=last_build_status, hostname=hostname)
+
+    # return the image bytes
+    return FileResponse(
+        image_path,
+        media_type="application/octet-stream",
+        filename=f"thymis-{hostname}.img",
+    )
