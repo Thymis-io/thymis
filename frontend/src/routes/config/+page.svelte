@@ -153,13 +153,19 @@
 						<HardDrive class="mr-2" /> {device.hostname}
 					{/if}
 				</div>
-				<span><ChevronDown /></span></button
-			>
-			<div class="card w-48 shadow-xl py-2" data-popup="selectCombobox">
+				<span><ChevronDown /></span>
+			</button>
+			<div class="card w-80 shadow-xl py-2" data-popup="selectCombobox">
 				<ListBox rounded="rounded-none">
 					{#each data.state.tags as tag}
 						<a href="/config?tag={tag.name}">
-							<ListBoxItem group={''} value={tag.name} name={tag.name} hover={''} active={''}>
+							<ListBoxItem
+								group={''}
+								value={tag.name}
+								name={tag.name}
+								hover={'hover:variant-filled'}
+								active={''}
+							>
 								<svelte:fragment slot="lead"><TagIcon /></svelte:fragment>
 								{tag.name}
 							</ListBoxItem>
@@ -171,7 +177,7 @@
 								group={''}
 								value={device.hostname}
 								name={device.hostname}
-								hover={''}
+								hover={'hover:variant-filled'}
 								active={''}
 							>
 								<svelte:fragment slot="lead"><HardDrive /></svelte:fragment>
