@@ -8,7 +8,7 @@
 	import { queryParam } from 'sveltekit-search-params';
 	import { saveState, type Module, type Tag, type Device } from '$lib/state';
 	import { page } from '$app/stores';
-	import { Info, RotateCcw } from 'lucide-svelte';
+	import { Info, RotateCcw, Tag as TagIcon, HardDrive, ChevronDown } from 'lucide-svelte';
 
 	const selected = queryParam<number>('selected', {
 		decode: (value) => (value ? parseInt(value, 10) : 0),
@@ -17,8 +17,8 @@
 
 	export let data: PageData;
 
-	let tagParam = $page.url.searchParams.get('tag');
-	let deviceParam = $page.url.searchParams.get('device');
+	$: tagParam = $page.url.searchParams.get('tag');
+	$: deviceParam = $page.url.searchParams.get('device');
 
 	$: tag = data.state.tags.find((t) => t.name === tagParam);
 	$: device = data.state.devices.find((d) => d.hostname === deviceParam);
@@ -134,16 +134,53 @@
 
 		saveState(data.state);
 	};
+
+	const selectCombobox: PopupSettings = {
+		event: 'click',
+		target: 'selectCombobox',
+		placement: 'bottom'
+	};
 </script>
 
 <div class="grid grid-flow-row grid-cols-5 gap-12">
 	<div>
 		<div>
-			{#if tag}
-				Tag: {tag.name}
-			{:else if device}
-				Device: {device.hostname}
-			{/if}
+			<button class="btn variant-filled w-full justify-between" use:popup={selectCombobox}>
+				<div class="flex">
+					{#if tag}
+						<TagIcon class="mr-2" /> {tag.name}
+					{:else if device}
+						<HardDrive class="mr-2" /> {device.hostname}
+					{/if}
+				</div>
+				<span><ChevronDown /></span></button
+			>
+			<div class="card w-48 shadow-xl py-2" data-popup="selectCombobox">
+				<ListBox rounded="rounded-none">
+					{#each data.state.tags as tag}
+						<a href="/config?tag={tag.name}">
+							<ListBoxItem group={''} value={tag.name} name={tag.name} hover={''} active={''}>
+								<svelte:fragment slot="lead"><TagIcon /></svelte:fragment>
+								{tag.name}
+							</ListBoxItem>
+						</a>
+					{/each}
+					{#each data.state.devices as device}
+						<a href="/config?device={device.hostname}">
+							<ListBoxItem
+								group={''}
+								value={device.hostname}
+								name={device.hostname}
+								hover={''}
+								active={''}
+							>
+								<svelte:fragment slot="lead"><HardDrive /></svelte:fragment>
+								{device.hostname}
+							</ListBoxItem>
+						</a>
+					{/each}
+				</ListBox>
+			</div>
 		</div>
 		<div class="mt-8">
 			Available Modules
