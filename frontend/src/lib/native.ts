@@ -29,6 +29,7 @@ const myExecFile = (file: string, args: string[]): Promise<{ stdout: string; std
 export const getMyIp = async () => {
 	// run `ip route get 1.2.3.4 | awk '{print $7}'` in bash
 	const args = ['-c', "ip route get 1.2.3.4 | awk '{print $7}'"];
-	const { stdout } = await myExecFile('bash', args);
+	let { stdout } = await myExecFile('bash', args);
+	stdout = stdout.trim();
 	return stdout;
 };

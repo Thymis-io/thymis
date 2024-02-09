@@ -141,13 +141,19 @@ class State(BaseModel):
         except:
             pass
 
-    async def stream_reader(self, stream: asyncio.StreamReader | None, out: bytearray):
+    async def stream_reader(
+        self,
+        stream: asyncio.StreamReader | None,
+        out: bytearray,
+        status: str = "building",
+    ):
         while True:
             line = await stream.readline()
             if not line:
                 break
             out.extend(line)
-            self.update_status("building")
+            # self.update_status("building")
+            self.update_status(status)
 
     async def build_nix(self, q: List):
         await terminate_other_procs()
@@ -185,7 +191,7 @@ class State(BaseModel):
         self.__stderr = bytearray()
         self.update_status("started building")
 
-        cmd = f"nix build {self.repo_dir()}#nixosConfigurations.{hostname}.config.formats.sd-card-image --out-link /tmp/thymis-devices.{hostname}"
+        cmd = f'nix build {self.repo_dir()}#nixosConfigurations."{hostname}".config.formats.sd-card-image --out-link /tmp/thymis-devices.{hostname}'
 
         proc = await asyncio.create_subprocess_shell(
             cmd,
@@ -194,8 +200,12 @@ class State(BaseModel):
         )
 
         other_procs.append(proc)
-        asyncio.create_task(self.stream_reader(proc.stdout, self.__stdout))
-        asyncio.create_task(self.stream_reader(proc.stderr, self.__stderr))
+        asyncio.create_task(
+            self.stream_reader(proc.stdout, self.__stdout, status="building image")
+        )
+        asyncio.create_task(
+            self.stream_reader(proc.stderr, self.__stderr, status="building image")
+        )
 
         r = await proc.wait()
         if proc.returncode != 0:
@@ -214,17 +224,25 @@ class State(BaseModel):
 
         # nixos-rebuild --flake REPO_PATH#thymis-devices.<device_name> switch --target-host <hostname>
         for device in self.devices:
-            cmd = f"nixos-rebuild --flake {self.repo_dir()}#{device.hostname} switch --target-host {device.hostname}"
+            cmd = f'nixos-rebuild --flake {self.repo_dir()}#"{device.hostname}" switch --target-host root@{device.hostname}'
 
             proc = await asyncio.create_subprocess_shell(
                 cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                env={
+                    "NIX_SSHOPTS": f"-o StrictHostKeyChecking=accept-new",
+                    "PATH": os.getenv("PATH"),
+                },
             )
 
             other_procs.append(proc)
-            asyncio.create_task(self.stream_reader(proc.stdout, self.__stdout))
-            asyncio.create_task(self.stream_reader(proc.stderr, self.__stderr))
+            asyncio.create_task(
+                self.stream_reader(proc.stdout, self.__stdout, status="deploying")
+            )
+            asyncio.create_task(
+                self.stream_reader(proc.stderr, self.__stderr, status="deploying")
+            )
 
             r = await proc.wait()
             if r != 0:

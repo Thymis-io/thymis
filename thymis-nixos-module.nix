@@ -106,12 +106,18 @@ in
           HOST = "127.0.0.1";
           PORT = "3000";
         };
+        path = [
+          "/run/current-system/sw"
+        ];
       };
       systemd.services.thymis-controller = {
         description = "Thymis controller";
         after = [ "network.target" ];
         wantedBy = [ "multi-user.target" ];
         script = "${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-controller}/bin/thymis-controller";
+        path = [
+          "/run/current-system/sw"
+        ];
       };
       services.nginx = {
         enable = true;
