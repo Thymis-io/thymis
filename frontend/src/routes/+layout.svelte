@@ -1,37 +1,32 @@
 <script lang="ts">
-	import '../app.postcss';
+	import { page } from '$app/stores';
+	import CreateDeviceModal from '$lib/CreateDeviceModal.svelte';
+	import DeployActions from '$lib/DeployActions.svelte';
+	import DeployModal from '$lib/DeployModal.svelte';
+	import EditTagModal from '$lib/EditTagModal.svelte';
+	import LogModal from '$lib/LogModal.svelte';
+	import Logo from '$lib/Logo.svelte';
+	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom';
 	import {
-		AppShell,
+		AppBar,
 		AppRail,
 		AppRailAnchor,
-		AppBar,
+		AppShell,
+		Modal,
+		getModalStore,
+		initializeStores, storePopup,
 		type ModalComponent
 	} from '@skeletonlabs/skeleton';
 	import {
 		Grid2x2Icon,
-		SettingsIcon,
 		HistoryIcon,
 		LayoutDashboard,
-		Play,
-		CloudCog
+		SettingsIcon,
+		UserCog,
+		type Icon
 	} from 'lucide-svelte';
-	import { page } from '$app/stores';
-	import Logo from '$lib/Logo.svelte';
-	import CreateDeviceModal from '$lib/CreateDeviceModal.svelte';
-	import DeployModal from '$lib/DeployModal.svelte';
-	import EditTagModal from '$lib/EditTagModal.svelte';
-	import LogModal from '$lib/LogModal.svelte';
-	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
-	import {
-		Modal,
-		initializeStores,
-		popup,
-		storePopup,
-		getModalStore,
-		type PopupSettings
-	} from '@skeletonlabs/skeleton';
-	import { buildStatus } from '$lib/buildstatus';
-	import { Info, AlertTriangle } from 'lucide-svelte';
+	import type { ComponentType } from 'svelte';
+	import '../app.postcss';
 
 	const modalRegistry: Record<string, ModalComponent> = {
 		CreateDeviceModal: { ref: CreateDeviceModal },
@@ -44,47 +39,18 @@
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
 	let modalStore = getModalStore();
 
-	const build = async () => {
-		await fetch('http://localhost:8000/action/build', { method: 'POST' });
+	type NavItem = {
+		path: string;
+		text: string;
+		icon: ComponentType<Icon>;
 	};
 
-	const openDeploy = () => {
-		modalStore.trigger({
-			type: 'component',
-			component: 'DeployModal',
-			title: 'Deploy'
-		});
-	};
-
-	function openStdoutModal() {
-		modalStore.trigger({
-			type: 'component',
-			component: 'LogModal',
-			title: 'Stdout',
-			meta: { log: $buildStatus?.stdout }
-		});
-	}
-
-	function openStderrModal() {
-		modalStore.trigger({
-			type: 'component',
-			component: 'LogModal',
-			title: 'Stderr',
-			meta: { log: $buildStatus?.stderr }
-		});
-	}
-
-	const stdoutPopupHover: PopupSettings = {
-		event: 'hover',
-		target: 'stdoutPopup',
-		placement: 'top'
-	};
-
-	const stderrPopupHover: PopupSettings = {
-		event: 'hover',
-		target: 'stderrPopup',
-		placement: 'top'
-	};
+	const navItems: Array<NavItem> = [
+		{ path: '/overview', text: 'Overview', icon: LayoutDashboard },
+		{ path: '/modules', text: 'Modules', icon: Grid2x2Icon },
+		{ path: '/history', text: 'History', icon: HistoryIcon },
+		{ path: '/config', text: 'Config', icon: SettingsIcon }
+	];
 </script>
 
 <Modal components={modalRegistry} />
@@ -92,74 +58,27 @@
 	<svelte:fragment slot="header">
 		<AppBar>
 			<svelte:fragment slot="lead"><Logo /></svelte:fragment>
-			Thymis
+			<p class="text-xl font-bold">Thymis</p>
 			<svelte:fragment slot="trail">
-				<span>
-					Build Status: {$buildStatus?.status}
-				</span>
-				{#if $buildStatus?.stdout}
-					<div class="mt-1.5 ml-2">
-						<button
-							class="btn p-0 [&>*]:pointer-events-none"
-							use:popup={stdoutPopupHover}
-							on:click={openStdoutModal}
-						>
-							<Info color="#0080c0" />
-						</button>
-						<div class="card p-4 variant-filled-primary z-40" data-popup="stdoutPopup">
-							<pre>{$buildStatus?.stdout}</pre>
-							<div class="arrow variant-filled-primary" />
-						</div>
-					</div>
-				{/if}
-				{#if $buildStatus?.stderr}
-					<div class="mt-1.5 ml-2">
-						<button
-							class="btn p-0 [&>*]:pointer-events-none"
-							use:popup={stderrPopupHover}
-							on:click={openStderrModal}
-						>
-							<AlertTriangle color="#c4c400" />
-						</button>
-						<div class="card p-4 variant-filled-primary z-40" data-popup="stderrPopup">
-							<pre>{$buildStatus?.stderr}</pre>
-							<div class="arrow variant-filled-primary" />
-						</div>
-					</div>
-				{/if}
-				<button class="btn variant-filled" on:click={build}>
-					<span><Play /></span><span>Build</span>
-				</button>
-				<button class="btn variant-filled" on:click={openDeploy}>
-					<span><CloudCog /></span><span>Deploy</span>
-				</button>
+				<DeployActions />
 			</svelte:fragment>
 		</AppBar>
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarLeft">
 		<AppRail>
-			<svelte:fragment slot="lead">
-				<AppRailAnchor href="/overview" selected={$page.url.pathname === '/overview'}>
-					<svelte:fragment slot="lead"><LayoutDashboard /></svelte:fragment>
-					<span>Overview</span>
+			{#each navItems as item, i}
+				<AppRailAnchor href={item.path} selected={$page.url.pathname === item.path}>
+					<svelte:fragment slot="lead">
+						<svelte:component this={item.icon} />
+					</svelte:fragment>
+					<span>{item.text}</span>
 				</AppRailAnchor>
-			</svelte:fragment>
-			<!-- --- -->
-			<AppRailAnchor href="/modules" selected={$page.url.pathname === '/modules'} title="Modules">
-				<svelte:fragment slot="lead"><Grid2x2Icon /></svelte:fragment>
-				<span>Modules</span>
-			</AppRailAnchor>
-			<AppRailAnchor href="/history" selected={$page.url.pathname === '/history'} title="History">
-				<svelte:fragment slot="lead"><HistoryIcon /></svelte:fragment>
-				<span>History</span>
-			</AppRailAnchor>
-			<AppRailAnchor href="/config" selected={$page.url.pathname === '/config'} title="Config">
-				<svelte:fragment slot="lead"><SettingsIcon /></svelte:fragment>
-				<span>Config</span>
-			</AppRailAnchor>
-			<!-- --- -->
+			{/each}
 			<svelte:fragment slot="trail">
-				<AppRailAnchor href="/account">
+				<AppRailAnchor href="/account" selected={$page.url.pathname === '/account'}>
+					<svelte:fragment slot="lead">
+						<svelte:component this={UserCog} />
+					</svelte:fragment>
 					<span>Account</span>
 				</AppRailAnchor>
 			</svelte:fragment>
@@ -172,6 +91,6 @@
 		<slot />
 	</div>
 	<!-- ---- / ---- -->
-	<svelte:fragment slot="pageFooter">Page Footer</svelte:fragment>
+	<svelte:fragment slot="pageFooter" />
 	<!-- (footer) -->
 </AppShell>
