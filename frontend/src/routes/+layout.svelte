@@ -23,7 +23,13 @@
 		LayoutDashboard,
 		SettingsIcon,
 		UserCog,
-		type Icon
+		type Icon,
+
+		ServerIcon,
+
+		CompassIcon
+
+
 	} from 'lucide-svelte';
 	import type { ComponentType } from 'svelte';
 	import '../app.postcss';
@@ -47,9 +53,9 @@
 
 	const navItems: Array<NavItem> = [
 		{ path: '/overview', text: 'Overview', icon: LayoutDashboard },
-		{ path: '/modules', text: 'Modules', icon: Grid2x2Icon },
-		{ path: '/history', text: 'History', icon: HistoryIcon },
-		{ path: '/config', text: 'Config', icon: SettingsIcon }
+		{ path: '/config', text: 'Orchestrate', icon: CompassIcon },
+		{ path: '/devices', text: 'Devices', icon: ServerIcon },
+		{ path: '/history', text: 'History', icon: HistoryIcon }
 	];
 </script>
 
