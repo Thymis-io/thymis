@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { popup } from '@skeletonlabs/skeleton';
+	import { SlideToggle, popup } from '@skeletonlabs/skeleton';
 	import { ListBox, ListBoxItem, type PopupSettings } from '@skeletonlabs/skeleton';
 	import ConfigBool from '$lib/config/ConfigBool.svelte';
 	import ConfigString from '$lib/config/ConfigString.svelte';
@@ -155,7 +155,7 @@
 				</div>
 				<span><ChevronDown /></span>
 			</button>
-			<div class="card w-80 shadow-xl py-2" data-popup="selectCombobox">
+			<div class="card w-80 shadow-xl py-2 z-50" data-popup="selectCombobox">
 				<ListBox rounded="rounded-none">
 					{#each data.state.tags as tag}
 						<a href="/config?tag={tag.name}">
@@ -189,39 +189,29 @@
 			</div>
 		</div>
 		<div class="mt-8">
-			Available Modules
 			<ListBox>
-				{#each data.availableModules.filter((m) => !modules.find((m2) => m2.type === m.type)) as module, i}
-					<ListBoxItem group={''} value={i} name={module.name} hover={''} active={''}>
-						<div class="flex place-content-between">
-							<div>{module.name}</div>
-							<button class="btn" on:click={() => addModule(module)}> add </button>
-						</div>
-					</ListBoxItem>
-				{/each}
-			</ListBox>
-		</div>
-		<div class="mt-4">
-			Installed Modules
-			<ListBox>
-				{#each modules as module, i}
-					<ListBoxItem bind:group={$selected} value={i} name={module.name}>
-						<div class="flex place-content-between">
-							<div>{module.name}</div>
-							<button
-								class="btn"
-								on:click={() => {
-									removeModule(module);
-
-									if ($selected && getModules(tag, device).length > 0) {
-										$selected = Math.max(0, $selected - 1);
+				{#each data.availableModules as module, i}
+					<ListBoxItem
+						class="card"
+						bind:group={$selected}
+						value={i}
+						name={module.name}
+						active={'bg-primary-500'}
+					>
+						<div class="flex gap-4 mt-2 mb-2">
+							<SlideToggle
+								name=""
+								size="sm"
+								checked={modules.find((m) => m.type === module.type) !== undefined}
+								on:change={() => {
+									if (modules.find((m) => m.type === module.type) !== undefined) {
+										removeModule(module);
 									} else {
-										$selected = null;
+										addModule(module);
 									}
 								}}
-							>
-								delete
-							</button>
+							/>
+							<div>{module.name}</div>
 						</div>
 					</ListBoxItem>
 				{/each}
@@ -229,41 +219,42 @@
 		</div>
 	</div>
 	<div class="col-span-4 grid grid-cols-4 gap-8 gap-x-10">
-		{#if $selected != null && $selected < modules.length}
-			{#each Object.keys(modules[$selected]) as settingKey}
+		{#if $selected != null && $selected < data.availableModules.length}
+			{@const selectedModule = data.availableModules[$selected]}
+			{#each Object.keys(selectedModule) as settingKey}
 				{#if settingKey !== 'name' && settingKey !== 'type'}
-					{@const setting = getSetting(modules[$selected], settingKey, tag, device)}
-					{@const effectingSettings = getSettings(modules[$selected], settingKey, tag, device)}
+					{@const setting = getSetting(selectedModule, settingKey, tag, device)}
+					{@const effectingSettings = getSettings(selectedModule, settingKey, tag, device)}
 					{@const popupHover = {
 						event: 'hover',
 						target: `popupHover-${settingKey}`,
 						placement: 'top'
 					}}
-					<div class="col-span-1">{modules[$selected][settingKey].name}</div>
+					<div class="col-span-1">{selectedModule[settingKey].name}</div>
 					<div class="col-span-1 flex">
 						<div class="flex-1">
-							{#if modules[$selected][settingKey].type == 'bool'}
+							{#if selectedModule[settingKey].type == 'bool'}
 								<ConfigBool
 									value={setting}
-									name={modules[$selected][settingKey].name}
+									name={selectedModule[settingKey].name}
 									change={(value) => {
-										if ($selected != null) setSetting(modules[$selected], settingKey, value);
+										if ($selected != null) setSetting(selectedModule, settingKey, value);
 									}}
 								/>
-							{:else if modules[$selected][settingKey].type == 'string'}
+							{:else if selectedModule[settingKey].type == 'string'}
 								<ConfigString
 									value={setting}
-									placeholder={modules[$selected][settingKey].default}
+									placeholder={selectedModule[settingKey].default}
 									change={(value) => {
-										if ($selected != null) setSetting(modules[$selected], settingKey, value);
+										if ($selected != null) setSetting(selectedModule, settingKey, value);
 									}}
 								/>
-							{:else if modules[$selected][settingKey].type == 'textarea'}
+							{:else if selectedModule[settingKey].type == 'textarea'}
 								<ConfigTextarea
 									value={setting}
-									placeholder={modules[$selected][settingKey].default}
+									placeholder={selectedModule[settingKey].default}
 									change={(value) => {
-										if ($selected != null) setSetting(modules[$selected], settingKey, value);
+										if ($selected != null) setSetting(selectedModule, settingKey, value);
 									}}
 								/>
 							{/if}
@@ -286,7 +277,7 @@
 									<button
 										class="btn p-0"
 										on:click={() => {
-											if ($selected != null) setSetting(modules[$selected], settingKey, undefined);
+											if ($selected != null) setSetting(selectedModule, settingKey, undefined);
 										}}
 										><RotateCcw color="#0080c0" />
 									</button>
@@ -294,7 +285,7 @@
 							</div>
 						{/if}
 					</div>
-					<div class="col-span-2">{modules[$selected][settingKey].description}</div>
+					<div class="col-span-2">{selectedModule[settingKey].description}</div>
 				{/if}
 			{/each}
 		{/if}
