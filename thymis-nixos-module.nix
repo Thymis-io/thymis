@@ -119,14 +119,14 @@ in
         environment = {
           REPO_PATH = "/var/lib/thymis";
         };
-        services.nginx = {
-          enable = true;
-          virtualHosts.default = {
-            default = true;
-            locations."/" = {
-              proxyPass = "http://localhost:3000";
-              recommendedProxySettings = true;
-            };
+      };
+      services.nginx = {
+        enable = true;
+        virtualHosts.default = {
+          default = true;
+          locations."/" = {
+            proxyPass = "http://localhost:3000";
+            recommendedProxySettings = true;
           };
         };
       };
