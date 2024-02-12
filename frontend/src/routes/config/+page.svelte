@@ -8,7 +8,12 @@
 	import { queryParam } from 'sveltekit-search-params';
 	import { saveState, type Module, type Tag, type Device } from '$lib/state';
 	import { page } from '$app/stores';
-	import { Info, RotateCcw, Tag as TagIcon, HardDrive, ChevronDown } from 'lucide-svelte';
+	// import { Info, RotateCcw, Tag as TagIcon, HardDrive, ChevronDown } from 'lucide-svelte';
+	import Info from 'lucide-svelte/icons/info';
+	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
+	import TagIcon from 'lucide-svelte/icons/tag';
+	import HardDrive from 'lucide-svelte/icons/hard-drive';
+	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 
 	const selected = queryParam<number>('selected', {
 		decode: (value) => (value ? parseInt(value, 10) : 0),

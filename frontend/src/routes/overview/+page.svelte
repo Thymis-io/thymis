@@ -2,7 +2,8 @@
 	import type { PageData } from './$types';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { saveState, type Device } from '$lib/state';
-	import { Pen } from 'lucide-svelte';
+	// import { Pen } from 'lucide-svelte';
+	import Pen from 'lucide-svelte/icons/pen';
 	import { controllerHost, controllerProtocol } from '$lib/api';
 
 	export let data: PageData;

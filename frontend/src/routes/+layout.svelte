@@ -18,16 +18,25 @@
 		storePopup,
 		type ModalComponent
 	} from '@skeletonlabs/skeleton';
-	import {
-		Grid2x2Icon,
-		HistoryIcon,
-		LayoutDashboard,
-		SettingsIcon,
-		UserCog,
-		type Icon,
-		ServerIcon,
-		CompassIcon
-	} from 'lucide-svelte';
+	// import {
+	// 	Grid2x2Icon,
+	// 	HistoryIcon,
+	// 	LayoutDashboard,
+	// 	SettingsIcon,
+	// 	UserCog,
+	// 	type Icon,
+	// 	ServerIcon,
+	// 	CompassIcon
+	// } from 'lucide-svelte';
+	import Grid2x2Icon from 'lucide-svelte/icons/grid-2x2';
+	import HistoryIcon from 'lucide-svelte/icons/history';
+	import LayoutDashboard from 'lucide-svelte/icons/layout-dashboard';
+	import SettingsIcon from 'lucide-svelte/icons/settings';
+	import UserCog from 'lucide-svelte/icons/user-cog';
+	import ServerIcon from 'lucide-svelte/icons/server';
+	import CompassIcon from 'lucide-svelte/icons/compass';
+
+	import type { Icon } from 'lucide-svelte';
 	import type { ComponentType } from 'svelte';
 	import '../app.postcss';
 

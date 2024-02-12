@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { SvelteComponent } from 'svelte';
 	import { getModalStore } from '@skeletonlabs/skeleton';
-	import { Plus } from 'lucide-svelte';
+	// import { Plus } from 'lucide-svelte';
+	import Plus from 'lucide-svelte/icons/plus';
 	import type { Tag } from '$lib/state';
 
 	export let parent: SvelteComponent;

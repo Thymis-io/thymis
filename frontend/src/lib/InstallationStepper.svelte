@@ -8,7 +8,12 @@
 		Tab,
 		CodeBlock
 	} from '@skeletonlabs/skeleton';
-	import { Download, Redo, Apple, AppWindow, Wrench } from 'lucide-svelte';
+	// import { Download, Redo, Apple, AppWindow, Wrench } from 'lucide-svelte';
+	import Download from 'lucide-svelte/icons/download';
+	import Redo from 'lucide-svelte/icons/redo';
+	import Apple from 'lucide-svelte/icons/apple';
+	import AppWindow from 'lucide-svelte/icons/app-window';
+	import Wrench from 'lucide-svelte/icons/wrench';
 
 	export let onSubmit: null | ((data: any) => void) = null;
 

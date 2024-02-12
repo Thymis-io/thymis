@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { buildStatus } from '$lib/buildstatus';
 	import { getModalStore, popup, type PopupSettings } from '@skeletonlabs/skeleton';
-	import { AlertTriangle, CloudCog, Info, Play } from 'lucide-svelte';
+	// import { AlertTriangle, CloudCog, Info, Play } from 'lucide-svelte';
+	import AlertTriangle from 'lucide-svelte/icons/alert-triangle';
+	import CloudCog from 'lucide-svelte/icons/cloud-cog';
+	import Info from 'lucide-svelte/icons/info';
+	import Play from 'lucide-svelte/icons/play';
 	import '../app.postcss';
 	import { controllerHost, controllerProtocol } from './api';
 
