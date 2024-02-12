@@ -262,7 +262,7 @@ class State(BaseModel):
         self.__q = q
         self.__stdout = bytearray()
         self.__stderr = bytearray()
-        self.update_status("started deploying")
+        self.update_status("started updating")
 
         # runs a nix command to update the flake
         # nix flake update
