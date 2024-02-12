@@ -14,7 +14,7 @@ buildNpmPackage {
     mkdir -p $out/bin
     cat > $out/bin/thymis-frontend <<EOF
     #!${runtimeShell}
-    ${nodejs}/bin/node -r dotenv/config $packageOut/build/index.js
+    ${nodejs}/bin/node $packageOut/build/index.js
     EOF
     chmod +x $out/bin/thymis-frontend
   '';
