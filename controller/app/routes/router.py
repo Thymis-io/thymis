@@ -88,3 +88,11 @@ async def build_download_image(
 @router.get("/history")
 def get_history(state: State = Depends(get_or_init_state)):
     return state.get_history()
+
+
+@router.post("/action/update")
+async def update(
+    background_tasks: BackgroundTasks, state: State = Depends(get_or_init_state)
+):
+    background_tasks.add_task(state.update, last_build_status)
+    return {"message": "update started"}

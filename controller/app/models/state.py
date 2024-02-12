@@ -256,3 +256,34 @@ class State(BaseModel):
             {"message": commit.message, "author": commit.author.name}
             for commit in repo.iter_commits()
         ]
+
+    async def update(self, q: List):
+        await terminate_other_procs()
+        self.__q = q
+        self.__stdout = bytearray()
+        self.__stderr = bytearray()
+        self.update_status("started deploying")
+
+        # runs a nix command to update the flake
+        # nix flake update
+        cmd = f"nix flake update {self.repo_dir()}"
+
+        proc = await asyncio.create_subprocess_shell(
+            cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+
+        other_procs.append(proc)
+        asyncio.create_task(
+            self.stream_reader(proc.stdout, self.__stdout, status="updating")
+        )
+        asyncio.create_task(
+            self.stream_reader(proc.stderr, self.__stderr, status="updating")
+        )
+
+        r = await proc.wait()
+        if r != 0:
+            self.update_status("failed")
+        else:
+            self.update_status("success")
