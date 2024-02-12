@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { getModalStore } from '@skeletonlabs/skeleton';
+	import { controllerHost, controllerProtocol } from './api';
 	const modalStore = getModalStore();
 
 	$: summary = '';
 
 	const deploy = async () => {
-		await fetch(`http://localhost:8000/action/deploy?summary=${summary}`, {
+		await fetch(`${controllerProtocol}://${controllerHost}/action/deploy?summary=${summary}`, {
 			method: 'POST'
 		});
 

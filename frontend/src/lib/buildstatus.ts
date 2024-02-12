@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 import { writable } from 'svelte/store';
+import { controllerHost } from './api';
 
 type BuildStatus = {
 	status: string;
@@ -13,7 +14,7 @@ export let buildStatus = writable<BuildStatus | undefined>();
 
 const startSocket = () => {
 	console.log('starting build_status socket');
-	socket = new WebSocket('ws://localhost:8000/build_status');
+	socket = new WebSocket(`ws://${controllerHost}/build_status`);
 	socket.onmessage = (event) => {
 		buildStatus.set(JSON.parse(event.data));
 	};

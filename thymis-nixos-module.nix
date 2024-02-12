@@ -74,10 +74,7 @@ in
       services.getty.autologinUser = lib.mkForce null;
       services.xserver.enable = true;
       services.xserver.displayManager = {
-        gdm = {
-          enable = true;
-          autoSuspend = false;
-        };
+        sddm.enable = true;
         autoLogin = {
           enable = true;
           user = "nixos";
@@ -105,6 +102,7 @@ in
         environment = {
           HOST = "127.0.0.1";
           PORT = "3000";
+          PUBLIC_CONTROLLER_HOST = "127.0.0.1:8000";
         };
         path = [
           "/run/current-system/sw"
@@ -118,17 +116,19 @@ in
         path = [
           "/run/current-system/sw"
         ];
-      };
-      services.nginx = {
-        enable = true;
-        virtualHosts.default = {
-          default = true;
-          locations."/" = {
-            proxyPass = "http://localhost:3000";
-            recommendedProxySettings = true;
+        environment = {
+          REPO_PATH = "/var/lib/thymis";
+        };
+        services.nginx = {
+          enable = true;
+          virtualHosts.default = {
+            default = true;
+            locations."/" = {
+              proxyPass = "http://localhost:3000";
+              recommendedProxySettings = true;
+            };
           };
         };
-      };
+      }
+        ];
     }
-  ];
-}

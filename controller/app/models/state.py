@@ -249,3 +249,10 @@ class State(BaseModel):
                 self.update_status("failed")
             else:
                 self.update_status("success")
+
+    def get_history(self):
+        repo = Repo.init(self.repo_dir())
+        return [
+            {"message": commit.message, "author": commit.author.name}
+            for commit in repo.iter_commits()
+        ]

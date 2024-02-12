@@ -14,7 +14,8 @@
 		AppShell,
 		Modal,
 		getModalStore,
-		initializeStores, storePopup,
+		initializeStores,
+		storePopup,
 		type ModalComponent
 	} from '@skeletonlabs/skeleton';
 	import {
@@ -24,12 +25,8 @@
 		SettingsIcon,
 		UserCog,
 		type Icon,
-
 		ServerIcon,
-
 		CompassIcon
-
-
 	} from 'lucide-svelte';
 	import type { ComponentType } from 'svelte';
 	import '../app.postcss';

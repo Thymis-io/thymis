@@ -1,4 +1,5 @@
 import { invalidate } from '$app/navigation';
+import { controllerHost, controllerProtocol } from './api';
 
 export type SettingTypes =
 	| {
@@ -50,7 +51,7 @@ export type State = {
 };
 
 export async function saveState(state: State) {
-	await fetch('http://localhost:8000/state', {
+	await fetch(`${controllerProtocol}://${controllerHost}/state`, {
 		method: 'PATCH',
 		headers: {
 			'content-type': 'application/json'

@@ -1,17 +1,14 @@
 <script lang="ts">
 	import { buildStatus } from '$lib/buildstatus';
-	import {
-		getModalStore,
-		popup,
-		type PopupSettings
-	} from '@skeletonlabs/skeleton';
+	import { getModalStore, popup, type PopupSettings } from '@skeletonlabs/skeleton';
 	import { AlertTriangle, CloudCog, Info, Play } from 'lucide-svelte';
 	import '../app.postcss';
+	import { controllerHost, controllerProtocol } from './api';
 
 	let modalStore = getModalStore();
 
 	const build = async () => {
-		await fetch('http://localhost:8000/action/build', { method: 'POST' });
+		await fetch(`${controllerProtocol}://${controllerHost}/action/build`, { method: 'POST' });
 	};
 
 	const openDeploy = () => {

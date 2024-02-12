@@ -83,3 +83,8 @@ async def build_download_image(
         media_type="application/octet-stream",
         filename=f"thymis-{hostname}.img",
     )
+
+
+@router.get("/history")
+def get_history(state: State = Depends(get_or_init_state)):
+    return state.get_history()

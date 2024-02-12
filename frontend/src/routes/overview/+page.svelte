@@ -3,6 +3,7 @@
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { saveState, type Device } from '$lib/state';
 	import { Pen } from 'lucide-svelte';
+	import { controllerHost, controllerProtocol } from '$lib/api';
 
 	export let data: PageData;
 	$: state = data.state;
@@ -59,7 +60,9 @@
 
 	const buildAndDownloadImage = (device: Device) => {
 		console.log('Building and downloading image');
-		downloadUri(`http://localhost:8000/action/build-download-image?hostname=${device.hostname}`);
+		downloadUri(
+			`${controllerProtocol}://${controllerHost}/action/build-download-image?hostname=${device.hostname}`
+		);
 	};
 </script>
 
