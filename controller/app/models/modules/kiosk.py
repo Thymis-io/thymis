@@ -33,6 +33,8 @@ exec "/run/current-system/sw/bin/xrandr --addmode HDMI-1 1024x600_60.00"
 exec echo 3
 exec "/run/current-system/sw/bin/xrandr --output HDMI-1 --mode 1024x600_60.00"
 exec echo 4
+exec "/run/current-system/sw/bin/xset s off"
+exec "/run/current-system/sw/bin/xset s off"
 exec "/run/current-system/sw/bin/xset -dpms"
 # exec ${{pkgs.firefox}}/bin/firefox
 exec ${{pkgs.firefox}}/bin/firefox --kiosk {kiosk_url}
