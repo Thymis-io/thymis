@@ -54,11 +54,11 @@
 					}}
 				>
 					{availableTag.name}
+					<button class="btn btn-sm variant-filled-error ml-2" on:click={() => removeTag(availableTag.name)}>
+						<Minus size="12" />
+					</button>
 				</button>
 				<!-- remove button -->
-				<button class="btn btn-sm variant-filled" on:click={() => removeTag(availableTag.name)}>
-					<Minus />
-				</button>
 			{/each}
 		</div>
 		<div class="flex gap-2">
