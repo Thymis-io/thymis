@@ -3,7 +3,7 @@
 	import { controllerHost, controllerProtocol } from './api';
 	const modalStore = getModalStore();
 
-	$: summary = '';
+	$: summary = new Date().toLocaleString() + ': ';
 
 	const deploy = async () => {
 		await fetch(`${controllerProtocol}://${controllerHost}/action/deploy?summary=${summary}`, {
