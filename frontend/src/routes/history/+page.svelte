@@ -3,6 +3,10 @@
 	export let data: PageData;
 </script>
 
-{#each data.history as h}
-	<p>{h.message}</p>
-{/each}
+{#await data.history}
+	<p>Loading...</p>
+{:then history}
+	{#each history as h}
+		<p>{h.message}</p>
+	{/each}
+{/await}

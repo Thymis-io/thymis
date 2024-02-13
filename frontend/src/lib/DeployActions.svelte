@@ -32,7 +32,7 @@
 			type: 'component',
 			component: 'LogModal',
 			title: 'Stdout',
-			meta: { log: $buildStatus?.stdout }
+			meta: { log: 'stdout' }
 		});
 	}
 
@@ -41,7 +41,7 @@
 			type: 'component',
 			component: 'LogModal',
 			title: 'Stderr',
-			meta: { log: $buildStatus?.stderr }
+			meta: { log: 'stderr' }
 		});
 	}
 

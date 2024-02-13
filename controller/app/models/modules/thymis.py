@@ -27,6 +27,7 @@ class ThymisDevice(Module):
         description="The device type of the thymis device.",
         example="",
     )
+
     device_name: Setting = Setting(
         name="thymis.config.device-name",
         type="string",
@@ -34,6 +35,7 @@ class ThymisDevice(Module):
         description="The device name of the thymis device.",
         example="",
     )
+
     password: Setting = Setting(
         name="thymis.config.password",
         type="string",
@@ -65,8 +67,9 @@ class ThymisDevice(Module):
             else self.device_type.default
         )
 
-        f.write(f"  imports = [\n")
-        f.write(f"    inputs.thymis.nixosModules.thymis-device-{device_type}\n")
-        f.write(f"  ];\n")
+        if device_type:
+            f.write(f"  imports = [\n")
+            f.write(f"    inputs.thymis.nixosModules.thymis-device-{device_type}\n")
+            f.write(f"  ];\n")
 
         return super().write_nix_settings(f, module_settings, priority)
