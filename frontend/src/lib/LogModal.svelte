@@ -8,10 +8,21 @@
 	//
 	let log = '';
 	$: {
-		if ($modalStore[0].meta.log == 'stderr' && $buildStatus) {
+		// if ($modalStore[0].meta.log == 'stderr' && $buildStatus) {
+		if (
+			$modalStore &&
+			$modalStore.length > 0 &&
+			$modalStore[0].meta.log == 'stderr' &&
+			$buildStatus
+		) {
 			log = $buildStatus?.stderr;
 		}
-		if ($modalStore[0].meta.log == 'stdout' && $buildStatus) {
+		if (
+			$modalStore &&
+			$modalStore.length > 0 &&
+			$modalStore[0].meta.log == 'stdout' &&
+			$buildStatus
+		) {
 			log = $buildStatus?.stdout;
 		}
 	}
