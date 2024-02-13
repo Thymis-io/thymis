@@ -19,6 +19,7 @@ def is_initialized():
 
 def initialize():
     Path(REPO_PATH).mkdir(exist_ok=True)
+    # TODO git reop init - git config user and email
     state = State(
         version="0.0.1",
         modules=ALL_MODULES,
