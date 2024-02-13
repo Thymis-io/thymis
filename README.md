@@ -24,16 +24,16 @@
 
 ##  Quick Links
 
-> - [ Overview](#-overview)
-> - [ Architecture](#-architecture)
-> - [ Documentation](#-documentation)
-> - [ Getting Started](#-getting-started)
->   - [ Installation](#-installation)
->   - [Running thymis](#-running-thymis)
-> - [ Project Roadmap](#-project-roadmap)
-> - [ Contributing](#-contributing)
-> - [ License](#-license)
-> - [ Acknowledgments](#-acknowledgments)
+> - [ Overview](#overview)
+> - [ Architecture](#architecture)
+> - [ Documentation](#documentation)
+> - [ Getting Started](#getting-started)
+>   - [ Installation](#installation)
+>   - [Running thymis](#running-thymis)
+> - [ Project Roadmap](#project-roadmap)
+> - [ Contributing](#contributing)
+> - [ License](#license)
+> - [ Acknowledgments](#acknowledgments)
 
 ---
 
