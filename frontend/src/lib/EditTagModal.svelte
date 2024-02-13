@@ -3,6 +3,7 @@
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	// import { Plus } from 'lucide-svelte';
 	import Plus from 'lucide-svelte/icons/plus';
+	import Minus from 'lucide-svelte/icons/minus';
 	import type { Tag } from '$lib/state';
 
 	export let parent: SvelteComponent;
@@ -28,6 +29,11 @@
 		newTag = '';
 	}
 
+	const removeTag = (tag: string) => {
+		tags = tags.filter((t) => t !== tag);
+		availableTags = availableTags.filter((t) => t.name !== tag);
+	};
+
 	function onSubmit(): void {
 		if ($modalStore[0].response) {
 			$modalStore[0].response({ deviceTags: tags, availableTags: availableTags });
@@ -48,6 +54,10 @@
 					}}
 				>
 					{availableTag.name}
+				</button>
+				<!-- remove button -->
+				<button class="btn btn-sm variant-filled" on:click={() => removeTag(availableTag.name)}>
+					<Minus />
 				</button>
 			{/each}
 		</div>
