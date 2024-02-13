@@ -36,6 +36,7 @@ exec echo 4
 exec "/run/current-system/sw/bin/xset s off"
 exec "/run/current-system/sw/bin/xset s off"
 exec "/run/current-system/sw/bin/xset -dpms"
+exec "${{pkgs.unclutter}}/bin/unclutter"
 # exec ${{pkgs.firefox}}/bin/firefox
 exec ${{pkgs.firefox}}/bin/firefox --kiosk {kiosk_url}
 '');
