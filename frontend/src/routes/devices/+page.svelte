@@ -65,6 +65,21 @@
 			`${controllerProtocol}://${controllerHost}/action/build-download-image?hostname=${device.hostname}`
 		);
 	};
+
+	const openEditHostnameModal = (device: Device) => {
+		modalStore.trigger({
+			type: 'component',
+			component: 'EditHostnameModal',
+			title: 'Edit hostname',
+			meta: { hostname: device.hostname },
+			response: (r) => {
+				if (r) {
+					device.hostname = r.hostname;
+					saveState(state);
+				}
+			}
+		});
+	};
 </script>
 
 <button class="btn variant-filled mb-8" on:click={() => openCreateDeviceModal()}>
@@ -87,7 +102,12 @@
 				{#each state.devices as device}
 					<tr>
 						<td class="border-t border-slate-200 p-2">{device.displayName}</td>
-						<td class="border-t border-slate-200 p-2">{device.hostname}</td>
+						<td class="border-t border-slate-200 p-2">
+							{device.hostname}
+							<button class="btn ml-2 p-0" on:click={() => openEditHostnameModal(device)}>
+								<Pen size="20" />
+							</button>
+						</td>
 						<td class="border-t border-slate-200 p-2 flex gap-1 group">
 							{#each device.tags as tag, i}
 								<!-- <span> -->
@@ -104,10 +124,7 @@
 								<!-- </span> -->
 							{/each}
 							<div class="w-8">
-								<button
-									class="btn ml-2 p-0 hidden group-hover:block"
-									on:click={() => openEditTagModal(device)}
-								>
+								<button class="btn ml-2 p-0" on:click={() => openEditTagModal(device)}>
 									<Pen size="20" />
 								</button>
 							</div>

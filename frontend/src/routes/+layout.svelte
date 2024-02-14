@@ -35,6 +35,7 @@
 	import UserCog from 'lucide-svelte/icons/user-cog';
 	import ServerIcon from 'lucide-svelte/icons/server';
 	import CompassIcon from 'lucide-svelte/icons/compass';
+	import EditHostnameModal from '$lib/EditHostnameModal.svelte';
 
 	import type { Icon } from 'lucide-svelte';
 	import type { ComponentType } from 'svelte';
@@ -43,6 +44,7 @@
 	const modalRegistry: Record<string, ModalComponent> = {
 		CreateDeviceModal: { ref: CreateDeviceModal },
 		EditTagModal: { ref: EditTagModal },
+		EditHostnameModal: { ref: EditHostnameModal },
 		DeployModal: { ref: DeployModal },
 		LogModal: { ref: LogModal }
 	};
