@@ -66,6 +66,7 @@ in
           };
         };
       };
+      boot.supportedFilesystems = lib.mkForce [ "btrfs" "cifs" "f2fs" "jfs" "ntfs" "reiserfs" "vfat" "xfs" "ext4" ];
       services.getty.greetingLine = ''<<< Welcome to Thymis - NixOS ${config.system.nixos.label} (\m) - \l >>>'';
       services.getty.helpLine = lib.mkForce ''
         This is a Thymis device. You can login as root with the password you set during installation.
