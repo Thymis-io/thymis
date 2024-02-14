@@ -90,10 +90,18 @@
 						<td class="border-t border-slate-200 p-2">{device.hostname}</td>
 						<td class="border-t border-slate-200 p-2 flex gap-1 group">
 							{#each device.tags as tag, i}
-								<span>
-									<a class="underline" href="/config?tag={tag}">{tag}</a
-									>{#if i < device.tags.length - 1}{', '}{/if}
-								</span>
+								<!-- <span> -->
+								<!-- <a class="underline" href="/config?tag={tag}">{tag}</a
+									>{#if i < device.tags.length - 1}{', '}{/if} -->
+								<a href="/config?tag={tag}">
+									<!-- style like badge -->
+									<span
+										class="inline-block bg-blue-300 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-1"
+									>
+										{tag}
+									</span>
+								</a>
+								<!-- </span> -->
 							{/each}
 							<div class="w-8">
 								<button
