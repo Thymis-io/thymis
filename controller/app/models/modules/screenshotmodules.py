@@ -47,3 +47,9 @@ exec ${{pkgs.firefox}}/bin/firefox --kiosk {self.image}
 
 class Grafana1Module(ScreenshotModuleNotAvaliable):
     image: str = "${inputs.thymis}/controller/app/models/modules/grafana1.png"
+
+class MqttxModule(ScreenshotModuleNotAvaliable):
+    image: str = "${inputs.thymis}/controller/app/models/modules/mqttx.png"
+
+class NodeRedModule(ScreenshotModuleNotAvaliable):
+    image: str = "${inputs.thymis}/controller/app/models/modules/node_red.png"
