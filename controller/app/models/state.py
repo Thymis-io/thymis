@@ -253,7 +253,12 @@ class State(BaseModel):
     def get_history(self):
         repo = Repo.init(self.repo_dir())
         return [
-            {"message": commit.message, "author": commit.author.name}
+            {
+                "message": commit.message,
+                "author": commit.author.name,
+                "date": commit.authored_datetime,
+                "hash": commit.hexsha,
+            }
             for commit in repo.iter_commits()
         ]
 

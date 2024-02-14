@@ -54,7 +54,10 @@
 					}}
 				>
 					{availableTag.name}
-					<button class="btn btn-sm variant-filled-error ml-2" on:click={() => removeTag(availableTag.name)}>
+					<button
+						class="btn btn-sm variant-filled-error ml-2"
+						on:click={() => removeTag(availableTag.name)}
+					>
 						<Minus size="12" />
 					</button>
 				</button>

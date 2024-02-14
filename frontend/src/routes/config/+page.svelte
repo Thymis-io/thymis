@@ -22,11 +22,13 @@
 
 	export let data: PageData;
 
-	$: tagParam = $page.url.searchParams.get('tag');
-	$: deviceParam = $page.url.searchParams.get('device');
+	// $: tagParam = $page.url.searchParams.get('tag');
+	// $: deviceParam = $page.url.searchParams.get('device');
+	const tagParam = queryParam('tag');
+	const deviceParam = queryParam('device');
 
-	$: tag = data.state.tags.find((t) => t.name === tagParam);
-	$: device = data.state.devices.find((d) => d.hostname === deviceParam);
+	$: tag = data.state.tags.find((t) => t.name === $tagParam);
+	$: device = data.state.devices.find((d) => d.hostname === $deviceParam);
 	$: modules = getModules(tag, device);
 
 	const getOrigin = (tag: Tag | undefined, device: Device | undefined) => {
@@ -145,17 +147,35 @@
 		target: 'selectCombobox',
 		placement: 'bottom'
 	};
+	let selectedModule: Module | undefined;
+	$: if ($selected != null) {
+		selectedModule = data.availableModules[$selected];
+	}
+	let selectedModulesValidSettingkeys: string[] = [];
+	$: if ($selected != null && selectedModule) {
+		console.log(selectedModule);
+		selectedModulesValidSettingkeys = Object.keys(selectedModule).filter(
+			(settingKey) =>
+				settingKey !== 'name' &&
+				settingKey !== 'type' &&
+				selectedModule &&
+				typeof selectedModule[settingKey] === 'object' &&
+				'name' in selectedModule[settingKey]
+		);
+	}
 </script>
 
 <div class="grid grid-flow-row grid-cols-5 gap-12">
 	<div>
 		<div>
+			<!-- first text -->
+			<h1 class="text-3xl font-bold text-gray-800 mb-4">Select a device or tag</h1>
 			<button class="btn variant-filled w-full justify-between" use:popup={selectCombobox}>
 				<div class="flex">
 					{#if tag}
 						<TagIcon class="mr-2" /> {tag.name}
 					{:else if device}
-						<HardDrive class="mr-2" /> {device.hostname}
+						<HardDrive class="mr-2" /> {device.displayName}: {device.hostname}
 					{/if}
 				</div>
 				<span><ChevronDown /></span>
@@ -163,7 +183,14 @@
 			<div class="card w-80 shadow-xl py-2 z-50" data-popup="selectCombobox">
 				<ListBox rounded="rounded-none">
 					{#each data.state.tags as tag}
-						<a href="/config?tag={tag.name}">
+						<!-- <a href="/config?tag={tag.name}"> -->
+						<a
+							href="#"
+							on:click={() => {
+								$tagParam = tag.name;
+								$deviceParam = null;
+							}}
+						>
 							<ListBoxItem
 								group={''}
 								value={tag.name}
@@ -177,7 +204,14 @@
 						</a>
 					{/each}
 					{#each data.state.devices as device}
-						<a href="/config?device={device.hostname}">
+						<!-- <a href="/config?device={device.hostname}"> -->
+						<a
+							href="#"
+							on:click={() => {
+								$deviceParam = device.hostname;
+								$tagParam = null;
+							}}
+						>
 							<ListBoxItem
 								group={''}
 								value={device.hostname}
@@ -186,7 +220,7 @@
 								active={''}
 							>
 								<svelte:fragment slot="lead"><HardDrive /></svelte:fragment>
-								{device.hostname}
+								{device.displayName}: {device.hostname}
 							</ListBoxItem>
 						</a>
 					{/each}
@@ -224,10 +258,15 @@
 		</div>
 	</div>
 	<div class="col-span-4 grid grid-cols-4 gap-8 gap-x-10">
+		<div class="col-span-4">
+			<class class="text-3xl font-bold text-gray-800 mb-4">Module {selectedModule?.name}</class>
+		</div>
 		{#if $selected != null && $selected < data.availableModules.length}
 			{@const selectedModule = data.availableModules[$selected]}
-			{#each Object.keys(selectedModule) as settingKey}
-				{#if settingKey !== 'name' && settingKey !== 'type'}
+			<!-- {#each Object.keys(selectedModule) as settingKey} -->
+			<!-- {#if settingKey !== 'name' && settingKey !== 'type' && typeof selectedModule[settingKey] === 'object'} -->
+			{#each selectedModulesValidSettingkeys as settingKey}
+				{#if selectedModule && settingKey in selectedModule}
 					{@const setting = getSetting(selectedModule, settingKey, tag, device)}
 					{@const effectingSettings = getSettings(selectedModule, settingKey, tag, device)}
 					{@const popupHover = {
@@ -292,6 +331,8 @@
 					</div>
 					<div class="col-span-2">{selectedModule[settingKey].description}</div>
 				{/if}
+			{:else}
+				<div class="col-span-1">No settings found for this module</div>
 			{/each}
 		{/if}
 	</div>
