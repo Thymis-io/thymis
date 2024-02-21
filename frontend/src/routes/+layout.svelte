@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { t } from 'svelte-i18n';
 	import CreateDeviceModal from '$lib/CreateDeviceModal.svelte';
 	import DeployActions from '$lib/DeployActions.svelte';
 	import DeployModal from '$lib/DeployModal.svelte';
@@ -60,10 +61,10 @@
 	};
 
 	const navItems: Array<NavItem> = [
-		{ path: '/overview', text: 'Overview', icon: LayoutDashboard },
-		{ path: '/config', text: 'Orchestrate', icon: CompassIcon },
-		{ path: '/devices', text: 'Devices', icon: ServerIcon },
-		{ path: '/history', text: 'History', icon: HistoryIcon }
+		{ path: '/overview', text: $t('nav.overview'), icon: LayoutDashboard },
+		{ path: '/config', text: $t('nav.orchestrate'), icon: CompassIcon },
+		{ path: '/devices', text: $t('nav.devices'), icon: ServerIcon },
+		{ path: '/history', text: $t('nav.history'), icon: HistoryIcon }
 	];
 </script>
 
