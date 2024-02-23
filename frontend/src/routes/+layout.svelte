@@ -97,7 +97,7 @@
 		</AppBar>
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarLeft">
-		<AppRail width="w-60" aspectRatio="aspect-[8/2]" background="bg-surface">
+		<AppRail width="w-60" aspectRatio="aspect-[8/2]" background="bg-surface" active="rounded-r-lg bg-primary-active-token">
 			<AppRailAnchor regionLead="px-2">
 				<svelte:fragment slot="lead">
 					<DeviceSelect />
