@@ -52,6 +52,10 @@ export type State = {
 export let state = writable<State | undefined>();
 export let availableModules = writable<Module[] | undefined>();
 
+const build = async () => {
+	await fetch(`${controllerProtocol}://${controllerHost}/action/build`, { method: 'POST' });
+};
+
 export async function saveState(state: State) {
 	await fetch(`${controllerProtocol}://${controllerHost}/state`, {
 		method: 'PATCH',
@@ -61,6 +65,7 @@ export async function saveState(state: State) {
 		body: JSON.stringify(state)
 	});
 	await invalidate((url) => url.pathname === '/state' || url.pathname === '/available_modules');
+	await build();
 }
 
 const load = (async () => {
