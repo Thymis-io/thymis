@@ -11,6 +11,7 @@
 
 	import Info from 'lucide-svelte/icons/info';
 	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
+	import DeployActions from '$lib/DeployActions.svelte';
 
 	const selected = queryParam<number>('selected', {
 		decode: (value) => (value ? parseInt(value, 10) : 0),
@@ -192,6 +193,9 @@
 	<div class="col-span-4 grid grid-cols-4 gap-8 gap-x-10">
 		<div class="col-span-4">
 			<class class="text-3xl font-bold text-gray-800 mb-4">Module {selectedModule?.name}</class>
+			<div class="float-right">
+				<DeployActions />
+			</div>
 		</div>
 		{#if $selected != null && $availableModules && $selected < $availableModules.length}
 			{@const selectedModule = $availableModules[$selected]}

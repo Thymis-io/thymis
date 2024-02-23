@@ -3,6 +3,7 @@
 	import { saveState, type Device, state } from '$lib/state';
 	import Pen from 'lucide-svelte/icons/pen';
 	import { controllerHost, controllerProtocol } from '$lib/api';
+	import DeployActions from '$lib/DeployActions.svelte';
 
 	const modalStore = getModalStore();
 
@@ -83,9 +84,14 @@
 	};
 </script>
 
-<button class="btn variant-filled mb-8" on:click={() => openCreateDeviceModal()}>
-	Create New Device
-</button>
+<div>
+	<button class="btn variant-filled mb-8" on:click={() => openCreateDeviceModal()}>
+		Create New Device
+	</button>
+	<div class="float-right">
+		<DeployActions />
+	</div>
+</div>
 <div class="card">
 	<header class="card-header" />
 	<section class="p-4">

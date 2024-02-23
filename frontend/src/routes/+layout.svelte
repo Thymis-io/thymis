@@ -46,6 +46,7 @@
 	import DeviceSelect from '$lib/DeviceSelect.svelte';
 	import { queryParam } from 'sveltekit-search-params';
 	import { state } from '$lib/state';
+	import BuildStatus from '$lib/BuildStatus.svelte';
 
 	const tagParam = queryParam('tag');
 	const deviceParam = queryParam('device');
@@ -89,7 +90,9 @@
 			<svelte:fragment slot="lead"><Logo /></svelte:fragment>
 			<p class="text-xl font-bold">Thymis</p>
 			<svelte:fragment slot="trail">
-				<DeployActions />
+				<button class="btn">
+					<span><UserCog /></span><span>Account</span>
+				</button>
 			</svelte:fragment>
 		</AppBar>
 	</svelte:fragment>
@@ -115,14 +118,9 @@
 				{/if}
 			{/each}
 			<svelte:fragment slot="trail">
-				<AppRailAnchor
-					regionLead="flex flex-row pl-4 gap-2"
-					href="/account"
-					selected={$page.url.pathname === '/account'}
-				>
+				<AppRailAnchor>
 					<svelte:fragment slot="lead">
-						<svelte:component this={UserCog} />
-						<span>Account</span>
+						<BuildStatus />
 					</svelte:fragment>
 				</AppRailAnchor>
 			</svelte:fragment>
