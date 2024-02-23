@@ -1,13 +1,8 @@
 <script lang="ts">
-	import type { PageData } from './$types';
 	import { getModalStore } from '@skeletonlabs/skeleton';
-	import { saveState, type Device } from '$lib/state';
-	// import { Pen } from 'lucide-svelte';
+	import { saveState, type Device, state } from '$lib/state';
 	import Pen from 'lucide-svelte/icons/pen';
 	import { controllerHost, controllerProtocol } from '$lib/api';
-
-	export let data: PageData;
-	$: state = data.state;
 
 	const modalStore = getModalStore();
 
@@ -17,9 +12,9 @@
 			component: 'CreateDeviceModal',
 			title: 'Create a new device',
 			response: (r) => {
-				if (r) {
-					state.devices.push({ ...r, tags: [], modules: [] });
-					saveState(state);
+				if (r && $state) {
+					$state.devices = [...$state.devices, { ...r, tags: [], modules: [] }];
+					saveState($state);
 				}
 			}
 		});
@@ -32,22 +27,25 @@
 			type: 'component',
 			component: 'EditTagModal',
 			title: 'Edit tags',
-			meta: { tags: device.tags, availableTags: state.tags },
+			meta: { tags: device.tags, availableTags: $state?.tags },
 			response: (r) => {
-				if (r) {
-					state.tags = r.availableTags;
-					device.tags = r.deviceTags;
-					saveState(state);
+				if (r && $state) {
+					$state.tags = r.availableTags;
+					$state.devices = $state.devices.map((d) => {
+						if (d.hostname === device.hostname) d.tags = r.deviceTags;
+						return d;
+					});
+					saveState($state);
 				}
 			}
 		});
 	}
 
 	function deleteDevice(device: Device) {
-		state.devices = state.devices.filter(
-			(d) => d.hostname !== device.hostname && d.displayName !== device.displayName
-		);
-		saveState(state);
+		if ($state) {
+			$state.devices = $state.devices.filter((d) => d.hostname !== device.hostname);
+			saveState($state);
+		}
 	}
 
 	const downloadUri = (uri: string) => {
@@ -73,9 +71,12 @@
 			title: 'Edit hostname',
 			meta: { hostname: device.hostname },
 			response: (r) => {
-				if (r) {
-					device.hostname = r.hostname;
-					saveState(state);
+				if (r && $state) {
+					$state.devices = $state.devices.map((d) => {
+						if (d.hostname === device.hostname) d.hostname = r.hostname;
+						return d;
+					});
+					saveState($state);
 				}
 			}
 		});
@@ -99,7 +100,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each state.devices as device}
+				{#each $state?.devices ?? [] as device}
 					<tr>
 						<td class="border-t border-slate-200 p-2">{device.displayName}</td>
 						<td class="border-t border-slate-200 p-2">

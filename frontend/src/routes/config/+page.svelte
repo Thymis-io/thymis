@@ -5,11 +5,10 @@
 	import ConfigBool from '$lib/config/ConfigBool.svelte';
 	import ConfigString from '$lib/config/ConfigString.svelte';
 	import ConfigTextarea from '$lib/config/ConfigTextarea.svelte';
-	import type { PageData } from './$types';
 	import { queryParam } from 'sveltekit-search-params';
-	import { saveState, type Module, type Tag, type Device } from '$lib/state';
-	import { page } from '$app/stores';
-	// import { Info, RotateCcw, Tag as TagIcon, HardDrive, ChevronDown } from 'lucide-svelte';
+	import { saveState, state, availableModules } from '$lib/state';
+	import type { Module, Tag, Device } from '$lib/state';
+
 	import Info from 'lucide-svelte/icons/info';
 	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
 	import TagIcon from 'lucide-svelte/icons/tag';
@@ -21,15 +20,11 @@
 		encode: (value) => value.toString()
 	});
 
-	export let data: PageData;
-
-	// $: tagParam = $page.url.searchParams.get('tag');
-	// $: deviceParam = $page.url.searchParams.get('device');
 	const tagParam = queryParam('tag');
 	const deviceParam = queryParam('device');
 
-	$: tag = data.state.tags.find((t) => t.name === $tagParam);
-	$: device = data.state.devices.find((d) => d.hostname === $deviceParam);
+	$: tag = $state?.tags.find((t) => t.name === $tagParam);
+	$: device = $state?.devices.find((d) => d.hostname === $deviceParam);
 	$: modules = getModules(tag, device);
 
 	const getOrigin = (tag: Tag | undefined, device: Device | undefined) => {
@@ -48,9 +43,7 @@
 		}
 
 		if (device) {
-			let usedTags = device.tags.flatMap(
-				(t) => data.state.tags.find((tag) => tag.name === t) ?? []
-			);
+			let usedTags = device.tags.flatMap((t) => $state?.tags.find((tag) => tag.name === t) ?? []);
 			return [
 				...device.modules.map((m) => ({ origin: getOrigin(undefined, device), ...m })),
 				...usedTags.flatMap((t) =>
@@ -62,7 +55,7 @@
 
 	const getModules = (tag: Tag | undefined, device: Device | undefined) => {
 		let settings = getModuleSettings(tag, device);
-		return data.availableModules.filter((m) => settings?.find((s) => s.type === m.type));
+		return $availableModules?.filter((m) => settings?.find((s) => s.type === m.type)) ?? [];
 	};
 
 	const addModule = (module: Module) => {
@@ -74,7 +67,9 @@
 			device.modules = [...device.modules, { type: module.type, settings: {} }];
 		}
 
-		saveState(data.state);
+		if ($state) {
+			saveState($state);
+		}
 	};
 
 	const removeModule = (module: Module) => {
@@ -86,7 +81,9 @@
 			device.modules = device.modules.filter((m) => m.type !== module.type);
 		}
 
-		saveState(data.state);
+		if ($state) {
+			saveState($state);
+		}
 	};
 
 	const getSettings = (
@@ -140,7 +137,9 @@
 			}
 		}
 
-		saveState(data.state);
+		if ($state) {
+			saveState($state);
+		}
 	};
 
 	const selectCombobox: PopupSettings = {
@@ -149,8 +148,8 @@
 		placement: 'bottom'
 	};
 	let selectedModule: Module | undefined;
-	$: if ($selected != null) {
-		selectedModule = data.availableModules[$selected];
+	$: if ($selected != null && $availableModules) {
+		selectedModule = $availableModules[$selected];
 	}
 	let selectedModulesValidSettingkeys: string[] = [];
 	$: if ($selected != null && selectedModule) {
@@ -230,7 +229,7 @@
 		</div>
 		<div class="mt-8">
 			<ListBox>
-				{#each data.availableModules as module, i}
+				{#each $availableModules ?? [] as module, i}
 					<ListBoxItem
 						class="card"
 						bind:group={$selected}
@@ -262,8 +261,8 @@
 		<div class="col-span-4">
 			<class class="text-3xl font-bold text-gray-800 mb-4">Module {selectedModule?.name}</class>
 		</div>
-		{#if $selected != null && $selected < data.availableModules.length}
-			{@const selectedModule = data.availableModules[$selected]}
+		{#if $selected != null && $availableModules && $selected < $availableModules.length}
+			{@const selectedModule = $availableModules[$selected]}
 			<!-- {#each Object.keys(selectedModule) as settingKey} -->
 			<!-- {#if settingKey !== 'name' && settingKey !== 'type' && typeof selectedModule[settingKey] === 'object'} -->
 			{#each selectedModulesValidSettingkeys as settingKey}
