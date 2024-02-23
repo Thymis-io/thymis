@@ -3,7 +3,8 @@
         "overview": "Overview",
         "orchestrate": "Orchestrate",
         "devices": "Devices",
-        "history": "History"
+        "history": "History",
+        "terminal": "Terminal"
     },
     "options": {
         "no-settings": "No settings found for this module",
