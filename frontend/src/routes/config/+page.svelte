@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
 	import { SlideToggle, popup } from '@skeletonlabs/skeleton';
 	import { ListBox, ListBoxItem, type PopupSettings } from '@skeletonlabs/skeleton';
 	import ConfigBool from '$lib/config/ConfigBool.svelte';
@@ -269,12 +270,23 @@
 				{#if selectedModule && settingKey in selectedModule}
 					{@const setting = getSetting(selectedModule, settingKey, tag, device)}
 					{@const effectingSettings = getSettings(selectedModule, settingKey, tag, device)}
-					{@const popupHover = {
-						event: 'hover',
-						target: `popupHover-${settingKey}`,
-						placement: 'top'
-					}}
-					<div class="col-span-1">{selectedModule[settingKey].name}</div>
+					<div class="col-span-1">
+						<div
+							class="pointer-events-none [&>*]:pointer-events-none"
+							use:popup={{ event: 'hover', target: `popupKey-${settingKey}`, placement: 'top' }}
+						>
+							{$t(`options.nix.${selectedModule[settingKey].name}`, {
+								default: selectedModule[settingKey].name
+							})}
+							<div
+								class="card p-3 variant-filled-primary z-40 mt-2"
+								data-popup="popupKey-{settingKey}"
+							>
+								<p class="selection:bg-blue-200">{selectedModule[settingKey].name}</p>
+								<div class="arrow variant-filled-primary" />
+							</div>
+						</div>
+					</div>
 					<div class="col-span-1 flex">
 						<div class="flex-1">
 							{#if selectedModule[settingKey].type == 'bool'}
@@ -305,7 +317,14 @@
 						</div>
 						{#if effectingSettings && effectingSettings.length >= 1}
 							<div class="mt-1.5 ml-2">
-								<button class="btn p-0 [&>*]:pointer-events-none" use:popup={popupHover}>
+								<button
+									class="btn p-0 [&>*]:pointer-events-none"
+									use:popup={{
+										event: 'hover',
+										target: `popupHover-${settingKey}`,
+										placement: 'top'
+									}}
+								>
 									<Info color="#0080c0" />
 								</button>
 								<div
@@ -332,7 +351,7 @@
 					<div class="col-span-2">{selectedModule[settingKey].description}</div>
 				{/if}
 			{:else}
-				<div class="col-span-1">No settings found for this module</div>
+				<div class="col-span-1">{$t('options.no-settings')}</div>
 			{/each}
 		{/if}
 	</div>

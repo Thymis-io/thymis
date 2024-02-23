@@ -4,5 +4,44 @@
         "orchestrate": "Orchestrate",
         "devices": "Devices",
         "history": "History"
+    },
+    "options": {
+        "no-settings": "No settings found for this module",
+        "nix": {
+            "thymis": {
+                "config": {
+                    "repo-dir": "Repository Directory",
+                    "device-type": "Device Type",
+                    "device-name": "Device Name",
+                    "password": "Password",
+                    "wifi-ssid": "WiFi SSID",
+                    "wifi-password": "WiFi Password"
+                }
+            },
+            "freeform": {
+                "settings": "Settings"
+            },
+            "kiosk": {
+                "url": "URL"
+            },
+            "services": {
+                "minio": {
+                    "enable": "Enable Minio",
+                    "secretKey": "Secret Key",
+                    "rootCredentialsFile": "Root Credentials File",
+                    "region": "Region",
+                    "package": "Package",
+                    "listenAddress": "Listen Address",
+                    "dataDir": "Data Directory",
+                    "consoleAddress": "Console Address",
+                    "configDir": "Configuration Directory",
+                    "browser": "Browser",
+                    "accessKey": "Access Key"
+                },
+                "node-red": {
+                    "enable": "Enable Node-RED"
+                }
+            }
+        }
     }
 }
