@@ -11,21 +11,24 @@ module.exports = {
 	content: [
 		'./src/**/*.{html,js,svelte,ts}',
 		// 3. Append the path to the Skeleton package
-		require('path').join(require.resolve('@skeletonlabs/skeleton'), '../**/*.{html,js,svelte,ts}')
+		require('path').join(require.resolve('@skeletonlabs/skeleton'), '../**/*.{html,js,svelte,ts}', './node_modules/flowbite-svelte/**/*.{html,js,svelte,ts}')
 	],
 	theme: {
 		extend: {
-			height: {
-				'10v': '10vh',
-				'20v': '20vh',
-				'30v': '30vh',
-				'40v': '40vh',
-				'50v': '50vh',
-				'60v': '60vh',
-				'70v': '70vh',
-				'80v': '80vh',
-				'90v': '90vh',
-				'100v': '100vh'
+			colors: {
+				// flowbite-svelte
+				primary: {
+				  50: '#FFF5F2',
+				  100: '#FFF1EE',
+				  200: '#FFE4DE',
+				  300: '#FFD5CC',
+				  400: '#FFBCAD',
+				  500: '#FE795D',
+				  600: '#EF562F',
+				  700: '#EB4F27',
+				  800: '#CC4522',
+				  900: '#A5371B'
+				}
 			}
 		}
 	},
@@ -33,6 +36,7 @@ module.exports = {
 		forms,
 		skeleton({
 			themes: { preset: ['hamlindigo'] }
-		})
+		}),
+		require('flowbite/plugin')
 	]
 };
