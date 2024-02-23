@@ -92,9 +92,9 @@
 		<DeployActions />
 	</div>
 </div>
-<div class="card">
+<div class="card p-4 bg-white rounded-lg shadow-md">
 	<header class="card-header" />
-	<section class="p-4">
+	<section>
 		<table class="table-auto w-full text-left">
 			<thead>
 				<tr class="">

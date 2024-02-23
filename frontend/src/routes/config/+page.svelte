@@ -158,19 +158,32 @@
 	}
 </script>
 
-<div class="grid grid-flow-row grid-cols-5 gap-12">
+<div class="flex justify-between">
+	<h1 class="text-3xl font-bold mb-6">
+		{#if tag}
+			Module im Tag verwalten
+		{:else if device}
+			Module im Gerät verwalten
+		{:else}
+			Module verwalten
+		{/if}
+	</h1>
 	<div>
-		<div class="mt-8">
+		<DeployActions />
+	</div>
+</div>
+<div class="grid grid-flow-row grid-cols-5 gap-4">
+	<div>
+		<div class="card p-4 bg-white rounded-lg shadow-md">
 			<ListBox>
 				{#each $availableModules ?? [] as module, i}
 					<ListBoxItem
-						class="card"
 						bind:group={$selected}
 						value={i}
 						name={module.name}
-						active={'bg-primary-500'}
+						active={'bg-primary-400'}
 					>
-						<div class="flex gap-4 mt-2 mb-2">
+						<div class="flex gap-4 my-2">
 							<SlideToggle
 								name=""
 								size="sm"
@@ -190,13 +203,7 @@
 			</ListBox>
 		</div>
 	</div>
-	<div class="col-span-4 grid grid-cols-4 gap-8 gap-x-10">
-		<div class="col-span-4">
-			<class class="text-3xl font-bold text-gray-800 mb-4">Module {selectedModule?.name}</class>
-			<div class="float-right">
-				<DeployActions />
-			</div>
-		</div>
+	<div class="card p-4 bg-white rounded-lg shadow-md col-span-4 grid grid-cols-4 gap-8 gap-x-10">
 		{#if $selected != null && $availableModules && $selected < $availableModules.length}
 			{@const selectedModule = $availableModules[$selected]}
 			<!-- {#each Object.keys(selectedModule) as settingKey} -->

@@ -86,9 +86,9 @@
 <Modal components={modalRegistry} />
 <AppShell>
 	<svelte:fragment slot="header">
-		<AppBar>
+		<AppBar background="bg-gradient-to-r from-blue-500 to-cyan-500" padding="px-4 py-2">
 			<svelte:fragment slot="lead"><Logo /></svelte:fragment>
-			<p class="text-xl font-bold">Thymis</p>
+			<p class="text-xl font-bold text-white">Thymis Enterprise</p>
 			<svelte:fragment slot="trail">
 				<button class="btn">
 					<span><UserCog /></span><span>Account</span>
@@ -97,7 +97,7 @@
 		</AppBar>
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarLeft">
-		<AppRail width="w-60" aspectRatio="aspect-[8/2]">
+		<AppRail width="w-60" aspectRatio="aspect-[8/2]" background="bg-surface">
 			<AppRailAnchor regionLead="px-2">
 				<svelte:fragment slot="lead">
 					<DeviceSelect />
@@ -129,7 +129,7 @@
 	<!-- (sidebarRight) -->
 	<!-- (pageHeader) -->
 	<!-- Router Slot -->
-	<div class="m-8">
+	<div class="m-8 mt-4">
 		<slot />
 	</div>
 	<!-- ---- / ---- -->
