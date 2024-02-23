@@ -41,6 +41,7 @@
 	import type { Icon } from 'lucide-svelte';
 	import type { ComponentType } from 'svelte';
 	import '../app.postcss';
+	import DeviceSelect from '$lib/DeviceSelect.svelte';
 
 	const modalRegistry: Record<string, ModalComponent> = {
 		CreateDeviceModal: { ref: CreateDeviceModal },
@@ -80,21 +81,34 @@
 		</AppBar>
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarLeft">
-		<AppRail>
+		<AppRail width="w-60" aspectRatio="aspect-[8/2]">
+			<AppRailAnchor regionLead="px-2">
+				<svelte:fragment slot="lead">
+					<DeviceSelect />
+				</svelte:fragment>
+			</AppRailAnchor>
 			{#each navItems as item, i}
-				<AppRailAnchor href={item.path} selected={$page.url.pathname === item.path}>
+				<AppRailAnchor
+					regionLead="flex flex-row pl-4 gap-2 items-center"
+					href={item.path + $page.url.search}
+					selected={$page.url.pathname === item.path}
+				>
 					<svelte:fragment slot="lead">
 						<svelte:component this={item.icon} />
+						<span>{item.text}</span>
 					</svelte:fragment>
-					<span>{item.text}</span>
 				</AppRailAnchor>
 			{/each}
 			<svelte:fragment slot="trail">
-				<AppRailAnchor href="/account" selected={$page.url.pathname === '/account'}>
+				<AppRailAnchor
+					regionLead="flex flex-row pl-4 gap-2"
+					href="/account"
+					selected={$page.url.pathname === '/account'}
+				>
 					<svelte:fragment slot="lead">
 						<svelte:component this={UserCog} />
+						<span>Account</span>
 					</svelte:fragment>
-					<span>Account</span>
 				</AppRailAnchor>
 			</svelte:fragment>
 		</AppRail>

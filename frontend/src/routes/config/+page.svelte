@@ -11,9 +11,6 @@
 
 	import Info from 'lucide-svelte/icons/info';
 	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
-	import TagIcon from 'lucide-svelte/icons/tag';
-	import HardDrive from 'lucide-svelte/icons/hard-drive';
-	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 
 	const selected = queryParam<number>('selected', {
 		decode: (value) => (value ? parseInt(value, 10) : 0),
@@ -142,11 +139,6 @@
 		}
 	};
 
-	const selectCombobox: PopupSettings = {
-		event: 'click',
-		target: 'selectCombobox',
-		placement: 'bottom'
-	};
 	let selectedModule: Module | undefined;
 	$: if ($selected != null && $availableModules) {
 		selectedModule = $availableModules[$selected];
@@ -167,66 +159,6 @@
 
 <div class="grid grid-flow-row grid-cols-5 gap-12">
 	<div>
-		<div>
-			<!-- first text -->
-			<h1 class="text-3xl font-bold text-gray-800 mb-4">Select a device or tag</h1>
-			<button class="btn variant-filled w-full justify-between" use:popup={selectCombobox}>
-				<div class="flex">
-					{#if tag}
-						<TagIcon class="mr-2" /> {tag.name}
-					{:else if device}
-						<HardDrive class="mr-2" /> {device.displayName}: {device.hostname}
-					{/if}
-				</div>
-				<span><ChevronDown /></span>
-			</button>
-			<div class="card w-80 shadow-xl py-2 z-50" data-popup="selectCombobox">
-				<ListBox rounded="rounded-none">
-					{#each data.state.tags as tag}
-						<!-- <a href="/config?tag={tag.name}"> -->
-						<a
-							href="#"
-							on:click={() => {
-								$tagParam = tag.name;
-								$deviceParam = null;
-							}}
-						>
-							<ListBoxItem
-								group={''}
-								value={tag.name}
-								name={tag.name}
-								hover={'hover:variant-filled'}
-								active={''}
-							>
-								<svelte:fragment slot="lead"><TagIcon /></svelte:fragment>
-								{tag.name}
-							</ListBoxItem>
-						</a>
-					{/each}
-					{#each data.state.devices as device}
-						<!-- <a href="/config?device={device.hostname}"> -->
-						<a
-							href="#"
-							on:click={() => {
-								$deviceParam = device.hostname;
-								$tagParam = null;
-							}}
-						>
-							<ListBoxItem
-								group={''}
-								value={device.hostname}
-								name={device.hostname}
-								hover={'hover:variant-filled'}
-								active={''}
-							>
-								<svelte:fragment slot="lead"><HardDrive /></svelte:fragment>
-								{device.displayName}: {device.hostname}
-							</ListBoxItem>
-						</a>
-					{/each}
-				</ListBox>
-			</div>
-		</div>
 		<div class="mt-8">
 			<ListBox>
 				{#each $availableModules ?? [] as module, i}
