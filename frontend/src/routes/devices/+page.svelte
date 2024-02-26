@@ -1,9 +1,13 @@
 <script lang="ts">
 	import { getModalStore } from '@skeletonlabs/skeleton';
-	import { saveState, type Device, state } from '$lib/state';
+	import { saveState, type Device } from '$lib/state';
 	import Pen from 'lucide-svelte/icons/pen';
+	import { Card, Button } from 'flowbite-svelte';
 	import { controllerHost, controllerProtocol } from '$lib/api';
 	import DeployActions from '$lib/DeployActions.svelte';
+	import type { PageData } from './$types';
+
+	export let data: PageData;
 
 	const modalStore = getModalStore();
 
@@ -13,9 +17,9 @@
 			component: 'CreateDeviceModal',
 			title: 'Create a new device',
 			response: (r) => {
-				if (r && $state) {
-					$state.devices = [...$state.devices, { ...r, tags: [], modules: [] }];
-					saveState($state);
+				if (r) {
+					data.state.devices = [...data.state.devices, { ...r, tags: [], modules: [] }];
+					saveState(data.state);
 				}
 			}
 		});
@@ -28,25 +32,23 @@
 			type: 'component',
 			component: 'EditTagModal',
 			title: 'Edit tags',
-			meta: { tags: device.tags, availableTags: $state?.tags },
+			meta: { tags: device.tags, availableTags: data.state.tags },
 			response: (r) => {
-				if (r && $state) {
-					$state.tags = r.availableTags;
-					$state.devices = $state.devices.map((d) => {
+				if (r) {
+					data.state.tags = r.availableTags;
+					data.state.devices = data.state.devices.map((d) => {
 						if (d.hostname === device.hostname) d.tags = r.deviceTags;
 						return d;
 					});
-					saveState($state);
+					saveState(data.state);
 				}
 			}
 		});
 	}
 
 	function deleteDevice(device: Device) {
-		if ($state) {
-			$state.devices = $state.devices.filter((d) => d.hostname !== device.hostname);
-			saveState($state);
-		}
+		data.state.devices = data.state.devices.filter((d) => d.hostname !== device.hostname);
+		saveState(data.state);
 	}
 
 	const downloadUri = (uri: string) => {
@@ -72,27 +74,25 @@
 			title: 'Edit hostname',
 			meta: { hostname: device.hostname },
 			response: (r) => {
-				if (r && $state) {
-					$state.devices = $state.devices.map((d) => {
+				if (r) {
+					data.state.devices = data.state.devices.map((d) => {
 						if (d.hostname === device.hostname) d.hostname = r.hostname;
 						return d;
 					});
-					saveState($state);
+					saveState(data.state);
 				}
 			}
 		});
 	};
 </script>
 
-<div>
-	<button class="btn variant-filled mb-8" on:click={() => openCreateDeviceModal()}>
-		Create New Device
-	</button>
-	<div class="float-right">
+<div class="flex justify-between mb-4">
+	<Button color="alternative" on:click={() => openCreateDeviceModal()}>Create New Device</Button>
+	<div>
 		<DeployActions />
 	</div>
 </div>
-<div class="card p-4 bg-white rounded-lg shadow-md">
+<Card class="max-w-none">
 	<header class="card-header" />
 	<section>
 		<table class="table-auto w-full text-left">
@@ -106,7 +106,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each $state?.devices ?? [] as device}
+				{#each data.state.devices as device}
 					<tr>
 						<td class="border-t border-slate-200 p-2">{device.displayName}</td>
 						<td class="border-t border-slate-200 p-2">
@@ -152,4 +152,4 @@
 			</tbody>
 		</table>
 	</section>
-</div>
+</Card>

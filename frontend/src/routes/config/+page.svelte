@@ -157,8 +157,8 @@
 	}
 </script>
 
-<div class="flex justify-between">
-	<h1 class="text-3xl font-bold mb-6 dark:text-white">
+<div class="flex justify-between mb-4">
+	<h1 class="text-3xl font-bold dark:text-white">
 		{#if tag}
 			Module im Tag verwalten
 		{:else if device}

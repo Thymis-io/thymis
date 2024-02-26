@@ -5,10 +5,12 @@
 	// history: response.json() as Promise<{ message: string; author: string, date: string , hash: string }[]>
 </script>
 
+<div class="flex justify-between mb-4">
+	<h1 class="text-3xl font-bold dark:text-white">History</h1>
+</div>
 {#await data.history}
 	<p>Loading...</p>
 {:then history}
-	<p class="text-2xl font-bold text-gray-800">History</p>
 	<ul class="list-disc ml-4">
 		{#each history as h}
 			<!-- simple left-bound list -->
