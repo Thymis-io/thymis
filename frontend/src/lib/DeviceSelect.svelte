@@ -1,13 +1,11 @@
 <script lang="ts">
 	import { queryParam } from 'sveltekit-search-params';
-	import { ListBox, ListBoxItem, popup } from '@skeletonlabs/skeleton';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
-	import ChevronDown from 'lucide-svelte/icons/chevron-down';
-	import type { State } from './state';
 	import { Button, Dropdown, Search } from 'flowbite-svelte';
 	import { ChevronDownSolid } from 'flowbite-svelte-icons';
 	import type { PageData } from '../routes/$types';
+	import { page } from '$app/stores';
 
 	export let data: PageData;
 
@@ -16,6 +14,13 @@
 
 	$: tag = data.state.tags.find((t) => t.name === $tagParam);
 	$: device = data.state.devices.find((d) => d.hostname === $deviceParam);
+
+	const otherUrlParams = () => {
+		const params = new URLSearchParams($page.url.search);
+		params.delete('tag');
+		params.delete('device');
+		return params.toString();
+	};
 </script>
 
 <Button class="w-full flex justify-between">
@@ -32,33 +37,21 @@
 	<div slot="header" class="p-3">
 		<Search size="md" />
 		{#each data.state.tags as tag}
-			<!-- <a href="/config?tag={tag.name}"> -->
 			<a
-				href="#"
-				on:click={() => {
-					$tagParam = tag.name;
-					$deviceParam = null;
-				}}
+				href={`?tag=${tag.name}&${otherUrlParams()}`}
+				class={'flex gap-2 my-1 p-1 hover:bg-primary-500'}
 			>
-				<div class={'flex gap-2 my-1 py-1 hover:bg-primary-500'}>
-					<TagIcon />
-					{tag.name}
-				</div>
+				<TagIcon />
+				{tag.name}
 			</a>
 		{/each}
 		{#each data.state.devices as device}
-			<!-- <a href="/config?device={device.hostname}"> -->
 			<a
-				href="#"
-				on:click={() => {
-					$deviceParam = device.hostname;
-					$tagParam = null;
-				}}
+				href={`?device=${device.hostname}&${otherUrlParams()}`}
+				class={'flex gap-2 my-1 p-1 hover:bg-primary-500'}
 			>
-				<div class={'flex gap-2 my-1 py-1 hover:bg-primary-500'}>
-					<HardDrive />
-					{device.displayName}
-				</div>
+				<HardDrive />
+				{device.displayName}
 			</a>
 		{/each}
 	</div>

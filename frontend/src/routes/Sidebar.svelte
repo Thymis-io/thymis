@@ -159,7 +159,7 @@
 							{#each Object.entries(children) as [title, href]}
 								<SidebarItem
 									label={title}
-									{href}
+									href={href + $page.url.search}
 									{spanClass}
 									{activeClass}
 									active={activeMainSidebar === href}
@@ -167,7 +167,7 @@
 							{/each}
 						</SidebarDropdownWrapper>
 					{:else}
-						<SidebarItem label={name} {href}>
+						<SidebarItem label={name} href={href + $page.url.search}>
 							<svelte:component this={icon} slot="icon" />
 						</SidebarItem>
 					{/if}
