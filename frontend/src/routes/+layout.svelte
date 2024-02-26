@@ -41,12 +41,18 @@
 	import EditHostnameModal from '$lib/EditHostnameModal.svelte';
 
 	import type { Icon } from 'lucide-svelte';
-	import type { ComponentType } from 'svelte';
+	import { onMount, type ComponentType, SvelteComponent } from 'svelte';
 	import '../app.postcss';
 	import DeviceSelect from '$lib/DeviceSelect.svelte';
 	import { queryParam } from 'sveltekit-search-params';
 	import { state } from '$lib/state';
 	import BuildStatus from '$lib/BuildStatus.svelte';
+
+	let ThymisCommercialHelloWorld: ComponentType<SvelteComponent> | null;
+	onMount(async () => {
+		// ThymisCommercialHelloWorld = (await import('../../node_modules/thymis-commercial')).ThymisCommercialHelloWorld; // COMMERCIALINCLUDE
+		ThymisCommercialHelloWorld = null; // COMMERCIALEXCLUDE
+	});
 
 	const tagParam = queryParam('tag');
 	const deviceParam = queryParam('device');
@@ -84,6 +90,7 @@
 </script>
 
 <Modal components={modalRegistry} />
+<svelte:component this={ThymisCommercialHelloWorld} />
 <AppShell>
 	<svelte:fragment slot="header">
 		<AppBar background="bg-gradient-to-r from-blue-500 to-cyan-500" padding="px-4 py-2">
@@ -97,7 +104,12 @@
 		</AppBar>
 	</svelte:fragment>
 	<svelte:fragment slot="sidebarLeft">
-		<AppRail width="w-60" aspectRatio="aspect-[8/2]" background="bg-surface" active="rounded-r-lg bg-primary-active-token">
+		<AppRail
+			width="w-60"
+			aspectRatio="aspect-[8/2]"
+			background="bg-surface"
+			active="rounded-r-lg bg-primary-active-token"
+		>
 			<AppRailAnchor regionLead="px-2">
 				<svelte:fragment slot="lead">
 					<DeviceSelect />

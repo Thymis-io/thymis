@@ -21,6 +21,7 @@
 		"@skeletonlabs/tw-plugin": "^0.2.2",
 		"@sveltejs/adapter-node": "^4.0.1",
 		"@sveltejs/kit": "^2.5.0",
+		"@sveltejs/package": "^2.2.7",
 		"@sveltejs/vite-plugin-svelte": "^3.0.2",
 		"@tailwindcss/forms": "^0.5.7",
 		"@typescript-eslint/eslint-plugin": "^6.0.0",
@@ -46,5 +47,8 @@
 		"vite": "^5.1.1",
 		"vitest": "^0.32.2"
 	},
-	"type": "module"
+	"type": "module",
+	"optionalDependencies": {
+		"thymis-commercial": "file:../../thymis-commercial/js/dist"
+	}
 }

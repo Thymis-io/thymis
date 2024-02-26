@@ -4,19 +4,22 @@ import { browser } from '$app/environment';
 import { writable } from 'svelte/store';
 
 export type SettingTypes =
-	{
-		type: 'bool';
-		value: boolean;
-	} | {
-		type: 'string';
-		value: string;
-	} | {
-		type: 'path';
-		value: string;
-	} | {
-		type: 'textarea';
-		value: string;
-	};
+	| {
+			type: 'bool';
+			value: boolean;
+	  }
+	| {
+			type: 'string';
+			value: string;
+	  }
+	| {
+			type: 'path';
+			value: string;
+	  }
+	| {
+			type: 'textarea';
+			value: string;
+	  };
 
 export type Setting = SettingTypes & {
 	name: string;
@@ -68,7 +71,7 @@ export async function saveState(state: State) {
 	await build();
 }
 
-const load = (async () => {
+const load = async () => {
 	console.log('loading state');
 	const stateResponse = await fetch(`${controllerProtocol}://${controllerHost}/state`, {
 		method: 'GET',
@@ -78,13 +81,16 @@ const load = (async () => {
 	});
 
 	const loadedState = await stateResponse.json();
-	state.set(loadedState)
-	const availableModulesResponse = await fetch(`${controllerProtocol}://${controllerHost}/available_modules`, {
-		method: 'GET',
-		headers: {
-			'content-type': 'application/json'
+	state.set(loadedState);
+	const availableModulesResponse = await fetch(
+		`${controllerProtocol}://${controllerHost}/available_modules`,
+		{
+			method: 'GET',
+			headers: {
+				'content-type': 'application/json'
+			}
 		}
-	});
+	);
 
 	availableModules.set(await availableModulesResponse.json());
 	console.log('state loaded');
@@ -103,7 +109,7 @@ const load = (async () => {
 			goto(url.pathname + `?&device=${firstDevice.hostname}`);
 		}
 	}
-});
+};
 
 if (browser) {
 	load();

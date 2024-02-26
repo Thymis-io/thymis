@@ -1,8 +1,8 @@
 {
-    "nav": {
-        "overview": "Übersicht",
-        "orchestrate": "Verwalten",
-        "devices": "Geräte",
-        "history": "Versionen"
-    }
+	"nav": {
+		"overview": "Übersicht",
+		"orchestrate": "Verwalten",
+		"devices": "Geräte",
+		"history": "Versionen"
+	}
 }
