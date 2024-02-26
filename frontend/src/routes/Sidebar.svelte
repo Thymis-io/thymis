@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { t } from 'svelte-i18n';
 
 	import {
 		Button,
@@ -25,9 +26,12 @@
 		LockSolid,
 		RectangleListSolid,
 		TableColumnSolid,
-		ChevronDownSolid
+		ChevronDownSolid,
+		AdjustmentsHorizontalSolid,
+		ChartMixedSolid
 	} from 'flowbite-svelte-icons';
 	import type { PageData } from './$types';
+	import DeviceSelect from '$lib/DeviceSelect.svelte';
 
 	let drawerHidden: boolean = false;
 
@@ -60,8 +64,16 @@
 	});
 
 	let posts = [
-		{ name: 'Dropdown', icon: PieChartSolid, href: '/dropdown' },
-		{ name: 'Dashboard', icon: PieChartSolid, href: '/dashboard' },
+		{
+			name: $t('nav.overview'),
+			icon: ChartMixedSolid,
+			href: '/overview'
+		},
+		{
+			name: $t('nav.orchestrate'),
+			icon: AdjustmentsHorizontalSolid,
+			href: '/config'
+		},
 		{
 			name: 'Layouts',
 			icon: TableColumnSolid,
@@ -128,19 +140,7 @@
 	>
 		<nav class="divide-y text-base font-medium">
 			<SidebarGroup ulClass="list-unstyled fw-normal small mb-4 space-y-2">
-				<Button
-					>Dropdown search<ChevronDownSolid class="h-3 ms-2 text-white dark:text-white" /></Button
-				>
-				<Dropdown class="overflow-y-auto px-3 pb-3 text-sm h-44">
-					<div slot="header" class="p-3">
-						<Search size="md" />
-						<ul>
-							{#each devices as device}
-								<li>{device.displayName}</li>
-							{/each}
-						</ul>
-					</div>
-				</Dropdown>
+				<DeviceSelect {data} />
 				{#each posts as { name, icon, children, href } (name)}
 					{#if children}
 						<SidebarDropdownWrapper

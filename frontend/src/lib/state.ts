@@ -5,21 +5,21 @@ import { writable } from 'svelte/store';
 
 export type SettingTypes =
 	| {
-			type: 'bool';
-			value: boolean;
-	  }
+		type: 'bool';
+		value: boolean;
+	}
 	| {
-			type: 'string';
-			value: string;
-	  }
+		type: 'string';
+		value: string;
+	}
 	| {
-			type: 'path';
-			value: string;
-	  }
+		type: 'path';
+		value: string;
+	}
 	| {
-			type: 'textarea';
-			value: string;
-	  };
+		type: 'textarea';
+		value: string;
+	};
 
 export type Setting = SettingTypes & {
 	name: string;
@@ -51,3 +51,19 @@ export type State = {
 	devices: Device[];
 	tags: Tag[];
 };
+
+export const build = async () => {
+	await fetch(`${controllerProtocol}://${controllerHost}/action/build`, { method: 'POST' });
+};
+
+export async function saveState(state: State) {
+	await fetch(`${controllerProtocol}://${controllerHost}/state`, {
+		method: 'PATCH',
+		headers: {
+			'content-type': 'application/json'
+		},
+		body: JSON.stringify(state)
+	});
+	await invalidate((url) => url.pathname === '/state' || url.pathname === '/available_modules');
+	await build();
+}

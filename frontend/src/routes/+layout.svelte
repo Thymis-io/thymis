@@ -9,6 +9,9 @@
 	import EditTagModal from '$lib/EditTagModal.svelte';
 	import LogModal from '$lib/LogModal.svelte';
 	import EditHostnameModal from '$lib/EditHostnameModal.svelte';
+	import type { PageData } from '../routes/$types';
+
+	export let data: PageData;
 
 	const modalRegistry: Record<string, ModalComponent> = {
 		CreateDeviceModal: { ref: CreateDeviceModal },
@@ -29,8 +32,8 @@
 	<Navbar />
 </header>
 <div class="overflow-hidden lg:flex">
-	<Sidebar />
-	<div class="relative h-full w-full overflow-y-auto lg:ml-64">
+	<Sidebar {data} />
+	<div class="relative h-full w-full overflow-y-auto lg:ml-64 p-4">
 		<slot />
 	</div>
 </div>

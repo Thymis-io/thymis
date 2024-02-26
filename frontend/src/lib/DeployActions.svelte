@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getModalStore, popup, type PopupSettings } from '@skeletonlabs/skeleton';
+	import { Button } from 'flowbite-svelte';
 	import CloudCog from 'lucide-svelte/icons/cloud-cog';
 	import Play from 'lucide-svelte/icons/play';
 	import '../app.postcss';
@@ -24,12 +25,12 @@
 	};
 </script>
 
-<button class="btn variant-filled" on:click={build}>
+<Button color="alternative" on:click={build}>
 	<span><Play /></span><span>Build</span>
-</button>
-<button class="btn variant-filled" on:click={openDeploy}>
+</Button>
+<Button color="alternative" on:click={openDeploy}>
 	<span><CloudCog /></span><span>Deploy</span>
-</button>
-<button class="btn variant-filled" on:click={update}>
+</Button>
+<Button color="alternative" on:click={update}>
 	<span><CloudCog /></span><span>Update</span>
-</button>
+</Button>

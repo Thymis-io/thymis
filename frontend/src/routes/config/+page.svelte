@@ -1,17 +1,20 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { SlideToggle, popup } from '@skeletonlabs/skeleton';
-	import { ListBox, ListBoxItem, type PopupSettings } from '@skeletonlabs/skeleton';
+	import { Card, Toggle, Listgroup, ListgroupItem } from 'flowbite-svelte';
 	import ConfigBool from '$lib/config/ConfigBool.svelte';
 	import ConfigString from '$lib/config/ConfigString.svelte';
 	import ConfigTextarea from '$lib/config/ConfigTextarea.svelte';
 	import { queryParam } from 'sveltekit-search-params';
-	import { saveState, state, availableModules } from '$lib/state';
+	import { saveState } from '$lib/state';
 	import type { Module, Tag, Device } from '$lib/state';
 
 	import Info from 'lucide-svelte/icons/info';
 	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
 	import DeployActions from '$lib/DeployActions.svelte';
+	import type { PageData } from './$types';
+
+	export let data: PageData;
 
 	const selected = queryParam<number>('selected', {
 		decode: (value) => (value ? parseInt(value, 10) : 0),
@@ -21,8 +24,8 @@
 	const tagParam = queryParam('tag');
 	const deviceParam = queryParam('device');
 
-	$: tag = $state?.tags.find((t) => t.name === $tagParam);
-	$: device = $state?.devices.find((d) => d.hostname === $deviceParam);
+	$: tag = data.state.tags.find((t) => t.name === $tagParam);
+	$: device = data.state.devices.find((d) => d.hostname === $deviceParam);
 	$: modules = getModules(tag, device);
 
 	const getOrigin = (tag: Tag | undefined, device: Device | undefined) => {
@@ -41,7 +44,9 @@
 		}
 
 		if (device) {
-			let usedTags = device.tags.flatMap((t) => $state?.tags.find((tag) => tag.name === t) ?? []);
+			let usedTags = device.tags.flatMap(
+				(t) => data.state.tags.find((tag) => tag.name === t) ?? []
+			);
 			return [
 				...device.modules.map((m) => ({ origin: getOrigin(undefined, device), ...m })),
 				...usedTags.flatMap((t) =>
@@ -53,7 +58,7 @@
 
 	const getModules = (tag: Tag | undefined, device: Device | undefined) => {
 		let settings = getModuleSettings(tag, device);
-		return $availableModules?.filter((m) => settings?.find((s) => s.type === m.type)) ?? [];
+		return data.availableModules.filter((m) => settings?.find((s) => s.type === m.type)) ?? [];
 	};
 
 	const addModule = (module: Module) => {
@@ -65,9 +70,7 @@
 			device.modules = [...device.modules, { type: module.type, settings: {} }];
 		}
 
-		if ($state) {
-			saveState($state);
-		}
+		saveState(data.state);
 	};
 
 	const removeModule = (module: Module) => {
@@ -79,9 +82,7 @@
 			device.modules = device.modules.filter((m) => m.type !== module.type);
 		}
 
-		if ($state) {
-			saveState($state);
-		}
+		saveState(data.state);
 	};
 
 	const getSettings = (
@@ -135,14 +136,12 @@
 			}
 		}
 
-		if ($state) {
-			saveState($state);
-		}
+		saveState(data.state);
 	};
 
 	let selectedModule: Module | undefined;
-	$: if ($selected != null && $availableModules) {
-		selectedModule = $availableModules[$selected];
+	$: if ($selected != null) {
+		selectedModule = data.availableModules[$selected];
 	}
 	let selectedModulesValidSettingkeys: string[] = [];
 	$: if ($selected != null && selectedModule) {
@@ -159,7 +158,7 @@
 </script>
 
 <div class="flex justify-between">
-	<h1 class="text-3xl font-bold mb-6">
+	<h1 class="text-3xl font-bold mb-6 dark:text-white">
 		{#if tag}
 			Module im Tag verwalten
 		{:else if device}
@@ -174,38 +173,32 @@
 </div>
 <div class="grid grid-flow-row grid-cols-5 gap-4">
 	<div>
-		<div class="card p-4 bg-white rounded-lg shadow-md">
-			<ListBox>
-				{#each $availableModules ?? [] as module, i}
-					<ListBoxItem
-						bind:group={$selected}
-						value={i}
-						name={module.name}
-						active={'bg-primary-400'}
-					>
-						<div class="flex gap-4 my-2">
-							<SlideToggle
-								name=""
-								size="sm"
-								checked={modules.find((m) => m.type === module.type) !== undefined}
-								on:change={() => {
-									if (modules.find((m) => m.type === module.type) !== undefined) {
-										removeModule(module);
-									} else {
-										addModule(module);
-									}
-								}}
-							/>
-							<div>{module.name}</div>
-						</div>
-					</ListBoxItem>
-				{/each}
-			</ListBox>
-		</div>
+		<Listgroup active>
+			{#each data.availableModules as module, i}
+				<ListgroupItem
+					on:click={() => ($selected = i)}
+					current={$selected === i}
+					currentClass="bg-primary-500"
+				>
+					<div>
+						<Toggle
+							checked={modules.find((m) => m.type === module.type) !== undefined}
+							on:change={() => {
+								if (modules.find((m) => m.type === module.type) !== undefined) {
+									removeModule(module);
+								} else {
+									addModule(module);
+								}
+							}}>{module.name}</Toggle
+						>
+					</div>
+				</ListgroupItem>
+			{/each}
+		</Listgroup>
 	</div>
-	<div class="card p-4 bg-white rounded-lg shadow-md col-span-4 grid grid-cols-4 gap-8 gap-x-10">
-		{#if $selected != null && $availableModules && $selected < $availableModules.length}
-			{@const selectedModule = $availableModules[$selected]}
+	<Card class="col-span-4 max-w-none grid grid-cols-4 gap-8 gap-x-10 ">
+		{#if $selected != null && $selected < data.availableModules.length}
+			{@const selectedModule = data.availableModules[$selected]}
 			<!-- {#each Object.keys(selectedModule) as settingKey} -->
 			<!-- {#if settingKey !== 'name' && settingKey !== 'type' && typeof selectedModule[settingKey] === 'object'} -->
 			{#each selectedModulesValidSettingkeys as settingKey}
@@ -296,5 +289,5 @@
 				<div class="col-span-1">{$t('options.no-settings')}</div>
 			{/each}
 		{/if}
-	</div>
+	</Card>
 </div>

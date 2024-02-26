@@ -4,35 +4,34 @@
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
-	import { state } from './state';
+	import type { State } from './state';
+	import { Button, Dropdown, Search } from 'flowbite-svelte';
+	import { ChevronDownSolid } from 'flowbite-svelte-icons';
+	import type { PageData } from '../routes/$types';
+
+	export let data: PageData;
 
 	const tagParam = queryParam('tag');
 	const deviceParam = queryParam('device');
 
-	$: tag = $state?.tags.find((t) => t.name === $tagParam);
-	$: device = $state?.devices.find((d) => d.hostname === $deviceParam);
+	$: tag = data.state.tags.find((t) => t.name === $tagParam);
+	$: device = data.state.devices.find((d) => d.hostname === $deviceParam);
 </script>
 
-<button
-	class="btn variant-filled w-full justify-between"
-	use:popup={{
-		event: 'click',
-		target: 'selectCombobox',
-		placement: 'bottom'
-	}}
->
+<Button class="w-full flex justify-between">
 	<div class="flex gap-2">
 		{#if tag}
-			<TagIcon /> {tag.name}
+			<TagIcon size={20} /> {tag.name}
 		{:else if device}
-			<HardDrive /> {device.displayName}
+			<HardDrive size={20} /> {device.displayName}
 		{/if}
 	</div>
-	<span><ChevronDown /></span>
-</button>
-<div class="card w-80 shadow-xl py-2 z-50" data-popup="selectCombobox">
-	<ListBox rounded="rounded-none">
-		{#each $state?.tags ?? [] as tag}
+	<ChevronDownSolid class="h-4 ms-2 text-white dark:text-white" /></Button
+>
+<Dropdown class="overflow-y-auto px-3 pb-3 text-sm h-44">
+	<div slot="header" class="p-3">
+		<Search size="md" />
+		{#each data.state.tags as tag}
 			<!-- <a href="/config?tag={tag.name}"> -->
 			<a
 				href="#"
@@ -41,20 +40,13 @@
 					$deviceParam = null;
 				}}
 			>
-				<ListBoxItem
-					group={''}
-					value={tag.name}
-					name={tag.name}
-					hover={'hover:variant-filled'}
-					active={''}
-					class="flex"
-				>
-					<svelte:fragment slot="lead"><TagIcon /></svelte:fragment>
+				<div class={'flex gap-2 my-1 py-1 hover:bg-primary-500'}>
+					<TagIcon />
 					{tag.name}
-				</ListBoxItem>
+				</div>
 			</a>
 		{/each}
-		{#each $state?.devices ?? [] as device}
+		{#each data.state.devices as device}
 			<!-- <a href="/config?device={device.hostname}"> -->
 			<a
 				href="#"
@@ -63,18 +55,11 @@
 					$tagParam = null;
 				}}
 			>
-				<ListBoxItem
-					group={''}
-					value={device.hostname}
-					name={device.hostname}
-					hover={'hover:variant-filled'}
-					active={''}
-					class="flex"
-				>
-					<svelte:fragment slot="lead"><HardDrive /></svelte:fragment>
+				<div class={'flex gap-2 my-1 py-1 hover:bg-primary-500'}>
+					<HardDrive />
 					{device.displayName}
-				</ListBoxItem>
+				</div>
 			</a>
 		{/each}
-	</ListBox>
-</div>
+	</div>
+</Dropdown>

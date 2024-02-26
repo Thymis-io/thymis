@@ -11,11 +11,7 @@
 	<div class="flex w-fit items-center justify-start">
 		<NavHamburger />
 		<NavBrand href="/" class="ms-2 md:me-24">
-			<img
-				src="/images/flowbite-svelte-icon-logo.svg"
-				class="me-3 h-6 sm:h-8"
-				alt="Flowbite Logo"
-			/>
+			<img src="/favicon.png" class="me-3 h-6 sm:h-8" alt="Flowbite Logo" />
 			<span class="self-center whitespace-nowrap text-xl font-semibold dark:text-white sm:text-2xl">
 				Flowbite
 			</span>
