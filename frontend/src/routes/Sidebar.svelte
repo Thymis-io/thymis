@@ -4,9 +4,6 @@
 	import { t } from 'svelte-i18n';
 
 	import {
-		Button,
-		Dropdown,
-		Search,
 		Sidebar,
 		SidebarDropdownWrapper,
 		SidebarGroup,
@@ -14,24 +11,32 @@
 		SidebarWrapper
 	} from 'flowbite-svelte';
 	import {
-		PieChartSolid,
 		AngleDownOutline,
 		AngleUpOutline,
 		ClipboardListSolid,
-		CogOutline,
-		FileChartBarSolid,
 		GithubSolid,
 		LayersSolid,
-		LifeSaverSolid,
-		LockSolid,
-		RectangleListSolid,
-		TableColumnSolid,
-		ChevronDownSolid,
-		AdjustmentsHorizontalSolid,
-		ChartMixedSolid
+		LifeSaverSolid
 	} from 'flowbite-svelte-icons';
+	import {
+		ServerSolid,
+		SlidersSolid,
+		CodeCommitSolid,
+		TerminalSolid,
+		ChartSimpleSolid
+	} from 'svelte-awesome-icons';
 	import type { PageData } from './$types';
 	import DeviceSelect from '$lib/DeviceSelect.svelte';
+	import { queryParam } from 'sveltekit-search-params';
+	import type { Device } from '$lib/state';
+
+	export let data: PageData;
+
+	const tagParam = queryParam('tag');
+	const deviceParam = queryParam('device');
+
+	$: tag = data.state.tags.find((t) => t.name === $tagParam);
+	$: device = data.state.devices.find((d) => d.hostname === $deviceParam);
 
 	let drawerHidden: boolean = false;
 
@@ -63,69 +68,45 @@
 		// dropdowns[key] = true;
 	});
 
-	let posts = [
+	type NavItem = {
+		name: string;
+		icon: any;
+		href: string;
+		hidden?: boolean;
+		children?: Record<string, string>;
+	};
+
+	let navItems: NavItem[] = [];
+	$: navItems = [
 		{
 			name: $t('nav.overview'),
-			icon: ChartMixedSolid,
+			icon: ChartSimpleSolid,
 			href: '/overview'
 		},
 		{
 			name: $t('nav.orchestrate'),
-			icon: AdjustmentsHorizontalSolid,
+			icon: SlidersSolid,
 			href: '/config'
 		},
 		{
-			name: 'Layouts',
-			icon: TableColumnSolid,
-			children: {
-				Stacked: '/layouts/stacked',
-				Sidebar: ''
-			}
+			name: $t('nav.devices'),
+			icon: ServerSolid,
+			href: '/devices'
 		},
 		{
-			name: 'CRUD',
-			icon: RectangleListSolid,
-			children: {
-				Products: '/crud/products',
-				Users: '/crud/users'
-			}
-		},
-		{ name: 'Settings', icon: CogOutline, href: '/settings' },
-		{
-			name: 'Pages',
-			icon: FileChartBarSolid,
-			children: {
-				Pricing: '/pages/pricing',
-				Maintenance: '/errors/400',
-				'404 not found': '/errors/404',
-				'500 server error': '/errors/500'
-			}
+			name: $t('nav.history'),
+			icon: CodeCommitSolid,
+			href: '/history'
 		},
 		{
-			name: 'Authenication',
-			icon: LockSolid,
-			children: {
-				'Forgot password': '/authentication/forgot-password',
-				'Profile lock': '/authentication/profile-lock',
-				'Reset password': '/authentication/reset-password',
-				'Sign in': '/authentication/sign-in',
-				'Sign up': '/authentication/sign-up'
-			}
-		},
-		{
-			name: 'Playground',
-			icon: LockSolid,
-			children: {
-				Stacked: '/playground/stacked',
-				Sidebar: '/playground/sidebar'
-			}
+			name: $t('nav.terminal'),
+			icon: TerminalSolid,
+			href: '/terminal',
+			hidden: !device
 		}
 	];
-	let dropdowns = Object.fromEntries(Object.keys(posts).map((x) => [x, false]));
 
-	export let data: PageData;
-
-	$: devices = data?.state.devices ?? [];
+	let dropdowns = Object.fromEntries(Object.keys(navItems).map((x) => [x, false]));
 </script>
 
 <Sidebar
@@ -141,7 +122,7 @@
 		<nav class="divide-y text-base font-medium">
 			<SidebarGroup ulClass="list-unstyled fw-normal small mb-4 space-y-2">
 				<DeviceSelect {data} />
-				{#each posts as { name, icon, children, href } (name)}
+				{#each navItems as { name, icon, children, href, hidden } (name)}
 					{#if children}
 						<SidebarDropdownWrapper
 							bind:isOpen={dropdowns[name]}
@@ -166,42 +147,12 @@
 								/>
 							{/each}
 						</SidebarDropdownWrapper>
-					{:else}
+					{:else if !hidden}
 						<SidebarItem label={name} href={href + $page.url.search}>
-							<svelte:component this={icon} slot="icon" />
+							<svelte:component this={icon} slot="icon" size={18} />
 						</SidebarItem>
 					{/if}
 				{/each}
-			</SidebarGroup>
-			<SidebarGroup ulClass="list-unstyled fw-normal small pt-4 space-y-2">
-				<SidebarItem
-					label="GitHub Repository"
-					href="https://github.com/themesberg/flowbite-svelte-admin-dashboard"
-					target="_blank"
-				>
-					<GithubSolid slot="icon" />
-				</SidebarItem>
-				<SidebarItem
-					label="Flowbite Svelte"
-					href="https://flowbite-svelte.com/docs/pages/quickstart"
-					target="_blank"
-				>
-					<ClipboardListSolid slot="icon" />
-				</SidebarItem>
-				<SidebarItem
-					label="Components"
-					href="https://flowbite-svelte.com/docs/components/accordion"
-					target="_blank"
-				>
-					<LayersSolid slot="icon" />
-				</SidebarItem>
-				<SidebarItem
-					label="Support"
-					href="https://github.com/themesberg/flowbite-svelte-admin-dashboard/issues"
-					target="_blank"
-				>
-					<LifeSaverSolid slot="icon" />
-				</SidebarItem>
 			</SidebarGroup>
 		</nav>
 	</SidebarWrapper>

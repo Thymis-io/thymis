@@ -41,6 +41,7 @@
 		"prettier-plugin-svelte": "^2.10.1",
 		"simple-git": "^3.20.0",
 		"svelte": "^4.0.5",
+		"svelte-awesome-icons": "^1.1.0",
 		"svelte-check": "^3.4.3",
 		"svelte-i18n": "^4.0.0",
 		"sveltekit-search-params": "^2.1.0",
