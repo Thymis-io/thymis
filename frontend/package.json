@@ -49,6 +49,6 @@
 	},
 	"type": "module",
 	"optionalDependencies": {
-		"thymis-commercial": "file:../../thymis-commercial/js/dist"
+		"thymis-enterprise": "file:../../thymis-enterprise/js/dist"
 	}
 }

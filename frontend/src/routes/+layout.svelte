@@ -48,10 +48,10 @@
 	import { state } from '$lib/state';
 	import BuildStatus from '$lib/BuildStatus.svelte';
 
-	let ThymisCommercialHelloWorld: ComponentType<SvelteComponent> | null;
+	let ThymisEnterpriseHelloWorld: ComponentType<SvelteComponent> | null;
 	onMount(async () => {
-		// ThymisCommercialHelloWorld = (await import('../../node_modules/thymis-commercial')).ThymisCommercialHelloWorld; // COMMERCIALINCLUDE
-		ThymisCommercialHelloWorld = null; // COMMERCIALEXCLUDE
+		// ThymisEnterpriseHelloWorld = (await import('../../node_modules/thymis-enterprise')).ThymisEnterpriseHelloWorld; // ENTERPRISEINCLUDE
+		ThymisEnterpriseHelloWorld = null; // ENTERPRISEEXCLUDE
 	});
 
 	const tagParam = queryParam('tag');
@@ -90,7 +90,7 @@
 </script>
 
 <Modal components={modalRegistry} />
-<svelte:component this={ThymisCommercialHelloWorld} />
+<svelte:component this={ThymisEnterpriseHelloWorld} />
 <AppShell>
 	<svelte:fragment slot="header">
 		<AppBar background="bg-gradient-to-r from-blue-500 to-cyan-500" padding="px-4 py-2">
