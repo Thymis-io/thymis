@@ -29,6 +29,7 @@
 	import DeviceSelect from '$lib/DeviceSelect.svelte';
 	import { queryParam } from 'sveltekit-search-params';
 	import type { Device } from '$lib/state';
+	import BuildStatus from '$lib/BuildStatus.svelte';
 
 	export let data: PageData;
 
@@ -153,6 +154,9 @@
 						</SidebarItem>
 					{/if}
 				{/each}
+			</SidebarGroup>
+			<SidebarGroup ulClass="list-unstyled fw-normal small p-2 pt-4 space-y-2">
+				<BuildStatus />
 			</SidebarGroup>
 		</nav>
 	</SidebarWrapper>
