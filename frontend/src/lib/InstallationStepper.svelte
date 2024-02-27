@@ -1,14 +1,6 @@
 <script lang="ts">
-	import {
-		Stepper,
-		Step,
-		SlideToggle,
-		ProgressBar,
-		TabGroup,
-		Tab,
-		CodeBlock
-	} from '@skeletonlabs/skeleton';
-	// import { Download, Redo, Apple, AppWindow, Wrench } from 'lucide-svelte';
+	import { ProgressBar, TabGroup, Tab, CodeBlock } from '@skeletonlabs/skeleton';
+	import { Button, StepIndicator, Label, Input, Select, Textarea } from 'flowbite-svelte';
 	import Download from 'lucide-svelte/icons/download';
 	import Redo from 'lucide-svelte/icons/redo';
 	import Apple from 'lucide-svelte/icons/apple';
@@ -30,6 +22,14 @@
 	let imageGenerated = true;
 	let tabSetDistroImaging: number = 0;
 
+	let currentStep = 1;
+	let steps = [
+		'Thymis installieren',
+		'Gerät auswählen',
+		'Verbindungsinformationen',
+		'Es kann los gehen!'
+	];
+
 	function onCompleteHandler(e: CustomEvent): void {
 		enteredData = true;
 
@@ -43,91 +43,83 @@
 	}
 </script>
 
-<div class="w-full card p-4 text-token">
+<div class="w-full p-2">
 	{#if !enteredData}
-		<Stepper
-			stepTerm="Schritt"
-			buttonNextLabel="Weiter →"
-			buttonBackLabel="← Zurück"
-			buttonCompleteLabel="Generieren"
-			on:complete={onCompleteHandler}
-		>
-			<Step>
-				<svelte:fragment slot="header">Thymis installieren</svelte:fragment>
-				<p>
-					Sie können hier einfach ein ISO-Datei oder ein Systemimage für ihr IoT-Gerät erstellen.
-				</p>
-			</Step>
-			<Step>
-				<svelte:fragment slot="header">Gerät auswählen</svelte:fragment>
-				<p>
-					Wir unterstützen momentan x86-basierte und aarch64/ARM64-basierte Geräte. Darunter zählen
-					der Raspberry Pi 3, 4 und 5, sowie normale Desktop-Computer.
-				</p>
-				<select class="select" size="4" bind:value={data.device}>
-					<option value="x86">Generisches x86-Gerät (z.B. Desktop-PC)</option>
-					<option value="rpi3">Raspberry Pi 3</option>
-					<option value="rpi4">Raspberry Pi 4</option>
-					<option value="rpi5">Raspbery Pi 5</option>
-					<option value="aarch64">Generisches aarch64/ARM64-Gerät</option>
-				</select>
-			</Step>
-			<Step>
-				<svelte:fragment slot="header">Verbindungsinformationen</svelte:fragment>
-				<p>
-					Sobald Thymis installiert ist, können Sie noch viel mehr ganz einfach einrichten. Geben
-					Sie erstmal die notwendigen Verbindungsinformationen an, damit Sie das Gerät nach der
-					automatischen Installation erreich können.
-				</p>
-				<div class="space-y-4">
-					<label class="label">
-						<span>Name</span>
-						<input class="input" type="text" placeholder="device01" bind:value={data.displayName} />
-					</label>
-					<label class="label">
-						<span>Hostname</span>
-						<input
-							class="input"
-							type="text"
-							placeholder="thymis-device01"
-							bind:value={data.hostname}
-						/>
-					</label>
-					<label class="label">
-						<span>WLAN SSID - Name der WLAN-Verbindung</span>
-						<input class="input" type="text" placeholder="PhoibeWifi" bind:value={data.wifiSSID} />
-					</label>
-					<label class="label">
-						<span>WLAN Passwort</span>
-						<input
-							class="input"
-							type="text"
-							placeholder="kept secret"
-							bind:value={data.wifiPassword}
-						/>
-					</label>
-					<label class="label">
-						<span>Statische IP-Adresse</span>
-						<input class="input" type="text" placeholder="192.168.." bind:value={data.staticIP} />
-					</label>
-					<label class="label">
-						<span>SSH Public-Key</span>
-						<textarea
-							class="textarea"
-							rows="4"
-							placeholder="ssh-rsa AAA... thymis@mydevice"
-							bind:value={data.sshPublicKey}
-						/>
-					</label>
-				</div>
-			</Step>
-			<Step>
-				<svelte:fragment slot="header">Es kann los gehen!</svelte:fragment>
-				<p>
-					Drücken Sie auf <code>Generieren</code>, um das Systemabbild zu erstellen.
-				</p>
-			</Step>
-		</Stepper>
+		<div class="flex flex-col gap-4">
+			<StepIndicator {currentStep} {steps} />
+			<div class="h-96 overflow-y-auto space-y-4">
+				{#if currentStep === 1}
+					<p>
+						Sie können hier einfach ein ISO-Datei oder ein Systemimage für ihr IoT-Gerät erstellen.
+					</p>
+				{:else if currentStep === 2}
+					<p>
+						Wir unterstützen momentan x86-basierte und aarch64/ARM64-basierte Geräte. Darunter
+						zählen der Raspberry Pi 3, 4 und 5, sowie normale Desktop-Computer.
+					</p>
+					<Select
+						bind:value={data.device}
+						items={[
+							{ value: 'x86', name: 'Generisches x86-Gerät (z.B. Desktop-PC)' },
+							{ value: 'rpi3', name: 'Raspberry Pi 3' },
+							{ value: 'rpi4', name: 'Raspberry Pi 4' },
+							{ value: 'rpi5', name: 'Raspbery Pi 5' },
+							{ value: 'aarch64', name: 'Generisches aarch64/ARM64-Gerät' }
+						]}
+					/>
+				{:else if currentStep === 3}
+					<p>
+						Sobald Thymis installiert ist, können Sie noch viel mehr ganz einfach einrichten. Geben
+						Sie erstmal die notwendigen Verbindungsinformationen an, damit Sie das Gerät nach der
+						automatischen Installation erreich können.
+					</p>
+					<div>
+						<Label class="mb-2">Name</Label>
+						<Input placeholder="device01" bind:value={data.displayName} />
+					</div>
+					<div>
+						<Label class="mb-2">Hostname</Label>
+						<Input placeholder="thymis-device01" bind:value={data.hostname} />
+					</div>
+					<div>
+						<Label class="mb-2">WLAN SSID - Name der WLAN-Verbindung</Label>
+						<Input placeholder="PhoibeWifi" bind:value={data.wifiSSID} />
+					</div>
+					<div>
+						<Label class="mb-2">WLAN Passwort</Label>
+						<Input placeholder="kept secret" bind:value={data.wifiPassword} />
+					</div>
+					<div>
+						<Label class="mb-2">Statische IP-Adresse</Label>
+						<Input placeholder="192.168.." bind:value={data.staticIP} />
+					</div>
+					<div>
+						<Label class="mb-2">SSH Public-Key</Label>
+						<Textarea placeholder="192.168.." rows="4" bind:value={data.sshPublicKey} />
+					</div>
+				{:else if currentStep === 4}
+					<p>
+						Drücken Sie auf <code>Generieren</code>, um das Systemabbild zu erstellen.
+					</p>
+				{/if}
+			</div>
+			<div class="flex justify-between">
+				<Button
+					color={'alternative'}
+					disabled={currentStep === 1}
+					on:click={() => (currentStep -= 1)}
+				>
+					Zurück
+				</Button>
+				<Button
+					color={'alternative'}
+					disabled={currentStep === steps.length}
+					on:click={() => (currentStep += 1)}
+				>
+					Weiter
+				</Button>
+			</div>
+		</div>
 	{:else}
 		<header class="card-header text-2xl font-bold">
 			{#if !imageGenerated}

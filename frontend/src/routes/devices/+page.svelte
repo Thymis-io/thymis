@@ -6,24 +6,13 @@
 	import { controllerHost, controllerProtocol } from '$lib/api';
 	import DeployActions from '$lib/DeployActions.svelte';
 	import type { PageData } from './$types';
+	import CreateDeviceModal from '$lib/CreateDeviceModal.svelte';
 
 	export let data: PageData;
 
 	const modalStore = getModalStore();
 
-	function openCreateDeviceModal() {
-		modalStore.trigger({
-			type: 'component',
-			component: 'CreateDeviceModal',
-			title: 'Create a new device',
-			response: (r) => {
-				if (r) {
-					data.state.devices = [...data.state.devices, { ...r, tags: [], modules: [] }];
-					saveState(data.state);
-				}
-			}
-		});
-	}
+	let openCreateDeviceModal = false;
 
 	function openEditTagModal(device: Device | undefined) {
 		if (!device) return;
@@ -87,7 +76,10 @@
 </script>
 
 <div class="flex justify-between mb-4">
-	<Button color="alternative" on:click={() => openCreateDeviceModal()}>Create New Device</Button>
+	<Button color="alternative" on:click={() => (openCreateDeviceModal = true)}>
+		Create New Device
+	</Button>
+	<CreateDeviceModal {data} bind:openModal={openCreateDeviceModal} />
 	<div>
 		<DeployActions />
 	</div>

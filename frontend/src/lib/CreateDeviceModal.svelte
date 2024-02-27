@@ -1,22 +1,18 @@
 <script lang="ts">
-	import type { SvelteComponent } from 'svelte';
-	import { getModalStore } from '@skeletonlabs/skeleton';
 	import InstallationStepper from '$lib/InstallationStepper.svelte';
+	import { Modal } from 'flowbite-svelte';
+	import type { PageData } from '../routes/$types';
+	import { saveState } from './state';
 
-	export let parent: SvelteComponent;
-	const modalStore = getModalStore();
+	export let data: PageData;
+	export let openModal = false;
 
-	function onSubmit(data: any): void {
-		if ($modalStore[0].response) {
-			$modalStore[0].response(data);
-		}
-		//modalStore.close();
+	function onSubmit(submitData: any): void {
+		data.state.devices = [...data.state.devices, { ...submitData, tags: [], modules: [] }];
+		saveState(data.state);
 	}
 </script>
 
-{#if $modalStore[0]}
-	<div class="modal-example-form card p-4 w-modal shadow-xl space-y-4">
-		<header class="text-2xl font-bold">{$modalStore[0].title ?? '(title missing)'}</header>
-		<InstallationStepper {onSubmit} />
-	</div>
-{/if}
+<Modal title="Create a new device" bind:open={openModal} outsideclose size={'lg'}>
+	<InstallationStepper {onSubmit} />
+</Modal>
