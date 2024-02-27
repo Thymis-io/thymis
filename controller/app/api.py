@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import router
-
+import importlib
 
 description = """
 API to control Nix operating system 🎛️
@@ -41,6 +41,12 @@ app.add_middleware(
 )
 
 app.include_router(router.router)
+
+
+if importlib.util.find_spec("thymis_enterprise"):
+    import thymis_enterprise
+
+    thymis_enterprise.thymis_enterprise_hello_world()
 
 
 def run():
