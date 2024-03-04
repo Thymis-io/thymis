@@ -5,21 +5,21 @@ import { writable } from 'svelte/store';
 
 export type SettingTypes =
 	| {
-		type: 'bool';
-		value: boolean;
-	}
+			type: 'bool';
+			value: boolean;
+	  }
 	| {
-		type: 'string';
-		value: string;
-	}
+			type: 'string';
+			value: string;
+	  }
 	| {
-		type: 'path';
-		value: string;
-	}
+			type: 'path';
+			value: string;
+	  }
 	| {
-		type: 'textarea';
-		value: string;
-	};
+			type: 'textarea';
+			value: string;
+	  };
 
 export type Setting = SettingTypes & {
 	name: string;
