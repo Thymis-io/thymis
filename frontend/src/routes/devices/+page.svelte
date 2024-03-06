@@ -2,7 +2,15 @@
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { saveState, type Device } from '$lib/state';
 	import Pen from 'lucide-svelte/icons/pen';
-	import { Card, Button } from 'flowbite-svelte';
+	import {
+		Button,
+		Table,
+		TableBody,
+		TableBodyCell,
+		TableBodyRow,
+		TableHead,
+		TableHeadCell
+	} from 'flowbite-svelte';
 	import { controllerHost, controllerProtocol } from '$lib/api';
 	import DeployActions from '$lib/DeployActions.svelte';
 	import type { PageData } from './$types';
@@ -82,64 +90,55 @@
 	<CreateDeviceModal {data} bind:openModal={openCreateDeviceModal} />
 	<DeployActions />
 </div>
-<Card class="max-w-none">
-	<header class="card-header" />
-	<section>
-		<table class="table-auto w-full text-left">
-			<thead>
-				<tr class="">
-					<th class="border-b border-slate-100 p-2">Name</th>
-					<th class="border-b border-slate-100 p-2">Hostname</th>
-					<th class="border-b border-slate-100 p-2">Tags</th>
-					<th class="border-b border-slate-100 p-2">Actions</th>
-					<th class="border-b border-slate-100 p-2">Status</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each data.state.devices as device}
-					<tr>
-						<td class="border-t border-slate-200 p-2">{device.displayName}</td>
-						<td class="border-t border-slate-200 p-2">
-							{device.hostname}
-							<button class="btn ml-2 p-0" on:click={() => openEditHostnameModal(device)}>
-								<Pen size="20" />
-							</button>
-						</td>
-						<td class="border-t border-slate-200 p-2 flex gap-1 group">
-							{#each device.tags as tag, i}
-								<!-- <span> -->
-								<!-- <a class="underline" href="/config?tag={tag}">{tag}</a
+<Table shadow>
+	<TableHead>
+		<TableHeadCell>Name</TableHeadCell>
+		<TableHeadCell>Hostname</TableHeadCell>
+		<TableHeadCell>Tags</TableHeadCell>
+		<TableHeadCell>Actions</TableHeadCell>
+		<TableHeadCell>Status</TableHeadCell>
+	</TableHead>
+	<TableBody>
+		{#each data.state.devices as device}
+			<TableBodyRow>
+				<TableBodyCell>{device.displayName}</TableBodyCell>
+				<TableBodyCell>
+					{device.hostname}
+					<button class="btn ml-2 p-0" on:click={() => openEditHostnameModal(device)}>
+						<Pen size="20" />
+					</button>
+				</TableBodyCell>
+				<TableBodyCell class="flex gap-1">
+					{#each device.tags as tag, i}
+						<!-- <span> -->
+						<!-- <a class="underline" href="/config?tag={tag}">{tag}</a
 									>{#if i < device.tags.length - 1}{', '}{/if} -->
-								<a href="/config?tag={tag}">
-									<!-- style like badge -->
-									<span
-										class="inline-block bg-blue-300 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-1"
-									>
-										{tag}
-									</span>
-								</a>
-								<!-- </span> -->
-							{/each}
-							<div class="w-8">
-								<button class="btn ml-2 p-0" on:click={() => openEditTagModal(device)}>
-									<Pen size="20" />
-								</button>
-							</div>
-						</td>
-						<td class="border-t border-slate-200 p-2">
-							<a class="btn variant-filled" href="/config?device={device.hostname}">Edit</a>
-							<!-- <a href="." class="btn variant-filled">Download Image</a> -->
-							<button class="btn variant-filled" on:click={() => buildAndDownloadImage(device)}>
-								Download Image
-							</button>
-							<button class="btn variant-filled" on:click={() => deleteDevice(device)}>
-								Delete
-							</button>
-						</td>
-						<td class="border-t border-slate-200 p-2">Online</td>
-					</tr>
-				{/each}
-			</tbody>
-		</table>
-	</section>
-</Card>
+						<a href="/config?tag={tag}">
+							<!-- style like badge -->
+							<span
+								class="inline-block bg-blue-300 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-1"
+							>
+								{tag}
+							</span>
+						</a>
+						<!-- </span> -->
+					{/each}
+					<div class="w-8">
+						<button class="btn ml-2 p-0" on:click={() => openEditTagModal(device)}>
+							<Pen size="20" />
+						</button>
+					</div>
+				</TableBodyCell>
+				<TableBodyCell>
+					<a class="btn variant-filled" href="/config?device={device.hostname}">Edit</a>
+					<!-- <a href="." class="btn variant-filled">Download Image</a> -->
+					<button class="btn variant-filled" on:click={() => buildAndDownloadImage(device)}>
+						Download Image
+					</button>
+					<button class="btn variant-filled" on:click={() => deleteDevice(device)}> Delete </button>
+				</TableBodyCell>
+				<TableBodyCell>Online</TableBodyCell>
+			</TableBodyRow>
+		{/each}
+	</TableBody>
+</Table>
