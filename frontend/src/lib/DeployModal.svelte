@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { controllerHost, controllerProtocol } from './api';
-	const modalStore = getModalStore();
+	import { Button, Modal, Label, Input } from 'flowbite-svelte';
+
+	export let open = false;
 
 	$: summary = new Date().toLocaleString() + ': ';
 
@@ -10,18 +11,16 @@
 			method: 'POST'
 		});
 
-		modalStore.close();
+		open = false;
 	};
 </script>
 
-{#if $modalStore[0]}
-	<div class="modal-example-form card p-4 w-modal shadow-xl space-y-4">
-		<header class="text-2xl font-bold">{$modalStore[0].title ?? '(title missing)'}</header>
-		<!-- Show summary text box and push button on the right -->
-		<div class="flex flex-wrap gap-2">
-			<input type="text" bind:value={summary} class="input input-bordered" placeholder="Summary" />
-			<div class="flex-grow" />
-			<button class="btn variant-filled" on:click={deploy}>Deploy</button>
-		</div>
+<Modal bind:open title="Deploy" autoclose outsideclose>
+	<div>
+		<Label class="block mb-2">Summary</Label>
+		<Input type="text" bind:value={summary} placeholder="Summary" />
 	</div>
-{/if}
+	<div class="flex flex-wrap gap-2 justify-end">
+		<Button on:click={deploy}>Deploy</Button>
+	</div>
+</Modal>

@@ -80,9 +80,7 @@
 		Create New Device
 	</Button>
 	<CreateDeviceModal {data} bind:openModal={openCreateDeviceModal} />
-	<div>
-		<DeployActions />
-	</div>
+	<DeployActions />
 </div>
 <Card class="max-w-none">
 	<header class="card-header" />

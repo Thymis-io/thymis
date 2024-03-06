@@ -166,9 +166,7 @@
 			Module verwalten
 		{/if}
 	</h1>
-	<div>
-		<DeployActions />
-	</div>
+	<DeployActions />
 </div>
 <div class="grid grid-flow-row grid-cols-5 gap-4">
 	<div>

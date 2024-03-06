@@ -1,12 +1,9 @@
 <script lang="ts">
-	import { getModalStore, popup, type PopupSettings } from '@skeletonlabs/skeleton';
 	import { Button } from 'flowbite-svelte';
-	import CloudCog from 'lucide-svelte/icons/cloud-cog';
-	import Play from 'lucide-svelte/icons/play';
+	import { GearsSolid, ArrowsRotateSolid, PlaySolid } from 'svelte-awesome-icons';
 	import '../app.postcss';
 	import { controllerHost, controllerProtocol } from './api';
-
-	let modalStore = getModalStore();
+	import DeployModal from '$lib/DeployModal.svelte';
 
 	const build = async () => {
 		await fetch(`${controllerProtocol}://${controllerHost}/action/build`, { method: 'POST' });
@@ -16,21 +13,21 @@
 		await fetch(`${controllerProtocol}://${controllerHost}/action/update`, { method: 'POST' });
 	};
 
-	const openDeploy = () => {
-		modalStore.trigger({
-			type: 'component',
-			component: 'DeployModal',
-			title: 'Deploy'
-		});
-	};
+	let openDeploy = false;
 </script>
 
-<Button color="alternative" on:click={build}>
-	<span><Play /></span><span>Build</span>
-</Button>
-<Button color="alternative" on:click={openDeploy}>
-	<span><CloudCog /></span><span>Deploy</span>
-</Button>
-<Button color="alternative" on:click={update}>
-	<span><CloudCog /></span><span>Update</span>
-</Button>
+<div class="gap-2">
+	<Button color="alternative" class="min-w-32 gap-2" on:click={build}>
+		<PlaySolid size="18" />
+		<span class="my-0.5">Build</span>
+	</Button>
+	<Button color="alternative" class="min-w-32 gap-2" on:click={() => (openDeploy = true)}>
+		<GearsSolid size="18" />
+		<span class="my-0.5">Deploy</span>
+	</Button>
+	<Button color="alternative" class="min-w-32 gap-2" on:click={update}>
+		<ArrowsRotateSolid size="16" />
+		<span class="my-0.5">Update</span>
+	</Button>
+	<DeployModal bind:open={openDeploy} />
+</div>
