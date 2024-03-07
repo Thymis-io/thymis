@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { getModalStore } from '@skeletonlabs/skeleton';
-	import { saveState, type Device } from '$lib/state';
+	import { saveState, type Device, type Tag } from '$lib/state';
 	import Pen from 'lucide-svelte/icons/pen';
 	import {
 		Button,
@@ -11,37 +10,15 @@
 		TableHead,
 		TableHeadCell
 	} from 'flowbite-svelte';
+	import TagIcon from 'lucide-svelte/icons/tag';
 	import { controllerHost, controllerProtocol } from '$lib/api';
 	import DeployActions from '$lib/DeployActions.svelte';
-	import type { PageData } from './$types';
 	import CreateDeviceModal from '$lib/CreateDeviceModal.svelte';
+	import EditStringModal from '$lib/EditStringModal.svelte';
+	import EditTagModal from '$lib/EditTagModal.svelte';
+	import type { PageData } from './$types';
 
 	export let data: PageData;
-
-	const modalStore = getModalStore();
-
-	let openCreateDeviceModal = false;
-
-	function openEditTagModal(device: Device | undefined) {
-		if (!device) return;
-
-		modalStore.trigger({
-			type: 'component',
-			component: 'EditTagModal',
-			title: 'Edit tags',
-			meta: { tags: device.tags, availableTags: data.state.tags },
-			response: (r) => {
-				if (r) {
-					data.state.tags = r.availableTags;
-					data.state.devices = data.state.devices.map((d) => {
-						if (d.hostname === device.hostname) d.tags = r.deviceTags;
-						return d;
-					});
-					saveState(data.state);
-				}
-			}
-		});
-	}
 
 	function deleteDevice(device: Device) {
 		data.state.devices = data.state.devices.filter((d) => d.hostname !== device.hostname);
@@ -64,32 +41,108 @@
 		);
 	};
 
+	enum ModalType {
+		None,
+		CreateDevice,
+		EditName,
+		EditHostname,
+		EditTags
+	}
+
+	let openModal = ModalType.None;
+	let editDevice: Device | undefined;
+
+	const openCreateDeviceModal = () => {
+		openModal = ModalType.CreateDevice;
+	};
+
+	const closeCreateDeviceModal = () => {
+		openModal = ModalType.None;
+	};
+
+	const openEditNameModal = (device: Device) => {
+		openModal = ModalType.EditName;
+		editDevice = device;
+	};
+
+	const closeEditNameModal = () => {
+		openModal = ModalType.None;
+		editDevice = undefined;
+	};
+
+	const saveEditNameModal = (value: string) => {
+		if (editDevice) {
+			editDevice.displayName = value;
+			saveState(data.state);
+		}
+	};
+
 	const openEditHostnameModal = (device: Device) => {
-		modalStore.trigger({
-			type: 'component',
-			component: 'EditHostnameModal',
-			title: 'Edit hostname',
-			meta: { hostname: device.hostname },
-			response: (r) => {
-				if (r) {
-					data.state.devices = data.state.devices.map((d) => {
-						if (d.hostname === device.hostname) d.hostname = r.hostname;
-						return d;
-					});
-					saveState(data.state);
-				}
-			}
-		});
+		openModal = ModalType.EditHostname;
+		editDevice = device;
+	};
+
+	const closeEditHostnameModal = () => {
+		openModal = ModalType.None;
+		editDevice = undefined;
+	};
+
+	const saveEditHostnameModal = (value: string) => {
+		if (editDevice) {
+			editDevice.hostname = value;
+			saveState(data.state);
+		}
+	};
+
+	const openEditTagModal = (device: Device) => {
+		openModal = ModalType.EditTags;
+		editDevice = device;
+	};
+
+	const closeEditTagModal = () => {
+		openModal = ModalType.None;
+		editDevice = undefined;
+	};
+
+	const saveEditTagModal = (tags: string[], availableTags: Tag[]) => {
+		if (editDevice) {
+			editDevice.tags = tags;
+			data.state.tags = availableTags;
+			saveState(data.state);
+		}
 	};
 </script>
 
 <div class="flex justify-between mb-4">
-	<Button color="alternative" on:click={() => (openCreateDeviceModal = true)}>
-		Create New Device
-	</Button>
-	<CreateDeviceModal {data} bind:openModal={openCreateDeviceModal} />
+	<Button color="alternative" on:click={() => openCreateDeviceModal()}>Create New Device</Button>
 	<DeployActions />
 </div>
+<CreateDeviceModal
+	{data}
+	open={openModal === ModalType.CreateDevice}
+	onClose={closeCreateDeviceModal}
+/>
+<EditStringModal
+	title={'Edit Name'}
+	value={editDevice?.displayName}
+	open={openModal === ModalType.EditName}
+	onClose={closeEditNameModal}
+	onSave={saveEditNameModal}
+/>
+<EditStringModal
+	title={'Edit Hostname'}
+	value={editDevice?.hostname}
+	open={openModal === ModalType.EditHostname}
+	onClose={closeEditHostnameModal}
+	onSave={saveEditHostnameModal}
+/>
+<EditTagModal
+	tags={editDevice?.tags ?? []}
+	availableTags={data.state.tags}
+	open={openModal === ModalType.EditTags}
+	onClose={closeEditTagModal}
+	onSave={saveEditTagModal}
+/>
 <Table shadow>
 	<TableHead>
 		<TableHeadCell>Name</TableHeadCell>
@@ -101,41 +154,47 @@
 	<TableBody>
 		{#each data.state.devices as device}
 			<TableBodyRow>
-				<TableBodyCell>{device.displayName}</TableBodyCell>
 				<TableBodyCell>
-					{device.hostname}
-					<button class="btn ml-2 p-0" on:click={() => openEditHostnameModal(device)}>
-						<Pen size="20" />
-					</button>
+					<div class="flex gap-1">
+						{device.displayName}
+						<button class="btn ml-2 p-0" on:click={() => openEditNameModal(device)}>
+							<Pen size="20" />
+						</button>
+					</div>
 				</TableBodyCell>
-				<TableBodyCell class="flex gap-1">
-					{#each device.tags as tag, i}
-						<!-- <span> -->
-						<!-- <a class="underline" href="/config?tag={tag}">{tag}</a
-									>{#if i < device.tags.length - 1}{', '}{/if} -->
-						<a href="/config?tag={tag}">
-							<!-- style like badge -->
-							<span
-								class="inline-block bg-blue-300 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-1"
-							>
+				<TableBodyCell>
+					<div class="flex gap-1">
+						{device.hostname}
+						<button class="btn ml-2 p-0" on:click={() => openEditHostnameModal(device)}>
+							<Pen size="20" />
+						</button>
+					</div>
+				</TableBodyCell>
+				<TableBodyCell>
+					<div class="flex gap-1">
+						{#each device.tags as tag, i}
+							<Button pill size="sm" class="p-3 py-1.5" href="/config?tag={tag}">
+								<TagIcon size={20} class="mr-2" />
+								<!-- <span
+									class="inline-block bg-blue-300 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-1"
+								> -->
 								{tag}
-							</span>
-						</a>
-						<!-- </span> -->
-					{/each}
-					<div class="w-8">
+								<!-- </span> -->
+							</Button>
+						{/each}
 						<button class="btn ml-2 p-0" on:click={() => openEditTagModal(device)}>
 							<Pen size="20" />
 						</button>
 					</div>
 				</TableBodyCell>
 				<TableBodyCell>
-					<a class="btn variant-filled" href="/config?device={device.hostname}">Edit</a>
-					<!-- <a href="." class="btn variant-filled">Download Image</a> -->
-					<button class="btn variant-filled" on:click={() => buildAndDownloadImage(device)}>
-						Download Image
-					</button>
-					<button class="btn variant-filled" on:click={() => deleteDevice(device)}> Delete </button>
+					<div class="flex gap-2">
+						<Button color="alternative" href="/config?device={device.hostname}">Edit</Button>
+						<Button color="alternative" on:click={() => buildAndDownloadImage(device)}>
+							Download Image
+						</Button>
+						<Button color="alternative" on:click={() => deleteDevice(device)}>Delete</Button>
+					</div>
 				</TableBodyCell>
 				<TableBodyCell>Online</TableBodyCell>
 			</TableBodyRow>

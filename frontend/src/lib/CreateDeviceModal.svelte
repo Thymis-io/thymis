@@ -5,7 +5,8 @@
 	import { saveState } from './state';
 
 	export let data: PageData;
-	export let openModal = false;
+	export let open = false;
+	export let onClose: (() => void) | undefined = undefined;
 
 	function onSubmit(submitData: any): void {
 		data.state.devices = [...data.state.devices, { ...submitData, tags: [], modules: [] }];
@@ -13,6 +14,6 @@
 	}
 </script>
 
-<Modal title="Create a new device" bind:open={openModal} outsideclose size={'lg'}>
+<Modal title="Create a new device" bind:open outsideclose size={'lg'} on:close={() => onClose?.()}>
 	<InstallationStepper {onSubmit} />
 </Modal>

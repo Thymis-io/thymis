@@ -8,7 +8,7 @@
 	import DeployModal from '$lib/DeployModal.svelte';
 	import EditTagModal from '$lib/EditTagModal.svelte';
 	import LogModal from '$lib/LogModal.svelte';
-	import EditHostnameModal from '$lib/EditHostnameModal.svelte';
+	import EditHostnameModal from '$lib/EditStringModal.svelte';
 	import type { PageData } from '../routes/$types';
 
 	export let data: PageData;
