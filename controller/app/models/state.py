@@ -191,7 +191,9 @@ class State(BaseModel):
         self.__stderr = bytearray()
         self.update_status("started building")
 
-        cmd = f'nix build {self.repo_dir()}#nixosConfigurations."{hostname}".config.formats.sd-card-image --out-link /tmp/thymis-devices.{hostname}'
+        cmd = f"nix build '{self.repo_dir()}#nixosConfigurations.\"{hostname}\".config.formats.sd-card-image' --out-link /tmp/thymis-devices.{hostname}"
+
+        print(f"running command: {cmd}")
 
         proc = await asyncio.create_subprocess_shell(
             cmd,
