@@ -10,9 +10,9 @@
 	} from 'flowbite-svelte-icons';
 
 	const menu = [
-		{ name: 'Team', href: '/about', icon: UsersGroupSolid },
-		{ name: 'Profile', href: '/profile', icon: ProfileCardOutline },
-		{ name: 'Settings', href: '/settings', icon: UserSettingsSolid },
+		{ name: 'Team', href: '#', icon: UsersGroupSolid },
+		{ name: 'Profile', href: '#', icon: ProfileCardOutline },
+		{ name: 'Settings', href: '#', icon: UserSettingsSolid },
 		{ name: 'Overview', href: '/overview', icon: GridSolid },
 		{ name: 'Logout', href: '#', icon: ArrowRightToBracketOutline }
 	];
