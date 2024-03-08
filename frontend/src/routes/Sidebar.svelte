@@ -51,7 +51,7 @@
 	let nonActiveClass =
 		childClass +
 		' hover:text-gray-500 hover:cursor-pointer dark:text-gray-400 dark:hover:text-white';
-	let activeClass = childClass + ' cursor-default dark:text-primary-700';
+	let activeClass = childClass + ' cursor-default dark:text-primary-600';
 
 	$: mainSidebarUrl = $page.url.pathname;
 	let activeMainSidebar: string;
@@ -113,7 +113,7 @@
 	class={drawerHidden ? 'hidden' : ''}
 	{nonActiveClass}
 	{activeClass}
-	activeUrl={mainSidebarUrl}
+	activeUrl={activeMainSidebar + $page.url.search}
 	asideClass="fixed inset-0 z-30 flex-none h-full w-64 lg:h-auto border-e border-gray-200 dark:border-gray-600 lg:overflow-y-visible lg:pt-20 lg:-mt-2 lg:block"
 >
 	<SidebarWrapper
@@ -143,12 +143,11 @@
 									href={href + $page.url.search}
 									{spanClass}
 									{activeClass}
-									active={activeMainSidebar === href}
 								/>
 							{/each}
 						</SidebarDropdownWrapper>
 					{:else if !hidden}
-						<SidebarItem label={name} href={href + $page.url.search}>
+						<SidebarItem label={name} href={href + $page.url.search} {spanClass} {activeClass}>
 							<svelte:component this={icon} slot="icon" size={18} />
 						</SidebarItem>
 					{/if}

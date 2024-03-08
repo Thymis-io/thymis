@@ -20,16 +20,16 @@ module.exports = {
 			colors: {
 				// flowbite-svelte
 				primary: {
-					50: '#FFF5F2',
-					100: '#FFF1EE',
-					200: '#FFE4DE',
-					300: '#FFD5CC',
-					400: '#FFBCAD',
-					500: '#FE795D',
-					600: '#EF562F',
-					700: '#EB4F27',
-					800: '#CC4522',
-					900: '#A5371B'
+					50: '#f9dce2',
+					100: '#f6d0d8',
+					200: '#f4c5ce',
+					300: '#eea2b1',
+					400: '#e15c77',
+					500: '#d4163c',
+					600: '#bf1436',
+					700: '#9f112d',
+					800: '#7f0d24',
+					900: '#680b1d'
 				}
 			},
 			minWidth: {
