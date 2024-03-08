@@ -2,9 +2,9 @@
 	import '../app.postcss';
 	import Navbar from './Navbar.svelte';
 	import Sidebar from './Sidebar.svelte';
-	import type { PageData } from '../routes/$types';
+	import type { LayoutData } from '../routes/$types';
 
-	export let data: PageData;
+	export let data: LayoutData;
 </script>
 
 <header
@@ -13,7 +13,7 @@
 	<Navbar />
 </header>
 <div class="overflow-hidden lg:flex">
-	<Sidebar {data} />
+	<Sidebar bind:state={data.state} />
 	<div class="relative h-full w-full overflow-y-auto lg:ml-64 p-4">
 		<slot />
 	</div>

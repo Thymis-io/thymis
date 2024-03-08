@@ -3,22 +3,22 @@
 	import {
 		ArrowRightToBracketOutline,
 		GridSolid,
-		InboxSolid,
+		UserSolid,
 		ProfileCardOutline,
 		UsersGroupSolid,
 		UserSettingsSolid
 	} from 'flowbite-svelte-icons';
 
 	const menu = [
-		{ name: 'About us', href: '/about', icon: UsersGroupSolid },
+		{ name: 'Team', href: '/about', icon: UsersGroupSolid },
 		{ name: 'Profile', href: '/profile', icon: ProfileCardOutline },
 		{ name: 'Settings', href: '/settings', icon: UserSettingsSolid },
-		{ name: 'Inbox', href: '/inbox', icon: InboxSolid },
-		{ name: 'Logout', href: '/logout', icon: ArrowRightToBracketOutline }
+		{ name: 'Overview', href: '/overview', icon: GridSolid },
+		{ name: 'Logout', href: '#', icon: ArrowRightToBracketOutline }
 	];
 </script>
 
-<ToolbarButton size="lg"><GridSolid /></ToolbarButton>
+<ToolbarButton size="lg"><UserSolid /></ToolbarButton>
 <MegaMenu items={menu} let:item>
 	<a
 		href={item.href}

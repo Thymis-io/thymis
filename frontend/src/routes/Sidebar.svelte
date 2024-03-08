@@ -25,19 +25,18 @@
 		TerminalSolid,
 		ChartSimpleSolid
 	} from 'svelte-awesome-icons';
-	import type { PageData } from './$types';
 	import DeviceSelect from '$lib/DeviceSelect.svelte';
 	import { queryParam } from 'sveltekit-search-params';
-	import type { Device } from '$lib/state';
+	import type { Device, State } from '$lib/state';
 	import BuildStatus from '$lib/BuildStatus.svelte';
 
-	export let data: PageData;
+	export let state: State;
 
 	const tagParam = queryParam('tag');
 	const deviceParam = queryParam('device');
 
-	$: tag = data.state.tags.find((t) => t.name === $tagParam);
-	$: device = data.state.devices.find((d) => d.hostname === $deviceParam);
+	$: tag = state.tags.find((t) => t.name === $tagParam);
+	$: device = state.devices.find((d) => d.hostname === $deviceParam);
 
 	let drawerHidden: boolean = false;
 
@@ -122,7 +121,7 @@
 	>
 		<nav class="divide-y text-base font-medium">
 			<SidebarGroup ulClass="list-unstyled fw-normal small mb-4 space-y-2">
-				<DeviceSelect {data} />
+				<DeviceSelect bind:state />
 				{#each navItems as { name, icon, children, href, hidden } (name)}
 					{#if children}
 						<SidebarDropdownWrapper
