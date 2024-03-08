@@ -51,7 +51,7 @@
 	let nonActiveClass =
 		childClass +
 		' hover:text-gray-500 hover:cursor-pointer dark:text-gray-400 dark:hover:text-white';
-	let activeClass = childClass + ' cursor-default dark:text-primary-600';
+	let activeClass = childClass + ' cursor-default text-primary-600 dark:text-primary-400';
 
 	$: mainSidebarUrl = $page.url.pathname;
 	let activeMainSidebar: string;
