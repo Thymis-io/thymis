@@ -1,6 +1,15 @@
 <script lang="ts">
-	import { ProgressBar, TabGroup, Tab, CodeBlock } from '@skeletonlabs/skeleton';
-	import { Button, StepIndicator, Label, Input, Select, Textarea } from 'flowbite-svelte';
+	import {
+		Button,
+		StepIndicator,
+		Label,
+		Input,
+		Select,
+		Textarea,
+		Progressbar,
+		Tabs,
+		TabItem
+	} from 'flowbite-svelte';
 	import Download from 'lucide-svelte/icons/download';
 	import Redo from 'lucide-svelte/icons/redo';
 	import Apple from 'lucide-svelte/icons/apple';
@@ -20,7 +29,6 @@
 	};
 	let enteredData = false;
 	let imageGenerated = true;
-	let tabSetDistroImaging: number = 0;
 
 	let currentStep = 1;
 	let steps = [
@@ -101,6 +109,7 @@
 					<p>
 						Drücken Sie auf <code>Generieren</code>, um das Systemabbild zu erstellen.
 					</p>
+					<Button color={'alternative'} on:click={() => (enteredData = true)}>Generieren</Button>
 				{/if}
 			</div>
 			<div class="flex justify-between">
@@ -132,7 +141,7 @@
 			<div class="pb-4 space-y-4">
 				{#if !imageGenerated}
 					<div>
-						<ProgressBar value={undefined} />
+						<Progressbar progress={undefined} />
 					</div>
 				{/if}
 				<div class="space-x-4">
@@ -187,74 +196,63 @@
 						</div>
 					</aside>
 					<p>Sie brauchen Superuser/Root/Administrator-Rechte für den diesen Schritt.</p>
-					<TabGroup>
-						<Tab bind:group={tabSetDistroImaging} name="Windows" value={0}>
-							<svelte:fragment slot="lead"><AppWindow /></svelte:fragment>
-							<span>Windows</span>
-						</Tab>
-						<Tab bind:group={tabSetDistroImaging} name="macOS" value={1}>
-							<svelte:fragment slot="lead"><Apple /></svelte:fragment>
-							<span>macOS</span>
-						</Tab>
-						<Tab bind:group={tabSetDistroImaging} name="Linux" value={2}>
-							<svelte:fragment slot="lead"><Wrench /></svelte:fragment>
-							<span>Linux</span>
-						</Tab>
-						<!-- Tab Panels --->
-						<svelte:fragment slot="panel">
-							<div class="space-y-4">
-								{#if tabSetDistroImaging === 0}
-									<p>
-										Installieren Sie <a
-											class="anchor"
-											href="https://etcher.balena.io/"
-											target="_blank">balena Etcher</a
-										>. Nach der Installation können Sie die Image-Datei und einen Datenträger zum
-										beschreiben auswählen.
-									</p>
-								{:else if tabSetDistroImaging === 1}
-									<p>
-										1. Lassen Sie sich Ihre angeschlossenen Geräte anzeigen und identifizieren Sie
-										das Gerät mit <code>/dev/diskX</code>, das für Ihren gewünschten Datenträgen
-										steht.
-									</p>
-									<CodeBlock language="bash" code={`sudo diskutil listDisk`} />
-									<p>
-										2. Entfernen Sie den Datenträger aus Ihrem Dateisystem (unmount), falls Sie es
-										noch nicht gemacht haben.
-									</p>
-									<CodeBlock language="bash" code={`sudo diskutil unmountDisk /dev/diskX`} />
-									<p>
-										3. Überschreiben Sie den Datenträger mit dem Systemabbild mit Thymis. Dabei wird
-										der Datenträger komplett überschrieben.
-									</p>
-									<CodeBlock
-										language="bash"
-										code={`sudo dd if=~/Downloads/thymis-XY.img of=/dev/diskX`}
-									/>
-								{:else if tabSetDistroImaging === 2}
-									<p>
-										1. Lassen Sie sich Ihre angeschlossenen Geräte anzeigen und identifizieren Sie
-										das Gerät mit <code>/dev/sdX</code>, das für Ihren gewünschten Datenträgen
-										steht.
-									</p>
-									<CodeBlock language="bash" code={`sudo lsblk`} />
-									<p>
-										2. Entfernen Sie den Datenträger aus Ihrem Dateisystem (unmount), falls Sie es
-										noch nicht gemacht haben.
-									</p>
-									<p>
-										3. Überschreiben Sie den Datenträger mit dem Systemabbild mit Thymis. Dabei wird
-										der Datenträger komplett überschrieben.
-									</p>
-									<CodeBlock
-										language="bash"
-										code={`sudo dd if=~/Downloads/thymis-XY.img of=/dev/sdX`}
-									/>
-								{/if}
-							</div>
-						</svelte:fragment>
-					</TabGroup>
+					<Tabs>
+						<TabItem name="Windows">
+							<svelte:fragment slot="title"><AppWindow />Windows</svelte:fragment>
+							<p>
+								Installieren Sie <a class="anchor" href="https://etcher.balena.io/" target="_blank"
+									>balena Etcher</a
+								>. Nach der Installation können Sie die Image-Datei und einen Datenträger zum
+								beschreiben auswählen.
+							</p>
+						</TabItem>
+						<TabItem name="macOS">
+							<svelte:fragment slot="title"><Apple />macOS</svelte:fragment>
+							<p>
+								1. Lassen Sie sich Ihre angeschlossenen Geräte anzeigen und identifizieren Sie das
+								Gerät mit <code>/dev/diskX</code>, das für Ihren gewünschten Datenträgen steht.
+							</p>
+							<!-- <CodeBlock language="bash" code={`sudo diskutil listDisk`} /> -->
+							<code>sudo diskutil listDisk</code>
+							<p>
+								2. Entfernen Sie den Datenträger aus Ihrem Dateisystem (unmount), falls Sie es noch
+								nicht gemacht haben.
+							</p>
+							<!-- <CodeBlock language="bash" code={`sudo diskutil unmountDisk /dev/diskX`} /> -->
+							<code>sudo diskutil unmountDisk /dev/diskX</code>
+							<p>
+								3. Überschreiben Sie den Datenträger mit dem Systemabbild mit Thymis. Dabei wird der
+								Datenträger komplett überschrieben.
+							</p>
+							<!-- <CodeBlock
+								language="bash"
+								code={`sudo dd if=~/Downloads/thymis-XY.img of=/dev/diskX`}
+							/> -->
+							<code>sudo dd if=~/Downloads/thymis-XY.img of=/dev/diskX</code>
+						</TabItem>
+						<TabItem name="Linux">
+							<svelte:fragment slot="title"><Wrench />Linux</svelte:fragment>
+							<p>
+								1. Lassen Sie sich Ihre angeschlossenen Geräte anzeigen und identifizieren Sie das
+								Gerät mit <code>/dev/sdX</code>, das für Ihren gewünschten Datenträgen steht.
+							</p>
+							<!-- <CodeBlock language="bash" code={`sudo lsblk`} /> -->
+							<code>sudo lsblk</code>
+							<p>
+								2. Entfernen Sie den Datenträger aus Ihrem Dateisystem (unmount), falls Sie es noch
+								nicht gemacht haben.
+							</p>
+							<p>
+								3. Überschreiben Sie den Datenträger mit dem Systemabbild mit Thymis. Dabei wird der
+								Datenträger komplett überschrieben.
+							</p>
+							<!-- <CodeBlock
+								language="bash"
+								code={`sudo dd if=~/Downloads/thymis-XY.img of=/dev/sdX`}
+							/> -->
+							<code>sudo dd if=~/Downloads/thymis-XY.img of=/dev/sdX</code>
+						</TabItem>
+					</Tabs>
 				</section>
 			</div>
 		</section>

@@ -17,8 +17,6 @@
 	"devDependencies": {
 		"@floating-ui/dom": "^1.5.4",
 		"@playwright/test": "^1.28.1",
-		"@skeletonlabs/skeleton": "^2.3.0",
-		"@skeletonlabs/tw-plugin": "^0.2.2",
 		"@sveltejs/adapter-node": "^4.0.1",
 		"@sveltejs/kit": "^2.5.0",
 		"@sveltejs/package": "^2.2.7",
