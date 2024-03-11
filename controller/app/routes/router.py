@@ -3,11 +3,12 @@ import json
 from typing import List
 from app.models.state import State
 from fastapi import APIRouter, Depends, Request, BackgroundTasks, WebSocket
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from ..dependencies import get_or_init_state
 from app import models
 from app.crud import state
 import subprocess
+from urllib.parse import urljoin
 
 router = APIRouter()
 
@@ -72,17 +73,30 @@ def deploy(
 @router.get("/action/build-download-image")
 async def build_download_image(
     hostname: str,
+    request: Request,
     background_tasks: BackgroundTasks,
     state: State = Depends(get_or_init_state),
 ):
-    image_path = await state.build_image_path(q=last_build_status, hostname=hostname)
+    referer = request.headers.get("referer")
+    # if something goes wrong, redirect to the referer
+    try:
+        image_path = await state.build_image_path(
+            q=last_build_status, hostname=hostname
+        )
 
-    # return the image bytes
-    return FileResponse(
-        image_path,
-        media_type="application/octet-stream",
-        filename=f"thymis-{hostname}.img",
-    )
+        # return the image bytes
+        return FileResponse(
+            image_path,
+            media_type="application/octet-stream",
+            filename=f"thymis-{hostname}.img",
+        )
+    except Exception as e:
+        err_msg = f"Error: {e}"
+        import traceback
+
+        traceback.print_exc()
+        new_url = urljoin(referer, f"?error={err_msg}")
+        return RedirectResponse(new_url)
 
 
 @router.get("/history")

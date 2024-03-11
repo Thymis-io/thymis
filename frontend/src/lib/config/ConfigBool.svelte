@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { SlideToggle } from '@skeletonlabs/skeleton';
-
+	import { Toggle } from 'flowbite-svelte';
 	export let name: string;
 	export let value: boolean | undefined = false;
 	export let change: (value: boolean) => void = () => {};
@@ -10,4 +9,4 @@
 	};
 </script>
 
-<SlideToggle class="mt-1.5" size="sm" {name} checked={value} on:change={changeInternal} />
+<Toggle class="mt-1.5" size="small" {name} checked={value} on:change={changeInternal} />

@@ -1,80 +1,59 @@
 <script lang="ts">
 	import { queryParam } from 'sveltekit-search-params';
-	import { ListBox, ListBoxItem, popup } from '@skeletonlabs/skeleton';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
-	import ChevronDown from 'lucide-svelte/icons/chevron-down';
-	import { state } from './state';
+	import { Button, Dropdown, Search } from 'flowbite-svelte';
+	import { ChevronDownSolid } from 'flowbite-svelte-icons';
+	import { page } from '$app/stores';
+	import type { State } from './state';
+	export let state: State;
 
 	const tagParam = queryParam('tag');
 	const deviceParam = queryParam('device');
 
-	$: tag = $state?.tags.find((t) => t.name === $tagParam);
-	$: device = $state?.devices.find((d) => d.hostname === $deviceParam);
+	$: tag = state.tags.find((t) => t.name === $tagParam);
+	$: device = state.devices.find((d) => d.hostname === $deviceParam);
+
+	const otherUrlParams = () => {
+		const params = new URLSearchParams($page.url.search);
+		params.delete('tag');
+		params.delete('device');
+		return params.toString();
+	};
 </script>
 
-<button
-	class="btn variant-filled w-full justify-between"
-	use:popup={{
-		event: 'click',
-		target: 'selectCombobox',
-		placement: 'bottom'
-	}}
->
+<Button class="w-full flex justify-between">
 	<div class="flex gap-2">
 		{#if tag}
-			<TagIcon /> {tag.name}
+			<TagIcon size={20} /> {tag.name}
 		{:else if device}
-			<HardDrive /> {device.displayName}
+			<HardDrive size={20} /> {device.displayName}
+		{:else}
+			No tag or device selected
 		{/if}
 	</div>
-	<span><ChevronDown /></span>
-</button>
-<div class="card w-80 shadow-xl py-2 z-50" data-popup="selectCombobox">
-	<ListBox rounded="rounded-none">
-		{#each $state?.tags ?? [] as tag}
-			<!-- <a href="/config?tag={tag.name}"> -->
+	<ChevronDownSolid class="h-4 ms-2 text-white dark:text-white" /></Button
+>
+<Dropdown class="overflow-y-auto px-3 pb-3 text-sm h-44">
+	<div slot="header" class="p-3">
+		<Search size="md" />
+		{#each state.tags as tag}
 			<a
-				href="#"
-				on:click={() => {
-					$tagParam = tag.name;
-					$deviceParam = null;
-				}}
+				href={`?tag=${tag.name}&${otherUrlParams()}`}
+				class={'flex gap-2 my-1 p-1 hover:bg-primary-500'}
 			>
-				<ListBoxItem
-					group={''}
-					value={tag.name}
-					name={tag.name}
-					hover={'hover:variant-filled'}
-					active={''}
-					class="flex"
-				>
-					<svelte:fragment slot="lead"><TagIcon /></svelte:fragment>
-					{tag.name}
-				</ListBoxItem>
+				<TagIcon />
+				{tag.name}
 			</a>
 		{/each}
-		{#each $state?.devices ?? [] as device}
-			<!-- <a href="/config?device={device.hostname}"> -->
+		{#each state.devices as device}
 			<a
-				href="#"
-				on:click={() => {
-					$deviceParam = device.hostname;
-					$tagParam = null;
-				}}
+				href={`?device=${device.hostname}&${otherUrlParams()}`}
+				class={'flex gap-2 my-1 p-1 hover:bg-primary-500'}
 			>
-				<ListBoxItem
-					group={''}
-					value={device.hostname}
-					name={device.hostname}
-					hover={'hover:variant-filled'}
-					active={''}
-					class="flex"
-				>
-					<svelte:fragment slot="lead"><HardDrive /></svelte:fragment>
-					{device.displayName}
-				</ListBoxItem>
+				<HardDrive />
+				{device.displayName}
 			</a>
 		{/each}
-	</ListBox>
-</div>
+	</div>
+</Dropdown>

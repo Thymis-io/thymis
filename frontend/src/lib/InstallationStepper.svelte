@@ -1,14 +1,15 @@
 <script lang="ts">
 	import {
-		Stepper,
-		Step,
-		SlideToggle,
-		ProgressBar,
-		TabGroup,
-		Tab,
-		CodeBlock
-	} from '@skeletonlabs/skeleton';
-	// import { Download, Redo, Apple, AppWindow, Wrench } from 'lucide-svelte';
+		Button,
+		StepIndicator,
+		Label,
+		Input,
+		Select,
+		Textarea,
+		Progressbar,
+		Tabs,
+		TabItem
+	} from 'flowbite-svelte';
 	import Download from 'lucide-svelte/icons/download';
 	import Redo from 'lucide-svelte/icons/redo';
 	import Apple from 'lucide-svelte/icons/apple';
@@ -28,7 +29,14 @@
 	};
 	let enteredData = false;
 	let imageGenerated = true;
-	let tabSetDistroImaging: number = 0;
+
+	let currentStep = 1;
+	let steps = [
+		'Thymis installieren',
+		'Gerät auswählen',
+		'Verbindungsinformationen',
+		'Es kann los gehen!'
+	];
 
 	function onCompleteHandler(e: CustomEvent): void {
 		enteredData = true;
@@ -43,91 +51,84 @@
 	}
 </script>
 
-<div class="w-full card p-4 text-token">
+<div class="w-full p-2">
 	{#if !enteredData}
-		<Stepper
-			stepTerm="Schritt"
-			buttonNextLabel="Weiter →"
-			buttonBackLabel="← Zurück"
-			buttonCompleteLabel="Generieren"
-			on:complete={onCompleteHandler}
-		>
-			<Step>
-				<svelte:fragment slot="header">Thymis installieren</svelte:fragment>
-				<p>
-					Sie können hier einfach ein ISO-Datei oder ein Systemimage für ihr IoT-Gerät erstellen.
-				</p>
-			</Step>
-			<Step>
-				<svelte:fragment slot="header">Gerät auswählen</svelte:fragment>
-				<p>
-					Wir unterstützen momentan x86-basierte und aarch64/ARM64-basierte Geräte. Darunter zählen
-					der Raspberry Pi 3, 4 und 5, sowie normale Desktop-Computer.
-				</p>
-				<select class="select" size="4" bind:value={data.device}>
-					<option value="x86">Generisches x86-Gerät (z.B. Desktop-PC)</option>
-					<option value="rpi3">Raspberry Pi 3</option>
-					<option value="rpi4">Raspberry Pi 4</option>
-					<option value="rpi5">Raspbery Pi 5</option>
-					<option value="aarch64">Generisches aarch64/ARM64-Gerät</option>
-				</select>
-			</Step>
-			<Step>
-				<svelte:fragment slot="header">Verbindungsinformationen</svelte:fragment>
-				<p>
-					Sobald Thymis installiert ist, können Sie noch viel mehr ganz einfach einrichten. Geben
-					Sie erstmal die notwendigen Verbindungsinformationen an, damit Sie das Gerät nach der
-					automatischen Installation erreich können.
-				</p>
-				<div class="space-y-4">
-					<label class="label">
-						<span>Name</span>
-						<input class="input" type="text" placeholder="device01" bind:value={data.displayName} />
-					</label>
-					<label class="label">
-						<span>Hostname</span>
-						<input
-							class="input"
-							type="text"
-							placeholder="thymis-device01"
-							bind:value={data.hostname}
-						/>
-					</label>
-					<label class="label">
-						<span>WLAN SSID - Name der WLAN-Verbindung</span>
-						<input class="input" type="text" placeholder="PhoibeWifi" bind:value={data.wifiSSID} />
-					</label>
-					<label class="label">
-						<span>WLAN Passwort</span>
-						<input
-							class="input"
-							type="text"
-							placeholder="kept secret"
-							bind:value={data.wifiPassword}
-						/>
-					</label>
-					<label class="label">
-						<span>Statische IP-Adresse</span>
-						<input class="input" type="text" placeholder="192.168.." bind:value={data.staticIP} />
-					</label>
-					<label class="label">
-						<span>SSH Public-Key</span>
-						<textarea
-							class="textarea"
-							rows="4"
-							placeholder="ssh-rsa AAA... thymis@mydevice"
-							bind:value={data.sshPublicKey}
-						/>
-					</label>
-				</div>
-			</Step>
-			<Step>
-				<svelte:fragment slot="header">Es kann los gehen!</svelte:fragment>
-				<p>
-					Drücken Sie auf <code>Generieren</code>, um das Systemabbild zu erstellen.
-				</p>
-			</Step>
-		</Stepper>
+		<div class="flex flex-col gap-4">
+			<StepIndicator {currentStep} {steps} />
+			<div class="h-96 overflow-y-auto space-y-4">
+				{#if currentStep === 1}
+					<p>
+						Sie können hier einfach ein ISO-Datei oder ein Systemimage für ihr IoT-Gerät erstellen.
+					</p>
+				{:else if currentStep === 2}
+					<p>
+						Wir unterstützen momentan x86-basierte und aarch64/ARM64-basierte Geräte. Darunter
+						zählen der Raspberry Pi 3, 4 und 5, sowie normale Desktop-Computer.
+					</p>
+					<Select
+						bind:value={data.device}
+						items={[
+							{ value: 'x86', name: 'Generisches x86-Gerät (z.B. Desktop-PC)' },
+							{ value: 'rpi3', name: 'Raspberry Pi 3' },
+							{ value: 'rpi4', name: 'Raspberry Pi 4' },
+							{ value: 'rpi5', name: 'Raspbery Pi 5' },
+							{ value: 'aarch64', name: 'Generisches aarch64/ARM64-Gerät' }
+						]}
+					/>
+				{:else if currentStep === 3}
+					<p>
+						Sobald Thymis installiert ist, können Sie noch viel mehr ganz einfach einrichten. Geben
+						Sie erstmal die notwendigen Verbindungsinformationen an, damit Sie das Gerät nach der
+						automatischen Installation erreich können.
+					</p>
+					<div>
+						<Label class="mb-2">Name</Label>
+						<Input placeholder="device01" bind:value={data.displayName} />
+					</div>
+					<div>
+						<Label class="mb-2">Hostname</Label>
+						<Input placeholder="thymis-device01" bind:value={data.hostname} />
+					</div>
+					<div>
+						<Label class="mb-2">WLAN SSID - Name der WLAN-Verbindung</Label>
+						<Input placeholder="PhoibeWifi" bind:value={data.wifiSSID} />
+					</div>
+					<div>
+						<Label class="mb-2">WLAN Passwort</Label>
+						<Input placeholder="kept secret" bind:value={data.wifiPassword} />
+					</div>
+					<div>
+						<Label class="mb-2">Statische IP-Adresse</Label>
+						<Input placeholder="192.168.." bind:value={data.staticIP} />
+					</div>
+					<div>
+						<Label class="mb-2">SSH Public-Key</Label>
+						<Textarea placeholder="192.168.." rows="4" bind:value={data.sshPublicKey} />
+					</div>
+				{:else if currentStep === 4}
+					<p>
+						Drücken Sie auf <code>Generieren</code>, um das Systemabbild zu erstellen.
+					</p>
+					<Button color={'alternative'} on:click={() => (enteredData = true)}>Generieren</Button>
+				{/if}
+			</div>
+			<div class="flex justify-between">
+				<Button
+					color={'alternative'}
+					disabled={currentStep === 1}
+					on:click={() => (currentStep -= 1)}
+				>
+					Zurück
+				</Button>
+				<Button
+					color={'alternative'}
+					disabled={currentStep === steps.length}
+					on:click={() => (currentStep += 1)}
+				>
+					Weiter
+				</Button>
+			</div>
+		</div>
 	{:else}
 		<header class="card-header text-2xl font-bold">
 			{#if !imageGenerated}
@@ -140,7 +141,7 @@
 			<div class="pb-4 space-y-4">
 				{#if !imageGenerated}
 					<div>
-						<ProgressBar value={undefined} />
+						<Progressbar progress={undefined} />
 					</div>
 				{/if}
 				<div class="space-x-4">
@@ -195,74 +196,63 @@
 						</div>
 					</aside>
 					<p>Sie brauchen Superuser/Root/Administrator-Rechte für den diesen Schritt.</p>
-					<TabGroup>
-						<Tab bind:group={tabSetDistroImaging} name="Windows" value={0}>
-							<svelte:fragment slot="lead"><AppWindow /></svelte:fragment>
-							<span>Windows</span>
-						</Tab>
-						<Tab bind:group={tabSetDistroImaging} name="macOS" value={1}>
-							<svelte:fragment slot="lead"><Apple /></svelte:fragment>
-							<span>macOS</span>
-						</Tab>
-						<Tab bind:group={tabSetDistroImaging} name="Linux" value={2}>
-							<svelte:fragment slot="lead"><Wrench /></svelte:fragment>
-							<span>Linux</span>
-						</Tab>
-						<!-- Tab Panels --->
-						<svelte:fragment slot="panel">
-							<div class="space-y-4">
-								{#if tabSetDistroImaging === 0}
-									<p>
-										Installieren Sie <a
-											class="anchor"
-											href="https://etcher.balena.io/"
-											target="_blank">balena Etcher</a
-										>. Nach der Installation können Sie die Image-Datei und einen Datenträger zum
-										beschreiben auswählen.
-									</p>
-								{:else if tabSetDistroImaging === 1}
-									<p>
-										1. Lassen Sie sich Ihre angeschlossenen Geräte anzeigen und identifizieren Sie
-										das Gerät mit <code>/dev/diskX</code>, das für Ihren gewünschten Datenträgen
-										steht.
-									</p>
-									<CodeBlock language="bash" code={`sudo diskutil listDisk`} />
-									<p>
-										2. Entfernen Sie den Datenträger aus Ihrem Dateisystem (unmount), falls Sie es
-										noch nicht gemacht haben.
-									</p>
-									<CodeBlock language="bash" code={`sudo diskutil unmountDisk /dev/diskX`} />
-									<p>
-										3. Überschreiben Sie den Datenträger mit dem Systemabbild mit Thymis. Dabei wird
-										der Datenträger komplett überschrieben.
-									</p>
-									<CodeBlock
-										language="bash"
-										code={`sudo dd if=~/Downloads/thymis-XY.img of=/dev/diskX`}
-									/>
-								{:else if tabSetDistroImaging === 2}
-									<p>
-										1. Lassen Sie sich Ihre angeschlossenen Geräte anzeigen und identifizieren Sie
-										das Gerät mit <code>/dev/sdX</code>, das für Ihren gewünschten Datenträgen
-										steht.
-									</p>
-									<CodeBlock language="bash" code={`sudo lsblk`} />
-									<p>
-										2. Entfernen Sie den Datenträger aus Ihrem Dateisystem (unmount), falls Sie es
-										noch nicht gemacht haben.
-									</p>
-									<p>
-										3. Überschreiben Sie den Datenträger mit dem Systemabbild mit Thymis. Dabei wird
-										der Datenträger komplett überschrieben.
-									</p>
-									<CodeBlock
-										language="bash"
-										code={`sudo dd if=~/Downloads/thymis-XY.img of=/dev/sdX`}
-									/>
-								{/if}
-							</div>
-						</svelte:fragment>
-					</TabGroup>
+					<Tabs>
+						<TabItem name="Windows">
+							<svelte:fragment slot="title"><AppWindow />Windows</svelte:fragment>
+							<p>
+								Installieren Sie <a class="anchor" href="https://etcher.balena.io/" target="_blank"
+									>balena Etcher</a
+								>. Nach der Installation können Sie die Image-Datei und einen Datenträger zum
+								beschreiben auswählen.
+							</p>
+						</TabItem>
+						<TabItem name="macOS">
+							<svelte:fragment slot="title"><Apple />macOS</svelte:fragment>
+							<p>
+								1. Lassen Sie sich Ihre angeschlossenen Geräte anzeigen und identifizieren Sie das
+								Gerät mit <code>/dev/diskX</code>, das für Ihren gewünschten Datenträgen steht.
+							</p>
+							<!-- <CodeBlock language="bash" code={`sudo diskutil listDisk`} /> -->
+							<code>sudo diskutil listDisk</code>
+							<p>
+								2. Entfernen Sie den Datenträger aus Ihrem Dateisystem (unmount), falls Sie es noch
+								nicht gemacht haben.
+							</p>
+							<!-- <CodeBlock language="bash" code={`sudo diskutil unmountDisk /dev/diskX`} /> -->
+							<code>sudo diskutil unmountDisk /dev/diskX</code>
+							<p>
+								3. Überschreiben Sie den Datenträger mit dem Systemabbild mit Thymis. Dabei wird der
+								Datenträger komplett überschrieben.
+							</p>
+							<!-- <CodeBlock
+								language="bash"
+								code={`sudo dd if=~/Downloads/thymis-XY.img of=/dev/diskX`}
+							/> -->
+							<code>sudo dd if=~/Downloads/thymis-XY.img of=/dev/diskX</code>
+						</TabItem>
+						<TabItem name="Linux">
+							<svelte:fragment slot="title"><Wrench />Linux</svelte:fragment>
+							<p>
+								1. Lassen Sie sich Ihre angeschlossenen Geräte anzeigen und identifizieren Sie das
+								Gerät mit <code>/dev/sdX</code>, das für Ihren gewünschten Datenträgen steht.
+							</p>
+							<!-- <CodeBlock language="bash" code={`sudo lsblk`} /> -->
+							<code>sudo lsblk</code>
+							<p>
+								2. Entfernen Sie den Datenträger aus Ihrem Dateisystem (unmount), falls Sie es noch
+								nicht gemacht haben.
+							</p>
+							<p>
+								3. Überschreiben Sie den Datenträger mit dem Systemabbild mit Thymis. Dabei wird der
+								Datenträger komplett überschrieben.
+							</p>
+							<!-- <CodeBlock
+								language="bash"
+								code={`sudo dd if=~/Downloads/thymis-XY.img of=/dev/sdX`}
+							/> -->
+							<code>sudo dd if=~/Downloads/thymis-XY.img of=/dev/sdX</code>
+						</TabItem>
+					</Tabs>
 				</section>
 			</div>
 		</section>

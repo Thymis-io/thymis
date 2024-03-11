@@ -1,16 +1,15 @@
 <script lang="ts">
-	import type { SvelteComponent } from 'svelte';
-	import { getModalStore } from '@skeletonlabs/skeleton';
-	// import { Plus } from 'lucide-svelte';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Minus from 'lucide-svelte/icons/minus';
 	import type { Tag } from '$lib/state';
+	import { Button, Modal, Input } from 'flowbite-svelte';
 
-	export let parent: SvelteComponent;
-	const modalStore = getModalStore();
+	export let open: boolean;
+	export let onClose: (() => void) | undefined = undefined;
+	export let onSave: ((tags: string[], availableTags: Tag[]) => void) | undefined = undefined;
 
-	let tags: string[] = $modalStore[0]?.meta.tags;
-	let availableTags: Tag[] = $modalStore[0]?.meta.availableTags;
+	export let tags: string[];
+	export let availableTags: Tag[];
 	let newTag = '';
 
 	function toggle(tag: string) {
@@ -33,48 +32,47 @@
 		tags = tags.filter((t) => t !== tag);
 		availableTags = availableTags.filter((t) => t.name !== tag);
 	};
-
-	function onSubmit(): void {
-		if ($modalStore[0].response) {
-			$modalStore[0].response({ deviceTags: tags, availableTags: availableTags });
-		}
-		modalStore.close();
-	}
 </script>
 
-{#if $modalStore[0]}
-	<div class="modal-example-form card p-4 w-modal shadow-xl space-y-8">
-		<header class="text-2xl font-bold">{$modalStore[0].title ?? '(title missing)'}</header>
-		<div class="flex flex-wrap gap-2">
-			{#each availableTags as availableTag}
-				<button
-					class="chip {tags.includes(availableTag.name) ? 'variant-filled' : 'variant-soft'}"
-					on:click={() => {
-						toggle(availableTag.name);
-					}}
-				>
-					{availableTag.name}
-					<button
-						class="btn btn-sm variant-filled-error ml-2"
-						on:click={() => removeTag(availableTag.name)}
-					>
-						<Minus size="12" />
-					</button>
-				</button>
-				<!-- remove button -->
-			{/each}
-		</div>
-		<div class="flex gap-2">
-			<input type="text" class="input" placeholder="New Tag" bind:value={newTag} />
-			<button class="btn btn-sm variant-filled" on:click={() => addTag()}>
-				<Plus />
-			</button>
-		</div>
-		<footer class="modal-footer {parent.regionFooter}">
-			<button class="btn {parent.buttonNeutral}" on:click={parent.onClose}
-				>{parent.buttonTextCancel}</button
+<Modal title="Edit Tags" bind:open>
+	<div class="flex flex-wrap gap-2">
+		{#each availableTags as availableTag}
+			<Button
+				rounded
+				color={tags.includes(availableTag.name) ? 'primary' : 'alternative'}
+				class={tags.includes(availableTag.name) ? 'px-[15px] py-[11px]' : 'px-[14px] py-[10px]'}
+				on:click={() => {
+					toggle(availableTag.name);
+				}}
 			>
-			<button class="btn {parent.buttonPositive}" on:click={onSubmit}>Save</button>
-		</footer>
+				{availableTag.name}
+				<Button
+					color="red"
+					size="xs"
+					class="ml-6 p-1"
+					on:click={() => removeTag(availableTag.name)}
+				>
+					<Minus size="12" />
+				</Button>
+			</Button>
+			<!-- remove button -->
+		{/each}
 	</div>
-{/if}
+	<div class="flex gap-2">
+		<Input type="text" class="input" placeholder="New Tag" bind:value={newTag} />
+		<button class="btn btn-sm variant-filled" on:click={() => addTag()}>
+			<Plus />
+		</button>
+	</div>
+	<div class="flex justify-end gap-2">
+		<Button color="alternative" on:click={() => onClose?.()}>Cancel</Button>
+		<Button
+			on:click={() => {
+				onSave?.(tags, availableTags);
+				onClose?.();
+			}}
+		>
+			Save
+		</Button>
+	</div>
+</Modal>
