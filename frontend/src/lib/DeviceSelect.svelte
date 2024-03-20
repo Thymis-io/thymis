@@ -2,7 +2,7 @@
 	import { queryParam } from 'sveltekit-search-params';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
-	import { Button, Dropdown, Search } from 'flowbite-svelte';
+	import { Button, Dropdown, DropdownItem, Search } from 'flowbite-svelte';
 	import { ChevronDownSolid } from 'flowbite-svelte-icons';
 	import { page } from '$app/stores';
 	import type { State } from './state';
@@ -14,11 +14,22 @@
 	$: tag = state.tags.find((t) => t.name === $tagParam);
 	$: device = state.devices.find((d) => d.hostname === $deviceParam);
 
+	let search = '';
+
 	const otherUrlParams = () => {
 		const params = new URLSearchParams($page.url.search);
 		params.delete('tag');
 		params.delete('device');
 		return params.toString();
+	};
+
+	const isSearched = (search: string, item: string) => {
+		if (!search) {
+			return true;
+		}
+
+		const searchKeys = search.trim().split(' ');
+		return searchKeys.every((key) => item.toLowerCase().includes(key.toLowerCase()));
 	};
 </script>
 
@@ -34,26 +45,30 @@
 	</div>
 	<ChevronDownSolid class="h-4 ms-2 text-white dark:text-white" /></Button
 >
-<Dropdown class="overflow-y-auto px-3 pb-3 text-sm h-44">
+<Dropdown class="overflow-y-auto px-3 pb-3 text-sm max-h-96">
 	<div slot="header" class="p-3">
-		<Search size="md" />
-		{#each state.tags as tag}
-			<a
+		<Search size="md" bind:value={search} />
+	</div>
+	{#each state.tags as tag}
+		{#if isSearched(search, tag.name)}
+			<DropdownItem
 				href={`?tag=${tag.name}&${otherUrlParams()}`}
 				class={'flex gap-2 my-1 p-1 hover:bg-primary-500'}
 			>
 				<TagIcon />
 				{tag.name}
-			</a>
-		{/each}
-		{#each state.devices as device}
-			<a
+			</DropdownItem>
+		{/if}
+	{/each}
+	{#each state.devices as device}
+		{#if isSearched(search, device.displayName)}
+			<DropdownItem
 				href={`?device=${device.hostname}&${otherUrlParams()}`}
 				class={'flex gap-2 my-1 p-1 hover:bg-primary-500'}
 			>
 				<HardDrive />
 				{device.displayName}
-			</a>
-		{/each}
-	</div>
+			</DropdownItem>
+		{/if}
+	{/each}
 </Dropdown>
