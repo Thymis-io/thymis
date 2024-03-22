@@ -8,7 +8,7 @@ from pydantic import (
     field_serializer,
     model_serializer,
 )
-from app import models
+from thymis_controller import models
 from pydoc import locate
 
 from pydantic.config import ConfigDict
@@ -33,6 +33,13 @@ class Module(BaseModel):
 
     @classmethod
     def from_dict(cls, d):
+        # check if type starts with "app.". If so, replace with "thymis_controller."
+        # print a warning message and a todo to implement versioning for the state
+        if d["type"].startswith("app."):
+            print(
+                f"Warning: module type {d['type']} starts with old prefix 'app.'. Replacing with 'thymis_controller.'."
+            )
+            d["type"] = d["type"].replace("app.", "thymis_controller.")
         return locate(d["type"])(**d)
 
     @model_serializer(mode="wrap")

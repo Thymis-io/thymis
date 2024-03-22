@@ -1,12 +1,12 @@
 import json
 import os
-from app.models.setting import ModuleSettings
+from thymis_controller.models.setting import ModuleSettings
 from jinja2 import Environment
-from app.models import Module, Setting
+from thymis_controller.models import Module, Setting
 
 import pathlib
 
-from app import models
+from thymis_controller import models
 
 
 class ThymisController(Module):

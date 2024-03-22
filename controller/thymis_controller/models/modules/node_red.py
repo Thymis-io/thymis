@@ -1,4 +1,4 @@
-from app.models import Module, Setting
+from thymis_controller.models import Module, Setting
 
 
 class NodeRed(Module):

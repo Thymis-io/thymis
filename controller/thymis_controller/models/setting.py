@@ -1,5 +1,5 @@
 from typing import Dict, Optional, Type
-from app.nix import convert_python_value_to_nix
+from thymis_controller.nix import convert_python_value_to_nix
 from pydantic import BaseModel
 
 

@@ -1,18 +1,18 @@
 import asyncio
 from typing import List, Optional
 from pydantic import BaseModel, SerializeAsAny
-from app import models
+from thymis_controller import models
 import os
 from jinja2 import Environment, PackageLoader
 from git import Repo
 import pathlib
-from app.models.modules import ALL_MODULES
+from thymis_controller.models.modules import ALL_MODULES
 import subprocess
 
 REPO_PATH = os.getenv("REPO_PATH")
 
 env = Environment(
-    loader=PackageLoader("app", "models"),
+    loader=PackageLoader("thymis_controller", "models"),
 )
 
 HOST_PRIORITY = 100

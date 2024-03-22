@@ -1,5 +1,5 @@
 from typing import Literal
-from app.models import Module, Setting
+from thymis_controller.models import Module, Setting
 
 
 class Minio(Module):

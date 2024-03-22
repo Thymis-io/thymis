@@ -1,5 +1,5 @@
-from app.models import Module, Setting
-from app.models.setting import ModuleSettings
+from thymis_controller.models import Module, Setting
+from thymis_controller.models.setting import ModuleSettings
 
 
 class WhateverModule(Module):

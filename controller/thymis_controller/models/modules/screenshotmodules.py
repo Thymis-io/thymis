@@ -1,5 +1,5 @@
-from app.models import Module, Setting
-from app.models.setting import ModuleSettings
+from thymis_controller.models import Module, Setting
+from thymis_controller.models.setting import ModuleSettings
 
 
 class ScreenshotModuleNotAvaliable(Module):
@@ -46,10 +46,18 @@ exec ${{pkgs.firefox}}/bin/firefox --kiosk {self.image}
 
 
 class Grafana1Module(ScreenshotModuleNotAvaliable):
-    image: str = "${inputs.thymis}/controller/app/models/modules/grafana1.png"
+    image: str = (
+        "${inputs.thymis}/controller/thymis_controller/models/modules/grafana1.png"
+    )
+
 
 class MqttxModule(ScreenshotModuleNotAvaliable):
-    image: str = "${inputs.thymis}/controller/app/models/modules/mqttx.png"
+    image: str = (
+        "${inputs.thymis}/controller/thymis_controller/models/modules/mqttx.png"
+    )
+
 
 class NodeRedModule(ScreenshotModuleNotAvaliable):
-    image: str = "${inputs.thymis}/controller/app/models/modules/node_red.png"
+    image: str = (
+        "${inputs.thymis}/controller/thymis_controller/models/modules/node_red.png"
+    )
