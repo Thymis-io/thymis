@@ -17,8 +17,12 @@ jinja2 = "^3.1.2"
 python-dotenv = "^1.0.1"
 websockets = "^12.0"
 gitpython = "^3.1.41"
-thymis-enterprise = { path = "../../thymis-enterprise/py", optional=true }
 
+[tool.poetry.group.enterprise]
+optional = true
+
+[tool.poetry.group.enterprise.dependencies]
+thymis-enterprise = { path = "../../thymis-enterprise/py" }
 
 [build-system]
 requires = ["poetry-core"]
@@ -26,6 +30,3 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 thymis-controller = 'app.api:run'
-
-[tool.poetry.extras]
-enterprise = ["thymis-enterprise"]
