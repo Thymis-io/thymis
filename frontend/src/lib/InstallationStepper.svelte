@@ -38,7 +38,7 @@
 		'Es kann los gehen!'
 	];
 
-	function onCompleteHandler(e: CustomEvent): void {
+	function onCompleteHandler(): void {
 		enteredData = true;
 
 		if (data && onSubmit) {
@@ -123,7 +123,13 @@
 				<Button
 					color={'alternative'}
 					disabled={currentStep === steps.length}
-					on:click={() => (currentStep += 1)}
+					on:click={() => {
+						currentStep += 1;
+
+						if (currentStep === steps.length && !enteredData) {
+							onCompleteHandler();
+						}
+					}}
 				>
 					Weiter
 				</Button>
