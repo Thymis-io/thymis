@@ -27,8 +27,6 @@ class Module(BaseModel):
         #     self.name = self.__class__.__name__.lower()
 
         # first set name then call super
-        if "name" not in data:
-            data["name"] = self.__class__.__name__.lower()
         if "type" not in data:
             data["type"] = f"{self.__class__.__module__}.{self.__class__.__name__}"
         super().__init__(**data)

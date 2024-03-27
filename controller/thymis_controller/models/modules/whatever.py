@@ -3,6 +3,8 @@ from thymis_controller.models.setting import ModuleSettings
 
 
 class WhateverModule(Module):
+    name: str = "Custom Module"
+
     settings: Setting = Setting(
         name="freeform.settings",
         type="textarea",
