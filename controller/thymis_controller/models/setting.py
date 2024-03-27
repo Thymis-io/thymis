@@ -1,5 +1,5 @@
 from typing import Dict, Optional, Type
-from app.nix import convert_python_value_to_nix
+from thymis_controller.nix import convert_python_value_to_nix
 from pydantic import BaseModel
 
 
@@ -23,3 +23,11 @@ class SettingValue(BaseModel):
 class ModuleSettings(BaseModel):
     type: str  # type of module this settings object is for
     settings: Dict[str, SettingValue]
+
+    def __init__(self, **data):
+        if data["type"].startswith("app."):
+            print(
+                f"Warning: module type {data['type']} starts with old prefix 'app.'. Replacing with 'thymis_controller.'."
+            )
+            data["type"] = data["type"].replace("app.", "thymis_controller.")
+        super().__init__(**data)

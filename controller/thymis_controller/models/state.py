@@ -1,18 +1,18 @@
 import asyncio
 from typing import List, Optional
 from pydantic import BaseModel, SerializeAsAny
-from app import models
+from thymis_controller import models
 import os
 from jinja2 import Environment, PackageLoader
 from git import Repo
 import pathlib
-from app.models.modules import ALL_MODULES
+from thymis_controller.models.modules import ALL_MODULES
 import subprocess
 
 REPO_PATH = os.getenv("REPO_PATH")
 
 env = Environment(
-    loader=PackageLoader("app", "models"),
+    loader=PackageLoader("thymis_controller", "models"),
 )
 
 HOST_PRIORITY = 100
@@ -78,11 +78,7 @@ class State(BaseModel):
             # write its modules
             for module_settings in device.modules:
                 # module holds settings right now.
-                module = next(
-                    m
-                    for m in self.available_modules()
-                    if m.type == module_settings.type
-                )
+                module = self.get_module_class_instance_by_type(module_settings.type)
                 module.write_nix(device_path, module_settings, HOST_PRIORITY)
         # for each tag create its own folder
         for tag in self.tags:
@@ -93,11 +89,7 @@ class State(BaseModel):
             # write its modules
             for module_settings in tag.modules:
                 # module holds settings right now.
-                module = next(
-                    m
-                    for m in self.available_modules()
-                    if m.type == module_settings.type
-                )
+                module = self.get_module_class_instance_by_type(module_settings.type)
                 module.write_nix(tag_path, module_settings, tag.priority)
         # run git add
         repo = Repo.init(self.repo_dir())
@@ -114,6 +106,17 @@ class State(BaseModel):
             tags=d["tags"] if "tags" in d else [],
             devices=d["devices"] if "devices" in d else [],
         )
+
+    def get_module_class_instance_by_type(self, module_type: str):
+        if module_type.startswith("app."):
+            print(
+                f"Warning: module type {module_type} starts with old prefix 'app.'. Replacing with 'thymis_controller.'."
+            )
+            module_type = module_type.replace("app.", "thymis_controller.", 1)
+        for module in self.available_modules():
+            if module.type == module_type:
+                return module
+        raise Exception(f"module with type {module_type} not found")
 
     def save(self, path: os.PathLike = "./"):
         path = os.path.join(path, "state.json")

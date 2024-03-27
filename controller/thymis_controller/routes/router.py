@@ -1,12 +1,12 @@
 import asyncio
 import json
 from typing import List
-from app.models.state import State
+from thymis_controller.models.state import State
 from fastapi import APIRouter, Depends, Request, BackgroundTasks, WebSocket
 from fastapi.responses import FileResponse, RedirectResponse
 from ..dependencies import get_or_init_state
-from app import models
-from app.crud import state
+from thymis_controller import models
+from thymis_controller.crud import state
 import subprocess
 from urllib.parse import urljoin
 

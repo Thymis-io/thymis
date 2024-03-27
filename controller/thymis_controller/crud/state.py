@@ -1,8 +1,8 @@
 import json
 from pydoc import locate
 from pathlib import Path
-from app.models.modules import ALL_MODULES
-from app.models.state import State
+from thymis_controller.models.modules import ALL_MODULES
+from thymis_controller.models.state import State
 import os
 
 REPO_PATH = os.getenv("REPO_PATH")

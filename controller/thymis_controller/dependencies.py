@@ -1,4 +1,4 @@
-from app.crud import state
+from thymis_controller.crud import state
 
 
 def get_or_init_state():

@@ -397,7 +397,7 @@ full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart", "pyyam
 name = "thymis-enterprise"
 version = "0.1.0"
 description = ""
-optional = true
+optional = false
 python-versions = ">=3.10"
 files = []
 develop = false
@@ -517,10 +517,7 @@ files = [
     {file = "websockets-12.0.tar.gz", hash = "sha256:81df9cbcbb6c260de1e007e58c011bfebe2dafc8435107b0537f393dd38c8b1b"},
 ]
 
-[extras]
-enterprise = ["thymis-enterprise"]
-
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10"
-content-hash = "8269c34f7a94796ef0bfca82ade55a780cb2b4237e608af68331685ca97f4868"
+content-hash = "7bcf59c5956d00da0c58b9d98dc79db4652877851bb3bc7700e9f64de997edb3"

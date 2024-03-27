@@ -5,7 +5,7 @@ description = ""
 authors = ["Adrian Block <adrian.block@thymis.io>", "Eli Kogan-Wang <eli.kogan-wang@thymis.io", "Maximilian Schmöcker <maximilian.schmoecker@thymis.io>", "Florian Schönlau <florian.schoenlau@thymis.io"]
 license = "AGPLv3"
 packages = [
-    { include = "app" }
+    { include = "thymis_controller" }
 ]
 
 [tool.poetry.dependencies]
@@ -29,4 +29,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-thymis-controller = 'app.api:run'
+thymis-controller = 'thymis_controller.api:run'

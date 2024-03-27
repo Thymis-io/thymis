@@ -1,7 +1,6 @@
-
 from typing import List
 from pydantic import BaseModel
-from app import models
+from thymis_controller import models
 
 
 class Tag(BaseModel):
