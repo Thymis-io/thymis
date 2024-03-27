@@ -1,12 +1,19 @@
 <script lang="ts">
-	export let name: string;
-	export let shortDescription: string;
-	export let icon: string;
+	import { Card, Button, P } from 'flowbite-svelte';
+	import type { Module } from './state';
+
+	export let module: Module;
+	export let installed: boolean;
+
+	$: moduleName = module.name.charAt(0).toUpperCase() + module.name.slice(1);
 </script>
 
-<div class="card p-4 flex flex-col items-center">
-	<img class="h-32 w-32" src={icon} alt="icon" />
-	<span class="mt-4 font-bold">{name}</span>
-	<span class="mt-4 w-48 flex-1">{shortDescription}</span>
-	<button class="btn mt-8 variant-filled-secondary" type="button">Install</button>
-</div>
+<Card class="w-48 h-48 !p-2 flex justify-between items-center">
+	<P class="font-bold mb-2">{moduleName}</P>
+	<img class="h-22 w-22 right-0" src={module.icon || '/favicon.png'} alt="icon" />
+	{#if installed}
+		<Button size="xs" class="!w-28">Configure</Button>
+	{:else}
+		<Button size="xs" class="!w-28">Install</Button>
+	{/if}
+</Card>

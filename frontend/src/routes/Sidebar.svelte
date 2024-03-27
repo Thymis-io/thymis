@@ -86,7 +86,7 @@
 		{
 			name: $t('nav.orchestrate'),
 			icon: SlidersSolid,
-			href: '/config'
+			href: '/config-overview'
 		},
 		{
 			name: $t('nav.devices'),
