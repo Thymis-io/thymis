@@ -2,7 +2,8 @@
 	import { t } from 'svelte-i18n';
 	import { P } from 'flowbite-svelte';
 	import { queryParam } from 'sveltekit-search-params';
-	import type { Tag, Device } from '$lib/state';
+	import type { Tag, Device, Module } from '$lib/state';
+	import { saveState } from '$lib/state';
 
 	import DeployActions from '$lib/DeployActions.svelte';
 	import ModuleCard from '$lib/ModuleCard.svelte';
@@ -56,14 +57,26 @@
 		const deviceModules = data.state.devices.flatMap((device) => getModules(undefined, device));
 		return [...new Set(tagModules.concat(deviceModules))];
 	};
+
+	const addModule = (module: Module) => {
+		if (tag && !tag.modules.find((m) => m.type === module.type)) {
+			tag.modules = [...tag.modules, { type: module.type, priority: 5, settings: {} }];
+		}
+
+		if (device && !device.modules.find((m) => m.type === module.type)) {
+			device.modules = [...device.modules, { type: module.type, settings: {} }];
+		}
+
+		saveState(data.state);
+	};
 </script>
 
 <div class="flex justify-between mb-4">
 	<h1 class="text-3xl font-bold dark:text-white">
 		{#if tag}
-			Module im Tag verwalten
+			Module im Tag {tag.name} verwalten
 		{:else if device}
-			Module im Gerät verwalten
+			Module im Gerät {device.displayName} verwalten
 		{:else}
 			Module verwalten
 		{/if}
@@ -74,7 +87,7 @@
 	<P class="mb-2">Installed</P>
 	<div class="flex flex-wrap gap-2">
 		{#each modules as module}
-			<ModuleCard {module} installed={true} />
+			<ModuleCard {module} installed={true} {addModule} />
 		{/each}
 	</div>
 </div>
@@ -83,7 +96,7 @@
 	<div class="flex flex-wrap gap-2">
 		{#each modulesAnywhere as module}
 			{#if !modules.find((m) => m.type === module.type)}
-				<ModuleCard {module} installed={false} />
+				<ModuleCard {module} installed={false} {addModule} />
 			{/if}
 		{/each}
 	</div>
@@ -93,7 +106,7 @@
 	<div class="flex flex-wrap gap-2">
 		{#each data.availableModules as module}
 			{#if !modules.find((m) => m.type === module.type) && !modulesAnywhere.find((m) => m.type === module.type)}
-				<ModuleCard {module} installed={false} />
+				<ModuleCard {module} installed={false} {addModule} />
 			{/if}
 		{/each}
 	</div>
