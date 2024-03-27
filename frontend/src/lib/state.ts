@@ -30,7 +30,7 @@ export type Setting = SettingTypes & {
 	// type: string;
 };
 
-export type Module = { type: string; name: string } & Record<string, Setting>;
+export type Module = { type: string; name: string; icon?: string } & Record<string, Setting>;
 
 export type SettingValue = { value: SettingTypes };
 export type ModuleSettings = { type: string; settings: { [key: string]: SettingValue } };

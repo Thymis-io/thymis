@@ -147,14 +147,16 @@
 	};
 
 	let selectedModulesValidSettingkeys: string[] = [];
-	$: if ($selected != null && selectedModule) {
+	$: if (selectedModule) {
 		console.log(selectedModule);
 		selectedModulesValidSettingkeys = Object.keys(selectedModule).filter(
 			(settingKey) =>
+				settingKey &&
 				settingKey !== 'name' &&
 				settingKey !== 'type' &&
 				selectedModule &&
 				typeof selectedModule[settingKey] === 'object' &&
+				selectedModule[settingKey] &&
 				'name' in selectedModule[settingKey]
 		);
 	}

@@ -1,3 +1,4 @@
+from typing import Optional
 from thymis_controller.models import Module, Setting
 from thymis_controller.models.setting import ModuleSettings
 
@@ -46,18 +47,25 @@ exec ${{pkgs.firefox}}/bin/firefox --kiosk {self.image}
 
 
 class Grafana1Module(ScreenshotModuleNotAvaliable):
+    icon: Optional[str] = Module.read_into_base64(
+        "./thymis_controller/icons/Grafana.svg"
+    )
     image: str = (
         "${inputs.thymis}/controller/thymis_controller/models/modules/grafana1.png"
     )
 
 
 class MqttxModule(ScreenshotModuleNotAvaliable):
+    icon: Optional[str] = Module.read_into_base64("./thymis_controller/icons/mqttx.png")
     image: str = (
         "${inputs.thymis}/controller/thymis_controller/models/modules/mqttx.png"
     )
 
 
 class NodeRedModule(ScreenshotModuleNotAvaliable):
+    icon: Optional[str] = Module.read_into_base64(
+        "./thymis_controller/icons/Grafana.svg"
+    )
     image: str = (
         "${inputs.thymis}/controller/thymis_controller/models/modules/node_red.png"
     )
