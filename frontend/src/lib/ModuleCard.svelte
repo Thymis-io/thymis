@@ -14,15 +14,11 @@
 		params.delete('module');
 		return params.toString();
 	};
-
-	const icon = () => {
-		return module.icon ?? '/favicon.png';
-	};
 </script>
 
 <Card class="w-48 h-48 !p-2 flex justify-between items-center">
 	<P class="font-bold">{moduleName}</P>
-	<img class="h-20 w-20 object-scale-down" src={icon()} alt="icon" />
+	<img class="h-20 w-20 object-scale-down" src={module.icon ?? '/favicon.png'} alt="icon" />
 	{#if installed}
 		<Button
 			size="xs"
