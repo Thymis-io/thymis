@@ -1,6 +1,7 @@
 import asyncio
 import json
 from typing import List
+from thymis_controller.models.modules import ALL_MODULES
 from thymis_controller.models.state import State
 from fastapi import APIRouter, Depends, Request, BackgroundTasks, WebSocket
 from fastapi.responses import FileResponse, RedirectResponse
@@ -19,8 +20,8 @@ def get_state(state: State = Depends(get_or_init_state)):
 
 
 @router.get("/available_modules")
-def get_available_modules(state: State = Depends(get_or_init_state)):
-    return state.available_modules()
+def get_available_modules():
+    return ALL_MODULES
 
 
 @router.patch("/state")

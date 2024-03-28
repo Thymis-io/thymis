@@ -9,7 +9,7 @@
 	export let onClose: (() => void) | undefined = undefined;
 
 	function onSubmit(submitData: any): void {
-		data.state.devices = [...data.state.devices, { ...submitData, tags: [], modules: [] }];
+		data.state.devices = [...data.state.devices, { ...submitData, tags: [] }];
 		saveState(data.state);
 	}
 </script>

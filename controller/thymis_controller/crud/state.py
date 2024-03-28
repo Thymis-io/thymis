@@ -1,7 +1,6 @@
 import json
 from pydoc import locate
 from pathlib import Path
-from thymis_controller.models.modules import ALL_MODULES
 from thymis_controller.models.state import State
 import os
 
@@ -22,7 +21,6 @@ def initialize():
     # TODO git reop init - git config user and email
     state = State(
         version="0.0.1",
-        modules=ALL_MODULES,
         tags=[],
         devices=[],
     )

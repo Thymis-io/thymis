@@ -34,7 +34,9 @@
 		<div class="flex items-center justify-around">
 			<div class="flex items-center justify-center bg-primary-400 rounded-full p-5 w-full">
 				<class class="text-2xl font-bold text-gray-800">Modules</class>
-				<class class="text-2xl font-bold text-gray-800 ml-2">({data.state.modules.length})</class>
+				<class class="text-2xl font-bold text-gray-800 ml-2">
+					({data.availableModules.length})
+				</class>
 			</div>
 		</div>
 	</Card>

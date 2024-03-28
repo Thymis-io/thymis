@@ -45,7 +45,6 @@ async def terminate_other_procs():
 
 class State(BaseModel):
     version: str
-    modules: List[SerializeAsAny[models.Module]]
     tags: List[models.Tag]
     devices: List[models.Device]
 
@@ -95,14 +94,10 @@ class State(BaseModel):
         repo = Repo.init(self.repo_dir())
         repo.git.add(".")
 
-    def available_modules(self):
-        return ALL_MODULES
-
     @classmethod
     def load_from_dict(cls, d):
         return cls(
             version=d["version"],
-            modules=[models.Module.from_dict(module) for module in d["modules"]],
             tags=d["tags"] if "tags" in d else [],
             devices=d["devices"] if "devices" in d else [],
         )
@@ -113,7 +108,7 @@ class State(BaseModel):
                 f"Warning: module type {module_type} starts with old prefix 'app.'. Replacing with 'thymis_controller.'."
             )
             module_type = module_type.replace("app.", "thymis_controller.", 1)
-        for module in self.available_modules():
+        for module in ALL_MODULES:
             if module.type == module_type:
                 return module
         raise Exception(f"module with type {module_type} not found")
