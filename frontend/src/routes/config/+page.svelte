@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Card, Toggle, Listgroup, ListgroupItem, Tooltip, P } from 'flowbite-svelte';
+	import { Card, Toggle, Listgroup, ListgroupItem, Tooltip, P, Button } from 'flowbite-svelte';
 	import ConfigBool from '$lib/config/ConfigBool.svelte';
 	import ConfigString from '$lib/config/ConfigString.svelte';
 	import ConfigTextarea from '$lib/config/ConfigTextarea.svelte';
@@ -12,6 +12,7 @@
 	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
 	import DeployActions from '$lib/DeployActions.svelte';
 	import type { PageData } from './$types';
+	import { page } from '$app/stores';
 
 	export let data: PageData;
 
@@ -22,10 +23,14 @@
 
 	const tagParam = queryParam('tag');
 	const deviceParam = queryParam('device');
+	const moduleParam = queryParam('module');
+
+	let modules: Module[];
 
 	$: tag = data.state.tags.find((t) => t.name === $tagParam);
 	$: device = data.state.devices.find((d) => d.hostname === $deviceParam);
 	$: modules = getModules(tag, device);
+	$: selectedModule = data.availableModules.find((m) => m.type === $moduleParam);
 
 	const getOrigin = (tag: Tag | undefined, device: Device | undefined) => {
 		if (tag) {
@@ -138,68 +143,67 @@
 		saveState(data.state);
 	};
 
-	let selectedModule: Module | undefined;
-	$: if ($selected != null) {
-		selectedModule = data.availableModules[$selected];
-	}
 	let selectedModulesValidSettingkeys: string[] = [];
-	$: if ($selected != null && selectedModule) {
+	$: if (selectedModule) {
 		console.log(selectedModule);
 		selectedModulesValidSettingkeys = Object.keys(selectedModule).filter(
 			(settingKey) =>
+				settingKey &&
 				settingKey !== 'name' &&
 				settingKey !== 'type' &&
 				selectedModule &&
 				typeof selectedModule[settingKey] === 'object' &&
+				selectedModule[settingKey] &&
 				'name' in selectedModule[settingKey]
 		);
 	}
+
+	const otherUrlParams = (searchParams: string) => {
+		const params = new URLSearchParams(searchParams);
+		params.delete('module');
+		return params.toString();
+	};
 </script>
 
 <div class="flex justify-between mb-4">
 	<h1 class="text-3xl font-bold dark:text-white">
 		{#if tag}
-			Module im Tag verwalten
+			{$t('config.header.tag-module', { values: { module: selectedModule?.name, tag: tag.name } })}
 		{:else if device}
-			Module im Gerät verwalten
+			{$t('config.header.device-module', {
+				values: { module: selectedModule?.name, device: device.displayName }
+			})}
 		{:else}
-			Module verwalten
+			{$t('config.header.module', { values: { module: selectedModule?.name } })}
 		{/if}
 	</h1>
 	<DeployActions />
 </div>
+<div class="flex gap-10 mb-4">
+	<Button href="/config-overview?{otherUrlParams($page.url.search)}">{$t('config.back')}</Button>
+	{#if modules.find((m) => m.type === selectedModule?.type)}
+		<Button
+			on:click={() => {
+				if (selectedModule) removeModule(selectedModule);
+			}}
+		>
+			{$t('config.uninstall')}
+		</Button>
+	{:else}
+		<Button
+			on:click={() => {
+				if (selectedModule) addModule(selectedModule);
+			}}
+		>
+			{$t('config.install')}
+		</Button>
+	{/if}
+</div>
 <div class="grid grid-flow-row grid-cols-5 gap-4">
-	<div>
-		<Listgroup active>
-			{#each data.availableModules as module, i}
-				<ListgroupItem
-					on:click={() => ($selected = i)}
-					current={$selected === i}
-					currentClass="bg-primary-500"
-				>
-					<div>
-						<Toggle
-							checked={modules.find((m) => m.type === module.type) !== undefined}
-							on:change={() => {
-								if (modules.find((m) => m.type === module.type) !== undefined) {
-									removeModule(module);
-								} else {
-									addModule(module);
-								}
-							}}>{module.name}</Toggle
-						>
-					</div>
-				</ListgroupItem>
-			{/each}
-		</Listgroup>
-	</div>
 	<Card class="col-span-4 max-w-none grid grid-cols-4 gap-8 gap-x-10 ">
-		{#if $selected != null && $selected < data.availableModules.length}
-			{@const selectedModule = data.availableModules[$selected]}
-			<!-- {#each Object.keys(selectedModule) as settingKey} -->
-			<!-- {#if settingKey !== 'name' && settingKey !== 'type' && typeof selectedModule[settingKey] === 'object'} -->
+		{#if selectedModule}
 			{#each selectedModulesValidSettingkeys as settingKey}
-				{#if selectedModule && settingKey in selectedModule}
+				{#if settingKey in selectedModule}
 					{@const setting = getSetting(selectedModule, settingKey, tag, device)}
 					{@const effectingSettings = getSettings(selectedModule, settingKey, tag, device)}
 					<P class="col-span-1">
@@ -214,7 +218,7 @@
 									value={setting}
 									name={selectedModule[settingKey].name}
 									change={(value) => {
-										if ($selected != null) setSetting(selectedModule, settingKey, value);
+										if (selectedModule) setSetting(selectedModule, settingKey, value);
 									}}
 								/>
 							{:else if selectedModule[settingKey].type == 'string'}
@@ -222,7 +226,7 @@
 									value={setting}
 									placeholder={selectedModule[settingKey].default}
 									change={(value) => {
-										if ($selected != null) setSetting(selectedModule, settingKey, value);
+										if (selectedModule) setSetting(selectedModule, settingKey, value);
 									}}
 								/>
 							{:else if selectedModule[settingKey].type == 'textarea'}
@@ -230,7 +234,7 @@
 									value={setting}
 									placeholder={selectedModule[settingKey].default}
 									change={(value) => {
-										if ($selected != null) setSetting(selectedModule, settingKey, value);
+										if (selectedModule) setSetting(selectedModule, settingKey, value);
 									}}
 								/>
 							{/if}
@@ -249,7 +253,7 @@
 									<button
 										class="btn p-0"
 										on:click={() => {
-											if ($selected != null) setSetting(selectedModule, settingKey, undefined);
+											if (selectedModule) setSetting(selectedModule, settingKey, undefined);
 										}}
 										><RotateCcw color="#0080c0" />
 									</button>

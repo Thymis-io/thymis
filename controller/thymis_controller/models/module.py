@@ -1,3 +1,4 @@
+import base64
 import os
 from typing import List, Optional
 from typing_extensions import Unpack
@@ -17,6 +18,7 @@ from pydantic.config import ConfigDict
 class Module(BaseModel):
     type: Optional[str] = None
     name: str
+    icon: Optional[str] = None
 
     def __init__(self, **data):
         # super().__init__(**data)
@@ -25,8 +27,6 @@ class Module(BaseModel):
         #     self.name = self.__class__.__name__.lower()
 
         # first set name then call super
-        if "name" not in data:
-            data["name"] = self.__class__.__name__.lower()
         if "type" not in data:
             data["type"] = f"{self.__class__.__module__}.{self.__class__.__name__}"
         super().__init__(**data)
@@ -69,3 +69,18 @@ class Module(BaseModel):
             my_attr = getattr(self, attr)
             assert isinstance(my_attr, models.Setting)
             my_attr.write_nix(f, value, priority)
+
+    @staticmethod
+    def read_into_base64(path: str):
+        try:
+            with open(path, "rb") as f:
+                encoded = base64.b64encode(f.read()).decode("utf-8")
+                extension = os.path.splitext(path)[1][1:]
+
+                if extension == "svg":
+                    extension = "svg+xml"
+
+                return f"data:image/{extension};base64,{encoded}"
+        except FileNotFoundError:
+            print(f"File not found: {path}")
+            return None

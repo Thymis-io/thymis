@@ -1,8 +1,13 @@
-from typing import Literal
+from typing import Optional
 from thymis_controller.models import Module, Setting
 
 
 class Minio(Module):
+    name: str = "Minio Object Storage"
+    icon: Optional[str] = Module.read_into_base64(
+        "./thymis_controller/icons/MINIO_Bird.png"
+    )
+
     enable: Setting = Setting(
         name="services.minio.enable",
         type="bool",
