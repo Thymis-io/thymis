@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
 	import { Card, Button, P } from 'flowbite-svelte';
 	import type { Module } from './state';
 	import { page } from '$app/stores';
@@ -6,8 +7,6 @@
 	export let module: Module;
 	export let installed: boolean;
 	export let addModule: (module: Module) => void;
-
-	$: moduleName = module.name.charAt(0).toUpperCase() + module.name.slice(1);
 
 	const otherUrlParams = (searchParams: string) => {
 		const params = new URLSearchParams(searchParams);
@@ -17,7 +16,7 @@
 </script>
 
 <Card class="w-48 h-48 !p-2 flex justify-between items-center">
-	<P class="font-bold">{moduleName}</P>
+	<P class="font-bold">{module.name}</P>
 	<img class="h-20 w-20 object-scale-down" src={module.icon ?? '/favicon.png'} alt="icon" />
 	{#if installed}
 		<Button
@@ -25,9 +24,11 @@
 			class="!w-28"
 			href="/config?{otherUrlParams($page.url.search)}&module={module.type}"
 		>
-			Configure
+			{$t('config.configure')}
 		</Button>
 	{:else}
-		<Button size="xs" class="!w-28" on:click={() => addModule(module)}>Install</Button>
+		<Button size="xs" class="!w-28" on:click={() => addModule(module)}>
+			{$t('config.install')}
+		</Button>
 	{/if}
 </Card>

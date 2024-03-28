@@ -31,9 +31,6 @@
 	$: device = data.state.devices.find((d) => d.hostname === $deviceParam);
 	$: modules = getModules(tag, device);
 	$: selectedModule = data.availableModules.find((m) => m.type === $moduleParam);
-	$: moduleName = selectedModule
-		? selectedModule.name.charAt(0).toUpperCase() + selectedModule.name.slice(1)
-		: '-';
 
 	const getOrigin = (tag: Tag | undefined, device: Device | undefined) => {
 		if (tag) {
@@ -171,24 +168,26 @@
 <div class="flex justify-between mb-4">
 	<h1 class="text-3xl font-bold dark:text-white">
 		{#if tag}
-			Modul {moduleName} im Tag {tag.name} verwalten
+			{$t('config.header.tag-module', { values: { module: selectedModule?.name, tag: tag.name } })}
 		{:else if device}
-			Modul {moduleName} im Gerät {device.displayName} verwalten
+			{$t('config.header.device-module', {
+				values: { module: selectedModule?.name, device: device.displayName }
+			})}
 		{:else}
-			Modul {moduleName} verwalten
+			{$t('config.header.module', { values: { module: selectedModule?.name } })}
 		{/if}
 	</h1>
 	<DeployActions />
 </div>
 <div class="flex gap-10 mb-4">
-	<Button href="/config-overview?{otherUrlParams($page.url.search)}">Back</Button>
+	<Button href="/config-overview?{otherUrlParams($page.url.search)}">{$t('config.back')}</Button>
 	{#if modules.find((m) => m.type === selectedModule?.type)}
 		<Button
 			on:click={() => {
 				if (selectedModule) removeModule(selectedModule);
 			}}
 		>
-			Uninstall
+			{$t('config.uninstall')}
 		</Button>
 	{:else}
 		<Button
@@ -196,7 +195,7 @@
 				if (selectedModule) addModule(selectedModule);
 			}}
 		>
-			Install
+			{$t('config.install')}
 		</Button>
 	{/if}
 </div>

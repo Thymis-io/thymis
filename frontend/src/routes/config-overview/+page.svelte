@@ -74,17 +74,17 @@
 <div class="flex justify-between mb-4">
 	<h1 class="text-3xl font-bold dark:text-white">
 		{#if tag}
-			Module im Tag {tag.name} verwalten
+			{$t('config.header.tag-overview', { values: { tag: tag.name } })}
 		{:else if device}
-			Module im Gerät {device.displayName} verwalten
+			{$t('config.header.device-overview', { values: { device: device.displayName } })}
 		{:else}
-			Module verwalten
+			{$t('config.header.overview')}
 		{/if}
 	</h1>
 	<DeployActions />
 </div>
 <div>
-	<P class="mb-2">Installed</P>
+	<P class="mb-2">{$t('config.section.installed')}</P>
 	<div class="flex flex-wrap gap-2">
 		{#each modules as module}
 			<ModuleCard {module} installed={true} {addModule} />
@@ -92,7 +92,7 @@
 	</div>
 </div>
 <div class="mt-8">
-	<P class="mb-2">Installed on other devices or tags</P>
+	<P class="mb-2">{$t('config.section.installed-elsewhere')}</P>
 	<div class="flex flex-wrap gap-2">
 		{#each modulesAnywhere as module}
 			{#if !modules.find((m) => m.type === module.type)}
@@ -102,7 +102,7 @@
 	</div>
 </div>
 <div class="mt-8">
-	<P class="mb-2">Available</P>
+	<P class="mb-2">{$t('config.section.available')}</P>
 	<div class="flex flex-wrap gap-2">
 		{#each data.availableModules as module}
 			{#if !modules.find((m) => m.type === module.type) && !modulesAnywhere.find((m) => m.type === module.type)}

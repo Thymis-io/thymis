@@ -6,6 +6,25 @@
 		"history": "History",
 		"terminal": "Terminal"
 	},
+	"config": {
+		"header": {
+			"tag-overview": "Manage modules for {tag}",
+			"device-overview": "Manage modules for {device}",
+			"overview": "Manage modules",
+			"tag-module": "Manage {module} for {tag}",
+			"device-module": "Manage {module} for {device}",
+			"module": "Manage {module}"
+		},
+		"section": {
+			"installed": "Installed",
+			"installed-elsewhere": "Installed on other tags or devices",
+			"available": "Available"
+		},
+		"install": "Install",
+		"uninstall": "Uninstall",
+		"configure": "Configure",
+		"back": "Back"
+	},
 	"options": {
 		"no-settings": "No settings found for this module",
 		"nix": {
