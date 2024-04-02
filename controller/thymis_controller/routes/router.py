@@ -73,7 +73,7 @@ def deploy(
 
 @router.get("/action/build-download-image")
 async def build_download_image(
-    hostname: str,
+    identifier: str,
     request: Request,
     background_tasks: BackgroundTasks,
     state: State = Depends(get_or_init_state),
@@ -82,14 +82,14 @@ async def build_download_image(
     # if something goes wrong, redirect to the referer
     try:
         image_path = await state.build_image_path(
-            q=last_build_status, hostname=hostname
+            q=last_build_status, identifier=identifier
         )
 
         # return the image bytes
         return FileResponse(
             image_path,
             media_type="application/octet-stream",
-            filename=f"thymis-{hostname}.img",
+            filename=f"thymis-{identifier}.img",
         )
     except Exception as e:
         err_msg = f"Error: {e}"

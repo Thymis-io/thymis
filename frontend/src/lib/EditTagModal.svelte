@@ -21,8 +21,16 @@
 	}
 
 	function addTag() {
-		if (newTag && !availableTags.find((t) => t.name === newTag)) {
-			availableTags = [...availableTags, { name: newTag, priority: 5, modules: [] }];
+		if (newTag && !availableTags.find((t) => t.displayName === newTag)) {
+			availableTags = [
+				...availableTags,
+				{
+					displayName: newTag,
+					identifier: newTag.toLocaleLowerCase().replaceAll(' ', '-'),
+					priority: 5,
+					modules: []
+				}
+			];
 		}
 
 		newTag = '';
@@ -30,7 +38,7 @@
 
 	const removeTag = (tag: string) => {
 		tags = tags.filter((t) => t !== tag);
-		availableTags = availableTags.filter((t) => t.name !== tag);
+		availableTags = availableTags.filter((t) => t.identifier !== tag);
 	};
 </script>
 
@@ -39,18 +47,20 @@
 		{#each availableTags as availableTag}
 			<Button
 				rounded
-				color={tags.includes(availableTag.name) ? 'primary' : 'alternative'}
-				class={tags.includes(availableTag.name) ? 'px-[15px] py-[11px]' : 'px-[14px] py-[10px]'}
+				color={tags.includes(availableTag.displayName) ? 'primary' : 'alternative'}
+				class={tags.includes(availableTag.displayName)
+					? 'px-[15px] py-[11px]'
+					: 'px-[14px] py-[10px]'}
 				on:click={() => {
-					toggle(availableTag.name);
+					toggle(availableTag.displayName);
 				}}
 			>
-				{availableTag.name}
+				{availableTag.displayName}
 				<Button
 					color="red"
 					size="xs"
 					class="ml-6 p-1"
-					on:click={() => removeTag(availableTag.name)}
+					on:click={() => removeTag(availableTag.identifier)}
 				>
 					<Minus size="12" />
 				</Button>

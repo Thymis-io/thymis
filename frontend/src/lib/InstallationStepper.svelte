@@ -15,13 +15,14 @@
 	import Apple from 'lucide-svelte/icons/apple';
 	import AppWindow from 'lucide-svelte/icons/app-window';
 	import Wrench from 'lucide-svelte/icons/wrench';
+	import type { Device } from './state';
 
-	export let onSubmit: null | ((data: any) => void) = null;
+	export let onSubmit: null | ((data: Device) => void) = null;
 
 	let data = {
 		device: '',
 		displayName: '',
-		hostname: '',
+		targetHost: '',
 		wifiSSID: '',
 		wifiPassword: '',
 		staticIP: '',
@@ -42,7 +43,12 @@
 		enteredData = true;
 
 		if (data && onSubmit) {
-			onSubmit(data);
+			onSubmit({
+				...data,
+				identifier: data.displayName.toLowerCase().replaceAll(' ', '-'),
+				modules: [],
+				tags: []
+			});
 		}
 	}
 	function reset(): void {
@@ -86,8 +92,8 @@
 						<Input placeholder="device01" bind:value={data.displayName} />
 					</div>
 					<div>
-						<Label class="mb-2">Hostname</Label>
-						<Input placeholder="thymis-device01" bind:value={data.hostname} />
+						<Label class="mb-2">Deployment-Ziel - Hostname oder IP-Adresse</Label>
+						<Input placeholder="thymis-device01" bind:value={data.targetHost} />
 					</div>
 					<div>
 						<Label class="mb-2">WLAN SSID - Name der WLAN-Verbindung</Label>

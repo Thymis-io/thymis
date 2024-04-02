@@ -21,7 +21,7 @@
 	export let data: PageData;
 
 	function deleteDevice(device: Device) {
-		data.state.devices = data.state.devices.filter((d) => d.hostname !== device.hostname);
+		data.state.devices = data.state.devices.filter((d) => d.identifier !== device.identifier);
 		saveState(data.state);
 	}
 
@@ -37,7 +37,7 @@
 	const buildAndDownloadImage = (device: Device) => {
 		console.log('Building and downloading image');
 		downloadUri(
-			`${controllerProtocol}://${controllerHost}/action/build-download-image?hostname=${device.hostname}`
+			`${controllerProtocol}://${controllerHost}/action/build-download-image?hostname=${device.identifier}`
 		);
 	};
 
@@ -89,7 +89,7 @@
 
 	const saveEditHostnameModal = (value: string) => {
 		if (editDevice) {
-			editDevice.hostname = value;
+			editDevice.targetHost = value;
 			saveState(data.state);
 		}
 	};
@@ -118,7 +118,7 @@
 	<DeployActions />
 </div>
 <CreateDeviceModal
-	{data}
+	state={data.state}
 	open={openModal === ModalType.CreateDevice}
 	onClose={closeCreateDeviceModal}
 />
@@ -130,8 +130,8 @@
 	onSave={saveEditNameModal}
 />
 <EditStringModal
-	title={'Edit Hostname'}
-	value={editDevice?.hostname}
+	title={'Edit target hostname'}
+	value={editDevice?.targetHost}
 	open={openModal === ModalType.EditHostname}
 	onClose={closeEditHostnameModal}
 	onSave={saveEditHostnameModal}
@@ -164,7 +164,7 @@
 				</TableBodyCell>
 				<TableBodyCell>
 					<div class="flex gap-1">
-						{device.hostname}
+						{device.targetHost}
 						<button class="btn ml-2 p-0" on:click={() => openEditHostnameModal(device)}>
 							<Pen size="20" />
 						</button>
@@ -189,7 +189,7 @@
 				</TableBodyCell>
 				<TableBodyCell>
 					<div class="flex gap-2">
-						<Button color="alternative" href="/config?device={device.hostname}">Edit</Button>
+						<Button color="alternative" href="/config?device={device.identifier}">Edit</Button>
 						<Button color="alternative" on:click={() => buildAndDownloadImage(device)}>
 							Download Image
 						</Button>

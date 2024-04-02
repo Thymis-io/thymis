@@ -4,7 +4,8 @@ from thymis_controller import models
 
 
 class Device(BaseModel):
-    hostname: str
     displayName: str
+    identifier: str
+    targetHost: str
     modules: List[models.ModuleSettings]
     tags: List[str]

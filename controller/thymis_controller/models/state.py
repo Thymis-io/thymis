@@ -6,6 +6,7 @@ import os
 from jinja2 import Environment, PackageLoader
 from git import Repo
 import pathlib
+from thymis_controller.migration.migrate import migrate
 from thymis_controller.models.modules import ALL_MODULES
 import subprocess
 
@@ -68,9 +69,8 @@ class State(BaseModel):
         (path / "tags").mkdir(exist_ok=True)
         # for each host create its own folder
         for device in self.devices:
-            # assert: hostname cannot be empty
-            assert device.hostname, "hostname cannot be empty"
-            device_path = path / "hosts" / device.hostname
+            assert device.identifier, "identifier cannot be empty"
+            device_path = path / "hosts" / device.identifier
             device_path.mkdir(exist_ok=True)
             # create a empty .gitignore file
             os.mknod(device_path / ".gitignore")
@@ -81,7 +81,7 @@ class State(BaseModel):
                 module.write_nix(device_path, module_settings, HOST_PRIORITY)
         # for each tag create its own folder
         for tag in self.tags:
-            tag_path = path / "tags" / tag.name
+            tag_path = path / "tags" / tag.displayName
             tag_path.mkdir(exist_ok=True)
             # create a empty .gitignore file
             os.mknod(tag_path / ".gitignore")
@@ -96,18 +96,9 @@ class State(BaseModel):
 
     @classmethod
     def load_from_dict(cls, d):
-        return cls(
-            version=d["version"],
-            tags=d["tags"] if "tags" in d else [],
-            devices=d["devices"] if "devices" in d else [],
-        )
+        return cls(**migrate(d))
 
     def get_module_class_instance_by_type(self, module_type: str):
-        if module_type.startswith("app."):
-            print(
-                f"Warning: module type {module_type} starts with old prefix 'app.'. Replacing with 'thymis_controller.'."
-            )
-            module_type = module_type.replace("app.", "thymis_controller.", 1)
         for module in ALL_MODULES:
             if module.type == module_type:
                 return module
@@ -182,14 +173,14 @@ class State(BaseModel):
         else:
             self.update_status("success")
 
-    async def build_image_path(self, q: List, hostname: str):
+    async def build_image_path(self, q: List, identifier: str):
         await terminate_other_procs()
         self.__q = q
         self.__stdout = bytearray()
         self.__stderr = bytearray()
         self.update_status("started building")
 
-        cmd = f"nix build '{self.repo_dir()}#nixosConfigurations.\"{hostname}\".config.formats.sd-card-image' --out-link /tmp/thymis-devices.{hostname}"
+        cmd = f"nix build '{self.repo_dir()}#nixosConfigurations.\"{identifier}\".config.formats.sd-card-image' --out-link /tmp/thymis-devices.{identifier}"
 
         print(f"running command: {cmd}")
 
@@ -209,8 +200,8 @@ class State(BaseModel):
 
         r = await proc.wait()
         if proc.returncode != 0:
-            raise Exception(f"failed to build image for {hostname}")
-        return f"/tmp/thymis-devices.{hostname}"
+            raise Exception(f"failed to build image for {identifier}")
+        return f"/tmp/thymis-devices.{identifier}"
 
     async def deploy(self, q: List):
         await terminate_other_procs()
@@ -224,7 +215,7 @@ class State(BaseModel):
 
         # nixos-rebuild --flake REPO_PATH#thymis-devices.<device_name> switch --target-host <hostname>
         for device in self.devices:
-            cmd = f'nixos-rebuild --flake {self.repo_dir()}#"{device.hostname}" switch --target-host root@{device.hostname}'
+            cmd = f'nixos-rebuild --flake {self.repo_dir()}#"{device.identifier}" switch --target-host root@{device.targetHost}'
 
             proc = await asyncio.create_subprocess_shell(
                 cmd,

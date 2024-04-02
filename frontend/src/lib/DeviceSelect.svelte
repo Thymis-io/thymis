@@ -11,8 +11,8 @@
 	const tagParam = queryParam('tag');
 	const deviceParam = queryParam('device');
 
-	$: tag = state.tags.find((t) => t.name === $tagParam);
-	$: device = state.devices.find((d) => d.hostname === $deviceParam);
+	$: tag = state.tags.find((t) => t.identifier === $tagParam);
+	$: device = state.devices.find((d) => d.identifier === $deviceParam);
 
 	let search = '';
 
@@ -36,7 +36,7 @@
 <Button class="w-full flex justify-between">
 	<div class="flex gap-2">
 		{#if tag}
-			<TagIcon size={20} /> {tag.name}
+			<TagIcon size={20} /> {tag.displayName}
 		{:else if device}
 			<HardDrive size={20} /> {device.displayName}
 		{:else}
@@ -50,20 +50,20 @@
 		<Search size="md" bind:value={search} />
 	</div>
 	{#each state.tags as tag}
-		{#if isSearched(search, tag.name)}
+		{#if isSearched(search, tag.displayName)}
 			<DropdownItem
-				href={`?tag=${tag.name}&${otherUrlParams()}`}
+				href={`?tag=${tag.identifier}&${otherUrlParams()}`}
 				class={'flex gap-2 my-1 p-1 hover:bg-primary-500'}
 			>
 				<TagIcon />
-				{tag.name}
+				{tag.displayName}
 			</DropdownItem>
 		{/if}
 	{/each}
 	{#each state.devices as device}
 		{#if isSearched(search, device.displayName)}
 			<DropdownItem
-				href={`?device=${device.hostname}&${otherUrlParams()}`}
+				href={`?device=${device.identifier}&${otherUrlParams()}`}
 				class={'flex gap-2 my-1 p-1 hover:bg-primary-500'}
 			>
 				<HardDrive />

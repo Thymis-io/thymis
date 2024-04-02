@@ -35,8 +35,8 @@
 	const tagParam = queryParam('tag');
 	const deviceParam = queryParam('device');
 
-	$: tag = state.tags.find((t) => t.name === $tagParam);
-	$: device = state.devices.find((d) => d.hostname === $deviceParam);
+	$: tag = state.tags.find((t) => t.identifier === $tagParam);
+	$: device = state.devices.find((d) => d.identifier === $deviceParam);
 
 	let drawerHidden: boolean = false;
 

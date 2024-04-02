@@ -14,18 +14,18 @@
 	const tagParam = queryParam('tag');
 	const deviceParam = queryParam('device');
 
-	$: tag = data.state.tags.find((t) => t.name === $tagParam);
-	$: device = data.state.devices.find((d) => d.hostname === $deviceParam);
+	$: tag = data.state.tags.find((t) => t.identifier === $tagParam);
+	$: device = data.state.devices.find((d) => d.identifier === $deviceParam);
 	$: modules = getModules(tag, device);
 	$: modulesAnywhere = getModulesInstalledAnywhere();
 
 	const getOrigin = (tag: Tag | undefined, device: Device | undefined) => {
 		if (tag) {
-			return tag.name;
+			return tag.displayName;
 		}
 
 		if (device) {
-			return device.hostname;
+			return device.displayName;
 		}
 	};
 
@@ -36,7 +36,7 @@
 
 		if (device) {
 			let usedTags = device.tags.flatMap(
-				(t) => data.state.tags.find((tag) => tag.name === t) ?? []
+				(t) => data.state.tags.find((tag) => tag.displayName === t) ?? []
 			);
 			return [
 				...device.modules.map((m) => ({ origin: getOrigin(undefined, device), ...m })),
@@ -74,7 +74,7 @@
 <div class="flex justify-between mb-4">
 	<h1 class="text-3xl font-bold dark:text-white">
 		{#if tag}
-			{$t('config.header.tag-overview', { values: { tag: tag.name } })}
+			{$t('config.header.tag-overview', { values: { tag: tag.displayName } })}
 		{:else if device}
 			{$t('config.header.device-overview', { values: { device: device.displayName } })}
 		{:else}

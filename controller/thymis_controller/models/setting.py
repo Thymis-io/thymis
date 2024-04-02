@@ -25,9 +25,4 @@ class ModuleSettings(BaseModel):
     settings: Dict[str, SettingValue]
 
     def __init__(self, **data):
-        if data["type"].startswith("app."):
-            print(
-                f"Warning: module type {data['type']} starts with old prefix 'app.'. Replacing with 'thymis_controller.'."
-            )
-            data["type"] = data["type"].replace("app.", "thymis_controller.")
         super().__init__(**data)
