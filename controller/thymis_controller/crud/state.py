@@ -34,6 +34,12 @@ def load_from_file():
 
 
 def update(d):
-    state = State.load_from_dict(d)
-    state.save(REPO_PATH)
-    state.write_nix(REPO_PATH)
+    old_state = load_from_file()
+    try:
+        state = State.load_from_dict(d)
+        state.save(REPO_PATH)
+        state.write_nix(REPO_PATH)
+    except Exception as e:
+        old_state.save(REPO_PATH)
+        old_state.write_nix(REPO_PATH)
+        raise e
