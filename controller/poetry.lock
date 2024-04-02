@@ -231,6 +231,17 @@ files = [
 ]
 
 [[package]]
+name = "packaging"
+version = "24.0"
+description = "Core utilities for Python packages"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "packaging-24.0-py3-none-any.whl", hash = "sha256:2ddfb553fdf02fb784c234c7ba6ccc288296ceabec964ad2eae3777778130bc5"},
+    {file = "packaging-24.0.tar.gz", hash = "sha256:eb82c5e3e56209074766e6885bb04b8c38a0c015d0a30036ebe7ece34c9989e9"},
+]
+
+[[package]]
 name = "pydantic"
 version = "2.6.4"
 description = "Data validation using Python type hints"
@@ -520,4 +531,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10"
-content-hash = "7bcf59c5956d00da0c58b9d98dc79db4652877851bb3bc7700e9f64de997edb3"
+content-hash = "556eb7965b78f28202f6046f2966c330f199ee319869bcb3df8f54be453861e4"
