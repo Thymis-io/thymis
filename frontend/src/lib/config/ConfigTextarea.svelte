@@ -10,6 +10,4 @@
 	};
 </script>
 
-<Textarea {placeholder} on:change={changeInternal}>
-	{value || ''}
-</Textarea>
+<Textarea {placeholder} on:change={changeInternal} {value} />
