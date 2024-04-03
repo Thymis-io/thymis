@@ -27,6 +27,6 @@ jobs:
       #       nix build "$drvPath^*" --out-link "results/$attr-$name" --print-build-logs
       #     done < jobs
       - name: build generic-x86_64.install-iso
-        run: nix build .#generic-x86_64.install-iso --print-build-logs
+        run: nix build .#all-download-images.generic-x86_64.install-iso --print-build-logs
       - name: check if nix-eval-jobs produced errors
         run: jq -e 'select(.error)' < jobs.json && exit 1 || true
