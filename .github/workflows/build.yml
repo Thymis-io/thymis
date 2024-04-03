@@ -11,10 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Nix
-        # uses: DeterminateSystems/nix-installer-action@v6
-        # with:
-        #   extra-conf: |
-        #     system-features = kvm
         uses: cachix/install-nix-action@v22
         with:
           extra_nix_config: |
@@ -30,8 +26,5 @@ jobs:
           while read -r attr drvPath name; do
             nix build "$drvPath^*" --out-link "results/$attr-$name" --print-build-logs
           done < jobs
-      - name: upload
-        uses: actions/upload-artifact@v3
-        with:
-          name: results
-          path: results
+      - name: check if nix-eval-jobs produced errors
+        run: jq -e 'select(.error)' < jobs.json && exit 1 || true

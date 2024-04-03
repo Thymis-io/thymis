@@ -45,11 +45,11 @@
         (nixpkgs.lib.nixosSystem {
           modules = [
             nixosModules.thymis
-            { system.stateVersion = "23.05"; }
+            nixosModules."thymis-device-${thymis-config-parsed.device-type}"
+            { thymis.config = thymis-config-parsed; system.stateVersion = "23.11"; }
           ];
           specialArgs = {
             inherit inputs;
-            thymis-config = thymis-config-parsed;
           };
         });
       all-download-images =
