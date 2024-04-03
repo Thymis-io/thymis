@@ -1,8 +1,13 @@
-from thymis_controller.crud import state
+from fastapi import Depends
+from thymis_controller.crud.project import Project, global_project
 
 
-def get_or_init_state():
-    if not state.is_initialized():
-        state.initialize()
+def get_or_init_project():
+    if not global_project.is_initialized():
+        global_project.initialize()
 
-    return state.load_from_file()
+    return global_project
+
+
+def get_or_init_state(project: Project = Depends(get_or_init_project)):
+    return project.load_state_from_file()

@@ -63,6 +63,15 @@ class Module(BaseModel):
             assert isinstance(my_attr, models.Setting)
             my_attr.write_nix(f, value, priority)
 
+    def create_settings_object(self, settings: dict):
+        return models.ModuleSettings(
+            type=self.type,
+            settings={
+                key: models.SettingValue(value=value)  # TODO: why
+                for key, value in settings.items()
+            },
+        )
+
     @staticmethod
     def read_into_base64(path: str):
         try:
