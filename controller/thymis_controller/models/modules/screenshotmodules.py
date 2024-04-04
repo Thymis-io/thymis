@@ -67,7 +67,7 @@ class MqttxModule(ScreenshotModuleNotAvaliable):
 class NodeRedModule(ScreenshotModuleNotAvaliable):
     name: str = "Node-RED Configured"
     icon: Optional[str] = Module.read_into_base64(
-        "./thymis_controller/icons/Grafana.svg"
+        "./thymis_controller/icons/Node-RED.svg"
     )
     image: str = (
         "${inputs.thymis}/controller/thymis_controller/models/modules/node_red.png"
