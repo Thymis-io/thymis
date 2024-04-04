@@ -19,19 +19,13 @@
 	$: modules = getModules(tag, device);
 	$: modulesAnywhere = getModulesInstalledAnywhere();
 
-	const getOrigin = (tag: Tag | undefined, device: Device | undefined) => {
-		if (tag) {
-			return tag.displayName;
-		}
-
-		if (device) {
-			return device.displayName;
-		}
+	const getOrigin = (target: Tag | Device) => {
+		return target.displayName;
 	};
 
 	const getModuleSettings = (tag: Tag | undefined, device: Device | undefined) => {
 		if (tag) {
-			return tag.modules.map((m) => ({ origin: getOrigin(tag, undefined), ...m }));
+			return tag.modules.map((m) => ({ origin: getOrigin(tag), ...m }));
 		}
 
 		if (device) {
@@ -39,10 +33,8 @@
 				(t) => data.state.tags.find((tag) => tag.displayName === t) ?? []
 			);
 			return [
-				...device.modules.map((m) => ({ origin: getOrigin(undefined, device), ...m })),
-				...usedTags.flatMap((t) =>
-					t.modules.map((m) => ({ origin: getOrigin(t, undefined), ...m }))
-				)
+				...device.modules.map((m) => ({ origin: getOrigin(device), ...m })),
+				...usedTags.flatMap((t) => t.modules.map((m) => ({ origin: getOrigin(t), ...m })))
 			];
 		}
 	};

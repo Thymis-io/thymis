@@ -25,26 +25,18 @@
 	const deviceParam = queryParam('device');
 	const moduleParam = queryParam('module');
 
-	let modules: Module[];
-
 	$: tag = data.state.tags.find((t) => t.identifier === $tagParam);
 	$: device = data.state.devices.find((d) => d.identifier === $deviceParam);
 	$: modules = getModules(tag, device);
 	$: selectedModule = data.availableModules.find((m) => m.type === $moduleParam);
 
-	const getOrigin = (tag: Tag | undefined, device: Device | undefined) => {
-		if (tag) {
-			return tag.displayName;
-		}
-
-		if (device) {
-			return device.displayName;
-		}
+	const getOrigin = (target: Tag | Device | undefined) => {
+		return target?.displayName;
 	};
 
 	const getModuleSettings = (tag: Tag | undefined, device: Device | undefined) => {
 		if (tag) {
-			return tag.modules.map((m) => ({ origin: getOrigin(tag, undefined), ...m }));
+			return tag.modules.map((m) => ({ origin: getOrigin(tag), ...m }));
 		}
 
 		if (device) {
@@ -52,10 +44,8 @@
 				(t) => data.state.tags.find((tag) => tag.displayName === t) ?? []
 			);
 			return [
-				...device.modules.map((m) => ({ origin: getOrigin(undefined, device), ...m })),
-				...usedTags.flatMap((t) =>
-					t.modules.map((m) => ({ origin: getOrigin(t, undefined), ...m }))
-				)
+				...device.modules.map((m) => ({ origin: getOrigin(device), ...m })),
+				...usedTags.flatMap((t) => t.modules.map((m) => ({ origin: getOrigin(t), ...m })))
 			];
 		}
 	};
@@ -251,7 +241,7 @@
 										<p>{effectingSetting.origin}: {effectingSetting.settings[settingKey].value}</p>
 									{/each}
 								</Tooltip>
-								{#if effectingSettings.reverse()[0].origin == getOrigin(tag, device)}
+								{#if effectingSettings.reverse()[0].origin == getOrigin(tag ?? device)}
 									<button
 										class="btn p-0"
 										on:click={() => {
