@@ -17,7 +17,7 @@ from pydantic.config import ConfigDict
 
 class Module(BaseModel):
     type: Optional[str] = None
-    name: str
+    displayName: str
     icon: Optional[str] = None
 
     def __init__(self, **data):

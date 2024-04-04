@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Card, Button, P } from 'flowbite-svelte';
-	import type { Module } from './state';
+	import type { Module, ModuleDefinition } from './state';
 	import { page } from '$app/stores';
 
-	export let module: Module;
+	export let module: ModuleDefinition;
 	export let installed: boolean;
-	export let addModule: (module: Module) => void;
+	export let addModule: (module: Module | ModuleDefinition) => void;
 
 	const otherUrlParams = (searchParams: string) => {
 		const params = new URLSearchParams(searchParams);
@@ -16,7 +16,7 @@
 </script>
 
 <Card class="w-48 h-48 !p-2 flex justify-between items-center">
-	<P class="font-bold">{module.name}</P>
+	<P class="font-bold">{module.displayName}</P>
 	<img class="h-20 w-20 object-scale-down" src={module.icon ?? '/favicon.png'} alt="icon" />
 	{#if installed}
 		<Button

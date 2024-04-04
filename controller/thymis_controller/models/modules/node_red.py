@@ -3,7 +3,7 @@ from thymis_controller.models import Module, Setting
 
 
 class NodeRed(Module):
-    name: str = "Node-RED"
+    displayName: str = "Node-RED"
     icon: Optional[str] = Module.read_into_base64(
         "./thymis_controller/icons/Node-RED.svg"
     )

@@ -6,7 +6,7 @@
 	import ConfigTextarea from '$lib/config/ConfigTextarea.svelte';
 	import { queryParam } from 'sveltekit-search-params';
 	import { saveState } from '$lib/state';
-	import type { Module, Tag, Device } from '$lib/state';
+	import type { Module, Tag, Device, ModuleDefinition } from '$lib/state';
 
 	import Info from 'lucide-svelte/icons/info';
 	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
@@ -65,9 +65,9 @@
 		return data.availableModules.filter((m) => settings?.find((s) => s.type === m.type)) ?? [];
 	};
 
-	const addModule = (module: Module) => {
+	const addModule = (module: Module | ModuleDefinition) => {
 		if (tag && !tag.modules.find((m) => m.type === module.type)) {
-			tag.modules = [...tag.modules, { type: module.type, priority: 5, settings: {} }];
+			tag.modules = [...tag.modules, { type: module.type, settings: {} }];
 		}
 
 		if (device && !device.modules.find((m) => m.type === module.type)) {
@@ -77,7 +77,7 @@
 		saveState(data.state);
 	};
 
-	const removeModule = (module: Module) => {
+	const removeModule = (module: Module | ModuleDefinition) => {
 		if (tag) {
 			tag.modules = tag.modules.filter((m) => m.type !== module.type);
 		}
@@ -90,7 +90,7 @@
 	};
 
 	const getSettings = (
-		module: Module,
+		module: Module | ModuleDefinition,
 		settingKey: string,
 		tag: Tag | undefined,
 		device: Device | undefined
@@ -102,7 +102,7 @@
 	};
 
 	const getSetting = (
-		module: Module,
+		module: Module | ModuleDefinition,
 		settingKey: string,
 		tag: Tag | undefined,
 		device: Device | undefined
@@ -114,7 +114,7 @@
 		}
 	};
 
-	const setSetting = (module: Module, settingKey: string, value: any) => {
+	const setSetting = (module: Module | ModuleDefinition, settingKey: string, value: any) => {
 		addModule(module);
 
 		let tagModule = tag?.modules.find((m) => m.type === module.type);
@@ -169,14 +169,14 @@
 	<h1 class="text-3xl font-bold dark:text-white">
 		{#if tag}
 			{$t('config.header.tag-module', {
-				values: { module: selectedModule?.name, tag: tag.displayName }
+				values: { module: selectedModule?.displayName, tag: tag.displayName }
 			})}
 		{:else if device}
 			{$t('config.header.device-module', {
-				values: { module: selectedModule?.name, device: device.displayName }
+				values: { module: selectedModule?.displayName, device: device.displayName }
 			})}
 		{:else}
-			{$t('config.header.module', { values: { module: selectedModule?.name } })}
+			{$t('config.header.module', { values: { module: selectedModule?.displayName } })}
 		{/if}
 	</h1>
 	<DeployActions />
@@ -217,7 +217,7 @@
 						<div class="flex-1">
 							{#if selectedModule[settingKey].type == 'bool'}
 								<ConfigBool
-									value={setting}
+									value={setting === true}
 									name={selectedModule[settingKey].name}
 									change={(value) => {
 										if (selectedModule) setSetting(selectedModule, settingKey, value);

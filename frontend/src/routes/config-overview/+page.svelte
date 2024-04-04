@@ -2,7 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import { P } from 'flowbite-svelte';
 	import { queryParam } from 'sveltekit-search-params';
-	import type { Tag, Device, Module } from '$lib/state';
+	import type { Tag, Device, Module, ModuleDefinition } from '$lib/state';
 	import { saveState } from '$lib/state';
 
 	import DeployActions from '$lib/DeployActions.svelte';
@@ -58,9 +58,9 @@
 		return [...new Set(tagModules.concat(deviceModules))];
 	};
 
-	const addModule = (module: Module) => {
+	const addModule = (module: Module | ModuleDefinition) => {
 		if (tag && !tag.modules.find((m) => m.type === module.type)) {
-			tag.modules = [...tag.modules, { type: module.type, priority: 5, settings: {} }];
+			tag.modules = [...tag.modules, { type: module.type, settings: {} }];
 		}
 
 		if (device && !device.modules.find((m) => m.type === module.type)) {

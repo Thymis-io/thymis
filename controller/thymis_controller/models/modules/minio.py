@@ -3,7 +3,7 @@ from thymis_controller.models import Module, Setting
 
 
 class Minio(Module):
-    name: str = "Minio Object Storage"
+    displayName: str = "Minio Object Storage"
     icon: Optional[str] = Module.read_into_base64(
         "./thymis_controller/icons/MINIO_Bird.png"
     )

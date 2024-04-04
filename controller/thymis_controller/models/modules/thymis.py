@@ -10,7 +10,7 @@ from thymis_controller import models
 
 
 class ThymisController(Module):
-    name: str = "Thymis Controller"
+    displayName: str = "Thymis Controller"
 
     repo_dir: Setting = Setting(
         name="thymis.config.repo-dir",
@@ -22,7 +22,7 @@ class ThymisController(Module):
 
 
 class ThymisDevice(Module):
-    name: str = "Thymis Device"
+    displayName: str = "Thymis Device"
 
     device_type: Setting = Setting(
         name="thymis.config.device-type",

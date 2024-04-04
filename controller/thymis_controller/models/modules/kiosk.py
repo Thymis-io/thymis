@@ -3,7 +3,7 @@ from thymis_controller.models.setting import ModuleSettings
 
 
 class Kiosk(Module):
-    name: str = "Kiosk"
+    displayName: str = "Kiosk"
 
     kiosk_url: Setting = Setting(
         name="kiosk.url",

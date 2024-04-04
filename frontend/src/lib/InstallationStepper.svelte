@@ -44,9 +44,17 @@
 
 		if (data && onSubmit) {
 			onSubmit({
-				...data,
+				displayName: data.displayName,
 				identifier: data.displayName.toLowerCase().replaceAll(' ', '-'),
-				modules: [],
+				targetHost: data.targetHost,
+				modules: [
+					{
+						type: 'thymis_controller.models.modules.thymis.ThymisDevice',
+						settings: {
+							device_type: { value: data.device }
+						}
+					}
+				],
 				tags: []
 			});
 		}

@@ -3,53 +3,45 @@ import { controllerHost, controllerProtocol } from './api';
 import { browser } from '$app/environment';
 import { writable } from 'svelte/store';
 
-export type SettingTypes =
-	| {
-			type: 'bool';
-			value: boolean;
-	  }
-	| {
-			type: 'string';
-			value: string;
-	  }
-	| {
-			type: 'path';
-			value: string;
-	  }
-	| {
-			type: 'textarea';
-			value: string;
-	  };
+export type Module = {
+	type: string;
+	settings: {
+		[key: string]: {
+			value: string | number | boolean;
+		};
+	};
+};
 
-export type Setting = SettingTypes & {
+export type SettingDefinition = {
 	name: string;
-	// value: unknown;
+	type: string;
 	default: string;
 	description: string;
 	example: string | null;
-	// type: string;
 };
 
-export type Module = { type: string; name: string; icon?: string } & Record<string, Setting>;
+export type ModuleDefinition = {
+	type: string;
+	icon: string;
+	displayName: string;
+} & Record<string, SettingDefinition>;
 
-export type SettingValue = { value: SettingTypes };
-export type ModuleSettings = { type: string; settings: { [key: string]: SettingValue } };
 export type Tag = {
 	displayName: string;
 	identifier: string;
 	priority: number;
-	modules: (ModuleSettings & { priority: number })[];
+	modules: Module[];
 };
+
 export type Device = {
 	displayName: string;
 	identifier: string;
 	targetHost: string;
-	modules: ModuleSettings[];
+	modules: Module[];
 	tags: string[];
 };
 
 export type State = {
-	modules: Module[];
 	devices: Device[];
 	tags: Tag[];
 };
