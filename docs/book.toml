@@ -1,0 +1,6 @@
+[book]
+authors = ["Eli Kogan-Wang"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Thymis Documentation"

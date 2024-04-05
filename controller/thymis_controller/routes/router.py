@@ -5,9 +5,9 @@ from thymis_controller.models.modules import ALL_MODULES
 from thymis_controller.models.state import State
 from fastapi import APIRouter, Depends, Request, BackgroundTasks, WebSocket
 from fastapi.responses import FileResponse, RedirectResponse
-from ..dependencies import get_or_init_state
+from thymis_controller.dependencies import get_or_init_state, get_or_init_project
 from thymis_controller import models
-from thymis_controller.crud import state
+from thymis_controller.crud import project
 import subprocess
 from urllib.parse import urljoin
 
@@ -25,8 +25,10 @@ def get_available_modules():
 
 
 @router.patch("/state")
-async def update_state(new_state: Request):
-    return state.update(await new_state.json())
+async def update_state(
+    new_state: Request, project: project.Project = Depends(get_or_init_project)
+):
+    return project.update_state(await new_state.json())
 
 
 last_build_status = [None]
