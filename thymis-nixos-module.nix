@@ -127,7 +127,7 @@ in
         };
       };
       services.xserver.displayManager.sddm.enable = true;
-      services.xserver.displayManager.enable = true;
+      services.xserver.displayManager.autoLogin.enable = true;
       services.xserver.displayManager.autoLogin.user = "nixos";
       services.xserver.windowManager.i3.enable = true;
       services.xserver.windowManager.i3.configFile = pkgs.writeText "i3-config" ''
