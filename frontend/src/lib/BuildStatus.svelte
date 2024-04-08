@@ -5,6 +5,17 @@
 
 	let stdoutModalOpen = false;
 	let stderrModalOpen = false;
+
+	let errorLinesInStderr: string[] = [];
+	$: {
+		const lines = $buildStatus?.stderr?.split('\n') ?? [];
+		const trimmedLines = lines.map((line) => line.trim());
+		const errorLines = trimmedLines.filter((line) => line.startsWith('error:'));
+		const strippedErrorLines = errorLines.map((line) => line.replace('error:', ''));
+		const trimmedStrippedErrorLines = strippedErrorLines.map((line) => line.trim());
+		const nonEmptyErrorLines = trimmedStrippedErrorLines.filter((line) => line.length > 0);
+		errorLinesInStderr = nonEmptyErrorLines;
+	}
 </script>
 
 <div class="flex justify-between items-center gap-1">
@@ -38,5 +49,16 @@
 	<pre class="w-full text-sm font-light z-50 hover:z-50">{$buildStatus?.stdout}</pre>
 </Modal>
 <Modal title="Standard Error" bind:open={stderrModalOpen} autoclose outsideclose size="xl">
+	<div class="grid gap-1">
+		<span class="dark:text-white">Error Lines:</span>
+		<ul class="flex gap-1">
+			{#each errorLinesInStderr as errorLine}
+				<li class="text-red-500">{errorLine}</li>
+			{/each}
+		</ul>
+	</div>
+	<div class="grid gap-1">
+		<div class="dark:text-white">Full Raw Stderr:</div>
+	</div>
 	<pre class="w-full text-sm font-light z-50 hover:z-50">{$buildStatus?.stderr}</pre>
 </Modal>

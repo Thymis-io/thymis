@@ -1,6 +1,7 @@
 { config, lib, pkgs, inputs, modulesPath, ... }:
 let
   cfg = config.thymis.config;
+  controllerCfg = config.thymis.controller;
   use-wifi = cfg.wifi-ssid != "" && cfg.wifi-password != "";
   # Define the settings format used for this program
   settingsFormat = pkgs.formats.json { };
@@ -9,7 +10,6 @@ in
 {
   imports = [
     inputs.home-manager.nixosModules.default
-    # ./devices-module.nix
     "${modulesPath}/profiles/base.nix"
   ];
   options = {
@@ -46,11 +46,17 @@ in
       default = { };
       description = "Thymis configuration";
     };
+    thymis.controller = {
+      enable = lib.mkEnableOption "the Thymis controller";
+      repo-dir = lib.mkOption {
+        type = lib.types.str;
+        default = "/var/lib/thymis";
+        description = "Directory where the controller will store its state";
+      };
+    };
   };
   config = lib.mkMerge [
     {
-      # thymis.config = thymis-config;
-      system.build.download-path = lib.mkDefault (throw "thymis-config.system.build.download-path is not set");
       nix.settings.experimental-features = [ "nix-command" "flakes" ];
       users.users.root.password = cfg.password;
       services.openssh = {
@@ -74,26 +80,27 @@ in
       system.nixos.distroName = "Thymis - NixOS";
       services.getty.autologinUser = lib.mkForce null;
       services.xserver.enable = true;
-      services.xserver.displayManager = {
-        sddm.enable = true;
-        autoLogin = {
-          enable = true;
-          user = "nixos";
-        };
-      };
       users.users.nixos = {
         isNormalUser = true;
         createHome = true;
         password = cfg.password;
       };
-      services.xserver.windowManager.i3.enable = true;
-      services.xserver.windowManager.i3.configFile = pkgs.writeText "i3-config" ''
-        # i3 config file (v4)
-        bar mode invisible;
-        exec ${pkgs.firefox}/bin/firefox --kiosk http://localhost:3000/kiosk
-      '';
       networking.firewall = {
         allowedTCPPorts = [ 22 3000 ];
+      };
+    }
+    (lib.mkIf controllerCfg.enable {
+      systemd.services.thymis-controller = {
+        description = "Thymis controller";
+        after = [ "network.target" ];
+        wantedBy = [ "multi-user.target" ];
+        script = "${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-controller}/bin/thymis-controller";
+        path = [
+          "/run/current-system/sw"
+        ];
+        environment = {
+          REPO_PATH = controllerCfg.state-dir;
+        };
       };
       systemd.services.thymis-frontend = {
         description = "Thymis frontend";
@@ -109,18 +116,6 @@ in
           "/run/current-system/sw"
         ];
       };
-      systemd.services.thymis-controller = {
-        description = "Thymis controller";
-        after = [ "network.target" ];
-        wantedBy = [ "multi-user.target" ];
-        script = "${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-controller}/bin/thymis-controller";
-        path = [
-          "/run/current-system/sw"
-        ];
-        environment = {
-          REPO_PATH = "/var/lib/thymis";
-        };
-      };
       services.nginx = {
         enable = true;
         virtualHosts.default = {
@@ -131,6 +126,16 @@ in
           };
         };
       };
-    }
+      services.xserver.displayManager.sddm.enable = true;
+      services.xserver.displayManager.autoLogin.enable = true;
+      services.xserver.displayManager.autoLogin.user = "nixos";
+      services.xserver.windowManager.i3.enable = true;
+      services.xserver.windowManager.i3.configFile = pkgs.writeText "i3-config" ''
+        # i3 config file (v4)
+        bar mode invisible;
+        exec ${pkgs.firefox}/bin/firefox --kiosk http://localhost:3000/kiosk
+      '';
+      networking.firewall.allowedTCPPorts = [ 80 443 ];
+    })
   ];
 }

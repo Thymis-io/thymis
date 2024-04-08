@@ -24,13 +24,13 @@
       state-json = builtins.fromJSON (builtins.readFile ./state.json);
       device-to-nixosConfigurations = d:
         let
-          # device-modules are all files in ./hosts/<hostname> that end with .nix
+          # device-modules are all files in ./hosts/<identifier> that end with .nix
           device-modules = nixpkgs.lib.mapAttrsToList
-            (path: type: ./hosts/${d.hostname}/${path})
+            (path: type: ./hosts/${d.identifier}/${path})
             (nixpkgs.lib.filterAttrs
               (f: t: t == "regular" && nixpkgs.lib.hasSuffix ".nix" (builtins.toString f))
               (
-                builtins.readDir ./hosts/${d.hostname}
+                builtins.readDir ./hosts/${d.identifier}
               ));
           # for all tags, get them. For each tag, all files in ./tags/<tag> that end with .nix
           tag-modules = builtins.concatMap
@@ -51,7 +51,7 @@
           #   ];
           # };
         {
-          name = d.hostname;
+          name = d.identifier;
           value = nixpkgs.lib.nixosSystem {
             modules = device-modules
               ++ tag-modules
