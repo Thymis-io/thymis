@@ -3,6 +3,7 @@ authors = ["Eli Kogan-Wang"]
 language = "en"
 multilingual = false
 src = "src"
+title = "Thymis Documentation"
 
 [output.html]
 default-theme = "navy"
