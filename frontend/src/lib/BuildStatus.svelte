@@ -9,7 +9,6 @@
 	let errorLinesInStderr: string[] = [];
 	$: {
 		const lines = $buildStatus?.stderr?.split('\n') ?? [];
-		console.log(lines);
 		const trimmedLines = lines.map((line) => line.trim());
 		const errorLines = trimmedLines.filter((line) => line.startsWith('error:'));
 		const strippedErrorLines = errorLines.map((line) => line.replace('error:', ''));
