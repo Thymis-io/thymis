@@ -3,4 +3,9 @@ authors = ["Eli Kogan-Wang"]
 language = "en"
 multilingual = false
 src = "src"
-title = "Thymis Documentation"
+
+[output.html]
+default-theme = "navy"
+edit-url-template = "https://github.com/thymis-io/thymis/edit/master/docs/{path}"
+git-repository-url = "https://github.com/thymis-io/thymis"
+git-repository-icon = "fa-github"
