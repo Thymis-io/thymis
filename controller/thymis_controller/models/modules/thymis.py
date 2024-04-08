@@ -13,12 +13,17 @@ class ThymisController(Module):
     displayName: str = "Thymis Controller"
 
     repo_dir: Setting = Setting(
-        name="thymis.config.repo-dir",
+        name="thymis.controller.repo-dir",
         type="string",
         default="/var/lib/thymis",
         description="The directory where the thymis repository is located.",
         example="/var/lib/thymis",
     )
+
+    def write_nix_settings(self, f, module_settings: ModuleSettings, priority: int):
+        f.write(f"  thymis.controller.enable = true;\n")
+
+        return super().write_nix_settings(f, module_settings, priority)
 
 
 class ThymisDevice(Module):
