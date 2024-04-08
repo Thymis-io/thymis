@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Type
+from typing import Dict, Optional, Type, List
 from thymis_controller.nix import convert_python_value_to_nix
 from pydantic import BaseModel
 
@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class Setting(BaseModel):
     name: str
     type: str | object
+    options: Optional[List[str]] = None
     default: object
     description: str
     example: Optional[str] = None

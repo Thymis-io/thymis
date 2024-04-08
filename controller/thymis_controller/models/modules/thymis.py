@@ -31,7 +31,8 @@ class ThymisDevice(Module):
 
     device_type: Setting = Setting(
         name="thymis.config.device-type",
-        type="string",
+        type="select-one",
+        options=["generic-x86_64", "raspberry-pi-4", "generic-aarch64"],
         default="",
         description="The device type of the thymis device.",
         example="",

@@ -4,6 +4,7 @@
 	import ConfigBool from '$lib/config/ConfigBool.svelte';
 	import ConfigString from '$lib/config/ConfigString.svelte';
 	import ConfigTextarea from '$lib/config/ConfigTextarea.svelte';
+	import ConfigSelectOne from '$lib/config/ConfigSelectOne.svelte';
 	import { queryParam } from 'sveltekit-search-params';
 	import { saveState } from '$lib/state';
 	import type { Module, Tag, Device, ModuleDefinition } from '$lib/state';
@@ -225,6 +226,15 @@
 								<ConfigTextarea
 									value={setting}
 									placeholder={selectedModule[settingKey].default}
+									change={(value) => {
+										if (selectedModule) setSetting(selectedModule, settingKey, value);
+									}}
+								/>
+							{:else if selectedModule[settingKey].type == 'select-one'}
+								<ConfigSelectOne
+									value={setting}
+									options={selectedModule[settingKey].options}
+									setting={selectedModule[settingKey]}
 									change={(value) => {
 										if (selectedModule) setSetting(selectedModule, settingKey, value);
 									}}
