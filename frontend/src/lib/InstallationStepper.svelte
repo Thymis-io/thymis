@@ -82,11 +82,9 @@
 					<Select
 						bind:value={data.device}
 						items={[
-							{ value: 'x86', name: 'Generisches x86-Gerät (z.B. Desktop-PC)' },
-							{ value: 'rpi3', name: 'Raspberry Pi 3' },
-							{ value: 'rpi4', name: 'Raspberry Pi 4' },
-							{ value: 'rpi5', name: 'Raspbery Pi 5' },
-							{ value: 'aarch64', name: 'Generisches aarch64/ARM64-Gerät' }
+							{ value: 'generic-x86_64', name: 'Generisches x86-Gerät (z.B. Desktop-PC)' },
+							{ value: 'raspberry-pi-4', name: 'Raspberry Pi 4' },
+							{ value: 'generic-aarch64', name: 'Generisches aarch64/ARM64-Gerät' }
 						]}
 					/>
 				{:else if currentStep === 3}
