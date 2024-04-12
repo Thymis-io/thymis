@@ -5,11 +5,16 @@
 	import '../app.postcss';
 
 	export let fluid = true;
+
+	export let drawerHidden: boolean;
 </script>
 
 <Navbar {fluid} color="default">
 	<div class="flex w-fit items-center justify-start">
-		<NavHamburger />
+		<NavHamburger
+			onClick={() => (drawerHidden = !drawerHidden)}
+			class="m-0 me-3 md:block lg:hidden"
+		/>
 		<NavBrand href="/" class="ms-2 md:me-24">
 			<img src="/favicon.png" class="me-3 h-6 sm:h-8" alt="Thymis Logo" />
 			<span class="self-center whitespace-nowrap text-xl font-semibold dark:text-white sm:text-2xl">
