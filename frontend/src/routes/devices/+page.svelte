@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
 	import { saveState, type Device, type Tag } from '$lib/state';
 	import Pen from 'lucide-svelte/icons/pen';
 	import {
@@ -114,7 +115,9 @@
 </script>
 
 <div class="flex justify-between mb-4">
-	<Button color="alternative" on:click={() => openCreateDeviceModal()}>Create New Device</Button>
+	<Button color="alternative" on:click={() => openCreateDeviceModal()}>
+		{$t('devices.create-new')}
+	</Button>
 	<DeployActions />
 </div>
 <CreateDeviceModal
@@ -148,11 +151,11 @@
 />
 <Table shadow>
 	<TableHead>
-		<TableHeadCell>Name</TableHeadCell>
-		<TableHeadCell>Hostname</TableHeadCell>
-		<TableHeadCell>Tags</TableHeadCell>
-		<TableHeadCell>Actions</TableHeadCell>
-		<TableHeadCell>Status</TableHeadCell>
+		<TableHeadCell>{$t('devices.table.name')}</TableHeadCell>
+		<TableHeadCell>{$t('devices.table.target-host')}</TableHeadCell>
+		<TableHeadCell>{$t('devices.table.tags')}</TableHeadCell>
+		<TableHeadCell>{$t('devices.table.actions')}</TableHeadCell>
+		<TableHeadCell>{$t('devices.table.status')}</TableHeadCell>
 	</TableHead>
 	<TableBody>
 		{#each data.state.devices as device}
@@ -193,15 +196,19 @@
 				<TableBodyCell>
 					<div class="flex gap-2">
 						<Button color="alternative" href="/config-overview?device={device.identifier}">
-							Edit
+							{$t('devices.actions.edit')}
 						</Button>
 						<Button color="alternative" on:click={() => buildAndDownloadImage(device)}>
-							Download Image
+							{$t('devices.actions.download')}
 						</Button>
-						<Button color="alternative" on:click={() => deleteDevice(device)}>Delete</Button>
+						<Button color="alternative" on:click={() => deleteDevice(device)}>
+							{$t('devices.actions.delete')}
+						</Button>
 					</div>
 				</TableBodyCell>
-				<TableBodyCell>Online</TableBodyCell>
+				<TableBodyCell>
+					{$t('devices.status.online')}
+				</TableBodyCell>
 			</TableBodyRow>
 		{/each}
 	</TableBody>

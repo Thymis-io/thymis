@@ -6,6 +6,25 @@
 		"history": "History",
 		"terminal": "Terminal"
 	},
+	"devices": {
+		"create-new": "Create New Device",
+		"table": {
+			"name": "Name",
+			"target-host": "Hostname",
+			"tags": "Tags",
+			"actions": "Actions",
+			"status": "Status"
+		},
+		"actions": {
+			"edit": "Edit",
+			"download": "Download Image",
+			"delete": "Delete"
+		},
+		"status": {
+			"online": "Online",
+			"offline": "Offline"
+		}
+	},
 	"deploy": {
 		"build": "Build",
 		"deploy": "Deploy",
