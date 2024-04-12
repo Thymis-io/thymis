@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
 	import { Button, Modal } from 'flowbite-svelte';
 	import { CircleExclamationSolid, TriangleExclamationSolid } from 'svelte-awesome-icons';
 	import { buildStatus } from './buildstatus';
@@ -20,7 +21,7 @@
 
 <div class="flex justify-between items-center gap-1">
 	<span class="dark:text-white">
-		Build Status: {$buildStatus?.status}
+		{$t('deploy.build-status', { values: { status: $buildStatus?.status } })}
 	</span>
 	{#if $buildStatus?.stdout}
 		<Button
@@ -45,12 +46,12 @@
 		</Button>
 	{/if}
 </div>
-<Modal title="Standard Out" bind:open={stdoutModalOpen} autoclose outsideclose size="xl">
+<Modal title={$t('deploy.stdout')} bind:open={stdoutModalOpen} autoclose outsideclose size="xl">
 	<pre class="w-full text-sm font-light z-50 hover:z-50">{$buildStatus?.stdout}</pre>
 </Modal>
-<Modal title="Standard Error" bind:open={stderrModalOpen} autoclose outsideclose size="xl">
+<Modal title={$t('deploy.stderr')} bind:open={stderrModalOpen} autoclose outsideclose size="xl">
 	<div class="grid gap-1">
-		<span class="dark:text-white">Error Lines:</span>
+		<span class="dark:text-white">{$t('deploy.error-lines')}:</span>
 		<ul class="flex gap-1">
 			{#each errorLinesInStderr as errorLine}
 				<li class="text-red-500">{errorLine}</li>
@@ -58,7 +59,7 @@
 		</ul>
 	</div>
 	<div class="grid gap-1">
-		<div class="dark:text-white">Full Raw Stderr:</div>
+		<div class="dark:text-white">{$t('deploy.raw-output')}:</div>
 	</div>
 	<pre class="w-full text-sm font-light z-50 hover:z-50">{$buildStatus?.stderr}</pre>
 </Modal>

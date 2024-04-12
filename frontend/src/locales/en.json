@@ -6,6 +6,16 @@
 		"history": "History",
 		"terminal": "Terminal"
 	},
+	"deploy": {
+		"build": "Build",
+		"deploy": "Deploy",
+		"update": "Update",
+		"build-status": "Build Status: {status}",
+		"stdout": "Standard Output",
+		"stderr": "Standard Error",
+		"error-lines": "Error Lines",
+		"raw-output": "Full Output"
+	},
 	"config": {
 		"header": {
 			"tag-overview": "Manage modules for {tag}",
