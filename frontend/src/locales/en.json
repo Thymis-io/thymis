@@ -16,6 +16,11 @@
 		"error-lines": "Error Lines",
 		"raw-output": "Full Output"
 	},
+	"overview": {
+		"devices": "Devices ({count})",
+		"tags": "Tags ({count})",
+		"modules": "Modules ({count})"
+	},
 	"config": {
 		"header": {
 			"tag-overview": "Manage modules for {tag}",
