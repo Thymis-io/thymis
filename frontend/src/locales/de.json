@@ -8,6 +8,60 @@
 		"overview": "Übersicht",
 		"orchestrate": "Verwalten",
 		"devices": "Geräte",
-		"history": "Versionen"
+		"history": "Versionen",
+		"terminal": "Terminal"
+	},
+	"devices": {
+		"create-new": "Neues Gerät Erstellen",
+		"table": {
+			"name": "Name",
+			"target-host": "Hostname",
+			"tags": "Tags",
+			"actions": "Aktionen",
+			"status": "Status"
+		},
+		"actions": {
+			"edit": "Bearbeiten",
+			"download": "Image Herunterladen",
+			"delete": "Löschen"
+		},
+		"status": {
+			"online": "Online",
+			"offline": "Offline"
+		}
+	},
+	"deploy": {
+		"build": "Erstellen",
+		"deploy": "Ausrollen",
+		"update": "Updaten",
+		"build-status": "Status: {status}",
+		"stdout": "Standard Output",
+		"stderr": "Standard Error",
+		"error-lines": "Fehler",
+		"raw-output": "Vollständige Ausgabe"
+	},
+	"overview": {
+		"devices": "Geräte ({count})",
+		"tags": "Tags ({count})",
+		"modules": "Modules ({count})"
+	},
+	"config": {
+		"header": {
+			"tag-overview": "Verwalte Module für {device}",
+			"device-overview": "Verwalte Module für {device}",
+			"overview": "Verwalte Module",
+			"tag-module": "Verwalte {module} für {tag}",
+			"device-module": "Verwalte {module} für {device}",
+			"module": "Verwalte {module}"
+		},
+		"section": {
+			"installed": "Installiert",
+			"installed-elsewhere": "Auf anderen Geräten oder Tags installiert",
+			"available": "Verfügbar"
+		},
+		"install": "Installieren",
+		"uninstall": "Deinstallieren",
+		"configure": "Bearbeiten",
+		"back": "Zurück"
 	}
 }
