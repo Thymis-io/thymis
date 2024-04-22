@@ -99,7 +99,7 @@ in
           "/run/current-system/sw"
         ];
         environment = {
-          REPO_PATH = controllerCfg.state-dir;
+          REPO_PATH = controllerCfg.repo-dir;
         };
       };
       systemd.services.thymis-frontend = {
