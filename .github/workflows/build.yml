@@ -61,3 +61,6 @@ jobs:
         run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-23.11
       - name: build controller
         run: nix build .#thymis-controller --print-build-logs
+  build:
+    runs-on: ubuntu-latest
+    needs: [build-iso, build-frontend, build-controller]
