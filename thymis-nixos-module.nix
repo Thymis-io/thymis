@@ -139,7 +139,7 @@ in
         bar mode invisible;
         exec ${pkgs.firefox}/bin/firefox --kiosk http://localhost:3000/kiosk
       '';
-      networking.firewall.allowedTCPPorts = [ 80 443 ];
+      networking.firewall.allowedTCPPorts = [ 80 443 8000 ];
     })
   ];
 }
