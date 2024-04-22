@@ -8,7 +8,16 @@ import { error } from '@sveltejs/kit';
 
 export const load = (async ({ fetch }) => {
 	if (browser) {
-		locale.set(window.navigator.language);
+		let lang = window.navigator.language;
+		// split -
+		lang = lang.split('-')[0];
+		// check cookie and set value from there
+		lang =
+			document.cookie
+				.split('; ')
+				.find((row) => row.startsWith('lang='))
+				?.split('=')[1] || lang;
+		locale.set(lang);
 	}
 	await waitLocale();
 	const stateResponse = await fetch(`${controllerProtocol}://${controllerHost}/state`, {
