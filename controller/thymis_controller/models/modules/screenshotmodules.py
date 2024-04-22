@@ -1,6 +1,7 @@
 from typing import Optional
 from thymis_controller.models import Module, Setting
 from thymis_controller.models.setting import ModuleSettings
+import pathlib
 
 
 class ScreenshotModuleNotAvaliable(Module):
@@ -53,7 +54,9 @@ exec ${{pkgs.firefox}}/bin/firefox --kiosk {self.image}
 class Grafana1Module(ScreenshotModuleNotAvaliable):
     displayName: str = "Grafana"
     icon: Optional[str] = Module.read_into_base64(
-        "./thymis_controller/icons/Grafana.svg"
+        # "./thymis_controller/icons/Grafana.svg"
+        pathlib.Path(__file__).parent.parent
+        / "icons/Grafana.svg"
     )
     image: str = (
         "${inputs.thymis}/controller/thymis_controller/models/modules/grafana1.png"
@@ -62,7 +65,11 @@ class Grafana1Module(ScreenshotModuleNotAvaliable):
 
 class MqttxModule(ScreenshotModuleNotAvaliable):
     displayName: str = "Mqttx"
-    icon: Optional[str] = Module.read_into_base64("./thymis_controller/icons/mqttx.png")
+    icon: Optional[str] = Module.read_into_base64(
+        # "./thymis_controller/icons/mqttx.png"
+        pathlib.Path(__file__).parent.parent
+        / "icons/mqttx.png"
+    )
     image: str = (
         "${inputs.thymis}/controller/thymis_controller/models/modules/mqttx.png"
     )
@@ -71,7 +78,9 @@ class MqttxModule(ScreenshotModuleNotAvaliable):
 class NodeRedModule(ScreenshotModuleNotAvaliable):
     displayName: str = "Node-RED Configured"
     icon: Optional[str] = Module.read_into_base64(
-        "./thymis_controller/icons/Node-RED.svg"
+        # "./thymis_controller/icons/Node-RED.svg"
+        pathlib.Path(__file__).parent.parent
+        / "icons/Node-RED.svg"
     )
     image: str = (
         "${inputs.thymis}/controller/thymis_controller/models/modules/node_red.png"
