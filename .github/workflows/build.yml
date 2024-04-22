@@ -16,6 +16,8 @@ jobs:
           extra_nix_config: |
             system-features = kvm
       - uses: DeterminateSystems/magic-nix-cache-action@v2
+      - name: pin nixpkgs
+        run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-22.11
       - name: run nix-eval-jobs
         run: nix run nixpkgs#nix-eval-jobs -- --gc-roots-dir gcroots --flake .#all-download-images | tee jobs.json
       - name: convert jobs json
