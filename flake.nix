@@ -48,7 +48,7 @@
             nixosModules."thymis-device-${thymis-config-parsed.device-type}"
             {
               thymis.config = thymis-config-parsed;
-              thymis.controller.enable = true;
+              # thymis.controller.enable = true;
               system.stateVersion = "23.11";
             }
           ];
