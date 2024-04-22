@@ -90,6 +90,9 @@ in
       };
     }
     (lib.mkIf controllerCfg.enable {
+      environment.systemPackages = [
+        pkgs.git
+      ];
       systemd.services.thymis-controller = {
         description = "Thymis controller";
         after = [ "network.target" ];
