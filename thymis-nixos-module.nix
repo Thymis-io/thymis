@@ -120,6 +120,7 @@ in
           "/run/current-system/sw"
         ];
       };
+      networking.firewall.allowedTCPPorts = [ 8000 ];
       services.nginx = {
         enable = true;
         virtualHosts.default = {
