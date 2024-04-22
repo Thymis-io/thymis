@@ -1,12 +1,38 @@
 <script lang="ts">
 	import UserMenu from '$lib/UserMenu.svelte';
-	import { DarkMode, NavBrand, NavHamburger, Navbar, Search, ToolbarButton } from 'flowbite-svelte';
+	import {
+		DarkMode,
+		NavBrand,
+		NavHamburger,
+		Navbar,
+		Search,
+		Select,
+		ToolbarButton
+	} from 'flowbite-svelte';
 	import { BellSolid, GithubSolid } from 'flowbite-svelte-icons';
+	import { Dropdown, DropdownItem, DropdownDivider, DropdownHeader } from 'flowbite-svelte';
 	import '../app.postcss';
+	import { locale } from 'svelte-i18n';
+	import { browser } from '$app/environment';
 
 	export let fluid = true;
 
 	export let drawerHidden: boolean;
+
+	let locales = [
+		{ name: 'English', value: 'en' },
+		{ name: 'German', value: 'de' }
+	];
+
+	let selected = $locale || 'en';
+	console.log(selected);
+	$: {
+		$locale = selected;
+		// also set cookie if browser
+		if (browser) {
+			document.cookie = `locale=${selected};path=/;max-age=31536000`;
+		}
+	}
 </script>
 
 <Navbar {fluid} color="default">
@@ -27,6 +53,8 @@
 	</div>
 
 	<div class="ms-auto flex items-center gap-2 p-1">
+		<p class="text-sm dark:text-gray-300">Language:</p>
+		<Select class="mt-2" items={locales} bind:value={selected} placeholder="Select language" />
 		<a
 			class="github-button"
 			href="https://github.com/thymis-io/thymis"

@@ -6,6 +6,40 @@
 		"history": "History",
 		"terminal": "Terminal"
 	},
+	"devices": {
+		"create-new": "Create New Device",
+		"table": {
+			"name": "Name",
+			"target-host": "Hostname",
+			"tags": "Tags",
+			"actions": "Actions",
+			"status": "Status"
+		},
+		"actions": {
+			"edit": "Edit",
+			"download": "Download Image",
+			"delete": "Delete"
+		},
+		"status": {
+			"online": "Online",
+			"offline": "Offline"
+		}
+	},
+	"deploy": {
+		"build": "Build",
+		"deploy": "Deploy",
+		"update": "Update",
+		"build-status": "Build Status: {status}",
+		"stdout": "Standard Output",
+		"stderr": "Standard Error",
+		"error-lines": "Error Lines",
+		"raw-output": "Full Output"
+	},
+	"overview": {
+		"devices": "Devices ({count})",
+		"tags": "Tags ({count})",
+		"modules": "Modules ({count})"
+	},
 	"config": {
 		"header": {
 			"tag-overview": "Manage modules for {tag}",
