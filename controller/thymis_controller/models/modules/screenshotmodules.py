@@ -55,7 +55,7 @@ class Grafana1Module(ScreenshotModuleNotAvaliable):
     displayName: str = "Grafana"
     icon: Optional[str] = Module.read_into_base64(
         # "./thymis_controller/icons/Grafana.svg"
-        pathlib.Path(__file__).parent.parent
+        pathlib.Path(__file__).parent.parent.parent
         / "icons/Grafana.svg"
     )
     image: str = (
@@ -67,7 +67,7 @@ class MqttxModule(ScreenshotModuleNotAvaliable):
     displayName: str = "Mqttx"
     icon: Optional[str] = Module.read_into_base64(
         # "./thymis_controller/icons/mqttx.png"
-        pathlib.Path(__file__).parent.parent
+        pathlib.Path(__file__).parent.parent.parent
         / "icons/mqttx.png"
     )
     image: str = (
@@ -79,7 +79,7 @@ class NodeRedModule(ScreenshotModuleNotAvaliable):
     displayName: str = "Node-RED Configured"
     icon: Optional[str] = Module.read_into_base64(
         # "./thymis_controller/icons/Node-RED.svg"
-        pathlib.Path(__file__).parent.parent
+        pathlib.Path(__file__).parent.parent.parent
         / "icons/Node-RED.svg"
     )
     image: str = (

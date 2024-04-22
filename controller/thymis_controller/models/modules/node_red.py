@@ -7,7 +7,7 @@ class NodeRed(Module):
     displayName: str = "Node-RED"
     icon: Optional[str] = Module.read_into_base64(
         # "./thymis_controller/icons/Node-RED.svg"
-        pathlib.Path(__file__).parent.parent
+        pathlib.Path(__file__).parent.parent.parent
         / "icons/Node-RED.svg"
     )
 
