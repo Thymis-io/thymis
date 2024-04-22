@@ -7,7 +7,19 @@ on:
       - master
 
 jobs:
-  build:
+  # - name: run nix-eval-jobs
+  #   run: nix run nixpkgs#nix-eval-jobs -- --gc-roots-dir gcroots --flake .#all-download-images | tee jobs.json
+  # - name: convert jobs json
+  #   run: nix run nixpkgs#jq -- -r 'select(.system == "x86_64-linux") | .attr + " " + .drvPath + " " + .name' < jobs.json > jobs
+  # - name: build jobs
+  #   run: |
+  #     mkdir -p results
+  #     while read -r attr drvPath name; do
+  #       nix build "$drvPath^*" --out-link "results/$attr-$name" --print-build-logs
+  #     done < jobs
+  # - name: check if nix-eval-jobs produced errors
+  #   run: jq -e 'select(.error)' < jobs.json && exit 1 || true
+  build-iso:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,18 +30,34 @@ jobs:
             system-features = kvm
       - uses: DeterminateSystems/magic-nix-cache-action@v2
       - name: pin nixpkgs
-        run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-22.11
-      - name: run nix-eval-jobs
-        run: nix run nixpkgs#nix-eval-jobs -- --gc-roots-dir gcroots --flake .#all-download-images | tee jobs.json
-      - name: convert jobs json
-        run: nix run nixpkgs#jq -- -r 'select(.system == "x86_64-linux") | .attr + " " + .drvPath + " " + .name' < jobs.json > jobs
-      # - name: build jobs
-      #   run: |
-      #     mkdir -p results
-      #     while read -r attr drvPath name; do
-      #       nix build "$drvPath^*" --out-link "results/$attr-$name" --print-build-logs
-      #     done < jobs
+        run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-23.11
       - name: build generic-x86_64.install-iso
         run: nix build .#all-download-images.generic-x86_64.install-iso --print-build-logs
-      - name: check if nix-eval-jobs produced errors
-        run: jq -e 'select(.error)' < jobs.json && exit 1 || true
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Nix
+        uses: cachix/install-nix-action@v22
+        with:
+          extra_nix_config: |
+            system-features = kvm
+      - uses: DeterminateSystems/magic-nix-cache-action@v2
+      - name: pin nixpkgs
+        run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-23.11
+      - name: build frontend
+        run: nix build .#thymis-frontend --print-build-logs
+  build-controller:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Nix
+        uses: cachix/install-nix-action@v22
+        with:
+          extra_nix_config: |
+            system-features = kvm
+      - uses: DeterminateSystems/magic-nix-cache-action@v2
+      - name: pin nixpkgs
+        run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-23.11
+      - name: build controller
+        run: nix build .#thymis-controller --print-build-logs
