@@ -121,6 +121,9 @@
 	state={data.state}
 	open={openModal === ModalType.CreateDevice}
 	onClose={closeCreateDeviceModal}
+	thymisDevice={data.availableModules.find(
+		(m) => m.type === 'thymis_controller.models.modules.thymis.ThymisDevice'
+	)}
 />
 <EditStringModal
 	title={'Edit Name'}

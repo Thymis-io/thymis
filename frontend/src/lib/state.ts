@@ -15,6 +15,7 @@ export type Module = {
 export type SettingDefinition = {
 	name: string;
 	type: string;
+	options?: string[];
 	default: string;
 	description: string;
 	example: string | null;

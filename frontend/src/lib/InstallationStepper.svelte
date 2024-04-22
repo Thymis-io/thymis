@@ -15,9 +15,11 @@
 	import Apple from 'lucide-svelte/icons/apple';
 	import AppWindow from 'lucide-svelte/icons/app-window';
 	import Wrench from 'lucide-svelte/icons/wrench';
-	import type { Device } from './state';
+	import type { Device, ModuleDefinition } from './state';
+	import ConfigSelectOne from './config/ConfigSelectOne.svelte';
 
 	export let onSubmit: null | ((data: Device) => void) = null;
+	export let thymisDevice: ModuleDefinition | undefined = undefined;
 
 	let data = {
 		device: '',
@@ -79,16 +81,14 @@
 						Wir unterstützen momentan x86-basierte und aarch64/ARM64-basierte Geräte. Darunter
 						zählen der Raspberry Pi 3, 4 und 5, sowie normale Desktop-Computer.
 					</p>
-					<Select
-						bind:value={data.device}
-						items={[
-							{ value: 'x86', name: 'Generisches x86-Gerät (z.B. Desktop-PC)' },
-							{ value: 'rpi3', name: 'Raspberry Pi 3' },
-							{ value: 'rpi4', name: 'Raspberry Pi 4' },
-							{ value: 'rpi5', name: 'Raspbery Pi 5' },
-							{ value: 'aarch64', name: 'Generisches aarch64/ARM64-Gerät' }
-						]}
-					/>
+					{#if thymisDevice}
+						<ConfigSelectOne
+							value={data.device}
+							change={(value) => (data.device = value)}
+							setting={thymisDevice['device_type']}
+							options={thymisDevice['device_type'].options}
+						/>
+					{/if}
 				{:else if currentStep === 3}
 					<p>
 						Sobald Thymis installiert ist, können Sie noch viel mehr ganz einfach einrichten. Geben
