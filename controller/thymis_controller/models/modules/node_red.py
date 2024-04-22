@@ -1,11 +1,14 @@
 from typing import Optional
 from thymis_controller.models import Module, Setting
+import pathlib
 
 
 class NodeRed(Module):
     displayName: str = "Node-RED"
     icon: Optional[str] = Module.read_into_base64(
-        "./thymis_controller/icons/Node-RED.svg"
+        # "./thymis_controller/icons/Node-RED.svg"
+        pathlib.Path(__file__).parent.parent
+        / "icons/Node-RED.svg"
     )
 
     enable: Setting = Setting(

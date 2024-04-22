@@ -97,6 +97,7 @@ in
         script = "${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-controller}/bin/thymis-controller";
         path = [
           "/run/current-system/sw"
+          pkgs.git
         ];
         environment = {
           REPO_PATH = controllerCfg.repo-dir;

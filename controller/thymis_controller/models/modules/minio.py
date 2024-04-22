@@ -1,11 +1,14 @@
 from typing import Optional
 from thymis_controller.models import Module, Setting
+import pathlib
 
 
 class Minio(Module):
     displayName: str = "Minio Object Storage"
     icon: Optional[str] = Module.read_into_base64(
-        "./thymis_controller/icons/MINIO_Bird.png"
+        # "./thymis_controller/icons/MINIO_Bird.png"
+        pathlib.Path(__file__).parent.parent
+        / "icons/MINIO_Bird.png"
     )
 
     enable: Setting = Setting(
