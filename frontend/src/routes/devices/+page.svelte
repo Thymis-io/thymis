@@ -12,12 +12,18 @@
 		TableHeadCell
 	} from 'flowbite-svelte';
 	import TagIcon from 'lucide-svelte/icons/tag';
+	import GripVertical from 'lucide-svelte/icons/grip-vertical';
 	import { controllerHost, controllerProtocol } from '$lib/api';
 	import DeployActions from '$lib/DeployActions.svelte';
 	import CreateDeviceModal from '$lib/CreateDeviceModal.svelte';
 	import EditStringModal from '$lib/EditStringModal.svelte';
 	import EditTagModal from '$lib/EditTagModal.svelte';
 	import type { PageData } from './$types';
+	import { dndzone, SOURCES, TRIGGERS } from 'svelte-dnd-action';
+	import { flip } from 'svelte/animate';
+
+	const flipDurationMs = 200;
+	let dragDisabled = true;
 
 	export let data: PageData;
 
@@ -38,7 +44,7 @@
 	const buildAndDownloadImage = (device: Device) => {
 		console.log('Building and downloading image');
 		downloadUri(
-			`${controllerProtocol}://${controllerHost}/action/build-download-image?hostname=${device.identifier}`
+			`${controllerProtocol}://${controllerHost}/action/build-download-image?identifier=${device.identifier}`
 		);
 	};
 
@@ -112,6 +118,47 @@
 			saveState(data.state);
 		}
 	};
+
+	function handleConsider(e) {
+		const {
+			items: newItems,
+			info: { source, trigger }
+		} = e.detail;
+		devices = newItems;
+		// Ensure dragging is stopped on drag finish via keyboard
+		if (source === SOURCES.KEYBOARD && trigger === TRIGGERS.DRAG_STOPPED) {
+			dragDisabled = true;
+		}
+		console.log('consider', newItems);
+	}
+	function handleFinalize(e) {
+		const {
+			items: newItems,
+			info: { source }
+		} = e.detail;
+		devices = newItems;
+		// also send new device order to backend and reload
+		let devicesState = devices.map((d) => d.data);
+		data.state.devices = devicesState;
+		saveState(data.state);
+		// Ensure dragging is stopped on drag finish via pointer (mouse, touch)
+		if (source === SOURCES.POINTER) {
+			dragDisabled = true;
+		}
+		console.log('finalize', newItems);
+	}
+	function startDrag(e) {
+		// preventing default to prevent lag on touch devices (because of the browser checking for screen scrolling)
+		e.preventDefault();
+		dragDisabled = false;
+	}
+	function handleKeyDown(e) {
+		if ((e.key === 'Enter' || e.key === ' ') && dragDisabled) dragDisabled = false;
+	}
+
+	$: devices = data.state.devices.map((d) => {
+		return { id: d.identifier, data: d };
+	});
 </script>
 
 <div class="flex justify-between mb-4">
@@ -151,34 +198,54 @@
 />
 <Table shadow>
 	<TableHead>
+		<TableHeadCell />
 		<TableHeadCell>{$t('devices.table.name')}</TableHeadCell>
 		<TableHeadCell>{$t('devices.table.target-host')}</TableHeadCell>
 		<TableHeadCell>{$t('devices.table.tags')}</TableHeadCell>
 		<TableHeadCell>{$t('devices.table.actions')}</TableHeadCell>
 		<TableHeadCell>{$t('devices.table.status')}</TableHeadCell>
 	</TableHead>
-	<TableBody>
-		{#each data.state.devices as device}
+	<tbody
+		use:dndzone={{ items: devices, dragDisabled, flipDurationMs }}
+		on:consider={handleConsider}
+		on:finalize={handleFinalize}
+	>
+		{#each devices as device (device.id)}
 			<TableBodyRow>
 				<TableBodyCell>
 					<div class="flex gap-1">
-						{device.displayName}
-						<button class="btn ml-2 p-0" on:click={() => openEditNameModal(device)}>
+						<div
+							tabindex={dragDisabled ? 0 : -1}
+							aria-label="drag-handle"
+							class="handle"
+							style={dragDisabled ? 'cursor: grab' : 'cursor: grabbing'}
+							on:mousedown={startDrag}
+							on:touchstart={startDrag}
+							on:keydown={handleKeyDown}
+						>
+							<GripVertical size="20" />
+						</div>
+					</div>
+				</TableBodyCell>
+				<TableBodyCell>
+					<div class="flex gap-1">
+						{device.data.displayName}
+						<button class="btn ml-2 p-0" on:click={() => openEditNameModal(device.data)}>
 							<Pen size="20" />
 						</button>
 					</div>
 				</TableBodyCell>
 				<TableBodyCell>
 					<div class="flex gap-1">
-						{device.targetHost}
-						<button class="btn ml-2 p-0" on:click={() => openEditHostnameModal(device)}>
+						{device.data.targetHost}
+						<button class="btn ml-2 p-0" on:click={() => openEditHostnameModal(device.data)}>
 							<Pen size="20" />
 						</button>
 					</div>
 				</TableBodyCell>
 				<TableBodyCell>
 					<div class="flex gap-1">
-						{#each device.tags as tag, i}
+						{#each device.data.tags as tag, i}
 							<Button pill size="sm" class="p-3 py-1.5" href="/config-overview?tag={tag}">
 								<TagIcon size={20} class="mr-2" />
 								<!-- <span
@@ -188,20 +255,20 @@
 								<!-- </span> -->
 							</Button>
 						{/each}
-						<button class="btn ml-2 p-0" on:click={() => openEditTagModal(device)}>
+						<button class="btn ml-2 p-0" on:click={() => openEditTagModal(device.data)}>
 							<Pen size="20" />
 						</button>
 					</div>
 				</TableBodyCell>
 				<TableBodyCell>
 					<div class="flex gap-2">
-						<Button color="alternative" href="/config-overview?device={device.identifier}">
+						<Button color="alternative" href="/config-overview?device={device.data.identifier}">
 							{$t('devices.actions.edit')}
 						</Button>
-						<Button color="alternative" on:click={() => buildAndDownloadImage(device)}>
+						<Button color="alternative" on:click={() => buildAndDownloadImage(device.data)}>
 							{$t('devices.actions.download')}
 						</Button>
-						<Button color="alternative" on:click={() => deleteDevice(device)}>
+						<Button color="alternative" on:click={() => deleteDevice(device.data)}>
 							{$t('devices.actions.delete')}
 						</Button>
 					</div>
@@ -211,5 +278,5 @@
 				</TableBodyCell>
 			</TableBodyRow>
 		{/each}
-	</TableBody>
+	</tbody>
 </Table>
