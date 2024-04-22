@@ -7,7 +7,7 @@ class Minio(Module):
     displayName: str = "Minio Object Storage"
     icon: Optional[str] = Module.read_into_base64(
         # "./thymis_controller/icons/MINIO_Bird.png"
-        pathlib.Path(__file__).parent.parent
+        pathlib.Path(__file__).parent.parent.parent
         / "icons/MINIO_Bird.png"
     )
 
