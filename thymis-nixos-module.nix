@@ -80,6 +80,7 @@ in
       system.nixos.distroName = "Thymis - NixOS";
       services.getty.autologinUser = lib.mkForce null;
       services.xserver.enable = true;
+      systemd.services.display-manager.restartIfChanged = lib.mkForce true;
       users.users.nixos = {
         isNormalUser = true;
         createHome = true;
