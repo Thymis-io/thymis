@@ -23,6 +23,10 @@ class Kiosk(Module):
         f.write(f'  hardware.raspberry-pi."4".fkms-3d.enable = true;\n')
         f.write(
             f"""
+services.xserver.displayManager.sddm.enable = true;
+services.xserver.displayManager.autoLogin.enable = true;
+services.xserver.displayManager.autoLogin.user = "nixos";
+services.xserver.windowManager.i3.enable = true;
 services.xserver.windowManager.i3.configFile = lib.mkForce (pkgs.writeText "i3-config" ''
 # i3 config file (v4)
 bar {{
