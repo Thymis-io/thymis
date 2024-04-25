@@ -11,6 +11,9 @@
 		"history": "Versionen",
 		"terminal": "Terminal"
 	},
+	"common": {
+		"search": "Suchen..."
+	},
 	"devices": {
 		"create-new": "Neues Gerät Erstellen",
 		"table": {

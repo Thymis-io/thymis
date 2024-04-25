@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
 	import UserMenu from '$lib/UserMenu.svelte';
 	import {
 		DarkMode,
@@ -34,7 +35,7 @@
 			</span>
 		</NavBrand>
 		<div class="w-96">
-			<Search size="md" />
+			<Search size="md" placeholder={$t('common.search')} />
 		</div>
 	</div>
 
