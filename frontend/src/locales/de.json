@@ -1,4 +1,9 @@
 {
+	"language": {
+		"select": "Sprache Auswählen",
+		"en": "English",
+		"de": "Deutsch"
+	},
 	"nav": {
 		"overview": "Übersicht",
 		"orchestrate": "Verwalten",

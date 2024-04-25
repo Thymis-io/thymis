@@ -1,4 +1,9 @@
 {
+	"language": {
+		"select": "Select Language",
+		"en": "English",
+		"de": "Deutsch"
+	},
 	"nav": {
 		"overview": "Overview",
 		"orchestrate": "Orchestrate",
