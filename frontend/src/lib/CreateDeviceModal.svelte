@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
 	import InstallationStepper from '$lib/InstallationStepper.svelte';
 	import { Modal } from 'flowbite-svelte';
 	import { saveState, type Device, type State, type ModuleDefinition } from './state';
@@ -14,6 +15,12 @@
 	}
 </script>
 
-<Modal title="Create a new device" bind:open outsideclose size={'lg'} on:close={() => onClose?.()}>
+<Modal
+	title={$t('create-device.title')}
+	bind:open
+	outsideclose
+	size={'lg'}
+	on:close={() => onClose?.()}
+>
 	<InstallationStepper {onSubmit} {thymisDevice} />
 </Modal>
