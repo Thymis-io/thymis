@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
 	import { controllerHost, controllerProtocol } from './api';
 	import { Button, Modal, Label, Input } from 'flowbite-svelte';
 
@@ -15,12 +16,12 @@
 	};
 </script>
 
-<Modal bind:open title="Deploy" autoclose outsideclose>
+<Modal bind:open title={$t('deploy.deploy')} autoclose outsideclose>
 	<div>
-		<Label class="block mb-2">Summary</Label>
-		<Input type="text" bind:value={summary} placeholder="Summary" />
+		<Label class="block mb-2">{$t('deploy.summary')}</Label>
+		<Input type="text" bind:value={summary} placeholder={$t('deploy.summary')} />
 	</div>
 	<div class="flex flex-wrap gap-2 justify-end">
-		<Button on:click={deploy}>Deploy</Button>
+		<Button on:click={deploy}>{$t('deploy.deploy')}</Button>
 	</div>
 </Modal>

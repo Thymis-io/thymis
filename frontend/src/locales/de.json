@@ -113,7 +113,8 @@
 		"stdout": "Standard Output",
 		"stderr": "Standard Error",
 		"error-lines": "Fehler",
-		"raw-output": "Vollständige Ausgabe"
+		"raw-output": "Vollständige Ausgabe",
+		"summary": "Zusammenfassung"
 	},
 	"overview": {
 		"devices": "Geräte ({count})",
