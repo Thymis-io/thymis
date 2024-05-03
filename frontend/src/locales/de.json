@@ -12,7 +12,9 @@
 		"terminal": "Terminal"
 	},
 	"common": {
-		"search": "Suchen..."
+		"search": "Suchen...",
+		"save": "Speichern",
+		"cancel": "Abbrechen"
 	},
 	"devices": {
 		"create-new": "Neues Gerät Erstellen",
@@ -31,11 +33,15 @@
 		"status": {
 			"online": "Online",
 			"offline": "Offline"
-		}
+		},
+		"edit-name-title": "Namen Bearbeiten",
+		"edit-hostname-title": "Ziel Hostnamen Bearbeiten",
+		"edit-tags-title": "Tags Bearbeiten",
+		"new-tag-placeholder": "Neuer Tag..."
 	},
 	"create-device": {
-		"title": "Neues Gerät erstellen",
-		"next": "Next →",
+		"title": "Neues Gerät Erstellen",
+		"next": "Weiter →",
 		"back": "← Zurück",
 		"step-1": {
 			"title": "Thymis installieren",

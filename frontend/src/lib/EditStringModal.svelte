@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
 	import { Button, Modal, Label, Input, type SizeType } from 'flowbite-svelte';
 
 	export let title: string | undefined = '';
@@ -14,14 +15,14 @@
 	<Label>{label}</Label>
 	<Input bind:value />
 	<div class="flex justify-end gap-2">
-		<Button color="alternative" on:click={() => onClose?.()}>Cancel</Button>
+		<Button color="alternative" on:click={() => onClose?.()}>{$t('common.cancel')}</Button>
 		<Button
 			on:click={() => {
 				onSave?.(value ?? '');
 				onClose?.();
 			}}
 		>
-			Save
+			{$t('common.save')}
 		</Button>
 	</div>
 </Modal>

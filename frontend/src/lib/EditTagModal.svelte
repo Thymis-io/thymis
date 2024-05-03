@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Minus from 'lucide-svelte/icons/minus';
 	import type { Tag } from '$lib/state';
@@ -42,7 +43,7 @@
 	};
 </script>
 
-<Modal title="Edit Tags" bind:open>
+<Modal title={$t('devices.edit-tags-title')} bind:open outsideclose>
 	<div class="flex flex-wrap gap-2">
 		{#each availableTags as availableTag}
 			<Button
@@ -69,20 +70,25 @@
 		{/each}
 	</div>
 	<div class="flex gap-2">
-		<Input type="text" class="input" placeholder="New Tag" bind:value={newTag} />
+		<Input
+			type="text"
+			class="input"
+			placeholder={$t('devices.new-tag-placeholder')}
+			bind:value={newTag}
+		/>
 		<button class="btn btn-sm variant-filled" on:click={() => addTag()}>
 			<Plus />
 		</button>
 	</div>
 	<div class="flex justify-end gap-2">
-		<Button color="alternative" on:click={() => onClose?.()}>Cancel</Button>
+		<Button color="alternative" on:click={() => onClose?.()}>{$t('common.cancel')}</Button>
 		<Button
 			on:click={() => {
 				onSave?.(tags, availableTags);
 				onClose?.();
 			}}
 		>
-			Save
+			{$t('common.save')}
 		</Button>
 	</div>
 </Modal>

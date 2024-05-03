@@ -176,14 +176,14 @@
 	)}
 />
 <EditStringModal
-	title={'Edit Name'}
+	title={$t('devices.edit-name-title')}
 	value={editDevice?.displayName}
 	open={openModal === ModalType.EditName}
 	onClose={closeEditNameModal}
 	onSave={saveEditNameModal}
 />
 <EditStringModal
-	title={'Edit target hostname'}
+	title={$t('devices.edit-hostname-title')}
 	value={editDevice?.targetHost}
 	open={openModal === ModalType.EditHostname}
 	onClose={closeEditHostnameModal}

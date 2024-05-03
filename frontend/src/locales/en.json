@@ -12,7 +12,9 @@
 		"terminal": "Terminal"
 	},
 	"common": {
-		"search": "Search..."
+		"search": "Search...",
+		"save": "Save",
+		"cancel": "Cancel"
 	},
 	"devices": {
 		"create-new": "Create New Device",
@@ -31,7 +33,11 @@
 		"status": {
 			"online": "Online",
 			"offline": "Offline"
-		}
+		},
+		"edit-name-title": "Edit Name",
+		"edit-hostname-title": "Edit target hostname",
+		"edit-tags-title": "Edit Tags",
+		"new-tag-placeholder": "New Tag..."
 	},
 	"create-device": {
 		"title": "Create a new device",
