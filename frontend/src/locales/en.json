@@ -185,5 +185,16 @@
 				}
 			}
 		}
+	},
+	"settings": {
+		"repo": {
+			"title": "Repositories",
+			"name": "Name",
+			"url": "URL",
+			"actions": "Actions",
+			"edit-name": "Edit Name",
+			"edit-url": "Edit URL",
+			"delete": "Delete"
+		}
 	}
 }
