@@ -9,7 +9,8 @@
 		"orchestrate": "Orchestrate",
 		"devices": "Devices",
 		"history": "History",
-		"terminal": "Terminal"
+		"terminal": "Terminal",
+		"settings": "Settings"
 	},
 	"common": {
 		"search": "Search...",

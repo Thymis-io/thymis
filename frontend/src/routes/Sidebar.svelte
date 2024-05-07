@@ -23,7 +23,8 @@
 		SlidersSolid,
 		CodeCommitSolid,
 		TerminalSolid,
-		ChartSimpleSolid
+		ChartSimpleSolid,
+		GearSolid
 	} from 'svelte-awesome-icons';
 	import DeviceSelect from '$lib/DeviceSelect.svelte';
 	import { queryParam } from 'sveltekit-search-params';
@@ -103,6 +104,11 @@
 			icon: TerminalSolid,
 			href: '/terminal',
 			hidden: !device
+		},
+		{
+			name: $t('nav.settings'),
+			icon: GearSolid,
+			href: '/settings'
 		}
 	];
 

@@ -9,7 +9,8 @@
 		"orchestrate": "Verwalten",
 		"devices": "Geräte",
 		"history": "Versionen",
-		"terminal": "Terminal"
+		"terminal": "Terminal",
+		"settings": "Einstellungen"
 	},
 	"common": {
 		"search": "Suchen...",

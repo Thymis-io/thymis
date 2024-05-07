@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel, SerializeAsAny
 from thymis_controller import models
 import os
@@ -46,6 +46,7 @@ async def terminate_other_procs():
 
 class State(BaseModel):
     version: str
+    repositories: Dict[str, models.Repo]
     tags: List[models.Tag]
     devices: List[models.Device]
 

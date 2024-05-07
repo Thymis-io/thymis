@@ -17,6 +17,7 @@ class Project:
         # TODO git reop init - git config user and email
         state = State(
             version="0.0.1",
+            repositories={},
             tags=[],
             devices=[],
         )
