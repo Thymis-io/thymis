@@ -79,13 +79,27 @@
       packages = eachSystem (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-        in
-        {
-          thymis-frontend = pkgs.callPackage ./frontend { };
-          thymis-controller = pkgs.callPackage ./controller {
+          thymis-frontend-build = pkgs.callPackage ./frontend { };
+          thymis-controller-build = pkgs.callPackage ./controller {
             poetry2nix = (
               (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; })
             );
+          };
+        in
+        {
+          thymis-frontend = thymis-frontend-build;
+          thymis-controller = thymis-controller-build;
+          thymis-controller-docker =  pkgs.dockerTools.buildImage {
+            name = "thymis-controller";
+            config = {
+              Cmd = [ "${thymis-controller-build}/bin/thymis-controller" ];
+            };
+          };
+          thymis-frontend-docker =  pkgs.dockerTools.buildImage {
+            name = "thymis-frontend";
+            config = {
+              Cmd = [ "${thymis-frontend-build}/bin/thymis-controller" ];
+            };
           };
         }
       );

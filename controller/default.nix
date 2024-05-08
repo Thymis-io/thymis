@@ -1,4 +1,4 @@
-{ poetry2nix
+{ poetry2nix, git, makeWrapper, lib
 ,
 }:
 poetry2nix.mkPoetryApplication {
@@ -8,4 +8,9 @@ poetry2nix.mkPoetryApplication {
   overrides = poetry2nix.overrides.withDefaults (self: super: {
     thymis-enterprise = null;
   });
+  nativeBuildInputs = [ makeWrapper ];
+  postInstall = ''
+    wrapProgram $out/bin/thymis-controller \
+      --prefix PATH : ${lib.makeBinPath [ git ]}
+  '';
 }
