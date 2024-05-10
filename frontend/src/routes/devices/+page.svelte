@@ -16,8 +16,8 @@
 	import { controllerHost, controllerProtocol } from '$lib/api';
 	import DeployActions from '$lib/DeployActions.svelte';
 	import CreateDeviceModal from '$lib/CreateDeviceModal.svelte';
-	import EditStringModal from '$lib/EditStringModal.svelte';
 	import EditTagModal from '$lib/EditTagModal.svelte';
+	import TableBodyEditCell from '$lib/TableBodyEditCell.svelte';
 	import type { PageData } from './$types';
 	import { dndzone, SOURCES, TRIGGERS } from 'svelte-dnd-action';
 	import { flip } from 'svelte/animate';
@@ -51,8 +51,6 @@
 	enum ModalType {
 		None,
 		CreateDevice,
-		EditName,
-		EditHostname,
 		EditTags
 	}
 
@@ -67,41 +65,8 @@
 		openModal = ModalType.None;
 	};
 
-	const openEditNameModal = (device: Device) => {
-		openModal = ModalType.EditName;
-		editDevice = device;
-	};
-
-	const closeEditNameModal = () => {
-		openModal = ModalType.None;
-		editDevice = undefined;
-	};
-
-	const saveEditNameModal = (value: string) => {
-		if (editDevice) {
-			editDevice.displayName = value;
-			saveState(data.state);
-		}
-	};
-
-	const openEditHostnameModal = (device: Device) => {
-		openModal = ModalType.EditHostname;
-		editDevice = device;
-	};
-
-	const closeEditHostnameModal = () => {
-		openModal = ModalType.None;
-		editDevice = undefined;
-	};
-
-	const saveEditHostnameModal = (value: string) => {
-		if (editDevice) {
-			editDevice.targetHost = value;
-			saveState(data.state);
-		}
-	};
-
 	const openEditTagModal = (device: Device) => {
+		openModal = ModalType.None;
 		openModal = ModalType.EditTags;
 		editDevice = device;
 	};
@@ -175,20 +140,6 @@
 		(m) => m.type === 'thymis_controller.models.modules.thymis.ThymisDevice'
 	)}
 />
-<EditStringModal
-	title={$t('devices.edit-name-title')}
-	value={editDevice?.displayName}
-	open={openModal === ModalType.EditName}
-	onClose={closeEditNameModal}
-	onSave={saveEditNameModal}
-/>
-<EditStringModal
-	title={$t('devices.edit-hostname-title')}
-	value={editDevice?.targetHost}
-	open={openModal === ModalType.EditHostname}
-	onClose={closeEditHostnameModal}
-	onSave={saveEditHostnameModal}
-/>
 <EditTagModal
 	tags={editDevice?.tags ?? []}
 	availableTags={data.state.tags}
@@ -227,34 +178,28 @@
 						</div>
 					</div>
 				</TableBodyCell>
+				<TableBodyEditCell
+					bind:value={device.data.displayName}
+					onEnter={() => saveState(data.state)}
+				/>
+				<TableBodyEditCell
+					bind:value={device.data.targetHost}
+					onEnter={() => saveState(data.state)}
+				/>
 				<TableBodyCell>
-					<div class="flex gap-1">
-						{device.data.displayName}
-						<button class="btn ml-2 p-0" on:click={() => openEditNameModal(device.data)}>
-							<Pen size="20" />
-						</button>
-					</div>
-				</TableBodyCell>
-				<TableBodyCell>
-					<div class="flex gap-1">
-						{device.data.targetHost}
-						<button class="btn ml-2 p-0" on:click={() => openEditHostnameModal(device.data)}>
-							<Pen size="20" />
-						</button>
-					</div>
-				</TableBodyCell>
-				<TableBodyCell>
-					<div class="flex gap-1">
-						{#each device.data.tags as tag, i}
-							<Button pill size="sm" class="p-3 py-1.5" href="/config-overview?tag={tag}">
-								<TagIcon size={20} class="mr-2" />
-								<!-- <span
+					<div class="flex justify-between">
+						<div class="flex gap-2">
+							{#each device.data.tags as tag, i}
+								<Button pill size="sm" class="p-3 py-1.5" href="/config-overview?tag={tag}">
+									<TagIcon size={20} class="mr-2" />
+									<!-- <span
 									class="inline-block bg-blue-300 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-1"
 								> -->
-								{tag}
-								<!-- </span> -->
-							</Button>
-						{/each}
+									{tag}
+									<!-- </span> -->
+								</Button>
+							{/each}
+						</div>
 						<button class="btn ml-2 p-0" on:click={() => openEditTagModal(device.data)}>
 							<Pen size="20" />
 						</button>
