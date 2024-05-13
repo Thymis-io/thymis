@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
 	import {
+		Alert,
 		Button,
 		StepIndicator,
 		Label,
@@ -8,7 +10,9 @@
 		Textarea,
 		Progressbar,
 		Tabs,
-		TabItem
+		TabItem,
+		Heading,
+		P
 	} from 'flowbite-svelte';
 	import Download from 'lucide-svelte/icons/download';
 	import Redo from 'lucide-svelte/icons/redo';
@@ -35,10 +39,10 @@
 
 	let currentStep = 1;
 	let steps = [
-		'Thymis installieren',
-		'Gerät auswählen',
-		'Verbindungsinformationen',
-		'Es kann los gehen!'
+		$t('create-device.step-1.title'),
+		$t('create-device.step-2.title'),
+		$t('create-device.step-3.title'),
+		$t('create-device.step-4.title')
 	];
 
 	function onCompleteHandler(): void {
@@ -73,14 +77,9 @@
 			<StepIndicator {currentStep} {steps} />
 			<div class="h-96 overflow-y-auto space-y-4">
 				{#if currentStep === 1}
-					<p>
-						Sie können hier einfach ein ISO-Datei oder ein Systemimage für ihr IoT-Gerät erstellen.
-					</p>
+					<p>{$t('create-device.step-1.info')}</p>
 				{:else if currentStep === 2}
-					<p>
-						Wir unterstützen momentan x86-basierte und aarch64/ARM64-basierte Geräte. Darunter
-						zählen der Raspberry Pi 3, 4 und 5, sowie normale Desktop-Computer.
-					</p>
+					<p>{$t('create-device.step-2.info')}</p>
 					{#if thymisDevice}
 						<ConfigSelectOne
 							value={data.device}
@@ -90,40 +89,36 @@
 						/>
 					{/if}
 				{:else if currentStep === 3}
-					<p>
-						Sobald Thymis installiert ist, können Sie noch viel mehr ganz einfach einrichten. Geben
-						Sie erstmal die notwendigen Verbindungsinformationen an, damit Sie das Gerät nach der
-						automatischen Installation erreich können.
-					</p>
+					<p>{$t('create-device.step-3.info')}</p>
 					<div>
-						<Label class="mb-2">Name</Label>
+						<Label class="mb-2">{$t('create-device.step-3.device-name')}</Label>
 						<Input placeholder="device01" bind:value={data.displayName} />
 					</div>
 					<div>
-						<Label class="mb-2">Deployment-Ziel - Hostname oder IP-Adresse</Label>
+						<Label class="mb-2">{$t('create-device.step-3.hostname')}</Label>
 						<Input placeholder="thymis-device01" bind:value={data.targetHost} />
 					</div>
 					<div>
-						<Label class="mb-2">WLAN SSID - Name der WLAN-Verbindung</Label>
+						<Label class="mb-2">{$t('create-device.step-3.wlan-ssid')}</Label>
 						<Input placeholder="PhoibeWifi" bind:value={data.wifiSSID} />
 					</div>
 					<div>
-						<Label class="mb-2">WLAN Passwort</Label>
+						<Label class="mb-2">{$t('create-device.step-3.wlan-password')}</Label>
 						<Input placeholder="kept secret" bind:value={data.wifiPassword} />
 					</div>
 					<div>
-						<Label class="mb-2">Statische IP-Adresse</Label>
+						<Label class="mb-2">{$t('create-device.step-3.static-network-ip')}</Label>
 						<Input placeholder="192.168.." bind:value={data.staticIP} />
 					</div>
 					<div>
-						<Label class="mb-2">SSH Public-Key</Label>
+						<Label class="mb-2">{$t('create-device.step-3.ssh-pubkey')}</Label>
 						<Textarea placeholder="192.168.." rows="4" bind:value={data.sshPublicKey} />
 					</div>
 				{:else if currentStep === 4}
-					<p>
-						Drücken Sie auf <code>Generieren</code>, um das Systemabbild zu erstellen.
-					</p>
-					<Button color={'alternative'} on:click={() => (enteredData = true)}>Generieren</Button>
+					<p>{$t('create-device.step-4.info')}</p>
+					<Button color={'alternative'} on:click={() => (enteredData = true)}>
+						{$t('create-device.step-4.complete')}
+					</Button>
 				{/if}
 			</div>
 			<div class="flex justify-between">
@@ -132,7 +127,7 @@
 					disabled={currentStep === 1}
 					on:click={() => (currentStep -= 1)}
 				>
-					Zurück
+					{$t('create-device.back')}
 				</Button>
 				<Button
 					color={'alternative'}
@@ -145,18 +140,18 @@
 						}
 					}}
 				>
-					Weiter
+					{$t('create-device.next')}
 				</Button>
 			</div>
 		</div>
 	{:else}
-		<header class="card-header text-2xl font-bold">
+		<Heading tag="h2" class="pb-2">
 			{#if !imageGenerated}
-				Wir erstellen Ihr persönliches Systemabbild von Thymis.
+				{$t('create-device.finish.title.generating')}
 			{:else}
-				Ihr Systemabbild ist bereit!
+				{$t('create-device.finish.title.generated')}
 			{/if}
-		</header>
+		</Heading>
 		<section class="p-4">
 			<div class="pb-4 space-y-4">
 				{#if !imageGenerated}
@@ -169,108 +164,83 @@
 						class="btn bg-gradient-to-br variant-gradient-primary-secondary"
 						disabled={!imageGenerated}
 					>
-						<span><Download /></span>
-						<span>Image herunterladen</span>
+						<P><Download /></P>
+						<P>{$t('create-device.finish.download')}</P>
 					</button>
 					<button
 						class="btn bg-gradient-to-br variant-filled"
 						disabled={!imageGenerated}
 						on:click={reset}
 					>
-						<span><Redo /></span>
-						<span>weiteres Image erstellen</span>
+						<P><Redo /></P>
+						<P>{$t('create-device.finish.new')}</P>
 					</button>
 				</div>
 			</div>
-			<hr class="!border-t-4" />
-			<h3 class="h3 pb-2 pt-4">
-				{!imageGenerated ? 'Das können Sie währenddessen machen' : 'Das sind die nächsten Schritte'}
-			</h3>
+			<hr class="!border-t-4 py-2" />
+			<Heading tag="h3" class="py-4">
+				{!imageGenerated
+					? $t('create-device.finish.next-steps.generating')
+					: $t('create-device.finish.next-steps.generated')}
+			</Heading>
 			<div class="space-y-8">
 				<section class="space-y-4">
-					<h4 class="h4">Einen Datenträgen vorbereiten</h4>
-					<p>
-						Legen Sie sich einen passenden Datenträger zu Ihrem Gerät bereit. Überlicherweise werden
-						bei ISOs USB-Sticks oder CDs/DVDs verwendet. Bei Systemabbildern als .img wird ein
-						Datenträger, wie bspw. eine microSD-Karte mit dem System bespielt.
-					</p>
-					<aside class="alert variant-ghost-warning">
-						<div class="alert-message">
-							<p>Der Datenträger muss mindestens 4 GB umfassen können.</p>
-						</div>
-					</aside>
+					<Heading tag="h4">{$t('create-device.finish.sd-title')}</Heading>
+					<P>{$t('create-device.finish.sd-info')}</P>
+					<Alert color="yellow">
+						<P color="yellow">{$t('create-device.finish.sd-size-warning')}</P>
+					</Alert>
 				</section>
 				<section class="space-y-4">
-					<h4 class="h4">
+					<Heading tag="h4">
 						{!imageGenerated
-							? 'Software zum Imagen installieren'
-							: 'Systemabbild auf Datenträgen kopieren'}
-					</h4>
-					<p>
-						Das Systemabbild muss auf den Datenträger installiert werden. Wir geben Ihnen mehrere
-						Empfehlungen, wie Sie das machen können.
-					</p>
-					<aside class="alert variant-ghost-error">
-						<div class="alert-message">
-							<p>Der Datenträger wird beim Beschreiben formatiert. Alle Daten werden gelöscht!</p>
-						</div>
-					</aside>
-					<p>Sie brauchen Superuser/Root/Administrator-Rechte für den diesen Schritt.</p>
+							? $t('create-device.finish.software-title.generating')
+							: $t('create-device.finish.software-title.generated')}
+					</Heading>
+					<P>{$t('create-device.finish.software-info')}</P>
+					<Alert color="red">
+						<P color="red">{$t('create-device.finish.software-warning')}</P>
+					</Alert>
+					<P>{$t('create-device.finish.software-permissions')}</P>
 					<Tabs>
-						<TabItem name="Windows">
+						<TabItem name="Windows" open={true}>
 							<svelte:fragment slot="title"><AppWindow />Windows</svelte:fragment>
-							<p>
-								Installieren Sie <a class="anchor" href="https://etcher.balena.io/" target="_blank"
-									>balena Etcher</a
-								>. Nach der Installation können Sie die Image-Datei und einen Datenträger zum
-								beschreiben auswählen.
-							</p>
+							<P>
+								{@html $t('create-device.finish.software-windows.install', {
+									values: {
+										balena:
+											'<a class="text-blue-600" href="https://etcher.balena.io/" target="_blank">balena Etcher</a>'
+									}
+								})}
+							</P>
 						</TabItem>
 						<TabItem name="macOS">
 							<svelte:fragment slot="title"><Apple />macOS</svelte:fragment>
-							<p>
-								1. Lassen Sie sich Ihre angeschlossenen Geräte anzeigen und identifizieren Sie das
-								Gerät mit <code>/dev/diskX</code>, das für Ihren gewünschten Datenträgen steht.
-							</p>
+							<P>{$t('create-device.finish.software-macos.step-1')}</P>
 							<!-- <CodeBlock language="bash" code={`sudo diskutil listDisk`} /> -->
-							<code>sudo diskutil listDisk</code>
-							<p>
-								2. Entfernen Sie den Datenträger aus Ihrem Dateisystem (unmount), falls Sie es noch
-								nicht gemacht haben.
-							</p>
+							<code class="text-gray-500">sudo diskutil listDisk</code>
+							<P>{$t('create-device.finish.software-macos.step-2')}</P>
 							<!-- <CodeBlock language="bash" code={`sudo diskutil unmountDisk /dev/diskX`} /> -->
-							<code>sudo diskutil unmountDisk /dev/diskX</code>
-							<p>
-								3. Überschreiben Sie den Datenträger mit dem Systemabbild mit Thymis. Dabei wird der
-								Datenträger komplett überschrieben.
-							</p>
+							<code class="text-gray-500">sudo diskutil unmountDisk /dev/diskX</code>
+							<P>{$t('create-device.finish.software-macos.step-3')}</P>
 							<!-- <CodeBlock
 								language="bash"
 								code={`sudo dd if=~/Downloads/thymis-XY.img of=/dev/diskX`}
 							/> -->
-							<code>sudo dd if=~/Downloads/thymis-XY.img of=/dev/diskX</code>
+							<code class="text-gray-500">sudo dd if=~/Downloads/thymis-XY.img of=/dev/diskX</code>
 						</TabItem>
 						<TabItem name="Linux">
 							<svelte:fragment slot="title"><Wrench />Linux</svelte:fragment>
-							<p>
-								1. Lassen Sie sich Ihre angeschlossenen Geräte anzeigen und identifizieren Sie das
-								Gerät mit <code>/dev/sdX</code>, das für Ihren gewünschten Datenträgen steht.
-							</p>
+							<P>{$t('create-device.finish.software-linux.step-1')}</P>
 							<!-- <CodeBlock language="bash" code={`sudo lsblk`} /> -->
-							<code>sudo lsblk</code>
-							<p>
-								2. Entfernen Sie den Datenträger aus Ihrem Dateisystem (unmount), falls Sie es noch
-								nicht gemacht haben.
-							</p>
-							<p>
-								3. Überschreiben Sie den Datenträger mit dem Systemabbild mit Thymis. Dabei wird der
-								Datenträger komplett überschrieben.
-							</p>
+							<code class="text-gray-500">sudo lsblk</code>
+							<P>{$t('create-device.finish.software-linux.step-3')}</P>
+							<P>{$t('create-device.finish.software-linux.step-3')}</P>
 							<!-- <CodeBlock
 								language="bash"
 								code={`sudo dd if=~/Downloads/thymis-XY.img of=/dev/sdX`}
 							/> -->
-							<code>sudo dd if=~/Downloads/thymis-XY.img of=/dev/sdX</code>
+							<code class="text-gray-500">sudo dd if=~/Downloads/thymis-XY.img of=/dev/sdX</code>
 						</TabItem>
 					</Tabs>
 				</section>

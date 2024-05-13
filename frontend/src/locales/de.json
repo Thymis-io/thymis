@@ -8,6 +8,158 @@
 		"overview": "Übersicht",
 		"orchestrate": "Verwalten",
 		"devices": "Geräte",
-		"history": "Versionen"
+		"history": "Versionen",
+		"terminal": "Terminal"
+	},
+	"common": {
+		"search": "Suchen...",
+		"save": "Speichern",
+		"cancel": "Abbrechen",
+		"no-tag-or-device-selected": "Kein Tag oder Gerät ausgewählt"
+	},
+	"devices": {
+		"create-new": "Neues Gerät Erstellen",
+		"table": {
+			"name": "Name",
+			"target-host": "Hostname",
+			"tags": "Tags",
+			"actions": "Aktionen",
+			"status": "Status"
+		},
+		"actions": {
+			"edit": "Bearbeiten",
+			"download": "Image Herunterladen",
+			"delete": "Löschen"
+		},
+		"status": {
+			"online": "Online",
+			"offline": "Offline"
+		},
+		"edit-name-title": "Namen Bearbeiten",
+		"edit-hostname-title": "Ziel Hostnamen Bearbeiten",
+		"edit-tags-title": "Tags Bearbeiten",
+		"new-tag-placeholder": "Neuer Tag..."
+	},
+	"create-device": {
+		"title": "Neues Gerät Erstellen",
+		"next": "Weiter →",
+		"back": "← Zurück",
+		"step-1": {
+			"title": "Thymis installieren",
+			"info": "Sie können ganz einfach eine ISO-Datei oder ein System-Image für Ihr IoT-Gerät erstellen."
+		},
+		"step-2": {
+			"title": "Gerät auswählen",
+			"info": "Wir unterstützen derzeit x86-basierte und aarch64/ARM64-basierte Geräte. Dazu gehören der Raspberry Pi 4 und 5, sowie normale Desktop-Computer."
+		},
+		"step-3": {
+			"title": "Verbindungsinformationen",
+			"info": "Sobald Thymis installiert ist, können Sie vieles mehr einrichten. Geben Sie zunächst die notwendigen Verbindungsinformationen ein, damit Sie das Gerät nach der automatischen Installation erreichen können.",
+			"device-name": "Name",
+			"hostname": "Hostname",
+			"wlan": "Drahtloses Netzwerk",
+			"wlan-ssid": "WLAN SSID - Name der WLAN-Verbindung",
+			"wlan-password": "WLAN-Kennwort",
+			"static-network": "Statisches Netzwerk (wenn kein DHCP verwendet wird)",
+			"static-network-ip": "Statische IP-Adresse",
+			"static-network-prefix": "Subnetzmaske",
+			"ssh-pubkey": "SSH Public-Key"
+		},
+		"step-4": {
+			"title": "Here we go!",
+			"info": "Drücken Sie Generieren, um das Systemabbild zu erstellen",
+			"complete": "Erzeugen"
+		},
+		"finish": {
+			"title": {
+				"generating": "Wir erstellen Ihr persönliches Systemabbild von Thymis.",
+				"generated": "Ihr Systemabbild ist fertig!"
+			},
+			"download": "Image herunterladen",
+			"new": "Neues Image erstellen",
+			"next-steps": {
+				"generating": "Sie können dies in der Zwischenzeit tun",
+				"generated": "Dies sind die nächsten Schritte"
+			},
+			"sd-title": "Einen Datenträger vorbereiten",
+			"sd-info": "Bereiten Sie einen geeigneten Datenträger für Ihr Gerät vor. Für ISOs werden meist USB-Sticks oder CDs/DVDs verwendet. Für System-Images als .img wird ein Datenträger wie z.B. eine microSD-Karte mit dem System aufgezeichnet.",
+			"sd-size-warning": "Der Datenträger muss mindestens 4 GB fassen können.",
+			"software-title": {
+				"generating": "Software für die Bildgebung installieren",
+				"generated": "Systemabbild auf Datenträger kopieren"
+			},
+			"software-info": "Das Systemabbild muss auf dem Datenträger installiert werden. Wir geben Ihnen mehrere Empfehlungen, wie Sie dies tun können.",
+			"software-warning": "Beim Beschreiben des Datenträgers wird dieser formatiert. Alle Daten werden gelöscht!",
+			"software-permissions": "Für diesen Schritt benötigen Sie Superuser/Root/Administrator-Rechte.",
+			"software-windows": {
+				"install": "Installieren Sie {balena}. Nach der Installation können Sie die Imagedatei und einen Datenträger zum Beschreiben auswählen."
+			},
+			"software-macos": {
+				"step-1": "1. Zeigen Sie Ihre angeschlossenen Geräte an und identifizieren Sie das Gerät mit /dev/diskX, das für Ihren gewünschten Datenträger steht.",
+				"step-2": "2. Entfernen Sie den Datenträger aus Ihrem Dateisystem (unmounten), falls Sie dies nicht bereits getan haben.",
+				"step-3": "3. Überschreiben Sie den Datenträger mit dem Systemabbild mit Thymis. Der Datenträger wird dabei komplett überschrieben."
+			},
+			"software-linux": {
+				"step-1": "1. Zeigen Sie Ihre angeschlossenen Geräte an und identifizieren Sie das Gerät mit /dev/sdX, das für Ihren gewünschten Datenträger steht.",
+				"step-2": "2. Entfernen Sie den Datenträger aus Ihrem Dateisystem (unmounten), falls Sie dies nicht bereits getan haben.",
+				"step-3": "3. Überschreiben Sie den Datenträger mit dem Systemabbild mit Thymis. Der Datenträger wird dabei komplett überschrieben."
+			}
+		}
+	},
+	"deploy": {
+		"build": "Erstellen",
+		"deploy": "Ausrollen",
+		"update": "Updaten",
+		"build-status": "Status: {status}",
+		"stdout": "Standard Output",
+		"stderr": "Standard Error",
+		"error-lines": "Fehler",
+		"raw-output": "Vollständige Ausgabe",
+		"summary": "Zusammenfassung"
+	},
+	"overview": {
+		"devices": "Geräte ({count})",
+		"tags": "Tags ({count})",
+		"modules": "Modules ({count})"
+	},
+	"config": {
+		"header": {
+			"tag-overview": "Verwalte Module für {tag}",
+			"device-overview": "Verwalte Module für {device}",
+			"overview": "Verwalte Module",
+			"tag-module": "Verwalte {module} für {tag}",
+			"device-module": "Verwalte {module} für {device}",
+			"module": "Verwalte {module}"
+		},
+		"section": {
+			"installed": "Installiert",
+			"installed-elsewhere": "Auf anderen Geräten oder Tags installiert",
+			"available": "Verfügbar"
+		},
+		"install": "Installieren",
+		"uninstall": "Deinstallieren",
+		"configure": "Bearbeiten",
+		"back": "Zurück"
+	},
+	"options": {
+		"nix": {
+			"freeform": {
+				"settings": "Einstellungen"
+			},
+			"kiosk": {
+				"url": "URL"
+			},
+			"services": {
+				"minio": {
+					"accessKey": "Zugangsschlüssel",
+					"browser": "Browser",
+					"configDir": "Konfigurationsverzeichnis",
+					"consoleAddress": "Konsolenadresse",
+					"dataDir": "Datenverzeichnis",
+					"enable": "Aktivieren Sie Minio",
+					"listenAddress": "Listen-Addresse"
+				}
+			}
+		}
 	}
 }

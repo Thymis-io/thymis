@@ -11,6 +11,12 @@
 		"history": "History",
 		"terminal": "Terminal"
 	},
+	"common": {
+		"search": "Search...",
+		"save": "Save",
+		"cancel": "Cancel",
+		"no-tag-or-device-selected": "No tag or device selected"
+	},
 	"devices": {
 		"create-new": "Create New Device",
 		"table": {
@@ -28,6 +34,76 @@
 		"status": {
 			"online": "Online",
 			"offline": "Offline"
+		},
+		"edit-name-title": "Edit Name",
+		"edit-hostname-title": "Edit target hostname",
+		"edit-tags-title": "Edit Tags",
+		"new-tag-placeholder": "New Tag..."
+	},
+	"create-device": {
+		"title": "Create a new device",
+		"next": "Next →",
+		"back": "← Back",
+		"step-1": {
+			"title": "Install Thymis",
+			"info": "You can easily create an ISO file or a system image for your IoT device."
+		},
+		"step-2": {
+			"title": "Select device",
+			"info": "We currently support x86-based and aarch64/ARM64-based devices. These include the Raspberry Pi 4 and 5, as well as normal desktop computers."
+		},
+		"step-3": {
+			"title": "Connection information",
+			"info": "Once Thymis is installed, you can easily set up much more. Firstly, enter the necessary connection information so that you can reach the device after the automatic installation.",
+			"device-name": "Name",
+			"hostname": "Hostname",
+			"wlan": "Wireless Network",
+			"wlan-ssid": "WLAN SSID - name of the WLAN connection",
+			"wlan-password": "WLAN password",
+			"static-network": "Static Network (if not using DHCP)",
+			"static-network-ip": "Static IP address",
+			"static-network-prefix": "Subnet mask",
+			"ssh-pubkey": "SSH Public-Key"
+		},
+		"step-4": {
+			"title": "Here we go!",
+			"info": "Press Generate to create the system image",
+			"complete": "Generate"
+		},
+		"finish": {
+			"title": {
+				"generating": "We create your personal system image from Thymis.",
+				"generated": "Your system image is ready!"
+			},
+			"download": "Download image",
+			"new": "Create another image",
+			"next-steps": {
+				"generating": "You can do this in the meantime",
+				"generated": "These are the next steps"
+			},
+			"sd-title": "Prepare a data carrier",
+			"sd-info": "Prepare a suitable data carrier for your device. USB sticks or CDs/DVDs are usually used for ISOs. For system images as .img, a data carrier such as a microSD card is recorded with the system.",
+			"sd-size-warning": "The data carrier must be able to hold at least 4 GB.",
+			"software-title": {
+				"generating": "Install software for imaging",
+				"generated": "Copy system image to data carriers"
+			},
+			"software-info": "The system image must be installed on the data carrier. We will give you several recommendations on how to do this.",
+			"software-warning": "The data carrier will be formatted when writing to it. All data will be deleted!",
+			"software-permissions": "You need superuser/root/administrator rights for this step.",
+			"software-windows": {
+				"install": "Install {balena}. After installation, you can select the image file and a disc to write to."
+			},
+			"software-macos": {
+				"step-1": "1. display your connected devices and identify the device with /dev/diskX, which stands for your desired data carrier.",
+				"step-2": "2. remove the disc from your file system (unmount) if you have not already done so.",
+				"step-3": "3. overwrite the data carrier with the system image using Thymis. The data carrier will be completely overwritten."
+			},
+			"software-linux": {
+				"step-1": "1. display your connected devices and identify the device with /dev/sdX, which stands for your desired data carrier.",
+				"step-2": "2. remove the data carrier from your file system (unmount) if you have not already done so.",
+				"step-3": "3. overwrite the data carrier with the system image using Thymis. The data carrier will be completely overwritten."
+			}
 		}
 	},
 	"deploy": {
@@ -38,7 +114,8 @@
 		"stdout": "Standard Output",
 		"stderr": "Standard Error",
 		"error-lines": "Error Lines",
-		"raw-output": "Full Output"
+		"raw-output": "Full Output",
+		"summary": "Summary"
 	},
 	"overview": {
 		"devices": "Devices ({count})",

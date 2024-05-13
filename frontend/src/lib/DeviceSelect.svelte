@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
 	import { queryParam } from 'sveltekit-search-params';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
@@ -40,14 +41,14 @@
 		{:else if device}
 			<HardDrive size={20} /> {device.displayName}
 		{:else}
-			No tag or device selected
+			{$t('common.no-tag-or-device-selected')}
 		{/if}
 	</div>
 	<ChevronDownSolid class="h-4 ms-2 text-white dark:text-white" /></Button
 >
 <Dropdown class="overflow-y-auto px-3 pb-3 text-sm max-h-96">
 	<div slot="header" class="p-3">
-		<Search size="md" bind:value={search} />
+		<Search size="md" bind:value={search} placeholder={$t('common.search')} />
 	</div>
 	{#each state.tags as tag}
 		{#if isSearched(search, tag.displayName)}
