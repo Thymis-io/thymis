@@ -14,7 +14,8 @@
 	"common": {
 		"search": "Search...",
 		"save": "Save",
-		"cancel": "Cancel"
+		"cancel": "Cancel",
+		"no-tag-or-device-selected": "No tag or device selected"
 	},
 	"devices": {
 		"create-new": "Create New Device",

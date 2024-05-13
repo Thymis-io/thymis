@@ -14,7 +14,8 @@
 	"common": {
 		"search": "Suchen...",
 		"save": "Speichern",
-		"cancel": "Abbrechen"
+		"cancel": "Abbrechen",
+		"no-tag-or-device-selected": "Kein Tag oder Gerät ausgewählt"
 	},
 	"devices": {
 		"create-new": "Neues Gerät Erstellen",
@@ -59,10 +60,10 @@
 			"wlan": "Drahtloses Netzwerk",
 			"wlan-ssid": "WLAN SSID - Name der WLAN-Verbindung",
 			"wlan-password": "WLAN-Kennwort",
-			"statisches Netzwerk": "Statisches Netzwerk (wenn kein DHCP verwendet wird)",
+			"static-network": "Statisches Netzwerk (wenn kein DHCP verwendet wird)",
 			"static-network-ip": "Statische IP-Adresse",
-			"statisches-netz-präfix": "Subnetzmaske",
-			"ssh-öffentlicher Schlüssel": "SSH Public-Key"
+			"static-network-prefix": "Subnetzmaske",
+			"ssh-pubkey": "SSH Public-Key"
 		},
 		"step-4": {
 			"title": "Here we go!",
@@ -139,5 +140,26 @@
 		"uninstall": "Deinstallieren",
 		"configure": "Bearbeiten",
 		"back": "Zurück"
+	},
+	"options": {
+		"nix": {
+			"freeform": {
+				"settings": "Einstellungen"
+			},
+			"kiosk": {
+				"url": "URL"
+			},
+			"services": {
+				"minio": {
+					"accessKey": "Zugangsschlüssel",
+					"browser": "Browser",
+					"configDir": "Konfigurationsverzeichnis",
+					"consoleAddress": "Konsolenadresse",
+					"dataDir": "Datenverzeichnis",
+					"enable": "Aktivieren Sie Minio",
+					"listenAddress": "Listen-Addresse"
+				}
+			}
+		}
 	}
 }

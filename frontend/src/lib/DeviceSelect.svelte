@@ -41,7 +41,7 @@
 		{:else if device}
 			<HardDrive size={20} /> {device.displayName}
 		{:else}
-			No tag or device selected
+			{$t('common.no-tag-or-device-selected')}
 		{/if}
 	</div>
 	<ChevronDownSolid class="h-4 ms-2 text-white dark:text-white" /></Button
