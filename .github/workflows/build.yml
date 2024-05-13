@@ -46,7 +46,7 @@ jobs:
       - name: pin nixpkgs
         run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-23.11
       - name: build frontend
-        run: nix build .#thymis-frontend --print-build-logs
+        run: nix build .#thymis-frontend-container --print-build-logs
   build-controller:
     runs-on: ubuntu-latest
     steps:
@@ -60,7 +60,7 @@ jobs:
       - name: pin nixpkgs
         run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-23.11
       - name: build controller
-        run: nix build .#thymis-controller --print-build-logs
+        run: nix build .#thymis-controller-container --print-build-logs
   build:
     runs-on: ubuntu-latest
     needs: [build-iso, build-frontend, build-controller]
