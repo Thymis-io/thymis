@@ -3,10 +3,10 @@
 	import { TableBodyCell, Input } from 'flowbite-svelte';
 	import clickOutside from 'svelte-outside-click';
 
-	export let value: str;
-	export let onEnter: null | () => void = null;
+	export let value: string;
+	export let onEnter: (() => void) | null = null;
 
-	let isEditing: bool = false;
+	let isEditing: boolean = false;
 </script>
 
 <TableBodyCell>
@@ -15,11 +15,11 @@
 			<Input
 				class="w-full"
 				bind:value
-				on:blur={() => onEnter()}
+				on:blur={() => onEnter?.()}
 				on:keypress={(e) => {
 					if (e.key === 'Enter') {
 						isEditing = false;
-						onEnter();
+						onEnter?.();
 					}
 				}}
 			/>
