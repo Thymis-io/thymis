@@ -30,7 +30,7 @@
 		data.state.repositories = {
 			...data.state.repositories,
 			[key]: {
-				url: 'https://github.com/Thymis-io/thymis.git'
+				url: 'git+https://github.com/Thymis-io/thymis.git'
 			}
 		};
 

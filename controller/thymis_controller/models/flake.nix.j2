@@ -2,82 +2,82 @@
   description = "Thymis";
 
   inputs = {
-    thymis.url = "github:thymis-io/thymis";
-    # nixpkgs.url = "nixpkgs/nixos-23.05";
-    nixpkgs.follows = "thymis/nixpkgs";
-    home-manager.url = "github:nix-community/home-manager/release-23.11";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
-    nixos-generators.url = "github:nix-community/nixos-generators";
-    nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
-    nixos-hardware.url = "github:NixOS/nixos-hardware";
-    flake-utils.url = "github:numtide/flake-utils";
-    poetry2nix = {
-      url = "github:nix-community/poetry2nix/1.42.1";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-utils.follows = "flake-utils";
-    };
-  };
+    {% for name, repository in repositories.items() %}
+    {{ name }} = {
+      {% if repository.url %}
+      url = "{{ repository.url }}";
+      {% endif %}{% if repository.follows %}
+      follows = "{{ repository.follows }}";
+      {% endif %}{% if repository.input_follows %}
+      {% for input_name, input_repository in repository.input_follows.items() %}
+      inputs.{{ input_name }}.follows = "{{ input_repository }}";
+      {% endfor %}{% endif %}
+      };{% endfor %}
+      };
 
-  outputs = inputs@{ self, nixpkgs, home-manager, poetry2nix, flake-utils, thymis, ... }:
-    let
-      eachSystem = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ];
-      state-json = builtins.fromJSON (builtins.readFile ./state.json);
-      device-to-nixosConfigurations = d:
+      outputs =
+        inputs@{ self
+          #{% for name, repository in repositories.items() %}
+        , {{ name
+        }}
+        {% endfor %}
+        , ...
+        }:
         let
-          # device-modules are all files in ./hosts/<identifier> that end with .nix
-          device-modules = nixpkgs.lib.mapAttrsToList
-            (path: type: ./hosts/${d.identifier}/${path})
-            (nixpkgs.lib.filterAttrs
-              (f: t: t == "regular" && nixpkgs.lib.hasSuffix ".nix" (builtins.toString f))
-              (
-                builtins.readDir ./hosts/${d.identifier}
-              ));
-          # for all tags, get them. For each tag, all files in ./tags/<tag> that end with .nix
-          tag-modules = builtins.concatMap
-            (tag: nixpkgs.lib.mapAttrsToList
-              (path: type: ./tags/${tag}/${path})
-              (nixpkgs.lib.filterAttrs
-                (f: t: t == "regular" && nixpkgs.lib.hasSuffix ".nix" (builtins.toString f))
-                (
-                  builtins.readDir ./tags/${tag}
-                ))
-            )
-            d.tags;
-        in
-        # {
-          #   modules = builtins.concatLists [
-          #     device-modules
-          #     tag-modules
-          #   ];
-          # };
-        {
-          name = d.identifier;
-          value = nixpkgs.lib.nixosSystem {
-            modules = device-modules
-              ++ tag-modules
-              ++ [
-              thymis.nixosModules.thymis
-            ];
-            specialArgs = {
-              inherit inputs;
+          eachSystem = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ];
+          state-json = builtins.fromJSON (builtins.readFile ./state.json);
+          device-to-nixosConfigurations = d:
+            let
+              # device-modules are all files in ./hosts/<identifier> that end with .nix
+              device-modules = nixpkgs.lib.mapAttrsToList
+                (path: type: ./hosts/${d.identifier}/${path})
+                (nixpkgs.lib.filterAttrs
+                  (f: t: t == "regular" && nixpkgs.lib.hasSuffix ".nix" (builtins.toString f))
+                  (
+                    builtins.readDir ./hosts/${d.identifier}
+                  ));
+              # for all tags, get them. For each tag, all files in ./tags/<tag> that end with .nix
+              tag-modules = builtins.concatMap
+                (tag: nixpkgs.lib.mapAttrsToList
+                  (path: type: ./tags/${tag}/${path})
+                  (nixpkgs.lib.filterAttrs
+                    (f: t: t == "regular" && nixpkgs.lib.hasSuffix ".nix" (builtins.toString f))
+                    (
+                      builtins.readDir ./tags/${tag}
+                    ))
+                )
+                d.tags;
+            in
+            {
+              name = d.identifier;
+              value = nixpkgs.lib.nixosSystem {
+                modules = device-modules
+                  ++ tag-modules
+                  ++ [
+                  thymis.nixosModules.thymis
+                ];
+                specialArgs = {
+                  inherit inputs;
+                };
+              };
             };
-          };
-        };
-    in
-    rec {
-      nixosConfigurations = builtins.listToAttrs
-        (builtins.map device-to-nixosConfigurations state-json.devices);
-      packages = eachSystem (system:
-        let
-          pkgs = import nixpkgs { inherit system; };
+          nixosConfigurations = builtins.listToAttrs
+            (builtins.map device-to-nixosConfigurations state-json.devices);
         in
         {
-          thymis = pkgs.writeText "thymis.json"
-            (builtins.toJSON (
-              builtins.mapAttrs
-                (name: nixosCfg: nixosCfg.config.system.build.toplevel)
-                nixosConfigurations
-            ));
-        });
-    };
-}
+          nixosConfigurations = nixosConfigurations;
+          packages = eachSystem (system:
+            let
+              pkgs = import nixpkgs { inherit system; };
+            in
+            {
+              thymis = pkgs.writeText "thymis.json"
+                (builtins.toJSON (
+                  builtins.mapAttrs
+                    (name: nixosCfg: nixosCfg.config.system.build.toplevel)
+                    nixosConfigurations
+                ));
+            });
+          inputs = inputs;
+        };
+    }

@@ -1,4 +1,8 @@
-{ poetry2nix, git, makeWrapper, lib
+{ poetry2nix
+, git
+, nixpkgs-fmt
+, makeWrapper
+, lib
 ,
 }:
 poetry2nix.mkPoetryApplication {
@@ -11,6 +15,6 @@ poetry2nix.mkPoetryApplication {
   nativeBuildInputs = [ makeWrapper ];
   postInstall = ''
     wrapProgram $out/bin/thymis-controller \
-      --prefix PATH : ${lib.makeBinPath [ git ]}
+      --prefix PATH : ${lib.makeBinPath [ git nixpkgs-fmt ]}
   '';
 }

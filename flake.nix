@@ -22,22 +22,14 @@
         thymis = self;
       };
       eachSystem = nixpkgs.lib.genAttrs (import ./flake.systems.nix);
-    in
-    rec {
-      formatter = eachSystem (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
-      devShells = eachSystem (system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in
-        {
-          default = pkgs.mkShell {
-            packages = [
-              pkgs.poetry
-              pkgs.nodejs
-              pkgs.pre-commit
-            ];
-          };
-        });
+      nixosModules = {
+        thymis = ./thymis-nixos-module.nix;
+      } // nixpkgs.lib.mapAttrs'
+        (name: value: {
+          name = "thymis-device-${name}";
+          value = value;
+        })
+        (import ./devices.nix { inherit inputs; lib = nixpkgs.lib; });
       download-image = { thymis-config ? throw "thymis-config is required. Provide with --argstr" }:
         let
           thymis-config-parsed = builtins.fromJSON thymis-config;
@@ -56,6 +48,24 @@
             inherit inputs;
           };
         });
+    in
+    {
+      inputs = inputs;
+      formatter = eachSystem (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
+      devShells = eachSystem (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          default = pkgs.mkShell {
+            packages = [
+              pkgs.poetry
+              pkgs.nodejs
+              pkgs.pre-commit
+            ];
+          };
+        });
+
       all-download-images =
         let
           devices = import ./devices.nix { lib = nixpkgs.lib; };
@@ -89,13 +99,13 @@
         {
           thymis-frontend = thymis-frontend;
           thymis-controller = thymis-controller;
-          thymis-controller-container =  pkgs.dockerTools.buildImage {
+          thymis-controller-container = pkgs.dockerTools.buildImage {
             name = "thymis-controller";
             config = {
               Cmd = [ "${thymis-controller}/bin/thymis-controller" ];
             };
           };
-          thymis-frontend-container =  pkgs.dockerTools.buildImage {
+          thymis-frontend-container = pkgs.dockerTools.buildImage {
             name = "thymis-frontend";
             config = {
               Cmd = [ "${thymis-frontend}/bin/thymis-controller" ];
@@ -103,13 +113,6 @@
           };
         }
       );
-      nixosModules = {
-        thymis = ./thymis-nixos-module.nix;
-      } // nixpkgs.lib.mapAttrs'
-        (name: value: {
-          name = "thymis-device-${name}";
-          value = value;
-        })
-        (import ./devices.nix { inherit inputs; lib = nixpkgs.lib; });
+      nixosModules = nixosModules;
     };
 }

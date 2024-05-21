@@ -9,7 +9,7 @@ in
 
 {
   imports = [
-    inputs.home-manager.nixosModules.default
+    inputs.thymis.inputs.home-manager.nixosModules.default
     "${modulesPath}/profiles/base.nix"
   ];
   options = {

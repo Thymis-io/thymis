@@ -17,3 +17,5 @@ ALL_MODULES = [
     NodeRedModule(),
     MqttxModule(),
 ]
+
+ALL_MODULES_START = ALL_MODULES.copy()
