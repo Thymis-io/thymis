@@ -4,7 +4,7 @@
 	import clickOutside from 'svelte-outside-click';
 
 	export let value: string;
-	export let onEnter: (() => void) | null = null;
+	export let onEnter: ((value: string) => void) | null = null;
 
 	let isEditing: boolean = false;
 </script>
@@ -15,11 +15,11 @@
 			<Input
 				class="w-full"
 				bind:value
-				on:blur={() => onEnter?.()}
+				on:blur={() => onEnter?.(value)}
 				on:keypress={(e) => {
 					if (e.key === 'Enter') {
 						isEditing = false;
-						onEnter?.();
+						onEnter?.(value);
 					}
 				}}
 			/>
