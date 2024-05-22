@@ -17,7 +17,7 @@
 
 	export let data: PageData;
 
-	const addRepo = () => {
+	const generateUniqueKey = () => {
 		let num = 1;
 		let key;
 
@@ -25,6 +25,12 @@
 			key = `new-repo-${num}`;
 			num++;
 		} while (data.state.repositories[key]);
+
+		return key;
+	};
+
+	const addRepo = () => {
+		let key = generateUniqueKey();
 
 		data.state.repositories = {
 			...data.state.repositories,
