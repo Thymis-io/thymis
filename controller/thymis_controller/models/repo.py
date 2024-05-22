@@ -37,6 +37,8 @@ def load_repositories(flake_path: os.PathLike, repositories: Dict[str, Repo]):
         if not repo.url:
             continue
         path = get_input_out_path(flake_path, name)
+        if path is None:
+            continue
         # check wether path / README.md exists and contains the string "contains thymis modules"
         if not os.path.exists(os.path.join(path, "README.md")):
             print(f"Repository {name} does not contain a README.md")

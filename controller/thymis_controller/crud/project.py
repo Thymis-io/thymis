@@ -1,7 +1,5 @@
 import json
-from pydoc import locate
 from pathlib import Path
-from thymis_controller.models.repo import load_repositories
 from thymis_controller.models.state import State
 import os
 

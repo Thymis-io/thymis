@@ -17,7 +17,17 @@ def get_input_out_path(flake_path, input_name):
     # first run `nix build .#inputs.<input_name>.outPath`
     # then run `nix eval .#inputs.<input_name>.outPath --json`
     cmd = f"nix build {flake_path}#inputs.{input_name}.outPath"
-    subprocess.run(cmd, shell=True, check=True, cwd=flake_path)
+
+    try:
+        subprocess.run(
+            cmd, shell=True, check=True, cwd=flake_path, stderr=subprocess.PIPE
+        )
+    except subprocess.CalledProcessError as e:
+        print(
+            f"Command failed: {e.cmd} with exit code {e.returncode}: {e.stderr.decode()}"
+        )
+        return None
+
     cmd = f"nix eval {flake_path}#inputs.{input_name}.outPath --json"
     result = subprocess.run(
         cmd, shell=True, check=True, capture_output=True, cwd=flake_path
