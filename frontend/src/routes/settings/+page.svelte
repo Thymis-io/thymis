@@ -43,11 +43,11 @@
 
 	const changeRepoName = (oldName: string, newName: string) => {
 		if (!data.state.repositories[newName]) {
-			data.state.repositories = {
-				...data.state.repositories,
-				[newName]: data.state.repositories[oldName]
-			};
-			delete data.state.repositories[oldName];
+			data.state.repositories = Object.fromEntries(
+				Object.entries(data.state.repositories).map(([key, value]) =>
+					key === oldName ? [newName, value] : [key, value]
+				)
+			);
 		}
 
 		saveState(data.state);
