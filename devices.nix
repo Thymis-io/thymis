@@ -71,6 +71,27 @@ let
         ];
         nixpkgs.hostPlatform = "aarch64-linux";
       };
+      raspberry-pi-5 = {
+        imports = [
+          inputs.nixos-generators.nixosModules.all-formats
+          inputs.raspberry-pi-nix.nixosModules.raspberry-pi
+        ];
+        raspberry-pi-nix.libcamera-overlay.enable = false;
+        formatConfigs = lib.mkForce {
+          sd-card-image = {
+            sdImage.compressImage = false;
+            fileExtension = ".img";
+            formatAttr = "sdImage";
+          };
+        };
+        nixpkgs.overlays = [
+          (final: super: {
+            makeModulesClosure = x:
+              super.makeModulesClosure (x // { allowMissing = true; });
+          })
+        ];
+        nixpkgs.hostPlatform = "aarch64-linux";
+      };
     };
 in
 deviceConfig
