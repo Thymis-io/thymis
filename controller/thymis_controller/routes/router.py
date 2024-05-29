@@ -1,7 +1,7 @@
 import asyncio
 import json
 from typing import List
-from thymis_controller.models.modules import ALL_MODULES
+import thymis_controller.models.modules
 from thymis_controller.models.state import State
 from fastapi import APIRouter, Depends, Request, BackgroundTasks, WebSocket
 from fastapi.responses import FileResponse, RedirectResponse
@@ -21,7 +21,7 @@ def get_state(state: State = Depends(get_or_init_state)):
 
 @router.get("/available_modules")
 def get_available_modules():
-    return ALL_MODULES
+    return thymis_controller.models.modules.ALL_MODULES
 
 
 @router.patch("/state")
@@ -109,7 +109,10 @@ def get_history(state: State = Depends(get_or_init_state)):
 
 @router.post("/action/update")
 async def update(
-    background_tasks: BackgroundTasks, state: State = Depends(get_or_init_state)
+    background_tasks: BackgroundTasks,
+    project: project.Project = Depends(get_or_init_project),
+    state: State = Depends(get_or_init_state),
 ):
+    project.update_state(state.model_dump())
     background_tasks.add_task(state.update, last_build_status)
     return {"message": "update started"}

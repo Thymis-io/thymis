@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel, SerializeAsAny
 from thymis_controller import models
 import os
@@ -9,6 +9,11 @@ import pathlib
 from thymis_controller.migration.migrate import migrate
 from thymis_controller.models.modules import ALL_MODULES
 import subprocess
+import shutil
+import sys
+import importlib
+
+from thymis_controller.models.repo import load_repositories
 
 REPO_PATH = os.getenv("REPO_PATH")
 
@@ -44,8 +49,15 @@ async def terminate_other_procs():
     other_procs.clear()
 
 
+needed_repositories = {
+    "thymis": models.Repo(url="github:thymis-io/thymis"),
+    "nixpkgs": models.Repo(follows="thymis/nixpkgs"),
+}
+
+
 class State(BaseModel):
     version: str
+    repositories: Dict[str, models.Repo]
     tags: List[models.Tag]
     devices: List[models.Device]
 
@@ -56,8 +68,17 @@ class State(BaseModel):
     def write_nix(self, path: os.PathLike):
         path = pathlib.Path(path)
         # write a flake.nix
+        repositories = needed_repositories | self.repositories
         with open(path / "flake.nix", "w+") as f:
-            f.write(env.get_template("flake.nix.j2").render(state=self))
+            f.write(env.get_template("flake.nix.j2").render(repositories=repositories))
+        # Check for nixpkgs-fmt binary
+        formatter_avail = shutil.which("nixpkgs-fmt")
+        if formatter_avail:
+            # format the flake.nix
+            subprocess.run(["nixpkgs-fmt", path / "flake.nix"])
+        # write missing flake.lock entries using nix flake lock
+        subprocess.run(["nix", "flake", "lock"], cwd=path)
+        self.set_repositories_in_python_path(path)
         # create modules folder if not exists
         modules_path = path / "modules"
         del_path(modules_path)
@@ -94,15 +115,29 @@ class State(BaseModel):
         repo = Repo.init(self.repo_dir())
         repo.git.add(".")
 
+    def set_repositories_in_python_path(self, path: os.PathLike):
+        repositories = needed_repositories | self.repositories
+        load_repositories(path, repositories)
+
     @classmethod
     def load_from_dict(cls, d):
         return cls(**migrate(d))
 
     def get_module_class_instance_by_type(self, module_type: str):
-        for module in ALL_MODULES:
-            if module.type == module_type:
-                return module
-        raise Exception(f"module with type {module_type} not found")
+        # for module in ALL_MODULES:
+        #     if module.type == module_type:
+        #         return module
+        # split the module_type by .
+        module_type = module_type.rsplit(".", 1)
+        # import the module
+        try:
+            module = importlib.import_module(module_type[0])
+            # get the class from the module
+            cls = getattr(module, module_type[1])
+            # return an instance of the class
+            return cls()
+        except Exception as e:
+            raise Exception(f"Erorr while importing module {module_type}: {e}")
 
     def save(self, path: os.PathLike = "./"):
         path = os.path.join(path, "state.json")

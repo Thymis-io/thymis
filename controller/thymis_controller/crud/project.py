@@ -1,5 +1,4 @@
 import json
-from pydoc import locate
 from pathlib import Path
 from thymis_controller.models.state import State
 import os
@@ -17,6 +16,7 @@ class Project:
         # TODO git reop init - git config user and email
         state = State(
             version="0.0.1",
+            repositories={},
             tags=[],
             devices=[],
         )
@@ -25,7 +25,9 @@ class Project:
     def load_state_from_file(self):
         with open(Path(self.path) / "state.json", "r", encoding="utf-8") as f:
             state_dict = json.load(f)
-        return State.load_from_dict(state_dict)
+        state = State.load_from_dict(state_dict)
+        state.set_repositories_in_python_path(self.path)
+        return state
 
     def update_state(self, state):
         old_state = self.load_state_from_file()

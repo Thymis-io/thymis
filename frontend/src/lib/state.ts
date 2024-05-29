@@ -42,7 +42,12 @@ export type Device = {
 	tags: string[];
 };
 
+export type Repo = {
+	url: string;
+};
+
 export type State = {
+	repositories: { [name: string]: Repo };
 	devices: Device[];
 	tags: Tag[];
 };

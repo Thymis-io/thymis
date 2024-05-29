@@ -3,4 +3,5 @@ from .module import Module
 from .modules import ALL_MODULES
 from .tag import Tag
 from .device import Device
+from .repo import Repo
 from .state import State

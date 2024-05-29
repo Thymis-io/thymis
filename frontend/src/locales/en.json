@@ -9,7 +9,8 @@
 		"orchestrate": "Orchestrate",
 		"devices": "Devices",
 		"history": "History",
-		"terminal": "Terminal"
+		"terminal": "Terminal",
+		"settings": "Settings"
 	},
 	"common": {
 		"search": "Search...",
@@ -183,6 +184,17 @@
 					"enable": "Enable Node-RED"
 				}
 			}
+		}
+	},
+	"settings": {
+		"repo": {
+			"title": "Repositories",
+			"name": "Name",
+			"url": "URL",
+			"actions": "Actions",
+			"edit-name": "Edit Name",
+			"edit-url": "Edit URL",
+			"delete": "Delete"
 		}
 	}
 }
