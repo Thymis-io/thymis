@@ -176,7 +176,7 @@ class Project:
                 module = get_module_class_instance_by_type(module_settings.type)
                 module.write_nix(tag_path, module_settings, tag.priority)
         # run git add
-        self.repo.git.add(".")
+        self.repo.index.add(".")
 
     def set_repositories_in_python_path(self, path: os.PathLike, state: State):
         repositories = BUILTIN_REPOSITORIES | state.repositories
