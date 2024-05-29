@@ -17,6 +17,12 @@ repos:
     rev: "23.10.1"
     hooks:
       - id: black
+  - repo: https://github.com/pycqa/isort
+    rev: "5.13.2"
+    hooks:
+      - id: isort
+        name: isort (python)
+        args: ["--profile", "black"]
   - repo: https://github.com/nix-community/nixpkgs-fmt
     rev: v1.3.0
     hooks:

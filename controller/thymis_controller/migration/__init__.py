@@ -3,6 +3,7 @@ from thymis_controller.migration.to_0_0_2 import to_0_0_2
 from thymis_controller.migration.to_0_0_3 import to_0_0_3
 from thymis_controller.migration.to_0_0_4 import to_0_0_4
 from thymis_controller.migration.to_0_0_5 import to_0_0_5
+from thymis_controller.migration.to_0_0_6 import to_0_0_6
 
 KNOWN_VERSIONS = [
     "0.0.1",
@@ -10,6 +11,7 @@ KNOWN_VERSIONS = [
     "0.0.3",
     "0.0.4",
     "0.0.5",
+    "0.0.6",
 ]  # TODO: remove this, replace with dynamic versioning
 
 
@@ -28,4 +30,10 @@ def migrate(state: dict):
     if version.parse(state["version"]) == version.parse("0.0.4"):
         state = to_0_0_5(state)
 
+    if version.parse(state["version"]) == version.parse("0.0.5"):
+        state = to_0_0_6(state)
+
     return state
+
+
+latest_version = KNOWN_VERSIONS[-1]

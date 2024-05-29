@@ -3,7 +3,7 @@ import '$lib/i18n'; // Import to initialize. Important :)
 import { locale, waitLocale } from 'svelte-i18n';
 import type { LayoutLoad } from './$types';
 import { controllerHost, controllerProtocol } from '$lib/api';
-import type { State, Module, ModuleDefinition } from '$lib/state';
+import type { State, ModuleSettings, Module } from '$lib/state';
 import { error } from '@sveltejs/kit';
 
 export const load = (async ({ fetch }) => {
@@ -42,7 +42,7 @@ export const load = (async ({ fetch }) => {
 		}
 	);
 
-	const availableModules = (await availableModulesResponse.json()) as ModuleDefinition[];
+	const availableModules = (await availableModulesResponse.json()) as Module[];
 
 	return {
 		state: state,

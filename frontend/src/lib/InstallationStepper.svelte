@@ -19,11 +19,11 @@
 	import Apple from 'lucide-svelte/icons/apple';
 	import AppWindow from 'lucide-svelte/icons/app-window';
 	import Wrench from 'lucide-svelte/icons/wrench';
-	import type { Device, ModuleDefinition } from './state';
+	import type { Device, Module } from './state';
 	import ConfigSelectOne from './config/ConfigSelectOne.svelte';
 
 	export let onSubmit: null | ((data: Device) => void) = null;
-	export let thymisDevice: ModuleDefinition | undefined = undefined;
+	export let thymisDevice: Module | undefined = undefined;
 
 	let data = {
 		device: '',

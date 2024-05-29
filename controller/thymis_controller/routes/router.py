@@ -1,74 +1,58 @@
-import asyncio
-import json
-from typing import List
-import thymis_controller.models.modules
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, WebSocket
+from fastapi.responses import RedirectResponse
+from thymis_controller import dependencies, models, modules, project, task
+from thymis_controller.dependencies import get_project
 from thymis_controller.models.state import State
-from fastapi import APIRouter, Depends, Request, BackgroundTasks, WebSocket
-from fastapi.responses import FileResponse, RedirectResponse
-from thymis_controller.dependencies import get_or_init_state, get_or_init_project
-from thymis_controller import models
-from thymis_controller.crud import project
-import subprocess
-from urllib.parse import urljoin
 
 router = APIRouter()
 
 
 @router.get("/state")
-def get_state(state: State = Depends(get_or_init_state)):
+def get_state(state: State = Depends(dependencies.get_state)):
     return state
 
 
 @router.get("/available_modules")
-def get_available_modules():
-    return thymis_controller.models.modules.ALL_MODULES
+def get_available_modules() -> list[models.Module]:
+    # return modules.ALL_MODULES
+    return [module.get_model() for module in modules.ALL_MODULES]
 
 
 @router.patch("/state")
 async def update_state(
-    new_state: Request, project: project.Project = Depends(get_or_init_project)
+    new_state: Request, project: project.Project = Depends(get_project)
 ):
-    return project.update_state(await new_state.json())
-
-
-last_build_status = [None]
+    new_state = await new_state.json()
+    new_state = State.model_validate(new_state)
+    return project.write_state_and_reload(new_state)
 
 
 @router.post("/action/build")
-def build_nix(
-    background_tasks: BackgroundTasks, state: State = Depends(get_or_init_state)
+def build_repo(
+    background_tasks: BackgroundTasks, project: project.Project = Depends(get_project)
 ):
     # runs a nix command to build the flake
-    background_tasks.add_task(state.build_nix, last_build_status)
+    background_tasks.add_task(project.create_build_task())
     # now build_nix: type: BackgroundTasks -> None
 
     return {"message": "nix build started"}
 
 
-@router.websocket("/build_status")
-async def build_status(websocket: WebSocket):
-    await websocket.accept()
-    try:
-        while True:
-            if last_build_status[0] is None:
-                await websocket.send_text(json.dumps({"status": "no build running"}))
-            else:
-                await websocket.send_text(json.dumps(last_build_status[0]))
-            await asyncio.sleep(0.2)
-    except:
-        await websocket.close()
+@router.websocket("/task_status")
+async def task_status(websocket: WebSocket):
+    await task.connection_manager.connect(websocket)
 
 
 @router.post("/action/deploy")
 def deploy(
     summary: str,
     background_tasks: BackgroundTasks,
-    state: State = Depends(get_or_init_state),
+    project: project.Project = Depends(get_project),
 ):
-    state.commit(summary)
+    project.commit(summary)
 
     # runs a nix command to deploy the flake
-    background_tasks.add_task(state.deploy, last_build_status)
+    background_tasks.add_task(project.create_deploy_project_task())
 
     return {"message": "nix deploy started"}
 
@@ -78,41 +62,23 @@ async def build_download_image(
     identifier: str,
     request: Request,
     background_tasks: BackgroundTasks,
-    state: State = Depends(get_or_init_state),
+    project: project.Project = Depends(get_project),
 ):
-    referer = request.headers.get("referer")
-    # if something goes wrong, redirect to the referer
-    try:
-        image_path = await state.build_image_path(
-            q=last_build_status, identifier=identifier
-        )
-
-        # return the image bytes
-        return FileResponse(
-            image_path,
-            media_type="application/octet-stream",
-            filename=f"thymis-{identifier}.img",
-        )
-    except Exception as e:
-        err_msg = f"Error: {e}"
-        import traceback
-
-        traceback.print_exc()
-        new_url = urljoin(referer, f"?error={err_msg}")
-        return RedirectResponse(new_url)
+    background_tasks.add_task(project.create_build_device_image_task(identifier))
+    return RedirectResponse(url="/")
 
 
 @router.get("/history")
-def get_history(state: State = Depends(get_or_init_state)):
-    return state.get_history()
+def get_history(project: project.Project = Depends(get_project)):
+    return project.get_history()
 
 
 @router.post("/action/update")
 async def update(
     background_tasks: BackgroundTasks,
-    project: project.Project = Depends(get_or_init_project),
-    state: State = Depends(get_or_init_state),
+    project: project.Project = Depends(get_project),
+    state: State = Depends(get_state),
 ):
-    project.update_state(state.model_dump())
-    background_tasks.add_task(state.update, last_build_status)
+    project.write_state_and_reload(state)
+    background_tasks.add_task(project.create_update_task())
     return {"message": "update started"}

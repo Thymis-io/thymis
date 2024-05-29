@@ -7,7 +7,7 @@
 	import ConfigSelectOne from '$lib/config/ConfigSelectOne.svelte';
 	import { queryParam } from 'sveltekit-search-params';
 	import { saveState } from '$lib/state';
-	import type { Module, Tag, Device, ModuleDefinition } from '$lib/state';
+	import type { ModuleSettings, Tag, Device, Module } from '$lib/state';
 
 	import Info from 'lucide-svelte/icons/info';
 	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
@@ -56,7 +56,7 @@
 		return data.availableModules.filter((m) => settings?.find((s) => s.type === m.type)) ?? [];
 	};
 
-	const addModule = (module: Module | ModuleDefinition) => {
+	const addModule = (module: ModuleSettings | Module) => {
 		if (tag && !tag.modules.find((m) => m.type === module.type)) {
 			tag.modules = [...tag.modules, { type: module.type, settings: {} }];
 		}
@@ -68,7 +68,7 @@
 		saveState(data.state);
 	};
 
-	const removeModule = (module: Module | ModuleDefinition) => {
+	const removeModule = (module: ModuleSettings | Module) => {
 		if (tag) {
 			tag.modules = tag.modules.filter((m) => m.type !== module.type);
 		}
@@ -81,7 +81,7 @@
 	};
 
 	const getSettings = (
-		module: Module | ModuleDefinition,
+		module: ModuleSettings | Module,
 		settingKey: string,
 		tag: Tag | undefined,
 		device: Device | undefined
@@ -93,7 +93,7 @@
 	};
 
 	const getSetting = (
-		module: Module | ModuleDefinition,
+		module: ModuleSettings | Module,
 		settingKey: string,
 		tag: Tag | undefined,
 		device: Device | undefined
@@ -105,7 +105,7 @@
 		}
 	};
 
-	const setSetting = (module: Module | ModuleDefinition, settingKey: string, value: any) => {
+	const setSetting = (module: ModuleSettings | Module, settingKey: string, value: any) => {
 		addModule(module);
 
 		let tagModule = tag?.modules.find((m) => m.type === module.type);
@@ -137,16 +137,7 @@
 	let selectedModulesValidSettingkeys: string[] = [];
 	$: if (selectedModule) {
 		console.log(selectedModule);
-		selectedModulesValidSettingkeys = Object.keys(selectedModule).filter(
-			(settingKey) =>
-				settingKey &&
-				settingKey !== 'name' &&
-				settingKey !== 'type' &&
-				selectedModule &&
-				typeof selectedModule[settingKey] === 'object' &&
-				selectedModule[settingKey] &&
-				'name' in selectedModule[settingKey]
-		);
+		selectedModulesValidSettingkeys = Object.keys(selectedModule.settings);
 	}
 
 	const otherUrlParams = (searchParams: string) => {
@@ -200,41 +191,41 @@
 					{@const setting = getSetting(selectedModule, settingKey, tag, device)}
 					{@const effectingSettings = getSettings(selectedModule, settingKey, tag, device)}
 					<P class="col-span-1">
-						{$t(`options.nix.${selectedModule[settingKey].name}`, {
-							default: selectedModule[settingKey].name
+						{$t(`options.nix.${selectedModule.settings[settingKey].name}`, {
+							default: selectedModule.settings[settingKey].name
 						})}
 					</P>
 					<div class="col-span-1 flex">
 						<div class="flex-1">
-							{#if selectedModule[settingKey].type == 'bool'}
+							{#if selectedModule.settings[settingKey].type == 'bool'}
 								<ConfigBool
 									value={setting === true}
-									name={selectedModule[settingKey].name}
+									name={selectedModule.settings[settingKey].name}
 									change={(value) => {
 										if (selectedModule) setSetting(selectedModule, settingKey, value);
 									}}
 								/>
-							{:else if selectedModule[settingKey].type == 'string'}
+							{:else if selectedModule.settings[settingKey].type == 'string'}
 								<ConfigString
 									value={setting}
-									placeholder={selectedModule[settingKey].default}
+									placeholder={selectedModule.settings[settingKey].default}
 									change={(value) => {
 										if (selectedModule) setSetting(selectedModule, settingKey, value);
 									}}
 								/>
-							{:else if selectedModule[settingKey].type == 'textarea'}
+							{:else if selectedModule.settings[settingKey].type == 'textarea'}
 								<ConfigTextarea
 									value={setting}
-									placeholder={selectedModule[settingKey].default}
+									placeholder={selectedModule.settings[settingKey].default}
 									change={(value) => {
 										if (selectedModule) setSetting(selectedModule, settingKey, value);
 									}}
 								/>
-							{:else if selectedModule[settingKey].type == 'select-one'}
+							{:else if selectedModule.settings[settingKey].type == 'select-one'}
 								<ConfigSelectOne
 									value={setting}
-									options={selectedModule[settingKey].options}
-									setting={selectedModule[settingKey]}
+									options={selectedModule.settings[settingKey].options}
+									setting={selectedModule.settings[settingKey]}
 									change={(value) => {
 										if (selectedModule) setSetting(selectedModule, settingKey, value);
 									}}
@@ -263,7 +254,7 @@
 							</div>
 						{/if}
 					</div>
-					<P class="col-span-2">{selectedModule[settingKey].description}</P>
+					<P class="col-span-2">{selectedModule.settings[settingKey].description}</P>
 				{/if}
 			{:else}
 				<div class="col-span-1">{$t('options.no-settings')}</div>

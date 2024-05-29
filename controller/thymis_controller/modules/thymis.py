@@ -1,18 +1,11 @@
-import json
-import os
-from thymis_controller.models.setting import ModuleSettings
-from jinja2 import Environment
-from thymis_controller.models import Module, Setting
-
-import pathlib
-
-from thymis_controller import models
+from thymis_controller import models, modules
+from thymis_controller.models import ModuleSettings
 
 
-class ThymisController(Module):
+class ThymisController(modules.Module):
     displayName: str = "Thymis Controller"
 
-    repo_dir: Setting = Setting(
+    repo_dir = models.Setting(
         name="thymis.controller.repo-dir",
         type="string",
         default="/var/lib/thymis",
@@ -21,15 +14,15 @@ class ThymisController(Module):
     )
 
     def write_nix_settings(self, f, module_settings: ModuleSettings, priority: int):
-        f.write(f"  thymis.controller.enable = true;\n")
+        f.write("  thymis.controller.enable = true;\n")
 
         return super().write_nix_settings(f, module_settings, priority)
 
 
-class ThymisDevice(Module):
+class ThymisDevice(modules.Module):
     displayName: str = "Thymis Device"
 
-    device_type: Setting = Setting(
+    device_type = models.Setting(
         name="thymis.config.device-type",
         type="select-one",
         options=["generic-x86_64", "raspberry-pi-4", "generic-aarch64"],
@@ -38,7 +31,7 @@ class ThymisDevice(Module):
         example="",
     )
 
-    device_name: Setting = Setting(
+    device_name = models.Setting(
         name="thymis.config.device-name",
         type="string",
         default="",
@@ -46,7 +39,7 @@ class ThymisDevice(Module):
         example="",
     )
 
-    password: Setting = Setting(
+    password = models.Setting(
         name="thymis.config.password",
         type="string",
         default="",
@@ -54,7 +47,7 @@ class ThymisDevice(Module):
         example="",
     )
 
-    wifi_ssid: Setting = Setting(
+    wifi_ssid = models.Setting(
         name="thymis.config.wifi-ssid",
         type="string",
         default="",
@@ -62,7 +55,7 @@ class ThymisDevice(Module):
         example="",
     )
 
-    wifi_password: Setting = Setting(
+    wifi_password = models.Setting(
         name="thymis.config.wifi-password",
         type="string",
         default="",
@@ -72,7 +65,7 @@ class ThymisDevice(Module):
 
     def write_nix_settings(self, f, module_settings: ModuleSettings, priority: int):
         device_type = (
-            module_settings.settings["device_type"].value
+            module_settings.settings["device_type"]
             if "device_type" in module_settings.settings
             else self.device_type.default
         )
