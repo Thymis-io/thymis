@@ -22,12 +22,14 @@
 	}
 
 	function addTag() {
-		if (newTag && !availableTags.find((t) => t.displayName === newTag)) {
+		const newIdentifier = newTag.toLocaleLowerCase().replaceAll(' ', '-');
+
+		if (newTag && !availableTags.find((t) => t.identifier === newIdentifier)) {
 			availableTags = [
 				...availableTags,
 				{
 					displayName: newTag,
-					identifier: newTag.toLocaleLowerCase().replaceAll(' ', '-'),
+					identifier: newIdentifier,
 					priority: 5,
 					modules: []
 				}
@@ -48,12 +50,12 @@
 		{#each availableTags as availableTag}
 			<Button
 				rounded
-				color={tags.includes(availableTag.displayName) ? 'primary' : 'alternative'}
-				class={tags.includes(availableTag.displayName)
+				color={tags.includes(availableTag.identifier) ? 'primary' : 'alternative'}
+				class={tags.includes(availableTag.identifier)
 					? 'px-[15px] py-[11px]'
 					: 'px-[14px] py-[10px]'}
 				on:click={() => {
-					toggle(availableTag.displayName);
+					toggle(availableTag.identifier);
 				}}
 			>
 				{availableTag.displayName}
