@@ -102,7 +102,7 @@ class State(BaseModel):
                 module.write_nix(device_path, module_settings, HOST_PRIORITY)
         # for each tag create its own folder
         for tag in self.tags:
-            tag_path = path / "tags" / tag.displayName
+            tag_path = path / "tags" / tag.identifier
             tag_path.mkdir(exist_ok=True)
             # create a empty .gitignore file
             os.mknod(tag_path / ".gitignore")

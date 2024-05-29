@@ -48,6 +48,10 @@
 		);
 	};
 
+	const findTag = (identifier: string) => {
+		return data.state.tags.find((t) => t.identifier === identifier);
+	};
+
 	enum ModalType {
 		None,
 		CreateDevice,
@@ -195,7 +199,7 @@
 									<!-- <span
 									class="inline-block bg-blue-300 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-1"
 								> -->
-									{tag}
+									{findTag(tag)?.displayName ?? tag}
 									<!-- </span> -->
 								</Button>
 							{/each}

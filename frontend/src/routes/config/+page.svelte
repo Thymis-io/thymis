@@ -42,7 +42,7 @@
 
 		if (device) {
 			let usedTags = device.tags.flatMap(
-				(t) => data.state.tags.find((tag) => tag.displayName === t) ?? []
+				(t) => data.state.tags.find((tag) => tag.identifier === t) ?? []
 			);
 			return [
 				...device.modules.map((m) => ({ origin: getOrigin(device), ...m })),
