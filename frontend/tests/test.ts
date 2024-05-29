@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-test('index page has expected h1', async ({ page }) => {
+test('index page redirects to overview', async ({ page }) => {
 	await page.goto('/');
-	await expect(page.getByRole('heading', { name: 'Welcome to SvelteKit' })).toBeVisible();
+
+	expect(page.url()).toContain('/overview');
 });
