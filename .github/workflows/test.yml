@@ -31,16 +31,18 @@ jobs:
       - name: Cache the virtualenv
         uses: actions/cache@v4
         with:
-          path: ./.venv
+          path: ./controller/.venv
           key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install dependencies
         run: |
           python -m poetry install
+        working-directory: controller
 
       - name: Run tests
         run: |
           python -m poetry run python -m pytest -sxv
+        working-directory: controller
   test-frontend:
     runs-on: ubuntu-latest
     steps:
@@ -49,17 +51,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: go to frontend directory
-        run: cd frontend
       - name: Install dependencies
         run: |
           npm ci
+        working-directory: frontend
       - name: Install Playwright Browser
         run: |
           npx playwright install --with-deps
+        working-directory: frontend
       - name: Run tests
         run: |
           npm run test
+        working-directory: frontend
   test:
     runs-on: ubuntu-latest
     needs: [test-controller, test-frontend]
