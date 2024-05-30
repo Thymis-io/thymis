@@ -3,16 +3,14 @@ import { controllerHost, controllerProtocol } from './api';
 import { browser } from '$app/environment';
 import { writable } from 'svelte/store';
 
-export type Module = {
+export type ModuleSettings = {
 	type: string;
 	settings: {
-		[key: string]: {
-			value: string | number | boolean;
-		};
+		[key: string]: string | number | boolean;
 	};
 };
 
-export type SettingDefinition = {
+export type Setting = {
 	name: string;
 	type: string;
 	options?: string[];
@@ -21,24 +19,25 @@ export type SettingDefinition = {
 	example: string | null;
 };
 
-export type ModuleDefinition = {
+export type Module = {
 	type: string;
 	icon: string;
 	displayName: string;
-} & Record<string, SettingDefinition>;
+	settings: Record<string, Setting>;
+};
 
 export type Tag = {
 	displayName: string;
 	identifier: string;
 	priority: number;
-	modules: Module[];
+	modules: ModuleSettings[];
 };
 
 export type Device = {
 	displayName: string;
 	identifier: string;
 	targetHost: string;
-	modules: Module[];
+	modules: ModuleSettings[];
 	tags: string[];
 };
 

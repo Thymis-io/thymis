@@ -2,3 +2,6 @@ result
 gcroots
 venv
 result*
+coverage.xml
+.coverage
+cov.xml

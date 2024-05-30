@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Card, Button, P } from 'flowbite-svelte';
-	import type { Module, ModuleDefinition } from './state';
+	import type { ModuleSettings, Module } from './state';
 	import { page } from '$app/stores';
 
-	export let module: ModuleDefinition;
+	export let module: Module;
 	export let installed: boolean;
-	export let addModule: (module: Module | ModuleDefinition) => void;
+	export let addModule: (module: ModuleSettings | Module) => void;
 
 	const otherUrlParams = (searchParams: string) => {
 		const params = new URLSearchParams(searchParams);

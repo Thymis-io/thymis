@@ -1,11 +1,10 @@
-from thymis_controller.models import Module, Setting
-from thymis_controller.models.setting import ModuleSettings
+from thymis_controller import models, modules
 
 
-class Kiosk(Module):
+class Kiosk(modules.Module):
     displayName: str = "Kiosk"
 
-    kiosk_url: Setting = Setting(
+    kiosk_url = models.Setting(
         name="kiosk.url",
         type="string",
         default="https://example.com",
@@ -13,7 +12,9 @@ class Kiosk(Module):
         example="https://example.com",
     )
 
-    def write_nix_settings(self, f, module_settings: ModuleSettings, priority: int):
+    def write_nix_settings(
+        self, f, module_settings: models.ModuleSettings, priority: int
+    ):
         kiosk_url = (
             module_settings.settings["kiosk_url"].value
             if "kiosk_url" in module_settings.settings

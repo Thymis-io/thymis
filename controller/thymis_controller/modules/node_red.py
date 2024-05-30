@@ -1,17 +1,16 @@
-from typing import Optional
-from thymis_controller.models import Module, Setting
 import pathlib
+from typing import Optional
+
+from thymis_controller import lib, models, modules
 
 
-class NodeRed(Module):
+class NodeRed(modules.Module):
     displayName: str = "Node-RED"
-    icon: Optional[str] = Module.read_into_base64(
-        # "./thymis_controller/icons/Node-RED.svg"
-        pathlib.Path(__file__).parent.parent.parent
-        / "icons/Node-RED.svg"
+    icon: Optional[str] = lib.read_into_base64(
+        pathlib.Path(__file__).parent / "icons/Node-RED.svg"
     )
 
-    enable: Setting = Setting(
+    enable = models.Setting(
         name="services.node-red.enable",
         type="bool",
         default=False,
@@ -19,7 +18,7 @@ class NodeRed(Module):
         example="true",
     )
 
-    enable2: Setting = Setting(
+    enable2 = models.Setting(
         name="services.node-red.enable",
         type="bool",
         default=False,

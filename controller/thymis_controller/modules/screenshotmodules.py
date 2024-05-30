@@ -1,10 +1,10 @@
-from typing import Optional
-from thymis_controller.models import Module, Setting
-from thymis_controller.models.setting import ModuleSettings
 import pathlib
+from typing import Optional
+
+from thymis_controller import lib, models, modules
 
 
-class ScreenshotModuleNotAvaliable(Module):
+class ScreenshotModuleNotAvaliable(modules.Module):
     # kiosk_url: Setting = Setting(
     #     name="kiosk.url",
     #     type="string",
@@ -14,7 +14,9 @@ class ScreenshotModuleNotAvaliable(Module):
     # )
     image: str
 
-    def write_nix_settings(self, f, module_settings: ModuleSettings, priority: int):
+    def write_nix_settings(
+        self, f, module_settings: models.ModuleSettings, priority: int
+    ):
         f.write(f'  hardware.raspberry-pi."4".fkms-3d.enable = true;\n')
         f.write(
             f"""
@@ -53,9 +55,9 @@ exec ${{pkgs.firefox}}/bin/firefox --kiosk {self.image}
 
 class Grafana1Module(ScreenshotModuleNotAvaliable):
     displayName: str = "Grafana"
-    icon: Optional[str] = Module.read_into_base64(
+    icon: Optional[str] = lib.read_into_base64(
         # "./thymis_controller/icons/Grafana.svg"
-        pathlib.Path(__file__).parent.parent.parent
+        pathlib.Path(__file__).parent
         / "icons/Grafana.svg"
     )
     image: str = (
@@ -65,9 +67,9 @@ class Grafana1Module(ScreenshotModuleNotAvaliable):
 
 class MqttxModule(ScreenshotModuleNotAvaliable):
     displayName: str = "Mqttx"
-    icon: Optional[str] = Module.read_into_base64(
+    icon: Optional[str] = lib.read_into_base64(
         # "./thymis_controller/icons/mqttx.png"
-        pathlib.Path(__file__).parent.parent.parent
+        pathlib.Path(__file__).parent
         / "icons/mqttx.png"
     )
     image: str = (
@@ -77,9 +79,9 @@ class MqttxModule(ScreenshotModuleNotAvaliable):
 
 class NodeRedModule(ScreenshotModuleNotAvaliable):
     displayName: str = "Node-RED Configured"
-    icon: Optional[str] = Module.read_into_base64(
+    icon: Optional[str] = lib.read_into_base64(
         # "./thymis_controller/icons/Node-RED.svg"
-        pathlib.Path(__file__).parent.parent.parent
+        pathlib.Path(__file__).parent
         / "icons/Node-RED.svg"
     )
     image: str = (

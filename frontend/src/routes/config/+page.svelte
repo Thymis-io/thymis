@@ -7,7 +7,7 @@
 	import ConfigSelectOne from '$lib/config/ConfigSelectOne.svelte';
 	import { queryParam } from 'sveltekit-search-params';
 	import { saveState } from '$lib/state';
-	import type { Module, Tag, Device, ModuleDefinition } from '$lib/state';
+	import type { ModuleSettings, Tag, Device, Module } from '$lib/state';
 
 	import Info from 'lucide-svelte/icons/info';
 	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
@@ -56,7 +56,7 @@
 		return data.availableModules.filter((m) => settings?.find((s) => s.type === m.type)) ?? [];
 	};
 
-	const addModule = (module: Module | ModuleDefinition) => {
+	const addModule = (module: ModuleSettings | Module) => {
 		if (tag && !tag.modules.find((m) => m.type === module.type)) {
 			tag.modules = [...tag.modules, { type: module.type, settings: {} }];
 		}
@@ -68,7 +68,7 @@
 		saveState(data.state);
 	};
 
-	const removeModule = (module: Module | ModuleDefinition) => {
+	const removeModule = (module: ModuleSettings | Module) => {
 		if (tag) {
 			tag.modules = tag.modules.filter((m) => m.type !== module.type);
 		}
@@ -81,7 +81,7 @@
 	};
 
 	const getSettings = (
-		module: Module | ModuleDefinition,
+		module: ModuleSettings | Module,
 		settingKey: string,
 		tag: Tag | undefined,
 		device: Device | undefined
@@ -93,7 +93,7 @@
 	};
 
 	const getSetting = (
-		module: Module | ModuleDefinition,
+		module: ModuleSettings | Module,
 		settingKey: string,
 		tag: Tag | undefined,
 		device: Device | undefined
@@ -101,18 +101,18 @@
 		let settings = getSettings(module, settingKey, tag, device);
 
 		if (settings && settings.length >= 1) {
-			return settings[0].settings[settingKey].value;
+			return settings[0].settings[settingKey];
 		}
 	};
 
-	const setSetting = (module: Module | ModuleDefinition, settingKey: string, value: any) => {
+	const setSetting = (module: ModuleSettings | Module, settingKey: string, value: any) => {
 		addModule(module);
 
 		let tagModule = tag?.modules.find((m) => m.type === module.type);
 
 		if (tag && tagModule) {
 			if (value !== undefined && value !== null) {
-				tagModule.settings[settingKey] = { ...tagModule.settings[settingKey], value: value };
+				tagModule.settings[settingKey] = value;
 			} else {
 				delete tagModule.settings[settingKey];
 			}
@@ -122,10 +122,7 @@
 
 		if (device && deviceModule) {
 			if (value !== undefined && value !== null) {
-				deviceModule.settings[settingKey] = {
-					...deviceModule.settings[settingKey],
-					value: value
-				};
+				deviceModule.settings[settingKey] = value;
 			} else {
 				delete deviceModule.settings[settingKey];
 			}
@@ -137,16 +134,8 @@
 	let selectedModulesValidSettingkeys: string[] = [];
 	$: if (selectedModule) {
 		console.log(selectedModule);
-		selectedModulesValidSettingkeys = Object.keys(selectedModule).filter(
-			(settingKey) =>
-				settingKey &&
-				settingKey !== 'name' &&
-				settingKey !== 'type' &&
-				selectedModule &&
-				typeof selectedModule[settingKey] === 'object' &&
-				selectedModule[settingKey] &&
-				'name' in selectedModule[settingKey]
-		);
+		selectedModulesValidSettingkeys = Object.keys(selectedModule.settings);
+		console.log(selectedModulesValidSettingkeys);
 	}
 
 	const otherUrlParams = (searchParams: string) => {
@@ -196,75 +185,73 @@
 	<Card class="col-span-4 max-w-none grid grid-cols-4 gap-8 gap-x-10 ">
 		{#if selectedModule}
 			{#each selectedModulesValidSettingkeys as settingKey}
-				{#if settingKey in selectedModule}
-					{@const setting = getSetting(selectedModule, settingKey, tag, device)}
-					{@const effectingSettings = getSettings(selectedModule, settingKey, tag, device)}
-					<P class="col-span-1">
-						{$t(`options.nix.${selectedModule[settingKey].name}`, {
-							default: selectedModule[settingKey].name
-						})}
-					</P>
-					<div class="col-span-1 flex">
-						<div class="flex-1">
-							{#if selectedModule[settingKey].type == 'bool'}
-								<ConfigBool
-									value={setting === true}
-									name={selectedModule[settingKey].name}
-									change={(value) => {
-										if (selectedModule) setSetting(selectedModule, settingKey, value);
-									}}
-								/>
-							{:else if selectedModule[settingKey].type == 'string'}
-								<ConfigString
-									value={setting}
-									placeholder={selectedModule[settingKey].default}
-									change={(value) => {
-										if (selectedModule) setSetting(selectedModule, settingKey, value);
-									}}
-								/>
-							{:else if selectedModule[settingKey].type == 'textarea'}
-								<ConfigTextarea
-									value={setting}
-									placeholder={selectedModule[settingKey].default}
-									change={(value) => {
-										if (selectedModule) setSetting(selectedModule, settingKey, value);
-									}}
-								/>
-							{:else if selectedModule[settingKey].type == 'select-one'}
-								<ConfigSelectOne
-									value={setting}
-									options={selectedModule[settingKey].options}
-									setting={selectedModule[settingKey]}
-									change={(value) => {
-										if (selectedModule) setSetting(selectedModule, settingKey, value);
-									}}
-								/>
-							{/if}
-						</div>
-						{#if effectingSettings && effectingSettings.length >= 1}
-							<div class="mt-1.5 ml-2">
-								<button class="btn p-0">
-									<Info color="#0080c0" />
-								</button>
-								<Tooltip>
-									{#each effectingSettings.reverse() as effectingSetting}
-										<p>{effectingSetting.origin}: {effectingSetting.settings[settingKey].value}</p>
-									{/each}
-								</Tooltip>
-								{#if effectingSettings.reverse()[0].origin == getOrigin(tag ?? device)}
-									<button
-										class="btn p-0"
-										on:click={() => {
-											if (selectedModule) setSetting(selectedModule, settingKey, undefined);
-										}}
-										><RotateCcw color="#0080c0" />
-									</button>
-								{/if}
-							</div>
+				{@const setting = getSetting(selectedModule, settingKey, tag, device)}
+				{@const effectingSettings = getSettings(selectedModule, settingKey, tag, device)}
+				<P class="col-span-1">
+					{$t(`options.nix.${selectedModule.settings[settingKey].name}`, {
+						default: selectedModule.settings[settingKey].name
+					})}
+				</P>
+				<div class="col-span-1 flex">
+					<div class="flex-1">
+						{#if selectedModule.settings[settingKey].type == 'bool'}
+							<ConfigBool
+								value={setting === true}
+								name={selectedModule.settings[settingKey].name}
+								change={(value) => {
+									if (selectedModule) setSetting(selectedModule, settingKey, value);
+								}}
+							/>
+						{:else if selectedModule.settings[settingKey].type == 'string'}
+							<ConfigString
+								value={setting}
+								placeholder={selectedModule.settings[settingKey].default}
+								change={(value) => {
+									if (selectedModule) setSetting(selectedModule, settingKey, value);
+								}}
+							/>
+						{:else if selectedModule.settings[settingKey].type == 'textarea'}
+							<ConfigTextarea
+								value={setting}
+								placeholder={selectedModule.settings[settingKey].default}
+								change={(value) => {
+									if (selectedModule) setSetting(selectedModule, settingKey, value);
+								}}
+							/>
+						{:else if selectedModule.settings[settingKey].type == 'select-one'}
+							<ConfigSelectOne
+								value={setting}
+								options={selectedModule.settings[settingKey].options}
+								setting={selectedModule.settings[settingKey]}
+								change={(value) => {
+									if (selectedModule) setSetting(selectedModule, settingKey, value);
+								}}
+							/>
 						{/if}
 					</div>
-					<P class="col-span-2">{selectedModule[settingKey].description}</P>
-				{/if}
+					{#if effectingSettings && effectingSettings.length >= 1}
+						<div class="mt-1.5 ml-2">
+							<button class="btn p-0">
+								<Info color="#0080c0" />
+							</button>
+							<Tooltip>
+								{#each effectingSettings.reverse() as effectingSetting}
+									<p>{effectingSetting.origin}: {effectingSetting.settings[settingKey].value}</p>
+								{/each}
+							</Tooltip>
+							{#if effectingSettings.reverse()[0].origin == getOrigin(tag ?? device)}
+								<button
+									class="btn p-0"
+									on:click={() => {
+										if (selectedModule) setSetting(selectedModule, settingKey, undefined);
+									}}
+									><RotateCcw color="#0080c0" />
+								</button>
+							{/if}
+						</div>
+					{/if}
+				</div>
+				<P class="col-span-2">{selectedModule.settings[settingKey].description}</P>
 			{:else}
 				<div class="col-span-1">{$t('options.no-settings')}</div>
 			{/each}

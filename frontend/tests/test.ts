@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test';
 
-test('index page has expected h1', async ({ page }) => {
-	await page.goto('/');
-	await expect(page.getByRole('heading', { name: 'Welcome to SvelteKit' })).toBeVisible();
+test('index page throws without backend', async ({ page }) => {
+	const resp = await page.goto('/');
+
+	expect(resp).not.toBeNull();
+
+	expect(resp.status()).toBe(500); // The backend is not running, so we get a 500 error
 });

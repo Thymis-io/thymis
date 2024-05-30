@@ -1,10 +1,8 @@
-import os
+import importlib
+
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.middleware.cors import CORSMiddleware
 from thymis_controller.routes import router
-import importlib
 
 description = """
 API to control Nix operating system 🎛️
@@ -16,7 +14,7 @@ app = FastAPI(
     summary="Controller backend for gathering and changing information of a device",
     version="0.1.0",
     contact={
-        "name": "Thmyis",
+        "name": "Thymis",
         "url": "https://thymis.io",
         "email": "software@thymis.io",
     },
@@ -44,7 +42,7 @@ app.include_router(router.router)
 
 
 if importlib.util.find_spec("thymis_enterprise"):
-    import thymis_enterprise
+    import thymis_enterprise  # pylint: disable=import-error # type: ignore
 
     thymis_enterprise.thymis_enterprise_hello_world()
 
