@@ -150,14 +150,16 @@ class CommandTask(Task):
 
         r = await proc.wait()
         if r != 0:
-            raise Exception(f"Command failed with return code {r}")
+            raise Exception(
+                f"Command {self.program} {' '.join(self.args)} failed with exit code {r}"
+            )
         return r
 
     def get_model(self) -> models.CommandTask:
         return models.CommandTask(
             display_name=self.display_name,
             state=self.state,
-            exception=self.exception,
+            exception=str(self.exception),
             stdout=self.stdout.decode(),
             stderr=self.stderr.decode(),
         )
