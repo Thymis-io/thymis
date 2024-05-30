@@ -49,6 +49,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - name: go to frontend directory
+        run: cd frontend
       - name: Install dependencies
         run: |
           npm ci
