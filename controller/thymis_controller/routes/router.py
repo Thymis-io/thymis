@@ -77,8 +77,7 @@ def get_history(project: project.Project = Depends(get_project)):
 async def update(
     background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
-    state: State = Depends(get_state),
 ):
-    project.write_state_and_reload(state)
+    project.write_state_and_reload(project.read_state())
     background_tasks.add_task(project.create_update_task())
     return {"message": "update started"}

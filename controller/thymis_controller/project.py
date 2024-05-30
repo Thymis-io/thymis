@@ -162,8 +162,12 @@ class Project:
             # write its modules
             for module_settings in device.modules:
                 # module holds settings right now.
-                module = get_module_class_instance_by_type(module_settings.type)
-                module.write_nix(device_path, module_settings, HOST_PRIORITY)
+                try:
+                    module = get_module_class_instance_by_type(module_settings.type)
+                    module.write_nix(device_path, module_settings, HOST_PRIORITY)
+                except Exception as e:
+                    print(f"Error while writing module {module_settings.type}: {e}")
+                    traceback.print_exc()
         # for each tag create its own folder
         for tag in state.tags:
             tag_path = self.path / "tags" / tag.identifier
@@ -173,8 +177,12 @@ class Project:
             # write its modules
             for module_settings in tag.modules:
                 # module holds settings right now.
-                module = get_module_class_instance_by_type(module_settings.type)
-                module.write_nix(tag_path, module_settings, tag.priority)
+                try:
+                    module = get_module_class_instance_by_type(module_settings.type)
+                    module.write_nix(tag_path, module_settings, tag.priority)
+                except Exception as e:
+                    print(f"Error while writing module {module_settings.type}: {e}")
+                    traceback.print_exc()
         # run git add
         self.repo.index.add(".")
 
