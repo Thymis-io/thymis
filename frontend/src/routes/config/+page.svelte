@@ -5,6 +5,7 @@
 	import ConfigString from '$lib/config/ConfigString.svelte';
 	import ConfigTextarea from '$lib/config/ConfigTextarea.svelte';
 	import ConfigSelectOne from '$lib/config/ConfigSelectOne.svelte';
+	import ModuleList from '$lib/config/ModuleList.svelte';
 	import { queryParam } from 'sveltekit-search-params';
 	import { saveState } from '$lib/state';
 	import type { ModuleSettings, Tag, Device, Module } from '$lib/state';
@@ -14,6 +15,7 @@
 	import DeployActions from '$lib/DeployActions.svelte';
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
+	import ConfigModuleCard from '$lib/config/ConfigModuleCard.svelte';
 
 	export let data: PageData;
 
@@ -25,6 +27,7 @@
 	const tagParam = queryParam('tag');
 	const deviceParam = queryParam('device');
 	const moduleParam = queryParam('module');
+	const configTargetParam = queryParam('config-target');
 
 	$: tag = data.state.tags.find((t) => t.identifier === $tagParam);
 	$: device = data.state.devices.find((d) => d.identifier === $deviceParam);
@@ -49,6 +52,15 @@
 				...usedTags.flatMap((t) => t.modules.map((m) => ({ origin: getOrigin(t), ...m })))
 			];
 		}
+	};
+
+	const getSelfModuleSettings = (target: Tag | Device | undefined) => {
+		return target?.modules.map((m) => ({ origin: getOrigin(target), ...m })) ?? [];
+	};
+
+	const getSelfModules = (tag: Tag | undefined, device: Device | undefined) => {
+		let settings = getSelfModuleSettings(tag ?? device);
+		return data.availableModules.filter((m) => settings.find((s) => s.type === m.type)) ?? [];
 	};
 
 	const getModules = (tag: Tag | undefined, device: Device | undefined) => {
@@ -141,6 +153,7 @@
 	const otherUrlParams = (searchParams: string) => {
 		const params = new URLSearchParams(searchParams);
 		params.delete('module');
+		params.delete('config-target');
 		return params.toString();
 	};
 </script>
@@ -182,8 +195,30 @@
 	{/if}
 </div>
 <div class="grid grid-flow-row grid-cols-5 gap-4">
-	<Card class="col-span-4 max-w-none grid grid-cols-4 gap-8 gap-x-10 ">
-		{#if selectedModule}
+	<Card class="col-span-1 max-w-none">
+		<ModuleList
+			target={tag ?? device}
+			selfModules={getSelfModules(tag, device)}
+			page={$page}
+			queryPrefix="self-"
+		/>
+		{#each device?.tags ?? [] as tagIdentifier}
+			{@const usedTag = data.state.tags.find((t) => t.identifier === tagIdentifier)}
+			<ModuleList
+				target={usedTag}
+				selfModules={getSelfModules(usedTag, undefined)}
+				page={$page}
+				queryPrefix="other-"
+			/>
+		{/each}
+	</Card>
+	{#if selectedModule}
+		<div class="col-span-4">
+			<ConfigModuleCard module={selectedModule} />
+		</div>
+	{/if}
+	{#if selectedModule && false}
+		<Card class="col-span-4 max-w-none grid grid-cols-4 gap-8 gap-x-10 ">
 			{#each selectedModulesValidSettingkeys as settingKey}
 				{@const setting = getSetting(selectedModule, settingKey, tag, device)}
 				{@const effectingSettings = getSettings(selectedModule, settingKey, tag, device)}
@@ -255,6 +290,6 @@
 			{:else}
 				<div class="col-span-1">{$t('options.no-settings')}</div>
 			{/each}
-		{/if}
-	</Card>
+		</Card>
+	{/if}
 </div>

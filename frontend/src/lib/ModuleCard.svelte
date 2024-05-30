@@ -3,10 +3,14 @@
 	import { Card, Button, P } from 'flowbite-svelte';
 	import type { ModuleSettings, Module } from './state';
 	import { page } from '$app/stores';
+	import { queryParam } from 'sveltekit-search-params';
 
 	export let module: Module;
 	export let installed: boolean;
 	export let addModule: (module: ModuleSettings | Module) => void;
+
+	const tagParam = queryParam('tag');
+	const deviceParam = queryParam('device');
 
 	const otherUrlParams = (searchParams: string) => {
 		const params = new URLSearchParams(searchParams);
@@ -22,7 +26,9 @@
 		<Button
 			size="xs"
 			class="!w-28"
-			href="/config?{otherUrlParams($page.url.search)}&module={module.type}"
+			href="/config?{otherUrlParams(
+				$page.url.search
+			)}&module={module.type}&config-target=self-{$tagParam ?? $deviceParam}"
 		>
 			{$t('config.configure')}
 		</Button>
