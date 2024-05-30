@@ -184,14 +184,14 @@ class Project:
                     print(f"Error while writing module {module_settings.type}: {e}")
                     traceback.print_exc()
         # run git add
-        self.repo.index.add(".")
+        self.repo.git.add(".")
 
     def set_repositories_in_python_path(self, path: os.PathLike, state: State):
         repositories = BUILTIN_REPOSITORIES | state.repositories
         load_repositories(path, repositories)
 
     def commit(self, summary: str):
-        self.repo.index.add(".")
+        self.repo.git.add(".")
 
         if self.repo.index.diff("HEAD"):
             self.repo.index.commit(summary)
