@@ -174,8 +174,8 @@ def render_flake_nix(repositories: dict[str, "models.Repo"]) -> str:
 
 NIX_CMD = [
     "nix",
-    "--experimental-features",
+    "--extra-experimental-features",
     "nix-command",
-    "--experimental-features",
+    "--extra-experimental-features",
     "flakes",
 ]
