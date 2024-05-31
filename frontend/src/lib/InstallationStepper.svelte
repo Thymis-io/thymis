@@ -55,7 +55,7 @@
 				targetHost: data.targetHost,
 				modules: [
 					{
-						type: 'thymis_controller.models.modules.thymis.ThymisDevice',
+						type: 'thymis_controller.modules.thymis.ThymisDevice',
 						settings: {
 							device_type: data.device
 						}
