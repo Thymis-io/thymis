@@ -195,10 +195,12 @@ class Project:
 
     def commit(self, summary: str):
         self.repo.git.add(".")
-
-        if self.repo.index.diff("HEAD"):
+        try:
+            if self.repo.index.diff("HEAD"):
+                self.repo.index.commit(summary)
+                print("committed changes", summary)
+        except git.BadName:
             self.repo.index.commit(summary)
-            print("committed changes", summary)
 
     def get_history(self):
         return [
