@@ -3,7 +3,12 @@ import os
 from fastapi import Depends
 from thymis_controller.project import Project
 
-REPO_PATH = os.getenv("REPO_PATH")
+if os.getenv("REPO_PATH"):
+    REPO_PATH = os.getenv("REPO_PATH")
+else:
+    REPO_PATH = "/var/lib/thymis"
+    print(f"REPO_PATH not set. Using default path: {REPO_PATH}")
+
 global_project = Project(REPO_PATH)
 
 

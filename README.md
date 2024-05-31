@@ -101,7 +101,7 @@ First, start the controller:
 
 ```sh
 cd controller
-poetry run uvicorn thymis_controller.api:app --reload
+poetry run uvicorn thymis_controller.main:app --reload
 ```
 
 Then, start the frontend:

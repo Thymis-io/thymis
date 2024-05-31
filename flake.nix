@@ -94,6 +94,7 @@
             poetry2nix = (
               (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; })
             );
+            thymis-frontend = thymis-frontend;
           };
         in
         {
