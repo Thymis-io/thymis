@@ -6,6 +6,7 @@ from typing import Optional
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from thymis_controller import models, project
+from thymis_controller.nix import NIX_CMD
 
 
 class Task:
@@ -168,7 +169,8 @@ class CommandTask(Task):
 class BuildTask(CommandTask):
     def __init__(self, repo_dir):
         super().__init__(
-            "nix", ["build", f"{repo_dir}#thymis", "--out-link", "/tmp/thymis"]
+            "nix",
+            [*NIX_CMD[1:], "build", f"{repo_dir}#thymis", "--out-link", "/tmp/thymis"],
         )
 
         self.display_name = f"Building project"
@@ -208,7 +210,7 @@ class DeployDeviceTask(CommandTask):
 
 class UpdateTask(CommandTask):
     def __init__(self, repo_dir):
-        super().__init__("nix", ["flake", "update", repo_dir])
+        super().__init__("nix", [*NIX_CMD[1:], "flake", "update", repo_dir])
 
 
 class BuildDeviceImageTask(CommandTask):

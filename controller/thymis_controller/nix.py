@@ -1,3 +1,4 @@
+import asyncio
 import json
 import subprocess
 import typing
@@ -169,3 +170,12 @@ def render_flake_nix(repositories: dict[str, "models.Repo"]) -> str:
     rendered = template.render(inputs=inputs, inputs_keys=inputs_keys)
     formatted = format_nix_value_as_string(rendered)
     return formatted
+
+
+NIX_CMD = [
+    "nix",
+    "--experimental-features",
+    "nix-command",
+    "--experimental-features",
+    "flakes",
+]

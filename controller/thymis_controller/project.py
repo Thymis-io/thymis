@@ -12,7 +12,7 @@ from pathlib import Path
 import git
 from thymis_controller import migration, models, modules, task
 from thymis_controller.models.state import State
-from thymis_controller.nix import get_input_out_path, render_flake_nix
+from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
 
 BUILTIN_REPOSITORIES = {
     "thymis": models.Repo(url="github:thymis-io/thymis"),
@@ -141,7 +141,9 @@ class Project:
         with open(self.path / "flake.nix", "w+", encoding="utf-8") as f:
             f.write(render_flake_nix(repositories))
         # write missing flake.lock entries using nix flake lock
-        subprocess.run(["nix", "flake", "lock"], cwd=self.path, check=True)
+        subprocess.run(
+            ["nix", *NIX_CMD[1:], "flake", "lock"], cwd=self.path, check=True
+        )
         self.set_repositories_in_python_path(self.path, state)
         # create modules folder if not exists
         modules_path = self.path / "modules"
