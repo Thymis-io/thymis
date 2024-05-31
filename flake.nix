@@ -100,12 +100,7 @@
         {
           thymis-frontend = thymis-frontend;
           thymis-controller = thymis-controller;
-          thymis-controller-container = pkgs.dockerTools.buildLayeredImage {
-            name = "thymis-controller";
-            config = {
-              Cmd = [ "${thymis-controller}/bin/thymis-controller" ];
-            };
-          };
+          thymis-controller-container = import ./docker.nix { inherit pkgs thymis-controller; };
           thymis-frontend-container = pkgs.dockerTools.buildLayeredImage {
             name = "thymis-frontend";
             config = {

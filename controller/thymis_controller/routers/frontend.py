@@ -47,7 +47,7 @@ class Frontend:
         else:
             self.process = await asyncio.create_subprocess_exec(
                 frontend_binary_path(),
-                env={"PORT": str(FRONTEND_PORT)},
+                env={"PORT": str(FRONTEND_PORT), "HOST": "localhost"},
             )
 
     async def raise_if_terminated(self):
