@@ -16,6 +16,7 @@
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
 	import ConfigModuleCard from '$lib/config/ConfigModuleCard.svelte';
+	import { HardDrive, TagIcon } from 'lucide-svelte';
 
 	export let data: PageData;
 
@@ -205,7 +206,15 @@
 			selfModules={getSelfModules(tag, device)}
 			page={$page}
 			queryPrefix="self-"
-		/>
+		>
+			<slot slot="icon">
+				{#if tag}
+					<TagIcon />
+				{:else if device}
+					<HardDrive />
+				{/if}
+			</slot>
+		</ModuleList>
 		{#each device?.tags ?? [] as tagIdentifier}
 			{@const usedTag = data.state.tags.find((t) => t.identifier === tagIdentifier)}
 			<ModuleList
@@ -213,7 +222,9 @@
 				selfModules={getSelfModules(usedTag, undefined)}
 				page={$page}
 				queryPrefix="other-"
-			/>
+			>
+				<TagIcon slot="icon" />
+			</ModuleList>
 		{/each}
 	</Card>
 	{#if selectedModule}

@@ -20,7 +20,10 @@
 	};
 </script>
 
-<P size="lg" class="p-2">{target?.displayName}</P>
+<div class="flex gap-2 mb-2 ml-1">
+	<slot name="icon" />
+	<P>{target?.displayName}</P>
+</div>
 <div class="mb-4">
 	{#each selfModules as module}
 		<a
