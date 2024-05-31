@@ -33,6 +33,7 @@
 	$: device = data.state.devices.find((d) => d.identifier === $deviceParam);
 	$: modules = getModules(tag, device);
 	$: selectedModule = data.availableModules.find((m) => m.type === $moduleParam);
+	$: configTarget = getConfigTarget($configTargetParam, tag, device);
 
 	const getOrigin = (target: Tag | Device | undefined) => {
 		return target?.displayName;
@@ -54,6 +55,14 @@
 		}
 	};
 
+	const getConfigTarget = (target: string, tag?: Tag, device?: Device) => {
+		if (target.startsWith('self-')) {
+			return tag ?? device;
+		} else if (target.startsWith('other-')) {
+			return data.state.tags.find((t) => t.identifier === target.slice(6));
+		}
+	};
+
 	const getSelfModuleSettings = (target: Tag | Device | undefined) => {
 		return target?.modules.map((m) => ({ origin: getOrigin(target), ...m })) ?? [];
 	};
@@ -63,30 +72,30 @@
 		return data.availableModules.filter((m) => settings.find((s) => s.type === m.type)) ?? [];
 	};
 
+	const getOtherSettings = (device: Device | undefined) => {
+		let usedTags =
+			device?.tags.flatMap((t) => data.state.tags.find((tag) => tag.identifier === t) ?? []) ?? [];
+		return usedTags.flatMap((t) =>
+			t.modules.map((m) => ({ origin: getOrigin(t), priority: t.priority, ...m }))
+		);
+	};
+
 	const getModules = (tag: Tag | undefined, device: Device | undefined) => {
 		let settings = getModuleSettings(tag, device);
 		return data.availableModules.filter((m) => settings?.find((s) => s.type === m.type)) ?? [];
 	};
 
-	const addModule = (module: ModuleSettings | Module) => {
-		if (tag && !tag.modules.find((m) => m.type === module.type)) {
-			tag.modules = [...tag.modules, { type: module.type, settings: {} }];
-		}
-
-		if (device && !device.modules.find((m) => m.type === module.type)) {
-			device.modules = [...device.modules, { type: module.type, settings: {} }];
+	const addModule = (target: Tag | Device | undefined, module: ModuleSettings | Module) => {
+		if (target && !target.modules.find((m) => m.type === module.type)) {
+			target.modules = [...target.modules, { type: module.type, settings: {} }];
 		}
 
 		saveState(data.state);
 	};
 
-	const removeModule = (module: ModuleSettings | Module) => {
-		if (tag) {
-			tag.modules = tag.modules.filter((m) => m.type !== module.type);
-		}
-
-		if (device) {
-			device.modules = device.modules.filter((m) => m.type !== module.type);
+	const removeModule = (target: Tag | Device | undefined, module: ModuleSettings | Module) => {
+		if (target) {
+			target.modules = target.modules.filter((m) => m.type !== module.type);
 		}
 
 		saveState(data.state);
@@ -117,26 +126,22 @@
 		}
 	};
 
-	const setSetting = (module: ModuleSettings | Module, settingKey: string, value: any) => {
-		addModule(module);
+	const setSetting = (
+		target: Tag | Device | undefined,
+		module: ModuleSettings | Module,
+		settingKey: string,
+		value: any
+	) => {
+		addModule(target, module);
 
-		let tagModule = tag?.modules.find((m) => m.type === module.type);
+		let targetModule = target?.modules.find((m) => m.type === module.type);
+		console.log(target, targetModule);
 
-		if (tag && tagModule) {
+		if (targetModule) {
 			if (value !== undefined && value !== null) {
-				tagModule.settings[settingKey] = value;
+				targetModule.settings[settingKey] = value;
 			} else {
-				delete tagModule.settings[settingKey];
-			}
-		}
-
-		let deviceModule = device?.modules.find((m) => m.type === module.type);
-
-		if (device && deviceModule) {
-			if (value !== undefined && value !== null) {
-				deviceModule.settings[settingKey] = value;
-			} else {
-				delete deviceModule.settings[settingKey];
+				delete targetModule.settings[settingKey];
 			}
 		}
 
@@ -179,7 +184,7 @@
 	{#if modules.find((m) => m.type === selectedModule?.type)}
 		<Button
 			on:click={() => {
-				if (selectedModule) removeModule(selectedModule);
+				if (selectedModule) removeModule(configTarget, selectedModule);
 			}}
 		>
 			{$t('config.uninstall')}
@@ -187,7 +192,7 @@
 	{:else}
 		<Button
 			on:click={() => {
-				if (selectedModule) addModule(selectedModule);
+				if (selectedModule) addModule(configTarget, selectedModule);
 			}}
 		>
 			{$t('config.install')}
@@ -214,82 +219,12 @@
 	</Card>
 	{#if selectedModule}
 		<div class="col-span-4">
-			<ConfigModuleCard module={selectedModule} />
+			<ConfigModuleCard
+				module={selectedModule}
+				settings={getSelfModuleSettings(configTarget).find((s) => s.type === selectedModule.type)}
+				otherSettings={getOtherSettings(device)}
+				setSetting={(module, key, value) => setSetting(configTarget, module, key, value)}
+			/>
 		</div>
-	{/if}
-	{#if selectedModule && false}
-		<Card class="col-span-4 max-w-none grid grid-cols-4 gap-8 gap-x-10 ">
-			{#each selectedModulesValidSettingkeys as settingKey}
-				{@const setting = getSetting(selectedModule, settingKey, tag, device)}
-				{@const effectingSettings = getSettings(selectedModule, settingKey, tag, device)}
-				<P class="col-span-1">
-					{$t(`options.nix.${selectedModule.settings[settingKey].name}`, {
-						default: selectedModule.settings[settingKey].name
-					})}
-				</P>
-				<div class="col-span-1 flex">
-					<div class="flex-1">
-						{#if selectedModule.settings[settingKey].type == 'bool'}
-							<ConfigBool
-								value={setting === true}
-								name={selectedModule.settings[settingKey].name}
-								change={(value) => {
-									if (selectedModule) setSetting(selectedModule, settingKey, value);
-								}}
-							/>
-						{:else if selectedModule.settings[settingKey].type == 'string'}
-							<ConfigString
-								value={setting}
-								placeholder={selectedModule.settings[settingKey].default}
-								change={(value) => {
-									if (selectedModule) setSetting(selectedModule, settingKey, value);
-								}}
-							/>
-						{:else if selectedModule.settings[settingKey].type == 'textarea'}
-							<ConfigTextarea
-								value={setting}
-								placeholder={selectedModule.settings[settingKey].default}
-								change={(value) => {
-									if (selectedModule) setSetting(selectedModule, settingKey, value);
-								}}
-							/>
-						{:else if selectedModule.settings[settingKey].type == 'select-one'}
-							<ConfigSelectOne
-								value={setting}
-								options={selectedModule.settings[settingKey].options}
-								setting={selectedModule.settings[settingKey]}
-								change={(value) => {
-									if (selectedModule) setSetting(selectedModule, settingKey, value);
-								}}
-							/>
-						{/if}
-					</div>
-					{#if effectingSettings && effectingSettings.length >= 1}
-						<div class="mt-1.5 ml-2">
-							<button class="btn p-0">
-								<Info color="#0080c0" />
-							</button>
-							<Tooltip>
-								{#each effectingSettings.reverse() as effectingSetting}
-									<p>{effectingSetting.origin}: {effectingSetting.settings[settingKey]}</p>
-								{/each}
-							</Tooltip>
-							{#if effectingSettings.reverse()[0].origin == getOrigin(tag ?? device)}
-								<button
-									class="btn p-0"
-									on:click={() => {
-										if (selectedModule) setSetting(selectedModule, settingKey, undefined);
-									}}
-									><RotateCcw color="#0080c0" />
-								</button>
-							{/if}
-						</div>
-					{/if}
-				</div>
-				<P class="col-span-2">{selectedModule.settings[settingKey].description}</P>
-			{:else}
-				<div class="col-span-1">{$t('options.no-settings')}</div>
-			{/each}
-		</Card>
 	{/if}
 </div>
