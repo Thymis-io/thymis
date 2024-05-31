@@ -57,7 +57,7 @@
 					{
 						type: 'thymis_controller.models.modules.thymis.ThymisDevice',
 						settings: {
-							device_type: { value: data.device }
+							device_type: data.device
 						}
 					}
 				],
