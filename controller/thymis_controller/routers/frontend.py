@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 
 import fastapi
 import httpx
+import psutil
 from fastapi import APIRouter, FastAPI
 from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
@@ -64,7 +65,24 @@ class Frontend:
         if self.stopped:
             raise Exception("frontend already stopped")
         self.stopped = True
-        self.process.terminate()
+        process_pid = self.process.pid
+        parent = psutil.Process(process_pid)
+        for child in parent.children(recursive=True):
+            try:
+                child.terminate()
+            except psutil.NoSuchProcess:
+                pass
+            await asyncio.sleep(0.1)
+            if child.is_running():
+                child.kill()
+        try:
+            parent.terminate()
+        except psutil.NoSuchProcess:
+            pass
+        await asyncio.sleep(0.1)
+        if parent.is_running():
+            parent.kill()
+        await self.process.wait()
 
 
 frontend = Frontend()
