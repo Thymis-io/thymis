@@ -56,9 +56,9 @@
 	};
 
 	const getConfigTarget = (target: string, tag?: Tag, device?: Device) => {
-		if (target.startsWith('self-')) {
+		if (target?.startsWith('self-')) {
 			return tag ?? device;
-		} else if (target.startsWith('other-')) {
+		} else if (target?.startsWith('other-')) {
 			return data.state.tags.find((t) => t.identifier === target.slice(6));
 		}
 	};
@@ -180,7 +180,6 @@
 	<DeployActions />
 </div>
 <div class="flex gap-10 mb-4">
-	<Button href="/config-overview?{otherUrlParams($page.url.search)}">{$t('config.back')}</Button>
 	{#if modules.find((m) => m.type === selectedModule?.type)}
 		<Button
 			on:click={() => {
