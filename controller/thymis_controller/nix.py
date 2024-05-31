@@ -107,7 +107,8 @@ def format_nix_value_as_string(value: str):
 def get_input_out_path(flake_path, input_name):
     # first run `nix build .#inputs.<input_name>.outPath`
     # then run `nix eval .#inputs.<input_name>.outPath --json`
-    cmd = f"nix build {flake_path}#inputs.{input_name}.outPath"
+    # cmd = f"nix build {flake_path}#inputs.{input_name}.outPath"
+    cmd = NIX_CMD + ["build", f"{flake_path}#inputs.{input_name}.outPath"]
 
     try:
         subprocess.run(
