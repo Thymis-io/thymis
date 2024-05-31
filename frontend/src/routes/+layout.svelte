@@ -3,6 +3,7 @@
 	import Navbar from './Navbar.svelte';
 	import Sidebar from './Sidebar.svelte';
 	import type { LayoutData } from '../routes/$types';
+	import SplitPane from '$lib/splitpane/SplitPane.svelte';
 
 	export let data: LayoutData;
 
@@ -14,9 +15,9 @@
 >
 	<Navbar bind:drawerHidden />
 </header>
-<div class="overflow-hidden lg:flex">
-	<Sidebar bind:drawerHidden bind:state={data.state} />
-	<div class="relative h-full w-full overflow-y-auto lg:ml-64 p-4">
+<SplitPane type="horizontal" pos="50%">
+	<Sidebar slot="a" bind:drawerHidden bind:state={data.state} />
+	<div slot="b" class="">
 		<slot />
 	</div>
-</div>
+</SplitPane>
