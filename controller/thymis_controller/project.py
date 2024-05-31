@@ -114,7 +114,7 @@ class Project:
     def __init__(self, path):
         self.path = pathlib.Path(path)
         # create the path if not exists
-        self.path.mkdir(exist_ok=True)
+        self.path.mkdir(exist_ok=True, parents=True)
         # create a git repo if not exists
         self.repo = git.Repo.init(self.path)
         # create a state, if not exists
