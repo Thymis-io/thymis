@@ -3,6 +3,7 @@ import os
 import pathlib
 import subprocess
 import sys
+import traceback
 from contextlib import asynccontextmanager
 
 import fastapi
@@ -41,6 +42,7 @@ class Frontend:
                 "run",
                 "dev",
                 "--",
+                "--host=127.0.0.1",
                 f"--port={FRONTEND_PORT}",
                 cwd=frontend_path,
             )
@@ -54,7 +56,9 @@ class Frontend:
         return_code = await self.process.wait()
         if not self.stopped:
             self.stopped = True
-            raise Exception(f"frontend process terminated with code {return_code}")
+            print(f"frontend process terminated with code {return_code}")
+            traceback.print_stack()
+            sys.exit(1)
 
     async def stop(self):
         if self.stopped:
