@@ -136,11 +136,11 @@ class Project:
     def write_state_and_reload(self, state: State):
         with open(self.path / "state.json", "w", encoding="utf-8") as f:
             f.write(state.model_dump_json(indent=2))
-        self.repo.git.add(".")
         # write a flake.nix
         repositories = BUILTIN_REPOSITORIES | state.repositories
         with open(self.path / "flake.nix", "w+", encoding="utf-8") as f:
             f.write(render_flake_nix(repositories))
+        self.repo.git.add(".")
         # write missing flake.lock entries using nix flake lock
         subprocess.run(
             ["nix", *NIX_CMD[1:], "flake", "lock"], cwd=self.path, check=True
