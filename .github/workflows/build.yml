@@ -58,7 +58,7 @@ jobs:
       - name: Push controller image
         run: |
           docker load < result
-          docker tag ghcr.io/thymis-io/thymis-controller:${{ github.sha }}
+          docker tag $(docker images --format "{{.Repository}}:{{.Tag}}" | grep thymis-controller) ghcr.io/thymis-io/thymis-controller:${{ github.sha }}
           docker push ghcr.io/thymis-io/thymis-controller:${{ github.sha }}
   build:
     runs-on: ubuntu-latest
