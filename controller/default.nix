@@ -24,6 +24,8 @@ writeShellApplication {
   runtimeInputs = [ git nixpkgs-fmt nix ];
   text = ''
     export FRONTEND_BINARY=${thymis-frontend}/bin/thymis-frontend
+    export UVICORN_HOST=0.0.0.0
+    export UVICORN_PORT=8000
     ${pythonEnv}/bin/uvicorn thymis_controller.main:app "$@"
   '';
 }

@@ -288,7 +288,7 @@ pkgs.dockerTools.buildLayeredImageWithNixDb {
   '';
 
   config = {
-    Cmd = [ "${thymis-controller}/bin/thymis-controller" ];
+    Entrypoint = [ "${thymis-controller}/bin/thymis-controller" ];
     Env = [
       "USER=root"
       "PATH=${lib.concatStringsSep ":" [
