@@ -1,10 +1,14 @@
 import asyncio
+import logging
 import os
 import pathlib
+import signal
 import subprocess
 import sys
 import traceback
 from contextlib import asynccontextmanager
+
+logger = logging.getLogger(__name__)
 
 import fastapi
 import httpx
@@ -45,25 +49,47 @@ class Frontend:
                 "--",
                 "--host=127.0.0.1",
                 f"--port={FRONTEND_PORT}",
+                "--strictPort",
+                "--clearScreen",
+                "false",
                 cwd=frontend_path,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
+
         else:
             self.process = await asyncio.create_subprocess_exec(
                 frontend_binary_path(),
-                env={"PORT": str(FRONTEND_PORT), "HOST": "localhost"},
+                env={"PORT": str(FRONTEND_PORT), "HOST": "127.0.0.1"},
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
+
+        # read stdout and stderr in background
+        async def read_stream(stream: asyncio.StreamReader, level=logging.INFO):
+            while self.process.returncode is None and not self.stopped:
+                line = await stream.readline()
+                if line:
+                    logger.log(
+                        level, "frontend process: %s", line.decode("utf-8").strip()
+                    )
+                await asyncio.sleep(0.001)
+
+        # start threads
+        asyncio.create_task(read_stream(self.process.stdout))
+        asyncio.create_task(read_stream(self.process.stderr, level=logging.ERROR))
 
     async def raise_if_terminated(self):
         return_code = await self.process.wait()
         if not self.stopped:
             self.stopped = True
-            print(f"frontend process terminated with code {return_code}")
-            traceback.print_stack()
-            sys.exit(1)
+            logger.error("frontend process terminated with code %s", return_code)
+            await asyncio.sleep(0.1)
+            os.kill(os.getpid(), signal.SIGINT)
 
     async def stop(self):
         if self.stopped:
-            raise Exception("frontend already stopped")
+            raise RuntimeError("frontend already stopped")
         self.stopped = True
         process_pid = self.process.pid
         parent = psutil.Process(process_pid)
@@ -90,15 +116,15 @@ frontend = Frontend()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("starting frontend")
+    logger.info("starting frontend")
     await frontend.run()
-    print("frontend started1")
+    logger.info("frontend started")
     asyncio.get_event_loop().create_task(frontend.raise_if_terminated())
-    print("frontend started2")
+    logger.info("frontend raise_if_terminated task created")
     yield
-    print("stopping frontend")
+    logger.info("stopping frontend")
     await frontend.stop()
-    print("frontend stopped")
+    logger.info("frontend stopped")
 
 
 client = httpx.AsyncClient(base_url=frontend.url)

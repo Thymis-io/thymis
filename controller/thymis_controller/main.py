@@ -1,5 +1,7 @@
 import importlib
+import logging
 
+import thymis_controller.lib  # pylint: disable=unused-import
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from thymis_controller.routers import api, frontend

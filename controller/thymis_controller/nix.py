@@ -1,9 +1,12 @@
 import asyncio
 import json
+import logging
 import subprocess
 import typing
 
 import jinja2
+
+logger = logging.getLogger(__name__)
 
 
 def string_can_be_identifier_for_attrs_key(s):
@@ -91,8 +94,11 @@ def format_nix_file(file_path):
     try:
         subprocess.run(cmd, shell=True, check=True)
     except subprocess.CalledProcessError as e:
-        print(
-            f"Command failed: {e.cmd} with exit code {e.returncode}: {e.stderr.decode()}"
+        logger.error(
+            "Command failed: %s with exit code %s: %s",
+            e.cmd,
+            e.returncode,
+            e.stderr.decode(),
         )
 
 
@@ -112,8 +118,11 @@ def get_input_out_path(flake_path, input_name):
     try:
         subprocess.run(cmd, check=True, cwd=flake_path, stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
-        print(
-            f"Command failed: `{' '.join(cmd)}` with exit code {e.returncode}: {e.stderr.decode()}"
+        logger.error(
+            "Command failed: %s with exit code %s: %s",
+            e.cmd,
+            e.returncode,
+            e.stderr.decode(),
         )
         return None
 

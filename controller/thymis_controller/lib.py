@@ -1,5 +1,17 @@
 import base64
+import logging
 import os
+
+import uvicorn.logging
+
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+formatter = uvicorn.logging.DefaultFormatter(
+    fmt="%(levelprefix)s %(asctime)s: %(name)s: %(message)s"
+)
+ch.setFormatter(formatter)
+logging.basicConfig(level=logging.INFO, handlers=[ch])
+logger = logging.getLogger(__name__)
 
 
 def read_into_base64(path: str):
@@ -13,5 +25,5 @@ def read_into_base64(path: str):
 
             return f"data:image/{extension};base64,{encoded}"
     except FileNotFoundError:
-        print(f"File not found: {path}")
+        logger.error(f"File not found: {path}")
         return None
