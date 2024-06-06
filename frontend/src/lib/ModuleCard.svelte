@@ -3,15 +3,14 @@
 	import { Card, Button, P } from 'flowbite-svelte';
 	import type { ModuleSettings, Module } from './state';
 	import { page } from '$app/stores';
-	import { selectedTarget } from './deviceSelectHelper';
 
 	export let module: Module;
 	export let installed: boolean;
 	export let addModule: (module: ModuleSettings | Module) => void;
 
-	const otherUrlParams = (searchParams: string) => {
+	const configUrl = (searchParams: string, module: Module) => {
 		const params = new URLSearchParams(searchParams);
-		params.delete('module');
+		params.set('module', module.type);
 		return params.toString();
 	};
 </script>
@@ -20,13 +19,7 @@
 	<P class="font-bold">{module.displayName}</P>
 	<img class="h-20 w-20 object-scale-down" src={module.icon ?? '/favicon.png'} alt="icon" />
 	{#if installed}
-		<Button
-			size="xs"
-			class="!w-28"
-			href="/config?{otherUrlParams(
-				$page.url.search
-			)}&module={module.type}&config-target=self-{$selectedTarget?.identifier}"
-		>
+		<Button size="xs" class="!w-28" href="/config?{configUrl($page.url.search, module)}">
 			{$t('config.configure')}
 		</Button>
 	{:else}
