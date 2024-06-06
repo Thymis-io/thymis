@@ -1,28 +1,16 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { queryParam } from 'sveltekit-search-params';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
 	import { Button, Dropdown, DropdownItem, Search } from 'flowbite-svelte';
 	import { ChevronDownSolid } from 'flowbite-svelte-icons';
+	import { selectedTag, selectedDevice, deviceUrl } from './deviceSelectHelper';
 	import { page } from '$app/stores';
 	import type { State } from './state';
+
 	export let state: State;
 
-	const tagParam = queryParam('tag');
-	const deviceParam = queryParam('device');
-
-	$: tag = state.tags.find((t) => t.identifier === $tagParam);
-	$: device = state.devices.find((d) => d.identifier === $deviceParam);
-
 	let search = '';
-
-	const otherUrlParams = () => {
-		const params = new URLSearchParams($page.url.search);
-		params.delete('tag');
-		params.delete('device');
-		return params.toString();
-	};
 
 	const isSearched = (search: string, item: string) => {
 		if (!search) {
@@ -36,10 +24,10 @@
 
 <Button class="w-full flex justify-between">
 	<div class="flex gap-2">
-		{#if tag}
-			<TagIcon size={20} /> {tag.displayName}
-		{:else if device}
-			<HardDrive size={20} /> {device.displayName}
+		{#if $selectedTag}
+			<TagIcon size={20} /> {$selectedTag?.displayName}
+		{:else if $selectedDevice}
+			<HardDrive size={20} /> {$selectedDevice?.displayName}
 		{:else}
 			{$t('common.no-tag-or-device-selected')}
 		{/if}
@@ -53,7 +41,7 @@
 	{#each state.tags as tag}
 		{#if isSearched(search, tag.displayName)}
 			<DropdownItem
-				href={`?tag=${tag.identifier}&${otherUrlParams()}`}
+				href={`?${deviceUrl($page.url.search, 'tag', tag.identifier)}`}
 				class={'flex gap-2 my-1 p-1 hover:bg-primary-500'}
 			>
 				<TagIcon />
@@ -64,7 +52,7 @@
 	{#each state.devices as device}
 		{#if isSearched(search, device.displayName)}
 			<DropdownItem
-				href={`?device=${device.identifier}&${otherUrlParams()}`}
+				href={`?${deviceUrl($page.url.search, 'device', device.identifier)}`}
 				class={'flex gap-2 my-1 p-1 hover:bg-primary-500'}
 			>
 				<HardDrive />

@@ -28,17 +28,11 @@
 	} from 'svelte-awesome-icons';
 	import { ScreenShare } from 'lucide-svelte';
 	import DeviceSelect from '$lib/DeviceSelect.svelte';
-	import { queryParam } from 'sveltekit-search-params';
 	import type { Device, ModuleSettings, State } from '$lib/state';
 	import BuildStatus from '$lib/BuildStatus.svelte';
+	import { selectedTag, selectedDevice } from '$lib/deviceSelectHelper';
 
 	export let state: State;
-
-	const tagParam = queryParam('tag');
-	const deviceParam = queryParam('device');
-
-	$: tag = state.tags.find((t) => t.identifier === $tagParam);
-	$: device = state.devices.find((d) => d.identifier === $deviceParam);
 
 	export let drawerHidden: boolean;
 
@@ -116,7 +110,7 @@
 			name: $t('nav.terminal'),
 			icon: TerminalSolid,
 			href: '/terminal',
-			hidden: !device
+			hidden: !$selectedDevice
 		},
 		{
 			name: $t('nav.settings'),

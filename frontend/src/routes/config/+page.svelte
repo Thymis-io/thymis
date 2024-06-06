@@ -1,17 +1,11 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Card, Toggle, Listgroup, ListgroupItem, Tooltip, P, Button } from 'flowbite-svelte';
-	import ConfigBool from '$lib/config/ConfigBool.svelte';
-	import ConfigString from '$lib/config/ConfigString.svelte';
-	import ConfigTextarea from '$lib/config/ConfigTextarea.svelte';
-	import ConfigSelectOne from '$lib/config/ConfigSelectOne.svelte';
 	import ModuleList from '$lib/config/ModuleList.svelte';
 	import { queryParam } from 'sveltekit-search-params';
 	import { saveState } from '$lib/state';
 	import type { ModuleSettings, Tag, Device, Module } from '$lib/state';
-
-	import Info from 'lucide-svelte/icons/info';
-	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
+	import { selectedDevice, selectedTag, selectedTarget } from '$lib/deviceSelectHelper';
 	import DeployActions from '$lib/DeployActions.svelte';
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
@@ -20,21 +14,12 @@
 
 	export let data: PageData;
 
-	const selected = queryParam<number>('selected', {
-		decode: (value) => (value ? parseInt(value, 10) : 0),
-		encode: (value) => value.toString()
-	});
-
-	const tagParam = queryParam('tag');
-	const deviceParam = queryParam('device');
 	const moduleParam = queryParam('module');
 	const configTargetParam = queryParam('config-target');
 
-	$: tag = data.state.tags.find((t) => t.identifier === $tagParam);
-	$: device = data.state.devices.find((d) => d.identifier === $deviceParam);
-	$: modules = getModules(tag, device);
+	$: modules = getModules($selectedTag, $selectedDevice);
 	$: selectedModule = data.availableModules.find((m) => m.type === $moduleParam);
-	$: configTarget = getConfigTarget($configTargetParam, tag, device);
+	$: configTarget = getConfigTarget($configTargetParam, $selectedTag, $selectedDevice);
 
 	const getOrigin = (target: Tag | Device | undefined) => {
 		return target?.displayName;
@@ -68,8 +53,8 @@
 		return target?.modules.map((m) => ({ origin: getOrigin(target), ...m })) ?? [];
 	};
 
-	const getSelfModules = (tag: Tag | undefined, device: Device | undefined) => {
-		let settings = getSelfModuleSettings(tag ?? device);
+	const getSelfModules = (selectedTarget: Tag | Device | undefined) => {
+		let settings = getSelfModuleSettings(selectedTarget);
 		return data.availableModules.filter((m) => settings.find((s) => s.type === m.type)) ?? [];
 	};
 
@@ -166,13 +151,13 @@
 
 <div class="flex justify-between mb-4">
 	<h1 class="text-3xl font-bold dark:text-white">
-		{#if tag}
+		{#if $selectedTag}
 			{$t('config.header.tag-module', {
-				values: { module: selectedModule?.displayName, tag: tag.displayName }
+				values: { module: selectedModule?.displayName, tag: $selectedTag.displayName }
 			})}
-		{:else if device}
+		{:else if $selectedDevice}
 			{$t('config.header.device-module', {
-				values: { module: selectedModule?.displayName, device: device.displayName }
+				values: { module: selectedModule?.displayName, device: $selectedDevice.displayName }
 			})}
 		{:else}
 			{$t('config.header.module', { values: { module: selectedModule?.displayName } })}
@@ -202,24 +187,24 @@
 <div class="grid grid-flow-row grid-cols-5 gap-4">
 	<Card class="col-span-1 max-w-none">
 		<ModuleList
-			target={tag ?? device}
-			selfModules={getSelfModules(tag, device)}
+			target={$selectedTarget}
+			selfModules={getSelfModules($selectedTarget)}
 			page={$page}
 			queryPrefix="self-"
 		>
 			<slot slot="icon">
-				{#if tag}
+				{#if $selectedTag}
 					<TagIcon />
-				{:else if device}
+				{:else if $selectedTag}
 					<HardDrive />
 				{/if}
 			</slot>
 		</ModuleList>
-		{#each device?.tags ?? [] as tagIdentifier}
+		{#each $selectedDevice?.tags ?? [] as tagIdentifier}
 			{@const usedTag = data.state.tags.find((t) => t.identifier === tagIdentifier)}
 			<ModuleList
 				target={usedTag}
-				selfModules={getSelfModules(usedTag, undefined)}
+				selfModules={getSelfModules(usedTag)}
 				page={$page}
 				queryPrefix="other-"
 			>
@@ -232,7 +217,7 @@
 			<ConfigModuleCard
 				module={selectedModule}
 				settings={getSelfModuleSettings(configTarget).find((s) => s.type === selectedModule.type)}
-				otherSettings={getOtherSettings(device, selectedModule)}
+				otherSettings={getOtherSettings($selectedDevice, selectedModule)}
 				setSetting={(module, key, value) => setSetting(configTarget, module, key, value)}
 			/>
 		</div>
