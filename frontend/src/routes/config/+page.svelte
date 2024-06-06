@@ -56,7 +56,7 @@
 		}
 	};
 
-	const getConfigTarget = (target: string, tag?: Tag, device?: Device) => {
+	const getConfigTarget = (target: string | null, tag?: Tag, device?: Device) => {
 		if (target?.startsWith('self-')) {
 			return tag ?? device;
 		} else if (target?.startsWith('other-')) {
@@ -73,12 +73,12 @@
 		return data.availableModules.filter((m) => settings.find((s) => s.type === m.type)) ?? [];
 	};
 
-	const getOtherSettings = (device: Device | undefined) => {
+	const getOtherSettings = (device: Device | undefined, module: Module | undefined) => {
 		let usedTags =
 			device?.tags.flatMap((t) => data.state.tags.find((tag) => tag.identifier === t) ?? []) ?? [];
-		return usedTags.flatMap((t) =>
-			t.modules.map((m) => ({ origin: getOrigin(t), priority: t.priority, ...m }))
-		);
+		return usedTags
+			.flatMap((t) => t.modules.map((m) => ({ origin: getOrigin(t), priority: t.priority, ...m })))
+			.filter((s) => s.type === module?.type);
 	};
 
 	const getModules = (tag: Tag | undefined, device: Device | undefined) => {
@@ -232,7 +232,7 @@
 			<ConfigModuleCard
 				module={selectedModule}
 				settings={getSelfModuleSettings(configTarget).find((s) => s.type === selectedModule.type)}
-				otherSettings={getOtherSettings(device)}
+				otherSettings={getOtherSettings(device, selectedModule)}
 				setSetting={(module, key, value) => setSetting(configTarget, module, key, value)}
 			/>
 		</div>
