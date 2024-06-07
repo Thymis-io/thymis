@@ -142,7 +142,9 @@
 		"install": "Install",
 		"uninstall": "Uninstall",
 		"configure": "Configure",
-		"back": "Back"
+		"back": "Back",
+		"otherDefinitions": "Other Definitions:\n{others}",
+		"overwrittenBy": "Overwritten by:\n{origin}: {setting}"
 	},
 	"options": {
 		"no-settings": "No settings found for this module",

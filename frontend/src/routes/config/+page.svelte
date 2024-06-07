@@ -36,7 +36,9 @@
 			);
 			return [
 				...device.modules.map((m) => ({ origin: getOrigin(device), ...m })),
-				...usedTags.flatMap((t) => t.modules.map((m) => ({ origin: getOrigin(t), ...m })))
+				...usedTags.flatMap((t) =>
+					t.modules.map((m) => ({ origin: getOrigin(t), priority: t.priority, ...m }))
+				)
 			];
 		}
 	};
@@ -50,12 +52,17 @@
 		return data.availableModules.filter((m) => settings.find((s) => s.type === m.type)) ?? [];
 	};
 
-	const getOtherSettings = (device: Device | undefined, module: Module | undefined) => {
-		let usedTags =
-			device?.tags.flatMap((t) => data.state.tags.find((tag) => tag.identifier === t) ?? []) ?? [];
-		return usedTags
-			.flatMap((t) => t.modules.map((m) => ({ origin: getOrigin(t), priority: t.priority, ...m })))
-			.filter((s) => s.type === module?.type);
+	const getOtherSettings = (target: Device | Tag | undefined, module: Module | undefined) => {
+		if (!target) {
+			return [];
+		}
+
+		let settings = getModuleSettings(
+			!('tags' in target) ? (target as Tag) : undefined,
+			'tags' in target ? (target as Device) : undefined
+		);
+
+		return settings?.filter((s) => s.type === module?.type);
 	};
 
 	const getModules = (tag: Tag | undefined, device: Device | undefined) => {
@@ -191,7 +198,7 @@
 				settings={getSelfModuleSettings($selectedConfigTarget).find(
 					(s) => s.type === $selectedConfigModule?.type
 				)}
-				otherSettings={getOtherSettings($selectedDevice, $selectedConfigModule)}
+				otherSettings={getOtherSettings($selectedTarget, $selectedConfigModule)}
 				setSetting={(module, key, value) => setSetting($selectedConfigTarget, module, key, value)}
 			/>
 		</div>

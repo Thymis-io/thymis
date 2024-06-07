@@ -20,6 +20,17 @@
 
 <Card class="max-w-none grid grid-cols-4 gap-8">
 	{#each Object.entries(module.settings) as [key, setting]}
+		{@const self = settings?.settings[key]}
+		{@const other = otherSettings
+			?.filter((o) => o?.type === module?.type && key in o.settings)
+			?.sort((a, b) => b.priority - a.priority)
+			?.map((o) => ({
+				origin: o.origin,
+				priority: o.priority,
+				type: o.type,
+				options: module.settings[key].options,
+				setting: o.settings[key]
+			}))}
 		<P class="col-span-1">
 			{$t(`options.nix.${setting.name}`, { default: setting.name })}
 		</P>
@@ -60,13 +71,42 @@
 					/>
 				{/if}
 			</div>
-			{#if otherSettings && otherSettings.filter((s) => s?.type === module?.type && key in s?.settings).length > 0}
-				{#if settings?.origin === otherSettings?.find((s) => s?.type === module?.type)?.origin}
-					<button class="btn p-0 ml-2" on:click={() => {}}><RouteOff color="#0080c0" /></button>
-					<Tooltip class="whitespace-pre">{JSON.stringify(otherSettings, undefined, 2)}</Tooltip>
-				{:else}
+			{#if other && other.length > 0}
+				{#if settings?.origin === other[0].origin}
+					{@const otherDefinitions = other.filter((o) => o.origin != settings?.origin)}
 					<button class="btn p-0 ml-2" on:click={() => {}}><Route color="#0080c0" /></button>
-					<Tooltip class="whitespace-pre">{JSON.stringify(otherSettings, undefined, 2)}</Tooltip>
+					<Tooltip class="whitespace-pre">
+						{$t('config.otherDefinitions', {
+							values: {
+								others: otherDefinitions
+									?.map((o) => o.origin + ': ' + o.setting + ', ' + o.priority)
+									.join('\n')
+							}
+						})}
+					</Tooltip>
+				{:else}
+					{@const otherDefinitions = other.filter(
+						(o) => o.origin != settings?.origin && o.origin != other[0].origin
+					)}
+					<button class="btn p-0 ml-2" on:click={() => {}}><RouteOff color="#0080c0" /></button>
+					<Tooltip class="whitespace-pre">
+						{$t('config.overwrittenBy', {
+							values: {
+								origin: other[0].origin,
+								setting: other[0].setting
+							}
+						})}
+						{#if otherDefinitions?.length > 0}
+							{'\n\n' +
+								$t('config.otherDefinitions', {
+									values: {
+										others: otherDefinitions
+											?.map((o) => o.origin + ': ' + o.setting + ', ' + o.priority)
+											.join('\n')
+									}
+								})}
+						{/if}
+					</Tooltip>
 				{/if}
 			{/if}
 		</div>
