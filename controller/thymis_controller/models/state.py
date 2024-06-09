@@ -32,9 +32,9 @@ class Tag(BaseModel):
 
 class State(BaseModel):
     version: str = migration.latest_version
-    repositories: Dict[str, Repo]
-    tags: List[Tag]
-    devices: List[Device]
+    repositories: Dict[str, Repo] = {}
+    tags: List[Tag] = []
+    devices: List[Device] = []
 
 
 __all__ = ["Repo", "ModuleSettings", "Device", "Tag", "State"]

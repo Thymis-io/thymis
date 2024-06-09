@@ -1,8 +1,10 @@
 import importlib
+import logging
 
+import thymis_controller.lib  # pylint: disable=unused-import
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from thymis_controller.routes import router
+from thymis_controller.routers import api, frontend
 
 description = """
 API to control Nix operating system 🎛️
@@ -22,6 +24,7 @@ app = FastAPI(
         "name": "AGPLv3",
         "url": "https://www.gnu.org/licenses/agpl-3.0.en.html",
     },
+    lifespan=frontend.lifespan,
 )
 
 origins = [
@@ -38,16 +41,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router.router)
+app.include_router(api.router, prefix="/api")
+app.include_router(frontend.router)
 
 
 if importlib.util.find_spec("thymis_enterprise"):
     import thymis_enterprise  # pylint: disable=import-error # type: ignore
 
     thymis_enterprise.thymis_enterprise_hello_world()
-
-
-def run():
-    import uvicorn
-
-    uvicorn.run(app, host="localhost", port=8000)

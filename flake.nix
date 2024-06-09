@@ -94,18 +94,14 @@
             poetry2nix = (
               (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; })
             );
+            thymis-frontend = thymis-frontend;
           };
         in
         {
           thymis-frontend = thymis-frontend;
           thymis-controller = thymis-controller;
-          thymis-controller-container = pkgs.dockerTools.buildImage {
-            name = "thymis-controller";
-            config = {
-              Cmd = [ "${thymis-controller}/bin/thymis-controller" ];
-            };
-          };
-          thymis-frontend-container = pkgs.dockerTools.buildImage {
+          thymis-controller-container = import ./docker.nix { inherit pkgs thymis-controller; };
+          thymis-frontend-container = pkgs.dockerTools.buildLayeredImage {
             name = "thymis-frontend";
             config = {
               Cmd = [ "${thymis-frontend}/bin/thymis-controller" ];

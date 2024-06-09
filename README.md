@@ -16,37 +16,43 @@
 	<img src="https://img.shields.io/github/last-commit/Thymis-io/thymis?style=flat&logo=git&logoColor=white&color=0080ff" alt="last-commit">
 	<img src="https://img.shields.io/github/languages/top/Thymis-io/thymis?style=flat&color=0080ff" alt="repo-top-language">
 	<img src="https://img.shields.io/github/languages/count/Thymis-io/thymis?style=flat&color=0080ff" alt="repo-language-count">
-    <img src="https://img.shields.io/badge/NixOS-2AA2E0?style=flat&logo=NixOS&logoColor=white" alt="nixos">
+    <img src="https://img.shields.io/badge/NixOS-2AA2E0?style=flat&logo=NixOS&logoColor=white" alt="NixOS">
     <img src="https://img.shields.io/badge/Svelte-FF3E00?style=flat&logo=Svelte&logoColor=white" alt="svelte">
-    <img src="https://img.shields.io/badge/FastAPI-009688?style=flat&logo=FastAPI&logoColor=white" alt="fastapi">
+    <img src="https://img.shields.io/badge/FastAPI-009688?style=flat&logo=FastAPI&logoColor=white" alt="FastAPI">
 </p>
 <hr>
 
 ##  Quick Links
 
-> - [ Overview](#overview)
-> - [ Architecture](#architecture)
-> - [ Documentation](#documentation)
-> - [ Getting Started](#getting-started)
->   - [ Installation](#installation)
+> - [Overview](#overview)
+> - [Architecture](#architecture)
+> - [Documentation](#documentation)
+> - [Getting Started](#getting-started)
+>   - [Installation](#installation)
 >   - [Running thymis](#running-thymis)
-> - [ Project Roadmap](#project-roadmap)
-> - [ Contributing](#contributing)
-> - [ License](#license)
-> - [ Acknowledgments](#acknowledgments)
+> - [Project Roadmap](#project-roadmap)
+> - [Contributing](#contributing)
+> - [License](#license)
+> - [Acknowledgments](#acknowledgments)
 
 ---
 
 ##  Overview
 
-Thymis is an open-source project that aims to provide a seamless and secure IoT device management solution. With Thymis, users can easily configure and manage their devices running on the NixOS operating system.
+Key features of Thymis include:
 
-Thymis does this by allowing users to define and configure their device state and generating NixOS configurations for their devices.
-The controller can build device images as well as deploy to live devices.
-
-Thymis also exposes a API that enables CRUD operations on device and module data.
-
-Visit the [Thymis Website](https://thymis.io) for more information.
+- **Device Provisioning**: Easily provision new devices with pre-configured system images.
+- **Device Configuration**: Configure devices using a web-based interface.
+- **Device Management**: Monitor device status, manage device modules, and deploy updated configurations to devices.
+- **REST API**: Expose a REST API for CRUD operations on device and configuration data.
+- **[NixOS](https://nixos.org/) Integration**: Leverage the power of NixOS for declarative system configuration.
+    - **[nixpkgs](https://github.com/NixOS/nixpkgs)**: According to [Repology](https://repology.org/repositories/statistics/newest), nixpkgs has over 60000 packages with the latest version available. This makes it the largest collection of up-to-date software packages available for any Linux distribution. You can use any of these packages in your Thymis project.
+    - Deployments without wasted bandwidth: Only changed paths are sent to the device, reducing the amount of data sent over the network.
+    - Deployments without downtime: The device is updated atomically, ensuring that the device is always in a consistent state.
+    - Rollbacks: If the device fails to boot after an update, the device can be rolled back to the previous state.
+    - Reproducible builds: The same configuration will always produce the same result, ensuring that the device is always in a consistent state.
+    - Air-gapped deployments: Devices can be updated without needing to connect to the internet. Only a connection to the Thymis controller is required. Deployments using Mass Storage is possible but not yet implemented.
+- **Device tagging**: Tag devices to group them together for easier management.
 
 ---
 
@@ -97,19 +103,12 @@ poetry install
 
 Use the following command to run thymis:
 
-First, start the controller:
-
 ```sh
 cd controller
-poetry run uvicorn thymis_controller.api:app --reload
+poetry run uvicorn thymis_controller.main:app --reload
 ```
 
-Then, start the frontend:
-
-```sh
-cd frontend
-npm run dev
-```
+The controller takes care of running the frontend for you. You can access thymis at `http://localhost:8000`.
 
 ---
 

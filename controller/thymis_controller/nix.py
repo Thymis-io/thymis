@@ -1,8 +1,12 @@
+import asyncio
 import json
+import logging
 import subprocess
 import typing
 
 import jinja2
+
+logger = logging.getLogger(__name__)
 
 
 def string_can_be_identifier_for_attrs_key(s):
@@ -90,8 +94,11 @@ def format_nix_file(file_path):
     try:
         subprocess.run(cmd, shell=True, check=True)
     except subprocess.CalledProcessError as e:
-        print(
-            f"Command failed: {e.cmd} with exit code {e.returncode}: {e.stderr.decode()}"
+        logger.error(
+            "Command failed: %s with exit code %s: %s",
+            e.cmd,
+            e.returncode,
+            e.stderr.decode(),
         )
 
 
@@ -106,22 +113,21 @@ def format_nix_value_as_string(value: str):
 def get_input_out_path(flake_path, input_name):
     # first run `nix build .#inputs.<input_name>.outPath`
     # then run `nix eval .#inputs.<input_name>.outPath --json`
-    cmd = f"nix build {flake_path}#inputs.{input_name}.outPath"
+    cmd = NIX_CMD + ["build", f"{flake_path}#inputs.{input_name}.outPath"]
 
     try:
-        subprocess.run(
-            cmd, shell=True, check=True, cwd=flake_path, stderr=subprocess.PIPE
-        )
+        subprocess.run(cmd, check=True, cwd=flake_path, stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as e:
-        print(
-            f"Command failed: {e.cmd} with exit code {e.returncode}: {e.stderr.decode()}"
+        logger.error(
+            "Command failed: %s with exit code %s: %s",
+            e.cmd,
+            e.returncode,
+            e.stderr.decode(),
         )
         return None
 
-    cmd = f"nix eval {flake_path}#inputs.{input_name}.outPath --json"
-    result = subprocess.run(
-        cmd, shell=True, check=True, capture_output=True, cwd=flake_path
-    )
+    cmd = NIX_CMD + ["eval", f"{flake_path}#inputs.{input_name}.outPath", "--json"]
+    result = subprocess.run(cmd, check=True, capture_output=True, cwd=flake_path)
     # result.stdout is a json string
     result = json.loads(result.stdout)
     # should be a string
@@ -169,3 +175,12 @@ def render_flake_nix(repositories: dict[str, "models.Repo"]) -> str:
     rendered = template.render(inputs=inputs, inputs_keys=inputs_keys)
     formatted = format_nix_value_as_string(rendered)
     return formatted
+
+
+NIX_CMD = [
+    "nix",
+    "--extra-experimental-features",
+    "nix-command",
+    "--extra-experimental-features",
+    "flakes",
+]
