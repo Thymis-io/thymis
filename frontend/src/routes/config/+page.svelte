@@ -179,7 +179,7 @@
 			<slot slot="icon">
 				{#if $selectedTag}
 					<TagIcon />
-				{:else if $selectedTag}
+				{:else if $selectedDevice}
 					<HardDrive />
 				{/if}
 			</slot>
