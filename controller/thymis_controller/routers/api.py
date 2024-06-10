@@ -69,13 +69,16 @@ def build_download_image(
 @router.get("/download-image")
 def download_image(
     identifier: str,
+    state: State = Depends(dependencies.get_state),
 ):
     # downloads /tmp/thymis-devices.{identifier} file from filesystem
-    # def file_stream():
-    #     with open(f"/tmp/thymis-devices.{identifier}", "rb") as file:
-    #         yield from file
-    # return StreamingResponse(file_stream(), media_type="application/octet-stream")
-    return FileResponse(f"/tmp/thymis-devices.{identifier}")
+    # compare identifier with project first
+    device = next(device for device in state.devices if device.identifier == identifier)
+
+    if device is None:
+        return RedirectResponse("/")
+
+    return FileResponse(f"/tmp/thymis-devices.{device.identifier}")
 
 
 @router.get("/history")
