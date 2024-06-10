@@ -16,7 +16,8 @@
 		<div>
 			<P class="mb-2 text-center">{device.displayName}</P>
 			<Card class="w-full max-w-none">
-				<img alt="image" class="w-full aspect-video" />
+				<pre>vncviewer {device.targetHost}:5900</pre>
+				<img alt=" " class="w-full aspect-video" />
 			</Card>
 		</div>
 	{/each}
