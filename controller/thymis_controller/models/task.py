@@ -10,6 +10,8 @@ class Task(BaseModel):
     display_name: str
     state: TaskState
     exception: Optional[str]
+    start_time: float
+    data: dict = {}
 
 
 class CommandTask(Task):

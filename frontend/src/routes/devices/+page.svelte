@@ -41,10 +41,13 @@
 		document.body.removeChild(link);
 	};
 
-	const buildAndDownloadImage = (device: Device) => {
+	const buildAndDownloadImage = async (device: Device) => {
 		console.log('Building and downloading image');
-		downloadUri(
-			`${controllerProtocol}://${controllerHost}/action/build-download-image?identifier=${device.identifier}`
+		await fetch(
+			`${controllerProtocol}://${controllerHost}/action/build-download-image?identifier=${device.identifier}`,
+			{
+				method: 'POST'
+			}
 		);
 	};
 

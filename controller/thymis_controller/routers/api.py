@@ -1,5 +1,5 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, WebSocket
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
 from thymis_controller import dependencies, models, modules, project, task
 from thymis_controller.dependencies import get_project
 from thymis_controller.models.state import State
@@ -57,15 +57,25 @@ def deploy(
     return {"message": "nix deploy started"}
 
 
-@router.get("/action/build-download-image")
-async def build_download_image(
+@router.post("/action/build-download-image")
+def build_download_image(
     identifier: str,
-    request: Request,
     background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
 ):
     background_tasks.add_task(project.create_build_device_image_task(identifier))
-    return RedirectResponse(url="/")
+
+
+@router.get("/download-image")
+def download_image(
+    identifier: str,
+):
+    # downloads /tmp/thymis-devices.{identifier} file from filesystem
+    # def file_stream():
+    #     with open(f"/tmp/thymis-devices.{identifier}", "rb") as file:
+    #         yield from file
+    # return StreamingResponse(file_stream(), media_type="application/octet-stream")
+    return FileResponse(f"/tmp/thymis-devices.{identifier}")
 
 
 @router.get("/history")
