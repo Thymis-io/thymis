@@ -26,6 +26,7 @@
 		ChartSimpleSolid,
 		GearSolid
 	} from 'svelte-awesome-icons';
+	import { ScreenShare } from 'lucide-svelte';
 	import DeviceSelect from '$lib/DeviceSelect.svelte';
 	import { queryParam } from 'sveltekit-search-params';
 	import type { Device, State } from '$lib/state';
@@ -93,6 +94,11 @@
 			name: $t('nav.devices'),
 			icon: ServerSolid,
 			href: '/devices'
+		},
+		{
+			name: $t('nav.vnc'),
+			icon: ScreenShare,
+			href: '/vnc'
 		},
 		{
 			name: $t('nav.history'),
