@@ -16,7 +16,7 @@ class Kiosk(modules.Module):
         self, f, module_settings: models.ModuleSettings, priority: int
     ):
         kiosk_url = (
-            module_settings.settings["kiosk_url"].value
+            module_settings.settings["kiosk_url"]
             if "kiosk_url" in module_settings.settings
             else self.kiosk_url.default
         )

@@ -78,10 +78,12 @@ def load_repositories(flake_path: os.PathLike, repositories: dict[str, models.Re
         for module in pkgutil.walk_packages([path]):
             try:
                 imported_module = importlib.import_module(module.name)
+                logger.info("Imported module %s", module.name)
                 for cls in imported_module.__dict__.values():
+                    logger.info("Checking class %s", cls)
                     if not isinstance(cls, type):
                         continue
-                    if issubclass(cls, models.Module) and cls != models.Module:
+                    if issubclass(cls, modules.Module) and cls != modules.Module:
                         module_obj = cls()
                         modules_found.append(module_obj)
                         logger.info("Found module %s", module_obj.type)
