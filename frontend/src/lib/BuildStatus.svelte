@@ -9,18 +9,6 @@
 	let stderrModalOpen = false;
 	let currentTask: Task | null = null;
 
-	// $: latestTask = $taskStatus?.at(-1);
-
-	// let errorLinesInStderr: string[] = [];
-	// $: if (latestTask && 'stderr' in latestTask) {
-	// 	const lines = latestTask?.stderr?.split('\n') ?? [];
-	// 	const trimmedLines = lines.map((line) => line.trim());
-	// 	const errorLines = trimmedLines.filter((line) => line.startsWith('error:'));
-	// 	const strippedErrorLines = errorLines.map((line) => line.replace('error:', ''));
-	// 	const trimmedStrippedErrorLines = strippedErrorLines.map((line) => line.trim());
-	// 	const nonEmptyErrorLines = trimmedStrippedErrorLines.filter((line) => line.length > 0);
-	// 	errorLinesInStderr = nonEmptyErrorLines;
-	// }
 	const getErrorsFromStderr = (stderr: string) => {
 		const lines = stderr.split('\n');
 		const trimmedLines = lines.map((line) => line.trim());
