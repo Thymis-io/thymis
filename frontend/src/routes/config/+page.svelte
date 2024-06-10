@@ -236,7 +236,7 @@
 							</button>
 							<Tooltip>
 								{#each effectingSettings.reverse() as effectingSetting}
-									<p>{effectingSetting.origin}: {effectingSetting.settings[settingKey].value}</p>
+									<p>{effectingSetting.origin}: {effectingSetting.settings[settingKey]}</p>
 								{/each}
 							</Tooltip>
 							{#if effectingSettings.reverse()[0].origin == getOrigin(tag ?? device)}

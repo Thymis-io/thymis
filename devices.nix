@@ -31,6 +31,7 @@ let
           inputs.nixos-generators.nixosModules.sd-aarch64
 
         ];
+        hardware.raspberry-pi."4".fkms-3d.enable = true;
         formatConfigs = lib.mkForce {
           sd-card-image = {
             imports = [
