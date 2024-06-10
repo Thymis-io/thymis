@@ -29,7 +29,7 @@
 	import { ScreenShare } from 'lucide-svelte';
 	import DeviceSelect from '$lib/DeviceSelect.svelte';
 	import { queryParam } from 'sveltekit-search-params';
-	import type { Device, State } from '$lib/state';
+	import type { Device, ModuleSettings, State } from '$lib/state';
 	import BuildStatus from '$lib/BuildStatus.svelte';
 
 	export let state: State;
@@ -78,6 +78,12 @@
 		children?: Record<string, string>;
 	};
 
+	const isVNCModule = (module: ModuleSettings) => module.type.toLowerCase().includes('vnc');
+
+	$: hasVNCModule =
+		state.devices.some((device) => device.modules.some(isVNCModule)) ||
+		state.tags.some((tag) => tag.modules.some(isVNCModule));
+
 	let navItems: NavItem[] = [];
 	$: navItems = [
 		{
@@ -98,7 +104,8 @@
 		{
 			name: $t('nav.vnc'),
 			icon: ScreenShare,
-			href: '/vnc'
+			href: '/vnc',
+			hidden: !hasVNCModule
 		},
 		{
 			name: $t('nav.history'),
