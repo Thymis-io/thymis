@@ -37,50 +37,6 @@
 	$: last5Tasks = $taskStatus?.slice(-5) ?? [];
 </script>
 
-<!-- <div class="flex justify-between items-center gap-1">
-	<span class="dark:text-white">
-		{$t('deploy.build-status', { values: { status: latestTask?.state } })}
-	</span>
-	{#if latestTask && 'stdout' in latestTask && latestTask.stdout}
-		<Button
-			outline
-			color={'alternative'}
-			class="p-2"
-			id="stderr"
-			on:click={() => (stdoutModalOpen = true)}
-		>
-			<CircleExclamationSolid color="#0080c0" id="stdout" />
-		</Button>
-	{/if}
-	{#if latestTask && 'stderr' in latestTask && latestTask.stderr}
-		<Button
-			outline
-			color={'alternative'}
-			class="p-2"
-			id="stderr"
-			on:click={() => (stderrModalOpen = true)}
-		>
-			<TriangleExclamationSolid color="#c4c400" />
-		</Button>
-	{/if}
-</div>
-<Modal title={$t('deploy.stdout')} bind:open={stdoutModalOpen} autoclose outsideclose size="xl">
-	<pre class="w-full text-sm font-light z-50 hover:z-50">{latestTask.stdout}</pre>
-</Modal>
-<Modal title={$t('deploy.stderr')} bind:open={stderrModalOpen} autoclose outsideclose size="xl">
-	<div class="grid gap-1">
-		<span class="dark:text-white">{$t('deploy.error-lines')}:</span>
-		<ul class="flex gap-1">
-			{#each errorLinesInStderr as errorLine}
-				<li class="text-red-500">{errorLine}</li>
-			{/each}
-		</ul>
-	</div>
-	<div class="grid gap-1">
-		<div class="dark:text-white">{$t('deploy.raw-output')}:</div>
-	</div>
-	<pre class="w-full text-sm font-light z-50 hover:z-50">{latestTask.stderr}</pre>
-</Modal> -->
 <div class="dark:text-white">
 	{$t('deploy.last-5-tasks')}
 </div>
