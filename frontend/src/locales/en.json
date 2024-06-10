@@ -10,6 +10,7 @@
 		"devices": "Devices",
 		"history": "History",
 		"terminal": "Terminal",
+		"vnc": "VNC",
 		"settings": "Settings"
 	},
 	"common": {
