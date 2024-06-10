@@ -60,9 +60,7 @@ class Grafana1Module(ScreenshotModuleNotAvaliable):
         pathlib.Path(__file__).parent
         / "icons/Grafana.svg"
     )
-    image: str = (
-        "${inputs.thymis}/controller/thymis_controller/models/modules/grafana1.png"
-    )
+    image: str = "${inputs.thymis}/controller/thymis_controller/modules/grafana1.png"
 
 
 class MqttxModule(ScreenshotModuleNotAvaliable):
@@ -72,9 +70,7 @@ class MqttxModule(ScreenshotModuleNotAvaliable):
         pathlib.Path(__file__).parent
         / "icons/mqttx.png"
     )
-    image: str = (
-        "${inputs.thymis}/controller/thymis_controller/models/modules/mqttx.png"
-    )
+    image: str = "${inputs.thymis}/controller/thymis_controller/modules/mqttx.png"
 
 
 class NodeRedModule(ScreenshotModuleNotAvaliable):
@@ -84,6 +80,4 @@ class NodeRedModule(ScreenshotModuleNotAvaliable):
         pathlib.Path(__file__).parent
         / "icons/Node-RED.svg"
     )
-    image: str = (
-        "${inputs.thymis}/controller/thymis_controller/models/modules/node_red.png"
-    )
+    image: str = "${inputs.thymis}/controller/thymis_controller/modules/node_red.png"

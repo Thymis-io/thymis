@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import time
 from typing import Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
@@ -10,6 +11,7 @@ from thymis_controller.nix import NIX_CMD
 
 
 class Task:
+    start_time: float
     display_name: str
     state: models.TaskState
     exception: Optional[Exception]
@@ -17,6 +19,7 @@ class Task:
     def __init__(self):
         self.state = "pending"
         self.exception = None
+        self.start_time = time.time()
 
         all_tasks.append(self)
 
@@ -36,8 +39,9 @@ class Task:
     async def run(self, *args, **kwargs):
         raise NotImplementedError()
 
-    def get_model(self) -> models.Task:
+    def get_model(self):
         return models.Task(
+            start_time=self.start_time,
             display_name=self.display_name,
             state=self.state,
             exception=self.exception,
@@ -56,6 +60,7 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
+        await send_all_tasks()
         try:
             while True:
                 await websocket.receive_bytes()
@@ -111,6 +116,8 @@ class CompositeTask(Task):
 
     def get_model(self) -> models.CompositeTask:
         return models.CompositeTask(
+            type="compositetask",
+            start_time=self.start_time,
             display_name=self.display_name,
             state=self.state,
             exception=self.exception,
@@ -158,11 +165,14 @@ class CommandTask(Task):
 
     def get_model(self) -> models.CommandTask:
         return models.CommandTask(
+            type="commandtask",
             display_name=self.display_name,
+            start_time=self.start_time,
             state=self.state,
             exception=str(self.exception),
             stdout=self.stdout.decode(),
             stderr=self.stderr.decode(),
+            data={"program": self.program, "args": self.args},
         )
 
 
@@ -226,3 +236,20 @@ class BuildDeviceImageTask(CommandTask):
         )
 
         self.display_name = f"Building image for {identifier}"
+        self.identifier = identifier
+
+    def get_model(self) -> models.CommandTask:
+        return models.CommandTask(
+            type="commandtask",
+            display_name=self.display_name,
+            start_time=self.start_time,
+            state=self.state,
+            exception=str(self.exception),
+            stdout=self.stdout.decode(),
+            stderr=self.stderr.decode(),
+            data={
+                "identifier": self.identifier,
+                "program": self.program,
+                "args": self.args,
+            },
+        )
