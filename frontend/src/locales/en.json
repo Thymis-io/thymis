@@ -111,6 +111,7 @@
 	"deploy": {
 		"build": "Build",
 		"deploy": "Deploy",
+		"last-5-tasks": "Last 5 tasks",
 		"update": "Update",
 		"build-status": "Build Status: {status}",
 		"stdout": "Standard Output",

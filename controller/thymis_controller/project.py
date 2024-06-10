@@ -90,7 +90,7 @@ def load_repositories(flake_path: os.PathLike, repositories: dict[str, models.Re
             except Exception as e:  # pylint: disable=broad-except
                 traceback.print_exc()
                 logger.error("Error while importing module %s: %s", module.name, e)
-    modules.ALL_MODULES = modules.ALL_MODULES_START
+    modules.ALL_MODULES = modules.ALL_MODULES_START.copy()
     modules.ALL_MODULES.extend(modules_found)
 
 
