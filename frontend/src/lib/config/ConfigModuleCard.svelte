@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { Module, ModuleSettings } from '$lib/state';
+	import type { Module, ModuleSettings, ModuleSettingsWithOrigin, Origin } from '$lib/state';
 	import { Card, P, Tooltip } from 'flowbite-svelte';
 	import ConfigString from './ConfigString.svelte';
 	import ConfigBool from './ConfigBool.svelte';
@@ -10,12 +10,14 @@
 	import { RouteOff } from 'lucide-svelte';
 
 	export let module: Module;
-	export let settings: (ModuleSettings & { origin: string | undefined }) | undefined;
-	export let otherSettings:
-		| (ModuleSettings & { origin: string | undefined; priority: number })[]
-		| undefined;
+	export let settings: ModuleSettingsWithOrigin | undefined;
+	export let otherSettings: ModuleSettingsWithOrigin[] | undefined;
 
 	export let setSetting: (module: ModuleSettings | Module, settingKey: string, value: any) => void;
+
+	const sameOrigin = (a: Origin | undefined, b: Origin | undefined) => {
+		return a?.originId === b?.originId && a?.originContext === b?.originContext;
+	};
 </script>
 
 <Card class="max-w-none grid grid-cols-4 gap-8">
@@ -23,11 +25,9 @@
 		{@const self = settings?.settings[key]}
 		{@const other = otherSettings
 			?.filter((o) => o?.type === module?.type && key in o.settings)
-			?.sort((a, b) => b.priority - a.priority)
+			?.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))
 			?.map((o) => ({
-				origin: o.origin,
-				priority: o.priority,
-				type: o.type,
+				...o,
 				options: module.settings[key].options,
 				setting: o.settings[key]
 			}))}
@@ -72,27 +72,25 @@
 				{/if}
 			</div>
 			{#if other && other.length > 0}
-				{#if settings?.origin === other[0].origin}
-					{@const otherDefinitions = other.filter((o) => o.origin != settings?.origin)}
+				{#if sameOrigin(settings, other[0])}
+					{@const otherDefinitions = other.filter((o) => !sameOrigin(settings, o))}
 					<button class="btn p-0 ml-2" on:click={() => {}}><Route color="#0080c0" /></button>
 					<Tooltip class="whitespace-pre">
 						{$t('config.otherDefinitions', {
 							values: {
-								others: otherDefinitions
-									?.map((o) => o.origin + ': ' + o.setting + ', ' + o.priority)
-									.join('\n')
+								others: otherDefinitions?.map((o) => o.originName + ': ' + o.setting).join('\n')
 							}
 						})}
 					</Tooltip>
 				{:else}
 					{@const otherDefinitions = other.filter(
-						(o) => o.origin != settings?.origin && o.origin != other[0].origin
+						(o) => !sameOrigin(settings, o) && !sameOrigin(settings, other[0])
 					)}
 					<button class="btn p-0 ml-2" on:click={() => {}}><RouteOff color="#0080c0" /></button>
 					<Tooltip class="whitespace-pre">
 						{$t('config.overwrittenBy', {
 							values: {
-								origin: other[0].origin,
+								origin: other[0].originName,
 								setting: other[0].setting
 							}
 						})}
@@ -100,9 +98,7 @@
 							{'\n\n' +
 								$t('config.otherDefinitions', {
 									values: {
-										others: otherDefinitions
-											?.map((o) => o.origin + ': ' + o.setting + ', ' + o.priority)
-											.join('\n')
+										others: otherDefinitions?.map((o) => o.originName + ': ' + o.setting).join('\n')
 									}
 								})}
 						{/if}

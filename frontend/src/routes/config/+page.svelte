@@ -3,7 +3,14 @@
 	import { Card, Toggle, Listgroup, ListgroupItem, Tooltip, P, Button } from 'flowbite-svelte';
 	import ModuleList from '$lib/config/ModuleList.svelte';
 	import { saveState } from '$lib/state';
-	import type { ModuleSettings, Tag, Device, Module } from '$lib/state';
+	import type {
+		ModuleSettings,
+		ModuleSettingsWithOrigin,
+		Tag,
+		Device,
+		Module,
+		Origin
+	} from '$lib/state';
 	import {
 		selectedDevice,
 		selectedTag,
@@ -19,54 +26,52 @@
 
 	export let data: PageData;
 
-	$: modules = getModules($selectedTag, $selectedDevice);
+	$: modules = getModules($selectedTarget);
 
-	const getOrigin = (target: Tag | Device | undefined) => {
-		return target?.displayName;
+	const getOrigin = (target: Tag | Device): Origin => {
+		return {
+			originId: target.identifier,
+			originContext: 'tag' in target ? 'device' : 'tag',
+			originName: target.displayName
+		};
 	};
 
-	const getModuleSettings = (tag: Tag | undefined, device: Device | undefined) => {
-		if (tag) {
-			return tag.modules.map((m) => ({ origin: getOrigin(tag), ...m }));
-		}
-
-		if (device) {
-			let usedTags = device.tags.flatMap(
-				(t) => data.state.tags.find((tag) => tag.identifier === t) ?? []
-			);
-			return [
-				...device.modules.map((m) => ({ origin: getOrigin(device), ...m })),
-				...usedTags.flatMap((t) =>
-					t.modules.map((m) => ({ origin: getOrigin(t), priority: t.priority, ...m }))
-				)
-			];
-		}
-	};
-
-	const getSelfModuleSettings = (target: Tag | Device | undefined) => {
-		return target?.modules.map((m) => ({ origin: getOrigin(target), ...m })) ?? [];
-	};
-
-	const getSelfModules = (selectedTarget: Tag | Device | undefined) => {
-		let settings = getSelfModuleSettings(selectedTarget);
-		return data.availableModules.filter((m) => settings.find((s) => s.type === m.type)) ?? [];
-	};
-
-	const getOtherSettings = (target: Device | Tag | undefined, module: Module | undefined) => {
+	const getModuleSettings = (target: Tag | Device | undefined): ModuleSettingsWithOrigin[] => {
 		if (!target) {
 			return [];
 		}
 
-		let settings = getModuleSettings(
-			!('tags' in target) ? (target as Tag) : undefined,
-			'tags' in target ? (target as Device) : undefined
-		);
+		let ownModules: ModuleSettingsWithOrigin[] = getOwnModuleSettings(target);
+		let tagModules: ModuleSettingsWithOrigin[] = [];
 
-		return settings?.filter((s) => s.type === module?.type);
+		if ('tags' in target) {
+			let usedTags = target.tags.flatMap(
+				(t) => data.state.tags.find((tag) => tag.identifier === t) ?? []
+			);
+
+			tagModules = usedTags.flatMap((t) =>
+				t.modules.map((m) => ({ ...getOrigin(t), priority: t.priority, ...m }))
+			);
+		}
+
+		return [...ownModules, ...tagModules];
 	};
 
-	const getModules = (tag: Tag | undefined, device: Device | undefined) => {
-		let settings = getModuleSettings(tag, device);
+	const getOwnModuleSettings = (target: Tag | Device | undefined): ModuleSettingsWithOrigin[] => {
+		return target?.modules.map((m) => ({ ...getOrigin(target), priority: undefined, ...m })) ?? [];
+	};
+
+	const getSelfModules = (selectedTarget: Tag | Device | undefined) => {
+		let settings = getOwnModuleSettings(selectedTarget);
+		return data.availableModules.filter((m) => settings.find((s) => s.type === m.type)) ?? [];
+	};
+
+	const getOtherSettings = (target: Device | Tag | undefined, module: Module | undefined) => {
+		return getModuleSettings(target)?.filter((s) => s.type === module?.type);
+	};
+
+	const getModules = (target: Tag | Device | undefined) => {
+		let settings = getModuleSettings(target);
 		return data.availableModules.filter((m) => settings?.find((s) => s.type === m.type)) ?? [];
 	};
 
@@ -89,10 +94,9 @@
 	const getSettings = (
 		module: ModuleSettings | Module,
 		settingKey: string,
-		tag: Tag | undefined,
-		device: Device | undefined
+		target: Tag | Device | undefined
 	) => {
-		let settings = getModuleSettings(tag, device);
+		let settings = getModuleSettings(target);
 		return settings?.filter(
 			(s) => s.type === module.type && Object.keys(s.settings).includes(settingKey)
 		);
@@ -101,10 +105,9 @@
 	const getSetting = (
 		module: ModuleSettings | Module,
 		settingKey: string,
-		tag: Tag | undefined,
-		device: Device | undefined
+		target: Tag | Device | undefined
 	) => {
-		let settings = getSettings(module, settingKey, tag, device);
+		let settings = getSettings(module, settingKey, target);
 
 		if (settings && settings.length >= 1) {
 			return settings[0].settings[settingKey];
@@ -120,7 +123,6 @@
 		addModule(target, module);
 
 		let targetModule = target?.modules.find((m) => m.type === module.type);
-		console.log(target, targetModule);
 
 		if (targetModule) {
 			if (value !== undefined && value !== null) {
@@ -195,7 +197,7 @@
 		<div class="col-span-4">
 			<ConfigModuleCard
 				module={$selectedConfigModule}
-				settings={getSelfModuleSettings($selectedConfigTarget).find(
+				settings={getOwnModuleSettings($selectedConfigTarget).find(
 					(s) => s.type === $selectedConfigModule?.type
 				)}
 				otherSettings={getOtherSettings($selectedTarget, $selectedConfigModule)}

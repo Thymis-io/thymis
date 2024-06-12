@@ -10,6 +10,23 @@ export type ModuleSettings = {
 	};
 };
 
+export type Origin = {
+	originId: string;
+	originContext: string;
+	originName: string;
+};
+
+export type ModuleSettingsWithOrigin = {
+	type: string;
+	settings: {
+		[key: string]: string | number | boolean;
+	};
+	originId: string;
+	originContext: string;
+	originName: string;
+	priority: number | undefined;
+};
+
 export type Setting = {
 	name: string;
 	type: string;
