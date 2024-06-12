@@ -31,7 +31,7 @@
 	const getOrigin = (target: Tag | Device): Origin => {
 		return {
 			originId: target.identifier,
-			originContext: 'tag' in target ? 'device' : 'tag',
+			originContext: 'tags' in target ? 'device' : 'tag',
 			originName: target.displayName
 		};
 	};

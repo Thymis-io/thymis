@@ -8,6 +8,7 @@
 	import ConfigSelectOne from './ConfigSelectOne.svelte';
 	import { Route } from 'lucide-svelte';
 	import { RouteOff } from 'lucide-svelte';
+	import DefinitionLine from './DefinitionLine.svelte';
 
 	export let module: Module;
 	export let settings: ModuleSettingsWithOrigin | undefined;
@@ -18,6 +19,12 @@
 	const sameOrigin = (a: Origin | undefined, b: Origin | undefined) => {
 		return a?.originId === b?.originId && a?.originContext === b?.originContext;
 	};
+
+	const settingsOrder = (a: ModuleSettingsWithOrigin, b: ModuleSettingsWithOrigin) => {
+		if (a.priority === undefined && b.priority !== undefined) return -1;
+		if (b.priority === undefined && a.priority !== undefined) return 1;
+		return (b.priority ?? 0) - (a.priority ?? 0);
+	};
 </script>
 
 <Card class="max-w-none grid grid-cols-4 gap-8">
@@ -25,7 +32,7 @@
 		{@const self = settings?.settings[key]}
 		{@const other = otherSettings
 			?.filter((o) => o?.type === module?.type && key in o.settings)
-			?.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))
+			?.sort(settingsOrder)
 			?.map((o) => ({
 				...o,
 				options: module.settings[key].options,
@@ -75,32 +82,37 @@
 				{#if sameOrigin(settings, other[0])}
 					{@const otherDefinitions = other.filter((o) => !sameOrigin(settings, o))}
 					<button class="btn p-0 ml-2" on:click={() => {}}><Route color="#0080c0" /></button>
-					<Tooltip class="whitespace-pre">
-						{$t('config.otherDefinitions', {
-							values: {
-								others: otherDefinitions?.map((o) => o.originName + ': ' + o.setting).join('\n')
-							}
-						})}
+					<Tooltip>
+						<P size="sm" class="whitespace-pre-line">{$t('config.passed')}</P>
+						{#if otherDefinitions?.length > 0}
+							<P size="sm" class="whitespace-pre-line mt-2">{$t('config.otherDefinitions')}</P>
+							<div class="grid grid-cols-2 gap-x-4">
+								{#each otherDefinitions as otherDefinition}
+									<DefinitionLine origin={otherDefinition} value={otherDefinition.setting} />
+								{/each}
+							</div>
+						{:else}
+							<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P>
+						{/if}
 					</Tooltip>
 				{:else}
 					{@const otherDefinitions = other.filter(
-						(o) => !sameOrigin(settings, o) && !sameOrigin(settings, other[0])
+						(o) => !sameOrigin(o, settings) && !sameOrigin(o, other[0])
 					)}
 					<button class="btn p-0 ml-2" on:click={() => {}}><RouteOff color="#0080c0" /></button>
-					<Tooltip class="whitespace-pre">
-						{$t('config.overwrittenBy', {
-							values: {
-								origin: other[0].originName,
-								setting: other[0].setting
-							}
-						})}
+					<Tooltip>
+						<P size="sm" class="whitespace-pre-line">{@html $t('config.notPassed')}</P>
+						<P size="sm" class="whitespace-pre-line mt-2">{$t('config.overwrittenBy')}</P>
+						<div class="grid grid-cols-2 gap-x-4">
+							<DefinitionLine origin={other[0]} value={other[0].setting} />
+						</div>
 						{#if otherDefinitions?.length > 0}
-							{'\n\n' +
-								$t('config.otherDefinitions', {
-									values: {
-										others: otherDefinitions?.map((o) => o.originName + ': ' + o.setting).join('\n')
-									}
-								})}
+							<P size="sm" class="whitespace-pre-line mt-4">{$t('config.otherDefinitions')}</P>
+							<div class="grid grid-cols-2 gap-x-4">
+								{#each otherDefinitions as otherDefinition}
+									<DefinitionLine origin={otherDefinition} value={otherDefinition.setting} />
+								{/each}
+							</div>
 						{/if}
 					</Tooltip>
 				{/if}

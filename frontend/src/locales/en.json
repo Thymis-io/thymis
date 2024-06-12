@@ -143,8 +143,12 @@
 		"uninstall": "Uninstall",
 		"configure": "Configure",
 		"back": "Back",
-		"otherDefinitions": "Other Definitions:\n{others}",
-		"overwrittenBy": "Overwritten by:\n{origin}: {setting}"
+		"notPassed": "This setting is <b>not</b> passed to the device",
+		"passed": "This setting is passed to the device",
+		"otherDefinitions": "Other Definitions:",
+		"noOtherDefinitions": "No Other Definitions",
+		"overwrittenBy": "Overwritten By:",
+		"priority": "Priority {priority}"
 	},
 	"options": {
 		"no-settings": "No settings found for this module",
