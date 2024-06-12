@@ -152,25 +152,6 @@
 	</h1>
 	<DeployActions />
 </div>
-<div class="flex gap-10 mb-4">
-	{#if modules.find((m) => m.type === $selectedConfigModule?.type)}
-		<Button
-			on:click={() => {
-				if ($selectedConfigModule) removeModule($selectedConfigTarget, $selectedConfigModule);
-			}}
-		>
-			{$t('config.uninstall')}
-		</Button>
-	{:else}
-		<Button
-			on:click={() => {
-				if ($selectedConfigModule) addModule($selectedConfigTarget, $selectedConfigModule);
-			}}
-		>
-			{$t('config.install')}
-		</Button>
-	{/if}
-</div>
 <div class="grid grid-flow-row grid-cols-5 gap-4">
 	<Card class="col-span-1 max-w-none">
 		<ModuleList
