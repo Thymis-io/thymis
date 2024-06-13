@@ -13,6 +13,7 @@
 	export let module: Module;
 	export let settings: ModuleSettingsWithOrigin | undefined;
 	export let otherSettings: ModuleSettingsWithOrigin[] | undefined;
+	export let showRouting: boolean;
 
 	export let setSetting: (module: ModuleSettings | Module, settingKey: string, value: any) => void;
 
@@ -78,7 +79,7 @@
 					/>
 				{/if}
 			</div>
-			{#if other && other.length > 0}
+			{#if showRouting && other && other.length > 0}
 				{#if sameOrigin(settings, other[0])}
 					{@const otherDefinitions = other.filter((o) => !sameOrigin(settings, o))}
 					<button class="btn p-0 ml-2" on:click={() => {}}><Route color="#0080c0" /></button>

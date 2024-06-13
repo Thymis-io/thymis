@@ -183,6 +183,7 @@
 				)}
 				otherSettings={getOtherSettings($selectedTarget, $selectedConfigModule)}
 				setSetting={(module, key, value) => setSetting($selectedConfigTarget, module, key, value)}
+				showRouting={$selectedContext === 'device'}
 			/>
 		</div>
 	{/if}
