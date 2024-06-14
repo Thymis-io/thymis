@@ -14,6 +14,7 @@
 	export let settings: ModuleSettingsWithOrigin | undefined;
 	export let otherSettings: ModuleSettingsWithOrigin[] | undefined;
 	export let showRouting: boolean;
+	export let canEdit: boolean;
 
 	export let setSetting: (module: ModuleSettings | Module, settingKey: string, value: any) => void;
 
@@ -51,6 +52,7 @@
 						change={(value) => {
 							setSetting(module, key, value);
 						}}
+						disabled={!canEdit}
 					/>
 				{:else if setting.type == 'string'}
 					<ConfigString
@@ -59,6 +61,7 @@
 						change={(value) => {
 							setSetting(module, key, value);
 						}}
+						disabled={!canEdit}
 					/>
 				{:else if setting.type == 'textarea'}
 					<ConfigTextarea
@@ -67,6 +70,7 @@
 						change={(value) => {
 							setSetting(module, key, value);
 						}}
+						disabled={!canEdit}
 					/>
 				{:else if setting.type == 'select-one'}
 					<ConfigSelectOne
@@ -76,6 +80,7 @@
 						change={(value) => {
 							setSetting(module, key, value);
 						}}
+						disabled={!canEdit}
 					/>
 				{/if}
 			</div>

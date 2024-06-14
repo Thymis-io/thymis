@@ -148,7 +148,8 @@
 		"otherDefinitions": "Other Definitions:",
 		"noOtherDefinitions": "No Other Definitions",
 		"overwrittenBy": "Overwritten By:",
-		"priority": "Priority {priority}"
+		"priority": "Priority {priority}",
+		"editDisabled": "Reference only, edit the tag to change values globally"
 	},
 	"options": {
 		"no-settings": "No settings found for this module",

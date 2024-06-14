@@ -3,23 +3,36 @@ import { page } from '$app/stores';
 import { queryParam } from 'sveltekit-search-params';
 import { derived } from 'svelte/store';
 
-export const deviceUrl = (search: string, context: string, identifier: string) => {
+export const deviceUrl = (
+	search: string,
+	context: string | null | undefined,
+	identifier: string | null | undefined
+) => {
 	const params = new URLSearchParams(search);
-	params.set('id-context', context);
-	params.set('id', identifier);
+	context ? params.set('id-context', context) : params.delete('id-context');
+	identifier ? params.set('id', identifier) : params.delete('id');
+	params.delete('config-id');
+	params.delete('config-id-context');
+	params.delete('module');
 	return params.toString();
 };
 
 export const deviceConfigUrl = (
 	search: string,
-	module: Module,
-	context: string,
-	identifier: string
+	module: Module | null | undefined,
+	context: string | null | undefined,
+	identifier: string | null | undefined,
+	configContext: string | null | undefined,
+	configIdentifier: string | null | undefined
 ) => {
 	const params = new URLSearchParams(search);
-	params.set('config-id-context', context);
-	params.set('config-id', identifier);
-	params.set('module', module.type);
+	context ? params.set('id-context', context) : params.delete('id-context');
+	identifier ? params.set('id', identifier) : params.delete('id');
+	configContext
+		? params.set('config-id-context', configContext)
+		: params.delete('config-id-context');
+	configIdentifier ? params.set('config-id', configIdentifier) : params.delete('config-id');
+	module ? params.set('module', module.type) : params.delete('module');
 	return params.toString();
 };
 

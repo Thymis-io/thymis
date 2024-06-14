@@ -174,7 +174,7 @@
 			</ModuleList>
 		{/each}
 	</Card>
-	{#if $selectedConfigModule}
+	{#if $selectedConfigModule && $selectedConfigTarget?.modules.find((m) => m.type === $selectedConfigModule.type)}
 		<div class="col-span-4">
 			<ConfigModuleCard
 				module={$selectedConfigModule}
@@ -184,6 +184,7 @@
 				otherSettings={getOtherSettings($selectedTarget, $selectedConfigModule)}
 				setSetting={(module, key, value) => setSetting($selectedConfigTarget, module, key, value)}
 				showRouting={$selectedContext === 'device'}
+				canEdit={$selectedTarget === $selectedConfigTarget}
 			/>
 		</div>
 	{/if}
