@@ -1,22 +1,17 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { P } from 'flowbite-svelte';
-	import { queryParam } from 'sveltekit-search-params';
 	import type { Tag, Device, ModuleSettings, Module } from '$lib/state';
 	import { saveState } from '$lib/state';
 
 	import DeployActions from '$lib/DeployActions.svelte';
 	import ModuleCard from '$lib/ModuleCard.svelte';
 	import type { PageData } from './$types';
+	import { selectedTag, selectedDevice } from '$lib/deviceSelectHelper';
 
 	export let data: PageData;
 
-	const tagParam = queryParam('tag');
-	const deviceParam = queryParam('device');
-
-	$: tag = data.state.tags.find((t) => t.identifier === $tagParam);
-	$: device = data.state.devices.find((d) => d.identifier === $deviceParam);
-	$: modules = getModules(tag, device);
+	$: modules = getModules($selectedTag, $selectedDevice);
 	$: modulesAnywhere = getModulesInstalledAnywhere();
 
 	const getOrigin = (target: Tag | Device) => {
@@ -51,12 +46,12 @@
 	};
 
 	const addModule = (module: ModuleSettings | Module) => {
-		if (tag && !tag.modules.find((m) => m.type === module.type)) {
-			tag.modules = [...tag.modules, { type: module.type, settings: {} }];
+		if ($selectedTag && !$selectedTag.modules.find((m) => m.type === module.type)) {
+			$selectedTag.modules = [...$selectedTag.modules, { type: module.type, settings: {} }];
 		}
 
-		if (device && !device.modules.find((m) => m.type === module.type)) {
-			device.modules = [...device.modules, { type: module.type, settings: {} }];
+		if ($selectedDevice && !$selectedDevice.modules.find((m) => m.type === module.type)) {
+			$selectedDevice.modules = [...$selectedDevice.modules, { type: module.type, settings: {} }];
 		}
 
 		saveState(data.state);
@@ -65,10 +60,10 @@
 
 <div class="flex justify-between mb-4">
 	<h1 class="text-3xl font-bold dark:text-white">
-		{#if tag}
-			{$t('config.header.tag-overview', { values: { tag: tag.displayName } })}
-		{:else if device}
-			{$t('config.header.device-overview', { values: { device: device.displayName } })}
+		{#if $selectedTag}
+			{$t('config.header.tag-overview', { values: { tag: $selectedTag.displayName } })}
+		{:else if $selectedDevice}
+			{$t('config.header.device-overview', { values: { device: $selectedDevice.displayName } })}
 		{:else}
 			{$t('config.header.overview')}
 		{/if}

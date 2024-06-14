@@ -142,7 +142,14 @@
 		"install": "Install",
 		"uninstall": "Uninstall",
 		"configure": "Configure",
-		"back": "Back"
+		"back": "Back",
+		"notPassed": "This setting is <b>not</b> passed to the device",
+		"passed": "This setting is passed to the device",
+		"otherDefinitions": "Other Definitions:",
+		"noOtherDefinitions": "No Other Definitions",
+		"overwrittenBy": "Overwritten By:",
+		"priority": "Priority {priority}",
+		"editDisabled": "Reference only, edit the tag to change values globally"
 	},
 	"options": {
 		"no-settings": "No settings found for this module",
