@@ -30,7 +30,7 @@
 				{
 					displayName: newTag,
 					identifier: newIdentifier,
-					priority: 5,
+					priority: 90,
 					modules: []
 				}
 			];

@@ -22,7 +22,7 @@ BUILTIN_REPOSITORIES = {
     "nixpkgs": models.Repo(follows="thymis/nixpkgs"),
 }
 
-HOST_PRIORITY = 100
+HOST_PRIORITY = 80
 
 
 def del_path(path: os.PathLike):
