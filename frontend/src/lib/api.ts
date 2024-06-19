@@ -24,9 +24,9 @@ const isLocalhost = (host: string) => {
 if (!isLocalhost(controllerHost) && controllerProtocol !== 'https') {
 	console.error('controllerHost is public and not localhost, but controllerProtocol is not https');
 	// fail hard
-	throw new Error(
-		'controllerHost is public and not localhost, but controllerProtocol is not https'
-	);
+	// throw new Error(
+	//	'controllerHost is public and not localhost, but controllerProtocol is not https'
+	//);
 }
 
 if (!env.PUBLIC_CONTROLLER_HOST) {
