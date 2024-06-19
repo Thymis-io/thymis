@@ -1,5 +1,6 @@
 import logging
 import os
+import pathlib
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,8 @@ def get_project():
         else:
             REPO_PATH = "/var/lib/thymis"
             logger.warning("REPO_PATH not set. Using default path: %s", REPO_PATH)
+
+        REPO_PATH = pathlib.Path(REPO_PATH).resolve()
 
         global_project = Project(REPO_PATH)
     return global_project
