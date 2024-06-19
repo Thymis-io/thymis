@@ -22,7 +22,7 @@ BUILTIN_REPOSITORIES = {
     "nixpkgs": models.Repo(follows="thymis/nixpkgs"),
 }
 
-HOST_PRIORITY = 100
+HOST_PRIORITY = 80
 
 
 def del_path(path: os.PathLike):
@@ -71,6 +71,7 @@ def load_repositories(flake_path: os.PathLike, repositories: dict[str, models.Re
     # add the paths to sys.path
     sys.path = startup_python_path.copy()
     # for path in input_out_paths.values():
+    importlib.invalidate_caches()
     modules_found = []
     for name, path in input_out_paths.items():
         logger.info("Adding %s at %s to sys.path", name, path)
