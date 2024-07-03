@@ -24,6 +24,30 @@ let
         };
         nixpkgs.hostPlatform = "aarch64-linux";
       };
+      raspberry-pi-3 = {
+        imports = [
+          inputs.nixos-generators.nixosModules.all-formats
+          inputs.nixos-hardware.nixosModules.raspberry-pi-3
+          inputs.nixos-generators.nixosModules.sd-aarch64
+
+        ];
+        formatConfigs = lib.mkForce {
+          sd-card-image = {
+            imports = [
+              inputs.nixos-generators.nixosModules.sd-aarch64
+            ];
+            sdImage.compressImage = false;
+            fileExtension = ".img";
+          };
+        };
+        nixpkgs.overlays = [
+          (final: super: {
+            makeModulesClosure = x:
+              super.makeModulesClosure (x // { allowMissing = true; });
+          })
+        ];
+        nixpkgs.hostPlatform = "aarch64-linux";
+      };
       raspberry-pi-4 = {
         imports = [
           inputs.nixos-generators.nixosModules.all-formats
