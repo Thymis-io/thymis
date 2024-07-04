@@ -129,7 +129,11 @@ class Project:
         with open(state_path, "r", encoding="utf-8") as f:
             state_dict = json.load(f)
         state_dict = migration.migrate(state_dict)
-        self.write_state_and_reload(State.model_validate(state_dict))
+        try:
+            self.write_state_and_reload(State.model_validate(state_dict))
+        except subprocess.CalledProcessError as e:
+            logger.error("Error while migrating state: %s", e)
+            traceback.print_exc()
 
     def read_state(self):
         with open(Path(self.path) / "state.json", "r", encoding="utf-8") as f:
