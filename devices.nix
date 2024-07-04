@@ -27,9 +27,8 @@ let
       raspberry-pi-3 = {
         imports = [
           inputs.nixos-generators.nixosModules.all-formats
-          inputs.nixos-hardware.nixosModules.raspberry-pi-3
+          #inputs.nixos-hardware.nixosModules.raspberry-pi-3
           inputs.nixos-generators.nixosModules.sd-aarch64
-
         ];
         formatConfigs = lib.mkForce {
           sd-card-image = {
@@ -53,7 +52,6 @@ let
           inputs.nixos-generators.nixosModules.all-formats
           inputs.nixos-hardware.nixosModules.raspberry-pi-4
           inputs.nixos-generators.nixosModules.sd-aarch64
-
         ];
         hardware.raspberry-pi."4".fkms-3d.enable = true;
         formatConfigs = lib.mkForce {
