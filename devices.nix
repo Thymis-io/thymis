@@ -1,14 +1,12 @@
 args@{ ... }:
 let
   inherit (args) inputs lib;
-  sharedConfig = {
-    imports = [
-      inputs.nixos-generators.nixosModules.all-formats
-    ];
-  };
-  deviceConfig = builtins.mapAttrs (name: config: lib.attrsets.recursiveUpdate sharedConfig config)
+  deviceConfig =
     {
-      generic-x86_64 = {
+      generic-x86_64 = { ... }: {
+        imports = [
+          inputs.nixos-generators.nixosModules.all-formats
+        ];
         formatConfigs = lib.mkForce {
           qcow = { imports = [ inputs.nixos-generators.nixosModules.qcow ]; };
           install-iso = {
@@ -18,18 +16,20 @@ let
         };
         nixpkgs.hostPlatform = "x86_64-linux";
       };
-      generic-aarch64 = {
+      generic-aarch64 = { ... }: {
+        imports = [
+          inputs.nixos-generators.nixosModules.all-formats
+        ];
         formatConfigs = lib.mkForce {
           qcow = { imports = [ inputs.nixos-generators.nixosModules.qcow ]; };
         };
         nixpkgs.hostPlatform = "aarch64-linux";
       };
-      raspberry-pi-4 = {
+      raspberry-pi-4 = { ... }: {
         imports = [
           inputs.nixos-generators.nixosModules.all-formats
           inputs.nixos-hardware.nixosModules.raspberry-pi-4
           inputs.nixos-generators.nixosModules.sd-aarch64
-
         ];
         hardware.raspberry-pi."4".fkms-3d.enable = true;
         formatConfigs = lib.mkForce {
@@ -49,7 +49,7 @@ let
         ];
         nixpkgs.hostPlatform = "aarch64-linux";
       };
-      raspberry-pi-5 = {
+      raspberry-pi-5 = { pkgs, ... }: {
         imports = [
           inputs.nixos-generators.nixosModules.all-formats
           inputs.raspberry-pi-nix.nixosModules.raspberry-pi
@@ -69,6 +69,26 @@ let
           })
         ];
         nixpkgs.hostPlatform = "aarch64-linux";
+        hardware.raspberry-pi.config = {
+          all = {
+            dt-overlays = {
+              vc4-kms-v3d-pi5 = { enable = true; params = { }; };
+            };
+          };
+        };
+        hardware.opengl = {
+          enable = true;
+          extraPackages = [ pkgs.mesa.drivers ];
+          driSupport = true;
+        };
+        services.xserver.extraConfig = ''
+          Section "OutputClass"
+            Identifier "vc4"
+            MatchDriver "vc4"
+            Driver "modesetting"
+            Option "PrimaryGPU" "true"
+          EndSection
+        '';
       };
     };
 in
