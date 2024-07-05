@@ -17,6 +17,7 @@ export type Setting = {
 	default: string;
 	description: string;
 	example: string | null;
+	order: number;
 };
 
 export type Module = {

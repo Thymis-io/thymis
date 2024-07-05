@@ -10,6 +10,7 @@ class Setting(BaseModel):
     default: object
     description: str
     example: Optional[str] = None
+    order: int = 0
 
 
 class Module(BaseModel):
