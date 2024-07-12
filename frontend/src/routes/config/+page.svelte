@@ -135,6 +135,9 @@
 	$: if (selectedModule) {
 		console.log(selectedModule);
 		selectedModulesValidSettingkeys = Object.keys(selectedModule.settings);
+		selectedModulesValidSettingkeys.sort(
+			(a, b) => selectedModule.settings[a].order - selectedModule.settings[b].order
+		);
 		console.log(selectedModulesValidSettingkeys);
 	}
 
