@@ -1,13 +1,11 @@
 <script lang="ts">
 	import { MegaMenu, ToolbarButton } from 'flowbite-svelte';
-	import {
-		ArrowRightToBracketOutline,
-		GridSolid,
-		UserSolid,
-		ProfileCardOutline,
-		UsersGroupSolid,
-		UserSettingsSolid
-	} from 'flowbite-svelte-icons';
+	import ArrowRightToBracketOutline from 'flowbite-svelte-icons/ArrowRightToBracketOutline.svelte';
+	import GridSolid from 'flowbite-svelte-icons/GridSolid.svelte';
+	import UserSolid from 'flowbite-svelte-icons/UserSolid.svelte';
+	import ProfileCardOutline from 'flowbite-svelte-icons/ProfileCardOutline.svelte';
+	import UsersGroupSolid from 'flowbite-svelte-icons/UsersGroupSolid.svelte';
+	import UserSettingsSolid from 'flowbite-svelte-icons/UserSettingsSolid.svelte';
 
 	const menu = [
 		{ name: 'Team', href: '#', icon: UsersGroupSolid },

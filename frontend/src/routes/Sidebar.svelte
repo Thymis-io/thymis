@@ -10,23 +10,15 @@
 		SidebarItem,
 		SidebarWrapper
 	} from 'flowbite-svelte';
-	import {
-		AngleDownOutline,
-		AngleUpOutline,
-		ClipboardListSolid,
-		GithubSolid,
-		LayersSolid,
-		LifeSaverSolid
-	} from 'flowbite-svelte-icons';
-	import {
-		ServerSolid,
-		SlidersSolid,
-		CodeCommitSolid,
-		TerminalSolid,
-		ChartSimpleSolid,
-		GearSolid
-	} from 'svelte-awesome-icons';
-	import { ScreenShare } from 'lucide-svelte';
+	import AngleDownOutline from 'flowbite-svelte-icons/AngleDownOutline.svelte';
+	import AngleUpOutline from 'flowbite-svelte-icons/AngleUpOutline.svelte';
+	import ServerSolid from 'svelte-awesome-icons/ServerSolid.svelte';
+	import SlidersSolid from 'svelte-awesome-icons/SlidersSolid.svelte';
+	import CodeCommitSolid from 'svelte-awesome-icons/CodeCommitSolid.svelte';
+	import TerminalSolid from 'svelte-awesome-icons/TerminalSolid.svelte';
+	import ChartSimpleSolid from 'svelte-awesome-icons/ChartSimpleSolid.svelte';
+	import GearSolid from 'svelte-awesome-icons/GearSolid.svelte';
+	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import DeviceSelect from '$lib/DeviceSelect.svelte';
 	import { queryParam } from 'sveltekit-search-params';
 	import type { Device, ModuleSettings, State } from '$lib/state';
