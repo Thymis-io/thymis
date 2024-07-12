@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Button } from 'flowbite-svelte';
-	import { GearsSolid, ArrowsRotateSolid, PlaySolid } from 'svelte-awesome-icons';
+	import GearsSolid from 'svelte-awesome-icons/GearsSolid.svelte';
+	import ArrowsRotateSolid from 'svelte-awesome-icons/ArrowsRotateSolid.svelte';
+	import PlaySolid from 'svelte-awesome-icons/PlaySolid.svelte';
 	import '../app.postcss';
 	import { controllerHost, controllerProtocol } from './api';
 	import DeployModal from '$lib/DeployModal.svelte';

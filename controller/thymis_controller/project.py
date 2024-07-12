@@ -22,7 +22,7 @@ BUILTIN_REPOSITORIES = {
     "nixpkgs": models.Repo(follows="thymis/nixpkgs"),
 }
 
-HOST_PRIORITY = 100
+HOST_PRIORITY = 80
 
 
 def del_path(path: os.PathLike):
@@ -71,6 +71,7 @@ def load_repositories(flake_path: os.PathLike, repositories: dict[str, models.Re
     # add the paths to sys.path
     sys.path = startup_python_path.copy()
     # for path in input_out_paths.values():
+    importlib.invalidate_caches()
     modules_found = []
     for name, path in input_out_paths.items():
         logger.info("Adding %s at %s to sys.path", name, path)
@@ -128,7 +129,11 @@ class Project:
         with open(state_path, "r", encoding="utf-8") as f:
             state_dict = json.load(f)
         state_dict = migration.migrate(state_dict)
-        self.write_state_and_reload(State.model_validate(state_dict))
+        try:
+            self.write_state_and_reload(State.model_validate(state_dict))
+        except subprocess.CalledProcessError as e:
+            logger.error("Error while migrating state: %s", e)
+            traceback.print_exc()
 
     def read_state(self):
         with open(Path(self.path) / "state.json", "r", encoding="utf-8") as f:

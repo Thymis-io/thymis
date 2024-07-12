@@ -10,8 +10,7 @@
 		Select,
 		ToolbarButton
 	} from 'flowbite-svelte';
-	import { BellSolid, GithubSolid } from 'flowbite-svelte-icons';
-	import { Dropdown, DropdownItem, DropdownDivider, DropdownHeader } from 'flowbite-svelte';
+	import GithubSolid from 'flowbite-svelte-icons/GithubSolid.svelte';
 	import '../app.postcss';
 	import { locale } from 'svelte-i18n';
 	import { browser } from '$app/environment';

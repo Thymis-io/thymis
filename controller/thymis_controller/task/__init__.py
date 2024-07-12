@@ -44,7 +44,7 @@ class Task:
             start_time=self.start_time,
             display_name=self.display_name,
             state=self.state,
-            exception=self.exception,
+            exception=str(self.exception),
         )
 
 
@@ -120,7 +120,7 @@ class CompositeTask(Task):
             start_time=self.start_time,
             display_name=self.display_name,
             state=self.state,
-            exception=self.exception,
+            exception=str(self.exception),
             tasks=[task.get_model() for task in self.tasks],
         )
 

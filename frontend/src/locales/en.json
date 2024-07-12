@@ -161,6 +161,7 @@
 					"device-type": "Device Type",
 					"device-type-options": {
 						"generic-x86_64": "Generic x86 Device (e.g. PC)",
+						"raspberry-pi-3": "Raspberry Pi 3",
 						"raspberry-pi-4": "Raspberry Pi 4",
 						"generic-aarch64": "Generic ARM64 Device"
 					},

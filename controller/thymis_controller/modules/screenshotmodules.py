@@ -17,7 +17,6 @@ class ScreenshotModuleNotAvaliable(modules.Module):
     def write_nix_settings(
         self, f, module_settings: models.ModuleSettings, priority: int
     ):
-        f.write(f'  hardware.raspberry-pi."4".fkms-3d.enable = true;\n')
         f.write(
             f"""
 services.xserver.displayManager.sddm.enable = true;

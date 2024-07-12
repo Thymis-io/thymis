@@ -28,10 +28,12 @@
 		if (b.priority === undefined && a.priority !== undefined) return 1;
 		return (b.priority ?? 0) - (a.priority ?? 0);
 	};
+
+	const settingEntries = Object.entries(module.settings).sort((a, b) => a[1].order - b[1].order);
 </script>
 
 <Card class="max-w-none grid grid-cols-4 gap-8">
-	{#each Object.entries(module.settings) as [key, setting]}
+	{#each settingEntries as [key, setting]}
 		{@const self = settings?.settings[key]}
 		{@const other = otherSettings
 			?.filter((o) => o?.type === module?.type && key in o.settings)

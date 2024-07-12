@@ -25,10 +25,11 @@ class ThymisDevice(modules.Module):
     device_type = models.Setting(
         name="thymis.config.device-type",
         type="select-one",
-        options=["generic-x86_64", "raspberry-pi-4", "generic-aarch64"],
+        options=["generic-x86_64", "raspberry-pi-3", "raspberry-pi-4", "generic-aarch64"],
         default="",
         description="The device type of the thymis device.",
         example="",
+        order=10,
     )
 
     device_name = models.Setting(
@@ -37,6 +38,7 @@ class ThymisDevice(modules.Module):
         default="",
         description="The device name of the thymis device.",
         example="",
+        order=20,
     )
 
     password = models.Setting(
@@ -45,6 +47,7 @@ class ThymisDevice(modules.Module):
         default="",
         description="The password of the thymis device.",
         example="",
+        order=30,
     )
 
     wifi_ssid = models.Setting(
@@ -53,6 +56,7 @@ class ThymisDevice(modules.Module):
         default="",
         description="The wifi ssid of the thymis device.",
         example="",
+        order=40,
     )
 
     wifi_password = models.Setting(
@@ -61,6 +65,7 @@ class ThymisDevice(modules.Module):
         default="",
         description="The wifi password of the thymis device.",
         example="",
+        order=50,
     )
 
     def write_nix_settings(self, f, module_settings: ModuleSettings, priority: int):

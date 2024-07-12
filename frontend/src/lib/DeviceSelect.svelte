@@ -3,8 +3,8 @@
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
 	import { Button, Dropdown, DropdownItem, Search } from 'flowbite-svelte';
-	import { ChevronDownSolid } from 'flowbite-svelte-icons';
 	import { selectedTag, selectedDevice, deviceUrl } from './deviceSelectHelper';
+	import ChevronDownSolid from 'flowbite-svelte-icons/ChevronDownSolid.svelte';
 	import { page } from '$app/stores';
 	import type { State } from './state';
 
