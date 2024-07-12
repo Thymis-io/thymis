@@ -124,7 +124,7 @@
 
 		let targetModule = target?.modules.find((m) => m.type === module.type);
 
-		if (targetModule) {
+		if (target && targetModule) {
 			if (value !== undefined && value !== null) {
 				targetModule.settings[settingKey] = value;
 			} else {

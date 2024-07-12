@@ -33,7 +33,6 @@ const startSocket = () => {
 	socket = new WebSocket(`ws://${controllerHost}/task_status`);
 	socket.onmessage = (event) => {
 		const data = JSON.parse(event.data) as TaskList;
-		console.log('task_status', data);
 		const lastTaskStatus = taskStatusValue;
 
 		// if a task.type is commandtask, and the task just finished, download the image
@@ -66,7 +65,6 @@ const startSocket = () => {
 
 		taskStatus.set(data);
 		taskStatusValue = data;
-		console.log('task_status', data);
 	};
 	socket.onclose = () => {
 		console.log('task_status socket closed');

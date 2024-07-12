@@ -138,6 +138,7 @@
 			"installed-elsewhere": "Auf anderen Geräten oder Tags installiert",
 			"available": "Verfügbar"
 		},
+		"clear": "Löschen",
 		"install": "Installieren",
 		"uninstall": "Deinstallieren",
 		"configure": "Bearbeiten",

@@ -139,6 +139,7 @@
 			"installed-elsewhere": "Installed on other tags or devices",
 			"available": "Available"
 		},
+		"clear": "Clear",
 		"install": "Install",
 		"uninstall": "Uninstall",
 		"configure": "Configure",
