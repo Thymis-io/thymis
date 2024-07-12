@@ -78,9 +78,8 @@
 	const addModule = (target: Tag | Device | undefined, module: ModuleSettings | Module) => {
 		if (target && !target.modules.find((m) => m.type === module.type)) {
 			target.modules = [...target.modules, { type: module.type, settings: {} }];
+			saveState(data.state);
 		}
-
-		saveState(data.state);
 	};
 
 	const removeModule = (target: Tag | Device | undefined, module: ModuleSettings | Module) => {

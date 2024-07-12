@@ -1,4 +1,4 @@
-import { goto, invalidate } from '$app/navigation';
+import { goto, invalidate, invalidateAll } from '$app/navigation';
 import { controllerHost, controllerProtocol } from './api';
 import { browser } from '$app/environment';
 import { writable } from 'svelte/store';
@@ -80,6 +80,6 @@ export async function saveState(state: State) {
 		},
 		body: JSON.stringify(state)
 	});
-	await invalidate((url) => url.pathname === '/state' || url.pathname === '/available_modules');
+	await invalidateAll();
 	await build();
 }
