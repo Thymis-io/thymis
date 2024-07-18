@@ -9,6 +9,7 @@
 	import { Route } from 'lucide-svelte';
 	import { RouteOff } from 'lucide-svelte';
 	import { X } from 'lucide-svelte';
+	import { Pen } from 'lucide-svelte';
 	import DefinitionLine from './DefinitionLine.svelte';
 
 	export let module: Module;
@@ -87,14 +88,24 @@
 					/>
 				{/if}
 			</div>
-			{#if canEdit && settings?.settings[key]}
-				<button
-					class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-					on:click={() => setSetting(module, key, null)}
-				>
-					<X class="" />
-				</button>
-				<Tooltip><P size="sm">{$t('config.clear')}</P></Tooltip>
+			{#if canEdit}
+				{#if settings?.settings[key] !== undefined}
+					<button
+						class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+						on:click={() => setSetting(module, key, null)}
+					>
+						<X />
+					</button>
+					<Tooltip><P size="sm">{$t('config.clear')}</P></Tooltip>
+				{:else}
+					<button
+						class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+						on:click={() => setSetting(module, key, '')}
+					>
+						<Pen />
+					</button>
+					<Tooltip><P size="sm">{$t('config.clear')}</P></Tooltip>
+				{/if}
 			{/if}
 			{#if showRouting && other && other.length > 0}
 				{#if sameOrigin(settings, other[0])}
