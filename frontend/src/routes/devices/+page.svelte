@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
+	import { page } from '$app/stores';
 	import { saveState, type Device, type Tag } from '$lib/state';
 	import Pen from 'lucide-svelte/icons/pen';
 	import {
@@ -18,6 +19,7 @@
 	import CreateDeviceModal from '$lib/CreateDeviceModal.svelte';
 	import EditTagModal from '$lib/EditTagModal.svelte';
 	import TableBodyEditCell from '$lib/TableBodyEditCell.svelte';
+	import { deviceUrl } from '$lib/deviceSelectHelper';
 	import type { PageData } from './$types';
 	import { dndzone, SOURCES, TRIGGERS } from 'svelte-dnd-action';
 	import { flip } from 'svelte/animate';
@@ -214,7 +216,10 @@
 				</TableBodyCell>
 				<TableBodyCell>
 					<div class="flex gap-2">
-						<Button color="alternative" href="/config?device={device.data.identifier}">
+						<Button
+							color="alternative"
+							href={`/config?${deviceUrl($page.url.search, 'device', device.data.identifier)}`}
+						>
 							{$t('devices.actions.edit')}
 						</Button>
 						<Button color="alternative" on:click={() => buildAndDownloadImage(device.data)}>
