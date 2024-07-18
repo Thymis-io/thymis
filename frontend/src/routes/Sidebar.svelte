@@ -22,7 +22,7 @@
 	import DeviceSelect from '$lib/DeviceSelect.svelte';
 	import type { Device, ModuleSettings, State } from '$lib/state';
 	import BuildStatus from '$lib/BuildStatus.svelte';
-	import { selectedTag, selectedDevice } from '$lib/deviceSelectHelper';
+	import { selectedTag, selectedDevice, selectedTarget } from '$lib/deviceSelectHelper';
 
 	export let state: State;
 
@@ -80,7 +80,8 @@
 		{
 			name: $t('nav.orchestrate'),
 			icon: SlidersSolid,
-			href: '/config'
+			href: '/config',
+			hidden: !$selectedTarget
 		},
 		{
 			name: $t('nav.devices'),
