@@ -30,7 +30,7 @@
 		return (b.priority ?? 0) - (a.priority ?? 0);
 	};
 
-	const settingEntries = Object.entries(module.settings).sort((a, b) => a[1].order - b[1].order);
+	$: settingEntries = Object.entries(module.settings).sort((a, b) => a[1].order - b[1].order);
 </script>
 
 <Card class="max-w-none grid grid-cols-4 gap-8">
