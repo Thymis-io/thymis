@@ -111,7 +111,7 @@
 				{#if sameOrigin(settings, other[0])}
 					{@const otherDefinitions = other.filter((o) => !sameOrigin(settings, o))}
 					<button class="btn p-0 ml-2" on:click={() => {}}><Route color="#0080c0" /></button>
-					<Tooltip>
+					<Tooltip class="z-50">
 						<P size="sm" class="whitespace-pre-line">{$t('config.passed')}</P>
 						{#if otherDefinitions?.length > 0}
 							<P size="sm" class="whitespace-pre-line mt-2">{$t('config.otherDefinitions')}</P>
@@ -129,7 +129,7 @@
 						(o) => !sameOrigin(o, settings) && !sameOrigin(o, other[0])
 					)}
 					<button class="btn p-0 ml-2" on:click={() => {}}><RouteOff color="#0080c0" /></button>
-					<Tooltip>
+					<Tooltip class="z-50">
 						<P size="sm" class="whitespace-pre-line">{@html $t('config.notPassed')}</P>
 						<P size="sm" class="whitespace-pre-line mt-2">{$t('config.overwrittenBy')}</P>
 						<div class="grid grid-cols-2 gap-x-4">
