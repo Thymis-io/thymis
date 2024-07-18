@@ -22,6 +22,7 @@
 		name: $t(`options.nix.${setting.name}-options.${option}`)
 	}))}
 	{disabled}
+	class={disabled ? 'opacity-70' : ''}
 />
 {#if disabled}
 	<Tooltip placement={'top'}>{$t('config.editDisabled')}</Tooltip>
