@@ -158,6 +158,10 @@
 			target={$selectedTarget}
 			selfModules={getSelfModules($selectedTarget)}
 			context={$selectedContext}
+			canChangeModules={true}
+			availableModules={data.availableModules}
+			{addModule}
+			{removeModule}
 		>
 			<slot slot="icon">
 				{#if $selectedTag}
