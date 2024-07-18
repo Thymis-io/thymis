@@ -6,10 +6,10 @@
 	import ConfigBool from './ConfigBool.svelte';
 	import ConfigTextarea from './ConfigTextarea.svelte';
 	import ConfigSelectOne from './ConfigSelectOne.svelte';
-	import { Route } from 'lucide-svelte';
-	import { RouteOff } from 'lucide-svelte';
-	import { X } from 'lucide-svelte';
-	import { Pen } from 'lucide-svelte';
+	import Route from 'lucide-svelte/icons/route';
+	import RouteOff from 'lucide-svelte/icons/route-off';
+	import X from 'lucide-svelte/icons/x';
+	import Pen from 'lucide-svelte/icons/pen';
 	import DefinitionLine from './DefinitionLine.svelte';
 
 	export let module: Module;
