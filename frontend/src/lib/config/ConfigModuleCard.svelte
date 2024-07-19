@@ -104,45 +104,59 @@
 					>
 						<Pen />
 					</button>
-					<Tooltip><P size="sm">{$t('config.clear')}</P></Tooltip>
+					<Tooltip><P size="sm">{$t('config.edit')}</P></Tooltip>
 				{/if}
 			{/if}
-			{#if showRouting && other && other.length > 0}
-				{#if sameOrigin(settings, other[0])}
-					{@const otherDefinitions = other.filter((o) => !sameOrigin(settings, o))}
+			{#if showRouting}
+				{#if other && other.length > 0}
+					{#if sameOrigin(settings, other[0])}
+						{@const otherDefinitions = other.filter((o) => !sameOrigin(settings, o))}
+						<button class="btn p-0 ml-2" on:click={() => {}}><Route color="#0080c0" /></button>
+						<Tooltip class="z-50">
+							<P size="sm" class="whitespace-pre-line">{$t('config.passed')}</P>
+							{#if otherDefinitions?.length > 0}
+								<P size="sm" class="whitespace-pre-line mt-2">{$t('config.otherDefinitions')}</P>
+								<div class="grid grid-cols-2 gap-x-4">
+									{#each otherDefinitions as otherDefinition}
+										<DefinitionLine origin={otherDefinition} value={otherDefinition.setting} />
+									{/each}
+								</div>
+							{:else}
+								<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P>
+							{/if}
+						</Tooltip>
+					{:else}
+						{@const otherDefinitions = other.filter(
+							(o) => !sameOrigin(o, settings) && !sameOrigin(o, other[0])
+						)}
+						<button class="btn p-0 ml-2" on:click={() => {}}><RouteOff color="#0080c0" /></button>
+						<Tooltip class="z-50">
+							<P size="sm" class="whitespace-pre-line">{@html $t('config.notPassed')}</P>
+							<P size="sm" class="whitespace-pre-line mt-2">{$t('config.overwrittenBy')}</P>
+							<div class="grid grid-cols-2 gap-x-4">
+								<DefinitionLine origin={other[0]} value={other[0].setting} />
+							</div>
+							{#if otherDefinitions?.length > 0}
+								<P size="sm" class="whitespace-pre-line mt-4">{$t('config.otherDefinitions')}</P>
+								<div class="grid grid-cols-2 gap-x-4">
+									{#each otherDefinitions as otherDefinition}
+										<DefinitionLine origin={otherDefinition} value={otherDefinition.setting} />
+									{/each}
+								</div>
+							{/if}
+						</Tooltip>
+					{/if}
+				{:else if self !== undefined}
 					<button class="btn p-0 ml-2" on:click={() => {}}><Route color="#0080c0" /></button>
 					<Tooltip class="z-50">
-						<P size="sm" class="whitespace-pre-line">{$t('config.passed')}</P>
-						{#if otherDefinitions?.length > 0}
-							<P size="sm" class="whitespace-pre-line mt-2">{$t('config.otherDefinitions')}</P>
-							<div class="grid grid-cols-2 gap-x-4">
-								{#each otherDefinitions as otherDefinition}
-									<DefinitionLine origin={otherDefinition} value={otherDefinition.setting} />
-								{/each}
-							</div>
-						{:else}
-							<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P>
-						{/if}
+						<P size="sm" class="whitespace-pre-line">{@html $t('config.passed')}</P>
+						<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P>
 					</Tooltip>
 				{:else}
-					{@const otherDefinitions = other.filter(
-						(o) => !sameOrigin(o, settings) && !sameOrigin(o, other[0])
-					)}
 					<button class="btn p-0 ml-2" on:click={() => {}}><RouteOff color="#0080c0" /></button>
 					<Tooltip class="z-50">
-						<P size="sm" class="whitespace-pre-line">{@html $t('config.notPassed')}</P>
-						<P size="sm" class="whitespace-pre-line mt-2">{$t('config.overwrittenBy')}</P>
-						<div class="grid grid-cols-2 gap-x-4">
-							<DefinitionLine origin={other[0]} value={other[0].setting} />
-						</div>
-						{#if otherDefinitions?.length > 0}
-							<P size="sm" class="whitespace-pre-line mt-4">{$t('config.otherDefinitions')}</P>
-							<div class="grid grid-cols-2 gap-x-4">
-								{#each otherDefinitions as otherDefinition}
-									<DefinitionLine origin={otherDefinition} value={otherDefinition.setting} />
-								{/each}
-							</div>
-						{/if}
+						<P size="sm" class="whitespace-pre-line">{@html $t('config.notSet')}</P>
+						<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P>
 					</Tooltip>
 				{/if}
 			{/if}
