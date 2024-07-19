@@ -4,7 +4,7 @@
 	import { Button, Modal } from 'flowbite-svelte';
 	import CircleExclamationSolid from 'svelte-awesome-icons/CircleExclamationSolid.svelte';
 	import TriangleExclamationSolid from 'svelte-awesome-icons/TriangleExclamationSolid.svelte';
-	import { taskStatus } from './taskstatus';
+	import { taskStatus } from '../taskstatus';
 
 	let stdoutModalOpen = false;
 	let stderrModalOpen = false;

@@ -1,28 +1,39 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { Device, Module, Tag } from '$lib/state';
+	import {
+		globalNavSelectedTarget,
+		saveState,
+		type Device,
+		type Module,
+		type ModuleSettings,
+		type Tag,
+		globalNavSelectedTargetType
+	} from '$lib/state';
 	import { Modal, P, ToolbarButton } from 'flowbite-svelte';
 	import { page } from '$app/stores';
-	import {
-		deviceUrl,
-		deviceConfigUrl,
-		selectedTarget,
-		selectedConfigTarget,
-		selectedConfigContext,
-		selectedConfigModule,
-		selectedContext
-	} from '$lib/deviceSelectHelper';
 	import Pen from 'lucide-svelte/icons/pen';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Minus from 'lucide-svelte/icons/minus';
+	import { buildConfigSelectModuleSearchParam } from '$lib/searchParamHelpers';
 
-	export let context: string | null;
-	export let target: Tag | Device | undefined;
+	export let contextType: string | null;
+	export let context: Tag | Device | undefined;
+
 	export let selfModules: Module[];
 	export let canChangeModules: boolean = false;
 	export let availableModules: Module[] = [];
-	export let addModule: (target: Tag | Device | undefined, module: Module) => void = () => {};
-	export let removeModule: (target: Tag | Device | undefined, module: Module) => void = () => {};
+	export let configSelectedModule: Module | undefined;
+	export let configSelectedModuleContextType: string | null;
+	export let configSelectedModuleContext: Tag | Device | undefined;
+
+	const addModule = (target: Tag | Device | undefined, module: ModuleSettings | Module) => {
+		if (target && !target.modules.find((m) => m.type === module.type)) {
+			target.modules = [...target.modules, { type: module.type, settings: {} }];
+			saveState();
+		}
+	};
+
+	export let removeModule: (target: Tag | Device | undefined, module: Module) => void;
 
 	let addModuleModalOpen = false;
 
@@ -33,26 +44,26 @@
 		selectedConfigTarget: Tag | Device | undefined
 	) =>
 		module.type === selectedConfigModule?.type &&
-		context === selectedConfigContext &&
-		target?.identifier === selectedConfigTarget?.identifier;
+		contextType === selectedConfigContext &&
+		context?.identifier === selectedConfigTarget?.identifier;
 
-	$: console.log(target?.displayName, context);
+	$: console.log(context?.displayName, contextType);
 </script>
 
 <div class="flex justify-between mb-2 ml-2">
 	<div class="flex gap-2 inline-block items-center">
 		<slot name="icon" />
-		<P>{target?.displayName}</P>
+		<P>{context?.displayName}</P>
 	</div>
-	{#if $selectedTarget?.identifier !== target?.identifier}
+	{#if $globalNavSelectedTarget?.identifier !== context?.identifier}
 		<ToolbarButton
-			href="/config?{deviceConfigUrl(
+			href="/config?{buildConfigSelectModuleSearchParam(
 				$page.url.search,
-				$selectedConfigModule,
-				context,
-				target?.identifier,
-				context,
-				target?.identifier
+				contextType,
+				context?.identifier,
+				contextType,
+				context?.identifier,
+				configSelectedModule
 			)}"
 		>
 			<Pen />
@@ -60,25 +71,31 @@
 	{/if}
 </div>
 <div class="mb-6 ml-4">
-	{#if target && context}
+	{#if context && contextType}
 		{#each selfModules as module}
 			<div
 				class={`flex justify-between gap-1 rounded ${
-					isSelected(module, $selectedConfigModule, $selectedConfigContext, $selectedConfigTarget)
+					isSelected(
+						module,
+						configSelectedModule,
+						configSelectedModuleContextType,
+						configSelectedModuleContext
+					)
 						? 'bg-gray-300 dark:bg-gray-600'
 						: 'hover:bg-gray-200 dark:hover:bg-gray-700'
 				}`}
 			>
 				<a
-					href="/config?{deviceConfigUrl(
+					href="/config?{buildConfigSelectModuleSearchParam(
 						$page.url.search,
-						module,
-						$selectedContext,
-						$selectedTarget?.identifier,
-						context,
-						target.identifier
+						$globalNavSelectedTargetType,
+						$globalNavSelectedTarget?.identifier,
+						contextType,
+						context.identifier,
+						module
 					)}"
 					class={`block p-2 w-full flex gap-2`}
+					data-sveltekit-noscroll
 				>
 					<img src={module.icon ?? '/favicon.png'} alt={module.displayName} class="w-6 h-6" />
 					<P>{module.displayName}</P>
@@ -86,7 +103,7 @@
 				{#if canChangeModules}
 					<button
 						class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
-						on:click={() => removeModule(target, module)}
+						on:click={() => removeModule(context, module)}
 					>
 						<Minus />
 					</button>
@@ -106,7 +123,7 @@
 				{#each availableModules as module}
 					<button
 						class="btn m-0 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2"
-						on:click={() => addModule(target, module)}
+						on:click={() => addModule(context, module)}
 					>
 						<img src={module.icon ?? '/favicon.png'} alt={module.displayName} class="w-6 h-6" />
 						<P>{module.displayName}</P>

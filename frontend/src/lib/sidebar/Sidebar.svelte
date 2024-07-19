@@ -19,12 +19,14 @@
 	import ChartSimpleSolid from 'svelte-awesome-icons/ChartSimpleSolid.svelte';
 	import GearSolid from 'svelte-awesome-icons/GearSolid.svelte';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
-	import DeviceSelect from '$lib/DeviceSelect.svelte';
-	import type { Device, ModuleSettings, State } from '$lib/state';
-	import BuildStatus from '$lib/BuildStatus.svelte';
-	import { selectedTag, selectedDevice, selectedTarget } from '$lib/deviceSelectHelper';
-
-	export let state: State;
+	import {
+		globalNavSelectedDevice,
+		globalNavSelectedTarget,
+		state,
+		type ModuleSettings
+	} from '$lib/state';
+	import BuildStatus from '$lib/sidebar/BuildStatus.svelte';
+	import GlobalNavSelect from '$lib/sidebar/GlobalNavSelect.svelte';
 
 	export let drawerHidden: boolean;
 
@@ -67,8 +69,8 @@
 	const isVNCModule = (module: ModuleSettings) => module.type.toLowerCase().includes('vnc');
 
 	$: hasVNCModule =
-		state.devices.some((device) => device.modules.some(isVNCModule)) ||
-		state.tags.some((tag) => tag.modules.some(isVNCModule));
+		$state.devices.some((device) => device.modules.some(isVNCModule)) ||
+		$state.tags.some((tag) => tag.modules.some(isVNCModule));
 
 	let navItems: NavItem[] = [];
 	$: navItems = [
@@ -81,7 +83,7 @@
 			name: $t('nav.orchestrate'),
 			icon: SlidersSolid,
 			href: '/config',
-			hidden: !$selectedTarget
+			hidden: !$globalNavSelectedTarget
 		},
 		{
 			name: $t('nav.devices'),
@@ -103,7 +105,7 @@
 			name: $t('nav.terminal'),
 			icon: TerminalSolid,
 			href: '/terminal',
-			hidden: !$selectedDevice
+			hidden: !$globalNavSelectedDevice
 		},
 		{
 			name: $t('nav.settings'),
@@ -127,7 +129,7 @@
 	>
 		<nav class="divide-y text-base font-medium">
 			<SidebarGroup ulClass="list-unstyled fw-normal small mb-4 space-y-2">
-				<DeviceSelect bind:state />
+				<GlobalNavSelect />
 				{#each navItems as { name, icon, children, href, hidden } (name)}
 					{#if children}
 						<SidebarDropdownWrapper

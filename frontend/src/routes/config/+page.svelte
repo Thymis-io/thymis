@@ -2,32 +2,57 @@
 	import { t } from 'svelte-i18n';
 	import { Card, Toggle, Listgroup, ListgroupItem, Tooltip, P, Button } from 'flowbite-svelte';
 	import ModuleList from '$lib/config/ModuleList.svelte';
-	import { saveState } from '$lib/state';
-	import type {
-		ModuleSettings,
-		ModuleSettingsWithOrigin,
-		Tag,
-		Device,
-		Module,
-		Origin
+	import {
+		getDeviceByIdentifier,
+		getTagByIdentifier,
+		globalNavSelectedTargetType,
+		saveState
 	} from '$lib/state';
 	import {
-		selectedDevice,
-		selectedTag,
-		selectedTarget,
-		selectedContext,
-		selectedConfigTarget,
-		selectedConfigModule
-	} from '$lib/deviceSelectHelper';
-	import DeployActions from '$lib/DeployActions.svelte';
+		type ModuleSettings,
+		type ModuleSettingsWithOrigin,
+		type Tag,
+		type Device,
+		type Module,
+		type Origin,
+		globalNavSelectedTarget,
+		state,
+		globalNavSelectedTag,
+		globalNavSelectedDevice
+	} from '$lib/state';
+	import DeployActions from '$lib/components/DeployActions.svelte';
 	import type { PageData } from './$types';
 	import ConfigModuleCard from '$lib/config/ConfigModuleCard.svelte';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
 	import TagIcon from 'lucide-svelte/icons/tag';
+	import { queryParam } from 'sveltekit-search-params';
+	import { derived } from 'svelte/store';
+	import { page } from '$app/stores';
 
 	export let data: PageData;
 
-	$: modules = getModules($selectedTarget);
+	const configSelectedModule = derived(
+		[page, queryParam('config-selected-module')],
+		([$page, m]) => {
+			let availableModules = $page.data.availableModules as Module[];
+			return availableModules.find((module) => module.type === m);
+		}
+	);
+	const configSelectedModuleContextType = queryParam('config-selected-module-context-type');
+	const configSelectedModuleContext = derived(
+		[
+			configSelectedModuleContextType,
+			queryParam('config-selected-module-context-identifier'),
+			state
+		],
+		([$contextType, $contextIdentifier, s]) => {
+			if ($contextType === 'tag') {
+				return getTagByIdentifier(s, $contextIdentifier);
+			} else if ($contextType === 'device') {
+				return getDeviceByIdentifier(s, $contextIdentifier);
+			}
+		}
+	);
 
 	const getOrigin = (target: Tag | Device): Origin => {
 		return {
@@ -46,9 +71,7 @@
 		let tagModules: ModuleSettingsWithOrigin[] = [];
 
 		if ('tags' in target) {
-			let usedTags = target.tags.flatMap(
-				(t) => data.state.tags.find((tag) => tag.identifier === t) ?? []
-			);
+			let usedTags = target.tags.flatMap((t) => getTagByIdentifier($state, t) ?? []);
 
 			tagModules = usedTags.flatMap((t) =>
 				t.modules.map((m) => ({ ...getOrigin(t), priority: t.priority, ...m }))
@@ -71,24 +94,11 @@
 		return getModuleSettings(target)?.filter((s) => s.type === module?.type);
 	};
 
-	const getModules = (target: Tag | Device | undefined) => {
-		let settings = getModuleSettings(target);
-		return data.availableModules.filter((m) => settings?.find((s) => s.type === m.type)) ?? [];
-	};
-
-	const addModule = (target: Tag | Device | undefined, module: ModuleSettings | Module) => {
-		if (target && !target.modules.find((m) => m.type === module.type)) {
-			target.modules = [...target.modules, { type: module.type, settings: {} }];
-			saveState(data.state);
-		}
-	};
-
 	const removeModule = (target: Tag | Device | undefined, module: ModuleSettings | Module) => {
 		if (target) {
 			target.modules = target.modules.filter((m) => m.type !== module.type);
 		}
-
-		saveState(data.state);
+		saveState();
 	};
 
 	const getSettings = (
@@ -120,8 +130,6 @@
 		settingKey: string,
 		value: any
 	) => {
-		addModule(target, module);
-
 		let targetModule = target?.modules.find((m) => m.type === module.type);
 
 		if (target && targetModule) {
@@ -132,22 +140,28 @@
 			}
 		}
 
-		saveState(data.state);
+		saveState();
 	};
 </script>
 
 <div class="flex justify-between mb-4">
 	<h1 class="text-3xl font-bold dark:text-white">
-		{#if $selectedTag}
+		{#if $globalNavSelectedTag}
 			{$t('config.header.tag-module', {
-				values: { module: $selectedConfigModule?.displayName, tag: $selectedTag.displayName }
+				values: {
+					module: $configSelectedModule?.displayName,
+					tag: $globalNavSelectedTag.displayName
+				}
 			})}
-		{:else if $selectedDevice}
+		{:else if $globalNavSelectedDevice}
 			{$t('config.header.device-module', {
-				values: { module: $selectedConfigModule?.displayName, device: $selectedDevice.displayName }
+				values: {
+					module: $configSelectedModule?.displayName,
+					device: $globalNavSelectedDevice.displayName
+				}
 			})}
 		{:else}
-			{$t('config.header.module', { values: { module: $selectedConfigModule?.displayName } })}
+			{$t('config.header.module', { values: { module: $configSelectedModule?.displayName } })}
 		{/if}
 	</h1>
 	<DeployActions />
@@ -155,40 +169,50 @@
 <div class="grid grid-flow-row grid-cols-5 gap-4">
 	<Card class="col-span-1 max-w-none">
 		<ModuleList
-			target={$selectedTarget}
-			selfModules={getSelfModules($selectedTarget)}
-			context={$selectedContext}
+			contextType={$globalNavSelectedTargetType}
+			context={$globalNavSelectedTarget}
+			selfModules={getSelfModules($globalNavSelectedTarget)}
 			canChangeModules={true}
 			availableModules={data.availableModules}
-			{addModule}
+			configSelectedModule={$configSelectedModule}
+			configSelectedModuleContext={$configSelectedModuleContext}
+			configSelectedModuleContextType={$configSelectedModuleContextType}
 			{removeModule}
 		>
 			<slot slot="icon">
-				{#if $selectedTag}
+				{#if $globalNavSelectedTag}
 					<TagIcon />
-				{:else if $selectedDevice}
+				{:else if $globalNavSelectedDevice}
 					<HardDrive />
 				{/if}
 			</slot>
 		</ModuleList>
-		{#each $selectedDevice?.tags ?? [] as tagIdentifier}
-			{@const usedTag = data.state.tags.find((t) => t.identifier === tagIdentifier)}
-			<ModuleList target={usedTag} selfModules={getSelfModules(usedTag)} context="tag">
+		{#each $globalNavSelectedDevice?.tags ?? [] as tagIdentifier}
+			{@const usedTag = getTagByIdentifier($state, tagIdentifier)}
+			<ModuleList
+				contextType="tag"
+				context={usedTag}
+				selfModules={getSelfModules(usedTag)}
+				configSelectedModule={$configSelectedModule}
+				configSelectedModuleContext={$configSelectedModuleContext}
+				configSelectedModuleContextType={$configSelectedModuleContextType}
+			>
 				<TagIcon slot="icon" />
 			</ModuleList>
 		{/each}
 	</Card>
-	{#if $selectedConfigModule && $selectedConfigTarget?.modules.find((m) => m.type === $selectedConfigModule.type)}
+	{#if $configSelectedModule && $configSelectedModuleContext?.modules.find((m) => m.type === $configSelectedModule.type)}
 		<div class="col-span-4">
 			<ConfigModuleCard
-				module={$selectedConfigModule}
-				settings={getOwnModuleSettings($selectedConfigTarget).find(
-					(s) => s.type === $selectedConfigModule?.type
+				module={$configSelectedModule}
+				settings={getOwnModuleSettings($configSelectedModuleContext).find(
+					(s) => s.type === $configSelectedModule?.type
 				)}
-				otherSettings={getOtherSettings($selectedTarget, $selectedConfigModule)}
-				setSetting={(module, key, value) => setSetting($selectedConfigTarget, module, key, value)}
-				showRouting={$selectedContext === 'device'}
-				canEdit={$selectedTarget === $selectedConfigTarget}
+				otherSettings={getOtherSettings($globalNavSelectedTarget, $configSelectedModule)}
+				setSetting={(module, key, value) =>
+					setSetting($configSelectedModuleContext, module, key, value)}
+				showRouting={$configSelectedModuleContextType === 'device'}
+				canEdit={$globalNavSelectedTarget === $configSelectedModuleContext}
 			/>
 		</div>
 	{/if}

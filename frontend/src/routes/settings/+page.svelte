@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
-	import { saveState } from '$lib/state';
-	import TableBodyEditCell from '$lib/TableBodyEditCell.svelte';
+	import { saveState, state } from '$lib/state';
+	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
 	import {
 		Button,
 		Heading,
@@ -24,7 +24,7 @@
 		do {
 			key = `new-repo-${num}`;
 			num++;
-		} while (data.state.repositories[key]);
+		} while ($state.repositories[key]);
 
 		return key;
 	};
@@ -32,31 +32,28 @@
 	const addRepo = () => {
 		let key = generateUniqueKey();
 
-		data.state.repositories = {
-			...data.state.repositories,
+		$state.repositories = {
+			...$state.repositories,
 			[key]: {
 				url: 'git+https://github.com/Thymis-io/thymis.git'
 			}
 		};
-
-		saveState(data.state);
 	};
 
 	const deleteRepo = (name: string) => {
-		delete data.state.repositories[name];
-		saveState(data.state);
+		$state.repositories = Object.fromEntries(
+			Object.entries($state.repositories).filter(([key, value]) => key !== name)
+		);
 	};
 
 	const changeRepoName = (oldName: string, newName: string) => {
-		if (!data.state.repositories[newName]) {
-			data.state.repositories = Object.fromEntries(
-				Object.entries(data.state.repositories).map(([key, value]) =>
+		if (!$state.repositories[newName]) {
+			$state.repositories = Object.fromEntries(
+				Object.entries($state.repositories).map(([key, value]) =>
 					key === oldName ? [newName, value] : [key, value]
 				)
 			);
 		}
-
-		saveState(data.state);
 	};
 </script>
 
@@ -69,10 +66,10 @@
 		<TableHeadCell>{$t('settings.repo.actions')}</TableHeadCell>
 	</TableHead>
 	<TableBody>
-		{#each Object.entries(data.state.repositories) as [name, repo]}
+		{#each Object.entries($state.repositories) as [name, repo]}
 			<TableBodyRow>
 				<TableBodyEditCell bind:value={name} onEnter={(newName) => changeRepoName(name, newName)} />
-				<TableBodyEditCell bind:value={repo.url} onEnter={() => saveState(data.state)} />
+				<TableBodyEditCell bind:value={repo.url} />
 				<TableBodyCell>
 					<div class="flex gap-1">
 						<Button on:click={() => deleteRepo(name)}>

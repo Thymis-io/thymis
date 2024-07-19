@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { controllerHost, controllerProtocol } from './api';
+	import { controllerHost, controllerProtocol } from '../api';
 	import { Button, Modal, Label, Input } from 'flowbite-svelte';
 
 	export let open = false;

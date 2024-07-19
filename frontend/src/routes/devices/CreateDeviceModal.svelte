@@ -1,17 +1,15 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import InstallationStepper from '$lib/InstallationStepper.svelte';
+	import InstallationStepper from './InstallationStepper.svelte';
 	import { Modal } from 'flowbite-svelte';
-	import { saveState, type Device, type State, type Module } from './state';
+	import { saveState, type Device, type State, type Module, state } from '../../lib/state';
 
-	export let state: State;
 	export let open = false;
 	export let onClose: (() => void) | undefined = undefined;
 	export let thymisDevice: Module | undefined = undefined;
 
 	function onSubmit(submitData: Device): void {
-		state.devices = [...state.devices, { ...submitData }];
-		saveState(state);
+		$state.devices = [...$state.devices, { ...submitData }];
 	}
 </script>
 

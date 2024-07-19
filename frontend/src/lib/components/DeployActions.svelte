@@ -4,9 +4,8 @@
 	import GearsSolid from 'svelte-awesome-icons/GearsSolid.svelte';
 	import ArrowsRotateSolid from 'svelte-awesome-icons/ArrowsRotateSolid.svelte';
 	import PlaySolid from 'svelte-awesome-icons/PlaySolid.svelte';
-	import '../app.postcss';
-	import { controllerHost, controllerProtocol } from './api';
-	import DeployModal from '$lib/DeployModal.svelte';
+	import { controllerHost, controllerProtocol } from '../api';
+	import DeployModal from '$lib/components/DeployModal.svelte';
 
 	const build = async () => {
 		await fetch(`${controllerProtocol}://${controllerHost}/action/build`, { method: 'POST' });

@@ -3,7 +3,7 @@ import '$lib/i18n'; // Import to initialize. Important :)
 import { locale, waitLocale } from 'svelte-i18n';
 import type { LayoutLoad } from './$types';
 import { controllerHost, controllerProtocol } from '$lib/api';
-import type { State, ModuleSettings, Module } from '$lib/state';
+import type { State, Module } from '$lib/state';
 import { error } from '@sveltejs/kit';
 
 export const load = (async ({ fetch }) => {

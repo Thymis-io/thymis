@@ -3,12 +3,10 @@
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
 	import { Button, Dropdown, DropdownItem, Search } from 'flowbite-svelte';
-	import { selectedTag, selectedDevice, deviceUrl } from './deviceSelectHelper';
 	import ChevronDownSolid from 'flowbite-svelte-icons/ChevronDownSolid.svelte';
 	import { page } from '$app/stores';
-	import type { State } from './state';
-
-	export let state: State;
+	import { globalNavSelectedDevice, globalNavSelectedTag, state, type State } from '../state';
+	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 
 	let search = '';
 
@@ -24,10 +22,10 @@
 
 <Button class="w-full flex justify-between">
 	<div class="flex gap-2">
-		{#if $selectedTag}
-			<TagIcon size={20} /> {$selectedTag?.displayName}
-		{:else if $selectedDevice}
-			<HardDrive size={20} /> {$selectedDevice?.displayName}
+		{#if $globalNavSelectedTag}
+			<TagIcon size={20} /> {$globalNavSelectedTag?.displayName}
+		{:else if $globalNavSelectedDevice}
+			<HardDrive size={20} /> {$globalNavSelectedDevice?.displayName}
 		{:else}
 			{$t('common.no-tag-or-device-selected')}
 		{/if}
@@ -38,10 +36,10 @@
 	<div slot="header" class="p-3">
 		<Search size="md" bind:value={search} placeholder={$t('common.search')} />
 	</div>
-	{#each state.tags as tag}
+	{#each $state.tags as tag}
 		{#if isSearched(search, tag.displayName)}
 			<DropdownItem
-				href={`?${deviceUrl($page.url.search, 'tag', tag.identifier)}`}
+				href={`?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.identifier)}`}
 				class={'flex gap-2 my-1 p-1 hover:bg-primary-500'}
 			>
 				<TagIcon />
@@ -49,10 +47,10 @@
 			</DropdownItem>
 		{/if}
 	{/each}
-	{#each state.devices as device}
+	{#each $state.devices as device}
 		{#if isSearched(search, device.displayName)}
 			<DropdownItem
-				href={`?${deviceUrl($page.url.search, 'device', device.identifier)}`}
+				href={`?${buildGlobalNavSearchParam($page.url.search, 'device', device.identifier)}`}
 				class={'flex gap-2 my-1 p-1 hover:bg-primary-500'}
 			>
 				<HardDrive />
