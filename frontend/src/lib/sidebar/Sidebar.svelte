@@ -21,6 +21,7 @@
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import {
 		globalNavSelectedDevice,
+		globalNavSelectedTag,
 		globalNavSelectedTarget,
 		state,
 		type ModuleSettings
@@ -72,18 +73,28 @@
 		$state.devices.some((device) => device.modules.some(isVNCModule)) ||
 		$state.tags.some((tag) => tag.modules.some(isVNCModule));
 
+	let dynamicNavItems: NavItem[] = [];
+	$: dynamicNavItems = [
+		{
+			name: $t('nav.config', { values: { type: $globalNavSelectedTag ? 'tag' : 'device' } }),
+			icon: SlidersSolid,
+			href: '/config',
+			hidden: !$globalNavSelectedTarget
+		},
+		{
+			name: $t('nav.terminal'),
+			icon: TerminalSolid,
+			href: '/terminal',
+			hidden: !$globalNavSelectedDevice
+		}
+	];
+
 	let navItems: NavItem[] = [];
 	$: navItems = [
 		{
 			name: $t('nav.overview'),
 			icon: ChartSimpleSolid,
 			href: '/overview'
-		},
-		{
-			name: $t('nav.orchestrate'),
-			icon: SlidersSolid,
-			href: '/config',
-			hidden: !$globalNavSelectedTarget
 		},
 		{
 			name: $t('nav.devices'),
@@ -100,12 +111,6 @@
 			name: $t('nav.history'),
 			icon: CodeCommitSolid,
 			href: '/history'
-		},
-		{
-			name: $t('nav.terminal'),
-			icon: TerminalSolid,
-			href: '/terminal',
-			hidden: !$globalNavSelectedDevice
 		},
 		{
 			name: $t('nav.settings'),
@@ -131,6 +136,37 @@
 			<SidebarGroup ulClass="list-unstyled fw-normal small mb-4 space-y-2">
 				<GlobalNavSelect />
 				{#each navItems as { name, icon, children, href, hidden } (name)}
+					{#if children}
+						<SidebarDropdownWrapper
+							bind:isOpen={dropdowns[name]}
+							label={name}
+							ulClass="mt-0.5"
+							btnClass="flex p-2 rounded-lg items-center justify-start gap-4 w-full text-base font-medium tracking-wide hover:text-primary-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+							spanClass=""
+							class={dropdowns[name]
+								? 'text-primary-700 dark:text-white'
+								: 'text-gray-500 dark:text-gray-400'}
+						>
+							<AngleDownOutline slot="arrowdown" class="ms-auto text-gray-800 dark:text-white" />
+							<AngleUpOutline slot="arrowup" class="ms-auto text-gray-800 dark:text-white" />
+							<svelte:component this={icon} slot="icon" />
+							{#each Object.entries(children) as [title, href]}
+								<SidebarItem
+									label={title}
+									href={href + $page.url.search}
+									{spanClass}
+									{activeClass}
+								/>
+							{/each}
+						</SidebarDropdownWrapper>
+					{:else if !hidden}
+						<SidebarItem label={name} href={href + $page.url.search} {spanClass} {activeClass}>
+							<svelte:component this={icon} slot="icon" size={18} />
+						</SidebarItem>
+					{/if}
+				{/each}
+				<hr />
+				{#each dynamicNavItems as { name, icon, children, href, hidden } (name)}
 					{#if children}
 						<SidebarDropdownWrapper
 							bind:isOpen={dropdowns[name]}

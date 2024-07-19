@@ -6,7 +6,7 @@
 	},
 	"nav": {
 		"overview": "Overview",
-		"orchestrate": "Orchestrate",
+		"config": "Configure {type}",
 		"devices": "Devices",
 		"history": "History",
 		"terminal": "Terminal",

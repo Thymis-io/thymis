@@ -6,7 +6,7 @@
 	},
 	"nav": {
 		"overview": "Übersicht",
-		"orchestrate": "Verwalten",
+		"config": "{type} Konfigurieren",
 		"devices": "Geräte",
 		"history": "Versionen",
 		"terminal": "Terminal",
