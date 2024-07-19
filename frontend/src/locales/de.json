@@ -139,6 +139,7 @@
 			"available": "Verfügbar"
 		},
 		"add_module": "Modul Hinzufügen",
+		"remove_module": "Modul Entfernen",
 		"clear": "Löschen",
 		"edit": "Bearbeiten",
 		"install": "Installieren",

@@ -140,6 +140,7 @@
 			"available": "Available"
 		},
 		"add_module": "Add Module",
+		"remove_module": "Remove Module",
 		"clear": "Clear",
 		"edit": "Edit",
 		"install": "Install",

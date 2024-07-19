@@ -9,11 +9,11 @@
 		type Tag,
 		globalNavSelectedTargetType
 	} from '$lib/state';
-	import { Modal, P, ToolbarButton } from 'flowbite-svelte';
+	import { Modal, P, ToolbarButton, Tooltip } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import Pen from 'lucide-svelte/icons/pen';
 	import Plus from 'lucide-svelte/icons/plus';
-	import Minus from 'lucide-svelte/icons/minus';
+	import Trash from 'lucide-svelte/icons/trash';
 	import { buildConfigSelectModuleSearchParam } from '$lib/searchParamHelpers';
 
 	export let contextType: string | null;
@@ -105,8 +105,11 @@
 						class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
 						on:click={() => removeModule(context, module)}
 					>
-						<Minus />
+						<Trash size={20} />
 					</button>
+					<Tooltip>
+						<P size="sm">{$t('config.remove_module')}</P>
+					</Tooltip>
 				{/if}
 			</div>
 		{/each}
@@ -118,6 +121,9 @@
 		>
 			<Plus />
 		</button>
+		<Tooltip>
+			<P size="sm">{$t('config.add_module')}</P>
+		</Tooltip>
 		<Modal title={$t('config.add_module')} bind:open={addModuleModalOpen} autoclose outsideclose>
 			<div class="grid gap-1">
 				{#each availableModules as module}
