@@ -80,6 +80,7 @@
 					)}"
 					class={`block p-2 w-full`}
 				>
+					<img src={module.icon ?? '/favicon.png'} alt={module.displayName} class="w-6 h-6" />
 					<P>{module.displayName}</P>
 				</a>
 				{#if canChangeModules}
