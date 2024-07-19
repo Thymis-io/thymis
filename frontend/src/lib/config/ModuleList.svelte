@@ -39,7 +39,7 @@
 	$: console.log(target?.displayName, context);
 </script>
 
-<div class="flex justify-between mb-2 ml-1">
+<div class="flex justify-between mb-2 ml-2">
 	<div class="flex gap-2 inline-block items-center">
 		<slot name="icon" />
 		<P>{target?.displayName}</P>
@@ -59,7 +59,7 @@
 		</ToolbarButton>
 	{/if}
 </div>
-<div class="mb-6">
+<div class="mb-6 ml-4">
 	{#if target && context}
 		{#each selfModules as module}
 			<div
@@ -78,14 +78,14 @@
 						context,
 						target.identifier
 					)}"
-					class={`block p-2 w-full`}
+					class={`block p-2 w-full flex gap-2`}
 				>
 					<img src={module.icon ?? '/favicon.png'} alt={module.displayName} class="w-6 h-6" />
 					<P>{module.displayName}</P>
 				</a>
 				{#if canChangeModules}
 					<button
-						class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
+						class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
 						on:click={() => removeModule(target, module)}
 					>
 						<Minus />
@@ -95,14 +95,12 @@
 		{/each}
 	{/if}
 	{#if canChangeModules}
-		<div>
-			<button
-				class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-				on:click={() => (addModuleModalOpen = true)}
-			>
-				<Plus />
-			</button>
-		</div>
+		<button
+			class="p-2 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+			on:click={() => (addModuleModalOpen = true)}
+		>
+			<Plus />
+		</button>
 		<Modal title={$t('config.add_module')} bind:open={addModuleModalOpen} autoclose outsideclose>
 			<div class="grid gap-1">
 				{#each availableModules as module}
