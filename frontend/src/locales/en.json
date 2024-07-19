@@ -149,9 +149,9 @@
 		"notPassed": "This definition is <b>not</b> passed to the device",
 		"passed": "This definition is passed to the device",
 		"notSet": "No definition set",
-		"otherDefinitions": "Other Definitions:",
-		"noOtherDefinitions": "No Other Definitions",
-		"overwrittenBy": "Overwritten By:",
+		"otherDefinitions": "Other definitions:",
+		"noOtherDefinitions": "No other definitions",
+		"overwrittenBy": "Overwritten by:",
 		"priority": "Priority {priority}",
 		"editDisabled": "Reference only, edit the tag to change values globally"
 	},
