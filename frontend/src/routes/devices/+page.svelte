@@ -199,7 +199,12 @@
 					<div class="flex justify-between">
 						<div class="flex gap-2">
 							{#each device.data.tags as tag, i}
-								<Button pill size="sm" class="p-3 py-1.5" href="/config?tag={tag}">
+								<Button
+									pill
+									size="sm"
+									class="p-3 py-1.5"
+									href={`/config?${deviceUrl($page.url.search, 'tag', tag)}`}
+								>
 									<TagIcon size={20} class="mr-2" />
 									<!-- <span
 									class="inline-block bg-blue-300 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-1"
