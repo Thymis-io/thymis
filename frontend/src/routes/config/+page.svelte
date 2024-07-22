@@ -22,7 +22,7 @@
 	} from '$lib/state';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import type { PageData } from './$types';
-	import ConfigModuleCard from '$lib/config/ConfigModuleCard.svelte';
+	import ConfigModuleCard from '$lib/config/ModuleCard.svelte';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import { queryParam } from 'sveltekit-search-params';
