@@ -211,7 +211,7 @@
 				otherSettings={getOtherSettings($globalNavSelectedTarget, $configSelectedModule)}
 				setSetting={(module, key, value) =>
 					setSetting($configSelectedModuleContext, module, key, value)}
-				showRouting={$configSelectedModuleContextType === 'device'}
+				showRouting={$globalNavSelectedTargetType === 'device'}
 				canEdit={$globalNavSelectedTarget === $configSelectedModuleContext}
 			/>
 		</div>
