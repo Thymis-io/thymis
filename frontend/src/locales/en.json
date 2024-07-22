@@ -6,7 +6,8 @@
 	},
 	"nav": {
 		"overview": "Overview",
-		"config": "Configure {type}",
+		"config-device": "Configure Device",
+		"config-tag": "Configure Tag",
 		"devices": "Devices",
 		"history": "History",
 		"terminal": "Terminal",

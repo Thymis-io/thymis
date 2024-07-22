@@ -6,7 +6,8 @@
 	},
 	"nav": {
 		"overview": "Übersicht",
-		"config": "{type} Konfigurieren",
+		"config-device": "Gerät Konfigurieren",
+		"config-tag": "Tag Konfigurieren",
 		"devices": "Geräte",
 		"history": "Versionen",
 		"terminal": "Terminal",

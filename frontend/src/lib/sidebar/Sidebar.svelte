@@ -21,8 +21,8 @@
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import {
 		globalNavSelectedDevice,
-		globalNavSelectedTag,
 		globalNavSelectedTarget,
+		globalNavSelectedTargetType,
 		state,
 		type ModuleSettings
 	} from '$lib/state';
@@ -76,7 +76,7 @@
 	let dynamicNavItems: NavItem[] = [];
 	$: dynamicNavItems = [
 		{
-			name: $t('nav.config', { values: { type: $globalNavSelectedTag ? 'tag' : 'device' } }),
+			name: $t(`nav.config-${$globalNavSelectedTargetType}`),
 			icon: SlidersSolid,
 			href: '/config',
 			hidden: !$globalNavSelectedTarget
