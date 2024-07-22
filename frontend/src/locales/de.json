@@ -138,8 +138,9 @@
 			"installed-elsewhere": "Auf anderen Geräten oder Tags installiert",
 			"available": "Verfügbar"
 		},
-		"add_module": "Modul Hinzufügen",
-		"remove_module": "Modul Entfernen",
+		"add_module": "Modul hinzufügen",
+		"remove_module": "Modul entfernen",
+		"edit_tag_modules": "Tag Module bearbeiten",
 		"clear": "Löschen",
 		"edit": "Bearbeiten",
 		"install": "Installieren",

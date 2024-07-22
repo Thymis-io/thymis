@@ -68,6 +68,9 @@
 		>
 			<Pen />
 		</ToolbarButton>
+		<Tooltip>
+			<P size="sm">{$t('config.edit_tag_modules')}</P>
+		</Tooltip>
 	{/if}
 </div>
 <div class="mb-6 ml-4">

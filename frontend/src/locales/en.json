@@ -141,6 +141,7 @@
 		},
 		"add_module": "Add Module",
 		"remove_module": "Remove Module",
+		"edit_tag_modules": "Edit Tag Modules",
 		"clear": "Clear",
 		"edit": "Edit",
 		"install": "Install",
