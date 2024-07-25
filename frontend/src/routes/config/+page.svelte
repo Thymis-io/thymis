@@ -189,16 +189,18 @@
 		</ModuleList>
 		{#each $globalNavSelectedDevice?.tags ?? [] as tagIdentifier}
 			{@const usedTag = getTagByIdentifier($state, tagIdentifier)}
-			<ModuleList
-				contextType="tag"
-				context={usedTag}
-				selfModules={getSelfModules(usedTag)}
-				configSelectedModule={$configSelectedModule}
-				configSelectedModuleContext={$configSelectedModuleContext}
-				configSelectedModuleContextType={$configSelectedModuleContextType}
-			>
-				<TagIcon slot="icon" />
-			</ModuleList>
+			<div class="mt-6">
+				<ModuleList
+					contextType="tag"
+					context={usedTag}
+					selfModules={getSelfModules(usedTag)}
+					configSelectedModule={$configSelectedModule}
+					configSelectedModuleContext={$configSelectedModuleContext}
+					configSelectedModuleContextType={$configSelectedModuleContextType}
+				>
+					<TagIcon slot="icon" />
+				</ModuleList>
+			</div>
 		{/each}
 	</Card>
 	{#if $configSelectedModule && $configSelectedModuleContext?.modules.find((m) => m.type === $configSelectedModule.type)}

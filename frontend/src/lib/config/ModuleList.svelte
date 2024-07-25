@@ -50,7 +50,7 @@
 	$: console.log(context?.displayName, contextType);
 </script>
 
-<div class="flex justify-between mb-2 ml-2">
+<div class="flex justify-between mb-2">
 	<div class="flex gap-2 inline-block items-center">
 		<slot name="icon" />
 		<P>{context?.displayName}</P>
@@ -73,7 +73,7 @@
 		</Tooltip>
 	{/if}
 </div>
-<div class="mb-6 ml-4">
+<div class="ml-2">
 	{#if context && contextType}
 		{#each selfModules as module}
 			<div
