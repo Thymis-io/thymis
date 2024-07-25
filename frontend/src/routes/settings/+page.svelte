@@ -38,12 +38,16 @@
 				url: 'git+https://github.com/Thymis-io/thymis.git'
 			}
 		};
+
+		saveState();
 	};
 
 	const deleteRepo = (name: string) => {
 		$state.repositories = Object.fromEntries(
 			Object.entries($state.repositories).filter(([key, value]) => key !== name)
 		);
+
+		saveState();
 	};
 
 	const changeRepoName = (oldName: string, newName: string) => {
@@ -53,6 +57,7 @@
 					key === oldName ? [newName, value] : [key, value]
 				)
 			);
+			saveState();
 		}
 	};
 </script>
@@ -69,7 +74,7 @@
 		{#each Object.entries($state.repositories) as [name, repo]}
 			<TableBodyRow>
 				<TableBodyEditCell bind:value={name} onEnter={(newName) => changeRepoName(name, newName)} />
-				<TableBodyEditCell bind:value={repo.url} />
+				<TableBodyEditCell bind:value={repo.url} onEnter={() => saveState()} />
 				<TableBodyCell>
 					<div class="flex gap-1">
 						<Button on:click={() => deleteRepo(name)}>
