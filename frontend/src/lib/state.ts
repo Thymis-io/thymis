@@ -1,13 +1,30 @@
-import { goto, invalidate } from '$app/navigation';
+import { invalidate } from '$app/navigation';
 import { controllerHost, controllerProtocol } from './api';
-import { browser } from '$app/environment';
-import { writable } from 'svelte/store';
+import { derived, writable } from 'svelte/store';
+import { queryParam } from 'sveltekit-search-params';
 
 export type ModuleSettings = {
 	type: string;
 	settings: {
 		[key: string]: string | number | boolean;
 	};
+};
+
+export type Origin = {
+	originId: string;
+	originContext: string;
+	originName: string;
+};
+
+export type ModuleSettingsWithOrigin = {
+	type: string;
+	settings: {
+		[key: string]: string | number | boolean;
+	};
+	originId: string;
+	originContext: string;
+	originName: string;
+	priority: number | undefined;
 };
 
 export type Setting = {
@@ -52,18 +69,61 @@ export type State = {
 	tags: Tag[];
 };
 
-export const build = async () => {
-	await fetch(`${controllerProtocol}://${controllerHost}/action/build`, { method: 'POST' });
-};
+export const state = writable<State>();
 
-export async function saveState(state: State) {
+let currentState: State;
+
+state.subscribe((value) => {
+	currentState = value;
+});
+
+export const saveState = async () => {
+	state.set(currentState);
 	await fetch(`${controllerProtocol}://${controllerHost}/state`, {
 		method: 'PATCH',
 		headers: {
 			'content-type': 'application/json'
 		},
-		body: JSON.stringify(state)
+		body: JSON.stringify(currentState)
 	});
 	await invalidate((url) => url.pathname === '/state' || url.pathname === '/available_modules');
 	await build();
-}
+};
+
+export const build = async () => {
+	await fetch(`${controllerProtocol}://${controllerHost}/action/build`, { method: 'POST' });
+};
+
+export const getTagByIdentifier = (state: State, identifier: string) => {
+	return state.tags.find((tag) => tag.identifier === identifier);
+};
+
+export const getDeviceByIdentifier = (state: State, identifier: string) => {
+	return state.devices.find((device) => device.identifier === identifier);
+};
+
+export const globalNavSelectedTag = derived(
+	[state, queryParam('global-nav-target-type'), queryParam('global-nav-target')],
+	([$state, $context, $identifier]) => {
+		if ($context === 'tag') {
+			return getTagByIdentifier($state, $identifier);
+		}
+	}
+);
+
+export const globalNavSelectedDevice = derived(
+	[state, queryParam('global-nav-target-type'), queryParam('global-nav-target')],
+	([$state, $context, $identifier]) => {
+		if ($context === 'device') {
+			return getDeviceByIdentifier($state, $identifier);
+		}
+	}
+);
+
+export const globalNavSelectedTarget = derived(
+	[globalNavSelectedDevice, globalNavSelectedTag],
+	([$globalNavSelectedDevice, $globalNavSelectedTag]) =>
+		$globalNavSelectedDevice || $globalNavSelectedTag
+);
+
+export const globalNavSelectedTargetType = queryParam('global-nav-target-type');

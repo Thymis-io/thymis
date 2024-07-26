@@ -6,7 +6,8 @@
 	},
 	"nav": {
 		"overview": "Overview",
-		"orchestrate": "Orchestrate",
+		"config-device": "Configure Device",
+		"config-tag": "Configure Tag",
 		"devices": "Devices",
 		"history": "History",
 		"terminal": "Terminal",
@@ -139,10 +140,23 @@
 			"installed-elsewhere": "Installed on other tags or devices",
 			"available": "Available"
 		},
+		"add_module": "Add Module",
+		"remove_module": "Remove Module",
+		"edit_tag_modules": "Edit Tag Modules",
+		"clear": "Clear",
+		"edit": "Edit",
 		"install": "Install",
 		"uninstall": "Uninstall",
 		"configure": "Configure",
-		"back": "Back"
+		"back": "Back",
+		"notPassed": "This definition is <b>not</b> passed to the device",
+		"passed": "This definition is passed to the device",
+		"notSet": "No definition set",
+		"otherDefinitions": "Other definitions:",
+		"noOtherDefinitions": "No other definitions",
+		"overwrittenBy": "Overwritten by:",
+		"priority": "Priority {priority}",
+		"editDisabled": "Reference only, edit the tag to change values globally"
 	},
 	"options": {
 		"no-settings": "No settings found for this module",

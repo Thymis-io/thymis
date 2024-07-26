@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
+	import { page } from '$app/stores';
 	import { saveState, type Device, type Tag } from '$lib/state';
 	import Pen from 'lucide-svelte/icons/pen';
 	import {
@@ -14,13 +15,14 @@
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import GripVertical from 'lucide-svelte/icons/grip-vertical';
 	import { controllerHost, controllerProtocol } from '$lib/api';
-	import DeployActions from '$lib/DeployActions.svelte';
-	import CreateDeviceModal from '$lib/CreateDeviceModal.svelte';
-	import EditTagModal from '$lib/EditTagModal.svelte';
-	import TableBodyEditCell from '$lib/TableBodyEditCell.svelte';
+	import DeployActions from '$lib/components/DeployActions.svelte';
+	import CreateDeviceModal from './CreateDeviceModal.svelte';
+	import EditTagModal from './EditTagModal.svelte';
+	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
 	import type { PageData } from './$types';
 	import { dndzone, SOURCES, TRIGGERS } from 'svelte-dnd-action';
 	import { flip } from 'svelte/animate';
+	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 
 	const flipDurationMs = 200;
 	let dragDisabled = true;
@@ -140,7 +142,6 @@
 	<DeployActions />
 </div>
 <CreateDeviceModal
-	state={data.state}
 	open={openModal === ModalType.CreateDevice}
 	onClose={closeCreateDeviceModal}
 	thymisDevice={data.availableModules.find(
@@ -197,7 +198,12 @@
 					<div class="flex justify-between">
 						<div class="flex gap-2">
 							{#each device.data.tags as tag, i}
-								<Button pill size="sm" class="p-3 py-1.5" href="/config-overview?tag={tag}">
+								<Button
+									pill
+									size="sm"
+									class="p-3 py-1.5"
+									href={`/config?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
+								>
 									<TagIcon size={20} class="mr-2" />
 									<!-- <span
 									class="inline-block bg-blue-300 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-1"
@@ -214,7 +220,14 @@
 				</TableBodyCell>
 				<TableBodyCell>
 					<div class="flex gap-2">
-						<Button color="alternative" href="/config-overview?device={device.data.identifier}">
+						<Button
+							color="alternative"
+							href={`/config?${buildGlobalNavSearchParam(
+								$page.url.search,
+								'device',
+								device.data.identifier
+							)}`}
+						>
 							{$t('devices.actions.edit')}
 						</Button>
 						<Button color="alternative" on:click={() => buildAndDownloadImage(device.data)}>

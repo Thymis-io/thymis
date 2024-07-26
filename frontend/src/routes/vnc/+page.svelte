@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
 	import { P, Card } from 'flowbite-svelte';
-	import DeployActions from '$lib/DeployActions.svelte';
+	import DeployActions from '$lib/components/DeployActions.svelte';
+	import { state } from '$lib/state';
 
 	export let data: PageData;
 </script>
@@ -12,7 +12,7 @@
 	<DeployActions />
 </div>
 <div class="grid grid-cols-3 gap-4">
-	{#each data.state.devices as device}
+	{#each $state.devices as device}
 		<div>
 			<P class="mb-2 text-center">{device.displayName}</P>
 			<Card class="w-full max-w-none">

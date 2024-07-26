@@ -6,7 +6,8 @@
 	},
 	"nav": {
 		"overview": "Übersicht",
-		"orchestrate": "Verwalten",
+		"config-device": "Gerät Konfigurieren",
+		"config-tag": "Tag Konfigurieren",
 		"devices": "Geräte",
 		"history": "Versionen",
 		"terminal": "Terminal",
@@ -138,6 +139,11 @@
 			"installed-elsewhere": "Auf anderen Geräten oder Tags installiert",
 			"available": "Verfügbar"
 		},
+		"add_module": "Modul hinzufügen",
+		"remove_module": "Modul entfernen",
+		"edit_tag_modules": "Tag Module bearbeiten",
+		"clear": "Löschen",
+		"edit": "Bearbeiten",
 		"install": "Installieren",
 		"uninstall": "Deinstallieren",
 		"configure": "Bearbeiten",

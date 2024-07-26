@@ -1,4 +1,4 @@
-import { getMyIp } from '$lib/native';
+import { getMyIp } from '$lib/server/native';
 import type { PageServerLoad } from './$types';
 
 export const load = (async () => {

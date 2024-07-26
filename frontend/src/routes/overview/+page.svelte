@@ -2,6 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
 	import { Card, P } from 'flowbite-svelte';
+	import { state } from '$lib/state';
 
 	export let data: PageData;
 </script>
@@ -17,7 +18,7 @@
 		<div class="flex items-center justify-around">
 			<div class="flex items-center justify-center bg-primary-400 rounded-full p-5 w-full">
 				<P weight="bold" size="2xl" color="text-white dark:text-gray-900">
-					{$t('overview.devices', { values: { count: data.state.devices.length } })}
+					{$t('overview.devices', { values: { count: $state.devices.length } })}
 				</P>
 			</div>
 		</div>
@@ -27,7 +28,7 @@
 		<div class="flex items-center justify-around">
 			<div class="flex items-center justify-center bg-primary-400 rounded-full p-5 w-full">
 				<P weight="bold" size="2xl" color="text-white dark:text-gray-900">
-					{$t('overview.tags', { values: { count: data.state.tags.length } })}
+					{$t('overview.tags', { values: { count: $state.tags.length } })}
 				</P>
 			</div>
 		</div>

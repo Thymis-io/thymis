@@ -19,18 +19,15 @@
 	import ChartSimpleSolid from 'svelte-awesome-icons/ChartSimpleSolid.svelte';
 	import GearSolid from 'svelte-awesome-icons/GearSolid.svelte';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
-	import DeviceSelect from '$lib/DeviceSelect.svelte';
-	import { queryParam } from 'sveltekit-search-params';
-	import type { Device, ModuleSettings, State } from '$lib/state';
-	import BuildStatus from '$lib/BuildStatus.svelte';
-
-	export let state: State;
-
-	const tagParam = queryParam('tag');
-	const deviceParam = queryParam('device');
-
-	$: tag = state.tags.find((t) => t.identifier === $tagParam);
-	$: device = state.devices.find((d) => d.identifier === $deviceParam);
+	import {
+		globalNavSelectedDevice,
+		globalNavSelectedTarget,
+		globalNavSelectedTargetType,
+		state,
+		type ModuleSettings
+	} from '$lib/state';
+	import BuildStatus from '$lib/sidebar/BuildStatus.svelte';
+	import GlobalNavSelect from '$lib/sidebar/GlobalNavSelect.svelte';
 
 	export let drawerHidden: boolean;
 
@@ -73,8 +70,24 @@
 	const isVNCModule = (module: ModuleSettings) => module.type.toLowerCase().includes('vnc');
 
 	$: hasVNCModule =
-		state.devices.some((device) => device.modules.some(isVNCModule)) ||
-		state.tags.some((tag) => tag.modules.some(isVNCModule));
+		$state.devices.some((device) => device.modules.some(isVNCModule)) ||
+		$state.tags.some((tag) => tag.modules.some(isVNCModule));
+
+	let dynamicNavItems: NavItem[] = [];
+	$: dynamicNavItems = [
+		{
+			name: $t(`nav.config-${$globalNavSelectedTargetType}`),
+			icon: SlidersSolid,
+			href: '/config',
+			hidden: !$globalNavSelectedTarget
+		},
+		{
+			name: $t('nav.terminal'),
+			icon: TerminalSolid,
+			href: '/terminal',
+			hidden: !$globalNavSelectedDevice
+		}
+	];
 
 	let navItems: NavItem[] = [];
 	$: navItems = [
@@ -82,11 +95,6 @@
 			name: $t('nav.overview'),
 			icon: ChartSimpleSolid,
 			href: '/overview'
-		},
-		{
-			name: $t('nav.orchestrate'),
-			icon: SlidersSolid,
-			href: '/config-overview'
 		},
 		{
 			name: $t('nav.devices'),
@@ -103,12 +111,6 @@
 			name: $t('nav.history'),
 			icon: CodeCommitSolid,
 			href: '/history'
-		},
-		{
-			name: $t('nav.terminal'),
-			icon: TerminalSolid,
-			href: '/terminal',
-			hidden: !device
 		},
 		{
 			name: $t('nav.settings'),
@@ -132,8 +134,39 @@
 	>
 		<nav class="divide-y text-base font-medium">
 			<SidebarGroup ulClass="list-unstyled fw-normal small mb-4 space-y-2">
-				<DeviceSelect bind:state />
+				<GlobalNavSelect />
 				{#each navItems as { name, icon, children, href, hidden } (name)}
+					{#if children}
+						<SidebarDropdownWrapper
+							bind:isOpen={dropdowns[name]}
+							label={name}
+							ulClass="mt-0.5"
+							btnClass="flex p-2 rounded-lg items-center justify-start gap-4 w-full text-base font-medium tracking-wide hover:text-primary-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+							spanClass=""
+							class={dropdowns[name]
+								? 'text-primary-700 dark:text-white'
+								: 'text-gray-500 dark:text-gray-400'}
+						>
+							<AngleDownOutline slot="arrowdown" class="ms-auto text-gray-800 dark:text-white" />
+							<AngleUpOutline slot="arrowup" class="ms-auto text-gray-800 dark:text-white" />
+							<svelte:component this={icon} slot="icon" />
+							{#each Object.entries(children) as [title, href]}
+								<SidebarItem
+									label={title}
+									href={href + $page.url.search}
+									{spanClass}
+									{activeClass}
+								/>
+							{/each}
+						</SidebarDropdownWrapper>
+					{:else if !hidden}
+						<SidebarItem label={name} href={href + $page.url.search} {spanClass} {activeClass}>
+							<svelte:component this={icon} slot="icon" size={18} />
+						</SidebarItem>
+					{/if}
+				{/each}
+				<hr />
+				{#each dynamicNavItems as { name, icon, children, href, hidden } (name)}
 					{#if children}
 						<SidebarDropdownWrapper
 							bind:isOpen={dropdowns[name]}

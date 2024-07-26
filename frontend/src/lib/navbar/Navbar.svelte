@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import UserMenu from '$lib/UserMenu.svelte';
+	import UserMenu from './UserMenu.svelte';
 	import {
 		DarkMode,
 		NavBrand,
@@ -11,10 +11,7 @@
 		ToolbarButton
 	} from 'flowbite-svelte';
 	import GithubSolid from 'flowbite-svelte-icons/GithubSolid.svelte';
-	import '../app.postcss';
-	import { locale } from 'svelte-i18n';
-	import { browser } from '$app/environment';
-	import LanguageSelect from '$lib/LanguageSelect.svelte';
+	import LanguageSelect from './LanguageSelect.svelte';
 
 	export let fluid = true;
 

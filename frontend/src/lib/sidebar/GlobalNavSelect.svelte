@@ -1,28 +1,14 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { queryParam } from 'sveltekit-search-params';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
 	import { Button, Dropdown, DropdownItem, Search } from 'flowbite-svelte';
 	import ChevronDownSolid from 'flowbite-svelte-icons/ChevronDownSolid.svelte';
 	import { page } from '$app/stores';
-	import type { State } from './state';
-	export let state: State;
-
-	const tagParam = queryParam('tag');
-	const deviceParam = queryParam('device');
-
-	$: tag = state.tags.find((t) => t.identifier === $tagParam);
-	$: device = state.devices.find((d) => d.identifier === $deviceParam);
+	import { globalNavSelectedDevice, globalNavSelectedTag, state, type State } from '../state';
+	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 
 	let search = '';
-
-	const otherUrlParams = () => {
-		const params = new URLSearchParams($page.url.search);
-		params.delete('tag');
-		params.delete('device');
-		return params.toString();
-	};
 
 	const isSearched = (search: string, item: string) => {
 		if (!search) {
@@ -36,10 +22,10 @@
 
 <Button class="w-full flex justify-between">
 	<div class="flex gap-2">
-		{#if tag}
-			<TagIcon size={20} /> {tag.displayName}
-		{:else if device}
-			<HardDrive size={20} /> {device.displayName}
+		{#if $globalNavSelectedTag}
+			<TagIcon size={20} /> {$globalNavSelectedTag?.displayName}
+		{:else if $globalNavSelectedDevice}
+			<HardDrive size={20} /> {$globalNavSelectedDevice?.displayName}
 		{:else}
 			{$t('common.no-tag-or-device-selected')}
 		{/if}
@@ -50,10 +36,10 @@
 	<div slot="header" class="p-3">
 		<Search size="md" bind:value={search} placeholder={$t('common.search')} />
 	</div>
-	{#each state.tags as tag}
+	{#each $state.tags as tag}
 		{#if isSearched(search, tag.displayName)}
 			<DropdownItem
-				href={`?tag=${tag.identifier}&${otherUrlParams()}`}
+				href={`?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.identifier)}`}
 				class={'flex gap-2 my-1 p-1 hover:bg-primary-500'}
 			>
 				<TagIcon />
@@ -61,10 +47,10 @@
 			</DropdownItem>
 		{/if}
 	{/each}
-	{#each state.devices as device}
+	{#each $state.devices as device}
 		{#if isSearched(search, device.displayName)}
 			<DropdownItem
-				href={`?device=${device.identifier}&${otherUrlParams()}`}
+				href={`?${buildGlobalNavSearchParam($page.url.search, 'device', device.identifier)}`}
 				class={'flex gap-2 my-1 p-1 hover:bg-primary-500'}
 			>
 				<HardDrive />
