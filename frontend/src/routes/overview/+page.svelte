@@ -16,7 +16,7 @@
 	<Card class="card p-4 bg-white rounded-lg shadow-md w-full">
 		<!-- number of devices: data.state.devices.length -->
 		<div class="flex items-center justify-around">
-			<div class="flex items-center justify-center bg-primary-400 rounded-full p-5 w-full">
+			<div class="flex items-center justify-center bg-primary-500 rounded-full p-5 w-full">
 				<P weight="bold" size="2xl" color="text-white dark:text-gray-900">
 					{$t('overview.devices', { values: { count: $state.devices.length } })}
 				</P>
@@ -26,7 +26,7 @@
 
 	<Card class="card p-4 bg-white rounded-lg shadow-md w-full">
 		<div class="flex items-center justify-around">
-			<div class="flex items-center justify-center bg-primary-400 rounded-full p-5 w-full">
+			<div class="flex items-center justify-center bg-primary-500 rounded-full p-5 w-full">
 				<P weight="bold" size="2xl" color="text-white dark:text-gray-900">
 					{$t('overview.tags', { values: { count: $state.tags.length } })}
 				</P>
@@ -36,7 +36,7 @@
 
 	<Card class="card p-4 bg-white rounded-lg shadow-md w-full">
 		<div class="flex items-center justify-around">
-			<div class="flex items-center justify-center bg-primary-400 rounded-full p-5 w-full">
+			<div class="flex items-center justify-center bg-primary-500 rounded-full p-5 w-full">
 				<P weight="bold" size="2xl" color="text-white dark:text-gray-900">
 					{$t('overview.modules', { values: { count: data.availableModules.length } })}
 				</P>
