@@ -1,6 +1,7 @@
 // @ts-check
 
 import forms from '@tailwindcss/forms';
+import colors from 'tailwindcss/colors';
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -13,19 +14,7 @@ module.exports = {
 	theme: {
 		extend: {
 			colors: {
-				// flowbite-svelte
-				primary: {
-					50: '#f9dce2',
-					100: '#f6d0d8',
-					200: '#f4c5ce',
-					300: '#eea2b1',
-					400: '#e15c77',
-					500: '#d4163c',
-					600: '#bf1436',
-					700: '#9f112d',
-					800: '#7f0d24',
-					900: '#680b1d'
-				}
+				primary: colors.cyan
 			},
 			minWidth: {
 				0: '0px',
