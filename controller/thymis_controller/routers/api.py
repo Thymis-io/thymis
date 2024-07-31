@@ -1,10 +1,12 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, WebSocket
 from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
 from thymis_controller import dependencies, models, modules, project, task
-from thymis_controller.dependencies import get_project
+from thymis_controller.dependencies import get_project, require_valid_session
 from thymis_controller.models.state import State
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(require_valid_session)],
+)
 
 
 @router.get("/state")

@@ -4,7 +4,8 @@ import logging
 import thymis_controller.lib  # pylint: disable=unused-import
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from thymis_controller.routers import api, frontend
+from thymis_controller.routers import api, frontend, auth
+from thymis_controller.config import global_settings
 
 description = """
 API to control Nix operating system 🎛️
@@ -24,10 +25,17 @@ app = FastAPI(
         "name": "AGPLv3",
         "url": "https://www.gnu.org/licenses/agpl-3.0.en.html",
     },
+    servers=[
+        {
+            "url": global_settings.BASE_URL,
+            "description": "Thymis Controller",
+        },
+    ],
     lifespan=frontend.lifespan,
 )
 
 origins = [
+    # TODO remove development origins
     "http://localhost",
     "http://localhost:5173",
     "*",
@@ -41,6 +49,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router, prefix="/auth")
 app.include_router(api.router, prefix="/api")
 app.include_router(frontend.router)
 
