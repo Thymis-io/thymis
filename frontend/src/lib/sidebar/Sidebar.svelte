@@ -37,7 +37,7 @@
 
 	let spanClass = 'ms-9';
 	let childClass =
-		'p-2 hover:bg-gray-100 text-gray-500 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 relative flex items-center flex-wrap font-medium';
+		'p-2 hover:bg-gray-100 text-gray-500 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 flex items-center flex-wrap font-medium';
 
 	let nonActiveClass =
 		childClass +
@@ -127,10 +127,10 @@
 	{nonActiveClass}
 	{activeClass}
 	activeUrl={activeMainSidebar + $page.url.search}
-	asideClass="fixed inset-0 z-30 flex-none h-full w-64 lg:h-auto border-e border-gray-200 dark:border-gray-600 lg:overflow-y-visible lg:pt-20 lg:-mt-2 lg:block"
+	asideClass="fixed w-screen lg:w-auto lg:sticky lg:top-0 z-30 flex-none lg:h-auto border-e border-gray-200 dark:border-gray-600 lg:overflow-y-visible lg:block"
 >
 	<SidebarWrapper
-		divClass="overflow-y-auto px-4 pt-20 lg:pt-4 h-full bg-white scrolling-touch max-w-2xs lg:h-[calc(100vh-4.5rem)] lg:block dark:bg-gray-800 lg:me-0 lg:sticky top-2"
+		divClass="overflow-y-auto px-4 pt-2 lg:pt-4 bg-white scrolling-touch lg:h-[calc(100vh-4.6rem)] lg:block dark:bg-gray-800 lg:me-0"
 	>
 		<nav class="divide-y text-base font-medium">
 			<SidebarGroup ulClass="list-unstyled fw-normal small mb-4 space-y-2">
@@ -141,7 +141,7 @@
 							bind:isOpen={dropdowns[name]}
 							label={name}
 							ulClass="mt-0.5"
-							btnClass="flex p-2 rounded-lg items-center justify-start gap-4 w-full text-base font-medium tracking-wide hover:text-primary-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+							btnClass="flex p-2 rounded-lg items-center justify-start gap-4 text-base font-medium hover:text-primary-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
 							spanClass=""
 							class={dropdowns[name]
 								? 'text-primary-700 dark:text-white'

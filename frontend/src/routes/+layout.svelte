@@ -1,7 +1,8 @@
 <script lang="ts">
 	import '../app.postcss';
-	import Navbar from '../lib/navbar/Navbar.svelte';
-	import Sidebar from '../lib/sidebar/Sidebar.svelte';
+	import Navbar from '$lib/navbar/Navbar.svelte';
+	import Sidebar from '$lib/sidebar/Sidebar.svelte';
+	import SplitPane from '$lib/splitpane/SplitPane.svelte';
 	import type { LayoutData } from '../routes/$types';
 	import { saveState } from '$lib/state';
 	import { state } from '$lib/state';
@@ -29,7 +30,7 @@
 		lastState = $state;
 	}
 
-	let drawerHidden = true;
+	let drawerHidden = false;
 </script>
 
 <div class="bg-gray-50 dark:bg-gray-900">
@@ -38,10 +39,24 @@
 	>
 		<Navbar bind:drawerHidden />
 	</header>
-	<div class="overflow-hidden lg:flex">
+	<div class="contents lg:hidden">
 		<Sidebar bind:drawerHidden />
-		<div class="relative h-full w-full overflow-y-auto lg:ml-64 p-4">
+	</div>
+	<SplitPane
+		class="sticky top-0 !block lg:!grid"
+		type="horizontal"
+		pos="16rem"
+		min="16rem"
+		max="64rem"
+		priority="min"
+		leftPaneClass="!hidden lg:!block"
+	>
+		<div slot="a" class="sticky top-0">
+			<Sidebar bind:drawerHidden />
+		</div>
+		<div slot="b" class="p-4 !overflow-y-scroll !h-[calc(100vh-4.6rem)]">
 			<slot />
 		</div>
-	</div>
+		<!-- </div> -->
+	</SplitPane>
 </div>
