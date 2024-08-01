@@ -10,8 +10,7 @@
 		// @ts-ignore
 		let RFB = await import('@novnc/novnc/lib/rfb.js');
 
-		const port = '5901';
-		const url = `ws://${device.targetHost}:${port}/websockify`;
+		const url = `ws://${controllerHost}/vnc/${device.identifier}`;
 
 		const password = '';
 		const canvas = document.getElementById(`vnc-canvas-${device.targetHost}`);
