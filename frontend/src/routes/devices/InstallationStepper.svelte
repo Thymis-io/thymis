@@ -19,8 +19,8 @@
 	import Apple from 'lucide-svelte/icons/apple';
 	import AppWindow from 'lucide-svelte/icons/app-window';
 	import Wrench from 'lucide-svelte/icons/wrench';
-	import type { Device, Module } from '../../lib/state';
-	import ConfigSelectOne from '../../lib/config/ConfigSelectOne.svelte';
+	import type { Device, Module } from '$lib/state';
+	import ConfigSelectOne from '$lib/config/ConfigSelectOne.svelte';
 
 	export let onSubmit: null | ((data: Device) => void) = null;
 	export let thymisDevice: Module | undefined = undefined;

@@ -25,6 +25,12 @@
 	/** @type {'min' | 'max'}*/
 	export let priority = 'min';
 
+	let clazz = '';
+	export { clazz as class };
+
+	export let leftPaneClass = '';
+	export let rightPaneClass = '';
+
 	/** @type {HTMLElement} */
 	let splitpane_container;
 
@@ -101,17 +107,17 @@
 
 <div
 	data-pane={id}
-	class="splitpane_container {type}"
+	class="splitpane_container {type} {clazz || ''}"
 	bind:this={splitpane_container}
 	bind:clientWidth={w}
 	bind:clientHeight={h}
 	style="--pos: {position}"
 >
-	<div class="pane">
+	<div class="pane {leftPaneClass || ''}">
 		<slot name="a" />
 	</div>
 
-	<div class="pane">
+	<div class="pane {rightPaneClass || ''}">
 		<slot name="b" />
 	</div>
 
