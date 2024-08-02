@@ -42,21 +42,25 @@
 	<div class="contents lg:hidden">
 		<Sidebar bind:drawerHidden />
 	</div>
-	<SplitPane
-		class="sticky top-0 !block lg:!grid"
-		type="horizontal"
-		pos="16rem"
-		min="16rem"
-		max="64rem"
-		priority="min"
-		leftPaneClass="!hidden lg:!block"
-	>
-		<div slot="a" class="sticky top-0">
-			<Sidebar bind:drawerHidden />
-		</div>
-		<div slot="b" class="p-4 !overflow-y-scroll !h-[calc(100vh-4.6rem)]">
-			<slot />
-		</div>
-		<!-- </div> -->
+	<SplitPane type="vertical" pos="64rem" min="16rem" max="64rem">
+		<SplitPane
+			class="sticky top-0 !block lg:!grid"
+			type="horizontal"
+			pos="16rem"
+			min="16rem"
+			max="64rem"
+			priority="min"
+			leftPaneClass="!hidden lg:!block"
+			slot="a"
+		>
+			<div slot="a" class="sticky top-0">
+				<Sidebar bind:drawerHidden />
+			</div>
+			<div slot="b" class="p-4 !overflow-y-scroll !h-[calc(100vh-4.6rem)]">
+				<slot />
+			</div>
+			<!-- </div> -->
+		</SplitPane>
+		<div slot="b">Hello I'm task</div>
 	</SplitPane>
 </div>
