@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { HighlightAuto } from 'svelte-highlight';
+	import { HighlightAuto, LineNumbers } from 'svelte-highlight';
 	import ashes from 'svelte-highlight/styles/ashes';
 
 	export let code;
@@ -9,4 +9,6 @@
 	{@html ashes}
 </svelte:head>
 
-<HighlightAuto {code} />
+<HighlightAuto {code} let:highlighted>
+	<LineNumbers {highlighted} />
+</HighlightAuto>
