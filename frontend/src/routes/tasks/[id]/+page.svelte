@@ -32,6 +32,10 @@
 	// export type Task = TaskVanilla | CommandTask | CompositeTask;
 
 	// if task is undefined, go to 404
+	const cleanStdOut = (stdoutorerr: string) => {
+		const toRemove = '\r\u001b[K';
+		return stdoutorerr.replaceAll(toRemove, '');
+	};
 </script>
 
 <h1 class="text-2xl font-bold">Task Detail for Task {taskIdx}: {task.display_name}</h1>
@@ -50,9 +54,9 @@
 	<!-- <h2 class="text-xl font-bold">Stdout: {task.stdout}</h2>
     <h2 class="text-xl font-bold">Stderr: {task.stderr}</h2> -->
 	<h2 class="text-xl font-bold">Stdout:</h2>
-	<MonospaceText code={task.stdout} />
+	<MonospaceText code={cleanStdOut(task.stdout)} />
 	<h2 class="text-xl font-bold">Stderr:</h2>
-	<MonospaceText code={task.stderr} />
+	<MonospaceText code={cleanStdOut(task.stderr)} />
 {/if}
 
 {#if task.type === 'compositetask'}
