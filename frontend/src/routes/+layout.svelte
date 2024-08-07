@@ -6,6 +6,7 @@
 	import type { LayoutData } from '../routes/$types';
 	import { saveState } from '$lib/state';
 	import { state } from '$lib/state';
+	import Taskbar from '$lib/taskbar/Taskbar.svelte';
 
 	export let data: LayoutData;
 
@@ -58,12 +59,12 @@
 				slot="a"
 			>
 				<Sidebar slot="a" bind:drawerHidden />
-				<div class="p-4 bg-gray-50 dark:bg-gray-900 !overlflow-y-scroll" slot="b">
+				<div class="p-4 bg-gray-50 dark:bg-gray-900 !overflow-y-scroll" slot="b">
 					<slot />
 				</div>
 			</SplitPane>
-			<div class="border dark:border-gray-600 bg-gray-50 dark:bg-gray-900" slot="b">
-				Hello I'm task
+			<div class="w-full border dark:border-gray-600 bg-gray-50 dark:bg-gray-900" slot="b">
+				<Taskbar />
 			</div>
 		</SplitPane>
 	</div>
