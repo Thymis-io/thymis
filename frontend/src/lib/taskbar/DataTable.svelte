@@ -75,19 +75,23 @@
 			{#each $table.getHeaderGroups() as headerGroup}
 				{#each headerGroup.headers as header}
 					<th class="" style="width: calc(var(--header-{header.id}-width)*1px)">
-						{#if !header.isPlaceholder}
-							<svelte:component
-								this={flexRender(header.column.columnDef.header, header.getContext())}
+						<div class="flex items-center justify-between">
+							<div>
+								{#if !header.isPlaceholder}
+									<svelte:component
+										this={flexRender(header.column.columnDef.header, header.getContext())}
+									/>
+								{/if}
+							</div>
+							<div
+								on:dblclick={() => header.column.resetSize()}
+								on:mousedown={header.getResizeHandler()}
+								on:touchstart={() => header.getResizeHandler()}
+								class="resizer {$table.options.columnResizeDirection} {header.column.getIsResizing()
+									? 'isResizing'
+									: ''}"
 							/>
-						{/if}
-						<div
-							on:dblclick={() => header.column.resetSize()}
-							on:mousedown={header.getResizeHandler()}
-							on:touchstart={() => header.getResizeHandler()}
-							class="resizer {$table.options.columnResizeDirection} {header.column.getIsResizing()
-								? 'isResizing'
-								: ''}"
-						/>
+						</div>
 					</th>
 				{/each}
 			{/each}
@@ -115,15 +119,17 @@
 
 <style>
 	.resizer {
-		position: absolute;
+		position: sticky;
 		top: 0;
 		height: 100%;
+		min-height: 20px;
 		right: 0;
 		width: 5px;
 		background: rgba(0, 0, 0, 0.5);
 		cursor: col-resize;
 		user-select: none;
 		touch-action: none;
+		z-index: 1000;
 	}
 	.resizer.isResizing {
 		background: blue;
