@@ -2,8 +2,8 @@ import { browser } from '$app/environment';
 import { writable } from 'svelte/store';
 import { controllerHost } from './api';
 
-type TaskState = 'pending' | 'running' | 'completed' | 'failed';
-type Task = {
+export type TaskState = 'pending' | 'running' | 'completed' | 'failed';
+export type TaskVanilla = {
 	type: 'task';
 	display_name: string;
 	state: TaskState;
@@ -11,22 +11,24 @@ type Task = {
 	start_time: number;
 	data: Record<string, any>;
 };
-type CommandTask = Omit<Task, 'type'> & {
+export type CommandTask = Omit<TaskVanilla, 'type'> & {
 	type: 'commandtask';
 	stdout: string;
 	stderr: string;
 };
-type CompositeTask = Omit<Task, 'type'> & {
+export type CompositeTask = Omit<TaskVanilla, 'type'> & {
 	type: 'compositetask';
 	tasks: TaskList;
 };
 
-type TaskList = (Task | CommandTask | CompositeTask)[];
+export type Task = TaskVanilla | CommandTask | CompositeTask;
+
+export type TaskList = Task[];
 
 let socket: WebSocket | undefined;
 
-export let taskStatus = writable<TaskList | undefined>();
-let taskStatusValue: TaskList | undefined = undefined;
+export const taskStatus = writable<TaskList>([]);
+export let taskStatusValue: TaskList = [];
 
 const startSocket = () => {
 	console.log('starting task_status socket');
