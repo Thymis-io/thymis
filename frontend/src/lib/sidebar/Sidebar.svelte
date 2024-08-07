@@ -26,7 +26,6 @@
 		state,
 		type ModuleSettings
 	} from '$lib/state';
-	import BuildStatus from '$lib/sidebar/BuildStatus.svelte';
 	import GlobalNavSelect from '$lib/sidebar/GlobalNavSelect.svelte';
 
 	export let drawerHidden: boolean;
@@ -43,6 +42,7 @@
 		childClass +
 		' hover:text-gray-500 hover:cursor-pointer dark:text-gray-400 dark:hover:text-white';
 	let activeClass = childClass + ' cursor-default text-primary-600 dark:text-primary-400';
+	export let asideClass = '';
 
 	$: mainSidebarUrl = $page.url.pathname;
 	let activeMainSidebar: string;
@@ -127,10 +127,10 @@
 	{nonActiveClass}
 	{activeClass}
 	activeUrl={activeMainSidebar + $page.url.search}
-	asideClass="fixed w-screen lg:w-auto lg:sticky lg:top-0 z-30 flex-none lg:h-auto border-e border-gray-200 dark:border-gray-600 lg:overflow-y-visible lg:block"
+	asideClass="{asideClass} lg:sticky lg:top-0 border-e border-gray-200 dark:border-gray-600 lg:block"
 >
 	<SidebarWrapper
-		divClass="overflow-y-auto px-4 pt-2 lg:pt-4 bg-white scrolling-touch lg:h-[calc(100vh-4.6rem)] lg:block dark:bg-gray-800 lg:me-0"
+		divClass="overflow-y-auto px-4 pt-2 lg:pt-4 bg-white scrolling-touch h-[calc(100vh-4.6rem)] lg:block dark:bg-gray-800 lg:me-0"
 	>
 		<nav class="divide-y text-base font-medium">
 			<SidebarGroup ulClass="list-unstyled fw-normal small mb-4 space-y-2">
@@ -197,17 +197,14 @@
 					{/if}
 				{/each}
 			</SidebarGroup>
-			<SidebarGroup ulClass="list-unstyled fw-normal small p-2 pt-4 space-y-2">
-				<BuildStatus />
-			</SidebarGroup>
 		</nav>
 	</SidebarWrapper>
 </Sidebar>
 
-<div
+<!-- <div
 	hidden={drawerHidden}
 	class="fixed inset-0 z-20 bg-gray-900/50 dark:bg-gray-900/60 lg:hidden"
 	on:click={closeDrawer}
 	on:keydown={closeDrawer}
 	role="presentation"
-/>
+/> -->
