@@ -84,8 +84,8 @@
 						<ConfigSelectOne
 							value={data.device}
 							change={(value) => (data.device = value)}
-							setting={thymisDevice['device_type']}
-							options={thymisDevice['device_type'].options}
+							setting={thymisDevice.settings.device_type}
+							options={thymisDevice.settings.device_type.options}
 						/>
 					{/if}
 				{:else if currentStep === 3}

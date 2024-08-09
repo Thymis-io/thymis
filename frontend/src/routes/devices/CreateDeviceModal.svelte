@@ -10,6 +10,7 @@
 
 	function onSubmit(submitData: Device): void {
 		$state.devices = [...$state.devices, { ...submitData }];
+		saveState();
 	}
 </script>
 

@@ -31,7 +31,7 @@
 
 	function deleteDevice(device: Device) {
 		data.state.devices = data.state.devices.filter((d) => d.identifier !== device.identifier);
-		saveState(data.state);
+		saveState();
 	}
 
 	const downloadUri = (uri: string) => {
@@ -89,7 +89,7 @@
 		if (editDevice) {
 			editDevice.tags = tags;
 			data.state.tags = availableTags;
-			saveState(data.state);
+			saveState();
 		}
 	};
 
@@ -114,7 +114,7 @@
 		// also send new device order to backend and reload
 		let devicesState = devices.map((d) => d.data);
 		data.state.devices = devicesState;
-		saveState(data.state);
+		saveState();
 		// Ensure dragging is stopped on drag finish via pointer (mouse, touch)
 		if (source === SOURCES.POINTER) {
 			dragDisabled = true;
@@ -145,7 +145,7 @@
 	open={openModal === ModalType.CreateDevice}
 	onClose={closeCreateDeviceModal}
 	thymisDevice={data.availableModules.find(
-		(m) => m.type === 'thymis_controller.models.modules.thymis.ThymisDevice'
+		(m) => m.type === 'thymis_controller.modules.thymis.ThymisDevice'
 	)}
 />
 <EditTagModal
@@ -188,11 +188,11 @@
 				</TableBodyCell>
 				<TableBodyEditCell
 					bind:value={device.data.displayName}
-					onEnter={() => saveState(data.state)}
+					onEnter={() => saveState()}
 				/>
 				<TableBodyEditCell
 					bind:value={device.data.targetHost}
-					onEnter={() => saveState(data.state)}
+					onEnter={() => saveState()}
 				/>
 				<TableBodyCell>
 					<div class="flex justify-between">
