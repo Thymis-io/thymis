@@ -21,6 +21,7 @@
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import {
 		globalNavSelectedDevice,
+		globalNavSelectedTag,
 		globalNavSelectedTarget,
 		globalNavSelectedTargetType,
 		state,
@@ -73,6 +74,12 @@
 		$state.devices.some((device) => device.modules.some(isVNCModule)) ||
 		$state.tags.some((tag) => tag.modules.some(isVNCModule));
 
+	$: selectedTargetHasVNCModule =
+		$globalNavSelectedTarget?.modules.some(isVNCModule) ||
+		$globalNavSelectedDevice?.tags.some((tag) =>
+			$state.tags.find((t) => t.identifier === tag)?.modules.some(isVNCModule)
+		);
+
 	let dynamicNavItems: NavItem[] = [];
 	$: dynamicNavItems = [
 		{
@@ -80,6 +87,12 @@
 			icon: SlidersSolid,
 			href: '/config',
 			hidden: !$globalNavSelectedTarget
+		},
+		{
+			name: $t('nav.device-vnc'),
+			icon: ScreenShare,
+			href: '/device-vnc',
+			hidden: !selectedTargetHasVNCModule
 		},
 		{
 			name: $t('nav.terminal'),
@@ -102,7 +115,7 @@
 			href: '/devices'
 		},
 		{
-			name: $t('nav.vnc'),
+			name: $t('nav.global-vnc'),
 			icon: ScreenShare,
 			href: '/vnc',
 			hidden: !hasVNCModule

@@ -11,7 +11,8 @@
 		"devices": "Devices",
 		"history": "History",
 		"terminal": "Terminal",
-		"vnc": "VNC",
+		"global-vnc": "VNC All Devices",
+		"device-vnc": "VNC",
 		"settings": "Settings"
 	},
 	"common": {
