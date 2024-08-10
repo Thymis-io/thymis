@@ -1,15 +1,18 @@
 import { browser } from '$app/environment';
-import { writable } from 'svelte/store';
-import { controllerHost } from './api';
+import { derived, writable, type Readable } from 'svelte/store';
+import { controllerHost, controllerProtocol } from './api';
+import { invalidate } from '$app/navigation';
 
 export type TaskState = 'pending' | 'running' | 'completed' | 'failed';
 export type TaskVanilla = {
+	id: string;
 	type: 'task';
 	display_name: string;
 	state: TaskState;
 	exception?: string;
 	start_time: number;
-	data: Record<string, any>;
+	end_time?: number;
+	data: Record<string, unknown>;
 };
 export type CommandTask = Omit<TaskVanilla, 'type'> & {
 	type: 'commandtask';
@@ -28,51 +31,104 @@ export type TaskList = Task[];
 let socket: WebSocket | undefined;
 
 export const taskStatus = writable<TaskList>([]);
-export let taskStatusValue: TaskList = [];
+export const tasksById: Record<string, Task> = {};
+export const tasksByIdStore: Readable<Record<string, Task>> = derived<
+	typeof taskStatus,
+	Record<string, Task>
+>(
+	taskStatus,
+	($taskStatus, set) => {
+		const tasksById: Record<string, Task> = {};
+		for (const task of $taskStatus) {
+			tasksById[task.id] = task;
+		}
+		set(tasksById);
+	},
+	{}
+);
+taskStatus.subscribe((value) => {
+	for (const task of value) {
+		tasksById[task.id] = task;
+	}
+});
+
+export const getAllTasks = async (fetch: typeof window.fetch = window.fetch) => {
+	const response = await fetch(`${controllerProtocol}://${controllerHost}/tasks`);
+	return (await response.json()) as TaskList;
+};
+
+export const getTask = async (taskId: string, fetch: typeof window.fetch = window.fetch) => {
+	const response = await fetch(`${controllerProtocol}://${controllerHost}/tasks/${taskId}`);
+	return (await response.json()) as Task;
+};
+
+export const cancelTask = async (taskId: string, fetch: typeof window.fetch) => {
+	const response = await fetch(`${controllerProtocol}://${controllerHost}/tasks/${taskId}/cancel`, {
+		method: 'POST'
+	});
+	return response;
+};
+
+export const retryTask = async (taskId: string, fetch: typeof window.fetch) => {
+	const response = await fetch(`${controllerProtocol}://${controllerHost}/tasks/${taskId}/retry`, {
+		method: 'POST'
+	});
+	return response;
+};
+
+export const runImmediately = async (taskId: string, fetch: typeof window.fetch) => {
+	const response = await fetch(
+		`${controllerProtocol}://${controllerHost}/tasks/${taskId}/run_immediately`,
+		{
+			method: 'POST'
+		}
+	);
+	return response;
+};
 
 const startSocket = () => {
 	console.log('starting task_status socket');
 	socket = new WebSocket(`ws://${controllerHost}/task_status`);
-	socket.onmessage = (event) => {
+	socket.onmessage = async (event) => {
 		const data = JSON.parse(event.data) as TaskList;
-		const lastTaskStatus = taskStatusValue;
-
-		// if a task.type is commandtask, and the task just finished, download the image
-		// for each task in the task list
-		data.forEach((task) => {
-			if (task.type !== 'commandtask') return;
-			if (task.state !== 'completed') return;
-			if (!('program' in task.data)) return;
-			if (task.data.program !== 'nix') return;
-			if (!('args' in task.data)) return;
-			if (task.data.args[0] !== 'build') return;
-			if (!('identifier' in task.data)) return;
-			// check: this task was previously in the list, but not completed
-			const otherTask = lastTaskStatus?.find(
-				(t) =>
-					t.type === 'commandtask' &&
-					t.data.identifier === task.data.identifier &&
-					t.start_time === task.start_time
-			);
-			if (!otherTask) return;
-			if (otherTask.state === 'completed') return;
-			// download the image
-			const a = document.createElement('a');
-			a.href = `/api/download-image?identifier=${task.data.identifier}`;
-			a.download = `thymis-image-${task.data.identifier}.img`;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-		});
-
+		console.log('task_status socket message', data);
 		taskStatus.set(data);
-		taskStatusValue = data;
+		await invalidate((url) => url.pathname.startsWith('/tasks'));
 	};
 	socket.onclose = () => {
 		console.log('task_status socket closed');
 		setTimeout(startSocket, 1000);
 	};
 };
+
+let lastTaskStatus: TaskList = [];
+taskStatus.subscribe((tasks) => {
+	// if a task.type is commandtask, and the task just finished, download the image
+	// tasks have a uuid now at .id
+	tasks.forEach((task) => {
+		if (task.type !== 'commandtask') return;
+		if (task.state !== 'completed') return;
+		if (!('program' in task.data)) return;
+		if (task.data.program !== 'nix') return;
+		if (!('args' in task.data)) return;
+		if (!(task.data.args instanceof Array)) return;
+		if (task.data.args[0] !== 'build') return;
+		if (!('identifier' in task.data)) return;
+		// check: this task was previously in the list, but not completed
+		const otherTask = lastTaskStatus.find((t) => t.id === task.id);
+		if (!otherTask) return;
+		if (otherTask.state === 'completed') return;
+		// download the image
+		const a = document.createElement('a');
+		a.href = `/api/download-image?identifier=${task.data.identifier}`;
+		a.download = `thymis-image-${task.data.identifier}.img`;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+	});
+
+	lastTaskStatus = tasks;
+});
 
 if (browser) {
 	startSocket();

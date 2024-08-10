@@ -6,6 +6,7 @@
 	import type { LayoutData } from '../routes/$types';
 	import { saveState } from '$lib/state';
 	import { state } from '$lib/state';
+	import { taskStatus } from '$lib/taskstatus';
 	import Taskbar from '$lib/taskbar/Taskbar.svelte';
 
 	export let data: LayoutData;
@@ -30,6 +31,8 @@
 		lastDataState = data.state;
 		lastState = $state;
 	}
+
+	$: $taskStatus = data.allTasks;
 
 	let drawerHidden = false;
 </script>

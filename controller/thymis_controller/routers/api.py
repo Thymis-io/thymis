@@ -1,8 +1,9 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, Request, WebSocket
-from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
-from thymis_controller import dependencies, models, modules, project, task
+from fastapi import APIRouter, BackgroundTasks, Depends, Request
+from fastapi.responses import FileResponse, RedirectResponse
+from thymis_controller import dependencies, models, modules, project
 from thymis_controller.dependencies import get_project
 from thymis_controller.models.state import State
+from thymis_controller.routers import task
 
 router = APIRouter()
 
@@ -28,42 +29,36 @@ async def update_state(
 
 
 @router.post("/action/build")
-def build_repo(
-    background_tasks: BackgroundTasks, project: project.Project = Depends(get_project)
-):
+async def build_repo(project: project.Project = Depends(get_project)):
     # runs a nix command to build the flake
-    background_tasks.add_task(project.create_build_task())
+    await project.create_build_task()
     # now build_nix: type: BackgroundTasks -> None
 
     return {"message": "nix build started"}
 
 
-@router.websocket("/task_status")
-async def task_status(websocket: WebSocket):
-    await task.connection_manager.connect(websocket)
+router.include_router(task.router)
 
 
 @router.post("/action/deploy")
-def deploy(
+async def deploy(
     summary: str,
-    background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
 ):
     project.commit(summary)
 
     # runs a nix command to deploy the flake
-    background_tasks.add_task(project.create_deploy_project_task())
+    await project.create_deploy_project_task()
 
     return {"message": "nix deploy started"}
 
 
 @router.post("/action/build-download-image")
-def build_download_image(
+async def build_download_image(
     identifier: str,
-    background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
 ):
-    background_tasks.add_task(project.create_build_device_image_task(identifier))
+    await project.create_build_device_image_task(identifier)
 
 
 @router.get("/download-image")
@@ -88,9 +83,8 @@ def get_history(project: project.Project = Depends(get_project)):
 
 @router.post("/action/update")
 async def update(
-    background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
 ):
     project.write_state_and_reload(project.read_state())
-    background_tasks.add_task(project.create_update_task())
+    await project.create_update_task()
     return {"message": "update started"}

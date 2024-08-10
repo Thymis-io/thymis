@@ -1,7 +1,9 @@
 import asyncio
+import collections
 import json
 import os
 import time
+import uuid
 from typing import Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
@@ -10,57 +12,84 @@ from thymis_controller import models, project
 from thymis_controller.nix import NIX_CMD
 
 
-class Task:
-    start_time: float
-    display_name: str
-    state: models.TaskState
-    exception: Optional[Exception]
+class TaskController:
+    all_tasks_list: list["Task"]
+    all_tasks_dict: dict[uuid.UUID, "Task"]
+    # task_queue: list["Task"]
+    task_queue: collections.deque["Task"]
+    running_tasks: list["Task"]
+    barriers: dict[uuid.UUID, asyncio.Barrier]
+
+    active_listeners: list[WebSocket]
+
+    task_limit: int
 
     def __init__(self):
-        self.state = "pending"
-        self.exception = None
-        self.start_time = time.time()
+        self.all_tasks_list = []
+        self.all_tasks_dict = {}
+        self.task_limit = 5
+        self.task_queue = (
+            collections.deque()
+        )  # left is processed last, right is processed first
+        self.running_tasks = []
+        self.active_listeners = []
+        self.barriers = {}
 
-        all_tasks.append(self)
-
-    async def __call__(self, *args, **kwargs):
-        self.state = "running"
-        await send_all_tasks()
-        try:
-            await self.run(*args, **kwargs)
-            self.state = "completed"
-            await send_all_tasks()
-        except Exception as e:
-            self.state = "failed"
-            self.exception = e
-            await send_all_tasks()
-            raise e
-
-    async def run(self, *args, **kwargs):
-        raise NotImplementedError()
-
-    def get_model(self):
-        return models.Task(
-            start_time=self.start_time,
-            display_name=self.display_name,
-            state=self.state,
-            exception=str(self.exception),
+    def count_command_tasks_running(self):
+        return len(
+            [task for task in self.running_tasks if isinstance(task, CommandTask)]
         )
 
+    async def add_task(
+        self, task: "Task", go_to_front=False, barrier: asyncio.Barrier = None
+    ):
+        task.controller = self
 
-all_tasks: list[Task] = []
+        self.all_tasks_list.append(task)
+        self.all_tasks_dict[task.id] = task
 
+        if barrier is not None:
+            self.barriers[task.id] = barrier
 
-class ConnectionManager:
-    active_connections: list[WebSocket]
+        if go_to_front:
+            self.task_queue.append(task)
+        else:
+            self.task_queue.appendleft(task)
 
-    def __init__(self):
-        self.active_connections = []
+        await self.try_run_front_of_queue()
+        await self.send_all_tasks()
+
+    async def try_run_front_of_queue(self):
+        if self.count_command_tasks_running() >= self.task_limit:
+            return
+        if len(self.task_queue) == 0:
+            return
+
+        task = self.task_queue.pop()
+        self.running_tasks.append(task)
+        asyncio.create_task(task.run())
+        await self.send_all_tasks()
+
+    async def cleanup_task(self, task: "Task"):
+        self.running_tasks.remove(task)
+        await self.send_all_tasks()
+        await self.try_run_front_of_queue()
+
+    async def send_all_tasks(self):
+        await self.send_broadcast(
+            json.dumps(
+                jsonable_encoder([task.get_model() for task in self.all_tasks_list])
+            )
+        )
+
+    async def send_broadcast(self, data: str):
+        for connection in self.active_listeners:
+            await connection.send_text(data)
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
-        self.active_connections.append(websocket)
-        await send_all_tasks()
+        self.active_listeners.append(websocket)
+        await self.send_all_tasks()
         try:
             while True:
                 await websocket.receive_bytes()
@@ -68,61 +97,101 @@ class ConnectionManager:
             await self.disconnect(websocket)
 
     async def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+        self.active_listeners.remove(websocket)
 
-    async def send_broadcast(self, data: str):
-        for connection in self.active_connections:
-            await connection.send_text(data)
+    async def cancel_task(self, task_id: uuid.UUID):
+        task = self.all_tasks_dict.get(task_id)
+        if task is None:
+            raise ValueError("Task not found")
+        if task.state == "pending":
+            self.task_queue.remove(task)
+        elif task.state == "running":
+            self.running_tasks.remove(task)
+        await task.cancel()
+        await self.send_all_tasks()
+
+    async def retry_task(self, task_id: uuid.UUID):
+        raise NotImplementedError()
+
+    async def run_immediately(self, task_id: uuid.UUID):
+        task = self.all_tasks_dict.get(task_id)
+        if task is None:
+            raise ValueError("Task not found")
+        if task.state == "pending":
+            self.task_queue.remove(task)
+            self.running_tasks.append(task)
+            asyncio.create_task(task.run())
+        await self.send_all_tasks()
+
+    def get_task(self, task_id: uuid.UUID):
+        # print queue
+        logger.info(f"Task queue: {self.task_queue}")
+        task = self.all_tasks_dict.get(task_id)
+        if task is None:
+            raise ValueError("Task not found")
+        return task.get_model()
+
+    def get_tasks(self):
+        return [task.get_model() for task in self.all_tasks_list]
 
 
-connection_manager = ConnectionManager()
+global_task_controller = TaskController()
 
 
-async def send_all_tasks():
-    await connection_manager.send_broadcast(
-        json.dumps(jsonable_encoder([task.get_model() for task in all_tasks]))
-    )
+class Task:
+    id: uuid.UUID
+    start_time: float
+    end_time: Optional[float]
+    display_name: str
+    state: models.TaskState
+    exception: Optional[Exception]
+    controller: TaskController
 
+    def __init__(self, display_name: str):
+        self.id = uuid.uuid4()
+        self.display_name = display_name
+        self.state = "pending"
+        self.exception = None
+        self.start_time = time.time()
+        self.end_time = None
 
-async def stream_reader(
-    stream: asyncio.StreamReader | None,
-    out: bytearray,
-):
-    while True:
-        line = await stream.readline()
-        if not line:
-            # readline doc:
-            # On success, return chunk that ends with newline.
-            # If only partial line can be read due to EOF,
-            # return incomplete line without terminating newline.
-            # When EOF was reached while no bytes read, empty bytes object is returned.
-            #
-            # So, if line is empty, we have reached EOF
-            break
-        out.extend(line)
-        await send_all_tasks()
-
-
-class CompositeTask(Task):
-    tasks: list[Task]
-
-    def __init__(self, tasks):
-        super().__init__()
-        self.tasks = tasks
-        self.display_name = f"Running {len(tasks)} tasks"
-
-    async def run(self):
-        await asyncio.gather(*[task() for task in self.tasks])
-
-    def get_model(self) -> models.CompositeTask:
-        return models.CompositeTask(
-            type="compositetask",
+    def get_model(self):
+        return models.PlainTask(
+            id=self.id,
             start_time=self.start_time,
             display_name=self.display_name,
             state=self.state,
             exception=str(self.exception),
-            tasks=[task.get_model() for task in self.tasks],
+            end_time=self.end_time,
         )
+
+    async def run(self):
+        self.state = "running"
+        await self.controller.send_all_tasks()
+        try:
+            await self._run()
+            self.state = "completed"
+            self.end_time = time.time()
+            await self.controller.cleanup_task(self)
+            if self.controller.barriers.get(self.id) is not None:
+                await self.controller.barriers[self.id].wait()
+        except Exception as e:
+            self.state = "failed"
+            self.exception = e
+            self.end_time = time.time()
+            await self.controller.cleanup_task(self)
+            if self.controller.barriers.get(self.id) is not None:
+                await self.controller.barriers[self.id].wait()
+            raise e
+
+    async def _run(self):
+        raise NotImplementedError()
+
+    async def cancel(self):
+        self.state = "failed"
+        self.exception = Exception("Task was cancelled")
+        self.end_time = time.time()
+        await self.controller.cleanup_task(self)
 
 
 class CommandTask(Task):
@@ -133,18 +202,16 @@ class CommandTask(Task):
     stderr: bytearray
 
     def __init__(self, program, args, env=None):
-        super().__init__()
+        super().__init__(f"Running `{program} {' '.join(str(arg) for arg in args)}`")
 
         self.program = program
         self.args = args
         self.env = env
 
-        self.display_name = f"Running `{program} {' '.join(str(arg) for arg in args)}`"
-
         self.stdout = bytearray()
         self.stderr = bytearray()
 
-    async def run(self):
+    async def _run(self):
         proc = await asyncio.create_subprocess_exec(
             self.program,
             *self.args,
@@ -153,18 +220,45 @@ class CommandTask(Task):
             env=self.env,
         )
 
-        asyncio.create_task(stream_reader(proc.stdout, self.stdout))
-        asyncio.create_task(stream_reader(proc.stderr, self.stderr))
+        read_stdout_task = asyncio.create_task(
+            self.stream_reader(proc.stdout, self.stdout)
+        )
+        read_stderr_task = asyncio.create_task(
+            self.stream_reader(proc.stderr, self.stderr)
+        )
 
         r = await proc.wait()
         if r != 0:
-            raise Exception(
+            raise RuntimeError(
                 f"Command {self.program} {' '.join(self.args)} failed with exit code {r}"
             )
+
+        await asyncio.gather(read_stdout_task, read_stderr_task)
+
         return r
+
+    async def stream_reader(
+        self,
+        stream: asyncio.StreamReader | None,
+        out: bytearray,
+    ):
+        while True:
+            line = await stream.readline()
+            if not line:
+                # readline doc:
+                # On success, return chunk that ends with newline.
+                # If only partial line can be read due to EOF,
+                # return incomplete line without terminating newline.
+                # When EOF was reached while no bytes read, empty bytes object is returned.
+                #
+                # So, if line is empty, we have reached EOF
+                break
+            out.extend(line)
+            await self.controller.send_all_tasks()
 
     def get_model(self) -> models.CommandTask:
         return models.CommandTask(
+            id=str(self.id),
             type="commandtask",
             display_name=self.display_name,
             start_time=self.start_time,
@@ -172,7 +266,34 @@ class CommandTask(Task):
             exception=str(self.exception),
             stdout=self.stdout.decode(),
             stderr=self.stderr.decode(),
-            data={"program": self.program, "args": self.args},
+            data={"program": self.program, "args": self.args, "env": self.env},
+        )
+
+
+class CompositeTask(Task):
+    tasks: list[Task]
+
+    def __init__(self, tasks):
+        super().__init__(f"Running {len(tasks)} tasks")
+
+        self.tasks = tasks
+
+    async def _run(self):
+        # queues subtasks at the front of the queue
+        bar = asyncio.Barrier(len(self.tasks) + 1)
+        for task in self.tasks:
+            await self.controller.add_task(task, go_to_front=True, barrier=bar)
+        await bar.wait()
+
+    def get_model(self) -> models.CompositeTask:
+        return models.CompositeTask(
+            id=str(self.id),
+            type="compositetask",
+            start_time=self.start_time,
+            display_name=self.display_name,
+            state=self.state,
+            exception=str(self.exception),
+            tasks=[task.get_model() for task in self.tasks],
         )
 
 
@@ -183,7 +304,7 @@ class BuildTask(CommandTask):
             [*NIX_CMD[1:], "build", f"{repo_dir}#thymis", "--out-link", "/tmp/thymis"],
         )
 
-        self.display_name = f"Building project"
+        self.display_name = "Building project"
 
 
 class DeployProjectTask(CompositeTask):
@@ -240,6 +361,7 @@ class BuildDeviceImageTask(CommandTask):
 
     def get_model(self) -> models.CommandTask:
         return models.CommandTask(
+            id=str(self.id),
             type="commandtask",
             display_name=self.display_name,
             start_time=self.start_time,

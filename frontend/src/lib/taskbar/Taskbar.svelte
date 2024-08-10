@@ -48,63 +48,6 @@
 	//     - retry: requeues the task
 	//     - view: opens a site-specific view of the task
 
-	// const columns = table.createColumns([
-	// 	table.column({
-	// 		header: 'Start Time',
-	// 		// accessor: (task) => task.start_time,
-	// 		accessor: 'start_time',
-	// 		cell: (item) => item.value,
-	//         plugins: {
-	//             resize: {
-	//                 initialWidth: 100,
-	//                 disable: true
-	//             }
-	//         }
-	// 	}),
-	// 	table.column({
-	// 		header: 'End Time',
-	// 		// accessor: (task) => task.end_time,
-	// 		accessor: (task) => 'Not implemented',
-	// 		cell: (item) => item.value
-	// 	}),
-	// 	table.column({
-	// 		header: 'Task',
-	// 		// accessor: (task) => task.display_name,
-	// 		accessor: 'display_name',
-	// 		cell: (item) => item.value
-	// 	}),
-	// 	table.column({
-	// 		header: 'Status',
-	// 		// accessor: (task) => task.state,
-	// 		accessor: 'state',
-	// 		cell: (item) => item.value
-	// 	}),
-	// 	table.column({
-	// 		header: 'Detail',
-	// 		accessor: (task) => JSON.stringify(task.data),
-	// 		cell: (item) => item.value
-	// 	}),
-	// 	table.column({
-	// 		header: 'Exception',
-	// 		accessor: (task) => task.exception,
-	// 		cell: (item) => item.value || 'No exception'
-	// 	}),
-	// 	table.column({
-	// 		header: 'User',
-	// 		accessor: (task) => 'Not implemented',
-	// 		cell: (item) => item.value
-	// 	}),
-	// 	table.column({
-	// 		header: 'Actions',
-	// 		// accessor: (task) => "Not implemented",
-	// 		accessor: (task) => task,
-	// 		cell: (item) =>
-	// 			createRender(TaskbarActions, {
-	// 				task: item.value
-	// 			})
-	// 	})
-	// ]);
-
 	const coreRowModel = getCoreRowModel();
 	const sortedRowModel = getSortedRowModel();
 	const columnHelper = createColumnHelper<Task>();
@@ -153,8 +96,7 @@
 				columnHelper.accessor((task) => task, {
 					cell: (item) =>
 						flexRender(TaskbarActions, {
-							task: item.getValue(),
-							taskIdx: item.row.index
+							task: item.getValue()
 						}),
 					header: 'Actions',
 					size: 300

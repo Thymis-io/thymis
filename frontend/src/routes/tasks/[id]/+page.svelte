@@ -1,15 +1,14 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
-	import { taskStatus, type Task } from '$lib/taskstatus';
+	import { tasksByIdStore } from '$lib/taskstatus';
 	import { Button } from 'flowbite-svelte';
 	import MonospaceText from '$lib/components/MonospaceText.svelte';
 
 	export let data: PageData;
 
-	// $: taskIdx = $page.params.id;
-	$: taskIdx = Number($page.params.id);
-	$: task = $taskStatus[taskIdx];
+	// $: task = data.task;
+	$: task = $tasksByIdStore[$page.params.id] || data.task;
 	//     export type TaskState = 'pending' | 'running' | 'completed' | 'failed';
 	// export type TaskVanilla = {
 	// 	type: 'task';
@@ -38,7 +37,7 @@
 	};
 </script>
 
-<h1 class="text-2xl font-bold">Task Detail for Task {taskIdx}: {task.display_name}</h1>
+<h1 class="text-2xl font-bold">Task Detail for Task {task.id}: {task.display_name}</h1>
 
 <h2 class="text-xl font-bold">Task State: {task.state}</h2>
 
@@ -66,7 +65,7 @@
 		{#each task.tasks as subtask, idx}
 			<li>
 				<span>Subtask {idx}: {subtask.display_name}</span>
-				<a href="/tasks/{idx}"
+				<a href="/tasks/{subtask.id}"
 					><Button class="btn btn-sm btn-primary m-1">View Subtask {idx}</Button></a
 				>
 			</li>

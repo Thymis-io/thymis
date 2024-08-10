@@ -226,7 +226,7 @@ class Project:
         ]
 
     def create_build_task(self):
-        return task.BuildTask(self.path)
+        return task.global_task_controller.add_task(task.BuildTask(self.path))
 
     def create_deploy_device_task(self, device_identifier: str):
         device = next(
@@ -234,13 +234,17 @@ class Project:
             for device in self.read_state().devices
             if device.identifier == device_identifier
         )
-        return task.DeployDeviceTask(self.path, device)
+        return task.global_task_controller.add_task(
+            task.DeployDeviceTask(self.path, device)
+        )
 
     def create_deploy_project_task(self):
-        return task.DeployProjectTask(self)
+        return task.global_task_controller.add_task(task.DeployProjectTask(self))
 
     def create_update_task(self):
-        return task.UpdateTask(self.path)
+        return task.global_task_controller.add_task(task.UpdateTask(self.path))
 
     def create_build_device_image_task(self, device_identifier: str):
-        return task.BuildDeviceImageTask(self.path, device_identifier)
+        return task.global_task_controller.add_task(
+            task.BuildDeviceImageTask(self.path, device_identifier)
+        )
