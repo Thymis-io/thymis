@@ -85,7 +85,7 @@ class Frontend:
             self.stopped = True
             logger.error("frontend process terminated with code %s", return_code)
             await asyncio.sleep(0.1)
-            # os.kill(os.getpid(), signal.SIGINT)
+            os.kill(os.getpid(), signal.SIGINT)
 
     async def stop(self):
         if self.stopped:
