@@ -5,6 +5,7 @@ import type { LayoutLoad } from './$types';
 import { controllerHost, controllerProtocol } from '$lib/api';
 import type { State, Module } from '$lib/state';
 import { error } from '@sveltejs/kit';
+import { getAllTasks } from '$lib/taskstatus';
 
 export const load = (async ({ fetch }) => {
 	if (browser) {
@@ -44,8 +45,11 @@ export const load = (async ({ fetch }) => {
 
 	const availableModules = (await availableModulesResponse.json()) as Module[];
 
+	const allTasks = await getAllTasks(fetch);
+
 	return {
 		state: state,
-		availableModules: availableModules
+		availableModules: availableModules,
+		allTasks: allTasks
 	};
 }) satisfies LayoutLoad;

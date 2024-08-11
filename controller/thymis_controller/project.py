@@ -80,10 +80,12 @@ def load_repositories(flake_path: os.PathLike, repositories: dict[str, models.Re
             try:
                 imported_module = importlib.import_module(module.name)
                 logger.info("Imported module %s", module.name)
-                for cls in imported_module.__dict__.values():
-                    logger.info("Checking class %s", cls)
-                    if not isinstance(cls, type):
+                for name, value in imported_module.__dict__.items():
+                    logger.info("Checking value %s", name)
+                    if not isinstance(value, type):
                         continue
+                    cls = value
+                    logger.info("Found class %s", cls)
                     if issubclass(cls, modules.Module) and cls != modules.Module:
                         module_obj = cls()
                         modules_found.append(module_obj)
@@ -226,7 +228,7 @@ class Project:
         ]
 
     def create_build_task(self):
-        return task.BuildTask(self.path)
+        return task.global_task_controller.add_task(task.BuildTask(self.path))
 
     def create_deploy_device_task(self, device_identifier: str):
         device = next(
@@ -234,13 +236,17 @@ class Project:
             for device in self.read_state().devices
             if device.identifier == device_identifier
         )
-        return task.DeployDeviceTask(self.path, device)
+        return task.global_task_controller.add_task(
+            task.DeployDeviceTask(self.path, device)
+        )
 
     def create_deploy_project_task(self):
-        return task.DeployProjectTask(self)
+        return task.global_task_controller.add_task(task.DeployProjectTask(self))
 
     def create_update_task(self):
-        return task.UpdateTask(self.path)
+        return task.global_task_controller.add_task(task.UpdateTask(self.path))
 
     def create_build_device_image_task(self, device_identifier: str):
-        return task.BuildDeviceImageTask(self.path, device_identifier)
+        return task.global_task_controller.add_task(
+            task.BuildDeviceImageTask(self.path, device_identifier)
+        )

@@ -6,7 +6,6 @@
 	import {
 		Button,
 		Table,
-		TableBody,
 		TableBodyCell,
 		TableBodyRow,
 		TableHead,
@@ -21,7 +20,6 @@
 	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
 	import type { PageData } from './$types';
 	import { dndzone, SOURCES, TRIGGERS } from 'svelte-dnd-action';
-	import { flip } from 'svelte/animate';
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 
 	const flipDurationMs = 200;

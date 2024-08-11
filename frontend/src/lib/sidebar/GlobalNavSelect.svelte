@@ -3,9 +3,9 @@
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
 	import { Button, Dropdown, DropdownItem, Search } from 'flowbite-svelte';
-	import ChevronDownSolid from 'flowbite-svelte-icons/ChevronDownSolid.svelte';
+	import ChevronDownOutline from 'flowbite-svelte-icons/ChevronDownOutline.svelte';
 	import { page } from '$app/stores';
-	import { globalNavSelectedDevice, globalNavSelectedTag, state, type State } from '../state';
+	import { globalNavSelectedDevice, globalNavSelectedTag, state } from '../state';
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 
 	let search = '';
@@ -30,7 +30,7 @@
 			{$t('common.no-tag-or-device-selected')}
 		{/if}
 	</div>
-	<ChevronDownSolid class="h-4 ms-2 text-white dark:text-white" /></Button
+	<ChevronDownOutline class="h-4 ms-2 text-white dark:text-white" /></Button
 >
 <Dropdown class="overflow-y-auto px-3 pb-3 text-sm max-h-96">
 	<div slot="header" class="p-3">

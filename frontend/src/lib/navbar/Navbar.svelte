@@ -1,24 +1,18 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import UserMenu from './UserMenu.svelte';
-	import {
-		DarkMode,
-		NavBrand,
-		NavHamburger,
-		Navbar,
-		Search,
-		Select,
-		ToolbarButton
-	} from 'flowbite-svelte';
+	import { DarkMode, NavBrand, NavHamburger, Navbar, Search, ToolbarButton } from 'flowbite-svelte';
 	import GithubSolid from 'flowbite-svelte-icons/GithubSolid.svelte';
 	import LanguageSelect from './LanguageSelect.svelte';
 
 	export let fluid = true;
 
 	export let drawerHidden: boolean;
+	let clazz = '';
+	export { clazz as class };
 </script>
 
-<Navbar {fluid} color="default">
+<Navbar {fluid} class={clazz || ''} color="default">
 	<div class="flex w-fit items-center justify-start">
 		<NavHamburger
 			onClick={() => (drawerHidden = !drawerHidden)}
@@ -30,7 +24,10 @@
 				Thymis
 			</span>
 		</NavBrand>
-		<div class="w-96">
+		<div class="w-8 lg:hidden">
+			<Search size="md" placeholder={$t('common.search')} />
+		</div>
+		<div class="w-96 hidden lg:block">
 			<Search size="md" placeholder={$t('common.search')} />
 		</div>
 	</div>

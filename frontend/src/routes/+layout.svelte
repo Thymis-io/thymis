@@ -1,10 +1,13 @@
 <script lang="ts">
 	import '../app.postcss';
-	import Navbar from '../lib/navbar/Navbar.svelte';
-	import Sidebar from '../lib/sidebar/Sidebar.svelte';
+	import Navbar from '$lib/navbar/Navbar.svelte';
+	import Sidebar from '$lib/sidebar/Sidebar.svelte';
+	import SplitPane from '$lib/splitpane/SplitPane.svelte';
 	import type { LayoutData } from '../routes/$types';
 	import { saveState } from '$lib/state';
 	import { state } from '$lib/state';
+	import { taskStatus } from '$lib/taskstatus';
+	import Taskbar from '$lib/taskbar/Taskbar.svelte';
 
 	export let data: LayoutData;
 
@@ -29,17 +32,49 @@
 		lastState = $state;
 	}
 
-	let drawerHidden = true;
+	$: $taskStatus = data.allTasks;
+
+	let drawerHidden = false;
 </script>
 
-<header
-	class="sticky top-0 z-40 mx-auto w-full flex-none border-b border-gray-200 bg-white dark:border-gray-600 dark:bg-gray-800"
->
-	<Navbar bind:drawerHidden />
-</header>
-<div class="overflow-hidden lg:flex">
-	<Sidebar bind:drawerHidden />
-	<div class="relative h-full w-full overflow-y-auto lg:ml-64 p-4">
-		<slot />
+<div class="contents bg-gray-50 dark:bg-gray-900 dark:text-white">
+	<header
+		class="fixed top-0 z-40 mx-auto w-full flex-none border-b border-gray-200 bg-white dark:border-gray-600 dark:bg-gray-800"
+	>
+		<Navbar
+			class="h-[calc(var(--navbar-height))] max-h-[calc(var(--navbar-height))]"
+			bind:drawerHidden
+		/>
+	</header>
+	<div class="h-screen block z-50 {drawerHidden ? 'hidden' : ''} lg:hidden">
+		<Sidebar asideClass="h-full pt-[calc(var(--navbar-height))]" bind:drawerHidden />
+	</div>
+	<div class="{drawerHidden ? '' : 'hidden'} lg:block pt-[calc(var(--navbar-height))] h-full">
+		<SplitPane type="vertical" pos="60%" min="12rem" max="80%">
+			<SplitPane
+				class="!block lg:!grid"
+				type="horizontal"
+				pos="16rem"
+				min="16rem"
+				max="64rem"
+				priority="min"
+				leftPaneClass="!hidden lg:!block"
+				slot="a"
+			>
+				<Sidebar slot="a" bind:drawerHidden />
+				<div class="p-4 bg-gray-50 dark:bg-gray-900 !overflow-y-scroll" slot="b">
+					<slot />
+				</div>
+			</SplitPane>
+			<div class="w-full border dark:border-gray-600 bg-gray-50 dark:bg-gray-900" slot="b">
+				<Taskbar />
+			</div>
+		</SplitPane>
 	</div>
 </div>
+
+<style>
+	:root {
+		--navbar-height: 4rem;
+	}
+</style>

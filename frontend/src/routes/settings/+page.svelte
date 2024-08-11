@@ -6,7 +6,6 @@
 	import {
 		Button,
 		Heading,
-		P,
 		Table,
 		TableHead,
 		TableHeadCell,

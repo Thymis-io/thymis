@@ -6,12 +6,18 @@ TaskState = Literal["pending", "running", "completed", "failed"]
 
 
 class Task(BaseModel):
-    type: Literal["task"] = "task"
+    id: str  # uuid
+    type: str
     display_name: str
     state: TaskState
     exception: Optional[str]
     start_time: float
-    data: dict = {}
+    end_time: Optional[float]
+    data: dict = {}  # freeform data
+
+
+class PlainTask(Task):
+    type: Literal["task"] = "task"
 
 
 class CommandTask(Task):

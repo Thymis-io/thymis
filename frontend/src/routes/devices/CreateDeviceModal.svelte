@@ -2,7 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import InstallationStepper from './InstallationStepper.svelte';
 	import { Modal } from 'flowbite-svelte';
-	import { saveState, type Device, type State, type Module, state } from '../../lib/state';
+	import { type Device, type Module, state } from '$lib/state';
 
 	export let open = false;
 	export let onClose: (() => void) | undefined = undefined;

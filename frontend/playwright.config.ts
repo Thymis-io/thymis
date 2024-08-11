@@ -15,7 +15,7 @@ const config: PlaywrightTestConfig = {
 					},
 					...devices['Desktop Chrome']
 				}
-		  }
+			}
 		: {})
 };
 
