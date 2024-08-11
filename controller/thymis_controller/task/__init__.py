@@ -1,6 +1,7 @@
 import asyncio
 import collections
 import json
+import logging
 import os
 import time
 import uuid
@@ -10,6 +11,8 @@ from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from thymis_controller import models, project
 from thymis_controller.nix import NIX_CMD
+
+logger = logging.getLogger(__name__)
 
 
 class TaskController:
@@ -71,7 +74,27 @@ class TaskController:
         await self.send_all_tasks()
 
     async def cleanup_task(self, task: "Task"):
-        self.running_tasks.remove(task)
+        # self.running_tasks.remove(task)
+        # task may have been cancelled from pending state
+        if task.state == "running":
+            # check if task is in the running list
+            if not task in self.running_tasks:
+                raise ValueError("Task has state running, but is not in running list")
+            raise ValueError("Task is still running, but wants to be cleaned up")
+        elif task.state == "pending":
+            if not task in self.task_queue:
+                raise ValueError("Task has state pending, but is not in queue")
+            raise ValueError("Task is still pending, but wants to be cleaned up")
+        elif task.state == "completed":
+            if task in self.task_queue:
+                raise ValueError("Task is completed, but still in queue")
+            if task in self.running_tasks:
+                self.running_tasks.remove(task)
+        elif task.state == "failed":
+            self.running_tasks.remove(task)
+            self.task_queue.remove(task)
+        else:
+            raise ValueError("Task has invalid state")
         await self.send_all_tasks()
         await self.try_run_front_of_queue()
 
@@ -188,6 +211,9 @@ class Task:
         raise NotImplementedError()
 
     async def cancel(self):
+        # only works if the current task is pending
+        if self.state != "pending":
+            raise ValueError("Task is not pending")
         self.state = "failed"
         self.exception = Exception("Task was cancelled")
         self.end_time = time.time()
@@ -200,6 +226,8 @@ class CommandTask(Task):
     env: Optional[dict[str, str]]
     stdout: bytearray
     stderr: bytearray
+
+    process: asyncio.subprocess.Process
 
     def __init__(self, program, args, env=None):
         super().__init__(f"Running `{program} {' '.join(str(arg) for arg in args)}`")
@@ -219,6 +247,7 @@ class CommandTask(Task):
             stderr=asyncio.subprocess.PIPE,
             env=self.env,
         )
+        self.process = proc
 
         read_stdout_task = asyncio.create_task(
             self.stream_reader(proc.stdout, self.stdout)
@@ -268,6 +297,23 @@ class CommandTask(Task):
             stderr=self.stderr.decode(),
             data={"program": self.program, "args": self.args, "env": self.env},
         )
+
+    async def cancel(self):
+        # CommandTasks may be cancelled while pending and running
+        if self.state == "pending":
+            self.state = "failed"
+            self.exception = Exception("Task was cancelled")
+            self.end_time = time.time()
+            await self.controller.cleanup_task(self)
+        elif self.state == "running":
+            # we have to kill the process
+            self.process.kill()
+            self.state = "failed"
+            self.exception = Exception("Task was killed")
+            self.end_time = time.time()
+            await self.controller.cleanup_task(self)
+        else:
+            raise ValueError("Task is not pending or running")
 
 
 class CompositeTask(Task):

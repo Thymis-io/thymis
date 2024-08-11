@@ -80,10 +80,12 @@ def load_repositories(flake_path: os.PathLike, repositories: dict[str, models.Re
             try:
                 imported_module = importlib.import_module(module.name)
                 logger.info("Imported module %s", module.name)
-                for cls in imported_module.__dict__.values():
-                    logger.info("Checking class %s", cls)
-                    if not isinstance(cls, type):
+                for name, value in imported_module.__dict__.items():
+                    logger.info("Checking value %s", value)
+                    if not isinstance(value, type):
                         continue
+                    cls = value
+                    logger.info("Found class %s", cls)
                     if issubclass(cls, modules.Module) and cls != modules.Module:
                         module_obj = cls()
                         modules_found.append(module_obj)
