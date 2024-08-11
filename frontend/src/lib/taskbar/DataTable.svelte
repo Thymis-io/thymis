@@ -68,7 +68,7 @@
 				{#each headerGroup.headers as header}
 					<th class="" style="width: calc(var(--header-{header.id}-width)*1px)">
 						<div class="flex items-center justify-between">
-							<div>
+							<div class="px-6">
 								{#if !header.isPlaceholder}
 									<svelte:component
 										this={flexRender(header.column.columnDef.header, header.getContext())}

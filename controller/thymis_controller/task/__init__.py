@@ -1,5 +1,6 @@
 import asyncio
 import collections
+import copy
 import json
 import logging
 import os
@@ -70,6 +71,7 @@ class TaskController:
 
         task = self.task_queue.pop()
         self.running_tasks.append(task)
+        task.state = "running"
         asyncio.create_task(task.run())
         await self.send_all_tasks()
 
@@ -91,19 +93,18 @@ class TaskController:
             if task in self.running_tasks:
                 self.running_tasks.remove(task)
         elif task.state == "failed":
-            self.running_tasks.remove(task)
-            self.task_queue.remove(task)
+            # self.running_tasks.remove(task)
+            if task in self.running_tasks:
+                self.running_tasks.remove(task)
+            if task in self.task_queue:
+                self.task_queue.remove(task)
         else:
             raise ValueError("Task has invalid state")
         await self.send_all_tasks()
         await self.try_run_front_of_queue()
 
     async def send_all_tasks(self):
-        await self.send_broadcast(
-            json.dumps(
-                jsonable_encoder([task.get_model() for task in self.all_tasks_list])
-            )
-        )
+        await self.send_broadcast(json.dumps(jsonable_encoder(self.get_tasks())))
 
     async def send_broadcast(self, data: str):
         for connection in self.active_listeners:
@@ -134,7 +135,14 @@ class TaskController:
         await self.send_all_tasks()
 
     async def retry_task(self, task_id: uuid.UUID):
-        raise NotImplementedError()
+        task = self.all_tasks_dict.get(task_id)
+        if task is None:
+            raise ValueError("Task not found")
+        if task.state not in ["completed", "failed"]:
+            raise ValueError("Task is not in a retryable state")
+        # create a new task with the same parameters
+        new_task = task.copy_for_retry()
+        await self.add_task(new_task)
 
     async def run_immediately(self, task_id: uuid.UUID):
         task = self.all_tasks_dict.get(task_id)
@@ -143,10 +151,12 @@ class TaskController:
         if task.state == "pending":
             self.task_queue.remove(task)
             self.running_tasks.append(task)
+            task.state = "running"
             asyncio.create_task(task.run())
         await self.send_all_tasks()
 
     def get_task(self, task_id: uuid.UUID):
+        self.check_consistency()
         # print queue
         logger.info(f"Task queue: {self.task_queue}")
         task = self.all_tasks_dict.get(task_id)
@@ -155,7 +165,27 @@ class TaskController:
         return task.get_model()
 
     def get_tasks(self):
+        self.check_consistency()
         return [task.get_model() for task in self.all_tasks_list]
+
+    def check_consistency(self):
+        return
+        for task in self.all_tasks_list:
+            assert task in self.all_tasks_dict.values()
+        for task in self.task_queue:
+            assert task in self.all_tasks_list
+            assert task.state == "pending"
+        for task in self.running_tasks:
+            assert task in self.all_tasks_list
+            assert task.state == "running"
+        for task_id in self.barriers:
+            assert task_id in self.all_tasks_dict
+        for task in self.all_tasks_dict.values():
+            assert task in self.all_tasks_list
+        for task in self.task_queue:
+            assert task not in self.running_tasks
+        for task in self.running_tasks:
+            assert task not in self.task_queue
 
 
 global_task_controller = TaskController()
@@ -170,6 +200,8 @@ class Task:
     exception: Optional[Exception]
     controller: TaskController
 
+    cancelled: bool
+
     def __init__(self, display_name: str):
         self.id = uuid.uuid4()
         self.display_name = display_name
@@ -177,40 +209,45 @@ class Task:
         self.exception = None
         self.start_time = time.time()
         self.end_time = None
+        self.controller = None
+        self.cancelled = False
 
     def get_model(self):
         return models.PlainTask(
             id=self.id,
             start_time=self.start_time,
+            end_time=self.end_time,
             display_name=self.display_name,
             state=self.state,
             exception=str(self.exception),
-            end_time=self.end_time,
         )
 
     async def run(self):
-        self.state = "running"
         await self.controller.send_all_tasks()
         try:
             await self._run()
-            self.state = "completed"
             self.end_time = time.time()
+            if not self.cancelled:
+                self.state = "completed"
             await self.controller.cleanup_task(self)
             if self.controller.barriers.get(self.id) is not None:
                 await self.controller.barriers[self.id].wait()
         except Exception as e:
-            self.state = "failed"
-            self.exception = e
             self.end_time = time.time()
+            if not self.cancelled:
+                self.state = "failed"
+                self.exception = e
             await self.controller.cleanup_task(self)
             if self.controller.barriers.get(self.id) is not None:
                 await self.controller.barriers[self.id].wait()
-            raise e
+            if not self.cancelled:
+                raise e
 
     async def _run(self):
         raise NotImplementedError()
 
     async def cancel(self):
+        self.cancelled = True
         # only works if the current task is pending
         if self.state != "pending":
             raise ValueError("Task is not pending")
@@ -218,6 +255,17 @@ class Task:
         self.exception = Exception("Task was cancelled")
         self.end_time = time.time()
         await self.controller.cleanup_task(self)
+
+    def copy_for_retry(self):
+        new_task = copy.copy(self)
+        new_task.id = uuid.uuid4()
+        new_task.start_time = time.time()
+        new_task.end_time = None
+        new_task.state = "pending"
+        new_task.exception = None
+        new_task.controller = None
+        new_task.cancelled = False
+        return new_task
 
 
 class CommandTask(Task):
@@ -238,6 +286,9 @@ class CommandTask(Task):
 
         self.stdout = bytearray()
         self.stderr = bytearray()
+
+        self.cancelled = False
+        self.process = None
 
     async def _run(self):
         proc = await asyncio.create_subprocess_exec(
@@ -291,6 +342,7 @@ class CommandTask(Task):
             type="commandtask",
             display_name=self.display_name,
             start_time=self.start_time,
+            end_time=self.end_time,
             state=self.state,
             exception=str(self.exception),
             stdout=self.stdout.decode(),
@@ -300,6 +352,7 @@ class CommandTask(Task):
 
     async def cancel(self):
         # CommandTasks may be cancelled while pending and running
+        self.cancelled = True
         if self.state == "pending":
             self.state = "failed"
             self.exception = Exception("Task was cancelled")
@@ -313,7 +366,23 @@ class CommandTask(Task):
             self.end_time = time.time()
             await self.controller.cleanup_task(self)
         else:
-            raise ValueError("Task is not pending or running")
+            raise ValueError(
+                f"Task {self.id} is not pending or running but {self.state}"
+            )
+
+    def copy_for_retry(self):
+        new_task = copy.copy(self)
+        new_task.id = uuid.uuid4()
+        new_task.start_time = time.time()
+        new_task.end_time = None
+        new_task.state = "pending"
+        new_task.exception = None
+        new_task.controller = None
+        new_task.cancelled = False
+        new_task.stdout = bytearray()
+        new_task.stderr = bytearray()
+        new_task.process = None
+        return new_task
 
 
 class CompositeTask(Task):
@@ -330,17 +399,57 @@ class CompositeTask(Task):
         for task in self.tasks:
             await self.controller.add_task(task, go_to_front=True, barrier=bar)
         await bar.wait()
+        # if any subtask failed, the composite task fails
+        if any(task.state == "failed" for task in self.tasks):
+            raise RuntimeError("One or more subtasks failed")
 
     def get_model(self) -> models.CompositeTask:
         return models.CompositeTask(
             id=str(self.id),
             type="compositetask",
             start_time=self.start_time,
+            end_time=self.end_time,
             display_name=self.display_name,
             state=self.state,
             exception=str(self.exception),
             tasks=[task.get_model() for task in self.tasks],
         )
+
+    async def cancel(self):
+        self.cancelled = True
+        # CompositeTasks may be cancelled while pending and running
+        if self.state == "pending":
+            self.state = "failed"
+            self.exception = Exception("Task was cancelled")
+            self.end_time = time.time()
+            await self.controller.cleanup_task(self)
+        elif self.state == "running":
+            self.state = "failed"
+            self.exception = Exception("Task was cancelled")
+            self.end_time = time.time()
+            # cancel all subtasks
+            for task in self.tasks:
+                if task.state == "running" or task.state == "pending":
+                    await task.cancel()
+            await self.controller.cleanup_task(self)
+        else:
+            raise ValueError("Task is not pending or running")
+
+    def copy_for_retry(self):
+        subtasks = []
+        for task in self.tasks:
+            subtasks.append(task.copy_for_retry())
+        new_task = copy.copy(self)
+        new_task.id = uuid.uuid4()
+        new_task.start_time = time.time()
+        new_task.end_time = None
+        new_task.state = "pending"
+        new_task.exception = None
+        new_task.controller = None
+        new_task.cancelled = False
+
+        new_task.tasks = subtasks
+        return new_task
 
 
 class BuildTask(CommandTask):
@@ -411,6 +520,7 @@ class BuildDeviceImageTask(CommandTask):
             type="commandtask",
             display_name=self.display_name,
             start_time=self.start_time,
+            end_time=self.end_time,
             state=self.state,
             exception=str(self.exception),
             stdout=self.stdout.decode(),

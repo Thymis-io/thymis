@@ -62,21 +62,21 @@ export const getTask = async (taskId: string, fetch: typeof window.fetch = windo
 	return (await response.json()) as Task;
 };
 
-export const cancelTask = async (taskId: string, fetch: typeof window.fetch) => {
+export const cancelTask = async (taskId: string, fetch: typeof window.fetch = window.fetch) => {
 	const response = await fetch(`${controllerProtocol}://${controllerHost}/tasks/${taskId}/cancel`, {
 		method: 'POST'
 	});
 	return response;
 };
 
-export const retryTask = async (taskId: string, fetch: typeof window.fetch) => {
+export const retryTask = async (taskId: string, fetch: typeof window.fetch = window.fetch) => {
 	const response = await fetch(`${controllerProtocol}://${controllerHost}/tasks/${taskId}/retry`, {
 		method: 'POST'
 	});
 	return response;
 };
 
-export const runImmediately = async (taskId: string, fetch: typeof window.fetch) => {
+export const runImmediately = async (taskId: string, fetch: typeof window.fetch = window.fetch) => {
 	const response = await fetch(
 		`${controllerProtocol}://${controllerHost}/tasks/${taskId}/run_immediately`,
 		{

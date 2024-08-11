@@ -12,7 +12,7 @@ class Task(BaseModel):
     state: TaskState
     exception: Optional[str]
     start_time: float
-    end_time: Optional[float] = None
+    end_time: Optional[float]
     data: dict = {}  # freeform data
 
 

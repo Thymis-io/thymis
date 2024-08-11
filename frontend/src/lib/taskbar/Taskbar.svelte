@@ -12,6 +12,7 @@
 
 	import TaskbarActions from './TaskbarActions.svelte';
 	import { derived } from 'svelte/store';
+	import RenderUnixTimestamp from '$lib/components/RenderUnixTimestamp.svelte';
 
 	// columns:
 	// - start time
@@ -35,14 +36,13 @@
 			data: taskStatusValue,
 			columns: [
 				columnHelper.accessor('start_time', {
-					cell: (item) => item.getValue(),
+					cell: (item) => flexRender(RenderUnixTimestamp, { timestamp: item.getValue() }),
 					header: 'Start Time',
 					size: 150
 				}),
-				columnHelper.display({
-					cell: (item) => 'Not implemented',
+				columnHelper.accessor('end_time', {
+					cell: (item) => flexRender(RenderUnixTimestamp, { timestamp: item.getValue() }),
 					header: 'End Time',
-					id: 'end_time',
 					size: 150
 				}),
 				columnHelper.accessor('display_name', {
@@ -65,12 +65,12 @@
 					header: 'Exception',
 					size: 100
 				}),
-				columnHelper.display({
-					cell: (item) => 'Not implemented',
-					header: 'User',
-					id: 'user',
-					size: 100
-				}),
+				// columnHelper.display({
+				// 	cell: (item) => 'Not implemented',
+				// 	header: 'User',
+				// 	id: 'user',
+				// 	size: 100
+				// }),
 				columnHelper.accessor((task) => task, {
 					cell: (item) =>
 						flexRender(TaskbarActions, {
