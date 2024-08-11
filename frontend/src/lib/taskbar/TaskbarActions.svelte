@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { taskStatus, type Task, type CommandTask, type CompositeTask } from '$lib/taskstatus';
+	import { type Task } from '$lib/taskstatus';
 	import { Button } from 'flowbite-svelte';
 	export let task: Task;
 </script>

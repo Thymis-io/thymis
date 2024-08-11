@@ -6,7 +6,6 @@
 		StepIndicator,
 		Label,
 		Input,
-		Select,
 		Textarea,
 		Progressbar,
 		Tabs,

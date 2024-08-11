@@ -1,14 +1,6 @@
 <script lang="ts">
-	import {
-		Table,
-		TableBody,
-		TableBodyCell,
-		TableBodyRow,
-		TableHead,
-		TableHeadCell
-	} from 'flowbite-svelte';
-	import { createSvelteTable, flexRender, getCoreRowModel } from '@tanstack/svelte-table';
-	import type { ColumnDef, TableOptions } from '@tanstack/svelte-table';
+	import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead } from 'flowbite-svelte';
+	import { createSvelteTable, flexRender } from '@tanstack/svelte-table';
 	import type { Task } from '$lib/taskstatus';
 	import { onMount } from 'svelte';
 
@@ -29,7 +21,7 @@
 			console.error('oldOnColumnSizingInfoChange is not defined');
 			return;
 		}
-		console.log('$table:', $table);
+		// console.log('$table:', $table);
 		tableOptions.onColumnSizingChange = (update) => {
 			oldOnColumnSizingChange(update);
 			columnSizing = $table.getState().columnSizing;
@@ -43,7 +35,7 @@
 	// $: sizingStyleString = Object.entries(columnSizing).map(([key, value]) => `--h
 	let sizingStyleString = '';
 	$: {
-		console.log(columnSizing, columnSizingInfo);
+		// console.log(columnSizing, columnSizingInfo);
 		const headers = $table.getFlatHeaders();
 		const colSizes: { [key: string]: number } = {};
 		for (const header of headers) {
@@ -55,7 +47,7 @@
 			.join(' ');
 	}
 
-	$: console.log(columnSizing, columnSizingInfo);
+	// $: console.log(columnSizing, columnSizingInfo);
 
 	let clazz = '';
 	export { clazz as class };

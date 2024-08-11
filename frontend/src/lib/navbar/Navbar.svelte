@@ -1,15 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import UserMenu from './UserMenu.svelte';
-	import {
-		DarkMode,
-		NavBrand,
-		NavHamburger,
-		Navbar,
-		Search,
-		Select,
-		ToolbarButton
-	} from 'flowbite-svelte';
+	import { DarkMode, NavBrand, NavHamburger, Navbar, Search, ToolbarButton } from 'flowbite-svelte';
 	import GithubSolid from 'flowbite-svelte-icons/GithubSolid.svelte';
 	import LanguageSelect from './LanguageSelect.svelte';
 

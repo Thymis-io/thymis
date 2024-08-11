@@ -1,20 +1,5 @@
 <script lang="ts">
-	import {
-		globalNavSelectedDevice,
-		globalNavSelectedTarget,
-		globalNavSelectedTargetType,
-		state,
-		type ModuleSettings
-	} from '$lib/state';
 	import { taskStatus, type Task } from '$lib/taskstatus';
-	import {
-		Table,
-		TableBody,
-		TableBodyCell,
-		TableBodyRow,
-		TableHead,
-		TableHeadCell
-	} from 'flowbite-svelte';
 
 	import DataTable from './DataTable.svelte';
 	import {
@@ -24,16 +9,9 @@
 		createColumnHelper,
 		getSortedRowModel
 	} from '@tanstack/svelte-table';
-	import type {
-		ColumnDef,
-		TableOptions,
-		ColumnSizingState,
-		ColumnSizingInfoState
-	} from '@tanstack/svelte-table';
-	import { t } from 'svelte-i18n';
 
 	import TaskbarActions from './TaskbarActions.svelte';
-	import { derived, writable } from 'svelte/store';
+	import { derived } from 'svelte/store';
 
 	// columns:
 	// - start time

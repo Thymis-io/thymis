@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Card, Toggle, Listgroup, ListgroupItem, Tooltip, P, Button } from 'flowbite-svelte';
+	import { Card } from 'flowbite-svelte';
 	import ModuleList from '$lib/config/ModuleList.svelte';
 	import {
 		getDeviceByIdentifier,
