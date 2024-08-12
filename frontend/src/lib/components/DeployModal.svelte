@@ -2,6 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import { controllerHost, controllerProtocol } from '../api';
 	import { Button, Modal, Label, Input } from 'flowbite-svelte';
+	import { invalidate } from '$app/navigation';
 
 	export let open = false;
 
@@ -11,6 +12,7 @@
 		await fetch(`${controllerProtocol}://${controllerHost}/action/deploy?summary=${summary}`, {
 			method: 'POST'
 		});
+		await invalidate((url) => url.pathname === '/api/history');
 
 		open = false;
 	};
