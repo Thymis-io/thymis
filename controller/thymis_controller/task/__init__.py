@@ -533,3 +533,13 @@ class BuildDeviceImageTask(CommandTask):
                 "args": self.args,
             },
         )
+
+class RestartDeviceTask(CommandTask):
+    def __init__(self, identifier):
+        super().__init__(
+            "ssh",
+            ["-o StrictHostKeyChecking=accept-new", f"root@{identifier}", "reboot"],
+        )
+
+        self.display_name = f"Restarting {identifier}"
+        self.identifier = identifier

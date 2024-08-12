@@ -37,6 +37,7 @@
 		"actions": {
 			"edit": "Edit",
 			"download": "Download Image",
+			"restart": "Restart",
 			"delete": "Delete"
 		},
 		"status": {
