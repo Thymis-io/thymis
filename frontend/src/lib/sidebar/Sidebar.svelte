@@ -25,9 +25,9 @@
 		globalNavSelectedTarget,
 		globalNavSelectedTargetType,
 		state,
-		type ModuleSettings
 	} from '$lib/state';
 	import GlobalNavSelect from '$lib/sidebar/GlobalNavSelect.svelte';
+	import { isVNCModule, deviceHasVNCModule } from '$lib/vnc/vnc';
 
 	export let drawerHidden: boolean;
 
@@ -68,17 +68,15 @@
 		children?: Record<string, string>;
 	};
 
-	const isVNCModule = (module: ModuleSettings) => module.type.toLowerCase().includes('vnc');
-
 	$: hasVNCModule =
 		$state.devices.some((device) => device.modules.some(isVNCModule)) ||
 		$state.tags.some((tag) => tag.modules.some(isVNCModule));
 
-	$: selectedTargetHasVNCModule =
-		$globalNavSelectedTarget?.modules.some(isVNCModule) ||
-		$globalNavSelectedDevice?.tags.some((tag) =>
-			$state.tags.find((t) => t.identifier === tag)?.modules.some(isVNCModule)
-		);
+	$: selectedTargetHasAnyVNCModule = 
+	    $globalNavSelectedTarget?.modules.some(isVNCModule) ||
+		$state.devices.filter(
+			(device) => device.tags.some(tag => tag === $globalNavSelectedTag?.identifier)
+		)?.some(device => deviceHasVNCModule(device, $state));
 
 	let dynamicNavItems: NavItem[] = [];
 	$: dynamicNavItems = [
@@ -92,7 +90,7 @@
 			name: $t('nav.device-vnc'),
 			icon: ScreenShare,
 			href: '/device-vnc',
-			hidden: !selectedTargetHasVNCModule
+			hidden: !selectedTargetHasAnyVNCModule
 		},
 		{
 			name: $t('nav.terminal'),
