@@ -250,3 +250,6 @@ class Project:
         return task.global_task_controller.add_task(
             task.BuildDeviceImageTask(self.path, device_identifier)
         )
+
+    def create_restart_device_task(self, device_identifier: str):
+        return task.global_task_controller.add_task(task.RestartDeviceTask(device_identifier))

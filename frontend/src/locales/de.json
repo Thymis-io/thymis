@@ -32,6 +32,7 @@
 		"actions": {
 			"edit": "Bearbeiten",
 			"download": "Image Herunterladen",
+			"restart": "Neustarten",
 			"delete": "Löschen"
 		},
 		"status": {

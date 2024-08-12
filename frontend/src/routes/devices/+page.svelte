@@ -32,6 +32,15 @@
 		saveState();
 	}
 
+	function restartDevice(device: Device) {
+		fetch(
+			`${controllerProtocol}://${controllerHost}/action/restart-device?identifier=${device.identifier}`,
+			{
+				method: 'POST'
+			}
+		);
+	}
+
 	const downloadUri = (uri: string) => {
 		const link = document.createElement('a');
 		link.href = uri;
@@ -225,7 +234,10 @@
 						<Button color="alternative" on:click={() => buildAndDownloadImage(device.data)}>
 							{$t('devices.actions.download')}
 						</Button>
-						<Button color="alternative" on:click={() => deleteDevice(device.data)}>
+						<Button color="alternative" on:click={() => restartDevice(device.data)}>
+							{$t('devices.actions.restart')}
+						</Button>
+						<Button class="ml-8" color="alternative" on:click={() => deleteDevice(device.data)}>
 							{$t('devices.actions.delete')}
 						</Button>
 					</div>
