@@ -21,6 +21,9 @@
 		"cancel": "Abbrechen",
 		"no-tag-or-device-selected": "Kein Tag oder Gerät ausgewählt"
 	},
+	"vnc": {
+		"connection-failed": "Verbindungsfehler"
+	},
 	"devices": {
 		"create-new": "Neues Gerät Erstellen",
 		"table": {
