@@ -109,6 +109,9 @@
 			}
 		}
 	},
+	"history": {
+		"revert-commit": "Revert last commit: {commit}, {message}"
+	},
 	"deploy": {
 		"build": "Build",
 		"deploy": "Deploy",

@@ -228,6 +228,12 @@ class Project:
             for commit in self.repo.iter_commits()
         ]
 
+    def revert_commit(self, commit: str):
+        commit_to_revert = self.repo.commit(commit)
+        self.repo.git.revert(commit, no_commit=True)
+        self.repo.index.commit(f"Revert {commit_to_revert.message}")
+        logger.info(f"Reverted commit: {commit_to_revert}")
+
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildTask(self.path))
 

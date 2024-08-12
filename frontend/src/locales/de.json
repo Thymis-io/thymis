@@ -109,6 +109,9 @@
 			}
 		}
 	},
+	"history": {
+		"revert-commit": "Letzten Commit rückgängig machen: {commit}, {message}"
+	},
 	"deploy": {
 		"build": "Erstellen",
 		"deploy": "Ausrollen",
