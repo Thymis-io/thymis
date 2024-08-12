@@ -9,7 +9,7 @@ export const load = (async ({ fetch }) => {
 	});
 	return {
 		history: response.json() as Promise<
-			{ message: string; author: string; date: string; SHA: string; SHA1: string }[]
+			{ message: string; author: string; date: string; SHA: string; SHA1: string, state_diff: string[] }[]
 		>
 	};
 }) satisfies PageLoad;

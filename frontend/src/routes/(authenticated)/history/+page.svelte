@@ -10,6 +10,17 @@
 		await fetch(`/api/history/revert-commit?commit_sha=${commitSHA}`, { method: 'POST' });
 		await invalidate((url) => url.pathname === '/api/history' || url.pathname === '/api/state');
 	};
+
+	const lineColor = (line: string) => {
+		if (line.startsWith('+')) {
+			return 'text-green-400';
+		} else if (line.startsWith('-')) {
+			return 'text-red-400';
+		} else if(line.startsWith('@@')) {
+			return 'text-cyan-400';
+		}
+		return 'text-gray-200';
+	};
 </script>
 
 <div class="flex justify-between mb-4">
@@ -38,6 +49,9 @@
 				<span class="text-gray-400"> on {h.date}</span>
 				<span class="text-gray-400"> with hash {h.SHA1}</span>
 			</li>
+			{#each h.state_diff as line}
+				<pre class={lineColor(line)}>{line}</pre>
+			{/each}
 		{/each}
 	</ul>
 {/await}
