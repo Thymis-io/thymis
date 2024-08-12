@@ -217,7 +217,8 @@ class Project:
                 "message": commit.message,
                 "author": commit.author.name,
                 "date": commit.authored_datetime,
-                "hash": commit.hexsha,
+                "SHA": commit.hexsha,
+                "SHA1": self.repo.git.rev_parse(commit.hexsha, short=True),
             }
             for commit in self.repo.iter_commits()
         ]

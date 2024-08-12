@@ -19,7 +19,7 @@
 				<span class="text-gray-600">{h.message}</span>
 				<span class="text-gray-400"> by {h.author}</span>
 				<span class="text-gray-400"> on {h.date}</span>
-				<span class="text-gray-400"> with hash {h.hash}</span>
+				<span class="text-gray-400"> with hash {h.SHA1}</span>
 			</li>
 		{/each}
 	</ul>
