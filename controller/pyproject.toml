@@ -21,6 +21,8 @@ packaging = "^24.0"
 httpx = "^0.27.0"
 psutil = "^6.0.0"
 pydantic-settings = "^2.4.0"
+alembic = "^1.13.2"
+sqlalchemy = "^2.0.32"
 
 [tool.poetry.group.enterprise]
 optional = true

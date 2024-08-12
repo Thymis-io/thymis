@@ -4,7 +4,11 @@ from pydantic_settings import BaseSettings
 class GlobalSettings(BaseSettings):
     # TODO replace attributes with Fields according to the pydantic documentation
 
-    REPO_PATH: pathlib.Path = pathlib.Path("/var/lib/thymis")
+    REPO_PATH: pathlib.Path = pathlib.Path("/var/lib/thymis/repository")
+
+    # TODO better input check
+    DATABASE_URL: str = f"sqlite://{pathlib.Path('/var/lib/thymis/thymis.sqlite').as_posix()}"
+
     BASE_URL: str = "http://localhost:8000"
 
     FRONTEND_BINARY_PATH: str | None = None
