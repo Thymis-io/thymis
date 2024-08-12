@@ -112,6 +112,9 @@
 		"device-type-cannot-be-empty": "Device type cannot be empty.",
 		"device-with-display-name-name-exists": "Device with display name \"{displayName}\" already exists in project."
 	},
+	"history": {
+		"revert-commit": "Revert last commit: {commit}, {message}"
+	},
 	"deploy": {
 		"build": "Build",
 		"deploy": "Deploy",

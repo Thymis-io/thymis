@@ -1,8 +1,19 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
+	import { Button } from 'flowbite-svelte';
 	import type { PageData } from './$types';
+	import { invalidate } from '$app/navigation';
+	import DeployActions from '$lib/components/DeployActions.svelte';
+	import { saveState } from '$lib/state';
+	import { controllerHost, controllerProtocol } from '$lib/api';
 	export let data: PageData;
 
-	// history: response.json() as Promise<{ message: string; author: string, date: string , hash: string }[]>
+	const revertLastCommit = async (commitSHA: string) => {
+		await fetch(`${controllerProtocol}://${controllerHost}/history/revert-commit?commit_sha=${commitSHA}`, {
+			method: 'POST'
+		});
+		await invalidate((url) => url.pathname === '/api/history' || url.pathname === '/api/state');
+	};
 </script>
 
 <div class="flex justify-between mb-4">
@@ -11,6 +22,14 @@
 {#await data.history}
 	<p>Loading...</p>
 {:then history}
+	{#if history.length > 0}
+		<div class="flex justify-between mb-4">
+			<Button color="alternative" on:click={() => revertLastCommit(history[0].SHA1)}>
+				{$t('history.revert-commit', { values: { commit: history[0].SHA1, message: history[0].message } })}
+			</Button>
+			<DeployActions />
+		</div>
+	{/if}
 	<ul class="list-disc ml-4">
 		{#each history as h}
 			<!-- simple left-bound list -->
