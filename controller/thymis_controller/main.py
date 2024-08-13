@@ -1,11 +1,26 @@
 import importlib
 import logging
 
+from alembic.config import Config
+from alembic.script import ScriptDirectory
+from alembic.runtime.environment import EnvironmentContext
 import thymis_controller.lib  # pylint: disable=unused-import
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from thymis_controller.routers import api, frontend, auth
 from thymis_controller.config import global_settings
+
+# run database migrations
+config = Config('alembic.ini')
+script = ScriptDirectory.from_config(config)
+
+def run_migrations_offline():
+    context = EnvironmentContext(config, script)
+    context.configure(url=global_settings.DATABASE_URL, target_metadata=None, literal_binds=True)
+    with context.begin_transaction():
+        context.run_migrations()
+
+run_migrations_offline()
 
 description = """
 API to control Nix operating system 🎛️

@@ -2,10 +2,13 @@ import datetime
 import logging
 import os
 import pathlib
+from typing import Annotated, Dict, Generator
 import uuid
 from typing import Annotated, Dict, Optional, Union
 
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from thymis_controller.database import engine
 
 logger = logging.getLogger(__name__)
 
@@ -75,10 +78,11 @@ def apply_session(response: Response, token: str):
     session_ticket = SessionTicket(token=token)
     session_id = uuid.uuid4()
     SESSION_STORE[session_id] = session_ticket
-    response.set_cookie(
-        key="session",
-        value=str(session_id),
-        httponly=False,
-        samesite="strict",
-        expires=session_ticket.created + SESSION_LIFETIME,
-    )
+    response.set_cookie(key="session", value=str(session_id), httponly=False, samesite='strict', expires=session_ticket.created + SESSION_LIFETIME)
+
+def get_session() -> Generator[Session, None, None]:
+    with Session(engine) as session:
+        yield session
+
+# session annotated dependency for FastAPI endpoints
+SessionAD = Annotated[Session, Depends(get_session)]

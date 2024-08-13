@@ -19,6 +19,7 @@ fileConfig(config.config_file_name)
 # target_metadata = None
 
 from thymis_controller.database.base import Base
+from thymis_controller import db_models # pylint: disable=unused-import
 from thymis_controller.config import global_settings
 
 target_metadata = Base.metadata
