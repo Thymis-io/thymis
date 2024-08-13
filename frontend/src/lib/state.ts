@@ -1,5 +1,4 @@
 import { invalidate } from '$app/navigation';
-import { controllerHost, controllerProtocol } from './api';
 import { derived, writable } from 'svelte/store';
 import { queryParam } from 'sveltekit-search-params';
 
@@ -79,7 +78,7 @@ state.subscribe((value) => {
 
 export const saveState = async () => {
 	state.set(currentState);
-	await fetch(`${controllerProtocol}://${controllerHost}/state`, {
+	await fetch(`/api/state`, {
 		method: 'PATCH',
 		headers: {
 			'content-type': 'application/json'
@@ -91,7 +90,7 @@ export const saveState = async () => {
 };
 
 export const build = async () => {
-	await fetch(`${controllerProtocol}://${controllerHost}/action/build`, { method: 'POST' });
+	await fetch(`/api/action/build`, { method: 'POST' });
 };
 
 export const getTagByIdentifier = (state: State, identifier: string) => {

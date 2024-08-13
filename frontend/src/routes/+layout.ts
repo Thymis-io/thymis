@@ -2,7 +2,6 @@ import { browser } from '$app/environment';
 import '$lib/i18n'; // Import to initialize. Important :)
 import { locale, waitLocale } from 'svelte-i18n';
 import type { LayoutLoad } from './$types';
-import { controllerHost, controllerProtocol } from '$lib/api';
 import type { State, Module } from '$lib/state';
 import { error } from '@sveltejs/kit';
 import { getAllTasks } from '$lib/taskstatus';
@@ -21,7 +20,7 @@ export const load = (async ({ fetch }) => {
 		locale.set(lang);
 	}
 	await waitLocale();
-	const stateResponse = await fetch(`${controllerProtocol}://${controllerHost}/state`, {
+	const stateResponse = await fetch(`/api/state`, {
 		method: 'GET',
 		headers: {
 			'content-type': 'application/json'
@@ -33,15 +32,12 @@ export const load = (async ({ fetch }) => {
 		error(500, 'Could not fetch state');
 	}
 
-	const availableModulesResponse = await fetch(
-		`${controllerProtocol}://${controllerHost}/available_modules`,
-		{
-			method: 'GET',
-			headers: {
-				'content-type': 'application/json'
-			}
+	const availableModulesResponse = await fetch(`/api/available_modules`, {
+		method: 'GET',
+		headers: {
+			'content-type': 'application/json'
 		}
-	);
+	});
 
 	const availableModules = (await availableModulesResponse.json()) as Module[];
 
