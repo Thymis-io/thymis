@@ -4,6 +4,7 @@
 	import { tasksByIdStore } from '$lib/taskstatus';
 	import { Button } from 'flowbite-svelte';
 	import MonospaceText from '$lib/components/MonospaceText.svelte';
+	import RenderUnixTimestamp from '$lib/components/RenderUnixTimestamp.svelte';
 
 	export let data: PageData;
 
@@ -49,7 +50,11 @@
 	<h2 class="text-xl font-bold">Exception: {task.exception}</h2>
 {/if}
 
-<h2 class="text-xl font-bold">Start Time: {task.start_time}</h2>
+<h2 class="text-xl font-bold">Start Time: <RenderUnixTimestamp timestamp={task.start_time} /></h2>
+
+{#if task.end_time}
+	<h2 class="text-xl font-bold">End Time: <RenderUnixTimestamp timestamp={task.end_time} /></h2>
+{/if}
 
 <h2 class="text-xl font-bold">Detail: {JSON.stringify(task.data)}</h2>
 
