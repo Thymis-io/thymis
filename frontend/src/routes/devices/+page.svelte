@@ -184,14 +184,8 @@
 						</div>
 					</div>
 				</TableBodyCell>
-				<TableBodyEditCell
-					bind:value={device.data.displayName}
-					onEnter={() => saveState()}
-				/>
-				<TableBodyEditCell
-					bind:value={device.data.targetHost}
-					onEnter={() => saveState()}
-				/>
+				<TableBodyEditCell bind:value={device.data.displayName} onEnter={() => saveState()} />
+				<TableBodyEditCell bind:value={device.data.targetHost} onEnter={() => saveState()} />
 				<TableBodyCell>
 					<div class="flex justify-between">
 						<div class="flex gap-2">
