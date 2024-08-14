@@ -1,9 +1,9 @@
 <script lang="ts">
-	import '../app.postcss';
+	import '../../app.postcss';
 	import Navbar from '$lib/navbar/Navbar.svelte';
 	import Sidebar from '$lib/sidebar/Sidebar.svelte';
 	import SplitPane from '$lib/splitpane/SplitPane.svelte';
-	import type { LayoutData } from '../routes/$types';
+	import type { LayoutData } from './$types';
 	import { saveState } from '$lib/state';
 	import { state } from '$lib/state';
 	import { taskStatus } from '$lib/taskstatus';

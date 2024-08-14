@@ -6,6 +6,7 @@ import httpx
 from fastapi import (
     APIRouter,
     Depends,
+    Form,
     HTTPException,
     Response,
     status,
@@ -33,27 +34,27 @@ REDIRECT_URI = global_settings.BASE_URL + "/auth/callback"
 router = APIRouter(
     tags=["auth"],
 )
-basicAuth = HTTPBasic()
-
 
 # only enable basic auth if the flag is set
 @router.post("/login/basic")
 def login_basic(
-    credentials: Annotated[HTTPBasicCredentials, Depends(basicAuth)], response: Response, db_session: SessionAD
+    username: Annotated[str, Form()], password: Annotated[str, Form()], redirect: Annotated[str, Form()], response: Response, db_session: SessionAD
 ):
     if not global_settings.AUTH_BASIC:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Basic auth is disabled"
         )
     if (
-        credentials.username == global_settings.AUTH_BASIC_USERNAME
-        and credentials.password == global_settings.AUTH_BASIC_PASSWORD
+        username == global_settings.AUTH_BASIC_USERNAME
+        and password == global_settings.AUTH_BASIC_PASSWORD
     ):  # TODO replace password check with hash comparison
         apply_user_session(db_session, response)
-        return {"message": "Logged in"}
+        return RedirectResponse(
+            redirect, headers=response.headers, status_code=status.HTTP_303_SEE_OTHER
+        )
     else:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+        return RedirectResponse(
+            f"/login?redirect={redirect}&authError=credentials", headers=response.headers, status_code=status.HTTP_303_SEE_OTHER
         )
 
 
@@ -105,7 +106,7 @@ async def callback(code: str, response: Response, db_session: SessionAD):
 
     apply_user_session(db_session, response)
     return RedirectResponse(
-        "/", headers=response.headers
+        "/", headers=response.headers, status_code=status.HTTP_303_SEE_OTHER
     )  # necessary to set the cookies
 
 
