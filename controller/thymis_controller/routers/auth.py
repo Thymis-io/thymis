@@ -49,6 +49,9 @@ def login_basic(
         and password == global_settings.AUTH_BASIC_PASSWORD
     ):  # TODO replace password check with hash comparison
         apply_user_session(db_session, response)
+        # assert redirect is a path, not a full URL
+        assert redirect.startswith("/")
+        
         return RedirectResponse(
             redirect, headers=response.headers, status_code=status.HTTP_303_SEE_OTHER
         )
