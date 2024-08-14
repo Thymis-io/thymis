@@ -179,8 +179,13 @@ def render_flake_nix(repositories: dict[str, "models.Repo"]) -> str:
 
 NIX_CMD = [
     "nix",
-    "--extra-experimental-features",
-    "nix-command",
-    "--extra-experimental-features",
-    "flakes",
+    "--option",
+    "extra-experimental-features",
+    "nix-command flakes",
+    "--option",
+    "extra-substituters",
+    "https://cache.thymis.io",
+    "--option",
+    "extra-trusted-public-keys",
+    "cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=",
 ]
