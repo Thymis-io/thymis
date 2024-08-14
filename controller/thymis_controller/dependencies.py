@@ -1,14 +1,12 @@
 import datetime
 import logging
-import os
-import pathlib
-from typing import Annotated, Dict, Generator
+from typing import Annotated, Generator, Optional, Union
 import uuid
-from typing import Annotated, Dict, Optional, Union
 
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from thymis_controller.database import engine
+from thymis_controller import db_models
+from thymis_controller.crud import web_session
+from thymis_controller.database.connection import engine
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +16,7 @@ from thymis_controller.config import global_settings
 from thymis_controller.project import Project
 
 global_project = None
-
+SESSION_LIFETIME = datetime.timedelta(days=1)
 
 def get_project():
     global global_project
@@ -33,56 +31,43 @@ def get_state(project: Project = Depends(get_project)):
     return project.read_state()
 
 
-class SessionTicket(BaseModel):
-    created: datetime.datetime = datetime.datetime.now(datetime.timezone.utc)
-    token: str | None
-
-
-SESSION_STORE: Dict[uuid.UUID, SessionTicket] = {}
-SESSION_LIFETIME = datetime.timedelta(days=1)
-
-
-def get_session(session):
-    session = uuid.UUID(session) if session else None
-    if session is None:
-        return None
-    session_ticket = SESSION_STORE.get(session)
-    if session_ticket is None:
-        return None
-    if session_ticket.created + SESSION_LIFETIME < datetime.datetime.now(
-        datetime.timezone.utc
-    ):
-        del SESSION_STORE[session]
-        return None
-    return session_ticket
-
-
-def require_valid_session(session: Annotated[Union[str, None], Cookie()] = None):
-    """
-    Check if the session is valid
-    """
-    session = get_session(session)
-    if not session:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="No valid session"
-        )
-    return session
-
-
-def invalidate_session(response: Response):
-    response.delete_cookie("session")
-    return
-
-
-def apply_session(response: Response, token: str):
-    session_ticket = SessionTicket(token=token)
-    session_id = uuid.uuid4()
-    SESSION_STORE[session_id] = session_ticket
-    response.set_cookie(key="session", value=str(session_id), httponly=False, samesite='strict', expires=session_ticket.created + SESSION_LIFETIME)
-
-def get_session() -> Generator[Session, None, None]:
+def get_db_session() -> Generator[Session, None, None]:
     with Session(engine) as session:
         yield session
 
 # session annotated dependency for FastAPI endpoints
-SessionAD = Annotated[Session, Depends(get_session)]
+SessionAD = Annotated[Session, Depends(get_db_session)]
+
+
+def check_user_session(db_session: SessionAD, user_session_id) -> bool:
+    user_session_id = uuid.UUID(user_session_id) if user_session_id else None
+    if user_session_id is None:
+        return None
+    return web_session.validate(db_session, user_session_id)
+
+
+def require_valid_user_session(db_session: SessionAD, user_session_id: Annotated[Union[str, None], Cookie(alias="session")] = None) -> bool:
+    """
+    Check if the session is valid
+    """
+    valid_user_session = check_user_session(db_session, user_session_id)
+    if not valid_user_session:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="No valid session"
+        )
+    return True
+
+
+def get_user_session_id(user_session_id: Annotated[Union[str, None], Cookie(alias="session")] = None) -> Optional[str]:
+    return user_session_id
+
+
+def invalidate_user_session(db_session: SessionAD, response: Response, user_session_id: str):
+    response.delete_cookie("session")
+    web_session.delete(db_session, user_session_id)
+
+
+def apply_user_session(db_session: SessionAD, response: Response):
+    user_session = web_session.create(db_session)
+    exp = user_session.created_at.astimezone(datetime.UTC) + SESSION_LIFETIME
+    response.set_cookie(key="session", value=str(user_session.session_id), httponly=False, samesite='strict', expires=exp)

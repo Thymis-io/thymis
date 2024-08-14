@@ -2,14 +2,13 @@ import asyncio
 from fastapi import APIRouter, Depends, Request, WebSocket
 from fastapi.responses import FileResponse, RedirectResponse
 from thymis_controller import dependencies, models, modules, project
-from thymis_controller.dependencies import get_project, require_valid_session
-from thymis_controller.dependencies import SessionAD, get_project, require_valid_session
+from thymis_controller.dependencies import SessionAD, get_project, require_valid_user_session
 from thymis_controller.models.state import State
 from thymis_controller.routers import task
 from thymis_controller.tcp_to_ws import tcp_to_websocket, websocket_to_tcp
 
 router = APIRouter(
-    dependencies=[Depends(require_valid_session)],
+    dependencies=[Depends(require_valid_user_session)],
 )
 
 

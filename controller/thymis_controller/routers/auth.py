@@ -6,9 +6,7 @@ import httpx
 from fastapi import (
     APIRouter,
     Depends,
-    FastAPI,
     HTTPException,
-    Request,
     Response,
     status,
 )
@@ -17,11 +15,11 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
 from thymis_controller.config import global_settings
 from thymis_controller.dependencies import (
-    SessionTicket,
-    apply_session,
-    get_session,
-    invalidate_session,
-    require_valid_session,
+    SessionAD,
+    apply_user_session,
+    get_user_session_id,
+    require_valid_user_session,
+    invalidate_user_session,
 )
 
 
@@ -41,7 +39,7 @@ basicAuth = HTTPBasic()
 # only enable basic auth if the flag is set
 @router.post("/login/basic")
 def login_basic(
-    credentials: Annotated[HTTPBasicCredentials, Depends(basicAuth)], response: Response
+    credentials: Annotated[HTTPBasicCredentials, Depends(basicAuth)], response: Response, db_session: SessionAD
 ):
     if not global_settings.AUTH_BASIC:
         raise HTTPException(
@@ -51,7 +49,7 @@ def login_basic(
         credentials.username == global_settings.AUTH_BASIC_USERNAME
         and credentials.password == global_settings.AUTH_BASIC_PASSWORD
     ):  # TODO replace password check with hash comparison
-        apply_session(response, None)
+        apply_user_session(db_session, response)
         return {"message": "Logged in"}
     else:
         raise HTTPException(
@@ -77,15 +75,15 @@ def login():
 @router.post("/logout")
 def logout(
     response: Response,
-    session: Annotated[SessionTicket, Depends(require_valid_session)],
+    user_session: Annotated[str, Depends(get_user_session_id)],
+    db_session: SessionAD
 ):
-    invalidate_session(response)
-    return {"message": "Logged out"}
+    invalidate_user_session(db_session, response, user_session)
 
 
 # Route to handle the OAuth2 provider's callback
 @router.get("/callback")
-async def callback(code: str, response: Response):
+async def callback(code: str, response: Response, db_session: SessionAD):
     async with httpx.AsyncClient() as client:
         token_response = await client.post(
             global_settings.AUTH_OAUTH_TOKEN_ENDPOINT,
@@ -103,13 +101,14 @@ async def callback(code: str, response: Response):
             status_code=status.HTTP_400_BAD_REQUEST, detail="Token exchange failed"
         )
 
-    token_data = token_response.json()
-    apply_session(response, token_data["access_token"])
+    # token_data = token_response.json() to be used in the future
+
+    apply_user_session(db_session, response)
     return RedirectResponse(
         "/", headers=response.headers
     )  # necessary to set the cookies
 
 
 @router.get("/protected")  # TODO remove debug route
-def read_protected(token: Annotated[Dict, Depends(require_valid_session)]):
-    return {"message": "Hello World"}
+def read_protected(loggedin: Annotated[Dict, Depends(require_valid_user_session)]):
+    return {"message": "You are logged in"}

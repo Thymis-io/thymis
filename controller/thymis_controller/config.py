@@ -7,7 +7,7 @@ class GlobalSettings(BaseSettings):
     REPO_PATH: pathlib.Path = pathlib.Path("/var/lib/thymis/repository")
 
     # TODO better input check
-    DATABASE_URL: str = f"sqlite://{pathlib.Path('/var/lib/thymis/thymis.sqlite').as_posix()}"
+    DATABASE_URL: str = f"sqlite:///{pathlib.Path('/var/lib/thymis/thymis.sqlite').as_posix()}"
 
     BASE_URL: str = "http://localhost:8000"
 
