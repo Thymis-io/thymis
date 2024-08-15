@@ -62,12 +62,11 @@ async def build_download_image(
 
 
 @router.post("/action/restart-device")
-def deploy(
+async def restart_device(
     identifier: str,
-    background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
 ):
-    background_tasks.add_task(project.create_restart_device_task(identifier))
+    await project.create_restart_device_task(identifier)
 
 
 @router.get("/download-image")
