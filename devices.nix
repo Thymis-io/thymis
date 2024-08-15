@@ -78,6 +78,7 @@ let
           inputs.raspberry-pi-nix.nixosModules.raspberry-pi
         ];
         raspberry-pi-nix.libcamera-overlay.enable = false;
+        raspberry-pi-nix.board = "bcm2712";
         formatConfigs = lib.mkForce {
           sd-card-image = {
             sdImage.compressImage = false;
