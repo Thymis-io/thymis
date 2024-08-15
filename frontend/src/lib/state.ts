@@ -86,7 +86,9 @@ export const saveState = async () => {
 		},
 		body: JSON.stringify(currentState)
 	});
-	await invalidate((url) => url.pathname === '/api/state' || url.pathname === '/api/available_modules');
+	await invalidate(
+		(url) => url.pathname === '/api/state' || url.pathname === '/api/available_modules'
+	);
 	await build();
 };
 
