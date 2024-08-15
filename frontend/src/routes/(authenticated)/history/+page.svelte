@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Button } from 'flowbite-svelte';
+	import { Button, AccordionItem, Accordion } from 'flowbite-svelte';
 	import type { PageData } from './$types';
 	import { invalidate } from '$app/navigation';
 	import DeployActions from '$lib/components/DeployActions.svelte';
@@ -16,7 +16,7 @@
 			return 'text-green-400';
 		} else if (line.startsWith('-')) {
 			return 'text-red-400';
-		} else if(line.startsWith('@@')) {
+		} else if (line.startsWith('@@')) {
 			return 'text-cyan-400';
 		}
 		return 'text-gray-200';
@@ -28,30 +28,33 @@
 </div>
 {#await data.history}
 	<p>Loading...</p>
-{:then history}
-	{#if history.length > 0}
+{:then historyList}
+	{#if historyList.length > 0}
 		<div class="flex justify-between mb-4">
-			<Button color="alternative" on:click={() => revertLastCommit(history[0].SHA1)}>
+			<Button color="alternative" on:click={() => revertLastCommit(historyList[0].SHA1)}>
 				{$t('history.revert-commit', {
-					values: { commit: history[0].SHA1, message: history[0].message }
+					values: { commit: historyList[0].SHA1, message: historyList[0].message }
 				})}
 			</Button>
 			<DeployActions />
 		</div>
 	{/if}
 	<ul class="list-disc ml-4">
-		{#each history as h}
-			<!-- simple left-bound list -->
+		{#each historyList as history, index}
 			<li class="mb-2 text-gray-600">
-				<!-- {h.message} by {h.author} on {h.date} with hash {h.hash} -->
-				<span class="text-gray-600">{h.message}</span>
-				<span class="text-gray-400"> by {h.author}</span>
-				<span class="text-gray-400"> on {h.date}</span>
-				<span class="text-gray-400"> with hash {h.SHA1}</span>
+				<span class="text-gray-600">{history.message}</span>
+				<span class="text-gray-400"> by {history.author}</span>
+				<span class="text-gray-400"> on {history.date}</span>
+				<span class="text-gray-400"> with hash {history.SHA1}</span>
 			</li>
-			{#each h.state_diff as line}
-				<pre class={lineColor(line)}>{line}</pre>
-			{/each}
+			<Accordion flush class="mr-4 mb-8">
+				<AccordionItem tag="span" paddingFlush="py-2">
+					<span slot="header">{$t('history.open-diff')}</span>
+					{#each history.state_diff as line}
+						<pre class={`text-sm ${lineColor(line)}`}>{line}</pre>
+					{/each}
+				</AccordionItem>
+			</Accordion>
 		{/each}
 	</ul>
 {/await}

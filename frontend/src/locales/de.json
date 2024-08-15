@@ -113,6 +113,7 @@
 		"tags": "Geräte-Tags – Welche Tags sollten diesem Gerät zugewiesen werden?"
 	},
 	"history": {
+		"open-diff": "Änderungen anzeigen",
 		"revert-commit": "Letzten Commit rückgängig machen: {commit}, {message}"
 	},
 	"deploy": {

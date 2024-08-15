@@ -113,6 +113,7 @@
 		"device-with-display-name-name-exists": "Device with display name \"{displayName}\" already exists in project."
 	},
 	"history": {
+		"open-diff": "Show Changes",
 		"revert-commit": "Revert last commit: {commit}, {message}"
 	},
 	"deploy": {

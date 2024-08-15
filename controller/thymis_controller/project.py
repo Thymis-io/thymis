@@ -219,14 +219,13 @@ class Project:
                 "date": commit.authored_datetime,
                 "SHA": commit.hexsha,
                 "SHA1": self.repo.git.rev_parse(commit.hexsha, short=True),
-                "state_diff":
-                    self.repo.git.diff(
-                        commit.hexsha,
-                        commit.parents[0].hexsha if len(commit.parents) > 0 else None,
-                        "-R",
-                        "state.json",
-                        unified=10,
-                    ).split("\n")[4:],
+                "state_diff": self.repo.git.diff(
+                    commit.hexsha,
+                    commit.parents[0].hexsha if len(commit.parents) > 0 else None,
+                    "-R",
+                    "state.json",
+                    unified=5,
+                ).split("\n")[4:],
             }
             for commit in self.repo.iter_commits()
         ]
