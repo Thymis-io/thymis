@@ -4,14 +4,10 @@
 	import type { PageData } from './$types';
 	import { invalidate } from '$app/navigation';
 	import DeployActions from '$lib/components/DeployActions.svelte';
-	import { saveState } from '$lib/state';
-	import { controllerHost, controllerProtocol } from '$lib/api';
 	export let data: PageData;
 
 	const revertLastCommit = async (commitSHA: string) => {
-		await fetch(`${controllerProtocol}://${controllerHost}/history/revert-commit?commit_sha=${commitSHA}`, {
-			method: 'POST'
-		});
+		await fetch(`/api/history/revert-commit?commit_sha=${commitSHA}`, { method: 'POST' });
 		await invalidate((url) => url.pathname === '/api/history' || url.pathname === '/api/state');
 	};
 </script>
@@ -25,7 +21,9 @@
 	{#if history.length > 0}
 		<div class="flex justify-between mb-4">
 			<Button color="alternative" on:click={() => revertLastCommit(history[0].SHA1)}>
-				{$t('history.revert-commit', { values: { commit: history[0].SHA1, message: history[0].message } })}
+				{$t('history.revert-commit', {
+					values: { commit: history[0].SHA1, message: history[0].message }
+				})}
 			</Button>
 			<DeployActions />
 		</div>
