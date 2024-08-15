@@ -14,5 +14,5 @@
 
 <Textarea {placeholder} on:change={changeInternal} {value} {disabled} />
 {#if disabled}
-	<Tooltip placement={'top'}>{$t('config.editDisabled')}</Tooltip>
+	<Tooltip type="auto" placement={'top'}>{$t('config.editDisabled')}</Tooltip>
 {/if}

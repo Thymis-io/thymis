@@ -107,26 +107,26 @@ in
           REPO_PATH = controllerCfg.repo-dir;
         };
       };
-      systemd.services.thymis-frontend = {
-        description = "Thymis frontend";
-        after = [ "network.target" ];
-        wantedBy = [ "multi-user.target" ];
-        script = "${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-frontend}/bin/thymis-frontend";
-        environment = {
-          HOST = "127.0.0.1";
-          PORT = "3000";
-          PUBLIC_CONTROLLER_HOST = "127.0.0.1:8000";
-        };
-        path = [
-          "/run/current-system/sw"
-        ];
-      };
+      # systemd.services.thymis-frontend = {
+      #   description = "Thymis frontend";
+      #   after = [ "network.target" ];
+      #   wantedBy = [ "multi-user.target" ];
+      #   script = "${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-frontend}/bin/thymis-frontend";
+      #   environment = {
+      #     HOST = "127.0.0.1";
+      #     PORT = "3000";
+      #     PUBLIC_CONTROLLER_HOST = "127.0.0.1:8000";
+      #   };
+      #   path = [
+      #     "/run/current-system/sw"
+      #   ];
+      # };
       services.nginx = {
         enable = true;
         virtualHosts.default = {
           default = true;
           locations."/" = {
-            proxyPass = "http://localhost:3000";
+            proxyPass = "http://localhost:8000";
             recommendedProxySettings = true;
             extraConfig = ''
               proxy_http_version 1.1;

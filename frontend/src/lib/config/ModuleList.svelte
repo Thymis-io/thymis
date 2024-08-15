@@ -68,7 +68,7 @@
 		>
 			<Pen />
 		</ToolbarButton>
-		<Tooltip>
+		<Tooltip type="auto">
 			<P size="sm">{$t('config.edit_tag_modules')}</P>
 		</Tooltip>
 	{/if}
@@ -110,7 +110,7 @@
 					>
 						<Trash size={20} />
 					</button>
-					<Tooltip>
+					<Tooltip type="auto">
 						<P size="sm">{$t('config.remove_module')}</P>
 					</Tooltip>
 				{/if}
@@ -124,7 +124,7 @@
 		>
 			<Plus />
 		</button>
-		<Tooltip>
+		<Tooltip type="auto">
 			<P size="sm">{$t('config.add_module')}</P>
 		</Tooltip>
 		<Modal title={$t('config.add_module')} bind:open={addModuleModalOpen} autoclose outsideclose>

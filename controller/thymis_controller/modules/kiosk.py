@@ -21,7 +21,6 @@ class Kiosk(modules.Module):
             else self.kiosk_url.default
         )
 
-        f.write(f'  hardware.raspberry-pi."4".fkms-3d.enable = true;\n')
         f.write(
             f"""
 services.xserver.displayManager.sddm.enable = true;

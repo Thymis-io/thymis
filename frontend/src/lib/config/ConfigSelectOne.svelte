@@ -25,5 +25,5 @@
 	class={disabled ? 'opacity-70' : ''}
 />
 {#if disabled}
-	<Tooltip placement={'top'}>{$t('config.editDisabled')}</Tooltip>
+	<Tooltip type="auto" placement={'top'}>{$t('config.editDisabled')}</Tooltip>
 {/if}
