@@ -49,24 +49,6 @@
             inherit inputs;
           };
         });
-    in
-    {
-      inputs = inputs;
-      formatter = eachSystem (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
-      devShells = eachSystem (system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in
-        {
-          default = pkgs.mkShell {
-            packages = [
-              pkgs.poetry
-              pkgs.nodejs
-              pkgs.pre-commit
-            ];
-          };
-        });
-
       all-download-images =
         let
           devices = import ./devices.nix { lib = nixpkgs.lib; };
@@ -87,6 +69,25 @@
         device-formats // {
           recurseForDerivations = true;
         };
+    in
+    {
+      inputs = inputs;
+      formatter = eachSystem (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
+      devShells = eachSystem (system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          default = pkgs.mkShell {
+            packages = [
+              pkgs.poetry
+              pkgs.nodejs
+              pkgs.pre-commit
+            ];
+          };
+        });
+
+
       packages = eachSystem (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
@@ -111,5 +112,9 @@
         }
       );
       nixosModules = nixosModules;
+      all-download-images = all-download-images;
+      hydraJobs = {
+        all-download-images = all-download-images;
+      };
     };
 }
