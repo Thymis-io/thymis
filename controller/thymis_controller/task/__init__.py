@@ -479,6 +479,7 @@ class DeployDeviceTask(CommandTask):
         super().__init__(
             "nixos-rebuild",
             [
+                *NIX_CMD[1:],
                 "switch",
                 "--flake",
                 f"{repo_dir}#{device.identifier}",
@@ -504,6 +505,7 @@ class BuildDeviceImageTask(CommandTask):
         super().__init__(
             "nix",
             [
+                *NIX_CMD[1:],
                 "build",
                 f'{repo_dir}#nixosConfigurations."{identifier}".config.formats.sd-card-image',
                 "--out-link",
