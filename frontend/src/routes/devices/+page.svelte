@@ -33,12 +33,7 @@
 	}
 
 	function restartDevice(device: Device) {
-		fetch(
-			`${controllerProtocol}://${controllerHost}/action/restart-device?identifier=${device.identifier}`,
-			{
-				method: 'POST'
-			}
-		);
+		fetch(`/api/action/restart-device?identifier=${device.identifier}`, { method: 'POST' });
 	}
 
 	const downloadUri = (uri: string) => {
