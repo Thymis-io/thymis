@@ -96,7 +96,7 @@
 					>
 						<X />
 					</button>
-					<Tooltip><P size="sm">{$t('config.clear')}</P></Tooltip>
+					<Tooltip type="auto"><P size="sm">{$t('config.clear')}</P></Tooltip>
 				{:else}
 					<button
 						class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
@@ -104,7 +104,7 @@
 					>
 						<Pen />
 					</button>
-					<Tooltip><P size="sm">{$t('config.edit')}</P></Tooltip>
+					<Tooltip type="auto"><P size="sm">{$t('config.edit')}</P></Tooltip>
 				{/if}
 			{/if}
 			{#if showRouting}
@@ -114,7 +114,7 @@
 						<button class="btn p-0 ml-2" on:click={() => {}}>
 							<Route class="text-primary-500" />
 						</button>
-						<Tooltip class="z-50">
+						<Tooltip type="auto" class="z-50">
 							<P size="sm" class="whitespace-pre-line">{$t('config.passed')}</P>
 							{#if otherDefinitions?.length > 0}
 								<P size="sm" class="whitespace-pre-line mt-2">{$t('config.otherDefinitions')}</P>
@@ -134,7 +134,7 @@
 						<button class="btn p-0 ml-2" on:click={() => {}}>
 							<RouteOff class="text-primary-500" />
 						</button>
-						<Tooltip class="z-50">
+						<Tooltip type="auto" class="z-50">
 							<P size="sm" class="whitespace-pre-line">{@html $t('config.notPassed')}</P>
 							<P size="sm" class="whitespace-pre-line mt-2">{$t('config.overwrittenBy')}</P>
 							<div class="grid grid-cols-2 gap-x-4">
@@ -154,7 +154,7 @@
 					<button class="btn p-0 ml-2" on:click={() => {}}>
 						<Route class="text-primary-500" />
 					</button>
-					<Tooltip class="z-50">
+					<Tooltip type="auto" class="z-50">
 						<P size="sm" class="whitespace-pre-line">{@html $t('config.passed')}</P>
 						<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P>
 					</Tooltip>
@@ -162,7 +162,7 @@
 					<button class="btn p-0 ml-2" on:click={() => {}}>
 						<RouteOff class="text-primary-500" />
 					</button>
-					<Tooltip class="z-50">
+					<Tooltip type="auto" class="z-50">
 						<P size="sm" class="whitespace-pre-line">{@html $t('config.notSet')}</P>
 						<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P>
 					</Tooltip>

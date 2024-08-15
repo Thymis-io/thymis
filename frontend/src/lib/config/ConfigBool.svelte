@@ -13,5 +13,5 @@
 
 <Toggle class="mt-1.5" size="small" {name} checked={value} on:change={changeInternal} {disabled} />
 {#if disabled}
-	<Tooltip placement={'top-start'}>{$t('config.editDisabled')}</Tooltip>
+	<Tooltip type="auto" placement={'top-start'}>{$t('config.editDisabled')}</Tooltip>
 {/if}
