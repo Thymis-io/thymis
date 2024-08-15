@@ -69,6 +69,7 @@
         device-formats // {
           recurseForDerivations = true;
         };
+      removeRecurseForDerivations = nixpkgs.lib.filterAttrsRecursive (k: v: k != "recurseForDerivations");
     in
     {
       inputs = inputs;
@@ -114,7 +115,7 @@
       nixosModules = nixosModules;
       all-download-images = all-download-images;
       hydraJobs = {
-        all-download-images = all-download-images;
+        all-download-images = removeRecurseForDerivations all-download-images;
       };
     };
 }
