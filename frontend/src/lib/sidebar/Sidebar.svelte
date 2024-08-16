@@ -21,12 +21,13 @@
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import {
 		globalNavSelectedDevice,
+		globalNavSelectedTag,
 		globalNavSelectedTarget,
 		globalNavSelectedTargetType,
-		state,
-		type ModuleSettings
+		state
 	} from '$lib/state';
 	import GlobalNavSelect from '$lib/sidebar/GlobalNavSelect.svelte';
+	import { isVNCModule, deviceHasVNCModule } from '$lib/vnc/vnc';
 
 	export let drawerHidden: boolean;
 
@@ -67,11 +68,15 @@
 		children?: Record<string, string>;
 	};
 
-	const isVNCModule = (module: ModuleSettings) => module.type.toLowerCase().includes('vnc');
-
 	$: hasVNCModule =
 		$state.devices.some((device) => device.modules.some(isVNCModule)) ||
 		$state.tags.some((tag) => tag.modules.some(isVNCModule));
+
+	$: selectedTargetHasAnyVNCModule =
+		$globalNavSelectedTarget?.modules.some(isVNCModule) ||
+		$state.devices
+			.filter((device) => device.tags.some((tag) => tag === $globalNavSelectedTag?.identifier))
+			?.some((device) => deviceHasVNCModule(device, $state));
 
 	let dynamicNavItems: NavItem[] = [];
 	$: dynamicNavItems = [
@@ -80,6 +85,12 @@
 			icon: SlidersSolid,
 			href: '/config',
 			hidden: !$globalNavSelectedTarget
+		},
+		{
+			name: $t('nav.device-vnc'),
+			icon: ScreenShare,
+			href: '/device-vnc',
+			hidden: !selectedTargetHasAnyVNCModule
 		},
 		{
 			name: $t('nav.terminal'),
@@ -102,7 +113,7 @@
 			href: '/devices'
 		},
 		{
-			name: $t('nav.vnc'),
+			name: $t('nav.global-vnc'),
 			icon: ScreenShare,
 			href: '/vnc',
 			hidden: !hasVNCModule

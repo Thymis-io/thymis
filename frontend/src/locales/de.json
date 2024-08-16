@@ -11,7 +11,8 @@
 		"devices": "Geräte",
 		"history": "Versionen",
 		"terminal": "Terminal",
-		"vnc": "VNC",
+		"global-vnc": "VNC Alle Geräte",
+		"device-vnc": "VNC",
 		"settings": "Einstellungen"
 	},
 	"common": {
@@ -19,6 +20,10 @@
 		"save": "Speichern",
 		"cancel": "Abbrechen",
 		"no-tag-or-device-selected": "Kein Tag oder Gerät ausgewählt"
+	},
+	"vnc": {
+		"connection-failed": "Verbindungsfehler",
+		"control-device": "Gerät Steuern"
 	},
 	"devices": {
 		"create-new": "Neues Gerät Erstellen",

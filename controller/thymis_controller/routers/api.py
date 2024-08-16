@@ -1,9 +1,12 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, Request
+import asyncio
+
+from fastapi import APIRouter, Depends, Request, WebSocket
 from fastapi.responses import FileResponse, RedirectResponse
 from thymis_controller import dependencies, models, modules, project
 from thymis_controller.dependencies import get_project
 from thymis_controller.models.state import State
 from thymis_controller.routers import task
+from thymis_controller.tcp_to_ws import tcp_to_websocket, websocket_to_tcp
 
 router = APIRouter()
 
@@ -88,3 +91,33 @@ async def update(
     project.write_state_and_reload(project.read_state())
     await project.create_update_task()
     return {"message": "update started"}
+
+
+@router.websocket("/vnc/{identifier}")
+async def websocket_endpoint(
+    identifier: str,
+    websocket: WebSocket,
+    state: State = Depends(dependencies.get_state),
+):
+    device = next(device for device in state.devices if device.identifier == identifier)
+
+    if device is None:
+        await websocket.close()
+        return
+
+    await websocket.accept()
+
+    tcp_ip = device.targetHost
+    tcp_port = 5900
+    tcp_reader, tcp_writer = await asyncio.open_connection(tcp_ip, tcp_port)
+
+    tcp_to_ws_task = asyncio.create_task(tcp_to_websocket(tcp_reader, websocket))
+    ws_to_tcp_task = asyncio.create_task(websocket_to_tcp(tcp_writer, websocket))
+
+    try:
+        await asyncio.gather(tcp_to_ws_task, ws_to_tcp_task)
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        tcp_to_ws_task.cancel()
+        ws_to_tcp_task.cancel()
