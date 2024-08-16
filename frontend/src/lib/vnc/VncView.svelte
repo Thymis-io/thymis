@@ -2,10 +2,9 @@
 	import { t } from 'svelte-i18n';
 	import type { Device } from '$lib/state';
 	import { state } from '$lib/state';
-	import { browser } from '$app/environment';
 	import { controllerHost } from '$lib/api';
 	import { Card, Spinner, Toggle, P } from 'flowbite-svelte';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { deviceHasVNCModule } from '$lib/vnc/vnc';
 
 	export let device: Device;
@@ -51,18 +50,18 @@
 		}
 	};
 
+	onMount(() => {
+		if (hasVNC) {
+			initVNC(device);
+		}
+	});
+
 	onDestroy(() => {
 		if (rfb) {
 			rfb.disconnect();
 			rfb = null;
 		}
 	});
-
-	$: {
-		if (browser && hasVNC) {
-			initVNC(device);
-		}
-	}
 </script>
 
 {#if hasVNC}
