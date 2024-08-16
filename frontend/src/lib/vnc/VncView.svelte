@@ -4,7 +4,7 @@
 	import { state } from '$lib/state';
 	import { browser } from '$app/environment';
 	import { controllerHost } from '$lib/api';
-	import { Card, Spinner } from 'flowbite-svelte';
+	import { Card, Spinner, Toggle, P } from 'flowbite-svelte';
 	import { onDestroy } from 'svelte';
 	import { deviceHasVNCModule } from '$lib/vnc/vnc';
 
@@ -12,6 +12,8 @@
 	let rfb: any;
 	let connected = false;
 	let connectionFailed = false;
+
+	let controlDevice = false;
 
 	$: hasVNC = device && deviceHasVNCModule(device, $state);
 
@@ -32,13 +34,21 @@
 		connectionFailed = false;
 
 		rfb = new RFB.default(canvas, url, { credentials: { password: password } });
-		rfb.addEventListener('connect', () => connected = true);
-		rfb.addEventListener('disconnect', () => connectionFailed = true);
-		rfb.addEventListener('securityfailure', () => connectionFailed = true);
+		rfb.addEventListener('connect', () => (connected = true));
+		rfb.addEventListener('disconnect', () => (connectionFailed = true));
+		rfb.addEventListener('securityfailure', () => (connectionFailed = true));
 
-		rfb.viewOnly = true;
+		rfb.viewOnly = !controlDevice;
 		rfb.scaleViewport = true;
 		rfb.showDotCursor = true;
+	};
+
+	const toggleControlDevice = () => {
+		controlDevice = !controlDevice;
+
+		if (rfb) {
+			rfb.viewOnly = !controlDevice;
+		}
 	};
 
 	onDestroy(() => {
@@ -57,17 +67,22 @@
 
 {#if hasVNC}
 	<Card class="w-full max-w-none">
-		<pre>vncviewer {device.targetHost}:5900</pre>
-		<div
-			id={`vnc-canvas-${device.targetHost}`}
-			class="relative w-full aspect-video mt-4"
-		>
+		<div class="flex justify-between">
+			<pre>vncviewer {device.targetHost}:5900</pre>
+			<div class="flex items-center gap-2">
+				<P>{$t('vnc.control-device')}</P>
+				<Toggle bind:checked={controlDevice} on:click={toggleControlDevice} />
+			</div>
+		</div>
+		<div id={`vnc-canvas-${device.targetHost}`} class="relative w-full aspect-video mt-4">
 			{#if connectionFailed}
-				<p class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-red-500">
+				<p
+					class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-red-500"
+				>
 					{$t('vnc.connection-failed')}
 				</p>
 			{:else if !connected}
-				<Spinner size=16 class="absolute top-1/2 left-1/2 -mt-8 -ml-8" />
+				<Spinner size="16" class="absolute top-1/2 left-1/2 -mt-8 -ml-8" />
 			{/if}
 		</div>
 	</Card>

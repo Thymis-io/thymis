@@ -22,7 +22,8 @@
 		"no-tag-or-device-selected": "No tag or device selected"
 	},
 	"vnc": {
-		"connection-failed": "Connection failed"
+		"connection-failed": "Connection failed",
+		"control-device": "Control Device"
 	},
 	"devices": {
 		"create-new": "Create New Device",

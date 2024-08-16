@@ -24,7 +24,7 @@
 		globalNavSelectedTag,
 		globalNavSelectedTarget,
 		globalNavSelectedTargetType,
-		state,
+		state
 	} from '$lib/state';
 	import GlobalNavSelect from '$lib/sidebar/GlobalNavSelect.svelte';
 	import { isVNCModule, deviceHasVNCModule } from '$lib/vnc/vnc';
@@ -72,11 +72,11 @@
 		$state.devices.some((device) => device.modules.some(isVNCModule)) ||
 		$state.tags.some((tag) => tag.modules.some(isVNCModule));
 
-	$: selectedTargetHasAnyVNCModule = 
-	    $globalNavSelectedTarget?.modules.some(isVNCModule) ||
-		$state.devices.filter(
-			(device) => device.tags.some(tag => tag === $globalNavSelectedTag?.identifier)
-		)?.some(device => deviceHasVNCModule(device, $state));
+	$: selectedTargetHasAnyVNCModule =
+		$globalNavSelectedTarget?.modules.some(isVNCModule) ||
+		$state.devices
+			.filter((device) => device.tags.some((tag) => tag === $globalNavSelectedTag?.identifier))
+			?.some((device) => deviceHasVNCModule(device, $state));
 
 	let dynamicNavItems: NavItem[] = [];
 	$: dynamicNavItems = [
