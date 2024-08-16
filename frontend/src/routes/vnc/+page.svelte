@@ -1,8 +1,10 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { P, Card } from 'flowbite-svelte';
+	import { P } from 'flowbite-svelte';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import { state } from '$lib/state';
+	import VncView from '$lib/vnc/VncView.svelte';
+	import { deviceHasVNCModule } from '$lib/vnc/vnc';
 
 	export let data: PageData;
 </script>
@@ -13,12 +15,11 @@
 </div>
 <div class="grid grid-cols-3 gap-4">
 	{#each $state.devices as device}
-		<div>
-			<P class="mb-2 text-center">{device.displayName}</P>
-			<Card class="w-full max-w-none">
-				<pre>vncviewer {device.targetHost}:5900</pre>
-				<img alt=" " class="w-full aspect-video" />
-			</Card>
-		</div>
+		{#if deviceHasVNCModule(device, $state)}
+			<div>
+				<P class="mb-2 text-center">{device.displayName}</P>
+				<VncView {device} />
+			</div>
+		{/if}
 	{/each}
 </div>
