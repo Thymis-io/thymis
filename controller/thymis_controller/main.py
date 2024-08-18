@@ -1,16 +1,22 @@
+import asyncio
+from contextlib import asynccontextmanager
 import importlib
 import logging
+import pathlib
+import shutil
+import tempfile
 
 from alembic.config import Config
 from alembic.script import ScriptDirectory
+from sqlalchemy import engine_from_config
 import thymis_controller.lib  # pylint: disable=unused-import
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from thymis_controller.routers import api, frontend, auth
 from thymis_controller.config import global_settings
-import thymis_controller.db_models  # pylint: disable=unused-import
 from thymis_controller.database.connection import engine
 from thymis_controller.database.base import Base
+from alembic import command
 
 logger = logging.getLogger(__name__)
 
@@ -18,15 +24,52 @@ logger = logging.getLogger(__name__)
 alembic_config = Config('alembic.ini')
 script = ScriptDirectory.from_config(alembic_config)
 
-# check if database is empty
-if not script.get_heads():
-    logger.info("Creating database tables")
-    Base.metadata.create_all(engine)
-else:
-    # check if the database is up to date
-    logger.info("Checking database migrations")
-    # TODO implement a way to check if the database is up to date
-    # TODO implement a way to run migrations if the database is not up to date
+def peform_db_upgrade():
+    with engine.begin() as connection:
+        alembic_config.attributes['connection'] = connection
+        logger.info("Performing database upgrade")
+        command.upgrade(alembic_config, "head")
+        logger.info("Database upgrade complete")
+
+
+def check_and_move_old_repo():
+    # check if old repo path exists
+    old_path = pathlib.Path("/var/lib/thymis")
+    old_git_path = old_path / ".git"
+    if old_git_path.exists():
+        logger.warning(f"Old git repository found at {old_git_path}, moving to {global_settings.REPO_PATH}")
+        # move the /var/lib/thymis directory to temp
+        with tempfile.TemporaryDirectory() as tempdir:
+            tempdir_path = pathlib.Path(tempdir)
+            # copy /var/lib/thymis to temp
+            shutil.copytree(old_path, tempdir_path / "thymis")
+            # remove all files in /var/lib/thymis without removing the directory
+            for file in old_path.iterdir():
+                if file.is_dir():
+                    shutil.rmtree(file)
+                else:
+                    file.unlink()
+            # move the old directory to the new one
+            shutil.move(tempdir_path / "thymis", global_settings.REPO_PATH)
+            # remove the temp directory
+            shutil.rmtree(tempdir_path)
+        logger.info(f"Moved old git repository to {global_settings.REPO_PATH}")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Starting up...")
+    check_and_move_old_repo()
+    peform_db_upgrade()
+    logger.info("starting frontend")
+    await frontend.frontend.run()
+    logger.info("frontend started")
+    asyncio.get_event_loop().create_task(frontend.frontend.raise_if_terminated())
+    logger.info("frontend raise_if_terminated task created")
+    yield
+    logger.info("stopping frontend")
+    await frontend.frontend.stop()
+    logger.info("frontend stopped")
 
 
 description = """
@@ -53,7 +96,7 @@ app = FastAPI(
             "description": "Thymis Controller",
         },
     ],
-    lifespan=frontend.lifespan,
+    lifespan=lifespan,
 )
 
 origins = [
