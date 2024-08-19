@@ -63,6 +63,9 @@ jobs:
         run: |
           npm ci
         working-directory: frontend
+      - name: Build application
+        run: |
+          nix build .#thymis-controller
       - name: Install Playwright Browser
         run: |
           npx playwright install --with-deps
