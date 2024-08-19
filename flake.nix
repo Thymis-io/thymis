@@ -24,7 +24,8 @@
       };
       eachSystem = nixpkgs.lib.genAttrs (import ./flake.systems.nix);
       nixosModules = {
-        thymis = ./thymis-nixos-module.nix;
+        thymis-device = ./thymis-device-nixos-module.nix;
+        thymis-controller = ./thymis-controller-nixos-module.nix;
       } // nixpkgs.lib.mapAttrs'
         (name: value: {
           name = "thymis-device-${name}";
@@ -37,7 +38,7 @@
         in
         (nixpkgs.lib.nixosSystem {
           modules = [
-            nixosModules.thymis
+            nixosModules.thymis-device
             nixosModules."thymis-device-${thymis-config-parsed.device-type}"
             {
               thymis.config = thymis-config-parsed;
@@ -106,15 +107,8 @@
           };
         in
         {
-          thymis-frontend = thymis-frontend;
           thymis-controller = thymis-controller;
           thymis-controller-container = import ./docker.nix { inherit pkgs thymis-controller; };
-          thymis-frontend-container = pkgs.dockerTools.buildLayeredImage {
-            name = "thymis-frontend";
-            config = {
-              Cmd = [ "${thymis-frontend}/bin/thymis-controller" ];
-            };
-          };
         }
       );
       nixosModules = nixosModules;
