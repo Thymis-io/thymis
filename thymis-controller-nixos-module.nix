@@ -55,9 +55,6 @@ in
     };
   };
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [
-      pkgs.git
-    ];
     systemd.services.thymis-controller = {
       description = "Thymis controller";
       after = [ "network.target" ];
@@ -66,6 +63,7 @@ in
       path = [
         "/run/current-system/sw"
         pkgs.git
+        pkgs.nixpkgs-fmt
       ];
       environment = {
         THYMIS_REPO_PATH = cfg.repo-path;
