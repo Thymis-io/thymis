@@ -6,13 +6,6 @@ from thymis_controller.nix import convert_python_value_to_nix
 class ThymisController(modules.Module):
     displayName: str = "Thymis Controller"
 
-    # repo_dir = models.Setting(
-    #     name="thymis.controller.repo-dir",
-    #     type="string",
-    #     default="/var/lib/thymis",
-    #     description="The directory where the thymis repository is located.",
-    #     example="/var/lib/thymis",
-    # )
     repo_dir = models.Setting(
         name="services.thymis-controller.repo-path",
         type="string",
