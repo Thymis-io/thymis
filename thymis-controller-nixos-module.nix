@@ -1,18 +1,56 @@
-{ config, lib, pkgs, inputs, modulesPath, ... }:
+{ config, lib, pkgs, inputs, ... }:
 let
   cfg = config.services.thymis-controller;
 in
-
 {
-  imports = [
-  ];
   options = {
     services.thymis-controller = {
       enable = lib.mkEnableOption "the Thymis controller";
-      repo-dir = lib.mkOption {
+      repo-path = lib.mkOption {
         type = lib.types.str;
-        default = "/var/lib/thymis";
-        description = "Directory where the controller will store its state";
+        default = "/var/lib/thymis/repository";
+        description = "Directory where the controller will store the repository holding the project";
+      };
+      database-url = lib.mkOption {
+        type = lib.types.str;
+        default = "sqlite:////var/lib/thymis/thymis.sqlite";
+        description = "URL of the database";
+      };
+      base-url = lib.mkOption {
+        type = lib.types.str;
+        default = "http://localhost:8000";
+        description = "Base URL of the controller, how it will be accessed from the outside";
+      };
+      auth-basic = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Whether to enable authentication using a basic username/password";
+      };
+      auth-basic-username = lib.mkOption {
+        type = lib.types.str;
+        default = "admin";
+        description = "Username for basic authentication";
+      };
+      auth-basic-password-file = lib.mkOption {
+        type = lib.types.path;
+        default = "/var/lib/thymis/auth-basic-password";
+        description = "File containing the password for basic authentication";
+      };
+      listen-host = lib.mkOption {
+        type = lib.types.str;
+        default = "127.0.0.1";
+        description = "Host on which the controller listens for incoming connections";
+      };
+      listen-port = lib.mkOption {
+        type = lib.types.int;
+        default = 8000;
+        description = "Port on which the controller listens for incoming connections";
+      };
+      nginx-vhost-enable = lib.mkEnableOption "whether to enable the Nginx virtual host";
+      nginx-vhost-name = lib.mkOption {
+        type = lib.types.str;
+        default = "thymis";
+        description = "Name of the Nginx virtual host";
       };
     };
   };
@@ -30,15 +68,22 @@ in
         pkgs.git
       ];
       environment = {
-        REPO_PATH = cfg.repo-dir;
+        THYMIS_REPO_PATH = cfg.repo-path;
+        THYMIS_DATABASE_URL = cfg.database-url;
+        THYMIS_BASE_URL = cfg.base-url;
+        THYMIS_AUTH_BASIC = builtins.toString cfg.auth-basic;
+        THYMIS_AUTH_BASIC_USERNAME = cfg.auth-basic-username;
+        THYMIS_AUTH_BASIC_PASSWORD_FILE = cfg.auth-basic-password-file;
+        UVICORN_HOST = cfg.listen-host;
+        UVICORN_PORT = builtins.toString cfg.listen-port;
       };
     };
-    services.nginx = {
+    services.nginx = lib.mkIf cfg.nginx-vhost-enable {
       enable = true;
-      virtualHosts.default = {
+      virtualHosts.${cfg.nginx-vhost-name} = {
         default = true;
         locations."/" = {
-          proxyPass = "http://localhost:8000";
+          proxyPass = "http://${cfg.listen-host}:${builtins.toString cfg.listen-port}";
           recommendedProxySettings = true;
           extraConfig = ''
             proxy_http_version 1.1;
@@ -48,15 +93,5 @@ in
         };
       };
     };
-    services.xserver.displayManager.sddm.enable = true;
-    services.xserver.displayManager.autoLogin.enable = true;
-    services.xserver.displayManager.autoLogin.user = "nixos";
-    services.xserver.windowManager.i3.enable = true;
-    services.xserver.windowManager.i3.configFile = pkgs.writeText "i3-config" ''
-      # i3 config file (v4)
-      bar mode invisible;
-      exec ${pkgs.firefox}/bin/firefox --kiosk http://localhost:3000/kiosk
-    '';
-    networking.firewall.allowedTCPPorts = [ 80 443 8000 ];
   };
 }

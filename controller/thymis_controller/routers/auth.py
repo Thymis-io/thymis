@@ -1,3 +1,4 @@
+import pathlib
 from typing import Annotated, Dict
 from urllib.parse import urlparse
 
@@ -44,9 +45,12 @@ def login_basic(
 
     assert urlparse(redirect).netloc == "" and not urlparse(redirect).scheme
 
+    password_file = pathlib.Path(global_settings.AUTH_BASIC_PASSWORD_FILE)
+    password_file_content = password_file.read_text(encoding="utf-8").strip()
+
     if (
         username == global_settings.AUTH_BASIC_USERNAME
-        and password == global_settings.AUTH_BASIC_PASSWORD
+        and password == password_file_content
     ):  # TODO replace password check with hash comparison
         apply_user_session(db_session, response)
         return RedirectResponse(

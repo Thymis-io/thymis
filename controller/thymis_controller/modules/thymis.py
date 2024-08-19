@@ -6,16 +6,99 @@ from thymis_controller.nix import convert_python_value_to_nix
 class ThymisController(modules.Module):
     displayName: str = "Thymis Controller"
 
+    # repo_dir = models.Setting(
+    #     name="thymis.controller.repo-dir",
+    #     type="string",
+    #     default="/var/lib/thymis",
+    #     description="The directory where the thymis repository is located.",
+    #     example="/var/lib/thymis",
+    # )
     repo_dir = models.Setting(
-        name="thymis.controller.repo-dir",
+        name="services.thymis-controller.repo-path",
         type="string",
-        default="/var/lib/thymis",
-        description="The directory where the thymis repository is located.",
-        example="/var/lib/thymis",
+        default=None,
+        description="Directory where the controller will store the repository holding the project",
+        example="/var/lib/thymis/repository",
+        order=10,
+    )
+    database_url = models.Setting(
+        name="services.thymis-controller.database-url",
+        type="string",
+        default=None,
+        description="URL of the database",
+        example="sqlite:////var/lib/thymis/thymis.sqlite",
+        order=20,
+    )
+    base_url = models.Setting(
+        name="services.thymis-controller.base-url",
+        type="string",
+        default=None,
+        description="Base URL of the controller, how it will be accessed from the outside",
+        example="http://localhost:8000",
+        order=30,
+    )
+    auth_basic = models.Setting(
+        name="services.thymis-controller.auth-basic",
+        type="bool",
+        default=None,
+        description="Whether to enable authentication using a basic username/password",
+        example="true",
+        order=40,
+    )
+    auth_basic_username = models.Setting(
+        name="services.thymis-controller.auth-basic-username",
+        type="string",
+        default=None,
+        description="Username for basic authentication",
+        example="admin",
+        order=50,
+    )
+    auth_basic_password_file = models.Setting(
+        name="services.thymis-controller.auth-basic-password-file",
+        type="path",
+        default=None,
+        description="File containing the password for basic authentication",
+        example="/var/lib/thymis/auth-basic-password",
+        order=60,
+    )
+    listen_host = models.Setting(
+        name="services.thymis-controller.listen-host",
+        type="string",
+        default=None,
+        description="Host on which the controller listens for incoming connections",
+        example="127.0.0.1",
+        order=70,
+    )
+    listen_port = models.Setting(
+        name="services.thymis-controller.listen-port",
+        type="int",
+        default=None,
+        description="Port on which the controller listens for incoming connections",
+        example="8000",
+        order=80,
+    )
+    nginx_vhost_enable = models.Setting(
+        name="services.thymis-controller.nginx-vhost-enable",
+        type="bool",
+        default=None,
+        description="Whether to enable the Nginx virtual host",
+        example="true",
+        order=90,
+    )
+    nginx_vhost_name = models.Setting(
+        name="services.thymis-controller.nginx-vhost-name",
+        type="string",
+        default=None,
+        description="Name of the Nginx virtual host",
+        example="thymis",
+        order=100,
     )
 
     def write_nix_settings(self, f, module_settings: ModuleSettings, priority: int):
-        f.write("  thymis.controller.enable = true;\n")
+        f.write(f"  imports = [\n")
+        f.write(f"    inputs.thymis.nixosModules.thymis-controller\n")
+        f.write(f"  ];\n")
+        f.write("  services.thymis-controller.enable = true;\n")
 
         return super().write_nix_settings(f, module_settings, priority)
 
