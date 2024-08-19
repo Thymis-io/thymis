@@ -1,6 +1,7 @@
 import datetime
 import uuid
 from typing import Annotated, Dict
+from urllib.parse import urlparse
 
 import httpx
 from fastapi import APIRouter, Depends, Form, HTTPException, Response, status
@@ -43,8 +44,7 @@ def login_basic(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Basic auth is disabled"
         )
 
-    # assert redirect is a path, not a full URL
-    assert redirect.startswith("/")
+    assert urlparse(redirect).netloc == "" and not urlparse(redirect).scheme
 
     if (
         username == global_settings.AUTH_BASIC_USERNAME
