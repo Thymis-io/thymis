@@ -17,15 +17,15 @@ let
     groups = [ ];
     checkGroups = [ "test" ];
   }).dependencyEnv;
-  # in pythonEnv
 in
 writeShellApplication {
   name = "thymis-controller";
   runtimeInputs = [ git nixpkgs-fmt nix ];
   text = ''
-    export FRONTEND_BINARY=${thymis-frontend}/bin/thymis-frontend
     export UVICORN_HOST=0.0.0.0
     export UVICORN_PORT=8000
+    export THYMIS_FRONTEND_BINARY_PATH=${thymis-frontend}/bin/thymis-frontend
+    export THYMIS_ALEMBIC_INI_PATH="''${THYMIS_ALEMBIC_INI_PATH:=${./alembic.ini}}"
     ${pythonEnv}/bin/uvicorn thymis_controller.main:app "$@"
   '';
 }

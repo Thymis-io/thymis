@@ -1,8 +1,7 @@
 import type { PageLoad } from './$types';
-import { controllerHost, controllerProtocol } from '$lib/api';
 
 export const load = (async ({ fetch }) => {
-	const response = await fetch(`${controllerProtocol}://${controllerHost}/history`, {
+	const response = await fetch(`/api/history`, {
 		method: 'GET',
 		headers: {
 			'content-type': 'application/json'

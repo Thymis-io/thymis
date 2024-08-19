@@ -23,6 +23,10 @@ repos:
       - id: isort
         name: isort (python)
         args: ["--profile", "black"]
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v2.3.1
+    hooks:
+      - id: autoflake
   - repo: https://github.com/nix-community/nixpkgs-fmt
     rev: v1.3.0
     hooks:

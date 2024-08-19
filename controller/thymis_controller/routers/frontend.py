@@ -5,8 +5,6 @@ import pathlib
 import signal
 import subprocess
 import sys
-import traceback
-from contextlib import asynccontextmanager
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +14,7 @@ import psutil
 from fastapi import APIRouter, FastAPI
 from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
+from thymis_controller.config import global_settings
 
 FRONTEND_PORT = 33100
 
@@ -25,7 +24,7 @@ def is_reload_enabled():
 
 
 def frontend_binary_path():
-    return os.getenv("FRONTEND_BINARY")
+    return global_settings.FRONTEND_BINARY_PATH
 
 
 class Frontend:
@@ -112,20 +111,6 @@ class Frontend:
 
 
 frontend = Frontend()
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    logger.info("starting frontend")
-    await frontend.run()
-    logger.info("frontend started")
-    asyncio.get_event_loop().create_task(frontend.raise_if_terminated())
-    logger.info("frontend raise_if_terminated task created")
-    yield
-    logger.info("stopping frontend")
-    await frontend.stop()
-    logger.info("frontend stopped")
-
 
 client = httpx.AsyncClient(base_url=frontend.url)
 

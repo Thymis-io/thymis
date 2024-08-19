@@ -2,11 +2,11 @@ import { browser } from '$app/environment';
 import { env } from '$env/dynamic/public';
 
 export let controllerHost = env.PUBLIC_CONTROLLER_HOST
-	? env.PUBLIC_CONTROLLER_HOST + '/api'
-	: '127.0.0.1:8000/api'; // dev default
+	? env.PUBLIC_CONTROLLER_HOST
+	: '127.0.0.1:8000'; // dev default
 if (browser) {
 	// set controllerHost to the current host/api
-	controllerHost = window.location.host + '/api';
+	controllerHost = window.location.host;
 }
 console.log('controllerHost:', controllerHost);
 export const controllerProtocol = env.PUBLIC_CONTROLLER_PROTOCOL || 'http';

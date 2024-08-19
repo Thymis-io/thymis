@@ -13,7 +13,6 @@
 	} from 'flowbite-svelte';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import GripVertical from 'lucide-svelte/icons/grip-vertical';
-	import { controllerHost, controllerProtocol } from '$lib/api';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import CreateDeviceModal from './CreateDeviceModal.svelte';
 	import EditTagModal from './EditTagModal.svelte';
@@ -47,12 +46,9 @@
 
 	const buildAndDownloadImage = async (device: Device) => {
 		console.log('Building and downloading image');
-		await fetch(
-			`${controllerProtocol}://${controllerHost}/action/build-download-image?identifier=${device.identifier}`,
-			{
-				method: 'POST'
-			}
-		);
+		await fetch(`/api/action/build-download-image?identifier=${device.identifier}`, {
+			method: 'POST'
+		});
 	};
 
 	const findTag = (identifier: string) => {
