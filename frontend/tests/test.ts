@@ -1,9 +1,12 @@
 import { expect, test } from '@playwright/test';
 
-test('index page throws without backend', async ({ page }) => {
+test('index page redirects to login', async ({ page }) => {
 	const resp = await page.goto('/');
 
 	expect(resp).not.toBeNull();
-
-	expect(resp.status()).toBe(500); // The backend is not running, so we get a 500 error
+	if (resp === null) {
+		throw new Error('resp is null');
+	}
+	expect(resp.status()).toBe(200);
+	expect(resp.url()).toBe('http://localhost:8000/login');
 });

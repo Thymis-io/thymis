@@ -21,7 +21,7 @@ from thymis_controller.routers import api, auth, frontend
 logger = logging.getLogger(__name__)
 
 # run database migrations
-alembic_config = Config("alembic.ini")
+alembic_config = Config(global_settings.ALEMBIC_INI_PATH)
 script = ScriptDirectory.from_config(alembic_config)
 
 
@@ -72,6 +72,7 @@ async def lifespan(app: FastAPI):
     logger.info("frontend started")
     asyncio.get_event_loop().create_task(frontend.frontend.raise_if_terminated())
     logger.info("frontend raise_if_terminated task created")
+    logger.info("Starting controller at \033[1m%s\033[0m", global_settings.BASE_URL)
     yield
     logger.info("stopping frontend")
     await frontend.frontend.stop()

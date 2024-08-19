@@ -167,7 +167,10 @@ class Project:
         (self.path / "tags").mkdir(exist_ok=True)
         # for each host create its own folder
         for device in state.devices:
-            assert device.identifier, "identifier cannot be empty"
+            # assert device.identifier, "identifier cannot be empty"
+            logger.info("Device with empty identifier found, skipping")
+            if not device.identifier:
+                continue
             device_path = self.path / "hosts" / device.identifier
             device_path.mkdir(exist_ok=True)
             # create a empty .gitignore file
@@ -252,4 +255,6 @@ class Project:
         )
 
     def create_restart_device_task(self, device_identifier: str):
-        return task.global_task_controller.add_task(task.RestartDeviceTask(device_identifier))
+        return task.global_task_controller.add_task(
+            task.RestartDeviceTask(device_identifier)
+        )
