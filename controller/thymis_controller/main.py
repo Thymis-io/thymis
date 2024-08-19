@@ -1,43 +1,49 @@
 import asyncio
-from contextlib import asynccontextmanager
 import importlib
 import logging
 import pathlib
 import shutil
 import tempfile
+from contextlib import asynccontextmanager
 
+import thymis_controller.lib  # pylint: disable=unused-import
+from alembic import command
 from alembic.config import Config
 from alembic.script import ScriptDirectory
-from sqlalchemy import engine_from_config
-import thymis_controller.lib  # pylint: disable=unused-import
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from thymis_controller.routers import api, frontend, auth
+from sqlalchemy import engine_from_config
 from thymis_controller.config import global_settings
-from thymis_controller.database.connection import engine
 from thymis_controller.database.base import Base
-from alembic import command
+from thymis_controller.database.connection import engine
+from thymis_controller.routers import api, auth, frontend
 
 logger = logging.getLogger(__name__)
 
 # run database migrations
-alembic_config = Config('alembic.ini')
+alembic_config = Config("alembic.ini")
 script = ScriptDirectory.from_config(alembic_config)
+
 
 def peform_db_upgrade():
     with engine.begin() as connection:
-        alembic_config.attributes['connection'] = connection
+        alembic_config.attributes["connection"] = connection
         logger.info("Performing database upgrade")
         command.upgrade(alembic_config, "head")
         logger.info("Database upgrade complete")
 
 
 def check_and_move_old_repo():
+    assert (
+        global_settings.REPO_PATH != "/var/lib/thymis"
+    ), "REPO_PATH should not be /var/lib/thymis"
     # check if old repo path exists
     old_path = pathlib.Path("/var/lib/thymis")
     old_git_path = old_path / ".git"
     if old_git_path.exists():
-        logger.warning(f"Old git repository found at {old_git_path}, moving to {global_settings.REPO_PATH}")
+        logger.warning(
+            f"Old git repository found at {old_git_path}, moving to {global_settings.REPO_PATH}"
+        )
         # move the /var/lib/thymis directory to temp
         with tempfile.TemporaryDirectory() as tempdir:
             tempdir_path = pathlib.Path(tempdir)
