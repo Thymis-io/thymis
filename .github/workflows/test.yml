@@ -73,6 +73,9 @@ jobs:
       - name: Run tests
         run: |
           npm run test
+        env:
+          THYMIS_REPO_PATH: ${{ runner.temp }}/thymis/repository
+          THYMIS_DATABASE_URL: sqlite:///${{ runner.temp }}/thymis/thymis.sqlite
         working-directory: frontend
   test:
     runs-on: ubuntu-latest
