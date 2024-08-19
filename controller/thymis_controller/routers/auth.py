@@ -3,14 +3,7 @@ import uuid
 from typing import Annotated, Dict
 
 import httpx
-from fastapi import (
-    APIRouter,
-    Depends,
-    Form,
-    HTTPException,
-    Response,
-    status,
-)
+from fastapi import APIRouter, Depends, Form, HTTPException, Response, status
 from fastapi.responses import RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
@@ -19,8 +12,8 @@ from thymis_controller.dependencies import (
     SessionAD,
     apply_user_session,
     get_user_session_id,
-    require_valid_user_session,
     invalidate_user_session,
+    require_valid_user_session,
 )
 
 
@@ -35,10 +28,15 @@ router = APIRouter(
     tags=["auth"],
 )
 
+
 # only enable basic auth if the flag is set
 @router.post("/login/basic")
 def login_basic(
-    username: Annotated[str, Form()], password: Annotated[str, Form()], redirect: Annotated[str, Form()], response: Response, db_session: SessionAD
+    username: Annotated[str, Form()],
+    password: Annotated[str, Form()],
+    redirect: Annotated[str, Form()],
+    response: Response,
+    db_session: SessionAD,
 ):
     if not global_settings.AUTH_BASIC:
         raise HTTPException(
@@ -58,7 +56,9 @@ def login_basic(
         )
     else:
         return RedirectResponse(
-            f"/login?redirect={redirect}&authError=credentials", headers=response.headers, status_code=status.HTTP_303_SEE_OTHER
+            f"/login?redirect={redirect}&authError=credentials",
+            headers=response.headers,
+            status_code=status.HTTP_303_SEE_OTHER,
         )
 
 
@@ -81,7 +81,7 @@ def login():
 def logout(
     response: Response,
     user_session: Annotated[str, Depends(get_user_session_id)],
-    db_session: SessionAD
+    db_session: SessionAD,
 ):
     invalidate_user_session(db_session, response, user_session)
 

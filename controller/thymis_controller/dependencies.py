@@ -1,7 +1,7 @@
 import datetime
 import logging
-from typing import Annotated, Generator, Optional, Union
 import uuid
+from typing import Annotated, Generator, Optional, Union
 
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
@@ -17,6 +17,7 @@ from thymis_controller.project import Project
 
 global_project = None
 SESSION_LIFETIME = datetime.timedelta(days=1)
+
 
 def get_project():
     global global_project
@@ -35,6 +36,7 @@ def get_db_session() -> Generator[Session, None, None]:
     with Session(engine) as session:
         yield session
 
+
 # session annotated dependency for FastAPI endpoints
 SessionAD = Annotated[Session, Depends(get_db_session)]
 
@@ -46,7 +48,10 @@ def check_user_session(db_session: SessionAD, user_session_id) -> bool:
     return web_session.validate(db_session, user_session_id)
 
 
-def require_valid_user_session(db_session: SessionAD, user_session_id: Annotated[Union[str, None], Cookie(alias="session")] = None) -> bool:
+def require_valid_user_session(
+    db_session: SessionAD,
+    user_session_id: Annotated[Union[str, None], Cookie(alias="session")] = None,
+) -> bool:
     """
     Check if the session is valid
     """
@@ -58,11 +63,15 @@ def require_valid_user_session(db_session: SessionAD, user_session_id: Annotated
     return True
 
 
-def get_user_session_id(user_session_id: Annotated[Union[str, None], Cookie(alias="session")] = None) -> Optional[str]:
+def get_user_session_id(
+    user_session_id: Annotated[Union[str, None], Cookie(alias="session")] = None
+) -> Optional[str]:
     return user_session_id
 
 
-def invalidate_user_session(db_session: SessionAD, response: Response, user_session_id: str):
+def invalidate_user_session(
+    db_session: SessionAD, response: Response, user_session_id: str
+):
     response.delete_cookie("session")
     web_session.delete(db_session, user_session_id)
 
@@ -70,4 +79,10 @@ def invalidate_user_session(db_session: SessionAD, response: Response, user_sess
 def apply_user_session(db_session: SessionAD, response: Response):
     user_session = web_session.create(db_session)
     exp = user_session.created_at.astimezone(datetime.UTC) + SESSION_LIFETIME
-    response.set_cookie(key="session", value=str(user_session.session_id), httponly=False, samesite='strict', expires=exp)
+    response.set_cookie(
+        key="session",
+        value=str(user_session.session_id),
+        httponly=False,
+        samesite="strict",
+        expires=exp,
+    )

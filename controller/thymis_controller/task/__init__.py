@@ -534,6 +534,7 @@ class BuildDeviceImageTask(CommandTask):
             },
         )
 
+
 class RestartDeviceTask(CommandTask):
     def __init__(self, identifier):
         super().__init__(
