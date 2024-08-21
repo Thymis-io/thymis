@@ -1,6 +1,13 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { Module, ModuleSettings, ModuleSettingsWithOrigin, Origin } from '$lib/state';
+	import type {
+		Module,
+		ModuleSettings,
+		ModuleSettingsWithOrigin,
+		Origin,
+		SelectOneSettingType,
+		Setting
+	} from '$lib/state';
 	import { Card, P, Tooltip } from 'flowbite-svelte';
 	import ConfigString from './ConfigString.svelte';
 	import ConfigBool from './ConfigBool.svelte';
@@ -31,6 +38,39 @@
 	};
 
 	$: settingEntries = Object.entries(module.settings).sort((a, b) => a[1].order - b[1].order);
+
+	const getTypeKeyFromSetting = (setting: Setting): string => {
+		if (setting.type === 'bool') return 'bool';
+		if (setting.type === 'string') return 'string';
+		if (setting.type === 'textarea') return 'textarea';
+		if (
+			typeof setting.type === 'object' &&
+			setting.type.hasOwnProperty('select-one') &&
+			typeof setting.type['select-one'] !== 'string'
+		) {
+			return 'select-one';
+		}
+		if (typeof setting.type === 'object' && setting.type.hasOwnProperty('list-of')) {
+			return 'list-of';
+		}
+		throw new Error(`Unknown setting type: ${setting.type}`);
+	};
+
+	const settingIsBool = (setting: Setting): setting is Setting<'bool'> => {
+		return getTypeKeyFromSetting(setting) === 'bool';
+	};
+
+	const settingIsString = (setting: Setting): setting is Setting<'string'> => {
+		return getTypeKeyFromSetting(setting) === 'string';
+	};
+
+	const settingIsTextarea = (setting: Setting): setting is Setting<'textarea'> => {
+		return getTypeKeyFromSetting(setting) === 'textarea';
+	};
+
+	const settingIsSelectOne = (setting: Setting): setting is Setting<SelectOneSettingType> => {
+		return getTypeKeyFromSetting(setting) === 'select-one';
+	};
 </script>
 
 <Card class="max-w-none grid grid-cols-4 gap-8">
@@ -48,7 +88,7 @@
 		</P>
 		<div class="col-span-1 flex">
 			<div class="flex-1">
-				{#if setting.type == 'bool'}
+				{#if settingIsBool(setting)}
 					<ConfigBool
 						value={settings?.settings[key] === true}
 						name={setting.name}
@@ -57,7 +97,7 @@
 						}}
 						disabled={!canEdit}
 					/>
-				{:else if setting.type == 'string'}
+				{:else if settingIsString(setting)}
 					<ConfigString
 						value={settings?.settings[key]}
 						placeholder={setting.default}
@@ -66,7 +106,7 @@
 						}}
 						disabled={!canEdit}
 					/>
-				{:else if setting.type == 'textarea'}
+				{:else if settingIsTextarea(setting)}
 					<ConfigTextarea
 						value={settings?.settings[key]}
 						placeholder={setting.default}
@@ -75,7 +115,7 @@
 						}}
 						disabled={!canEdit}
 					/>
-				{:else if typeof setting.type === 'object' && setting.type.hasOwnProperty('select_one')}
+				{:else if settingIsSelectOne(setting)}
 					<ConfigSelectOne
 						value={settings?.settings[key]}
 						{setting}

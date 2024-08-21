@@ -26,7 +26,7 @@
 	export let configSelectedModuleContextType: string | null;
 	export let configSelectedModuleContext: Tag | Device | undefined;
 
-	const addModule = (target: Tag | Device | undefined, module: ModuleSettings | Module) => {
+	const addModule = (target: Tag | Device | undefined, module: Module) => {
 		if (target && !target.modules.find((m) => m.type === module.type)) {
 			target.modules = [...target.modules, { type: module.type, settings: {} }];
 			saveState();

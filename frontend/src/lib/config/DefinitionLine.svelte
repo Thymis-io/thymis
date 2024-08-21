@@ -5,7 +5,7 @@
 	import type { Origin } from '$lib/state';
 
 	export let origin: Origin;
-	export let value: string | number | boolean;
+	export let value: unknown;
 </script>
 
 <div class="flex flex gap-2">

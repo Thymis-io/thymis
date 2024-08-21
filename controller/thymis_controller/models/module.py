@@ -1,20 +1,20 @@
 from typing import List, Literal, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 ValueTypes = Literal["bool", "string", "path", "package", "textarea"]
 
 
 class SelectOneType(BaseModel):
-    select_one: List[str]
+    select_one: List[str] = Field(serialization_alias="select-one")
 
-    def __init__(self, select_one: List[str]):
-        super().__init__(select_one=select_one)
+
+Types = Union[ValueTypes, SelectOneType]
 
 
 class Setting(BaseModel):
     name: str
-    type: Union[ValueTypes, SelectOneType]
+    type: Types
     default: object
     description: str
     example: Optional[str] = None

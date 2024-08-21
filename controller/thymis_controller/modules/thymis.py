@@ -25,7 +25,7 @@ class ThymisDevice(modules.Module):
     device_type = models.Setting(
         name="thymis.config.device-type",
         type=models.SelectOneType(
-            [
+            select_one=[
                 "generic-x86_64",
                 "raspberry-pi-3",
                 "raspberry-pi-4",
