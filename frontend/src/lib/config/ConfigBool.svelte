@@ -3,11 +3,11 @@
 	import { Toggle, Tooltip } from 'flowbite-svelte';
 	export let name: string;
 	export let value: boolean | undefined = false;
-	export let change: (value: boolean) => void = () => {};
+	export let onChange: (value: boolean) => void = () => {};
 	export let disabled: boolean;
 
 	let changeInternal = (e: Event) => {
-		change((e.target as HTMLInputElement).checked);
+		onChange((e.target as HTMLInputElement).checked);
 	};
 </script>
 

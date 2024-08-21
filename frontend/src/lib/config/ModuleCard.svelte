@@ -1,23 +1,13 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type {
-		Module,
-		ModuleSettings,
-		ModuleSettingsWithOrigin,
-		Origin,
-		SelectOneSettingType,
-		Setting
-	} from '$lib/state';
+	import type { Module, ModuleSettings, ModuleSettingsWithOrigin, Origin } from '$lib/state';
 	import { Card, P, Tooltip } from 'flowbite-svelte';
-	import ConfigString from './ConfigString.svelte';
-	import ConfigBool from './ConfigBool.svelte';
-	import ConfigTextarea from './ConfigTextarea.svelte';
-	import ConfigSelectOne from './ConfigSelectOne.svelte';
 	import Route from 'lucide-svelte/icons/route';
 	import RouteOff from 'lucide-svelte/icons/route-off';
 	import X from 'lucide-svelte/icons/x';
 	import Pen from 'lucide-svelte/icons/pen';
 	import DefinitionLine from './DefinitionLine.svelte';
+	import ConfigDrawer from './ConfigDrawer.svelte';
 
 	export let module: Module;
 	export let settings: ModuleSettingsWithOrigin | undefined;
@@ -38,39 +28,6 @@
 	};
 
 	$: settingEntries = Object.entries(module.settings).sort((a, b) => a[1].order - b[1].order);
-
-	const getTypeKeyFromSetting = (setting: Setting): string => {
-		if (setting.type === 'bool') return 'bool';
-		if (setting.type === 'string') return 'string';
-		if (setting.type === 'textarea') return 'textarea';
-		if (
-			typeof setting.type === 'object' &&
-			setting.type.hasOwnProperty('select-one') &&
-			typeof setting.type['select-one'] !== 'string'
-		) {
-			return 'select-one';
-		}
-		if (typeof setting.type === 'object' && setting.type.hasOwnProperty('list-of')) {
-			return 'list-of';
-		}
-		throw new Error(`Unknown setting type: ${setting.type}`);
-	};
-
-	const settingIsBool = (setting: Setting): setting is Setting<'bool'> => {
-		return getTypeKeyFromSetting(setting) === 'bool';
-	};
-
-	const settingIsString = (setting: Setting): setting is Setting<'string'> => {
-		return getTypeKeyFromSetting(setting) === 'string';
-	};
-
-	const settingIsTextarea = (setting: Setting): setting is Setting<'textarea'> => {
-		return getTypeKeyFromSetting(setting) === 'textarea';
-	};
-
-	const settingIsSelectOne = (setting: Setting): setting is Setting<SelectOneSettingType> => {
-		return getTypeKeyFromSetting(setting) === 'select-one';
-	};
 </script>
 
 <Card class="max-w-none grid grid-cols-4 gap-8">
@@ -88,43 +45,12 @@
 		</P>
 		<div class="col-span-1 flex">
 			<div class="flex-1">
-				{#if settingIsBool(setting)}
-					<ConfigBool
-						value={settings?.settings[key] === true}
-						name={setting.name}
-						change={(value) => {
-							setSetting(module, key, value);
-						}}
-						disabled={!canEdit}
-					/>
-				{:else if settingIsString(setting)}
-					<ConfigString
-						value={settings?.settings[key]}
-						placeholder={setting.default}
-						change={(value) => {
-							setSetting(module, key, value);
-						}}
-						disabled={!canEdit}
-					/>
-				{:else if settingIsTextarea(setting)}
-					<ConfigTextarea
-						value={settings?.settings[key]}
-						placeholder={setting.default}
-						change={(value) => {
-							setSetting(module, key, value);
-						}}
-						disabled={!canEdit}
-					/>
-				{:else if settingIsSelectOne(setting)}
-					<ConfigSelectOne
-						value={settings?.settings[key]}
-						{setting}
-						change={(value) => {
-							setSetting(module, key, value);
-						}}
-						disabled={!canEdit}
-					/>
-				{/if}
+				<ConfigDrawer
+					{setting}
+					value={settings?.settings[key]}
+					disabled={!canEdit}
+					onChange={(value) => setSetting(module, key, value)}
+				/>
 			</div>
 			{#if canEdit}
 				{#if settings?.settings[key] !== undefined}

@@ -5,11 +5,11 @@
 
 	export let value: unknown = '';
 	export let setting: Setting<SelectOneSettingType>;
-	export let change: (value: string) => void = () => {};
+	export let onChange: (value: string) => void = () => {};
 	export let disabled: boolean = false;
 
 	const changeInternal = (e: Event) => {
-		change((e.target as HTMLInputElement).value);
+		onChange((e.target as HTMLInputElement).value);
 	};
 </script>
 
