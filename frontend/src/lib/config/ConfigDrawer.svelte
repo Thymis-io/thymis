@@ -1,9 +1,10 @@
 <script lang="ts">
-	import type { Module, ModuleSettings, SelectOneSettingType, Setting } from '$lib/state';
+	import type { ListSettingType, SelectOneSettingType, Setting } from '$lib/state';
 	import ConfigString from './ConfigString.svelte';
 	import ConfigBool from './ConfigBool.svelte';
 	import ConfigTextarea from './ConfigTextarea.svelte';
 	import ConfigSelectOne from './ConfigSelectOne.svelte';
+	import ConfigList from './ConfigList.svelte';
 
 	export let setting: Setting;
 	export let value: unknown;
@@ -39,6 +40,10 @@
 	const settingIsSelectOne = (setting: Setting): setting is Setting<SelectOneSettingType> => {
 		return getTypeKeyFromSetting(setting) === 'select-one';
 	};
+
+	const settingIsListOf = (setting: Setting): setting is Setting<ListSettingType> => {
+		return getTypeKeyFromSetting(setting) === 'list-of';
+	};
 </script>
 
 {#if settingIsBool(setting)}
@@ -49,4 +54,6 @@
 	<ConfigTextarea {value} placeholder={setting.default} {onChange} {disabled} />
 {:else if settingIsSelectOne(setting)}
 	<ConfigSelectOne {value} {setting} {onChange} {disabled} />
+{:else if settingIsListOf(setting)}
+	<ConfigList values={Array.isArray(value) ? value : []} settings={setting} {onChange} {disabled} />
 {/if}

@@ -9,7 +9,11 @@ class SelectOneType(BaseModel):
     select_one: List[str] = Field(serialization_alias="select-one")
 
 
-Types = Union[ValueTypes, SelectOneType]
+class ListType(BaseModel):
+    settings: dict[str, "Setting"] = Field(serialization_alias="list-of")
+
+
+Types = Union[ValueTypes, SelectOneType, ListType]
 
 
 class Setting(BaseModel):
@@ -28,4 +32,4 @@ class Module(BaseModel):
     settings: dict[str, Setting]
 
 
-__all__ = ["Setting", "Module", "SelectOneType"]
+__all__ = ["Setting", "Module", "SelectOneType", "ListType"]

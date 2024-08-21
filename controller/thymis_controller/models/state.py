@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, JsonValue
 from thymis_controller import migration
 
 
@@ -12,7 +12,7 @@ class Repo(BaseModel):
 
 class ModuleSettings(BaseModel):
     type: str  # type of module this settings object is for
-    settings: Dict[str, str | int | float | bool]
+    settings: JsonValue
 
 
 class Device(BaseModel):

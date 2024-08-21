@@ -39,6 +39,25 @@ class ThymisDevice(modules.Module):
         order=10,
     )
 
+    dev_1 = models.Setting(
+        name="thymis.config.dev-1",
+        type=models.ListType(
+            settings={
+                "ssh-key": models.Setting(
+                    name="name",
+                    type="string",
+                    default="",
+                    description="",
+                    example="",
+                ),
+            }
+        ),
+        default=[],
+        description="",
+        example='[""]',
+        order=15,
+    )
+
     device_name = models.Setting(
         name="thymis.config.device-name",
         type="string",

@@ -30,7 +30,17 @@ export type SelectOneSettingType = {
 	'select-one': string[];
 };
 
-export type SettingType = 'string' | 'number' | 'bool' | 'textarea' | SelectOneSettingType;
+export type ListSettingType = {
+	'list-of': Setting[];
+};
+
+export type SettingType =
+	| 'string'
+	| 'number'
+	| 'bool'
+	| 'textarea'
+	| SelectOneSettingType
+	| ListSettingType;
 
 export type Setting<T extends SettingType = SettingType> = {
 	name: string;

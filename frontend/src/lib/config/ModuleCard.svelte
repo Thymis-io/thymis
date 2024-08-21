@@ -43,7 +43,7 @@
 		<P class="col-span-1">
 			{$t(`options.nix.${setting.name}`, { default: setting.name })}
 		</P>
-		<div class="col-span-1 flex">
+		<div class="col-span-2 flex">
 			<div class="flex-1">
 				<ConfigDrawer
 					{setting}
@@ -64,7 +64,12 @@
 				{:else}
 					<button
 						class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-						on:click={() => setSetting(module, key, '')}
+						on:click={() =>
+							setSetting(
+								module,
+								key,
+								typeof setting.type === 'object' && setting.type.hasOwnProperty('list-of') ? [] : ''
+							)}
 					>
 						<Pen />
 					</button>
@@ -133,7 +138,7 @@
 				{/if}
 			{/if}
 		</div>
-		<P class="col-span-2">{setting.description}</P>
+		<P class="col-span-1">{setting.description}</P>
 	{:else}
 		<div class="col-span-1">{$t('options.no-settings')}</div>
 	{/each}
