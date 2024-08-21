@@ -28,8 +28,7 @@ export type ModuleSettingsWithOrigin = {
 
 export type Setting = {
 	name: string;
-	type: string;
-	options?: string[];
+	type: string | { select_one: string[] };
 	default: string;
 	description: string;
 	example: string | null;

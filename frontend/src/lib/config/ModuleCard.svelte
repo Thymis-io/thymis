@@ -41,7 +41,6 @@
 			?.sort(settingsOrder)
 			?.map((o) => ({
 				...o,
-				options: module.settings[key].options,
 				setting: o.settings[key]
 			}))}
 		<P class="col-span-1">
@@ -76,10 +75,9 @@
 						}}
 						disabled={!canEdit}
 					/>
-				{:else if setting.type == 'select-one'}
+				{:else if typeof setting.type === 'object' && setting.type.hasOwnProperty('select_one')}
 					<ConfigSelectOne
 						value={settings?.settings[key]}
-						options={setting.options}
 						{setting}
 						change={(value) => {
 							setSetting(module, key, value);

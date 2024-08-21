@@ -4,10 +4,9 @@
 	import type { Setting } from '$lib/state';
 
 	export let value: unknown = '';
-	export let options: string[] = [];
 	export let setting: Setting;
 	export let change: (value: string) => void = () => {};
-	export let disabled: boolean;
+	export let disabled: boolean = false;
 
 	const changeInternal = (e: Event) => {
 		change((e.target as HTMLInputElement).value);
@@ -17,10 +16,12 @@
 <Select
 	{value}
 	on:change={changeInternal}
-	items={options.map((option) => ({
-		value: option,
-		name: $t(`options.nix.${setting.name}-options.${option}`)
-	}))}
+	items={typeof setting.type === 'object' && setting.type.hasOwnProperty('select_one')
+		? setting.type.select_one?.map((option) => ({
+				value: option,
+				name: $t(`options.nix.${setting.name}-options.${option}`)
+			}))
+		: []}
 	{disabled}
 	class={disabled ? 'opacity-70' : ''}
 />

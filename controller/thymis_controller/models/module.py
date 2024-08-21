@@ -1,12 +1,20 @@
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Union
 
 from pydantic import BaseModel
+
+ValueTypes = Literal["bool", "string", "path", "package", "textarea"]
+
+
+class SelectOneType(BaseModel):
+    select_one: List[str]
+
+    def __init__(self, select_one: List[str]):
+        super().__init__(select_one=select_one)
 
 
 class Setting(BaseModel):
     name: str
-    type: Literal["bool", "string", "path", "package", "select-one", "textarea"]
-    options: Optional[List[str]] = None
+    type: Union[ValueTypes, SelectOneType]
     default: object
     description: str
     example: Optional[str] = None
@@ -20,4 +28,4 @@ class Module(BaseModel):
     settings: dict[str, Setting]
 
 
-__all__ = ["Setting", "Module"]
+__all__ = ["Setting", "Module", "SelectOneType"]
