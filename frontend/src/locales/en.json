@@ -29,7 +29,7 @@
 		"create-new": "Create New Device",
 		"table": {
 			"name": "Name",
-			"target-host": "Hostname",
+			"target-host": "Target Host",
 			"tags": "Tags",
 			"actions": "Actions",
 			"status": "Status"
@@ -113,7 +113,18 @@
 				"step-2": "2. remove the data carrier from your file system (unmount) if you have not already done so.",
 				"step-3": "3. overwrite the data carrier with the system image using Thymis. The data carrier will be completely overwritten."
 			}
-		}
+		},
+		"name-helper": "Device will be called {identifier} internally.",
+		"display-name": "Display name - How the device will be displayed in the UI - Required",
+		"display-name-cannot-be-empty": "Display name cannot be empty.",
+		"display-name-exists": "Display name already exists.",
+		"identifier-exists": "Identifier already exists.",
+		"device-type": "Device type - What type of hardware device is this? - Required",
+		"tags": "Device tags - What tags should be assigned to this device?",
+		"no-tags": "Your project has no tags yet, so you can't assign any to this device.",
+		"create": "Create device",
+		"device-type-cannot-be-empty": "Device type cannot be empty.",
+		"device-with-display-name-name-exists": "Device with display name \"{displayName}\" already exists in project."
 	},
 	"deploy": {
 		"build": "Build",

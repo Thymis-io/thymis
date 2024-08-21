@@ -18,30 +18,23 @@
 	import EditTagModal from './EditTagModal.svelte';
 	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
 	import type { PageData } from './$types';
-	import { dndzone, SOURCES, TRIGGERS } from 'svelte-dnd-action';
+	import { dndzone, SOURCES, TRIGGERS, type DndEvent } from 'svelte-dnd-action';
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
+	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
+	import { flip } from 'svelte/animate';
 
 	const flipDurationMs = 200;
 	let dragDisabled = true;
 
 	export let data: PageData;
 
-	function deleteDevice(device: Device) {
+	const deleteDevice = async (device: Device) => {
 		data.state.devices = data.state.devices.filter((d) => d.identifier !== device.identifier);
-		saveState();
-	}
+		await saveState();
+	};
 
-	function restartDevice(device: Device) {
+	const restartDevice = async (device: Device) => {
 		fetch(`/api/action/restart-device?identifier=${device.identifier}`, { method: 'POST' });
-	}
-
-	const downloadUri = (uri: string) => {
-		const link = document.createElement('a');
-		link.href = uri;
-		link.download = 'image.img';
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
 	};
 
 	const buildAndDownloadImage = async (device: Device) => {
@@ -55,43 +48,9 @@
 		return data.state.tags.find((t) => t.identifier === identifier);
 	};
 
-	enum ModalType {
-		None,
-		CreateDevice,
-		EditTags
-	}
-
-	let openModal = ModalType.None;
 	let editDevice: Device | undefined;
 
-	const openCreateDeviceModal = () => {
-		openModal = ModalType.CreateDevice;
-	};
-
-	const closeCreateDeviceModal = () => {
-		openModal = ModalType.None;
-	};
-
-	const openEditTagModal = (device: Device) => {
-		openModal = ModalType.None;
-		openModal = ModalType.EditTags;
-		editDevice = device;
-	};
-
-	const closeEditTagModal = () => {
-		openModal = ModalType.None;
-		editDevice = undefined;
-	};
-
-	const saveEditTagModal = (tags: string[], availableTags: Tag[]) => {
-		if (editDevice) {
-			editDevice.tags = tags;
-			data.state.tags = availableTags;
-			saveState();
-		}
-	};
-
-	function handleConsider(e) {
+	const handleConsider = (e: CustomEvent<DndEvent<{ id: string; data: Device }>>) => {
 		const {
 			items: newItems,
 			info: { source, trigger }
@@ -101,9 +60,8 @@
 		if (source === SOURCES.KEYBOARD && trigger === TRIGGERS.DRAG_STOPPED) {
 			dragDisabled = true;
 		}
-		console.log('consider', newItems);
-	}
-	function handleFinalize(e) {
+	};
+	const handleFinalize = (e: CustomEvent<DndEvent<{ id: string; data: Device }>>) => {
 		const {
 			items: newItems,
 			info: { source }
@@ -117,42 +75,32 @@
 		if (source === SOURCES.POINTER) {
 			dragDisabled = true;
 		}
-		console.log('finalize', newItems);
-	}
-	function startDrag(e) {
+	};
+	const startDrag = ((e) => {
 		// preventing default to prevent lag on touch devices (because of the browser checking for screen scrolling)
 		e.preventDefault();
 		dragDisabled = false;
-	}
-	function handleKeyDown(e) {
+	}) satisfies TouchEventHandler<HTMLDivElement> & MouseEventHandler<HTMLDivElement>;
+	const handleKeyDown = ((e) => {
 		if ((e.key === 'Enter' || e.key === ' ') && dragDisabled) dragDisabled = false;
-	}
+	}) satisfies KeyboardEventHandler<HTMLDivElement>;
 
 	$: devices = data.state.devices.map((d) => {
 		return { id: d.identifier, data: d };
 	});
+
+	let deviceModalOpen = false;
+	let currentlyEditingDevice: Device | undefined = undefined;
 </script>
 
 <div class="flex justify-between mb-4">
-	<Button color="alternative" on:click={() => openCreateDeviceModal()}>
+	<Button color="alternative" on:click={() => (deviceModalOpen = true)}>
 		{$t('devices.create-new')}
 	</Button>
 	<DeployActions />
 </div>
-<CreateDeviceModal
-	open={openModal === ModalType.CreateDevice}
-	onClose={closeCreateDeviceModal}
-	thymisDevice={data.availableModules.find(
-		(m) => m.type === 'thymis_controller.modules.thymis.ThymisDevice'
-	)}
-/>
-<EditTagModal
-	tags={editDevice?.tags ?? []}
-	availableTags={data.state.tags}
-	open={openModal === ModalType.EditTags}
-	onClose={closeEditTagModal}
-	onSave={saveEditTagModal}
-/>
+<CreateDeviceModal bind:open={deviceModalOpen} />
+<EditTagModal bind:currentlyEditingDevice />
 <Table shadow>
 	<TableHead>
 		<TableHeadCell />
@@ -168,12 +116,16 @@
 		on:finalize={handleFinalize}
 	>
 		{#each devices as device (device.id)}
-			<TableBodyRow>
+			<tr
+				class="border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700"
+				animate:flip={{ duration: flipDurationMs }}
+			>
 				<TableBodyCell>
 					<div class="flex gap-1">
 						<div
 							tabindex={dragDisabled ? 0 : -1}
 							aria-label="drag-handle"
+							role="button"
 							class="handle"
 							style={dragDisabled ? 'cursor: grab' : 'cursor: grabbing'}
 							on:mousedown={startDrag}
@@ -205,7 +157,7 @@
 								</Button>
 							{/each}
 						</div>
-						<button class="btn ml-2 p-0" on:click={() => openEditTagModal(device.data)}>
+						<button class="btn ml-2 p-0" on:click={() => (currentlyEditingDevice = device.data)}>
 							<Pen size="20" />
 						</button>
 					</div>
@@ -236,7 +188,7 @@
 				<TableBodyCell>
 					{$t('devices.status.online')}
 				</TableBodyCell>
-			</TableBodyRow>
+			</tr>
 		{/each}
 	</tbody>
 </Table>

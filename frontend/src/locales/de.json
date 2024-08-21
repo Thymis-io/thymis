@@ -29,7 +29,7 @@
 		"create-new": "Neues Gerät Erstellen",
 		"table": {
 			"name": "Name",
-			"target-host": "Hostname",
+			"target-host": "Ziel Host",
 			"tags": "Tags",
 			"actions": "Aktionen",
 			"status": "Status"
