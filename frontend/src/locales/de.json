@@ -58,26 +58,13 @@
 			"info": "Sie können ganz einfach eine ISO-Datei oder ein System-Image für Ihr IoT-Gerät erstellen."
 		},
 		"step-2": {
-			"title": "Gerät auswählen",
-			"info": "Wir unterstützen derzeit x86-basierte und aarch64/ARM64-basierte Geräte. Dazu gehören der Raspberry Pi 4 und 5, sowie normale Desktop-Computer."
+			"title": "Gerät auswählen"
 		},
 		"step-3": {
-			"title": "Verbindungsinformationen",
-			"info": "Sobald Thymis installiert ist, können Sie vieles mehr einrichten. Geben Sie zunächst die notwendigen Verbindungsinformationen ein, damit Sie das Gerät nach der automatischen Installation erreichen können.",
-			"device-name": "Name",
-			"hostname": "Hostname",
-			"wlan": "Drahtloses Netzwerk",
-			"wlan-ssid": "WLAN SSID - Name der WLAN-Verbindung",
-			"wlan-password": "WLAN-Kennwort",
-			"static-network": "Statisches Netzwerk (wenn kein DHCP verwendet wird)",
-			"static-network-ip": "Statische IP-Adresse",
-			"static-network-prefix": "Subnetzmaske",
-			"ssh-pubkey": "SSH Public-Key"
+			"title": "Verbindungsinformationen"
 		},
 		"step-4": {
-			"title": "Here we go!",
-			"info": "Drücken Sie Generieren, um das Systemabbild zu erstellen",
-			"complete": "Erzeugen"
+			"title": "Here we go!"
 		},
 		"finish": {
 			"title": {
@@ -113,7 +100,17 @@
 				"step-2": "2. Entfernen Sie den Datenträger aus Ihrem Dateisystem (unmounten), falls Sie dies nicht bereits getan haben.",
 				"step-3": "3. Überschreiben Sie den Datenträger mit dem Systemabbild mit Thymis. Der Datenträger wird dabei komplett überschrieben."
 			}
-		}
+		},
+		"create": "Gerät erstellen",
+		"device-type": "Gerätetyp – Um welche Art von Hardwaregerät handelt es sich? \n- Erforderlich",
+		"device-type-cannot-be-empty": "Der Gerätetyp darf nicht leer sein.",
+		"device-with-display-name-name-exists": "Das Gerät mit dem Anzeigenamen „{displayName}“ ist bereits im Projekt vorhanden.",
+		"display-name": "Anzeigename – Wie das Gerät in der Benutzeroberfläche angezeigt wird – Erforderlich",
+		"display-name-cannot-be-empty": "Der Anzeigename darf nicht leer sein.",
+		"identifier-exists": "Bezeichner existiert bereits.",
+		"name-helper": "Das Gerät wird intern {identifier} genannt.",
+		"no-tags": "Ihr Projekt hat noch keine Tags, daher können Sie diesem Gerät keine zuweisen.",
+		"tags": "Geräte-Tags – Welche Tags sollten diesem Gerät zugewiesen werden?"
 	},
 	"deploy": {
 		"build": "Erstellen",

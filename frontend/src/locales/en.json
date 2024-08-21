@@ -58,26 +58,13 @@
 			"info": "You can easily create an ISO file or a system image for your IoT device."
 		},
 		"step-2": {
-			"title": "Select device",
-			"info": "We currently support x86-based and aarch64/ARM64-based devices. These include the Raspberry Pi 4 and 5, as well as normal desktop computers."
+			"title": "Select device"
 		},
 		"step-3": {
-			"title": "Connection information",
-			"info": "Once Thymis is installed, you can easily set up much more. Firstly, enter the necessary connection information so that you can reach the device after the automatic installation.",
-			"device-name": "Name",
-			"hostname": "Hostname",
-			"wlan": "Wireless Network",
-			"wlan-ssid": "WLAN SSID - name of the WLAN connection",
-			"wlan-password": "WLAN password",
-			"static-network": "Static Network (if not using DHCP)",
-			"static-network-ip": "Static IP address",
-			"static-network-prefix": "Subnet mask",
-			"ssh-pubkey": "SSH Public-Key"
+			"title": "Connection information"
 		},
 		"step-4": {
-			"title": "Here we go!",
-			"info": "Press Generate to create the system image",
-			"complete": "Generate"
+			"title": "Here we go!"
 		},
 		"finish": {
 			"title": {
@@ -117,7 +104,6 @@
 		"name-helper": "Device will be called {identifier} internally.",
 		"display-name": "Display name - How the device will be displayed in the UI - Required",
 		"display-name-cannot-be-empty": "Display name cannot be empty.",
-		"display-name-exists": "Display name already exists.",
 		"identifier-exists": "Identifier already exists.",
 		"device-type": "Device type - What type of hardware device is this? - Required",
 		"tags": "Device tags - What tags should be assigned to this device?",
