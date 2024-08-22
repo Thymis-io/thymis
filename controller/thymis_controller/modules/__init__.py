@@ -62,6 +62,7 @@ from .node_red import NodeRed
 from .screenshotmodules import Grafana1Module, MqttxModule, NodeRedModule
 from .thymis import ThymisController, ThymisDevice
 from .whatever import WhateverModule
+from .oci_container import OCIContainer
 
 ALL_MODULES: list[Module] = [
     NodeRed(),
@@ -72,6 +73,7 @@ ALL_MODULES: list[Module] = [
     Grafana1Module(),
     NodeRedModule(),
     MqttxModule(),
+    OCIContainer(),
 ]
 
 ALL_MODULES_START = ALL_MODULES.copy()

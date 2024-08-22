@@ -1,0 +1,39 @@
+{ pkgs, lib, ... }:
+
+{
+  virtualisation.podman = {
+    enable = true;
+    autoPrune.enable = true;
+    dockerCompat = true;
+    defaultNetwork.settings = {
+      # Required for container networking to be able to use names.
+      dns_enabled = true;
+    };
+  };
+  virtualisation.oci-containers.backend = "podman";
+
+  virtualisation.oci-containers.containers.""{{ container_name }}"" = {
+    image = ""{{ image }}"";
+    environment = {
+      "{%- for env in environment %}"
+        ""{{ env.key }}"" = ""{{ env.value }}"";
+      "{%- endfor %}"
+    };
+    volumes = [
+      "{%- for volume in volumes %}"
+        ""{{ volume.host }}":"{{ volume.container }}""
+      "{%- endfor %}"
+    ];
+    ports = [
+      "{%- for port in ports %}"
+        ""{{ port.host }}":"{{ port.container }}""
+      "{%- endfor %}"
+    ];
+    labels = {
+      "{%- for label in labels %}"
+        ""{{ label.key }}"" = ""{{ label.value }}"";
+      "{%- endfor %}"
+    };
+    log-driver = "journald";
+  };
+}
