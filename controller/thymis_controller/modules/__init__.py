@@ -59,10 +59,10 @@ class Module(ABC):
 # TODO: remove the following blocks of code
 from .kiosk import Kiosk
 from .node_red import NodeRed
+from .oci_container import OCIContainer
 from .screenshotmodules import Grafana1Module, MqttxModule, NodeRedModule
 from .thymis import ThymisController, ThymisDevice
 from .whatever import WhateverModule
-from .oci_container import OCIContainer
 
 ALL_MODULES: list[Module] = [
     NodeRed(),

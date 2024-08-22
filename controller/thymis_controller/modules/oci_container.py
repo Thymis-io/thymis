@@ -1,7 +1,9 @@
 import os
+
 from thymis_controller import models, modules
 from thymis_controller.models import ModuleSettings
 from thymis_controller.nix import template_env
+
 
 class OCIContainer(modules.Module):
     displayName: str = "OCI Container"
@@ -143,4 +145,3 @@ class OCIContainer(modules.Module):
             rt = template.render(module_settings.settings)
             f.write(rt)
             # TODO priority
-
