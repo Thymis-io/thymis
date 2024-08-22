@@ -22,7 +22,7 @@
 </p>
 <hr>
 
-##  Quick Links
+## Quick Links
 
 > - [Overview](#overview)
 > - [Architecture](#architecture)
@@ -182,6 +182,6 @@ We love using these technologies and tools:
 - [Python](https://www.python.org/)
 - [Node.js](https://nodejs.org/)
 
-[**Return**](#-quick-links)
+[**Return**](#quick-links)
 
 ---
