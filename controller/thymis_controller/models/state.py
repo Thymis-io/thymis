@@ -12,7 +12,7 @@ class Repo(BaseModel):
 
 class ModuleSettings(BaseModel):
     type: str  # type of module this settings object is for
-    settings: JsonValue
+    settings: Dict[str, JsonValue]
 
 
 class Device(BaseModel):
