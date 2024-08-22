@@ -30,7 +30,7 @@
 	$: settingEntries = Object.entries(module.settings).sort((a, b) => a[1].order - b[1].order);
 </script>
 
-<Card class="max-w-none grid grid-cols-4 gap-8">
+<Card class="max-w-none grid grid-cols-5 gap-8">
 	{#each settingEntries as [key, setting]}
 		{@const self = settings?.settings[key]}
 		{@const other = otherSettings
@@ -40,103 +40,106 @@
 				...o,
 				setting: o.settings[key]
 			}))}
-		<P class="col-span-1">
-			{$t(`options.nix.${setting.name}`, { default: setting.name })}
-		</P>
-		<div class="col-span-2 flex">
-			<div class="flex-1">
+		<div class="col-span-4 flex flex-col">
+			<P class="mb-1">
+				{$t(`options.nix.${setting.name}`, { default: setting.name })}
+			</P>
+			<div class="flex">
 				<ConfigDrawer
 					{setting}
 					value={settings?.settings[key]}
 					disabled={!canEdit}
 					onChange={(value) => setSetting(module, key, value)}
 				/>
-			</div>
-			{#if canEdit}
-				{#if settings?.settings[key] !== undefined}
-					<button
-						class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-						on:click={() => setSetting(module, key, null)}
-					>
-						<X />
-					</button>
-					<Tooltip type="auto"><P size="sm">{$t('config.clear')}</P></Tooltip>
-				{:else}
-					<button
-						class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-						on:click={() =>
-							setSetting(
-								module,
-								key,
-								typeof setting.type === 'object' && setting.type.hasOwnProperty('list-of') ? [] : ''
-							)}
-					>
-						<Pen />
-					</button>
-					<Tooltip type="auto"><P size="sm">{$t('config.edit')}</P></Tooltip>
+				{#if canEdit}
+					{#if settings?.settings[key] !== undefined}
+						<button
+							class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+							on:click={() => setSetting(module, key, null)}
+						>
+							<X />
+						</button>
+						<Tooltip type="auto"><P size="sm">{$t('config.clear')}</P></Tooltip>
+					{:else}
+						<button
+							class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+							on:click={() =>
+								setSetting(
+									module,
+									key,
+									typeof setting.type === 'object' && setting.type.hasOwnProperty('list-of')
+										? []
+										: ''
+								)}
+						>
+							<Pen />
+						</button>
+						<Tooltip type="auto"><P size="sm">{$t('config.edit')}</P></Tooltip>
+					{/if}
 				{/if}
-			{/if}
-			{#if showRouting}
-				{#if other && other.length > 0}
-					{#if sameOrigin(settings, other[0])}
-						{@const otherDefinitions = other.filter((o) => !sameOrigin(settings, o))}
+				{#if showRouting}
+					{#if other && other.length > 0}
+						{#if sameOrigin(settings, other[0])}
+							{@const otherDefinitions = other.filter((o) => !sameOrigin(settings, o))}
+							<button class="btn p-0 ml-2" on:click={() => {}}>
+								<Route class="text-primary-500" />
+							</button>
+							<Tooltip type="auto" class="z-50">
+								<P size="sm" class="whitespace-pre-line">{$t('config.passed')}</P>
+								{#if otherDefinitions?.length > 0}
+									<P size="sm" class="whitespace-pre-line mt-2">{$t('config.otherDefinitions')}</P>
+									<div class="grid grid-cols-2 gap-x-4">
+										{#each otherDefinitions as otherDefinition}
+											<DefinitionLine origin={otherDefinition} value={otherDefinition.setting} />
+										{/each}
+									</div>
+								{:else}
+									<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P
+									>
+								{/if}
+							</Tooltip>
+						{:else}
+							{@const otherDefinitions = other.filter(
+								(o) => !sameOrigin(o, settings) && !sameOrigin(o, other[0])
+							)}
+							<button class="btn p-0 ml-2" on:click={() => {}}>
+								<RouteOff class="text-primary-500" />
+							</button>
+							<Tooltip type="auto" class="z-50">
+								<P size="sm" class="whitespace-pre-line">{@html $t('config.notPassed')}</P>
+								<P size="sm" class="whitespace-pre-line mt-2">{$t('config.overwrittenBy')}</P>
+								<div class="grid grid-cols-2 gap-x-4">
+									<DefinitionLine origin={other[0]} value={other[0].setting} />
+								</div>
+								{#if otherDefinitions?.length > 0}
+									<P size="sm" class="whitespace-pre-line mt-4">{$t('config.otherDefinitions')}</P>
+									<div class="grid grid-cols-2 gap-x-4">
+										{#each otherDefinitions as otherDefinition}
+											<DefinitionLine origin={otherDefinition} value={otherDefinition.setting} />
+										{/each}
+									</div>
+								{/if}
+							</Tooltip>
+						{/if}
+					{:else if self !== undefined}
 						<button class="btn p-0 ml-2" on:click={() => {}}>
 							<Route class="text-primary-500" />
 						</button>
 						<Tooltip type="auto" class="z-50">
-							<P size="sm" class="whitespace-pre-line">{$t('config.passed')}</P>
-							{#if otherDefinitions?.length > 0}
-								<P size="sm" class="whitespace-pre-line mt-2">{$t('config.otherDefinitions')}</P>
-								<div class="grid grid-cols-2 gap-x-4">
-									{#each otherDefinitions as otherDefinition}
-										<DefinitionLine origin={otherDefinition} value={otherDefinition.setting} />
-									{/each}
-								</div>
-							{:else}
-								<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P>
-							{/if}
+							<P size="sm" class="whitespace-pre-line">{@html $t('config.passed')}</P>
+							<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P>
 						</Tooltip>
 					{:else}
-						{@const otherDefinitions = other.filter(
-							(o) => !sameOrigin(o, settings) && !sameOrigin(o, other[0])
-						)}
 						<button class="btn p-0 ml-2" on:click={() => {}}>
 							<RouteOff class="text-primary-500" />
 						</button>
 						<Tooltip type="auto" class="z-50">
-							<P size="sm" class="whitespace-pre-line">{@html $t('config.notPassed')}</P>
-							<P size="sm" class="whitespace-pre-line mt-2">{$t('config.overwrittenBy')}</P>
-							<div class="grid grid-cols-2 gap-x-4">
-								<DefinitionLine origin={other[0]} value={other[0].setting} />
-							</div>
-							{#if otherDefinitions?.length > 0}
-								<P size="sm" class="whitespace-pre-line mt-4">{$t('config.otherDefinitions')}</P>
-								<div class="grid grid-cols-2 gap-x-4">
-									{#each otherDefinitions as otherDefinition}
-										<DefinitionLine origin={otherDefinition} value={otherDefinition.setting} />
-									{/each}
-								</div>
-							{/if}
+							<P size="sm" class="whitespace-pre-line">{@html $t('config.notSet')}</P>
+							<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P>
 						</Tooltip>
 					{/if}
-				{:else if self !== undefined}
-					<button class="btn p-0 ml-2" on:click={() => {}}>
-						<Route class="text-primary-500" />
-					</button>
-					<Tooltip type="auto" class="z-50">
-						<P size="sm" class="whitespace-pre-line">{@html $t('config.passed')}</P>
-						<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P>
-					</Tooltip>
-				{:else}
-					<button class="btn p-0 ml-2" on:click={() => {}}>
-						<RouteOff class="text-primary-500" />
-					</button>
-					<Tooltip type="auto" class="z-50">
-						<P size="sm" class="whitespace-pre-line">{@html $t('config.notSet')}</P>
-						<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P>
-					</Tooltip>
 				{/if}
-			{/if}
+			</div>
 		</div>
 		<P class="col-span-1">{setting.description}</P>
 	{:else}

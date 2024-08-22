@@ -144,6 +144,7 @@
 			"available": "Available"
 		},
 		"add_list_item": "Add List Element",
+		"remove_list_item": "Remove List Element",
 		"add_module": "Add Module",
 		"remove_module": "Remove Module",
 		"edit_tag_modules": "Edit Tag Modules",
