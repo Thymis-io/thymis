@@ -48,8 +48,6 @@
 		return data.state.tags.find((t) => t.identifier === identifier);
 	};
 
-	let editDevice: Device | undefined;
-
 	const handleConsider = (e: CustomEvent<DndEvent<{ id: string; data: Device }>>) => {
 		const {
 			items: newItems,
