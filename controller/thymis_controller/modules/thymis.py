@@ -25,13 +25,7 @@ class ThymisDevice(modules.Module):
     device_type = models.Setting(
         name="thymis.config.device-type",
         type="select-one",
-        options=[
-            "generic-x86_64",
-            "raspberry-pi-3",
-            "raspberry-pi-4",
-            "raspberry-pi-5",
-            "generic-aarch64",
-        ],
+        options=[dt.value for dt in models.DeviceType],
         default="",
         description="The device type of the thymis device.",
         example="",
@@ -72,6 +66,16 @@ class ThymisDevice(modules.Module):
         description="The wifi password of the thymis device.",
         example="",
         order=50,
+    )
+
+    image_format = models.Setting(
+        name="thymis.config.image-format",
+        type="select-one",
+        options=[if_.value for if_ in models.ImageFormat],
+        default=models.ImageFormat.img.value,
+        description="The image format of the thymis device.",
+        example="",
+        order=60,
     )
 
     def write_nix_settings(self, f, module_settings: ModuleSettings, priority: int):

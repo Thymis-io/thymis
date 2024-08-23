@@ -134,6 +134,32 @@ def get_input_out_path(flake_path, input_name):
     return result
 
 
+def get_device_thymis_configuration(flake_path, device_name):
+    # first run `nix build .#devices.<device_name>.config`
+    # then run `nix eval .#devices.<device_name>.config --json`
+    cmd = NIX_CMD + [
+        "eval",
+        "--json",
+        f"{flake_path}#nixosConfigurations.{device_name}.config.thymis.config",
+    ]
+
+    try:
+        result = subprocess.run(cmd, check=True, cwd=flake_path, capture_output=True)
+    except subprocess.CalledProcessError as e:
+        logger.error(
+            "Command failed: %s with exit code %s: %s",
+            e.cmd,
+            e.returncode,
+            e.stderr.decode(),
+        )
+        return None
+
+    result = json.loads(result.stdout)
+    # should be a dict
+    assert isinstance(result, dict)
+    return result
+
+
 template_env = jinja2.Environment(
     loader=jinja2.PackageLoader("thymis_controller", "templates_nix"),
     block_start_string='"{%',

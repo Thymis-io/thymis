@@ -178,7 +178,14 @@
 					"device-name": "Device Name",
 					"password": "Password",
 					"wifi-ssid": "WiFi SSID",
-					"wifi-password": "WiFi Password"
+					"wifi-password": "WiFi Password",
+					"image-format": "Image Format",
+					"image-format-options": {
+						"iso": "ISO",
+						"img": "System Image (.img)",
+						"vhdx": "VHDX",
+						"qcow2": "qcow2"
+					}
 				}
 			},
 			"freeform": {

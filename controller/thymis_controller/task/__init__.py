@@ -501,13 +501,13 @@ class UpdateTask(CommandTask):
 
 
 class BuildDeviceImageTask(CommandTask):
-    def __init__(self, repo_dir, identifier):
+    def __init__(self, repo_dir, identifier, img_format):
         super().__init__(
             "nix",
             [
                 *NIX_CMD[1:],
                 "build",
-                f'{repo_dir}#nixosConfigurations."{identifier}".config.formats.sd-card-image',
+                f'{repo_dir}#nixosConfigurations."{identifier}".config.formats."{img_format}"',
                 "--out-link",
                 f"/tmp/thymis-devices.{identifier}",
             ],

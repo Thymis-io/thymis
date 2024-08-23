@@ -9,6 +9,7 @@ import subprocess
 import sys
 import traceback
 from pathlib import Path
+from typing import Dict, List
 
 import git
 from thymis_controller import migration, models, modules, task
@@ -23,6 +24,16 @@ BUILTIN_REPOSITORIES = {
 }
 
 HOST_PRIORITY = 80
+
+d = models.DeviceType
+imf = models.ImageFormat
+DEVICE_TYPE_FORMATS: Dict[d, List[imf]] = {
+    d.raspberry_pi_3: [imf.img],
+    d.raspberry_pi_4: [imf.img],
+    d.raspberry_pi_5: [imf.img],
+    d.generic_aarch64: [imf.qcow2],
+    d.generic_x86_64: [imf.img, imf.iso, imf.vhdx, imf.qcow2],
+}
 
 
 def del_path(path: os.PathLike):
@@ -249,9 +260,9 @@ class Project:
     def create_update_task(self):
         return task.global_task_controller.add_task(task.UpdateTask(self.path))
 
-    def create_build_device_image_task(self, device_identifier: str):
+    def create_build_device_image_task(self, device_identifier: str, img_format: str):
         return task.global_task_controller.add_task(
-            task.BuildDeviceImageTask(self.path, device_identifier)
+            task.BuildDeviceImageTask(self.path, device_identifier, img_format)
         )
 
     def create_restart_device_task(self, device_identifier: str):

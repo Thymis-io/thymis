@@ -1,6 +1,7 @@
 import asyncio
+from typing import Dict, List
 
-from fastapi import APIRouter, Depends, Request, WebSocket
+from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket
 from fastapi.responses import FileResponse, RedirectResponse
 from thymis_controller import dependencies, models, modules, project
 from thymis_controller.dependencies import (
@@ -9,6 +10,8 @@ from thymis_controller.dependencies import (
     require_valid_user_session,
 )
 from thymis_controller.models.state import State
+from thymis_controller.nix import get_device_thymis_configuration
+from thymis_controller.project import DEVICE_TYPE_FORMATS
 from thymis_controller.routers import task
 from thymis_controller.tcp_to_ws import tcp_to_websocket, websocket_to_tcp
 
@@ -65,9 +68,25 @@ async def deploy(
 @router.post("/action/build-download-image")
 async def build_download_image(
     identifier: str,
+    img_format: models.ImageFormat | None = None,
     project: project.Project = Depends(get_project),
 ):
-    await project.create_build_device_image_task(identifier)
+    # check if device is allowed to build image format
+    state = project.read_state()
+    device = next(device for device in state.devices if device.identifier == identifier)
+
+    device_config = get_device_thymis_configuration(project.path, device.identifier)
+
+    if not img_format:
+        img_format = models.ImageFormat(device_config["image-format"])
+
+    if img_format not in DEVICE_TYPE_FORMATS.get(device_config["device-type"]):
+        raise HTTPException(
+            status_code=400,
+            detail="Device is not allowed to build this image format",
+        )
+
+    await project.create_build_device_image_task(identifier, img_format.value)
 
 
 @router.post("/action/restart-device")
@@ -76,6 +95,13 @@ async def restart_device(
     project: project.Project = Depends(get_project),
 ):
     await project.create_restart_device_task(identifier)
+
+
+@router.get(
+    "/image-formats", response_model=Dict[models.DeviceType, List[models.ImageFormat]]
+)
+def get_image_formats():
+    return DEVICE_TYPE_FORMATS
 
 
 @router.get("/download-image")

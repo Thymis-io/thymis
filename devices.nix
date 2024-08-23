@@ -9,7 +9,8 @@ let
         ];
         formatConfigs = lib.mkForce {
           qcow = { imports = [ inputs.nixos-generators.nixosModules.qcow ]; };
-          install-iso = {
+          vhdx = { imports = [ inputs.nixos-generators.nixosModules.hyperv ]; };
+          iso = {
             imports = [ inputs.nixos-generators.nixosModules.install-iso ];
             isoImage.squashfsCompression = "zstd -Xcompression-level 6";
           };
@@ -32,7 +33,7 @@ let
           inputs.nixos-generators.nixosModules.sd-aarch64
         ];
         formatConfigs = lib.mkForce {
-          sd-card-image = {
+          img = {
             imports = [
               inputs.nixos-generators.nixosModules.sd-aarch64
             ];
@@ -56,7 +57,7 @@ let
         ];
         hardware.raspberry-pi."4".fkms-3d.enable = true;
         formatConfigs = lib.mkForce {
-          sd-card-image = {
+          img = {
             imports = [
               inputs.nixos-generators.nixosModules.sd-aarch64
             ];
@@ -80,7 +81,7 @@ let
         raspberry-pi-nix.libcamera-overlay.enable = false;
         raspberry-pi-nix.board = "bcm2712";
         formatConfigs = lib.mkForce {
-          sd-card-image = {
+          img = {
             sdImage.compressImage = false;
             fileExtension = ".img";
             formatAttr = "sdImage";
