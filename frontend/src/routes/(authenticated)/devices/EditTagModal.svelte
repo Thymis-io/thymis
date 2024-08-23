@@ -2,31 +2,31 @@
 	import { t } from 'svelte-i18n';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Minus from 'lucide-svelte/icons/minus';
-	import type { Tag } from '$lib/state';
+	import { type Device, saveState, state, type Tag } from '$lib/state';
 	import { Button, Modal, Input } from 'flowbite-svelte';
 
-	export let open: boolean;
-	export let onClose: (() => void) | undefined = undefined;
-	export let onSave: ((tags: string[], availableTags: Tag[]) => void) | undefined = undefined;
-
-	export let tags: string[];
-	export let availableTags: Tag[];
+	export let currentlyEditingDevice: Device | undefined;
 	let newTag = '';
 
+	$: projectTags = $state.tags;
+	$: projectTagIds = projectTags.map((t) => t.identifier);
+	$: deviceTags = currentlyEditingDevice?.tags || [];
+
 	function toggle(tag: string) {
-		if (tags.includes(tag)) {
-			tags = tags.filter((t) => t !== tag);
+		if (!currentlyEditingDevice) return;
+		if (deviceTags?.includes(tag)) {
+			currentlyEditingDevice.tags = deviceTags.filter((t) => t !== tag);
 		} else {
-			tags = [...tags, tag];
+			currentlyEditingDevice.tags = [...(deviceTags || []), tag];
 		}
 	}
 
 	function addTag() {
 		const newIdentifier = newTag.toLocaleLowerCase().replaceAll(' ', '-');
 
-		if (newTag && !availableTags.find((t) => t.identifier === newIdentifier)) {
-			availableTags = [
-				...availableTags,
+		if (newTag && !projectTagIds.includes(newIdentifier)) {
+			$state.tags = [
+				...projectTags,
 				{
 					displayName: newTag,
 					identifier: newIdentifier,
@@ -37,21 +37,29 @@
 		}
 
 		newTag = '';
+		saveState();
 	}
 
 	const removeTag = (tag: string) => {
-		tags = tags.filter((t) => t !== tag);
-		availableTags = availableTags.filter((t) => t.identifier !== tag);
+		if (!currentlyEditingDevice) return;
+		currentlyEditingDevice.tags = deviceTags?.filter((t) => t !== tag);
+		$state.tags = projectTags.filter((t) => t.identifier !== tag);
+		saveState();
 	};
 </script>
 
-<Modal title={$t('devices.edit-tags-title')} bind:open outsideclose>
+<Modal
+	title={$t('devices.edit-tags-title')}
+	open={!!currentlyEditingDevice}
+	on:close={() => (currentlyEditingDevice = undefined)}
+	outsideclose
+>
 	<div class="flex flex-wrap gap-2">
-		{#each availableTags as availableTag}
+		{#each projectTags as availableTag (availableTag.identifier)}
 			<Button
 				rounded
-				color={tags.includes(availableTag.identifier) ? 'primary' : 'alternative'}
-				class={tags.includes(availableTag.identifier)
+				color={deviceTags.includes(availableTag.identifier) ? 'primary' : 'alternative'}
+				class={deviceTags.includes(availableTag.identifier)
 					? 'px-[15px] py-[11px]'
 					: 'px-[14px] py-[10px]'}
 				on:click={() => {
@@ -83,11 +91,10 @@
 		</button>
 	</div>
 	<div class="flex justify-end gap-2">
-		<Button color="alternative" on:click={() => onClose?.()}>{$t('common.cancel')}</Button>
 		<Button
-			on:click={() => {
-				onSave?.(tags, availableTags);
-				onClose?.();
+			on:click={async () => {
+				currentlyEditingDevice = undefined;
+				await saveState();
 			}}
 		>
 			{$t('common.save')}
