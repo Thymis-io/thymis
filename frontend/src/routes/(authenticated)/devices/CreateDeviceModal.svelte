@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Button, Helper, Input, Label, Modal, MultiSelect, P, Select } from 'flowbite-svelte';
-	import { type Device, type Module, saveState, state } from '$lib/state';
+	import {
+		type Device,
+		type Module,
+		saveState,
+		type SelectOneSettingType,
+		type SettingType,
+		state
+	} from '$lib/state';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 
@@ -34,7 +41,11 @@
 	$: thymisDeviceModule = availableModules.find(
 		(module) => module.type === 'thymis_controller.modules.thymis.ThymisDevice'
 	);
-	$: deviceTypes = thymisDeviceModule?.settings['device_type']?.options;
+	const isASelectOneSetting = (type: SettingType | undefined): type is SelectOneSettingType =>
+		!!type && typeof type === 'object' && 'select-one' in type && Array.isArray(type['select-one']);
+	$: deviceTypes = isASelectOneSetting(thymisDeviceModule?.settings['device_type'].type)
+		? thymisDeviceModule?.settings['device_type'].type['select-one']
+		: [];
 	$: deviceTypesSelect = deviceTypes?.map((deviceType) => ({
 		value: deviceType,
 		name: $t(`options.nix.thymis.config.device-type-options.${deviceType}`)
