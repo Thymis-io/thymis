@@ -1,7 +1,7 @@
 { pkgs, lib, ... }:
 
 {
-  virtualisation.podman = {
+  virtualisation.podman = lib.mkOverride "{{priority}}" {
     enable = true;
     autoPrune.enable = true;
     dockerCompat = true;
@@ -10,30 +10,40 @@
       dns_enabled = true;
     };
   };
-  virtualisation.oci-containers.backend = "podman";
+  virtualisation.oci-containers.backend = lib.mkOverride "{{priority}}" "podman";
 
-  virtualisation.oci-containers.containers.""{{ container_name }}"" = {
-    image = ""{{ image }}"";
+  "{%- for c in containers %}"
+  virtualisation.oci-containers.containers.""{{ c.container_name }}"" = lib.mkOverride "{{priority}}"{
+    image = ""{{ c.image }}"";
+    "{%- if c.environment %}"
     environment = {
-      "{%- for env in environment %}"
+      "{%- for env in c.environment %}"
         ""{{ env.key }}"" = ""{{ env.value }}"";
       "{%- endfor %}"
     };
+    "{%- endif %}"
+    "{%- if c.volumes %}"
     volumes = [
-      "{%- for volume in volumes %}"
+      "{%- for volume in c.volumes %}"
         ""{{ volume.host }}":"{{ volume.container }}""
       "{%- endfor %}"
     ];
+    "{%- endif %}"
+    "{%- if c.ports %}"
     ports = [
-      "{%- for port in ports %}"
+      "{%- for port in c.ports %}"
         ""{{ port.host }}":"{{ port.container }}""
       "{%- endfor %}"
     ];
+    "{%- endif %}"
+    "{%- if c.labels %}"
     labels = {
-      "{%- for label in labels %}"
+      "{%- for label in c.labels %}"
         ""{{ label.key }}"" = ""{{ label.value }}"";
       "{%- endfor %}"
     };
+    "{%- endif %}"
     log-driver = "journald";
   };
+  "{%- endfor %}"
 }
