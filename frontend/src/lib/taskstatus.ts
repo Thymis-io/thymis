@@ -111,7 +111,7 @@ taskStatus.subscribe((tasks) => {
 		if (!('args' in task.data)) return;
 		if (!(task.data.args instanceof Array)) return;
 		// if (task.data.args[0] !== 'build') return;
-		if (!('build' in task.data.args)) return;
+		if (task.data.args.indexOf('build') === -1) return;
 		if (!('identifier' in task.data)) return;
 		// check: this task was previously in the list, but not completed
 		const otherTask = lastTaskStatus.find((t) => t.id === task.id);
