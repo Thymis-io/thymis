@@ -143,8 +143,8 @@
 			"installed-elsewhere": "Installed on other tags or devices",
 			"available": "Available"
 		},
-		"add_list_item": "Add List Element",
-		"remove_list_item": "Remove List Element",
+		"add_list_element": "Add List Element",
+		"remove_list_element": "Remove List Element",
 		"add_module": "Add Module",
 		"remove_module": "Remove Module",
 		"edit_tag_modules": "Edit Tag Modules",
@@ -185,25 +185,35 @@
 			},
 			"oci-containers": {
 				"containers": "Containers",
+				"addContainer": "Add Container",
+				"removeContainer": "Remove Container",
 				"containerSettings": {
 					"container-name": "Container Name",
 					"image": "Image",
 					"ports": "Ports",
+					"addPort": "Add Port",
+					"removePort": "Remove Port",
 					"portSettings": {
 						"host": "Host",
 						"container": "Container"
 					},
 					"volumes": "Volume",
+					"addVolume": "Add Volume",
+					"removeVolume": "Remove Volume",
 					"volumeSettings": {
 						"host": "Host",
 						"container": "Container"
 					},
-					"environment": "Environment",
+					"environment": "Environment Variables",
+					"addEnvironment": "Add Environment Variable",
+					"removeEnvironment": "Remove Environment Variable",
 					"environmentSettings": {
 						"key": "Key",
 						"value": "Value"
 					},
 					"labels": "Labels",
+					"addLabel": "Add Label",
+					"removeLabel": "Remove Label",
 					"labelSettings": {
 						"key": "Key",
 						"value": "Value"

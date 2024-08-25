@@ -142,8 +142,8 @@
 			"installed-elsewhere": "Auf anderen Geräten oder Tags installiert",
 			"available": "Verfügbar"
 		},
-		"add_list_item": "Element Hinzufügen",
-		"remove_list_item": "Element Entfernen",
+		"add_list_element": "Element Hinzufügen",
+		"remove_list_element": "Element Entfernen",
 		"add_module": "Modul hinzufügen",
 		"remove_module": "Modul entfernen",
 		"edit_tag_modules": "Tag Module bearbeiten",

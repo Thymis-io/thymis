@@ -40,7 +40,11 @@
 			>
 				<X />
 			</button>
-			<Tooltip type="auto"><P size="sm">{$t('config.remove_list_item')}</P></Tooltip>
+			<Tooltip type="auto" placement={'top'}>
+				{settings.type['remove-element']
+					? $t(`options.nix.${settings.type['remove-element']}`)
+					: $t('config.remove_list_element')}
+			</Tooltip>
 		</Card>
 	{/each}
 	<Card class="flex flex-row gap-1 w-full max-w-full drop-shadow" padding={'xs'}>
@@ -50,7 +54,11 @@
 		>
 			<Plus />
 		</button>
-		<Tooltip type="auto" placement={'top'}>{$t('config.add_list_item')}</Tooltip>
+		<Tooltip type="auto" placement={'top'}>
+			{settings.type['add-element']
+				? $t(`options.nix.${settings.type['add-element']}`)
+				: $t('config.add_list_element')}
+		</Tooltip>
 	</Card>
 </div>
 {#if disabled}
