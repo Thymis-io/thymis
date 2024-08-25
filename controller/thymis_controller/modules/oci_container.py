@@ -20,7 +20,7 @@ class OCIContainers(modules.Module):
                     order=10,
                 ),
                 "image": models.Setting(
-                    name="oci-containers.containers.image",
+                    name="oci-containers.containerSettings.image",
                     type="string",
                     default="",
                     description="The image of the container.",

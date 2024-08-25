@@ -183,6 +183,33 @@
 					"wifi-password": "WiFi Password"
 				}
 			},
+			"oci-containers": {
+				"containers": "Containers",
+				"containerSettings": {
+					"container-name": "Container Name",
+					"image": "Image",
+					"ports": "Ports",
+					"portSettings": {
+						"host": "Host",
+						"container": "Container"
+					},
+					"volumes": "Volume",
+					"volumeSettings": {
+						"host": "Host",
+						"container": "Container"
+					},
+					"environment": "Environment",
+					"environmentSettings": {
+						"key": "Key",
+						"value": "Value"
+					},
+					"labels": "Labels",
+					"labelSettings": {
+						"key": "Key",
+						"value": "Value"
+					}
+				}
+			},
 			"freeform": {
 				"settings": "Settings"
 			},

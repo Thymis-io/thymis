@@ -19,7 +19,7 @@
 		<Card class="flex flex-row gap-1 w-full max-w-full drop-shadow" padding={'xs'}>
 			<div class="flex flex-col w-full">
 				{#each Object.entries(settings.type['list-of']) as [key, setting]}
-					<P class="p-2 pb-1">{key}</P>
+					<P class="p-2 pb-1">{$t(`options.nix.${setting.name}`, { default: setting.name })}</P>
 					<ConfigDrawer
 						{setting}
 						value={item[key]}
