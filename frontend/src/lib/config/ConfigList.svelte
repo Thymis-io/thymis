@@ -16,20 +16,22 @@
 
 <div class="flex flex-col gap-1 w-full">
 	{#each values as item}
-		<Card class="flex flex-row gap-1 w-full max-w-full drop-shadow" padding={'xs'}>
-			<div class="flex flex-col w-full">
+		<Card class="flex flex-row gap-1 p-4 w-full max-w-full drop-shadow" padding={'xs'}>
+			<div class="flex flex-col w-full gap-4">
 				{#each Object.entries(settings.type['list-of']) as [key, setting]}
-					<P class="p-2 pb-1">{$t(`options.nix.${setting.name}`, { default: setting.name })}</P>
-					<ConfigDrawer
-						{setting}
-						value={item[key]}
-						{disabled}
-						onChange={(value) => {
-							const newValues = [...values];
-							newValues[values.indexOf(item)] = { ...item, [key]: value };
-							onChange(newValues);
-						}}
-					/>
+					<div>
+						<P class="p-0 pb-1">{$t(`options.nix.${setting.name}`, { default: setting.name })}</P>
+						<ConfigDrawer
+							{setting}
+							value={item[key]}
+							{disabled}
+							onChange={(value) => {
+								const newValues = [...values];
+								newValues[values.indexOf(item)] = { ...item, [key]: value };
+								onChange(newValues);
+							}}
+						/>
+					</div>
 				{/each}
 			</div>
 			<button
@@ -41,13 +43,15 @@
 			<Tooltip type="auto"><P size="sm">{$t('config.remove_list_item')}</P></Tooltip>
 		</Card>
 	{/each}
-	<button
-		class="p-2 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700"
-		on:click={() => onChange([...values, {}])}
-	>
-		<Plus />
-	</button>
-	<Tooltip type="auto" placement={'top'}>{$t('config.add_list_item')}</Tooltip>
+	<Card class="flex flex-row gap-1 w-full max-w-full drop-shadow" padding={'xs'}>
+		<button
+			class="p-2 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+			on:click={() => onChange([...values, {}])}
+		>
+			<Plus />
+		</button>
+		<Tooltip type="auto" placement={'top'}>{$t('config.add_list_item')}</Tooltip>
+	</Card>
 </div>
 {#if disabled}
 	<Tooltip type="auto" placement={'top'}>{$t('config.editDisabled')}</Tooltip>

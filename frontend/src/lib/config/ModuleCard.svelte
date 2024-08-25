@@ -30,7 +30,7 @@
 	$: settingEntries = Object.entries(module.settings).sort((a, b) => a[1].order - b[1].order);
 </script>
 
-<Card class="max-w-none grid grid-cols-5 gap-8">
+<Card class="max-w-none grid grid-cols-5 gap-4">
 	{#each settingEntries as [key, setting]}
 		{@const self = settings?.settings[key]}
 		{@const other = otherSettings
@@ -141,7 +141,7 @@
 				{/if}
 			</div>
 		</div>
-		<P class="col-span-1">{setting.description}</P>
+		<P class="col-span-1 mt-6">{setting.description}</P>
 	{:else}
 		<div class="col-span-1">{$t('options.no-settings')}</div>
 	{/each}
