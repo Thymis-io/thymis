@@ -4,7 +4,7 @@
 	import Plus from 'lucide-svelte/icons/plus';
 	import X from 'lucide-svelte/icons/x';
 	import type { Setting, ListSettingType } from '$lib/state';
-	import ConfigDrawer from './ConfigDrawer.svelte';
+	import ConfigRenderer from './ConfigRenderer.svelte';
 
 	export let values: any[];
 	export let settings: Setting<ListSettingType>;
@@ -23,7 +23,7 @@
 						{#if setting.name}
 							<P class="p-0 pb-1">{$t(`options.nix.${setting.name}`, { default: setting.name })}</P>
 						{/if}
-						<ConfigDrawer
+						<ConfigRenderer
 							{setting}
 							value={item[key]}
 							{disabled}

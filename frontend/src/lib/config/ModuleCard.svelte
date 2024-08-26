@@ -7,7 +7,7 @@
 	import X from 'lucide-svelte/icons/x';
 	import Pen from 'lucide-svelte/icons/pen';
 	import DefinitionLine from './DefinitionLine.svelte';
-	import ConfigDrawer from './ConfigDrawer.svelte';
+	import ConfigRenderer from './ConfigRenderer.svelte';
 
 	export let module: Module;
 	export let settings: ModuleSettingsWithOrigin | undefined;
@@ -45,7 +45,7 @@
 				{$t(`options.nix.${setting.name}`, { default: setting.name })}
 			</P>
 			<div class="flex">
-				<ConfigDrawer
+				<ConfigRenderer
 					{setting}
 					value={settings?.settings[key]}
 					disabled={!canEdit}
