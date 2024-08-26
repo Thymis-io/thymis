@@ -10,8 +10,6 @@
 	export let settings: Setting<ListSettingType>;
 	export let onChange: (value: unknown[]) => void = () => {};
 	export let disabled: boolean = false;
-
-	$: console.log('values', values, settings.type['list-of']);
 </script>
 
 <div class="flex flex-col gap-1 w-full">
