@@ -60,21 +60,15 @@ class Module(ABC):
 
 # TODO: remove the following blocks of code
 from .kiosk import Kiosk
-from .node_red import NodeRed
 from .oci_container import OCIContainers
-from .screenshotmodules import Grafana1Module, MqttxModule, NodeRedModule
 from .thymis import ThymisController, ThymisDevice
 from .whatever import WhateverModule
 
 ALL_MODULES: list[Module] = [
-    NodeRed(),
     ThymisController(),
     ThymisDevice(),
     WhateverModule(),
     Kiosk(),
-    Grafana1Module(),
-    NodeRedModule(),
-    MqttxModule(),
     OCIContainers(),
 ]
 
