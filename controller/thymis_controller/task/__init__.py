@@ -541,6 +541,7 @@ class RestartDeviceTask(CommandTask):
             "ssh",
             [
                 "-o StrictHostKeyChecking=accept-new",
+                "-o ConnectTimeout=30",
                 f"root@{device.targetHost}",
                 "reboot",
             ],
