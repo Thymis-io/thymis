@@ -10,8 +10,10 @@ from typing import Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
-from thymis_controller import models, project
-from thymis_controller.nix import NIX_CMD
+from sqlalchemy.orm import Session
+from thymis_controller import crud, models, project
+from thymis_controller.config import global_settings
+from thymis_controller.nix import NIX_CMD, get_build_output
 
 logger = logging.getLogger(__name__)
 
@@ -501,7 +503,11 @@ class UpdateTask(CommandTask):
 
 
 class BuildDeviceImageTask(CommandTask):
-    def __init__(self, repo_dir, identifier):
+    image_path: str
+    db_session: Session
+    build_hash: str
+
+    def __init__(self, repo_dir, identifier, db_session):
         super().__init__(
             "nix",
             [
@@ -515,6 +521,23 @@ class BuildDeviceImageTask(CommandTask):
 
         self.display_name = f"Building image for {identifier}"
         self.identifier = identifier
+        self.image_path = f"/tmp/thymis-devices.{identifier}"
+        self.build_hash = None
+        self.db_session = db_session
+
+    async def _run(self):
+        r = await super()._run()
+        if r != 0:
+            return
+
+        build_output = get_build_output(global_settings.REPO_PATH, self.identifier)
+
+        store_path = build_output["outputs"]["out"]  # TODO: or maybe drvPath?
+        self.build_hash = store_path[len("/nix/store/") :].split("-")[0]
+
+        crud.hostkey.create_or_update(self.db_session, self.identifier, self.build_hash)
+
+        return r
 
     def get_model(self) -> models.CommandTask:
         return models.CommandTask(

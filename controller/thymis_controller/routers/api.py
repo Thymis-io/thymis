@@ -65,9 +65,10 @@ async def deploy(
 @router.post("/action/build-download-image")
 async def build_download_image(
     identifier: str,
+    db_session: SessionAD,
     project: project.Project = Depends(get_project),
 ):
-    await project.create_build_device_image_task(identifier)
+    await project.create_build_device_image_task(identifier, db_session)
 
 
 @router.post("/action/restart-device")

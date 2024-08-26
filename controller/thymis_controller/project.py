@@ -11,6 +11,7 @@ import traceback
 from pathlib import Path
 
 import git
+from pytest import Session
 from thymis_controller import migration, models, modules, task
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
@@ -253,9 +254,11 @@ class Project:
     def create_update_task(self):
         return task.global_task_controller.add_task(task.UpdateTask(self.path))
 
-    def create_build_device_image_task(self, device_identifier: str):
+    def create_build_device_image_task(
+        self, device_identifier: str, db_session: Session
+    ):
         return task.global_task_controller.add_task(
-            task.BuildDeviceImageTask(self.path, device_identifier)
+            task.BuildDeviceImageTask(self.path, device_identifier, db_session)
         )
 
     def create_restart_device_task(self, device_identifier: str):

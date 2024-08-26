@@ -36,8 +36,6 @@ let
             imports = [
               inputs.nixos-generators.nixosModules.sd-aarch64
             ];
-            sdImage.compressImage = false;
-            fileExtension = ".img";
           };
         };
         nixpkgs.overlays = [

@@ -179,6 +179,30 @@ def render_flake_nix(repositories: dict[str, "models.Repo"]) -> str:
     return formatted
 
 
+def get_build_output(flake_path, identifier):
+    cmd = NIX_CMD + [
+        "build",
+        f"{flake_path}#nixosConfigurations.{identifier}.config.system.build.toplevel",
+        "--json",
+    ]
+
+    try:
+        result = subprocess.run(cmd, check=True, cwd=flake_path, capture_output=True)
+    except subprocess.CalledProcessError as e:
+        logger.error(
+            "Command failed: %s with exit code %s: %s",
+            e.cmd,
+            e.returncode,
+            e.stderr.decode(),
+        )
+        return None
+
+    result = json.loads(result.stdout)
+    # should be a dict
+    assert isinstance(result, list)
+    return result[0]
+
+
 NIX_CMD = [
     "nix",
     "--option",

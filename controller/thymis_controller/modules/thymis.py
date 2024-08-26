@@ -112,6 +112,9 @@ class ThymisDevice(modules.Module):
             f.write(f"  imports = [\n")
             f.write(f"    inputs.thymis.nixosModules.thymis-device-{device_type}\n")
             f.write(f"  ];\n")
+            f.write(f"\n")
+            f.write(f"sdImage.compressImage = false;\n")
+            f.write(f'fileExtension = ".img";\n')
 
         if authorized_keys:
             key_list = convert_python_value_to_nix(
