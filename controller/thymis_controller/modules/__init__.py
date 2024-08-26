@@ -51,6 +51,8 @@ class Module(ABC):
         for attr, value in module_settings.settings.items():
             my_attr = getattr(self, attr)
             assert isinstance(my_attr, models.Setting)
+            if isinstance(my_attr.type, models.ListType):
+                continue
             f.write(
                 f"  {my_attr.name} = lib.mkOverride {priority} {convert_python_value_to_nix(value)};\n"
             )
@@ -59,6 +61,7 @@ class Module(ABC):
 # TODO: remove the following blocks of code
 from .kiosk import Kiosk
 from .node_red import NodeRed
+from .oci_container import OCIContainers
 from .screenshotmodules import Grafana1Module, MqttxModule, NodeRedModule
 from .thymis import ThymisController, ThymisDevice
 from .whatever import WhateverModule
@@ -72,6 +75,7 @@ ALL_MODULES: list[Module] = [
     Grafana1Module(),
     NodeRedModule(),
     MqttxModule(),
+    OCIContainers(),
 ]
 
 ALL_MODULES_START = ALL_MODULES.copy()

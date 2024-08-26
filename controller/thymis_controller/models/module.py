@@ -1,12 +1,27 @@
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+ValueTypes = Literal["bool", "string", "path", "package", "textarea"]
+
+
+class SelectOneType(BaseModel):
+    select_one: List[str] = Field(serialization_alias="select-one")
+
+
+class ListType(BaseModel):
+    settings: dict[str, "Setting"] = Field(serialization_alias="list-of")
+    element_name: Optional[str] = Field(
+        serialization_alias="element-name", default=None
+    )
+
+
+Types = Union[ValueTypes, SelectOneType, ListType]
 
 
 class Setting(BaseModel):
-    name: str
-    type: Literal["bool", "string", "path", "package", "select-one", "textarea"]
-    options: Optional[List[str]] = None
+    name: Optional[str] = None
+    type: Types
     default: object
     description: str
     example: Optional[str] = None
@@ -20,4 +35,4 @@ class Module(BaseModel):
     settings: dict[str, Setting]
 
 
-__all__ = ["Setting", "Module"]
+__all__ = ["Setting", "Module", "SelectOneType", "ListType"]

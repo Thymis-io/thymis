@@ -4,11 +4,11 @@
 	export let placeholder: string | null;
 	export let value: unknown;
 
-	export let change: (value: string) => void = () => {};
+	export let onChange: (value: string) => void = () => {};
 	export let disabled: boolean;
 
 	const changeInternal = (e: Event) => {
-		change((e.target as HTMLInputElement).value);
+		onChange((e.target as HTMLInputElement).value);
 	};
 </script>
 

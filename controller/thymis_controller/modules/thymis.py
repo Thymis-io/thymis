@@ -1,5 +1,6 @@
 from thymis_controller import models, modules
 from thymis_controller.models import ModuleSettings
+from thymis_controller.nix import convert_python_value_to_nix
 
 
 class ThymisController(modules.Module):
@@ -24,14 +25,15 @@ class ThymisDevice(modules.Module):
 
     device_type = models.Setting(
         name="thymis.config.device-type",
-        type="select-one",
-        options=[
-            "generic-x86_64",
-            "raspberry-pi-3",
-            "raspberry-pi-4",
-            "raspberry-pi-5",
-            "generic-aarch64",
-        ],
+        type=models.SelectOneType(
+            select_one=[
+                "generic-x86_64",
+                "raspberry-pi-3",
+                "raspberry-pi-4",
+                "raspberry-pi-5",
+                "generic-aarch64",
+            ]
+        ),
         default="",
         description="The device type of the thymis device.",
         example="",
@@ -74,6 +76,25 @@ class ThymisDevice(modules.Module):
         order=50,
     )
 
+    authorized_keys = models.Setting(
+        name="ssh.authorizedKeys",
+        type=models.ListType(
+            settings={
+                "key": models.Setting(
+                    type="string",
+                    default="",
+                    description="The authorized key.",
+                    example="ssh-rsa AAAA...",
+                )
+            },
+            element_name="options.nix.ssh.authorizedKey",
+        ),
+        default=None,
+        description="The authorized keys for the SSH server.",
+        example="",
+        order=60,
+    )
+
     def write_nix_settings(self, f, module_settings: ModuleSettings, priority: int):
         device_type = (
             module_settings.settings["device_type"]
@@ -81,9 +102,24 @@ class ThymisDevice(modules.Module):
             else self.device_type.default
         )
 
+        authorized_keys = (
+            module_settings.settings["authorized_keys"]
+            if "authorized_keys" in module_settings.settings
+            else self.authorized_keys.default
+        )
+
         if device_type:
             f.write(f"  imports = [\n")
             f.write(f"    inputs.thymis.nixosModules.thymis-device-{device_type}\n")
             f.write(f"  ];\n")
+
+        if authorized_keys:
+            key_list = convert_python_value_to_nix(
+                list(map(lambda x: x["key"] if "key" in x else None, authorized_keys)),
+                ident=1,
+            )
+            f.write(
+                f"  users.users.root.openssh.authorizedKeys.keys = lib.mkOverride {priority} {key_list};\n"
+            )
 
         return super().write_nix_settings(f, module_settings, priority)

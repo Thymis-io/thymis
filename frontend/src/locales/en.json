@@ -143,6 +143,8 @@
 			"installed-elsewhere": "Installed on other tags or devices",
 			"available": "Available"
 		},
+		"add_list_element": "Add List Element",
+		"remove_list_element": "Remove List Element",
 		"add_module": "Add Module",
 		"remove_module": "Remove Module",
 		"edit_tag_modules": "Edit Tag Modules",
@@ -181,6 +183,45 @@
 					"wifi-password": "WiFi Password"
 				}
 			},
+			"oci-containers": {
+				"containers": "Containers",
+				"container": "Container",
+				"containerSettings": {
+					"container-name": "Container Name",
+					"image": "Image",
+					"ports": "Ports",
+					"port": "Port",
+					"portSettings": {
+						"host": "Host",
+						"container": "Container"
+					},
+					"volumes": "Volumes",
+					"volume": "Volume",
+					"volumeSettings": {
+						"host": "Host",
+						"container": "Container"
+					},
+					"environments": "Environment Variables",
+					"environment": "Environment Variable",
+					"environmentSettings": {
+						"key": "Key",
+						"value": "Value"
+					},
+					"labels": "Labels",
+					"label": "Label",
+					"labelSettings": {
+						"key": "Key",
+						"value": "Value"
+					}
+				}
+			},
+			"ssh": {
+				"authorizedKeys": "Authorized Keys - Public SSH Keys",
+				"authorizedKey": "Key",
+				"authorizedKeysSettings": {
+					"key": "Key"
+				}
+			},
 			"freeform": {
 				"settings": "Settings"
 			},
@@ -204,7 +245,9 @@
 				"node-red": {
 					"enable": "Enable Node-RED"
 				}
-			}
+			},
+			"add-element": "Add {element}",
+			"remove-element": "Remove {element}"
 		}
 	},
 	"settings": {

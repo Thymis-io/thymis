@@ -5,7 +5,7 @@ import { queryParam } from 'sveltekit-search-params';
 export type ModuleSettings = {
 	type: string;
 	settings: {
-		[key: string]: string | number | boolean;
+		[key: string]: unknown;
 	};
 };
 
@@ -18,7 +18,7 @@ export type Origin = {
 export type ModuleSettingsWithOrigin = {
 	type: string;
 	settings: {
-		[key: string]: string | number | boolean;
+		[key: string]: unknown;
 	};
 	originId: string;
 	originContext: string;
@@ -26,10 +26,26 @@ export type ModuleSettingsWithOrigin = {
 	priority: number | undefined;
 };
 
-export type Setting = {
+export type SelectOneSettingType = {
+	'select-one': string[];
+};
+
+export type ListSettingType = {
+	'list-of': Setting[];
+	'element-name': string | undefined;
+};
+
+export type SettingType =
+	| 'string'
+	| 'number'
+	| 'bool'
+	| 'textarea'
+	| SelectOneSettingType
+	| ListSettingType;
+
+export type Setting<T extends SettingType = SettingType> = {
 	name: string;
-	type: string;
-	options?: string[];
+	type: T;
 	default: string;
 	description: string;
 	example: string | null;

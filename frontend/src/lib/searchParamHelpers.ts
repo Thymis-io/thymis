@@ -27,12 +27,6 @@ export const buildConfigSelectModuleSearchParam = (
 	contextIdentifier: string | null | undefined,
 	module: Module | null | undefined
 ) => {
-	console.log('search', search);
-	console.log('targetType', targetType);
-	console.log('target', target);
-	console.log('contextType', contextType);
-	console.log('contextIdentifier', contextIdentifier);
-	console.log('module', module);
 	const params = new URLSearchParams(search);
 	targetType
 		? params.set('global-nav-target-type', targetType)
