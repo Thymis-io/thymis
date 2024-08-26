@@ -21,7 +21,7 @@ Types = Union[ValueTypes, SelectOneType, ListType]
 
 
 class Setting(BaseModel):
-    name: str
+    name: Optional[str] = None
     type: Types
     default: object
     description: str

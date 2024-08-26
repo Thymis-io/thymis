@@ -49,9 +49,9 @@
 {#if settingIsBool(setting)}
 	<ConfigBool value={value === true} name={setting.name} {onChange} {disabled} />
 {:else if settingIsString(setting)}
-	<ConfigString {value} placeholder={setting.default} {onChange} {disabled} />
+	<ConfigString {value} placeholder={setting.example} {onChange} {disabled} />
 {:else if settingIsTextarea(setting)}
-	<ConfigTextarea {value} placeholder={setting.default} {onChange} {disabled} />
+	<ConfigTextarea {value} placeholder={setting.example} {onChange} {disabled} />
 {:else if settingIsSelectOne(setting)}
 	<ConfigSelectOne {value} {setting} {onChange} {disabled} />
 {:else if settingIsListOf(setting)}

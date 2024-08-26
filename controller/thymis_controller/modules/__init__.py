@@ -51,6 +51,8 @@ class Module(ABC):
         for attr, value in module_settings.settings.items():
             my_attr = getattr(self, attr)
             assert isinstance(my_attr, models.Setting)
+            if isinstance(my_attr.type, models.ListType):
+                continue
             f.write(
                 f"  {my_attr.name} = lib.mkOverride {priority} {convert_python_value_to_nix(value)};\n"
             )

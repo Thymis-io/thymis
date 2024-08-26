@@ -220,6 +220,14 @@
 					}
 				}
 			},
+			"ssh": {
+				"authorizedKeys": "Authorized Keys - Public SSH Keys",
+				"addAuthorizedKey": "Add Key",
+				"removeAuthorizedKey": "Remove Key",
+				"authorizedKeysSettings": {
+					"key": "Key"
+				}
+			},
 			"freeform": {
 				"settings": "Settings"
 			},
