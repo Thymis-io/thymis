@@ -74,8 +74,10 @@ async def build_download_image(
 async def restart_device(
     identifier: str,
     project: project.Project = Depends(get_project),
+    state: State = Depends(dependencies.get_state),
 ):
-    await project.create_restart_device_task(identifier)
+    device = next(device for device in state.devices if device.identifier == identifier)
+    await project.create_restart_device_task(device)
 
 
 @router.get("/download-image")
