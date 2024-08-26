@@ -34,8 +34,8 @@ def write_comma_separated_identifier_list(identifiers):
 
 def convert_python_value_to_nix(value, ident=0):
     if value is None:
-        return None
-    if isinstance(value, bool):
+        return "null"
+    elif isinstance(value, bool):
         return str(value).lower()
     elif isinstance(value, str):
         # see https://nix.dev/manual/nix/2.18/language/values#type-string
