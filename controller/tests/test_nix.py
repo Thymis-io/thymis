@@ -12,7 +12,7 @@ def test_write_nix_value():
     )
     assert convert_python_value_to_nix(True) == "true"
     assert convert_python_value_to_nix(False) == "false"
-    assert convert_python_value_to_nix(["a", "b"]) == '["a" "b"]'
+    assert convert_python_value_to_nix(["a", "b"]) == '[\n  "a"\n  "b"\n]'
     assert convert_python_value_to_nix({"": ""}) == '{\n  "" = "";\n}'
     assert convert_python_value_to_nix({"1abc": ""}) == '{\n  "1abc" = "";\n}'
     assert convert_python_value_to_nix({}) == "{}"
