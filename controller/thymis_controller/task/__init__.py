@@ -536,11 +536,16 @@ class BuildDeviceImageTask(CommandTask):
 
 
 class RestartDeviceTask(CommandTask):
-    def __init__(self, identifier):
+    def __init__(self, device: models.Device):
         super().__init__(
             "ssh",
-            ["-o StrictHostKeyChecking=accept-new", f"root@{identifier}", "reboot"],
+            [
+                "-o StrictHostKeyChecking=accept-new",
+                "-o ConnectTimeout=30",
+                f"root@{device.targetHost}",
+                "reboot",
+            ],
         )
 
-        self.display_name = f"Restarting {identifier}"
-        self.identifier = identifier
+        self.display_name = f"Restarting {device.displayName}"
+        self.identifier = device.identifier
