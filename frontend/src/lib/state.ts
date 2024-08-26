@@ -32,8 +32,7 @@ export type SelectOneSettingType = {
 
 export type ListSettingType = {
 	'list-of': Setting[];
-	'add-element': string | undefined;
-	'remove-element': string | undefined;
+	'element-name': string | undefined;
 };
 
 export type SettingType =

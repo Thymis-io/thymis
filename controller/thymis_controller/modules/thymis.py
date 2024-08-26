@@ -87,8 +87,7 @@ class ThymisDevice(modules.Module):
                     example="ssh-rsa AAAA...",
                 )
             },
-            add_element="ssh.addAuthorizedKey",
-            remove_element="ssh.removeAuthorizedKey",
+            element_name="options.nix.ssh.authorizedKey",
         ),
         default=None,
         description="The authorized keys for the SSH server.",

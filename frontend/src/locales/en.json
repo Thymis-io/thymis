@@ -185,35 +185,30 @@
 			},
 			"oci-containers": {
 				"containers": "Containers",
-				"addContainer": "Add Container",
-				"removeContainer": "Remove Container",
+				"container": "Container",
 				"containerSettings": {
 					"container-name": "Container Name",
 					"image": "Image",
 					"ports": "Ports",
-					"addPort": "Add Port",
-					"removePort": "Remove Port",
+					"port": "Port",
 					"portSettings": {
 						"host": "Host",
 						"container": "Container"
 					},
-					"volumes": "Volume",
-					"addVolume": "Add Volume",
-					"removeVolume": "Remove Volume",
+					"volumes": "Volumes",
+					"volume": "Volume",
 					"volumeSettings": {
 						"host": "Host",
 						"container": "Container"
 					},
-					"environment": "Environment Variables",
-					"addEnvironment": "Add Environment Variable",
-					"removeEnvironment": "Remove Environment Variable",
+					"environments": "Environment Variables",
+					"environment": "Environment Variable",
 					"environmentSettings": {
 						"key": "Key",
 						"value": "Value"
 					},
 					"labels": "Labels",
-					"addLabel": "Add Label",
-					"removeLabel": "Remove Label",
+					"label": "Label",
 					"labelSettings": {
 						"key": "Key",
 						"value": "Value"
@@ -222,8 +217,7 @@
 			},
 			"ssh": {
 				"authorizedKeys": "Authorized Keys - Public SSH Keys",
-				"addAuthorizedKey": "Add Key",
-				"removeAuthorizedKey": "Remove Key",
+				"authorizedKey": "Key",
 				"authorizedKeysSettings": {
 					"key": "Key"
 				}
@@ -251,7 +245,9 @@
 				"node-red": {
 					"enable": "Enable Node-RED"
 				}
-			}
+			},
+			"add-element": "Add {element}",
+			"remove-element": "Remove {element}"
 		}
 	},
 	"settings": {

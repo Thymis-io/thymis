@@ -152,7 +152,8 @@
 		"install": "Installieren",
 		"uninstall": "Deinstallieren",
 		"configure": "Bearbeiten",
-		"back": "Zurück"
+		"back": "Zurück",
+		"editDisabled": "Nur als Referenz. Bearbeiten Sie den Tag, um Werte global zu ändern"
 	},
 	"options": {
 		"nix": {

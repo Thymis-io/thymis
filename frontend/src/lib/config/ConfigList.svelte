@@ -43,24 +43,24 @@
 				<X />
 			</button>
 			<Tooltip type="auto" placement={'top'}>
-				{settings.type['remove-element']
-					? $t(`options.nix.${settings.type['remove-element']}`)
+				{settings.type['element-name']
+					? $t(`options.nix.remove-element`, {
+							values: { element: $t(settings.type['element-name']) }
+						})
 					: $t('config.remove_list_element')}
 			</Tooltip>
 		</Card>
 	{/each}
 	<Card class="flex flex-row gap-1 w-full max-w-full drop-shadow" padding={'xs'}>
 		<button
-			class="p-2 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+			class="p-2 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 gap-2"
 			on:click={() => onChange([...values, {}])}
 		>
 			<Plus />
-		</button>
-		<Tooltip type="auto" placement={'top'}>
-			{settings.type['add-element']
-				? $t(`options.nix.${settings.type['add-element']}`)
+			{settings.type['element-name']
+				? $t(`options.nix.add-element`, { values: { element: $t(settings.type['element-name']) } })
 				: $t('config.add_list_element')}
-		</Tooltip>
+		</button>
 	</Card>
 </div>
 {#if disabled}

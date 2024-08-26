@@ -11,9 +11,8 @@ class SelectOneType(BaseModel):
 
 class ListType(BaseModel):
     settings: dict[str, "Setting"] = Field(serialization_alias="list-of")
-    add_element: Optional[str] = Field(serialization_alias="add-element", default=None)
-    remove_element: Optional[str] = Field(
-        serialization_alias="remove-element", default=None
+    element_name: Optional[str] = Field(
+        serialization_alias="element-name", default=None
     )
 
 
