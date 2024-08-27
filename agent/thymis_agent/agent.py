@@ -144,7 +144,11 @@ if __name__ == "__main__":
 
     REPORT_INTERVAL = 60
 
-    controller_host = os.getenv("CONTROLLER_HOST", None)
+    controller_host = os.getenv("CONTROLLER_HOST")
+
+    if not controller_host:
+        raise ValueError("CONTROLLER_HOST environment variable is required")
+
     path = pathlib.Path("/var") / "lib" / "thymis" / "agent.json"
 
     agent = Agent(path, controller_host)

@@ -24,7 +24,7 @@ def get_project():
     if global_project is None:
         REPO_PATH = global_settings.REPO_PATH.resolve()
 
-        global_project = Project(REPO_PATH)
+        global_project = Project(REPO_PATH, next(get_db_session()))
     return global_project
 
 

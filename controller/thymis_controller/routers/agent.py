@@ -1,8 +1,8 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from thymis_controller import crud, models
-from thymis_controller.dependencies import SessionAD
+from thymis_controller.dependencies import SessionAD, get_project
 
 logger = logging.getLogger(__name__)
 
@@ -14,8 +14,8 @@ def register(
     register_request: models.RegisterDeviceRequest,
     request: Request,
     db_session: SessionAD,
+    project=Depends(get_project),
 ):
-    # TODO save ip
     device_host = request.client.host
     logger.info(
         f"Device with host {device_host} and build hash {register_request.build_hash} attemps to register"
@@ -23,6 +23,7 @@ def register(
 
     if crud.hostkey.register_device(
         db_session,
+        project,
         register_request.build_hash,
         register_request.public_key,
         device_host,

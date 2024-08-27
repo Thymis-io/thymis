@@ -468,7 +468,7 @@ class DeployProjectTask(CompositeTask):
     def __init__(self, project: "project.Project"):
         super().__init__(
             [
-                DeployDeviceTask(project.path, device)
+                DeployDeviceTask(project.path, device, project.known_hosts_path)
                 for device in project.read_state().devices
             ]
         )
@@ -477,7 +477,7 @@ class DeployProjectTask(CompositeTask):
 
 
 class DeployDeviceTask(CommandTask):
-    def __init__(self, repo_dir, device: models.Device):
+    def __init__(self, repo_dir, device: models.Device, known_hosts_path):
         super().__init__(
             "nixos-rebuild",
             [
@@ -489,7 +489,7 @@ class DeployDeviceTask(CommandTask):
                 f"root@{device.targetHost}",
             ],
             env={
-                "NIX_SSHOPTS": "-o StrictHostKeyChecking=accept-new",
+                "NIX_SSHOPTS": f'-o StrictHostKeyChecking=accept-new -o "UserKnownHostsFile {known_hosts_path}"',
                 "PATH": os.getenv("PATH"),
             },
         )
@@ -559,10 +559,14 @@ class BuildDeviceImageTask(CommandTask):
 
 
 class RestartDeviceTask(CommandTask):
-    def __init__(self, identifier):
+    def __init__(self, identifier, known_hosts_path):
         super().__init__(
             "ssh",
-            ["-o StrictHostKeyChecking=accept-new", f"root@{identifier}", "reboot"],
+            [
+                f'-o StrictHostKeyChecking=accept-new -o "UserKnownHostsFile {known_hosts_path}"',
+                f"root@{identifier}",
+                "reboot",
+            ],
         )
 
         self.display_name = f"Restarting {identifier}"

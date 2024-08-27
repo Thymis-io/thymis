@@ -7,12 +7,13 @@ import pkgutil
 import shutil
 import subprocess
 import sys
+import tempfile
 import traceback
 from pathlib import Path
 
 import git
 from pytest import Session
-from thymis_controller import migration, models, modules, task
+from thymis_controller import crud, db_models, migration, models, modules, task
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
 
@@ -117,8 +118,9 @@ def get_module_class_instance_by_type(module_type: str):
 class Project:
     path: pathlib.Path
     repo: git.Repo
+    known_hosts_path: pathlib.Path
 
-    def __init__(self, path):
+    def __init__(self, path, db_session: Session):
         self.path = pathlib.Path(path)
         # create the path if not exists
         self.path.mkdir(exist_ok=True, parents=True)
@@ -141,6 +143,10 @@ class Project:
         except subprocess.CalledProcessError as e:
             logger.error("Error while migrating state: %s", e)
             traceback.print_exc()
+
+        logger.info("Initializing known_hosts file")
+        self.known_hosts_path = None
+        self.update_known_hosts(db_session)
 
     def read_state(self):
         with open(Path(self.path) / "state.json", "r", encoding="utf-8") as f:
@@ -235,6 +241,19 @@ class Project:
             for commit in self.repo.iter_commits()
         ]
 
+    def update_known_hosts(self, db_session: Session):
+        if not self.known_hosts_path or not self.known_hosts_path.exists():
+            self.known_hosts_path = pathlib.Path(
+                tempfile.NamedTemporaryFile(delete=False).name
+            )
+
+        hostkeys = crud.hostkey.get_all(db_session)
+        with open(self.known_hosts_path, "w", encoding="utf-8") as f:
+            for hostkey in hostkeys:
+                f.write(f"{hostkey.device_host} ssh-ed25519 {hostkey.public_key}\n")
+
+        logger.info("Updated known_hosts file at %s", self.known_hosts_path)
+
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildTask(self.path))
 
@@ -263,5 +282,5 @@ class Project:
 
     def create_restart_device_task(self, device_identifier: str):
         return task.global_task_controller.add_task(
-            task.RestartDeviceTask(device_identifier)
+            task.RestartDeviceTask(device_identifier, self.known_hosts_path)
         )

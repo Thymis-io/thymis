@@ -2,6 +2,8 @@ import datetime
 
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
+from thymis_controller.dependencies import get_project
+from thymis_controller.project import Project
 
 
 def create_or_update(db_session: Session, identifier: str, build_hash: str):
@@ -27,7 +29,11 @@ def create_or_update(db_session: Session, identifier: str, build_hash: str):
 
 
 def register_device(
-    db_session: Session, build_hash: str, public_key: str, device_host: str
+    db_session: Session,
+    project: Project,
+    build_hash: str,
+    public_key: str,
+    device_host: str,
 ) -> bool:
     device = (
         db_session.query(db_models.HostKey)
@@ -41,4 +47,12 @@ def register_device(
     device.public_key = public_key
     device.device_host = device_host
     db_session.commit()
+
+    # update known hosts
+    project.update_known_hosts(db_session)
+
     return True
+
+
+def get_all(db_session: Session):
+    return db_session.query(db_models.HostKey).all()
