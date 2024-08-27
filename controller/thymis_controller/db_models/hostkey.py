@@ -11,4 +11,5 @@ class HostKey(Base):
     build_hash = Column(String, unique=True)
     public_key = Column(String)
     identifier = Column(String, unique=True)
+    device_host = Column(String)
     created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))

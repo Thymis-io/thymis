@@ -6,7 +6,9 @@ from thymis_controller import db_models
 
 def create_or_update(db_session: Session, identifier: str, build_hash: str):
     hostkey = (
-        db_session.query(db_models.HostKey).filter_by(identifier=identifier).first()
+        db_session.query(db_models.HostKey)
+        .where(db_models.HostKey.identifier == identifier)
+        .first()
     )
 
     if hostkey is None:
@@ -22,3 +24,21 @@ def create_or_update(db_session: Session, identifier: str, build_hash: str):
 
     db_session.commit()
     return hostkey
+
+
+def register_device(
+    db_session: Session, build_hash: str, public_key: str, device_host: str
+) -> bool:
+    device = (
+        db_session.query(db_models.HostKey)
+        .where(db_models.HostKey.build_hash == build_hash)
+        .first()
+    )
+
+    if not device:
+        return False
+
+    device.public_key = public_key
+    device.device_host = device_host
+    db_session.commit()
+    return True

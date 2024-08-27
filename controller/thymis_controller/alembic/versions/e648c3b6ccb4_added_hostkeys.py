@@ -1,15 +1,15 @@
 """added hostkeys
 
-Revision ID: e95629b78fad
+Revision ID: e648c3b6ccb4
 Revises: e2fc6c08d9f6
-Create Date: 2024-08-26 22:34:15.094782
+Create Date: 2024-08-27 16:58:21.755612
 
 """
 import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = "e95629b78fad"
+revision = "e648c3b6ccb4"
 down_revision = "e2fc6c08d9f6"
 branch_labels = None
 depends_on = None
@@ -23,6 +23,7 @@ def upgrade():
         sa.Column("build_hash", sa.String(), nullable=True),
         sa.Column("public_key", sa.String(), nullable=True),
         sa.Column("identifier", sa.String(), nullable=True),
+        sa.Column("device_host", sa.String(), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("build_hash"),
