@@ -10,6 +10,7 @@
 	import Taskbar from '$lib/taskbar/Taskbar.svelte';
 	import MainWindow from './MainWindow.svelte';
 	import TaskbarMinimize from '$lib/taskbar/TaskbarMinimize.svelte';
+	import TaskbarSmall from '$lib/taskbar/TaskbarSmall.svelte';
 
 	export let data: LayoutData;
 
@@ -60,6 +61,7 @@
 					<MainWindow bind:drawerHidden><slot /></MainWindow>
 					<div class="relative bg-gray-50 dark:bg-gray-700">
 						<TaskbarMinimize bind:taskBarMinimized />
+						<TaskbarSmall />
 					</div>
 				</div>
 			{:else}

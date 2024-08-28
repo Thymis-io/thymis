@@ -6,14 +6,19 @@
 </script>
 
 <div class="h-8 z-10 absolute right-0">
-	<button
-		class="float-right px-2 hover:bg-gray-200 dark:hover:bg-gray-600"
-		on:click={() => (taskBarMinimized = !taskBarMinimized)}
-	>
-		{#if taskBarMinimized}
+	{#if taskBarMinimized}
+		<button
+			class="float-right px-2 hover:bg-gray-200 dark:hover:bg-gray-600 mt-2"
+			on:click={() => (taskBarMinimized = !taskBarMinimized)}
+		>
 			<ChevronsUp size={22} />
-		{:else}
+		</button>
+	{:else}
+		<button
+			class="float-right px-2 hover:bg-gray-200 dark:hover:bg-gray-600"
+			on:click={() => (taskBarMinimized = !taskBarMinimized)}
+		>
 			<ChevronsDown size={22} />
-		{/if}
-	</button>
+		</button>
+	{/if}
 </div>
