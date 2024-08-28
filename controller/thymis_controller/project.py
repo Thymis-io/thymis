@@ -232,8 +232,10 @@ class Project:
 
     def revert_commit(self, commit: str):
         commit_to_revert = self.repo.commit(commit)
-        self.repo.git.revert(commit, no_commit=True)
-        self.repo.index.commit(f"Revert {commit_to_revert.message}")
+        sha1 = self.repo.git.rev_parse(commit_to_revert.hexsha, short=True)
+        self.repo.git.rm("-r", ".")
+        self.repo.git.checkout(commit_to_revert.hexsha, ".")
+        self.repo.index.commit(f"Revert to {sha1}: {commit_to_revert.message}")
         logger.info(f"Reverted commit: {commit_to_revert}")
 
     def create_build_task(self):

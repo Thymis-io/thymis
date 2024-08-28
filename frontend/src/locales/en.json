@@ -114,7 +114,9 @@
 	},
 	"history": {
 		"open-diff": "Show Changes",
-		"revert-commit": "Revert last commit: {commit}, {message}"
+		"revert-commit": "Revert to this state",
+		"revert-commit-button": "Revert",
+		"no-revert": "Already at this state"
 	},
 	"deploy": {
 		"build": "Build",

@@ -114,7 +114,9 @@
 	},
 	"history": {
 		"open-diff": "Änderungen anzeigen",
-		"revert-commit": "Letzten Commit rückgängig machen: {commit}, {message}"
+		"revert-commit": "Auf diesen Commit rückgängig machen",
+		"revert-commit-button": "Rückgängig machen",
+		"no-revert": "Bereits auf diesem Commit"
 	},
 	"deploy": {
 		"build": "Erstellen",
