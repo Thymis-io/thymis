@@ -141,7 +141,7 @@
 	asideClass="{asideClass} lg:sticky lg:top-0 border-e border-gray-200 dark:border-gray-600 lg:block"
 >
 	<SidebarWrapper
-		divClass="overflow-y-auto px-4 pt-2 lg:pt-4 bg-white scrolling-touch h-[calc(100vh-4.6rem)] lg:block dark:bg-gray-800 lg:me-0"
+		divClass="overflow-y-auto px-4 pt-2 lg:pt-4 bg-white scrolling-touch h-full lg:block dark:bg-gray-800 lg:me-0"
 	>
 		<nav class="divide-y text-base font-medium">
 			<SidebarGroup ulClass="list-unstyled fw-normal small mb-4 space-y-2">

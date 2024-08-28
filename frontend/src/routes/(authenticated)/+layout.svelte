@@ -8,12 +8,16 @@
 	import { state } from '$lib/state';
 	import { taskStatus } from '$lib/taskstatus';
 	import Taskbar from '$lib/taskbar/Taskbar.svelte';
+	import MainWindow from './MainWindow.svelte';
+	import TaskbarMinimize from './TaskbarMinimize.svelte';
 
 	export let data: LayoutData;
 
 	$state = data.state;
 	let lastDataState = data.state;
 	let lastState = data.state;
+
+	let taskBarMinimized = false;
 
 	$: {
 		// check which state changed
@@ -50,26 +54,29 @@
 		<Sidebar asideClass="h-full pt-[calc(var(--navbar-height))]" bind:drawerHidden />
 	</div>
 	<div class="{drawerHidden ? '' : 'hidden'} lg:block pt-[calc(var(--navbar-height))] h-full">
-		<SplitPane type="vertical" pos="60%" min="12rem" max="80%">
-			<SplitPane
-				class="!block lg:!grid"
-				type="horizontal"
-				pos="16rem"
-				min="16rem"
-				max="64rem"
-				priority="min"
-				leftPaneClass="!hidden lg:!block"
-				slot="a"
-			>
-				<Sidebar slot="a" bind:drawerHidden />
-				<div class="p-4 bg-gray-50 dark:bg-gray-900 !overflow-y-scroll" slot="b">
-					<slot />
+		<div class="flex flex-row h-full">
+			{#if taskBarMinimized}
+				<div class="w-full relative grid grid-cols-1 grid-rows-[calc(100%-40px)_40px]">
+					<MainWindow bind:drawerHidden><slot /></MainWindow>
+					<div class="relative bg-gray-50 dark:bg-gray-700">
+						<TaskbarMinimize bind:taskBarMinimized />
+					</div>
 				</div>
-			</SplitPane>
-			<div class="w-full border dark:border-gray-600 bg-gray-50 dark:bg-gray-900" slot="b">
-				<Taskbar />
-			</div>
-		</SplitPane>
+			{:else}
+				<SplitPane type="vertical" pos="60%" min="12rem" max="80%">
+					<MainWindow slot="a" bind:drawerHidden>
+						<slot />
+					</MainWindow>
+					<div
+						class="w-full relative border dark:border-gray-600 bg-gray-50 dark:bg-gray-900"
+						slot="b"
+					>
+						<TaskbarMinimize bind:taskBarMinimized />
+						<Taskbar />
+					</div>
+				</SplitPane>
+			{/if}
+		</div>
 	</div>
 </div>
 
