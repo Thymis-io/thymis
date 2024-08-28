@@ -11,6 +11,7 @@
 	import MainWindow from './MainWindow.svelte';
 	import TaskbarMinimize from '$lib/taskbar/TaskbarMinimize.svelte';
 	import TaskbarSmall from '$lib/taskbar/TaskbarSmall.svelte';
+	import { browser } from '$app/environment';
 
 	export let data: LayoutData;
 
@@ -18,7 +19,13 @@
 	let lastDataState = data.state;
 	let lastState = data.state;
 
-	let taskBarMinimized = false;
+	let taskBarMinimized = data.minimizeTasbar ?? false;
+
+	$: {
+		if (browser) {
+			document.cookie = `taskbar-minimized=${taskBarMinimized};`;
+		}
+	}
 
 	$: {
 		// check which state changed
