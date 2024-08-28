@@ -9,7 +9,7 @@
 	import { taskStatus } from '$lib/taskstatus';
 	import Taskbar from '$lib/taskbar/Taskbar.svelte';
 	import MainWindow from './MainWindow.svelte';
-	import TaskbarMinimize from './TaskbarMinimize.svelte';
+	import TaskbarMinimize from '$lib/taskbar/TaskbarMinimize.svelte';
 
 	export let data: LayoutData;
 
