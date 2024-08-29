@@ -25,15 +25,11 @@
 <RollbackModal bind:commit={revertCommit} />
 <div class="flex justify-between mb-4">
 	<h1 class="text-3xl font-bold dark:text-white">History</h1>
+	<DeployActions />
 </div>
 {#await data.history}
 	<p>Loading...</p>
 {:then historyList}
-	{#if historyList.length > 0}
-		<div class="flex justify-between mb-4">
-			<DeployActions />
-		</div>
-	{/if}
 	<ul class="list-disc ml-4">
 		{#each historyList as history, index}
 			<li class="mb-2 text-gray-600">
