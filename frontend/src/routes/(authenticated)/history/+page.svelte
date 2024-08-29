@@ -2,15 +2,13 @@
 	import { t } from 'svelte-i18n';
 	import { Button, AccordionItem, Accordion, Tooltip, P } from 'flowbite-svelte';
 	import type { PageData } from './$types';
-	import { invalidate } from '$app/navigation';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import Undo from 'lucide-svelte/icons/undo-2';
+	import RollbackModal from './RollbackModal.svelte';
+
 	export let data: PageData;
 
-	const revertLastCommit = async (commitSHA: string) => {
-		await fetch(`/api/history/revert-commit?commit_sha=${commitSHA}`, { method: 'POST' });
-		await invalidate((url) => url.pathname === '/api/history' || url.pathname === '/api/state');
-	};
+	let revertCommit: { SHA1: string; message: string } | undefined;
 
 	const lineColor = (line: string) => {
 		if (line.startsWith('+')) {
@@ -24,6 +22,7 @@
 	};
 </script>
 
+<RollbackModal bind:commit={revertCommit} />
 <div class="flex justify-between mb-4">
 	<h1 class="text-3xl font-bold dark:text-white">History</h1>
 </div>
@@ -50,7 +49,7 @@
 						<Button
 							class="p-2 mr-2 w-full flex justify-center gap-2 rounded"
 							color="alternative"
-							on:click={() => revertLastCommit(history.SHA1)}
+							on:click={() => (revertCommit = history)}
 							disabled={index === 0}
 						>
 							<Undo />
