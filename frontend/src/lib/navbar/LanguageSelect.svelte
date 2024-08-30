@@ -2,19 +2,25 @@
 	import { locale, t } from 'svelte-i18n';
 	import { browser } from '$app/environment';
 	import { Select } from 'flowbite-svelte';
+	import { onMount } from 'svelte';
 
 	let locales = [
 		{ name: $t('language.en'), value: 'en' },
 		{ name: $t('language.de'), value: 'de' }
 	];
 
-	let selected = $locale || 'en';
+	onMount(() => {
+		if (browser) {
+			let cookie = document.cookie.split(';').find((c) => c.trim().startsWith('locale='));
+			if (cookie) {
+				$locale = cookie.split('=')[1];
+			}
+		}
+	});
 
 	$: {
-		$locale = selected;
-		// also set cookie if browser
 		if (browser) {
-			document.cookie = `locale=${selected};path=/;max-age=31536000`;
+			document.cookie = `locale=${$locale || 'en'};path=/;max-age=31536000`;
 		}
 	}
 </script>
@@ -23,6 +29,6 @@
 	class="ml-2 w-32"
 	size="sm"
 	items={locales}
-	bind:value={selected}
+	bind:value={$locale}
 	placeholder={$t('language.select')}
 />

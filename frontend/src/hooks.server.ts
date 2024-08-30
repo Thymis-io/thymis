@@ -5,7 +5,7 @@ import { controllerHost } from '$lib/api';
 export const handle: Handle = async ({ event, resolve }) => {
 	let lang = event.request.headers.get('accept-language')?.split(',')[0]?.split('-')[0];
 	// check for language override cookie
-	lang = event.cookies.get('lang') || lang;
+	lang = event.cookies.get('locale') || lang;
 	if (lang) {
 		locale.set(lang);
 	}
