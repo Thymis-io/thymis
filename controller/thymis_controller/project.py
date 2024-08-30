@@ -172,7 +172,6 @@ class Project:
         # for each host create its own folder
         for device in state.devices:
             # assert device.identifier, "identifier cannot be empty"
-            logger.info("Device with empty identifier found, skipping")
             if not device.identifier:
                 logger.info("Device with empty identifier found, skipping")
                 continue
