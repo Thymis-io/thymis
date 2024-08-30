@@ -76,6 +76,7 @@ jobs:
         env:
           THYMIS_REPO_PATH: ${{ runner.temp }}/thymis/repository
           THYMIS_DATABASE_URL: sqlite:///${{ runner.temp }}/thymis/thymis.sqlite
+          THYMIS_AUTH_BASIC_PASSWORD_FILE: ${{ runner.temp }}/thymis/auth-basic-password
         working-directory: frontend
   test-pre-commit:
     runs-on: ubuntu-latest

@@ -40,6 +40,7 @@ export type SettingType =
 	| 'number'
 	| 'bool'
 	| 'textarea'
+	| 'int'
 	| SelectOneSettingType
 	| ListSettingType;
 

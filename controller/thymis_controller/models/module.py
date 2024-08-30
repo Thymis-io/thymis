@@ -2,7 +2,7 @@ from typing import List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 
-ValueTypes = Literal["bool", "string", "path", "package", "textarea"]
+ValueTypes = Literal["bool", "string", "path", "package", "textarea", "int"]
 
 
 class SelectOneType(BaseModel):
