@@ -47,12 +47,12 @@ export const load = (async ({ fetch, url, data }) => {
 	const availableModules = (await availableModulesResponse.json()) as Module[];
 
 	const allTasks = await getAllTasks(fetch);
-	const minimizeTasbar = data?.minimizeTasbar === 'true';
+	const minimizeTaskbar = data?.minimizeTaskbar === 'true';
 
 	return {
 		state: state,
 		availableModules: availableModules,
 		allTasks: allTasks,
-		minimizeTasbar: minimizeTasbar
+		minimizeTaskbar: minimizeTaskbar
 	};
 }) satisfies LayoutLoad;

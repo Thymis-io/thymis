@@ -19,11 +19,11 @@
 	let lastDataState = data.state;
 	let lastState = data.state;
 
-	let taskBarMinimized = data.minimizeTasbar ?? false;
+	let taskbarMinimized = data.minimizeTaskbar ?? false;
 
 	$: {
 		if (browser) {
-			document.cookie = `taskbar-minimized=${taskBarMinimized};`;
+			document.cookie = `taskbar-minimized=${taskbarMinimized};`;
 		}
 	}
 
@@ -63,11 +63,11 @@
 	</div>
 	<div class="{drawerHidden ? '' : 'hidden'} lg:block pt-[calc(var(--navbar-height))] h-full">
 		<div class="flex flex-row h-full">
-			{#if taskBarMinimized}
+			{#if taskbarMinimized}
 				<div class="w-full relative grid grid-rows-[calc(100%-40px)_40px]">
 					<MainWindow bind:drawerHidden><slot /></MainWindow>
 					<div class="relative">
-						<TaskbarMinimize bind:taskBarMinimized class="mt-2" />
+						<TaskbarMinimize bind:taskBarMinimized={taskbarMinimized} class="mt-2" />
 						<TaskbarSmall />
 					</div>
 				</div>
@@ -77,10 +77,10 @@
 						<slot />
 					</MainWindow>
 					<div class="w-full relative dark:border-gray-600 bg-gray-50 dark:bg-gray-900" slot="b">
-						<TaskbarMinimize bind:taskBarMinimized />
+						<TaskbarMinimize bind:taskBarMinimized={taskbarMinimized} />
 						<Taskbar />
 						<div class="relative h-[40px]">
-							<TaskbarMinimize bind:taskBarMinimized class="mt-2" />
+							<TaskbarMinimize bind:taskBarMinimized={taskbarMinimized} class="mt-2" />
 							<TaskbarSmall />
 						</div>
 					</div>
