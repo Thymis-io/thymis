@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Button, Modal, Label, Input } from 'flowbite-svelte';
+	import { invalidate } from '$app/navigation';
 
 	export let open = false;
 
@@ -10,6 +11,7 @@
 		await fetch(`/api/action/deploy?summary=${summary}`, {
 			method: 'POST'
 		});
+		await invalidate((url) => url.pathname === '/api/history');
 
 		open = false;
 	};

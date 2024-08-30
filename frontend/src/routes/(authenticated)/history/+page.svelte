@@ -1,26 +1,80 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
+	import { Button, AccordionItem, Accordion, Tooltip, P } from 'flowbite-svelte';
 	import type { PageData } from './$types';
+	import DeployActions from '$lib/components/DeployActions.svelte';
+	import Undo from 'lucide-svelte/icons/undo-2';
+	import RollbackModal from './RollbackModal.svelte';
+
 	export let data: PageData;
 
-	// history: response.json() as Promise<{ message: string; author: string, date: string , hash: string }[]>
+	let revertCommit: { SHA1: string; message: string } | undefined;
+
+	const lineColor = (line: string) => {
+		if (line.startsWith('+')) {
+			return 'text-green-400';
+		} else if (line.startsWith('-')) {
+			return 'text-red-400';
+		} else if (line.startsWith('@@')) {
+			return 'text-cyan-400';
+		}
+		return 'text-gray-200';
+	};
 </script>
 
+<RollbackModal bind:commit={revertCommit} />
 <div class="flex justify-between mb-4">
 	<h1 class="text-3xl font-bold dark:text-white">History</h1>
+	<DeployActions />
 </div>
 {#await data.history}
 	<p>Loading...</p>
-{:then history}
+{:then historyList}
 	<ul class="list-disc ml-4">
-		{#each history as h}
-			<!-- simple left-bound list -->
+		{#each historyList as history, index}
 			<li class="mb-2 text-gray-600">
-				<!-- {h.message} by {h.author} on {h.date} with hash {h.hash} -->
-				<span class="text-gray-600">{h.message}</span>
-				<span class="text-gray-400"> by {h.author}</span>
-				<span class="text-gray-400"> on {h.date}</span>
-				<span class="text-gray-400"> with hash {h.hash}</span>
+				<div class="flex justify-between">
+					<div>
+						<span class="text-gray-600">{history.message}</span>
+						<br />
+						<span class="text-gray-400"> by {history.author}</span>
+						<span class="text-gray-400"> on {history.date}</span>
+						<span class="text-gray-400"> with hash {history.SHA1}</span>
+					</div>
+					<div class="shrink">
+						<Button
+							class="p-2 mr-2 w-full flex justify-center gap-2 rounded"
+							color="alternative"
+							on:click={() => (revertCommit = history)}
+							disabled={index === 0}
+						>
+							<Undo />
+							{$t('history.revert-commit-button')}
+						</Button>
+						<Tooltip type="auto">
+							<P size="sm">
+								{#if index === 0}
+									{$t('history.no-revert')}
+								{:else}
+									{$t('history.revert-commit')}
+								{/if}
+							</P>
+						</Tooltip>
+					</div>
+				</div>
 			</li>
+			{#if history.state_diff.length > 0}
+				<Accordion flush class="mr-4 mb-8">
+					<AccordionItem tag="span" paddingFlush="py-2">
+						<span slot="header">{$t('history.open-diff')}</span>
+						{#each history.state_diff as line}
+							<pre class={`text-sm ${lineColor(line)}`}>{line}</pre>
+						{/each}
+					</AccordionItem>
+				</Accordion>
+			{:else}
+				<p class="mb-8 text-gray-600">No state changes</p>
+			{/if}
 		{/each}
 	</ul>
 {/await}

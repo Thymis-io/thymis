@@ -100,6 +100,15 @@ def get_history(project: project.Project = Depends(get_project)):
     return project.get_history()
 
 
+@router.post("/history/revert-commit")
+def revert_commit(
+    commit_sha: str,
+    project: project.Project = Depends(get_project),
+):
+    project.revert_commit(commit_sha)
+    return {"message": "reverted commit"}
+
+
 @router.post("/action/update")
 async def update(
     project: project.Project = Depends(get_project),

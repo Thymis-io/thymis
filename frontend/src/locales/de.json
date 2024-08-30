@@ -112,6 +112,12 @@
 		"no-tags": "Ihr Projekt hat noch keine Tags, daher können Sie diesem Gerät keine zuweisen.",
 		"tags": "Geräte-Tags – Welche Tags sollten diesem Gerät zugewiesen werden?"
 	},
+	"history": {
+		"open-diff": "Änderungen anzeigen",
+		"revert-commit": "Auf diesen Commit rückgängig machen",
+		"revert-commit-button": "Rückgängig machen",
+		"no-revert": "Bereits auf diesem Commit"
+	},
 	"deploy": {
 		"build": "Erstellen",
 		"deploy": "Ausrollen",

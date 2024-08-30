@@ -112,6 +112,15 @@
 		"device-type-cannot-be-empty": "Device type cannot be empty.",
 		"device-with-display-name-name-exists": "Device with display name \"{displayName}\" already exists in project."
 	},
+	"history": {
+		"open-diff": "Show Changes",
+		"revert-commit": "Revert to this state",
+		"revert-commit-button": "Revert",
+		"no-revert": "Already at this state",
+		"rollback-modal-title": "Revert commit",
+		"rollback-modal-body": "This will discard all uncommitted changes and create a new commit with the state of the selected commit.\n\n{newCommit}\n\nAre you sure you want to continue?",
+		"rollback-modal-confirm": "Revert"
+	},
 	"deploy": {
 		"build": "Build",
 		"deploy": "Deploy",

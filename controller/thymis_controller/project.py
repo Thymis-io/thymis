@@ -217,10 +217,26 @@ class Project:
                 "message": commit.message,
                 "author": commit.author.name,
                 "date": commit.authored_datetime,
-                "hash": commit.hexsha,
+                "SHA": commit.hexsha,
+                "SHA1": self.repo.git.rev_parse(commit.hexsha, short=True),
+                "state_diff": self.repo.git.diff(
+                    commit.hexsha,
+                    commit.parents[0].hexsha if len(commit.parents) > 0 else None,
+                    "-R",
+                    "state.json",
+                    unified=5,
+                ).split("\n")[4:],
             }
             for commit in self.repo.iter_commits()
         ]
+
+    def revert_commit(self, commit: str):
+        commit_to_revert = self.repo.commit(commit)
+        sha1 = self.repo.git.rev_parse(commit_to_revert.hexsha, short=True)
+        self.repo.git.rm("-r", ".")
+        self.repo.git.checkout(commit_to_revert.hexsha, ".")
+        self.repo.index.commit(f"Revert to {sha1}: {commit_to_revert.message}")
+        logger.info(f"Reverted commit: {commit_to_revert}")
 
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildTask(self.path))
