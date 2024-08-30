@@ -174,41 +174,30 @@ class Project:
             # assert device.identifier, "identifier cannot be empty"
             logger.info("Device with empty identifier found, skipping")
             if not device.identifier:
+                logger.info("Device with empty identifier found, skipping")
                 continue
-            device_path = self.path / "hosts" / device.identifier
-            device_path.mkdir(exist_ok=True)
-            # create a empty .gitignore file
-            os.mknod(device_path / ".gitignore")
-            # write its modules
-            for module_settings in device.modules:
-                # module holds settings right now.
-                try:
-                    module = get_module_class_instance_by_type(module_settings.type)
-                    module.write_nix(device_path, module_settings, HOST_PRIORITY)
-                except Exception as e:
-                    logger.error(
-                        "Error while writing module %s: %s", module_settings.type, e
-                    )
-                    traceback.print_exc()
-        # for each tag create its own folder
+            self.create_folder_and_write_modules(
+                "hosts", device.identifier, device.modules, HOST_PRIORITY
+            )
         for tag in state.tags:
-            tag_path = self.path / "tags" / tag.identifier
-            tag_path.mkdir(exist_ok=True)
-            # create a empty .gitignore file
-            os.mknod(tag_path / ".gitignore")
-            # write its modules
-            for module_settings in tag.modules:
-                # module holds settings right now.
-                try:
-                    module = get_module_class_instance_by_type(module_settings.type)
-                    module.write_nix(tag_path, module_settings, tag.priority)
-                except Exception as e:
-                    logger.error(
-                        "Error while writing module %s: %s", module_settings.type, e
-                    )
-                    traceback.print_exc()
-        # run git add
+            self.create_folder_and_write_modules(
+                "tags", tag.identifier, tag.modules, tag.priority
+            )
         self.repo.git.add(".")
+
+    def create_folder_and_write_modules(self, base_path, identifier, modules, priority):
+        path = self.path / base_path / identifier
+        path.mkdir(exist_ok=True)
+        os.mknod(path / ".gitignore")
+        for module_settings in modules:
+            try:
+                module = get_module_class_instance_by_type(module_settings.type)
+                module.write_nix(path, module_settings, priority)
+            except Exception as e:
+                logger.error(
+                    "Error while writing module %s: %s", module_settings.type, e
+                )
+                traceback.print_exc()
 
     def set_repositories_in_python_path(self, path: os.PathLike, state: State):
         repositories = BUILTIN_REPOSITORIES | state.repositories

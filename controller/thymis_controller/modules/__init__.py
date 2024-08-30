@@ -49,7 +49,14 @@ class Module(ABC):
         self, f, module_settings: "models.ModuleSettings", priority: int
     ):
         for attr, value in module_settings.settings.items():
-            my_attr = getattr(self, attr)
+            try:
+                my_attr = getattr(self, attr)
+            except AttributeError:
+                import traceback
+
+                traceback.print_exc()
+                print(f"Attribute {attr} not found in {self}")
+                continue
             assert isinstance(my_attr, models.Setting)
             if isinstance(my_attr.type, models.ListType):
                 continue
