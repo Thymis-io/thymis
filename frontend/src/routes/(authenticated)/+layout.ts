@@ -6,20 +6,22 @@ import type { State, Module } from '$lib/state';
 import { error, redirect } from '@sveltejs/kit';
 import { getAllTasks } from '$lib/taskstatus';
 
-export const load = (async ({ fetch, url }) => {
+export const load = (async ({ fetch, url, data }) => {
+	let lang = 'en';
 	if (browser) {
-		let lang = window.navigator.language;
+		lang = window.navigator.language;
 		// split -
 		lang = lang.split('-')[0];
 		// check cookie and set value from there
 		lang =
 			document.cookie
 				.split('; ')
-				.find((row) => row.startsWith('lang='))
+				.find((row) => row.startsWith('locale='))
 				?.split('=')[1] || lang;
+		console.log('setting locale:', lang);
 		locale.set(lang);
 	}
-	await waitLocale();
+	await waitLocale(lang);
 	const stateResponse = await fetch(`/api/state`, {
 		method: 'GET',
 		headers: {
