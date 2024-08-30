@@ -13,7 +13,9 @@
 	$: lastestTask = $taskStatus[$taskStatus.length - 1];
 </script>
 
-<div class="w-full h-full flex px-2 gap-4 lg:gap-10 justify-end items-center pr-16">
+<div
+	class="w-full h-full flex px-2 gap-4 lg:gap-10 justify-end items-center pr-16 bg-gray-50 dark:bg-gray-700"
+>
 	<div class="flex items-center gap-2">
 		<PendingIcon size={20} />
 		<span class="text-xs lg:text-sm">{$t('taskbar.pending')}: {pendingTasks.length}</span>

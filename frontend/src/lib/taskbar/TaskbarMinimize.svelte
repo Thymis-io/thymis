@@ -2,23 +2,21 @@
 	import ChevronsDown from 'lucide-svelte/icons/chevrons-down';
 	import ChevronsUp from 'lucide-svelte/icons/chevrons-up';
 
+	let className = '';
+
 	export let taskBarMinimized = false;
+	export { className as class };
 </script>
 
-<div class="h-8 z-10 absolute right-0">
-	{#if taskBarMinimized}
-		<button
-			class="float-right px-2 hover:bg-gray-200 dark:hover:bg-gray-600 mt-2"
-			on:click={() => (taskBarMinimized = !taskBarMinimized)}
-		>
+<div class={'absolute right-0 z-10 ' + className}>
+	<button
+		class="float-right px-2 hover:bg-gray-200 dark:hover:bg-gray-600"
+		on:click={() => (taskBarMinimized = !taskBarMinimized)}
+	>
+		{#if taskBarMinimized}
 			<ChevronsUp size={22} />
-		</button>
-	{:else}
-		<button
-			class="float-right px-2 hover:bg-gray-200 dark:hover:bg-gray-600"
-			on:click={() => (taskBarMinimized = !taskBarMinimized)}
-		>
+		{:else}
 			<ChevronsDown size={22} />
-		</button>
-	{/if}
+		{/if}
+	</button>
 </div>

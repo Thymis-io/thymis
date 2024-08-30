@@ -103,5 +103,5 @@
 </script>
 
 {#if $taskStatus}
-	<DataTable class="max-h-full flex" {table} />
+	<DataTable class="h-[calc(100%-40px)] flex" {table} />
 {/if}

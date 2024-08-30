@@ -64,24 +64,25 @@
 	<div class="{drawerHidden ? '' : 'hidden'} lg:block pt-[calc(var(--navbar-height))] h-full">
 		<div class="flex flex-row h-full">
 			{#if taskBarMinimized}
-				<div class="w-full relative grid grid-cols-1 grid-rows-[calc(100%-40px)_40px]">
+				<div class="w-full relative grid grid-rows-[calc(100%-40px)_40px]">
 					<MainWindow bind:drawerHidden><slot /></MainWindow>
-					<div class="relative bg-gray-50 dark:bg-gray-700">
-						<TaskbarMinimize bind:taskBarMinimized />
+					<div class="relative">
+						<TaskbarMinimize bind:taskBarMinimized class="mt-2" />
 						<TaskbarSmall />
 					</div>
 				</div>
 			{:else}
 				<SplitPane type="vertical" pos="60%" min="12rem" max="80%">
-					<MainWindow slot="a" bind:drawerHidden>
+					<MainWindow bind:drawerHidden slot="a">
 						<slot />
 					</MainWindow>
-					<div
-						class="w-full relative border dark:border-gray-600 bg-gray-50 dark:bg-gray-900"
-						slot="b"
-					>
+					<div class="w-full relative dark:border-gray-600 bg-gray-50 dark:bg-gray-900" slot="b">
 						<TaskbarMinimize bind:taskBarMinimized />
 						<Taskbar />
+						<div class="relative h-[40px]">
+							<TaskbarMinimize bind:taskBarMinimized class="mt-2" />
+							<TaskbarSmall />
+						</div>
 					</div>
 				</SplitPane>
 			{/if}
