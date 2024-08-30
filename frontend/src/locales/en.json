@@ -129,6 +129,13 @@
 		"tags": "Tags ({count})",
 		"modules": "Modules ({count})"
 	},
+	"taskbar": {
+		"pending": "Pending",
+		"running": "Running",
+		"completed": "Completed",
+		"failed": "Failed",
+		"latest-task": "Latest Task"
+	},
 	"config": {
 		"header": {
 			"tag-overview": "Manage modules for {tag}",

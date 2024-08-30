@@ -12,7 +12,7 @@
 	};
 </script>
 
-<Textarea {placeholder} on:change={changeInternal} {value} {disabled} />
+<Textarea {placeholder} on:change={changeInternal} {value} {disabled} rows={16} />
 {#if disabled}
 	<Tooltip type="auto" placement={'top'}>{$t('config.editDisabled')}</Tooltip>
 {/if}
