@@ -35,7 +35,13 @@
 	<div class="flex items-center gap-1 lg:gap-2">
 		{#if lastestTask}
 			<span class="text-xs lg:text-sm">
-				{$t('taskbar.latest-task')}: {lastestTask.display_name}, {lastestTask.state}
+				{$t('taskbar.latest-task')}:
+			</span>
+			<span class="text-xs lg:text-sm truncate max-w-64" title={lastestTask.display_name}>
+				{lastestTask.display_name}
+			</span>
+			<span class="text-xs lg:text-sm">
+				({lastestTask.state})
 			</span>
 		{/if}
 	</div>
