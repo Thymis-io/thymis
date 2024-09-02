@@ -13,7 +13,7 @@
 
 	export let onChange: (value: any) => void;
 
-	const getTypeKeyFromSetting = (setting: Setting): string => {
+	const getTypeKeyFromSetting = (setting: Setting): string | undefined => {
 		if (setting.type === 'int') return 'int';
 		if (setting.type === 'bool') return 'bool';
 		if (setting.type === 'string') return 'string';
@@ -24,7 +24,8 @@
 		if (typeof setting.type === 'object' && setting.type.hasOwnProperty('list-of')) {
 			return 'list-of';
 		}
-		throw new Error(`Unknown setting type: ${setting.type}`);
+		console.warn(`Unknown setting type: ${setting.type}`);
+		return undefined;
 	};
 
 	const settingIsInt = (setting: Setting): setting is Setting<'int'> => {
