@@ -14,7 +14,7 @@ class ThymisController(modules.Module):
         name="services.thymis-controller.repo-path",
         type="string",
         default=None,
-        description="Directory where the controller will store the repository holding the project",
+        description="services.thymis-controller.repo-path.description",
         example="/var/lib/thymis/repository",
         order=10,
     )
@@ -22,7 +22,7 @@ class ThymisController(modules.Module):
         name="services.thymis-controller.database-url",
         type="string",
         default=None,
-        description="URL of the database",
+        description="services.thymis-controller.database-url.description",
         example="sqlite:////var/lib/thymis/thymis.sqlite",
         order=20,
     )
@@ -30,7 +30,7 @@ class ThymisController(modules.Module):
         name="services.thymis-controller.base-url",
         type="string",
         default=None,
-        description="Base URL of the controller, how it will be accessed from the outside",
+        description="services.thymis-controller.base-url.description",
         example="http://localhost:8000",
         order=30,
     )
@@ -38,7 +38,7 @@ class ThymisController(modules.Module):
         name="services.thymis-controller.auth-basic",
         type="bool",
         default=None,
-        description="Whether to enable authentication using a basic username/password",
+        description="services.thymis-controller.auth-basic.description",
         example="true",
         order=40,
     )
@@ -46,7 +46,7 @@ class ThymisController(modules.Module):
         name="services.thymis-controller.auth-basic-username",
         type="string",
         default=None,
-        description="Username for basic authentication",
+        description="services.thymis-controller.auth-basic-username.description",
         example="admin",
         order=50,
     )
@@ -54,7 +54,7 @@ class ThymisController(modules.Module):
         name="services.thymis-controller.auth-basic-password-file",
         type="path",
         default=None,
-        description="File containing the password for basic authentication",
+        description="services.thymis-controller.auth-basic-password-file.description",
         example="/var/lib/thymis/auth-basic-password",
         order=60,
     )
@@ -62,7 +62,7 @@ class ThymisController(modules.Module):
         name="services.thymis-controller.listen-host",
         type="string",
         default=None,
-        description="Host on which the controller listens for incoming connections",
+        description="services.thymis-controller.listen-host.description",
         example="127.0.0.1",
         order=70,
     )
@@ -70,7 +70,7 @@ class ThymisController(modules.Module):
         name="services.thymis-controller.listen-port",
         type="int",
         default=None,
-        description="Port on which the controller listens for incoming connections",
+        description="services.thymis-controller.listen-port.description",
         example="8000",
         order=80,
     )
@@ -78,7 +78,7 @@ class ThymisController(modules.Module):
         name="services.thymis-controller.nginx-vhost-enable",
         type="bool",
         default=None,
-        description="Whether to enable the Nginx virtual host",
+        description="services.thymis-controller.nginx-vhost-enable.description",
         example="true",
         order=90,
     )
@@ -86,7 +86,7 @@ class ThymisController(modules.Module):
         name="services.thymis-controller.nginx-vhost-name",
         type="string",
         default=None,
-        description="Name of the Nginx virtual host",
+        description="services.thymis-controller.nginx-vhost-name.description",
         example="thymis",
         order=100,
     )

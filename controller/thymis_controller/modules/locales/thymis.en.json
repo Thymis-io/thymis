@@ -1,0 +1,26 @@
+{
+    "services": {
+        "thymis-controller": {
+            "repo-path": "Thymis Repository Path",
+            "repo-path.description": "Directory where the controller will store the repository holding the project",
+            "database-url": "Database URL",
+            "database-url.description": "URL of the database",
+            "base-url": "Base URL",
+            "base-url.description": "Base URL of the controller, how it will be accessed from the outside",
+            "auth-basic": "Basic Auth",
+            "auth-basic.description": "Whether to enable authentication using a basic username/password",
+            "auth-basic-username": "Basic Auth Username",
+            "auth-basic-username.description": "Username for basic authentication",
+            "auth-basic-password-file": "Basic Auth Password File",
+            "auth-basic-password-file.description": "Path to the file containing the password for basic authentication",
+            "listen-host": "Listen Host",
+            "listen-host.description": "Host on which the controller listens for incoming connections",
+            "listen-port": "Listen Port",
+            "listen-port.description": "Port on which the controller listens for incoming connections",
+            "nginx-vhost-enable": "Nginx VHost Enabled",
+            "nginx-vhost-enable.description": "Whether to enable the Nginx virtual host",
+            "nginx-vhost-name": "Nginx VHost Name",
+            "nginx-vhost-name.description": "Name of the Nginx virtual host"
+        }
+    }
+}
