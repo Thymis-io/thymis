@@ -3,6 +3,7 @@
 	import { browser } from '$app/environment';
 	import { Select } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
+	import { invalidate } from '$app/navigation';
 
 	let locales = [
 		{ name: $t('language.en'), value: 'en' },
@@ -26,6 +27,7 @@
 	$: {
 		if (browser) {
 			document.cookie = `locale=${$locale || 'en'};path=/;max-age=31536000`;
+			invalidate((url) => url.pathname === '/api/available_modules');
 		}
 	}
 </script>

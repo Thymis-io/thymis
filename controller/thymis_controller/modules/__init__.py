@@ -1,23 +1,57 @@
+import inspect
+import json
 import os
 from abc import ABC
+from pathlib import Path
 from typing import Optional
 
 from thymis_controller import models
 from thymis_controller.nix import convert_python_value_to_nix
 
 
+def flatten_dict(d, parent_key="", sep="."):
+    items = []
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
+
+def load_locales(file_location, language):
+    try:
+        domain = Path(file_location).stem
+        locale_dir = Path(file_location).parent.resolve() / "locales"
+        with open(locale_dir / Path(f"{domain}.{language}.json")) as f:
+            locales = json.load(f)
+        locales = flatten_dict(locales)
+        return locales
+    except:
+        return {}
+
+
 class Module(ABC):
     displayName: str
     icon: Optional[str] = None
 
-    def get_model(self) -> models.Module:
+    def get_model(self, language) -> models.Module:
+        locales_fallback = load_locales(inspect.getfile(self.__class__), "en")
+        locales = load_locales(inspect.getfile(self.__class__), language)
+        locales = locales_fallback | locales
+
         # collect all settings
         settings = {}
         for attr in dir(self):
             if not attr.startswith("_"):
                 value = getattr(self, attr)
                 if isinstance(value, models.Setting):
-                    settings[attr] = value
+                    settings[attr] = value.model_copy()
+                    settings[attr].name = locales.get(value.name, value.name)
+                    settings[attr].description = locales.get(
+                        value.description, value.description
+                    )
         return models.Module(
             type=self.type,
             displayName=self.displayName,
