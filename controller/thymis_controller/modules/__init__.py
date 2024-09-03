@@ -1,12 +1,13 @@
-import inspect
 import json
 import os
 from abc import ABC
 from pathlib import Path
 from typing import Optional
 
-from thymis_controller import models
+from thymis_controller import models, modules
 from thymis_controller.nix import convert_python_value_to_nix
+
+from .settings import Setting, StringSetting
 
 
 def flatten_dict(d, parent_key="", sep="."):
@@ -36,19 +37,18 @@ class Module(ABC):
     displayName: str
     icon: Optional[str] = None
 
+    localization: modules.settings.LocalizationProvider | None = None
+
     def get_model(self, language) -> models.Module:
-        locales_fallback = load_locales(inspect.getfile(self.__class__), "en")
-        locales = load_locales(inspect.getfile(self.__class__), language)
-        locales = locales_fallback | locales
+        locales = self.localization.load_locales(language) if self.localization else {}
 
         # collect all settings
         settings = {}
         for attr in dir(self):
             if not attr.startswith("_"):
                 value = getattr(self, attr)
-                if isinstance(value, models.Setting):
-                    settings[attr] = value.model_copy(deep=True)
-                    settings[attr].localize(locales)
+                if isinstance(value, modules.modules.Setting):
+                    settings[attr] = value.get_model(locales)
         return models.Module(
             type=self.type,
             displayName=self.displayName,

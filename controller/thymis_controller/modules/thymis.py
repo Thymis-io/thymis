@@ -10,11 +10,14 @@ from thymis_controller.nix import convert_python_value_to_nix
 class ThymisController(modules.Module):
     displayName: str = "Thymis Controller"
 
-    repo_dir = models.Setting(
-        name="services.thymis-controller.repo-path",
-        type="string",
-        default=None,
-        description="services.thymis-controller.repo-path.description",
+    localization = modules.settings.LocalizationProvider("./locales")
+
+    repo_dir = modules.settings.StringSetting(
+        name=modules.settings.LocalizeKey("thymis-controller.repo-path.name"),
+        description=modules.settings.LocalizeKey(
+            "thymis-controller.repo-path.description"
+        ),
+        nix_attribute="services.thymis-controller.repo-path",
         example="/var/lib/thymis/repository",
         order=10,
     )
