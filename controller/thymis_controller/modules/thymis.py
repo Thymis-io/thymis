@@ -111,11 +111,11 @@ class ThymisDevice(modules.Module):
         name="thymis.config.device-type",
         type=models.SelectOneType(
             select_one=[
-                "generic-x86_64",
-                "raspberry-pi-3",
-                "raspberry-pi-4",
-                "raspberry-pi-5",
-                "generic-aarch64",
+                ("generic-x86_64", "device-type.generic-x86_64"),
+                ("raspberry-pi-3", "device-type.raspberry-pi-3"),
+                ("raspberry-pi-4", "device-type.raspberry-pi-4"),
+                ("raspberry-pi-5", "device-type.raspberry-pi-5"),
+                ("generic-aarch64", "device-type.generic-aarch64"),
             ]
         ),
         default="",

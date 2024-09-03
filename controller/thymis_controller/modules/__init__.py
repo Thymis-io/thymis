@@ -47,11 +47,8 @@ class Module(ABC):
             if not attr.startswith("_"):
                 value = getattr(self, attr)
                 if isinstance(value, models.Setting):
-                    settings[attr] = value.model_copy()
-                    settings[attr].name = locales.get(value.name, value.name)
-                    settings[attr].description = locales.get(
-                        value.description, value.description
-                    )
+                    settings[attr] = value.model_copy(deep=True)
+                    settings[attr].localize(locales)
         return models.Module(
             type=self.type,
             displayName=self.displayName,

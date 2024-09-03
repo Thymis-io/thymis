@@ -27,7 +27,7 @@ export type ModuleSettingsWithOrigin = {
 };
 
 export type SelectOneSettingType = {
-	'select-one': string[];
+	'select-one': string[][];
 };
 
 export type ListSettingType = {
