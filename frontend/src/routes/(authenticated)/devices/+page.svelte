@@ -22,6 +22,7 @@
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
 	import { flip } from 'svelte/animate';
+	import { nameToIdentifier } from './deviceName';
 
 	const flipDurationMs = 200;
 	let dragDisabled = true;
@@ -106,7 +107,6 @@
 		<TableHeadCell>{$t('devices.table.target-host')}</TableHeadCell>
 		<TableHeadCell>{$t('devices.table.tags')}</TableHeadCell>
 		<TableHeadCell>{$t('devices.table.actions')}</TableHeadCell>
-		<TableHeadCell>{$t('devices.table.status')}</TableHeadCell>
 	</TableHead>
 	<tbody
 		use:dndzone={{ items: devices, dragDisabled, flipDurationMs }}
@@ -134,7 +134,13 @@
 						</div>
 					</div>
 				</TableBodyCell>
-				<TableBodyEditCell bind:value={device.data.displayName} onEnter={() => saveState()} />
+				<TableBodyEditCell
+					bind:value={device.data.displayName}
+					onEnter={() => {
+						device.data.identifier = nameToIdentifier(device.data.displayName);
+						saveState();
+					}}
+				/>
 				<TableBodyEditCell bind:value={device.data.targetHost} onEnter={() => saveState()} />
 				<TableBodyCell>
 					<div class="flex justify-between">
@@ -182,9 +188,6 @@
 							{$t('devices.actions.delete')}
 						</Button>
 					</div>
-				</TableBodyCell>
-				<TableBodyCell>
-					{$t('devices.status.online')}
 				</TableBodyCell>
 			</tr>
 		{/each}

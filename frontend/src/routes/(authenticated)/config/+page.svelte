@@ -172,7 +172,6 @@
 			contextType={$globalNavSelectedTargetType}
 			context={$globalNavSelectedTarget}
 			selfModules={getSelfModules($globalNavSelectedTarget)}
-			canChangeModules={true}
 			availableModules={data.availableModules}
 			configSelectedModule={$configSelectedModule}
 			configSelectedModuleContext={$configSelectedModuleContext}

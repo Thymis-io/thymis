@@ -51,6 +51,7 @@
 					disabled={!canEdit}
 					onChange={(value) => setSetting(module, key, value)}
 				/>
+				<div class="ml-auto" />
 				{#if canEdit}
 					{#if settings?.settings[key] !== undefined}
 						<button

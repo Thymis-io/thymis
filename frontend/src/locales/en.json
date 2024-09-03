@@ -184,7 +184,6 @@
 		"nix": {
 			"thymis": {
 				"config": {
-					"repo-dir": "Repository Directory",
 					"device-type": "Device Type",
 					"device-type-options": {
 						"generic-x86_64": "Generic x86 Device (e.g. PC)",
@@ -193,7 +192,7 @@
 						"raspberry-pi-5": "Raspberry Pi 5",
 						"generic-aarch64": "Generic ARM64 Device"
 					},
-					"device-name": "Device Name",
+					"device-name": "Hostname",
 					"password": "Password",
 					"wifi-ssid": "WiFi SSID",
 					"wifi-password": "WiFi Password"

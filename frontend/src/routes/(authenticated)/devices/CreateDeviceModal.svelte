@@ -11,23 +11,11 @@
 	} from '$lib/state';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
+	import { nameToIdentifier } from './deviceName';
 
 	export let open = false;
 
 	let displayName = '';
-	const nameToIdentifier = (displayName: string): string =>
-		// displayName.toLowerCase().replace(/[^a-z0-9]/g, '-');
-		{
-			// strip string first
-			let identifier = displayName.toLowerCase().replace(/[^a-z0-9]/g, '-');
-			// remove leading and trailing hyphens
-			identifier = identifier.replace(/^-+|-+$/g, '');
-			// remove multiple hyphens
-			identifier = identifier.replace(/-+/g, '-');
-			// prepend with 'device-' if it doesn't start with a letter
-			identifier = /^[a-z]/.test(identifier) ? identifier : `device-${identifier}`;
-			return identifier;
-		};
 	const nameValidation = (displayName: string): string | undefined => {
 		if (displayName.length === 0) return $t('create-device.display-name-cannot-be-empty');
 		if ($state.devices.find((device) => device.displayName === displayName))
@@ -69,7 +57,9 @@
 			return;
 		const identifier = nameToIdentifier(displayName);
 		const thymisDeviceModuleSettings = {
-			device_type: selectedDeviceType
+			device_type: selectedDeviceType,
+			device_name: identifier,
+			nix_state_version: '24.05'
 		};
 		const device: Device = {
 			displayName,

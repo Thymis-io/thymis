@@ -72,8 +72,8 @@ from .thymis import ThymisController, ThymisDevice
 from .whatever import WhateverModule
 
 ALL_MODULES: list[Module] = [
-    ThymisController(),
     ThymisDevice(),
+    ThymisController(),
     WhateverModule(),
     Kiosk(),
     OCIContainers(),

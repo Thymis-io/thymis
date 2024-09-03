@@ -45,40 +45,36 @@ in
       description = "Thymis configuration";
     };
   };
-  config = lib.mkMerge [
-    {
-      nix.settings.experimental-features = [ "nix-command" "flakes" ];
-      users.users.root.password = cfg.password;
-      services.openssh = {
-        enable = true;
-        settings.PermitRootLogin = "yes";
-      };
-      networking.hostName = cfg.device-name;
-      networking.wireless = lib.mkIf use-wifi {
-        enable = true;
-        networks = {
-          "${cfg.wifi-ssid}" = {
-            psk = "${cfg.wifi-password}";
-          };
+  config = {
+    nix.settings.experimental-features = [ "nix-command" "flakes" ];
+    users.users.root.password = cfg.password;
+    services.openssh = {
+      enable = true;
+      settings.PermitRootLogin = "yes";
+    };
+    networking.hostName = cfg.device-name;
+    networking.wireless = lib.mkIf use-wifi {
+      enable = true;
+      networks = {
+        "${cfg.wifi-ssid}" = {
+          psk = "${cfg.wifi-password}";
         };
       };
-      boot.supportedFilesystems = lib.mkForce [ "btrfs" "cifs" "f2fs" "jfs" "ntfs" "reiserfs" "vfat" "xfs" "ext4" ];
-      services.getty.greetingLine = ''<<< Welcome to Thymis - NixOS ${config.system.nixos.label} (\m) - \l >>>'';
-      services.getty.helpLine = lib.mkForce ''
-        This is a Thymis device. You can login as root with the password you set during installation.
-      '';
-      system.nixos.distroName = "Thymis - NixOS";
-      services.getty.autologinUser = lib.mkForce null;
-      services.xserver.enable = true;
-      systemd.services.display-manager.restartIfChanged = lib.mkForce true;
-      users.users.nixos = {
-        isNormalUser = true;
-        createHome = true;
-        password = cfg.password;
-      };
-      networking.firewall = {
-        allowedTCPPorts = [ 22 ];
-      };
-    }
-  ];
+    };
+    boot.supportedFilesystems = lib.mkForce [ "btrfs" "cifs" "f2fs" "jfs" "ntfs" "reiserfs" "vfat" "xfs" "ext4" ];
+    services.getty.greetingLine = ''<<< Welcome to Thymis - NixOS ${config.system.nixos.label} (\m) - \l >>>'';
+    services.getty.helpLine = lib.mkForce ''
+      This is a Thymis device. You can login as root with the password you set during installation.
+    '';
+    system.nixos.distroName = "Thymis - NixOS";
+    systemd.services.display-manager.restartIfChanged = lib.mkForce true;
+    users.users.thymis = {
+      isNormalUser = true;
+      createHome = true;
+      password = cfg.password;
+    };
+    networking.firewall = {
+      allowedTCPPorts = [ 22 ];
+    };
+  };
 }
