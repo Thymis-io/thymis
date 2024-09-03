@@ -22,5 +22,30 @@
             "nginx-vhost-name": "Nginx VHost Name",
             "nginx-vhost-name.description": "Name of the Nginx virtual host"
         }
+    },
+    "thymis": {
+        "config": {
+            "device-type": "Device Type",
+            "device-type.description": "The device type of the thymis device",
+            "device-name": "Device Name",
+            "device-name.description": "The device name of the thymis device",
+            "wifi-ssid": "WiFi SSID",
+            "wifi-ssid.description": "The WiFi SSID of the thymis device",
+            "wifi-password": "WiFi Password",
+            "wifi-password.description": "The WiFi password of the thymis device",
+            "authorized-keys": "Authorized Keys - Public SSH Keys",
+            "authorized-keys.description": "The authorized keys for the SSH server",
+            "authorized-keys.key": {
+                "name": "Key",
+                "description": "The authorized key"
+            }
+        }
+    },
+    "device-type": {
+        "generic-x86_64": "Generic x86 Device (e.g. PC)",
+        "raspberry-pi-3": "Raspberry Pi 3",
+        "raspberry-pi-4": "Raspberry Pi 4",
+        "raspberry-pi-5": "Raspberry Pi 5",
+        "generic-aarch64": "Generic ARM64 Device"
     }
 }

@@ -119,7 +119,7 @@ class ThymisDevice(modules.Module):
             ]
         ),
         default="",
-        description="The device type of the thymis device.",
+        description="thymis.config.device-type.description",
         example="",
         order=10,
     )
@@ -128,7 +128,7 @@ class ThymisDevice(modules.Module):
         name="thymis.config.device-name",
         type="string",
         default="",
-        description="The device name of the thymis device.",
+        description="thymis.config.device-name.description",
         example="",
         order=20,
     )
@@ -146,7 +146,7 @@ class ThymisDevice(modules.Module):
         name="thymis.config.password",
         type="string",
         default="",
-        description="The password of the thymis device.",
+        description="thymis.config.password.description",
         example="",
         order=30,
     )
@@ -155,7 +155,7 @@ class ThymisDevice(modules.Module):
         name="thymis.config.wifi-ssid",
         type="string",
         default="",
-        description="The wifi ssid of the thymis device.",
+        description="thymis.config.wifi-ssid.description",
         example="",
         order=40,
     )
@@ -164,26 +164,26 @@ class ThymisDevice(modules.Module):
         name="thymis.config.wifi-password",
         type="string",
         default="",
-        description="The wifi password of the thymis device.",
+        description="thymis.config.wifi-password.description",
         example="",
         order=50,
     )
 
     authorized_keys = models.Setting(
-        name="ssh.authorizedKeys",
+        name="thymis.config.authorized-keys",
         type=models.ListType(
             settings={
                 "key": models.Setting(
                     type="string",
                     default="",
-                    description="The authorized key.",
+                    description="thymis.config.authorized-keys.key.description",
                     example="ssh-rsa AAAA...",
                 )
             },
-            element_name="options.nix.ssh.authorizedKey",
+            element_name="thymis.config.authorized-keys.key.name",
         ),
         default=None,
-        description="The authorized keys for the SSH server.",
+        description="thymis.config.authorized-keys.description",
         example="",
         order=60,
     )
