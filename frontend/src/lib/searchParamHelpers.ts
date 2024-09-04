@@ -22,6 +22,8 @@ export const buildGlobalNavSearchParam = (
 	const params = new URLSearchParams(search);
 	setParam(params, 'global-nav-target-type', targetType);
 	setParam(params, 'global-nav-target', target);
+	setParam(params, 'config-selected-module-context-type', targetType);
+	setParam(params, 'config-selected-module-context-identifier', target);
 	return params.toString();
 };
 
