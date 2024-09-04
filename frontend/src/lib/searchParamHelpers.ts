@@ -1,8 +1,16 @@
 import { type Module } from './state';
 
+const setParam = (params: URLSearchParams, key: string, value: string | null | undefined) => {
+	if (value) {
+		params.set(key, value);
+	} else {
+		params.delete(key);
+	}
+};
+
 export const setSearchParam = (search: string, key: string, value: string | null | undefined) => {
 	const params = new URLSearchParams(search);
-	value ? params.set(key, value) : params.delete(key);
+	setParam(params, key, value);
 	return params.toString();
 };
 
@@ -12,10 +20,8 @@ export const buildGlobalNavSearchParam = (
 	target: string | null | undefined
 ) => {
 	const params = new URLSearchParams(search);
-	targetType
-		? params.set('global-nav-target-type', targetType)
-		: params.delete('global-nav-target-type');
-	target ? params.set('global-nav-target', target) : params.delete('global-nav-target');
+	setParam(params, 'global-nav-target-type', targetType);
+	setParam(params, 'global-nav-target', target);
 	return params.toString();
 };
 
@@ -28,18 +34,10 @@ export const buildConfigSelectModuleSearchParam = (
 	module: Module | null | undefined
 ) => {
 	const params = new URLSearchParams(search);
-	targetType
-		? params.set('global-nav-target-type', targetType)
-		: params.delete('global-nav-target-type');
-	target ? params.set('global-nav-target', target) : params.delete('global-nav-target');
-	contextType
-		? params.set('config-selected-module-context-type', contextType)
-		: params.delete('config-selected-module-context-type');
-	contextIdentifier
-		? params.set('config-selected-module-context-identifier', contextIdentifier)
-		: params.delete('config-selected-module-context-identifier');
-	module
-		? params.set('config-selected-module', module.type)
-		: params.delete('config-selected-module');
+	setParam(params, 'global-nav-target-type', targetType);
+	setParam(params, 'global-nav-target', target);
+	setParam(params, 'config-selected-module-context-type', contextType);
+	setParam(params, 'config-selected-module-context-identifier', contextIdentifier);
+	setParam(params, 'config-selected-module', module?.type);
 	return params.toString();
 };
