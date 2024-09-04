@@ -35,7 +35,7 @@
 		drawerHidden = true;
 	};
 
-	let spanClass = 'ms-9';
+	let spanClass = 'ms-4';
 	let childClass =
 		'p-2 hover:bg-gray-100 text-gray-500 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 flex items-center flex-wrap font-medium';
 

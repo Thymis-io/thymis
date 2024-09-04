@@ -30,7 +30,7 @@
 	$: settingEntries = Object.entries(module.settings).sort((a, b) => a[1].order - b[1].order);
 </script>
 
-<Card class="max-w-none grid grid-cols-5 gap-4">
+<Card class="max-w-none grid grid-cols-5 gap-4" padding={'sm'}>
 	{#each settingEntries as [key, setting]}
 		{@const self = settings?.settings[key]}
 		{@const other = otherSettings

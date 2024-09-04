@@ -167,7 +167,7 @@
 	<DeployActions />
 </div>
 <div class="grid grid-flow-row grid-cols-5 gap-4">
-	<Card class="col-span-1 max-w-none">
+	<Card class="col-span-1 max-w-none" padding={'sm'}>
 		<ModuleList
 			contextType={$globalNavSelectedTargetType}
 			context={$globalNavSelectedTarget}
