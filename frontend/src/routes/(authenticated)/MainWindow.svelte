@@ -13,6 +13,7 @@
 	max="64rem"
 	priority="min"
 	leftPaneClass="!hidden lg:!block"
+	dividerClass="!hidden lg:!block"
 >
 	<Sidebar slot="a" bind:drawerHidden />
 	<div class="p-4 bg-gray-50 dark:bg-gray-900 !overflow-y-scroll" slot="b">
