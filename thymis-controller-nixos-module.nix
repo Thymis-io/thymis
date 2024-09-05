@@ -7,7 +7,7 @@ in
     services.thymis-controller = {
       enable = lib.mkEnableOption "the Thymis controller";
       system-binfmt-aarch64-enable = lib.mkEnableOption "whether to enable the system binfmt for aarch64" // {
-        default = if pkgs.stdenv.targetPlatform.system == "x86_64" then true else false;
+        default = pkgs.stdenv.targetPlatform.system == "x86_64";
       };
       system-binfmt-x86_64-enable = lib.mkEnableOption "whether to enable the system binfmt for x86_64";
       repo-path = lib.mkOption {
