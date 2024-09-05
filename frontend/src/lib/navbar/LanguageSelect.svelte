@@ -39,7 +39,7 @@
 />
 
 <Select
-	class="ml-1 w-16 block md:hidden"
+	class="ml-1 w-16 block md:hidden py-1 sm:py-2"
 	size="sm"
 	items={localesShort}
 	bind:value={$locale}
