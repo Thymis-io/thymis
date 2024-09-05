@@ -14,24 +14,12 @@
 <p>
 	<img src="https://img.shields.io/github/license/Thymis-io/thymis?style=flat&color=0080ff" alt="license">
 	<img src="https://img.shields.io/github/last-commit/Thymis-io/thymis?style=flat&logo=git&logoColor=white&color=0080ff" alt="last-commit">
-	<img src="https://img.shields.io/github/languages/top/Thymis-io/thymis?style=flat&color=0080ff" alt="repo-top-language">
     <img src="https://img.shields.io/badge/NixOS-2AA2E0?style=flat&logo=NixOS&logoColor=white" alt="NixOS">
     <img src="https://img.shields.io/badge/Svelte-FF3E00?style=flat&logo=Svelte&logoColor=white" alt="svelte">
     <img src="https://img.shields.io/badge/FastAPI-009688?style=flat&logo=FastAPI&logoColor=white" alt="FastAPI">
 </p>
 
 Thymis is an open-source platform designed for managing and configuring IoT devices. Built on the robust NixOS operating system, Thymis ensures consistency, reliability, and ease of management across diverse IoT landscapes. Whether you're managing a few devices or a large-scale deployment, Thymis provides the tools needed to streamline your operations.
-
-> - [Overview](#key-features)
-> - [Architecture](#architecture)
-> - [Documentation](#documentation)
-> - [Getting Started](#getting-started)
->   - [Installation](#installation)
->   - [Running thymis](#running-thymis)
-> - [Project Roadmap](#project-roadmap)
-> - [Contributing](#contributing)
-> - [License](#license)
-> - [Acknowledgments](#acknowledgments)
 
 ---
 
