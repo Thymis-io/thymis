@@ -145,7 +145,7 @@
 </script>
 
 <div class="flex justify-between mb-4">
-	<h1 class="text-3xl font-bold dark:text-white">
+	<h1 class="text-xl sm:text-3xl font-bold dark:text-white">
 		{#if $globalNavSelectedTag}
 			{$t('config.header.tag-module', {
 				values: {
