@@ -54,17 +54,6 @@ module.exports = {
 				min: 'min-content',
 				max: 'max-content',
 				fit: 'fit-content'
-			},
-			fontSize: {
-				xs: '0.625rem',
-				sm: '0.75rem',
-				base: '0.875rem',
-				lg: '1rem',
-				xl: '1.125rem',
-				'2xl': '1.25rem',
-				'3xl': '1.5rem',
-				'4xl': '1.75rem',
-				'5xl': '2rem'
 			}
 		}
 	},
