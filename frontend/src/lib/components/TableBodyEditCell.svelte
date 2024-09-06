@@ -9,11 +9,11 @@
 	let isEditing: boolean = false;
 </script>
 
-<TableBodyCell>
-	<div class="flex justify-between gap-2" use:clickOutside={() => (isEditing = false)}>
+<TableBodyCell tdClass="p-2 px-2 md:px-4">
+	<div class="flex justify-between gap-2 p-0" use:clickOutside={() => (isEditing = false)}>
 		{#if isEditing}
 			<Input
-				class="w-full"
+				class="w-full min-w-32"
 				bind:value
 				on:blur={() => onEnter?.(value)}
 				on:keypress={(e) => {
@@ -24,10 +24,10 @@
 				}}
 			/>
 		{:else}
-			<span class="w-full p-[11px]">{value}</span>
+			<span class="w-full p-0">{value}</span>
 		{/if}
 		<button class="btn ml-2" on:click={() => (isEditing = !isEditing)}>
-			<Pen size="20" />
+			<Pen size="18" />
 		</button>
 	</div>
 </TableBodyCell>
