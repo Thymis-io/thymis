@@ -43,7 +43,7 @@
             {
               thymis.config = thymis-config-parsed;
               # thymis.controller.enable = true;
-              system.stateVersion = "23.11";
+              system.stateVersion = "24.05";
             }
           ];
           specialArgs = {
@@ -83,6 +83,7 @@
           default = pkgs.mkShell {
             packages = [
               pkgs.poetry
+              pkgs.python312
               pkgs.nodejs
               pkgs.pre-commit
               pkgs.playwright-driver.browsers

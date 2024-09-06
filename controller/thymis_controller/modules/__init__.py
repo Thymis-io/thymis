@@ -7,7 +7,7 @@ from typing import Optional
 from thymis_controller import models, modules
 from thymis_controller.nix import convert_python_value_to_nix
 
-from .settings import Setting, StringSetting
+from .settings import Setting
 
 
 def flatten_dict(d, parent_key="", sep="."):
