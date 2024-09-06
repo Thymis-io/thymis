@@ -17,8 +17,8 @@
 	{value}
 	on:change={changeInternal}
 	items={setting.type['select-one']?.map((option) => ({
-		value: option[0],
-		name: option[1]
+		name: option[0],
+		value: option[1]
 	}))}
 	{disabled}
 	class={disabled ? 'opacity-70' : ''}
