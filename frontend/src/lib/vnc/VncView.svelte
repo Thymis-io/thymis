@@ -65,12 +65,17 @@
 </script>
 
 {#if hasVNC}
-	<Card class="w-full max-w-none">
-		<div class="flex justify-between">
-			<pre>vncviewer {device.targetHost}:5900</pre>
+	<Card class="w-full max-w-none" padding="sm">
+		<div class="flex flex-wrap justify-between h-12 content-start gap-2">
+			<pre class="text-base">vncviewer {device.targetHost}:5900</pre>
 			<div class="flex items-center gap-2">
 				<P>{$t('vnc.control-device')}</P>
-				<Toggle bind:checked={controlDevice} on:click={toggleControlDevice} />
+				<Toggle
+					bind:checked={controlDevice}
+					class="mr-[-10px]"
+					size="small"
+					on:click={toggleControlDevice}
+				/>
 			</div>
 		</div>
 		<div id={`vnc-canvas-${device.targetHost}`} class="relative w-full aspect-video mt-4">
