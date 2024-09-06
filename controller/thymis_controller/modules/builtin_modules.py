@@ -1,6 +1,5 @@
-from thymis_controller.models.module import Module
-
 from .kiosk import Kiosk
+from .modules import Module
 from .oci_container import OCIContainers
 from .thymis import ThymisController, ThymisDevice
 from .whatever import WhateverModule

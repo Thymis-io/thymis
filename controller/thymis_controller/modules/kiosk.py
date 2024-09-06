@@ -1,4 +1,4 @@
-from thymis_controller import models, modules
+from thymis_controller import modules
 from thymis_controller.models.module import SelectOneType
 
 
