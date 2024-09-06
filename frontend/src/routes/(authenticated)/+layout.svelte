@@ -46,7 +46,7 @@
 
 	$: $taskStatus = data.allTasks;
 
-	let drawerHidden = false;
+	let drawerHidden = true;
 </script>
 
 <div class="contents bg-gray-50 dark:bg-gray-900 dark:text-white">
@@ -64,15 +64,15 @@
 	<div class="{drawerHidden ? '' : 'hidden'} lg:block pt-[calc(var(--navbar-height))] h-full">
 		<div class="flex flex-row h-full">
 			{#if taskbarMinimized}
-				<div class="w-full relative grid grid-rows-[calc(100%-40px)_40px]">
+				<div class="w-full relative dark:border-gray-600 bg-gray-50 dark:bg-gray-900 mb-[40px]">
 					<MainWindow bind:drawerHidden><slot /></MainWindow>
-					<div class="relative">
+					<div class="relative h-[40px]">
 						<TaskbarMinimize bind:taskBarMinimized={taskbarMinimized} class="mt-2" />
 						<TaskbarSmall />
 					</div>
 				</div>
 			{:else}
-				<SplitPane type="vertical" pos="60%" min="12rem" max="80%">
+				<SplitPane type="vertical" pos="70%" min="12rem" max="80%">
 					<MainWindow bind:drawerHidden slot="a">
 						<slot />
 					</MainWindow>
