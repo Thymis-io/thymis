@@ -7,5 +7,7 @@
 </script>
 
 {#if date}
-	<time datetime={date.toISOString()}>{date.toLocaleString()}</time>
+	<time datetime={date.toISOString()}>
+		{date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+	</time>
 {/if}

@@ -68,7 +68,7 @@
 				{#each headerGroup.headers as header}
 					<th class="" style="width: calc(var(--header-{header.id}-width)*1px)">
 						<div class="flex items-center justify-between">
-							<div class="px-6">
+							<div class="px-2">
 								{#if !header.isPlaceholder}
 									<svelte:component
 										this={flexRender(header.column.columnDef.header, header.getContext())}
@@ -93,10 +93,10 @@
 				<TableBodyRow>
 					{#each row.getVisibleCells() as cell}
 						<TableBodyCell
-							class="overflow-x-clip"
+							class="overflow-x-clip px-2 py-2"
 							style="width: calc(var(--col-{cell.column.id}-width)*1px)"
 						>
-							<div>
+							<div class="truncate">
 								<svelte:component
 									this={flexRender(cell.column.columnDef.cell, cell.getContext())}
 								/>

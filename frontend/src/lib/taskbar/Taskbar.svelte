@@ -38,27 +38,27 @@
 				columnHelper.accessor('start_time', {
 					cell: (item) => flexRender(RenderUnixTimestamp, { timestamp: item.getValue() }),
 					header: 'Start Time',
-					size: 150
+					size: 120
 				}),
 				columnHelper.accessor('end_time', {
 					cell: (item) => flexRender(RenderUnixTimestamp, { timestamp: item.getValue() }),
 					header: 'End Time',
-					size: 150
+					size: 120
 				}),
 				columnHelper.accessor('display_name', {
 					cell: (item) => item.getValue(),
 					header: 'Task',
-					size: 1200
+					size: 300
 				}),
 				columnHelper.accessor('state', {
 					cell: (item) => item.getValue(),
 					header: 'Status',
-					size: 150
+					size: 100
 				}),
 				columnHelper.accessor('data', {
 					cell: (item) => JSON.stringify(item.getValue()),
 					header: 'Detail',
-					size: 150
+					size: 200
 				}),
 				columnHelper.accessor('exception', {
 					cell: (item) => item.getValue() || 'No exception',
@@ -77,7 +77,7 @@
 							task: item.getValue()
 						}),
 					header: 'Actions',
-					size: 300
+					size: 150
 				})
 			],
 			defaultColumn: {

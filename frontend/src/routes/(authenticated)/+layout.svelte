@@ -72,7 +72,7 @@
 					</div>
 				</div>
 			{:else}
-				<SplitPane type="vertical" pos="60%" min="12rem" max="80%">
+				<SplitPane type="vertical" pos="70%" min="12rem" max="80%">
 					<MainWindow bind:drawerHidden slot="a">
 						<slot />
 					</MainWindow>
