@@ -30,6 +30,7 @@
 			target.modules = [...target.modules, { type: module.type, settings: {} }];
 			saveState();
 		}
+		addModuleModalOpen = false;
 	};
 
 	export let removeModule:

@@ -45,7 +45,7 @@ export type SettingType =
 	| ListSettingType;
 
 export type Setting<T extends SettingType = SettingType> = {
-	name: string;
+	displayName: string;
 	type: T;
 	default: string;
 	description: string;

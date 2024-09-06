@@ -18,8 +18,8 @@
 			<div class="flex flex-col w-full gap-4">
 				{#each Object.entries(settings.type['list-of']) as [key, setting]}
 					<div>
-						{#if setting.name}
-							<P class="p-0 pb-1">{$t(`options.nix.${setting.name}`, { default: setting.name })}</P>
+						{#if setting.displayName}
+							<P class="p-0 pb-1">{$t(`${setting.displayName}`)}</P>
 						{/if}
 						<ConfigRenderer
 							{setting}

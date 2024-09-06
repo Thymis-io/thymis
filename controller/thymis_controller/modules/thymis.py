@@ -8,88 +8,155 @@ from thymis_controller.nix import convert_python_value_to_nix
 
 
 class ThymisController(modules.Module):
-    displayName: str = "Thymis Controller"
+    display_name: str = "Thymis Controller"
 
-    localization = modules.settings.LocalizationProvider("./locales")
-
-    repo_dir = modules.settings.StringSetting(
-        name=modules.settings.LocalizeKey("thymis-controller.repo-path.name"),
-        description=modules.settings.LocalizeKey(
-            "thymis-controller.repo-path.description"
+    repo_dir = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Repository Path",
+            de="Repository Pfad",
         ),
-        nix_attribute="services.thymis-controller.repo-path",
+        type="string",
+        default=None,
+        description=modules.LocalizedString(
+            en="The path to the repository.",
+            de="Der Pfad zum Repository.",
+        ),
+        nix_attr_name="services.thymis-controller.repo-path",
         example="/var/lib/thymis/repository",
         order=10,
     )
-    database_url = models.Setting(
-        name="services.thymis-controller.database-url",
+    database_url = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Database URL",
+            de="Datenbank URL",
+        ),
+        nix_attr_name="services.thymis-controller.database-url",
         type="string",
         default=None,
-        description="services.thymis-controller.database-url.description",
+        description=modules.LocalizedString(
+            en="The URL to the database.",
+            de="Die URL zur Datenbank.",
+        ),
         example="sqlite:////var/lib/thymis/thymis.sqlite",
         order=20,
     )
-    base_url = models.Setting(
-        name="services.thymis-controller.base-url",
+    base_url = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Base URL",
+            de="Basis URL",
+        ),
+        nix_attr_name="services.thymis-controller.base-url",
         type="string",
         default=None,
-        description="services.thymis-controller.base-url.description",
+        description=modules.LocalizedString(
+            en="The base URL of the controller.",
+            de="Die Basis URL des Controllers.",
+        ),
         example="http://localhost:8000",
         order=30,
     )
-    auth_basic = models.Setting(
-        name="services.thymis-controller.auth-basic",
+    auth_basic = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Basic Auth",
+            de="Basic Auth",
+        ),
+        nix_attr_name="services.thymis-controller.auth-basic",
         type="bool",
         default=None,
-        description="services.thymis-controller.auth-basic.description",
+        description=modules.LocalizedString(
+            en="Enable basic authentication.",
+            de="Aktiviere Basic Authentifizierung.",
+        ),
         example="true",
         order=40,
     )
-    auth_basic_username = models.Setting(
-        name="services.thymis-controller.auth-basic-username",
+    auth_basic_username = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Basic Auth Username",
+            de="Basic Auth Benutzername",
+        ),
+        nix_attr_name="services.thymis-controller.auth-basic-username",
         type="string",
         default=None,
-        description="services.thymis-controller.auth-basic-username.description",
+        description=modules.LocalizedString(
+            en="The username for basic authentication.",
+            de="Der Benutzername für die Basic Authentifizierung.",
+        ),
         example="admin",
         order=50,
     )
-    auth_basic_password_file = models.Setting(
-        name="services.thymis-controller.auth-basic-password-file",
+    auth_basic_password_file = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Basic Auth Password File",
+            de="Basic Auth Passwort Datei",
+        ),
+        nix_attr_name="services.thymis-controller.auth-basic-password-file",
         type="path",
         default=None,
-        description="services.thymis-controller.auth-basic-password-file.description",
+        description=modules.LocalizedString(
+            en="The path to the password file for basic authentication.",
+            de="Der Pfad zur Passwortdatei für die Basic Authentifizierung.",
+        ),
         example="/var/lib/thymis/auth-basic-password",
         order=60,
     )
-    listen_host = models.Setting(
-        name="services.thymis-controller.listen-host",
+    listen_host = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Listen Host",
+            de="Listen Host",
+        ),
+        nix_attr_name="services.thymis-controller.listen-host",
         type="string",
         default=None,
-        description="services.thymis-controller.listen-host.description",
+        description=modules.LocalizedString(
+            en="The host to listen on.",
+            de="Der Host, auf dem gehört werden soll.",
+        ),
         example="127.0.0.1",
         order=70,
     )
-    listen_port = models.Setting(
-        name="services.thymis-controller.listen-port",
+    listen_port = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Listen Port",
+            de="Listen Port",
+        ),
+        nix_attr_name="services.thymis-controller.listen-port",
         type="int",
         default=None,
-        description="services.thymis-controller.listen-port.description",
+        description=modules.LocalizedString(
+            en="The port to listen on.",
+            de="Der Port, auf dem gehört werden soll.",
+        ),
         example="8000",
         order=80,
     )
-    nginx_vhost_enable = models.Setting(
-        name="services.thymis-controller.nginx-vhost-enable",
+    nginx_vhost_enable = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Enable Nginx Vhost",
+            de="Nginx Vhost aktivieren",
+        ),
+        nix_attr_name="services.thymis-controller.nginx-vhost-enable",
         type="bool",
         default=None,
-        description="services.thymis-controller.nginx-vhost-enable.description",
+        description=modules.LocalizedString(
+            en="Enable the Nginx vhost.",
+            de="Aktiviere den Nginx Vhost.",
+        ),
         example="true",
         order=90,
     )
-    nginx_vhost_name = models.Setting(
-        name="services.thymis-controller.nginx-vhost-name",
+    nginx_vhost_name = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Nginx Vhost Name",
+            de="Nginx Vhost Name",
+        ),
+        nix_attr_name="services.thymis-controller.nginx-vhost-name",
         type="string",
         default=None,
-        description="services.thymis-controller.nginx-vhost-name.description",
+        description=modules.LocalizedString(
+            en="The name of the Nginx vhost.",
+            de="Der Name des Nginx Vhosts.",
+        ),
         example="thymis",
         order=100,
     )
@@ -108,10 +175,14 @@ class ThymisDevice(modules.Module):
         str(pathlib.Path(__file__).parent / "hard-drive-thymis.png")
     )
 
-    displayName: str = "Core Device Configuration"
+    display_name: str = "Core Device Configuration"
 
-    device_type = models.Setting(
-        name="thymis.config.device-type",
+    device_type = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Device Type",
+            de="Gerätetyp",
+        ),
+        nix_attr_name="services.thymis.config.device-type",
         type=models.SelectOneType(
             select_one=[
                 ("generic-x86_64", "device-type.generic-x86_64"),
@@ -122,71 +193,126 @@ class ThymisDevice(modules.Module):
             ]
         ),
         default="",
-        description="thymis.config.device-type.description",
+        description=modules.LocalizedString(
+            en="The type of device.",
+            de="Der Typ des Geräts.",
+        ),
         example="",
         order=10,
     )
 
-    device_name = models.Setting(
-        name="thymis.config.device-name",
+    device_name = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Hostname",
+            de="Hostname",
+        ),
+        nix_attr_name="services.thymis.config.device-name",
         type="string",
         default="",
-        description="thymis.config.device-name.description",
+        description=modules.LocalizedString(
+            en="The hostname of the device.",
+            de="Der Hostname des Geräts.",
+        ),
         example="",
         order=20,
     )
 
-    nix_state_version = models.Setting(
-        name="system.stateVersion",
-        type=SelectOneType(select_one=["24.05"]),
+    nix_state_version = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="NixOS State Version",
+            de="NixOS State Version",
+        ),
+        nix_attr_name="services.thymis.config.nix-state-version",
+        type=modules.SelectOneType(select_one=["24.05"]),
         default="24.05",
-        description="The NixOS state version.",
+        description=modules.LocalizedString(
+            en="The NixOS state version.",
+            de="Die NixOS Zustandsversion.",
+        ),
         example="",
         order=25,
     )
 
-    password = models.Setting(
-        name="thymis.config.password",
+    password = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Root Password",
+            de="Root Passwort",
+        ),
+        nix_attr_name="services.thymis.config.password",
         type="string",
         default="",
-        description="thymis.config.password.description",
+        description=modules.LocalizedString(
+            en="The root password of the device.",
+            de="Das Root-Passwort des Geräts.",
+        ),
         example="",
         order=30,
     )
 
-    wifi_ssid = models.Setting(
-        name="thymis.config.wifi-ssid",
+    wifi_ssid = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="WiFi SSID",
+            de="WiFi SSID",
+        ),
+        nix_attr_name="services.thymis.config.wifi-ssid",
         type="string",
         default="",
-        description="thymis.config.wifi-ssid.description",
+        description=modules.LocalizedString(
+            en="The SSID of the WiFi network.",
+            de="Die SSID des WLAN-Netzwerks.",
+        ),
         example="",
         order=40,
     )
 
-    wifi_password = models.Setting(
-        name="thymis.config.wifi-password",
+    wifi_password = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="WiFi Password",
+            de="WiFi Passwort",
+        ),
+        nix_attr_name="services.thymis.config.wifi-password",
         type="string",
         default="",
-        description="thymis.config.wifi-password.description",
+        description=modules.LocalizedString(
+            en="The password of the WiFi network.",
+            de="Das Passwort des WLAN-Netzwerks.",
+        ),
         example="",
         order=50,
     )
 
-    authorized_keys = models.Setting(
-        name="thymis.config.authorized-keys",
-        type=models.ListType(
+    authorized_keys = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Authorized Keys",
+            de="Authorisierte Schlüssel",
+        ),
+        nix_attr_name="services.thymis.config.authorized-keys",
+        type=modules.ListType(
             settings={
-                "key": models.Setting(
+                "key": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Key",
+                        de="Schlüssel",
+                    ),
                     type="string",
                     default="",
-                    description="thymis.config.authorized-keys.key.description",
+                    description=modules.LocalizedString(
+                        en="The authorized key.",
+                        de="Der authorisierte Schlüssel.",
+                    ),
                     example="ssh-rsa AAAA...",
                 )
             },
-            element_name="thymis.config.authorized-keys.key.name",
+            element_name=modules.LocalizedString(
+                en="Key name",
+                de="Schlüsselname",
+            ),
         ),
         default=None,
-        description="thymis.config.authorized-keys.description",
+        description=modules.LocalizedString(
+            en="Authorized keys.",
+            de="Authorisierte Schlüssel.",
+        ),
         example="",
         order=60,
     )

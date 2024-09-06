@@ -3,10 +3,13 @@ from thymis_controller.models import ModuleSettings
 
 
 class WhateverModule(modules.Module):
-    displayName: str = "Custom Module"
+    display_name: str = "Custom Module"
 
-    settings = models.Setting(
-        name="freeform.settings",
+    settings = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Freeform Settings",
+            de="Freiform Einstellungen",
+        ),
         type="textarea",
         default="",
         description="The settings for the freeform module.",

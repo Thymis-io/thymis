@@ -1,17 +1,12 @@
 from typing import List, Literal, Optional, Tuple, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, JsonValue
 
-ValueTypes = Literal["bool", "string", "path", "package", "textarea", "int"]
+type ValueTypes = Literal["bool", "string", "path", "package", "textarea", "int"]
 
 
 class SelectOneType(BaseModel):
     select_one: List[Tuple[str, str]] = Field(serialization_alias="select-one")
-
-    def localize(self, locales: dict):
-        self.select_one = [
-            (key, locales.get(value, value)) for (key, value) in self.select_one
-        ]
 
 
 class ListType(BaseModel):
@@ -20,29 +15,17 @@ class ListType(BaseModel):
         serialization_alias="element-name", default=None
     )
 
-    def localize(self, locales: dict):
-        for key, value in self.settings.items():
-            value.localize(locales)
-        self.element_name = locales.get(self.element_name, self.element_name)
 
-
-Types = Union[ValueTypes, SelectOneType, ListType]
+type SettingTypes = Union[ValueTypes, SelectOneType, ListType]
 
 
 class Setting(BaseModel):
-    name: Optional[str] = None
-    type: Types
-    default: object
-    description: str
+    displayName: str
+    type: SettingTypes
+    description: Optional[str] = None
+    default: Optional[JsonValue] = None
     example: Optional[str] = None
     order: int = 0
-
-    def localize(self, locales: dict):
-        self.name = locales.get(self.name, self.name)
-        self.description = locales.get(self.description, self.description)
-
-        if isinstance(self.type, (ListType, SelectOneType)):
-            self.type.localize(locales)
 
 
 class Module(BaseModel):
@@ -52,4 +35,4 @@ class Module(BaseModel):
     settings: dict[str, Setting]
 
 
-__all__ = ["Setting", "Module", "SelectOneType", "ListType"]
+__all__ = ["Setting", "Module", "SelectOneType", "ListType", "SettingTypes"]

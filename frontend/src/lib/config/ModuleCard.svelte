@@ -45,7 +45,7 @@
 			}))}
 		<div class="flex flex-col">
 			<P class="mb-1">
-				{$t(`options.nix.${setting.name}`, { default: setting.name })}
+				{$t(setting.displayName)}
 			</P>
 			<div class="flex">
 				<ConfigRenderer

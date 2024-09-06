@@ -24,8 +24,8 @@ def get_state(state: State = Depends(dependencies.get_state)):
 
 @router.get("/available_modules")
 def get_available_modules(request: Request) -> list[models.Module]:
-    language = request.cookies.get("locale", "en")
-    return [module.get_model(language) for module in modules.ALL_MODULES]
+    locale = request.cookies.get("locale", "en")
+    return [module.get_model(locale) for module in modules.ALL_MODULES]
 
 
 @router.patch("/state")
