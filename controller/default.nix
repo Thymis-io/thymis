@@ -4,6 +4,7 @@
 , nix
 , writeShellApplication
 , thymis-frontend
+, python312
 ,
 }:
 let
@@ -16,6 +17,7 @@ let
     });
     groups = [ ];
     checkGroups = [ "test" ];
+    python = python312;
   }).dependencyEnv;
 in
 writeShellApplication {

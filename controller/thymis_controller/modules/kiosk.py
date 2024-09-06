@@ -1,12 +1,15 @@
-from thymis_controller import models, modules
-from thymis_controller.models.module import SelectOneType
+import thymis_controller.modules.modules as modules
+from thymis_controller import models
 
 
 class Kiosk(modules.Module):
-    displayName: str = "Kiosk"
+    display_name: str = "Kiosk"
 
-    kiosk_url = models.Setting(
-        name="kiosk.url",
+    kiosk_url = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="URL",
+            de="URL",
+        ),
         type="string",
         default="https://example.com",
         description="The URL to display in kiosk mode.",
@@ -14,8 +17,11 @@ class Kiosk(modules.Module):
         order=10,
     )
 
-    xrandr_mode = models.Setting(
-        name="kiosk.xrandr-mode",
+    xrandr_mode = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="xrandr mode",
+            de="xrandr mode",
+        ),
         type="string",
         default="1024x600_60.00",
         description="xrandr mode.",
@@ -23,17 +29,23 @@ class Kiosk(modules.Module):
         order=40,
     )
 
-    xrandr_rotation = models.Setting(
-        name="kiosk.xrandr-rotation",
-        type=SelectOneType(select_one=["normal", "left", "right", "inverted"]),
+    xrandr_rotation = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="xrandr rotation",
+            de="xrandr rotation",
+        ),
+        type=modules.SelectOneType(select_one=["normal", "left", "right", "inverted"]),
         default="normal",
         description="xrandr rotation.",
         example="normal",
         order=50,
     )
 
-    enable_vnc = models.Setting(
-        name="kiosk.enable-vnc",
+    enable_vnc = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Enable VNC server",
+            de="VNC-Server aktivieren",
+        ),
         type="bool",
         default=False,
         description="Enable VNC server.",
@@ -41,8 +53,11 @@ class Kiosk(modules.Module):
         order=60,
     )
 
-    vnc_password = models.Setting(
-        name="kiosk.vnc-password",
+    vnc_password = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="VNC password",
+            de="VNC-Passwort",
+        ),
         type="string",
         default="password",
         description="VNC password.",

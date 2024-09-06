@@ -8,15 +8,15 @@ on:
 
 jobs:
   test-controller:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.12"]
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -79,9 +79,16 @@ jobs:
           THYMIS_AUTH_BASIC_PASSWORD_FILE: ${{ runner.temp }}/thymis/auth-basic-password
         working-directory: frontend
   test-pre-commit:
+    strategy:
+      matrix:
+        python-version: ["3.12"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
       - name: Install pre-commit
         run: |
           python -m pip install pre-commit

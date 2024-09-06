@@ -1,141 +1,199 @@
 import os
 
-from thymis_controller import models, modules
+import thymis_controller.modules.modules as modules
+from thymis_controller import models
 from thymis_controller.nix import template_env
 
 
 class OCIContainers(modules.Module):
-    displayName: str = "OCI Containers"
+    display_name = modules.LocalizedString(
+        en="OCI Containers",
+        de="OCI Container",
+    )
 
-    containers: models.Setting = models.Setting(
-        name="oci-containers.containers",
-        type=models.ListType(
+    containers = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Containers",
+            de="Container",
+        ),
+        type=modules.ListType(
             settings={
-                "container_name": models.Setting(
-                    name="oci-containers.containerSettings.container-name",
+                "container_name": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Container Name",
+                        de="Container Name",
+                    ),
                     type="string",
-                    default="",
-                    description="The name of the container.",
-                    example="",
+                    description=modules.LocalizedString(
+                        en="The name of the container.",
+                        de="Der Name des Containers.",
+                    ),
                     order=10,
                 ),
-                "image": models.Setting(
-                    name="oci-containers.containerSettings.image",
+                "image": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Image",
+                        de="Image",
+                    ),
                     type="string",
-                    default="",
                     description="The image of the container.",
-                    example="",
                     order=15,
                 ),
-                "ports": models.Setting(
-                    name="oci-containers.containerSettings.ports",
-                    type=models.ListType(
+                "ports": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Ports",
+                        de="Ports",
+                    ),
+                    type=modules.ListType(
                         settings={
-                            "host": models.Setting(
-                                name="oci-containers.containerSettings.portSettings.host",
+                            "host": modules.Setting(
+                                display_name=modules.LocalizedString(
+                                    en="Host",
+                                    de="Host",
+                                ),
                                 type="string",
-                                default="",
-                                description="",
-                                example="",
                             ),
-                            "container": models.Setting(
-                                name="oci-containers.containerSettings.portSettings.container",
+                            "container": modules.Setting(
+                                display_name=modules.LocalizedString(
+                                    en="Container",
+                                    de="Container",
+                                ),
                                 type="string",
-                                default="",
-                                description="",
-                                example="",
                             ),
                         },
-                        element_name="options.nix.oci-containers.containerSettings.port",
+                        element_name=modules.LocalizedString(
+                            en="Port",
+                            de="Port",
+                        ),
                     ),
                     default=[],
-                    description="The ports to expose in the container.",
+                    description=modules.LocalizedString(
+                        en="Container ports to expose/publish on the host.",
+                        de="Ports des Containers, die auf dem Host freigegeben werden.",
+                    ),
                     example=None,
                     order=25,
                 ),
-                "volumes": models.Setting(
-                    name="oci-containers.containerSettings.volumes",
-                    type=models.ListType(
+                "volumes": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Volumes",
+                        de="Volumes",
+                    ),
+                    type=modules.ListType(
                         settings={
-                            "host": models.Setting(
-                                name="oci-containers.containerSettings.volumeSettings.host",
+                            "host": modules.Setting(
+                                display_name=modules.LocalizedString(
+                                    en="Host",
+                                    de="Host",
+                                ),
                                 type="string",
-                                default="",
-                                description="",
-                                example="",
                             ),
-                            "container": models.Setting(
-                                name="oci-containers.containerSettings.volumeSettings.container",
+                            "container": modules.Setting(
+                                display_name=modules.LocalizedString(
+                                    en="Container",
+                                    de="Container",
+                                ),
                                 type="string",
-                                default="",
-                                description="",
-                                example="",
                             ),
                         },
-                        element_name="options.nix.oci-containers.containerSettings.volume",
+                        element_name=modules.LocalizedString(
+                            en="Volume",
+                            de="Volume",
+                        ),
                     ),
                     default=[],
-                    description="The volumes to mount in the container.",
+                    description=modules.LocalizedString(
+                        en="The volumes to mount in the container.",
+                        de="Die Volumes, die im Container gemountet werden sollen.",
+                    ),
                     example=None,
                     order=30,
                 ),
-                "environment": models.Setting(
-                    name="oci-containers.containerSettings.environments",
-                    type=models.ListType(
+                "environment": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Environment Variables",
+                        de="Umgebungsvariablen",
+                    ),
+                    type=modules.ListType(
                         settings={
-                            "key": models.Setting(
-                                name="oci-containers.containerSettings.environmentSettings.key",
+                            "key": modules.Setting(
+                                display_name=modules.LocalizedString(
+                                    en="Key/Name",
+                                    de="Schlüssel/Name",
+                                ),
                                 type="string",
-                                default="",
-                                description="",
-                                example="",
                             ),
-                            "value": models.Setting(
-                                name="oci-containers.containerSettings.environmentSettings.value",
+                            "value": modules.Setting(
+                                display_name=modules.LocalizedString(
+                                    en="Value",
+                                    de="Wert",
+                                ),
                                 type="string",
-                                default="",
-                                description="",
-                                example="",
                             ),
                         },
-                        element_name="options.nix.oci-containers.containerSettings.environment",
+                        element_name=modules.LocalizedString(
+                            en="Environment Variable",
+                            de="Umgebungsvariable",
+                        ),
                     ),
-                    default=[],
-                    description="The environment variables to set in the container.",
-                    example='[""]',
+                    description=modules.LocalizedString(
+                        en="The environment variables to set in the container.",
+                        de="Die Umgebungsvariablen, die im Container gesetzt werden sollen.",
+                    ),
                     order=35,
                 ),
-                "labels": models.Setting(
-                    name="oci-containers.containerSettings.labels",
-                    type=models.ListType(
+                "labels": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Labels",
+                        de="Labels",
+                    ),
+                    type=modules.ListType(
                         settings={
-                            "key": models.Setting(
-                                name="oci-containers.containerSettings.labelSettings.key",
+                            "key": modules.Setting(
+                                display_name=modules.LocalizedString(
+                                    en="Key",
+                                    de="Schlüssel",
+                                ),
                                 type="string",
                                 default="",
                                 description="",
                                 example="",
                             ),
-                            "value": models.Setting(
-                                name="oci-containers.containerSettings.labelSettings.value",
+                            "value": modules.Setting(
+                                display_name=modules.LocalizedString(
+                                    en="Value",
+                                    de="Wert",
+                                ),
                                 type="string",
                                 default="",
                                 description="",
                                 example="",
                             ),
                         },
-                        element_name="options.nix.oci-containers.containerSettings.label",
+                        element_name=modules.LocalizedString(
+                            en="Label",
+                            de="Label",
+                        ),
                     ),
                     default=[],
-                    description="The labels to set in the container.",
+                    description=modules.LocalizedString(
+                        en="The labels to set in the container.",
+                        de="Die Labels, die im Container gesetzt werden sollen.",
+                    ),
                     example='[""]',
                     order=40,
                 ),
             },
-            element_name="options.nix.oci-containers.container",
+            element_name=modules.LocalizedString(
+                en="Container",
+                de="Container",
+            ),
         ),
         default=[],
-        description="The containers to run.",
+        description=modules.LocalizedString(
+            en="The containers to run.",
+            de="Die Container, die ausgeführt werden sollen.",
+        ),
         example=None,
         order=10,
     )

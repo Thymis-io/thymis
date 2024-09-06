@@ -124,7 +124,6 @@
 	"deploy": {
 		"build": "Build",
 		"deploy": "Deploy",
-		"last-5-tasks": "Last 5 tasks",
 		"update": "Update",
 		"build-status": "Build Status: {status}",
 		"stdout": "Standard Output",
@@ -161,6 +160,8 @@
 		},
 		"add_list_element": "Add List Element",
 		"remove_list_element": "Remove List Element",
+		"add-element": "Add {element}",
+		"remove-element": "Remove {element}",
 		"add_module": "Add Module",
 		"remove_module": "Remove Module",
 		"edit_tag_modules": "Edit Tag Modules",
@@ -177,93 +178,8 @@
 		"noOtherDefinitions": "No other definitions",
 		"overwrittenBy": "Overwritten by:",
 		"priority": "Priority {priority}",
-		"editDisabled": "Reference only, edit the tag to change values globally"
-	},
-	"options": {
-		"no-settings": "No settings found for this module",
-		"nix": {
-			"thymis": {
-				"config": {
-					"device-type": "Device Type",
-					"device-type-options": {
-						"generic-x86_64": "Generic x86 Device (e.g. PC)",
-						"raspberry-pi-3": "Raspberry Pi 3",
-						"raspberry-pi-4": "Raspberry Pi 4",
-						"raspberry-pi-5": "Raspberry Pi 5",
-						"generic-aarch64": "Generic ARM64 Device"
-					},
-					"device-name": "Hostname",
-					"password": "Password",
-					"wifi-ssid": "WiFi SSID",
-					"wifi-password": "WiFi Password"
-				}
-			},
-			"oci-containers": {
-				"containers": "Containers",
-				"container": "Container",
-				"containerSettings": {
-					"container-name": "Container Name",
-					"image": "Image",
-					"ports": "Ports",
-					"port": "Port",
-					"portSettings": {
-						"host": "Host",
-						"container": "Container"
-					},
-					"volumes": "Volumes",
-					"volume": "Volume",
-					"volumeSettings": {
-						"host": "Host",
-						"container": "Container"
-					},
-					"environments": "Environment Variables",
-					"environment": "Environment Variable",
-					"environmentSettings": {
-						"key": "Key",
-						"value": "Value"
-					},
-					"labels": "Labels",
-					"label": "Label",
-					"labelSettings": {
-						"key": "Key",
-						"value": "Value"
-					}
-				}
-			},
-			"ssh": {
-				"authorizedKeys": "Authorized Keys - Public SSH Keys",
-				"authorizedKey": "Key",
-				"authorizedKeysSettings": {
-					"key": "Key"
-				}
-			},
-			"freeform": {
-				"settings": "Settings"
-			},
-			"kiosk": {
-				"url": "URL"
-			},
-			"services": {
-				"minio": {
-					"enable": "Enable Minio",
-					"secretKey": "Secret Key",
-					"rootCredentialsFile": "Root Credentials File",
-					"region": "Region",
-					"package": "Package",
-					"listenAddress": "Listen Address",
-					"dataDir": "Data Directory",
-					"consoleAddress": "Console Address",
-					"configDir": "Configuration Directory",
-					"browser": "Browser",
-					"accessKey": "Access Key"
-				},
-				"node-red": {
-					"enable": "Enable Node-RED"
-				}
-			},
-			"add-element": "Add {element}",
-			"remove-element": "Remove {element}"
-		}
+		"editDisabled": "Reference only, edit the tag to change values globally",
+		"no-settings": "No settings found for this module"
 	},
 	"settings": {
 		"repo": {

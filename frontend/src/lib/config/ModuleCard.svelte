@@ -45,7 +45,7 @@
 			}))}
 		<div class="flex flex-col">
 			<P class="mb-1">
-				{$t(`options.nix.${setting.name}`, { default: setting.name })}
+				{$t(setting.displayName)}
 			</P>
 			<div class="flex">
 				<ConfigRenderer
@@ -147,6 +147,6 @@
 		</div>
 		<P class="mt-6">{setting.description}</P>
 	{:else}
-		<div>{$t('options.no-settings')}</div>
+		<div>{$t('config.no-settings')}</div>
 	{/each}
 </Card>
