@@ -1,8 +1,0 @@
-{
-    "services": {
-        "thymis-controller": {
-            "repo-path": "Thymis Repository Pfad",
-            "repo-path.description": "Das Verzeichnis, in dem der Controller das Repository mit dem Projekt speichern wird"
-        }
-    }
-}
