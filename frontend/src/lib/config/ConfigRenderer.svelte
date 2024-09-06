@@ -24,8 +24,7 @@
 		if (typeof setting.type === 'object' && setting.type.hasOwnProperty('list-of')) {
 			return 'list-of';
 		}
-		console.warn(`Unknown setting type: ${setting.type}`);
-		return undefined;
+		console.error(`Unknown setting type: ${setting.type}`);
 	};
 
 	const settingIsInt = (setting: Setting): setting is Setting<'int'> => {

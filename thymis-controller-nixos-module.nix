@@ -6,6 +6,10 @@ in
   options = {
     services.thymis-controller = {
       enable = lib.mkEnableOption "the Thymis controller";
+      system-binfmt-aarch64-enable = lib.mkEnableOption "whether to enable the system binfmt for aarch64" // {
+        default = pkgs.stdenv.targetPlatform.system == "x86_64";
+      };
+      system-binfmt-x86_64-enable = lib.mkEnableOption "whether to enable the system binfmt for x86_64";
       repo-path = lib.mkOption {
         type = lib.types.str;
         default = "/var/lib/thymis/repository";
@@ -90,6 +94,8 @@ in
           '';
         };
       };
+      boot.binfmt.emulatedSystems = (lib.lists.optional cfg.system-binfmt-aarch64-enable "aarch64-linux")
+        ++ (lib.lists.optional cfg.system-binfmt-x86_64-enable "x86_64-linux");
     };
   };
 }

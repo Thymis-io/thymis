@@ -86,6 +86,7 @@
               pkgs.nodejs
               pkgs.pre-commit
               pkgs.playwright-driver.browsers
+              pkgs.mdbook
             ];
             shellHook = ''
               export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}

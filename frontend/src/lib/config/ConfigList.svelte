@@ -36,6 +36,7 @@
 			</div>
 			<button
 				class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+				{disabled}
 				on:click={() => onChange(values.filter((v) => v !== item))}
 			>
 				<X />
@@ -52,6 +53,7 @@
 	<Card class="flex flex-row gap-1 w-full max-w-full drop-shadow" padding={'xs'}>
 		<button
 			class="p-2 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 gap-2"
+			{disabled}
 			on:click={() => onChange([...values, {}])}
 		>
 			<Plus />

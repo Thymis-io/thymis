@@ -1,5 +1,9 @@
+import pathlib
+
 from thymis_controller import models, modules
+from thymis_controller.lib import read_into_base64
 from thymis_controller.models import ModuleSettings
+from thymis_controller.models.module import SelectOneType
 from thymis_controller.nix import convert_python_value_to_nix
 
 
@@ -97,7 +101,11 @@ class ThymisController(modules.Module):
 
 
 class ThymisDevice(modules.Module):
-    displayName: str = "Thymis Device"
+    icon: str = read_into_base64(
+        str(pathlib.Path(__file__).parent / "hard-drive-thymis.png")
+    )
+
+    displayName: str = "Core Device Configuration"
 
     device_type = models.Setting(
         name="thymis.config.device-type",
@@ -123,6 +131,15 @@ class ThymisDevice(modules.Module):
         description="The device name of the thymis device.",
         example="",
         order=20,
+    )
+
+    nix_state_version = models.Setting(
+        name="system.stateVersion",
+        type=SelectOneType(select_one=["24.05"]),
+        default="24.05",
+        description="The NixOS state version.",
+        example="",
+        order=25,
     )
 
     password = models.Setting(
