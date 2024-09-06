@@ -1,6 +1,7 @@
 import os
 
-from thymis_controller import models, modules
+import thymis_controller.modules.modules as modules
+from thymis_controller import models
 from thymis_controller.nix import template_env
 
 

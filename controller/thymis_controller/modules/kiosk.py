@@ -1,5 +1,5 @@
-from thymis_controller import modules
-from thymis_controller.models.module import SelectOneType
+import thymis_controller.modules.modules as modules
+from thymis_controller import models
 
 
 class Kiosk(modules.Module):

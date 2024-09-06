@@ -1,9 +1,8 @@
 import pathlib
 
-from thymis_controller import models, modules
+import thymis_controller.modules.modules as modules
+from thymis_controller import models
 from thymis_controller.lib import read_into_base64
-from thymis_controller.models import ModuleSettings
-from thymis_controller.models.module import SelectOneType
 from thymis_controller.nix import convert_python_value_to_nix
 
 
@@ -161,7 +160,9 @@ class ThymisController(modules.Module):
         order=100,
     )
 
-    def write_nix_settings(self, f, module_settings: ModuleSettings, priority: int):
+    def write_nix_settings(
+        self, f, module_settings: models.ModuleSettings, priority: int
+    ):
         f.write(f"  imports = [\n")
         f.write(f"    inputs.thymis.nixosModules.thymis-controller\n")
         f.write(f"  ];\n")
@@ -317,7 +318,9 @@ class ThymisDevice(modules.Module):
         order=60,
     )
 
-    def write_nix_settings(self, f, module_settings: ModuleSettings, priority: int):
+    def write_nix_settings(
+        self, f, module_settings: models.ModuleSettings, priority: int
+    ):
         device_type = (
             module_settings.settings["device_type"]
             if "device_type" in module_settings.settings
