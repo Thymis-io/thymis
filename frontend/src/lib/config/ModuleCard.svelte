@@ -147,6 +147,6 @@
 		</div>
 		<P class="mt-6">{setting.description}</P>
 	{:else}
-		<div>{$t('options.no-settings')}</div>
+		<div>{$t('config.no-settings')}</div>
 	{/each}
 </Card>

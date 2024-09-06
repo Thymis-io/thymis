@@ -116,7 +116,10 @@
 		"open-diff": "Änderungen anzeigen",
 		"revert-commit": "Auf diesen Commit rückgängig machen",
 		"revert-commit-button": "Rückgängig machen",
-		"no-revert": "Bereits auf diesem Commit"
+		"no-revert": "Bereits auf diesem Commit",
+		"rollback-modal-body": "Hierdurch werden alle nicht gespeicherten Änderungen verworfen und ein neuer Commit mit dem Zustand des ausgewählten Commits erstellt.\n\n\n{newCommit}\n\n\nSind Sie sicher, dass Sie fortfahren möchten?",
+		"rollback-modal-confirm": "Zurücksetzen",
+		"rollback-modal-title": "Commit zurücksetzen"
 	},
 	"deploy": {
 		"build": "Erstellen",
@@ -159,27 +162,34 @@
 		"uninstall": "Deinstallieren",
 		"configure": "Bearbeiten",
 		"back": "Zurück",
-		"editDisabled": "Nur als Referenz. Bearbeiten Sie den Tag, um Werte global zu ändern"
+		"editDisabled": "Nur als Referenz. Bearbeiten Sie den Tag, um Werte global zu ändern",
+		"add-element": "{element} hinzufügen",
+		"noOtherDefinitions": "Keine anderen Definitionen",
+		"notPassed": "Diese Definition wird <b>nicht</b> an das Gerät übergeben",
+		"notSet": "Keine Definition festgelegt",
+		"otherDefinitions": "Andere Definitionen:",
+		"overwrittenBy": "Überschrieben durch:",
+		"passed": "Diese Definition wird an das Gerät übergeben",
+		"priority": "Priorität {priority}",
+		"remove-element": "{element} entfernen",
+		"no-settings": "Für dieses Modul wurden keine Einstellungen gefunden"
 	},
-	"options": {
-		"nix": {
-			"freeform": {
-				"settings": "Einstellungen"
-			},
-			"kiosk": {
-				"url": "URL"
-			},
-			"services": {
-				"minio": {
-					"accessKey": "Zugangsschlüssel",
-					"browser": "Browser",
-					"configDir": "Konfigurationsverzeichnis",
-					"consoleAddress": "Konsolenadresse",
-					"dataDir": "Datenverzeichnis",
-					"enable": "Aktivieren Sie Minio",
-					"listenAddress": "Listen-Addresse"
-				}
-			}
+	"settings": {
+		"repo": {
+			"actions": "Aktionen",
+			"delete": "Löschen",
+			"edit-name": "Namen bearbeiten",
+			"edit-url": "URL bearbeiten",
+			"name": "Name",
+			"title": "Repositories",
+			"url": "URL"
 		}
+	},
+	"taskbar": {
+		"completed": "Fertig",
+		"failed": "Fehlgeschlagen",
+		"latest-task": "Letzte Aufgabe",
+		"pending": "Ausstehend",
+		"running": "Läuft"
 	}
 }

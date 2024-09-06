@@ -43,7 +43,7 @@
 			</button>
 			<Tooltip type="auto" placement={'top'}>
 				{settings.type['element-name']
-					? $t(`options.nix.remove-element`, {
+					? $t(`config.remove-element`, {
 							values: { element: $t(settings.type['element-name']) }
 						})
 					: $t('config.remove_list_element')}
@@ -58,7 +58,7 @@
 		>
 			<Plus />
 			{settings.type['element-name']
-				? $t(`options.nix.add-element`, { values: { element: $t(settings.type['element-name']) } })
+				? $t(`config.add-element`, { values: { element: $t(settings.type['element-name']) } })
 				: $t('config.add_list_element')}
 		</button>
 	</Card>
