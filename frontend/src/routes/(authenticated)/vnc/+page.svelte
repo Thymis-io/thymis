@@ -4,7 +4,7 @@
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import { state } from '$lib/state';
 	import VncView from '$lib/vnc/VncView.svelte';
-	import { deviceHasVNCModule } from '$lib/vnc/vnc';
+	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
 	export let data: PageData;
 </script>
@@ -15,7 +15,7 @@
 </div>
 <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">
 	{#each $state.devices as device}
-		{#if deviceHasVNCModule(device, $state)}
+		{#if targetShouldShowVNC(device, $state)}
 			<div>
 				<P class="mb-2 text-center">{device.displayName}</P>
 				<VncView {device} />

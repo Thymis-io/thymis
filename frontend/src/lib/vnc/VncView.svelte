@@ -5,7 +5,7 @@
 	import { controllerHost } from '$lib/api';
 	import { Card, Spinner, Toggle, P } from 'flowbite-svelte';
 	import { onDestroy, onMount } from 'svelte';
-	import { deviceHasVNCModule } from '$lib/vnc/vnc';
+	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
 	export let device: Device;
 	let rfb: any;
@@ -14,7 +14,7 @@
 
 	let controlDevice = false;
 
-	$: hasVNC = device && deviceHasVNCModule(device, $state);
+	$: hasVNC = device && targetShouldShowVNC(device, $state);
 
 	const initVNC = async (device: Device) => {
 		// @ts-ignore
