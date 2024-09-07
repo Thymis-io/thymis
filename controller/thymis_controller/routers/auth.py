@@ -79,13 +79,16 @@ def login():
     )
 
 
-@router.post("/logout")
+@router.get("/logout")
 def logout(
     response: Response,
     user_session: Annotated[str, Depends(get_user_session_id)],
     db_session: SessionAD,
 ):
     invalidate_user_session(db_session, response, user_session)
+    return RedirectResponse(
+        "/", headers=response.headers, status_code=status.HTTP_303_SEE_OTHER
+    )
 
 
 # Route to handle the OAuth2 provider's callback

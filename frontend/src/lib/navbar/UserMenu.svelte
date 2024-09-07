@@ -8,11 +8,11 @@
 	import UserSettingsSolid from 'flowbite-svelte-icons/UserSettingsSolid.svelte';
 
 	const menu = [
-		{ name: 'Team', href: '#', icon: UsersGroupSolid },
-		{ name: 'Profile', href: '#', icon: ProfileCardOutline },
-		{ name: 'Settings', href: '#', icon: UserSettingsSolid },
-		{ name: 'Overview', href: '/overview', icon: GridSolid },
-		{ name: 'Logout', href: '#', icon: ArrowRightToBracketOutline }
+		// { name: 'Team', href: '#', icon: UsersGroupSolid },
+		// { name: 'Profile', href: '#', icon: ProfileCardOutline },
+		// { name: 'Settings', href: '#', icon: UserSettingsSolid },
+		// { name: 'Overview', href: '/overview', icon: GridSolid },
+		{ name: 'Logout', href: '/auth/logout', icon: ArrowRightToBracketOutline }
 	];
 </script>
 
