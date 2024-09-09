@@ -183,7 +183,7 @@ class ThymisDevice(modules.Module):
             en="Device Type",
             de="Gerätetyp",
         ),
-        nix_attr_name="services.thymis.config.device-type",
+        nix_attr_name="thymis.config.device-type",
         type=models.SelectOneType(
             select_one=[
                 ("generic-x86_64", "device-type.generic-x86_64"),
@@ -207,7 +207,7 @@ class ThymisDevice(modules.Module):
             en="Hostname",
             de="Hostname",
         ),
-        nix_attr_name="services.thymis.config.device-name",
+        nix_attr_name="thymis.config.device-name",
         type="string",
         default="",
         description=modules.LocalizedString(
@@ -223,7 +223,7 @@ class ThymisDevice(modules.Module):
             en="NixOS State Version",
             de="NixOS State Version",
         ),
-        nix_attr_name="services.thymis.config.nix-state-version",
+        nix_attr_name="system.stateVersion",
         type=modules.SelectOneType(select_one=["24.05"]),
         default="24.05",
         description=modules.LocalizedString(
@@ -239,7 +239,7 @@ class ThymisDevice(modules.Module):
             en="Root Password",
             de="Root Passwort",
         ),
-        nix_attr_name="services.thymis.config.password",
+        nix_attr_name="thymis.config.password",
         type="string",
         default="",
         description=modules.LocalizedString(
@@ -255,7 +255,7 @@ class ThymisDevice(modules.Module):
             en="WiFi SSID",
             de="WiFi SSID",
         ),
-        nix_attr_name="services.thymis.config.wifi-ssid",
+        nix_attr_name="thymis.config.wifi-ssid",
         type="string",
         default="",
         description=modules.LocalizedString(
@@ -271,7 +271,7 @@ class ThymisDevice(modules.Module):
             en="WiFi Password",
             de="WiFi Passwort",
         ),
-        nix_attr_name="services.thymis.config.wifi-password",
+        nix_attr_name="thymis.config.wifi-password",
         type="string",
         default="",
         description=modules.LocalizedString(
@@ -287,7 +287,7 @@ class ThymisDevice(modules.Module):
             en="Authorized Keys",
             de="Authorisierte Schlüssel",
         ),
-        nix_attr_name="services.thymis.config.authorized-keys",
+        nix_attr_name="thymis.config.authorized-keys",
         type=modules.ListType(
             settings={
                 "key": modules.Setting(

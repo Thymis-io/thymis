@@ -5,7 +5,8 @@
 	import { controllerHost } from '$lib/api';
 	import { Card, Spinner, Toggle, P } from 'flowbite-svelte';
 	import { onDestroy, onMount } from 'svelte';
-	import { targetShouldShowVNC } from '$lib/vnc/vnc';
+	import { deviceVNCPassword, targetShouldShowVNC } from '$lib/vnc/vnc';
+	import { page } from '$app/stores';
 
 	export let device: Device;
 	let rfb: any;
@@ -20,9 +21,10 @@
 		// @ts-ignore
 		let RFB = await import('@novnc/novnc/lib/rfb.js');
 
-		const url = `ws://${controllerHost}/vnc/${device.identifier}`;
+		const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+		const url = `${scheme}://${window.location.host}/api/vnc/${device.identifier}`;
 
-		const password = '';
+		const password = deviceVNCPassword(device, $state, $page.data.availableModules as Module[]);
 		const canvas = document.getElementById(`vnc-canvas-${device.targetHost}`);
 
 		if (rfb) {

@@ -1,4 +1,4 @@
-import type { Device, ModuleSettings, State, Tag } from '$lib/state';
+import type { Device, Module, ModuleSettings, State, Tag } from '$lib/state';
 
 const isVNCModule = (module: ModuleSettings) => module.type.toLowerCase().includes('vnc');
 
@@ -39,4 +39,22 @@ export const targetShouldShowVNC = (target: Device | Tag, state: State) => {
 		if (builtInKioskVNCModuleDetect(target, state)) return true;
 	}
 	return false;
+};
+
+export const deviceVNCPassword = (device: Device, state: State, availableModules: Module[]) => {
+	const kioskModuleType = 'thymis_controller.modules.kiosk.Kiosk';
+	const kioskModuleSettings =
+		device.modules.find((module) => module.type === kioskModuleType) ||
+		device.tags
+			.flatMap((tag) => state.tags.find((t) => t.identifier === tag)?.modules)
+			.find((module) => module?.type === kioskModuleType);
+	if (!kioskModuleSettings) return '';
+	const kioskModule = availableModules.find((module) => module.type === kioskModuleType);
+	// return "vnc_password" in kioskModule.settings ? kioskModule.settings.vnc_password : '';
+	const password =
+		'vnc_password' in kioskModuleSettings.settings
+			? kioskModuleSettings.settings.vnc_password
+			: kioskModule?.settings.vnc_password.default;
+	console.log('VNC Password for device: ' + device.identifier + ' is: ' + password);
+	return password;
 };
