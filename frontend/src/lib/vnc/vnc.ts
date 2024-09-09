@@ -55,6 +55,5 @@ export const deviceVNCPassword = (device: Device, state: State, availableModules
 		'vnc_password' in kioskModuleSettings.settings
 			? kioskModuleSettings.settings.vnc_password
 			: kioskModule?.settings.vnc_password.default;
-	console.log('VNC Password for device: ' + device.identifier + ' is: ' + password);
 	return password;
 };
