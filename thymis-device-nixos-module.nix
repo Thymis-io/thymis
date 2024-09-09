@@ -93,7 +93,7 @@ in
     networking.firewall = {
       allowedTCPPorts = [ 22 ];
     };
-    systemd.services.thymis-agent = {
+    systemd.services.thymis-agent = lib.mkIf cfg.agent.enabled {
       description = "Thymis agent";
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];

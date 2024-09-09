@@ -325,7 +325,7 @@ class ThymisDevice(modules.Module):
         ),
         nix_attr_name="thymis.config.agent.enabled",
         type="bool",
-        default=True,
+        default=False,
         description=modules.LocalizedString(
             en="Enable the agent, necessary for auto discover.",
             de="Aktiviert den Agent, notwendig für Auto-Discover.",
