@@ -17,18 +17,22 @@
 	let openDeploy = false;
 </script>
 
-<div class="gap-2">
-	<Button color="alternative" class="min-w-32 gap-2" on:click={build}>
-		<PlaySolid size="18" />
-		<span class="my-0.5">{$t('deploy.build')}</span>
+<div class="flex flex-wrap justify-end align-start gap-1 sm:gap-2 w-64 sm:w-96">
+	<Button color="alternative" class="gap-2 px-2 sm:px-4 py-1 sm:py-2 h-min" on:click={build}>
+		<PlaySolid class="w-[10px] sm:w-[14px]" />
+		<span class="text-xs sm:text-sm">{$t('deploy.build')}</span>
 	</Button>
-	<Button color="alternative" class="min-w-32 gap-2" on:click={() => (openDeploy = true)}>
-		<GearsSolid size="18" />
-		<span class="my-0.5">{$t('deploy.deploy')}</span>
+	<Button color="alternative" class="gap-2 px-2 sm:px-4 py-1 sm:py-2 h-min" on:click={update}>
+		<ArrowsRotateSolid class="w-[12px] sm:w-[18px]" />
+		<span class="text-xs sm:text-sm">{$t('deploy.update')}</span>
 	</Button>
-	<Button color="alternative" class="min-w-32 gap-2" on:click={update}>
-		<ArrowsRotateSolid size="16" />
-		<span class="my-0.5">{$t('deploy.update')}</span>
+	<Button
+		color="alternative"
+		class="gap-2 px-2 sm:px-4 py-1 sm:py-2 h-min"
+		on:click={() => (openDeploy = true)}
+	>
+		<GearsSolid class="w-[14px] sm:w-[20px]" />
+		<span class="text-xs sm:text-sm">{$t('deploy.deploy')}</span>
 	</Button>
 	<DeployModal bind:open={openDeploy} />
 </div>

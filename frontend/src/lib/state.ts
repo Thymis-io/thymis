@@ -27,7 +27,7 @@ export type ModuleSettingsWithOrigin = {
 };
 
 export type SelectOneSettingType = {
-	'select-one': string[];
+	'select-one': string[][];
 };
 
 export type ListSettingType = {
@@ -40,11 +40,12 @@ export type SettingType =
 	| 'number'
 	| 'bool'
 	| 'textarea'
+	| 'int'
 	| SelectOneSettingType
 	| ListSettingType;
 
 export type Setting<T extends SettingType = SettingType> = {
-	name: string;
+	displayName: string;
 	type: T;
 	default: string;
 	description: string;

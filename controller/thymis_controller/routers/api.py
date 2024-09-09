@@ -23,9 +23,9 @@ def get_state(state: State = Depends(dependencies.get_state)):
 
 
 @router.get("/available_modules")
-def get_available_modules() -> list[models.Module]:
-    # return modules.ALL_MODULES
-    return [module.get_model() for module in modules.ALL_MODULES]
+def get_available_modules(request: Request) -> list[models.Module]:
+    locale = request.cookies.get("locale", "en")
+    return [module.get_model(locale) for module in modules.ALL_MODULES]
 
 
 @router.patch("/state")
@@ -75,8 +75,10 @@ async def build_download_image(
 async def restart_device(
     identifier: str,
     project: project.Project = Depends(get_project),
+    state: State = Depends(dependencies.get_state),
 ):
-    await project.create_restart_device_task(identifier)
+    device = next(device for device in state.devices if device.identifier == identifier)
+    await project.create_restart_device_task(device)
 
 
 @router.get("/download-image")
@@ -97,6 +99,15 @@ def download_image(
 @router.get("/history")
 def get_history(project: project.Project = Depends(get_project)):
     return project.get_history()
+
+
+@router.post("/history/revert-commit")
+def revert_commit(
+    commit_sha: str,
+    project: project.Project = Depends(get_project),
+):
+    project.revert_commit(commit_sha)
+    return {"message": "reverted commit"}
 
 
 @router.post("/action/update")

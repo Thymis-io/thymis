@@ -179,43 +179,31 @@ class Project:
         # for each host create its own folder
         for device in state.devices:
             # assert device.identifier, "identifier cannot be empty"
-            logger.info("Device with empty identifier found, skipping")
             if not device.identifier:
+                logger.info("Device with empty identifier found, skipping")
                 continue
-            device_path = self.path / "hosts" / device.identifier
-            device_path.mkdir(exist_ok=True)
-            # create a empty .gitignore file
-            os.mknod(device_path / ".gitignore")
-            # write its modules
-            for module_settings in device.modules:
-                # module holds settings right now.
-                try:
-                    module = get_module_class_instance_by_type(module_settings.type)
-                    module.write_nix(device_path, module_settings, HOST_PRIORITY)
-                except Exception as e:
-                    logger.error(
-                        "Error while writing module %s: %s", module_settings.type, e
-                    )
-                    traceback.print_exc()
-        # for each tag create its own folder
+            self.create_folder_and_write_modules(
+                "hosts", device.identifier, device.modules, HOST_PRIORITY
+            )
         for tag in state.tags:
-            tag_path = self.path / "tags" / tag.identifier
-            tag_path.mkdir(exist_ok=True)
-            # create a empty .gitignore file
-            os.mknod(tag_path / ".gitignore")
-            # write its modules
-            for module_settings in tag.modules:
-                # module holds settings right now.
-                try:
-                    module = get_module_class_instance_by_type(module_settings.type)
-                    module.write_nix(tag_path, module_settings, tag.priority)
-                except Exception as e:
-                    logger.error(
-                        "Error while writing module %s: %s", module_settings.type, e
-                    )
-                    traceback.print_exc()
-        # run git add
+            self.create_folder_and_write_modules(
+                "tags", tag.identifier, tag.modules, tag.priority
+            )
         self.repo.git.add(".")
+
+    def create_folder_and_write_modules(self, base_path, identifier, modules, priority):
+        path = self.path / base_path / identifier
+        path.mkdir(exist_ok=True)
+        os.mknod(path / ".gitignore")
+        for module_settings in modules:
+            try:
+                module = get_module_class_instance_by_type(module_settings.type)
+                module.write_nix(path, module_settings, priority)
+            except Exception as e:
+                logger.error(
+                    "Error while writing module %s: %s", module_settings.type, e
+                )
+                traceback.print_exc()
 
     def set_repositories_in_python_path(self, path: os.PathLike, state: State):
         repositories = BUILTIN_REPOSITORIES | state.repositories
@@ -236,7 +224,15 @@ class Project:
                 "message": commit.message,
                 "author": commit.author.name,
                 "date": commit.authored_datetime,
-                "hash": commit.hexsha,
+                "SHA": commit.hexsha,
+                "SHA1": self.repo.git.rev_parse(commit.hexsha, short=True),
+                "state_diff": self.repo.git.diff(
+                    commit.hexsha,
+                    commit.parents[0].hexsha if len(commit.parents) > 0 else None,
+                    "-R",
+                    "state.json",
+                    unified=5,
+                ).split("\n")[4:],
             }
             for commit in self.repo.iter_commits()
         ]
@@ -253,6 +249,14 @@ class Project:
                 f.write(f"{hostkey.device_host} ssh-ed25519 {hostkey.public_key}\n")
 
         logger.info("Updated known_hosts file at %s", self.known_hosts_path)
+
+    def revert_commit(self, commit: str):
+        commit_to_revert = self.repo.commit(commit)
+        sha1 = self.repo.git.rev_parse(commit_to_revert.hexsha, short=True)
+        self.repo.git.rm("-r", ".")
+        self.repo.git.checkout(commit_to_revert.hexsha, ".")
+        self.repo.index.commit(f"Revert to {sha1}: {commit_to_revert.message}")
+        logger.info(f"Reverted commit: {commit_to_revert}")
 
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildTask(self.path))
@@ -280,7 +284,7 @@ class Project:
             task.BuildDeviceImageTask(self.path, device_identifier, db_session)
         )
 
-    def create_restart_device_task(self, device_identifier: str):
+    def create_restart_device_task(self, device: models.Device):
         return task.global_task_controller.add_task(
-            task.RestartDeviceTask(device_identifier, self.known_hosts_path)
+            task.RestartDeviceTask(device, self.known_hosts_path)
         )

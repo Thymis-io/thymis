@@ -20,12 +20,14 @@
 	};
 </script>
 
-<Button class="w-full flex justify-between">
-	<div class="flex gap-2">
+<Button class="w-full flex justify-between p-3">
+	<div class="flex gap-2 items-center">
 		{#if $globalNavSelectedTag}
-			<TagIcon size={20} /> {$globalNavSelectedTag?.displayName}
+			<TagIcon size={20} />
+			<span class="text-base">{$globalNavSelectedTag?.displayName}</span>
 		{:else if $globalNavSelectedDevice}
-			<HardDrive size={20} /> {$globalNavSelectedDevice?.displayName}
+			<HardDrive size={20} />
+			<span class="text-base">{$globalNavSelectedDevice?.displayName}</span>
 		{:else}
 			{$t('common.no-tag-or-device-selected')}
 		{/if}
@@ -40,10 +42,10 @@
 		{#if isSearched(search, tag.displayName)}
 			<DropdownItem
 				href={`?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.identifier)}`}
-				class={'flex gap-2 my-1 p-1 hover:bg-primary-500'}
+				class={'flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded'}
 			>
-				<TagIcon />
-				{tag.displayName}
+				<TagIcon size={22} />
+				<span class="text-base">{tag.displayName}</span>
 			</DropdownItem>
 		{/if}
 	{/each}
@@ -51,10 +53,10 @@
 		{#if isSearched(search, device.displayName)}
 			<DropdownItem
 				href={`?${buildGlobalNavSearchParam($page.url.search, 'device', device.identifier)}`}
-				class={'flex gap-2 my-1 p-1 hover:bg-primary-500'}
+				class={'flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded'}
 			>
-				<HardDrive />
-				{device.displayName}
+				<HardDrive size={22} />
+				<span class="text-base">{device.displayName}</span>
 			</DropdownItem>
 		{/if}
 	{/each}

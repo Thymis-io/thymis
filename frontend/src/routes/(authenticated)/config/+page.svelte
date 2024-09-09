@@ -145,7 +145,7 @@
 </script>
 
 <div class="flex justify-between mb-4">
-	<h1 class="text-3xl font-bold dark:text-white">
+	<h1 class="text-xl sm:text-3xl font-bold dark:text-white">
 		{#if $globalNavSelectedTag}
 			{$t('config.header.tag-module', {
 				values: {
@@ -166,13 +166,12 @@
 	</h1>
 	<DeployActions />
 </div>
-<div class="grid grid-flow-row grid-cols-5 gap-4">
-	<Card class="col-span-1 max-w-none">
+<div class="grid grid-flow-row grid-cols-1 md:grid-cols-[250px_auto] gap-4">
+	<Card class="max-w-none" padding={'sm'}>
 		<ModuleList
 			contextType={$globalNavSelectedTargetType}
 			context={$globalNavSelectedTarget}
 			selfModules={getSelfModules($globalNavSelectedTarget)}
-			canChangeModules={true}
 			availableModules={data.availableModules}
 			configSelectedModule={$configSelectedModule}
 			configSelectedModuleContext={$configSelectedModuleContext}
@@ -204,18 +203,16 @@
 		{/each}
 	</Card>
 	{#if $configSelectedModule && $configSelectedModuleContext?.modules.find((m) => m.type === $configSelectedModule.type)}
-		<div class="col-span-4">
-			<ConfigModuleCard
-				module={$configSelectedModule}
-				settings={getOwnModuleSettings($configSelectedModuleContext).find(
-					(s) => s.type === $configSelectedModule?.type
-				)}
-				otherSettings={getOtherSettings($globalNavSelectedTarget, $configSelectedModule)}
-				setSetting={(module, key, value) =>
-					setSetting($configSelectedModuleContext, module, key, value)}
-				showRouting={$globalNavSelectedTargetType === 'device'}
-				canEdit={$globalNavSelectedTarget === $configSelectedModuleContext}
-			/>
-		</div>
+		<ConfigModuleCard
+			module={$configSelectedModule}
+			settings={getOwnModuleSettings($configSelectedModuleContext).find(
+				(s) => s.type === $configSelectedModule?.type
+			)}
+			otherSettings={getOtherSettings($globalNavSelectedTarget, $configSelectedModule)}
+			setSetting={(module, key, value) =>
+				setSetting($configSelectedModuleContext, module, key, value)}
+			showRouting={$globalNavSelectedTargetType === 'device'}
+			canEdit={$globalNavSelectedTarget === $configSelectedModuleContext}
+		/>
 	{/if}
 </div>

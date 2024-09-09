@@ -1,8 +1,10 @@
 # Getting Started
 
-In order to get started with Thymis, you need to create a Thymis-Controller image and run it on your machine.
+In order to get started with Thymis, you need to access a running Thymis controller. The controller is the component of Thymis that generates, deploys, and manages IoT devices.
 
-Follow the instructions below to create a Thymis-Controller image.
+Currently, the Thymis controller can be easily deployed using a [NixOS](https://nixos.org/) module.
+See the [Thymis NixOS module](./getting_started/nixos.md) for instructions on deploying the controller.
 
-- [Creating a Thymis-Controller Device Image](getting_started/creating_a_thymis_controller_device_image.md)
-- [Running the Thymis-Controller Device Image](getting_started/running_the_thymis_controller_device_image.md)
+## For developers
+
+See the [GitHub readme](https://github.com/thymis-io/thymis/blob/main/README.md#getting-started-(development)) for instructions on setting up Thymis for development.

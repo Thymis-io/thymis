@@ -20,7 +20,6 @@
 	export let context: Tag | Device | undefined;
 
 	export let selfModules: Module[];
-	export let canChangeModules: boolean = false;
 	export let availableModules: Module[] = [];
 	export let configSelectedModule: Module | undefined;
 	export let configSelectedModuleContextType: string | null;
@@ -31,9 +30,12 @@
 			target.modules = [...target.modules, { type: module.type, settings: {} }];
 			saveState();
 		}
+		addModuleModalOpen = false;
 	};
 
-	export let removeModule: (target: Tag | Device | undefined, module: Module) => void;
+	export let removeModule:
+		| ((target: Tag | Device | undefined, module: Module) => void)
+		| undefined = undefined;
 
 	let addModuleModalOpen = false;
 
@@ -103,7 +105,7 @@
 					<img src={module.icon ?? '/favicon.png'} alt={module.displayName} class="w-6 h-6" />
 					<P>{module.displayName}</P>
 				</a>
-				{#if canChangeModules}
+				{#if removeModule && (!('targetHost' in context) || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}
 					<button
 						class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
 						on:click={() => removeModule(context, module)}
@@ -117,7 +119,7 @@
 			</div>
 		{/each}
 	{/if}
-	{#if canChangeModules}
+	{#if removeModule}
 		<button
 			class="p-2 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700"
 			on:click={() => (addModuleModalOpen = true)}

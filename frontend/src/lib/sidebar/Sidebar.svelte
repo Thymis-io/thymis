@@ -27,7 +27,7 @@
 		state
 	} from '$lib/state';
 	import GlobalNavSelect from '$lib/sidebar/GlobalNavSelect.svelte';
-	import { isVNCModule, deviceHasVNCModule } from '$lib/vnc/vnc';
+	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
 	export let drawerHidden: boolean;
 
@@ -35,7 +35,7 @@
 		drawerHidden = true;
 	};
 
-	let spanClass = 'ms-9';
+	let spanClass = 'ms-4';
 	let childClass =
 		'p-2 hover:bg-gray-100 text-gray-500 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 flex items-center flex-wrap font-medium';
 
@@ -68,15 +68,17 @@
 		children?: Record<string, string>;
 	};
 
-	$: hasVNCModule =
-		$state.devices.some((device) => device.modules.some(isVNCModule)) ||
-		$state.tags.some((tag) => tag.modules.some(isVNCModule));
+	$: anyTargetHasVNC =
+		$state.devices.some((device) => targetShouldShowVNC(device, $state)) ||
+		$state.tags.some((tag) => targetShouldShowVNC(tag, $state));
 
+	// $: selectedTargetHasAnyVNCModule =
+	// 	$globalNavSelectedTarget?.modules.some(isVNCModule) ||
+	// 	$state.devices
+	// 		.filter((device) => device.tags.some((tag) => tag === $globalNavSelectedTag?.identifier))
+	// 		?.some((device) => deviceHasVNCModule(device, $state));
 	$: selectedTargetHasAnyVNCModule =
-		$globalNavSelectedTarget?.modules.some(isVNCModule) ||
-		$state.devices
-			.filter((device) => device.tags.some((tag) => tag === $globalNavSelectedTag?.identifier))
-			?.some((device) => deviceHasVNCModule(device, $state));
+		$globalNavSelectedTarget && targetShouldShowVNC($globalNavSelectedTarget, $state);
 
 	let dynamicNavItems: NavItem[] = [];
 	$: dynamicNavItems = [
@@ -116,7 +118,7 @@
 			name: $t('nav.global-vnc'),
 			icon: ScreenShare,
 			href: '/vnc',
-			hidden: !hasVNCModule
+			hidden: !anyTargetHasVNC
 		},
 		{
 			name: $t('nav.history'),
@@ -141,7 +143,7 @@
 	asideClass="{asideClass} lg:sticky lg:top-0 border-e border-gray-200 dark:border-gray-600 lg:block"
 >
 	<SidebarWrapper
-		divClass="overflow-y-auto px-4 pt-2 lg:pt-4 bg-white scrolling-touch h-[calc(100vh-4.6rem)] lg:block dark:bg-gray-800 lg:me-0"
+		divClass="overflow-y-auto px-4 pt-2 lg:pt-4 bg-white scrolling-touch h-full lg:block dark:bg-gray-800 lg:me-0"
 	>
 		<nav class="divide-y text-base font-medium">
 			<SidebarGroup ulClass="list-unstyled fw-normal small mb-4 space-y-2">

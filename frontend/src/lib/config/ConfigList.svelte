@@ -18,8 +18,8 @@
 			<div class="flex flex-col w-full gap-4">
 				{#each Object.entries(settings.type['list-of']) as [key, setting]}
 					<div>
-						{#if setting.name}
-							<P class="p-0 pb-1">{$t(`options.nix.${setting.name}`, { default: setting.name })}</P>
+						{#if setting.displayName}
+							<P class="p-0 pb-1">{$t(`${setting.displayName}`)}</P>
 						{/if}
 						<ConfigRenderer
 							{setting}
@@ -36,13 +36,14 @@
 			</div>
 			<button
 				class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+				{disabled}
 				on:click={() => onChange(values.filter((v) => v !== item))}
 			>
 				<X />
 			</button>
 			<Tooltip type="auto" placement={'top'}>
 				{settings.type['element-name']
-					? $t(`options.nix.remove-element`, {
+					? $t(`config.remove-element`, {
 							values: { element: $t(settings.type['element-name']) }
 						})
 					: $t('config.remove_list_element')}
@@ -52,11 +53,12 @@
 	<Card class="flex flex-row gap-1 w-full max-w-full drop-shadow" padding={'xs'}>
 		<button
 			class="p-2 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 gap-2"
+			{disabled}
 			on:click={() => onChange([...values, {}])}
 		>
 			<Plus />
 			{settings.type['element-name']
-				? $t(`options.nix.add-element`, { values: { element: $t(settings.type['element-name']) } })
+				? $t(`config.add-element`, { values: { element: $t(settings.type['element-name']) } })
 				: $t('config.add_list_element')}
 		</button>
 	</Card>

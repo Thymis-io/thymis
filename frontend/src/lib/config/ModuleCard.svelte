@@ -30,7 +30,10 @@
 	$: settingEntries = Object.entries(module.settings).sort((a, b) => a[1].order - b[1].order);
 </script>
 
-<Card class="max-w-none grid grid-cols-5 gap-4">
+<Card
+	class="max-w-none grid grid-cols-[minmax(50px,3fr)_1fr] sm:grid-cols-[auto_150px] xl:grid-cols-[auto_250px] gap-4"
+	padding={'sm'}
+>
 	{#each settingEntries as [key, setting]}
 		{@const self = settings?.settings[key]}
 		{@const other = otherSettings
@@ -40,9 +43,9 @@
 				...o,
 				setting: o.settings[key]
 			}))}
-		<div class="col-span-4 flex flex-col">
+		<div class="flex flex-col">
 			<P class="mb-1">
-				{$t(`options.nix.${setting.name}`, { default: setting.name })}
+				{$t(setting.displayName)}
 			</P>
 			<div class="flex">
 				<ConfigRenderer
@@ -51,6 +54,7 @@
 					disabled={!canEdit}
 					onChange={(value) => setSetting(module, key, value)}
 				/>
+				<div class="ml-auto" />
 				{#if canEdit}
 					{#if settings?.settings[key] !== undefined}
 						<button
@@ -81,7 +85,7 @@
 					{#if other && other.length > 0}
 						{#if sameOrigin(settings, other[0])}
 							{@const otherDefinitions = other.filter((o) => !sameOrigin(settings, o))}
-							<button class="btn p-0 ml-2" on:click={() => {}}>
+							<button class="btn p-0 ml-2 sm:ml-0" on:click={() => {}}>
 								<Route class="text-primary-500" />
 							</button>
 							<Tooltip type="auto" class="z-50">
@@ -102,7 +106,7 @@
 							{@const otherDefinitions = other.filter(
 								(o) => !sameOrigin(o, settings) && !sameOrigin(o, other[0])
 							)}
-							<button class="btn p-0 ml-2" on:click={() => {}}>
+							<button class="btn p-0 ml-2 sm:ml-0" on:click={() => {}}>
 								<RouteOff class="text-primary-500" />
 							</button>
 							<Tooltip type="auto" class="z-50">
@@ -122,7 +126,7 @@
 							</Tooltip>
 						{/if}
 					{:else if self !== undefined}
-						<button class="btn p-0 ml-2" on:click={() => {}}>
+						<button class="btn p-0 ml-2 sm:ml-0" on:click={() => {}}>
 							<Route class="text-primary-500" />
 						</button>
 						<Tooltip type="auto" class="z-50">
@@ -130,7 +134,7 @@
 							<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P>
 						</Tooltip>
 					{:else}
-						<button class="btn p-0 ml-2" on:click={() => {}}>
+						<button class="btn p-0 ml-2 sm:ml-0" on:click={() => {}}>
 							<RouteOff class="text-primary-500" />
 						</button>
 						<Tooltip type="auto" class="z-50">
@@ -141,8 +145,8 @@
 				{/if}
 			</div>
 		</div>
-		<P class="col-span-1 mt-6">{setting.description}</P>
+		<P class="mt-6">{setting.description}</P>
 	{:else}
-		<div class="col-span-1">{$t('options.no-settings')}</div>
+		<div>{$t('config.no-settings')}</div>
 	{/each}
 </Card>

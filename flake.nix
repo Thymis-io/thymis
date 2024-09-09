@@ -24,7 +24,8 @@
       };
       eachSystem = nixpkgs.lib.genAttrs (import ./flake.systems.nix);
       nixosModules = {
-        thymis = ./thymis-nixos-module.nix;
+        thymis-device = ./thymis-device-nixos-module.nix;
+        thymis-controller = ./thymis-controller-nixos-module.nix;
       } // nixpkgs.lib.mapAttrs'
         (name: value: {
           name = "thymis-device-${name}";
@@ -37,12 +38,12 @@
         in
         (nixpkgs.lib.nixosSystem {
           modules = [
-            nixosModules.thymis
+            nixosModules.thymis-device
             nixosModules."thymis-device-${thymis-config-parsed.device-type}"
             {
               thymis.config = thymis-config-parsed;
               # thymis.controller.enable = true;
-              system.stateVersion = "23.11";
+              system.stateVersion = "24.05";
             }
           ];
           specialArgs = {
@@ -82,9 +83,11 @@
           default = pkgs.mkShell {
             packages = [
               pkgs.poetry
+              pkgs.python312
               pkgs.nodejs
               pkgs.pre-commit
               pkgs.playwright-driver.browsers
+              pkgs.mdbook
             ];
             shellHook = ''
               export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
@@ -106,15 +109,8 @@
           };
         in
         {
-          thymis-frontend = thymis-frontend;
           thymis-controller = thymis-controller;
           thymis-controller-container = import ./docker.nix { inherit pkgs thymis-controller; };
-          thymis-frontend-container = pkgs.dockerTools.buildLayeredImage {
-            name = "thymis-frontend";
-            config = {
-              Cmd = [ "${thymis-frontend}/bin/thymis-controller" ];
-            };
-          };
         }
       );
       nixosModules = nixosModules;

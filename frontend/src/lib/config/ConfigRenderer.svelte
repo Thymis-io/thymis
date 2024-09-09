@@ -5,6 +5,7 @@
 	import ConfigTextarea from './ConfigTextarea.svelte';
 	import ConfigSelectOne from './ConfigSelectOne.svelte';
 	import ConfigList from './ConfigList.svelte';
+	import ConfigInt from './ConfigInt.svelte';
 
 	export let setting: Setting;
 	export let value: unknown;
@@ -12,7 +13,8 @@
 
 	export let onChange: (value: any) => void;
 
-	const getTypeKeyFromSetting = (setting: Setting): string => {
+	const getTypeKeyFromSetting = (setting: Setting): string | undefined => {
+		if (setting.type === 'int') return 'int';
 		if (setting.type === 'bool') return 'bool';
 		if (setting.type === 'string') return 'string';
 		if (setting.type === 'textarea') return 'textarea';
@@ -22,7 +24,11 @@
 		if (typeof setting.type === 'object' && setting.type.hasOwnProperty('list-of')) {
 			return 'list-of';
 		}
-		throw new Error(`Unknown setting type: ${setting.type}`);
+		console.error(`Unknown setting type: ${setting.type}`);
+	};
+
+	const settingIsInt = (setting: Setting): setting is Setting<'int'> => {
+		return getTypeKeyFromSetting(setting) === 'int';
 	};
 
 	const settingIsBool = (setting: Setting): setting is Setting<'bool'> => {
@@ -46,8 +52,10 @@
 	};
 </script>
 
-{#if settingIsBool(setting)}
-	<ConfigBool value={value === true} name={setting.name} {onChange} {disabled} />
+{#if settingIsInt(setting)}
+	<ConfigInt {value} placeholder={setting.example} {onChange} {disabled} />
+{:else if settingIsBool(setting)}
+	<ConfigBool value={value === true} name={setting.displayName} {onChange} {disabled} />
 {:else if settingIsString(setting)}
 	<ConfigString {value} placeholder={setting.example} {onChange} {disabled} />
 {:else if settingIsTextarea(setting)}

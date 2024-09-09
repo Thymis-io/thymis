@@ -2,6 +2,7 @@ import asyncio
 import importlib
 import logging
 import pathlib
+import secrets
 import shutil
 import tempfile
 from contextlib import asynccontextmanager
@@ -62,11 +63,34 @@ def check_and_move_old_repo():
         logger.info(f"Moved old git repository to {global_settings.REPO_PATH}")
 
 
+def init_password_file():
+    if not global_settings.AUTH_BASIC:
+        return
+    password_file = pathlib.Path(global_settings.AUTH_BASIC_PASSWORD_FILE)
+    if not password_file.exists():
+        # generate a random password and log it to the user
+        password = secrets.token_urlsafe(32)
+        logger.warning(
+            "Password file not found at %s, generating a new one with password: %s",
+            password_file,
+            password,
+        )
+        with password_file.open("w", encoding="utf-8") as f:
+            f.write(password)
+        password_file.chmod(0o600)
+    else:
+        password = password_file.read_text(encoding="utf-8")
+        logger.info(
+            "Password file found at %s, using the password inside", password_file
+        )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up...")
     check_and_move_old_repo()
     peform_db_upgrade()
+    init_password_file()
     logger.info("starting frontend")
     await frontend.frontend.run()
     logger.info("frontend started")

@@ -143,7 +143,6 @@
 
             <div class="page">
                 <div id="menu-bar-hover-placeholder"></div>
-                {{> header}}
                 <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
                         <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
@@ -166,7 +165,9 @@
                         {{/if}}
                     </div>
 
-                    <h1 class="menu-title">{{ book_title }}</h1>
+                    <div class="menu-title">
+                    {{> header}}<h1 class="menu-title"  style="line-height: normal !important;">{{ book_title }}</h1>
+                    </div>
 
                     <div class="right-buttons">
                         {{#if print_enable}}
@@ -316,6 +317,7 @@
 
         <script src="{{ path_to_root }}clipboard.min.js"></script>
         <script src="{{ path_to_root }}highlight.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/languages/nix.min.js" integrity="sha384-0n5KbzRolrDTE0gHsIWJjmtz2gFSN0qMj0H+kv0tqH5ccxQdThygrKqchd9sCOlw" crossorigin="anonymous"></script>
         <script src="{{ path_to_root }}book.js"></script>
 
         <!-- Custom JS scripts -->

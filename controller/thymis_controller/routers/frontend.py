@@ -8,6 +8,8 @@ import sys
 
 logger = logging.getLogger(__name__)
 
+from urllib.parse import urlparse
+
 import fastapi
 import httpx
 import psutil
@@ -25,6 +27,10 @@ def is_reload_enabled():
 
 def frontend_binary_path():
     return global_settings.FRONTEND_BINARY_PATH
+
+
+def controller_base_url_host():
+    return urlparse(global_settings.BASE_URL).netloc
 
 
 class Frontend:
@@ -54,12 +60,20 @@ class Frontend:
                 cwd=frontend_path,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                env={
+                    "PUBLIC_CONTROLLER_HOST": controller_base_url_host(),
+                    "PATH": os.environ["PATH"],
+                },
             )
 
         else:
             self.process = await asyncio.create_subprocess_exec(
                 frontend_binary_path(),
-                env={"PORT": str(FRONTEND_PORT), "HOST": "127.0.0.1"},
+                env={
+                    "PORT": str(FRONTEND_PORT),
+                    "HOST": "127.0.0.1",
+                    "PUBLIC_CONTROLLER_HOST": controller_base_url_host(),
+                },
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )

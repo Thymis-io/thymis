@@ -6,20 +6,31 @@ import type { State, Module } from '$lib/state';
 import { error, redirect } from '@sveltejs/kit';
 import { getAllTasks } from '$lib/taskstatus';
 
-export const load = (async ({ fetch, url }) => {
+export const load = (async ({ fetch, url, data }) => {
+	let lang = 'en';
 	if (browser) {
-		let lang = window.navigator.language;
+		lang = window.navigator.language;
 		// split -
 		lang = lang.split('-')[0];
 		// check cookie and set value from there
 		lang =
 			document.cookie
 				.split('; ')
-				.find((row) => row.startsWith('lang='))
+				.find((row) => row.startsWith('locale='))
 				?.split('=')[1] || lang;
+		console.log(
+			'setting locale:',
+			lang,
+			'from cookie',
+			document.cookie,
+			'navigator',
+			window.navigator.language,
+			'url',
+			url
+		);
 		locale.set(lang);
 	}
-	await waitLocale();
+	await waitLocale(lang);
 	const stateResponse = await fetch(`/api/state`, {
 		method: 'GET',
 		headers: {
@@ -45,10 +56,12 @@ export const load = (async ({ fetch, url }) => {
 	const availableModules = (await availableModulesResponse.json()) as Module[];
 
 	const allTasks = await getAllTasks(fetch);
+	const minimizeTaskbar = data?.minimizeTaskbar === 'true';
 
 	return {
 		state: state,
 		availableModules: availableModules,
-		allTasks: allTasks
+		allTasks: allTasks,
+		minimizeTaskbar: minimizeTaskbar
 	};
 }) satisfies LayoutLoad;

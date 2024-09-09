@@ -22,6 +22,7 @@
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
 	import { flip } from 'svelte/animate';
+	import { nameToIdentifier } from './deviceName';
 
 	const flipDurationMs = 200;
 	let dragDisabled = true;
@@ -101,12 +102,11 @@
 <EditTagModal bind:currentlyEditingDevice />
 <Table shadow>
 	<TableHead>
-		<TableHeadCell />
-		<TableHeadCell>{$t('devices.table.name')}</TableHeadCell>
-		<TableHeadCell>{$t('devices.table.target-host')}</TableHeadCell>
-		<TableHeadCell>{$t('devices.table.tags')}</TableHeadCell>
-		<TableHeadCell>{$t('devices.table.actions')}</TableHeadCell>
-		<TableHeadCell>{$t('devices.table.status')}</TableHeadCell>
+		<TableHeadCell padding="p-2" />
+		<TableHeadCell padding="p-2">{$t('devices.table.name')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('devices.table.target-host')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('devices.table.tags')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('devices.table.actions')}</TableHeadCell>
 	</TableHead>
 	<tbody
 		use:dndzone={{ items: devices, dragDisabled, flipDurationMs }}
@@ -118,8 +118,8 @@
 				class="border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700"
 				animate:flip={{ duration: flipDurationMs }}
 			>
-				<TableBodyCell>
-					<div class="flex gap-1">
+				<TableBodyCell tdClass="p-2">
+					<div class="flex items-center justify-center">
 						<div
 							tabindex={dragDisabled ? 0 : -1}
 							aria-label="drag-handle"
@@ -134,9 +134,15 @@
 						</div>
 					</div>
 				</TableBodyCell>
-				<TableBodyEditCell bind:value={device.data.displayName} onEnter={() => saveState()} />
+				<TableBodyEditCell
+					bind:value={device.data.displayName}
+					onEnter={() => {
+						device.data.identifier = nameToIdentifier(device.data.displayName);
+						saveState();
+					}}
+				/>
 				<TableBodyEditCell bind:value={device.data.targetHost} onEnter={() => saveState()} />
-				<TableBodyCell>
+				<TableBodyCell tdClass="p-2 px-2 md:px-4">
 					<div class="flex justify-between">
 						<div class="flex gap-2">
 							{#each device.data.tags as tag, i}
@@ -160,9 +166,10 @@
 						</button>
 					</div>
 				</TableBodyCell>
-				<TableBodyCell>
+				<TableBodyCell tdClass="p-2 px-2 md:px-4 whitespace-nowrap">
 					<div class="flex gap-2">
 						<Button
+							class="px-4 py-2"
 							color="alternative"
 							href={`/config?${buildGlobalNavSearchParam(
 								$page.url.search,
@@ -172,19 +179,28 @@
 						>
 							{$t('devices.actions.edit')}
 						</Button>
-						<Button color="alternative" on:click={() => buildAndDownloadImage(device.data)}>
+						<Button
+							class="px-4 py-2"
+							color="alternative"
+							on:click={() => buildAndDownloadImage(device.data)}
+						>
 							{$t('devices.actions.download')}
 						</Button>
-						<Button color="alternative" on:click={() => restartDevice(device.data)}>
+						<Button
+							class="px-4 py-2"
+							color="alternative"
+							on:click={() => restartDevice(device.data)}
+						>
 							{$t('devices.actions.restart')}
 						</Button>
-						<Button class="ml-8" color="alternative" on:click={() => deleteDevice(device.data)}>
+						<Button
+							class="ml-8 px-4 py-2"
+							color="alternative"
+							on:click={() => deleteDevice(device.data)}
+						>
 							{$t('devices.actions.delete')}
 						</Button>
 					</div>
-				</TableBodyCell>
-				<TableBodyCell>
-					{$t('devices.status.online')}
 				</TableBodyCell>
 			</tr>
 		{/each}

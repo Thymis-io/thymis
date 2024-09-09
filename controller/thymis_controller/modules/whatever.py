@@ -1,19 +1,24 @@
-from thymis_controller import models, modules
-from thymis_controller.models import ModuleSettings
+import thymis_controller.modules.modules as modules
+from thymis_controller import models
 
 
 class WhateverModule(modules.Module):
-    displayName: str = "Custom Module"
+    display_name: str = "Custom Module"
 
-    settings = models.Setting(
-        name="freeform.settings",
+    settings = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Freeform Settings",
+            de="Freiform Einstellungen",
+        ),
         type="textarea",
         default="",
         description="The settings for the freeform module.",
         example="",
     )
 
-    def write_nix_settings(self, f, module_settings: ModuleSettings, priority: int):
+    def write_nix_settings(
+        self, f, module_settings: models.ModuleSettings, priority: int
+    ):
         settings = (
             module_settings.settings["settings"]
             if "settings" in module_settings.settings

@@ -3,37 +3,23 @@
   <img src="./thymis.png" width="100" />
 </a>
 </p>
-<p align="center">
+<p>
     <a href="https://thymis.io">
-    <h1 align="center">THYMIS</h1>
+    <h1>THYMIS</h1>
     </a>
 </p>
-<p align="center">
-    <em>Thymis: Unlocking Smart Device Configuration and Management</em>
+<p>
+    <em>Quickly provision, configure, and manage devices using NixOS.</em>
 </p>
-<p align="center">
+<p>
 	<img src="https://img.shields.io/github/license/Thymis-io/thymis?style=flat&color=0080ff" alt="license">
 	<img src="https://img.shields.io/github/last-commit/Thymis-io/thymis?style=flat&logo=git&logoColor=white&color=0080ff" alt="last-commit">
-	<img src="https://img.shields.io/github/languages/top/Thymis-io/thymis?style=flat&color=0080ff" alt="repo-top-language">
-	<img src="https://img.shields.io/github/languages/count/Thymis-io/thymis?style=flat&color=0080ff" alt="repo-language-count">
     <img src="https://img.shields.io/badge/NixOS-2AA2E0?style=flat&logo=NixOS&logoColor=white" alt="NixOS">
     <img src="https://img.shields.io/badge/Svelte-FF3E00?style=flat&logo=Svelte&logoColor=white" alt="svelte">
     <img src="https://img.shields.io/badge/FastAPI-009688?style=flat&logo=FastAPI&logoColor=white" alt="FastAPI">
 </p>
-<hr>
 
-##  Quick Links
-
-> - [Overview](#overview)
-> - [Architecture](#architecture)
-> - [Documentation](#documentation)
-> - [Getting Started](#getting-started)
->   - [Installation](#installation)
->   - [Running thymis](#running-thymis)
-> - [Project Roadmap](#project-roadmap)
-> - [Contributing](#contributing)
-> - [License](#license)
-> - [Acknowledgments](#acknowledgments)
+Thymis is an open-source platform designed for managing and configuring IoT devices. Built on the robust NixOS operating system, Thymis ensures consistency, reliability, and ease of management across diverse IoT landscapes. Whether you're managing a few devices or a large-scale deployment, Thymis provides the tools needed to streamline your operations.
 
 ---
 
@@ -70,21 +56,27 @@ Key features of Thymis include:
 
 The project uses SvelteKit for the frontend and FastAPI for a device controller. The frontend communicates with the controller using a REST API. The controller is responsible for managing device and module data.
 
+## Getting Started
+
+See the [Getting Started](https://docs.thymis.io/getting_started) guide in the documentation for detailed instructions on setting up Thymis.
+
 ## Documentation
 
-The projects documentation is in a TODO state. It is mainly documented by code comments and explanations in the codebase. We are working on pretty docs for you.
+The documentation is available at [docs.thymis.io](https://docs.thymis.io), built from the `docs` directory in the repository.
+
+
 
 ---
 
-##  Getting Started
+## Getting Started (Development)
 
 ***Requirements***
 
 Ensure you have the following dependencies installed on your system:
 
-* **Nix**
-* **Python 3**
-* **Node.js**
+* **Nix** (with Flakes support)
+
+
 
 ###  Installation
 
@@ -100,7 +92,13 @@ git clone https://github.com/Thymis-io/thymis
 cd thymis
 ```
 
-3. Install the dependencies:
+3. Enter an environment with the required dependencies:
+
+```sh
+nix develop
+```
+
+4. Install the frontend and controller dependencies:
 
 ```sh
 cd frontend
@@ -122,57 +120,20 @@ The controller takes care of running the frontend for you. You can access thymis
 
 ---
 
-##  Project Roadmap
+## Project Roadmap
 
 - [ ] `Release 0.1.0`: Initial release of the project.
 
----
-
-##  Contributing
-
-Contributions are welcome! Here are several ways you can contribute:
-
-- **[Submit Pull Requests](https://github.com/Thymis-io/thymis/pulls)**: Review open PRs, and submit your own PRs.
-<!-- - **[Submit Pull Requests](https://github.com/Thymis-io/thymis/blob/main/CONTRIBUTING.md)**: Review open PRs, and submit your own PRs. -->
-- **[Join the Discussions](https://github.com/Thymis-io/thymis/discussions)**: Share your insights, provide feedback, or ask questions.
-- **[Report Issues](https://github.com/Thymis-io/thymis/issues)**: Submit bugs found or log feature requests for the `thymis` project.
-
-<details closed>
-    <summary>Contributing Guidelines</summary>
-
-1. **Fork the Repository**: Start by forking the project repository to your github account.
-2. **Clone Locally**: Clone the forked repository to your local machine using a git client.
-   ```sh
-   git clone https://github.com/Thymis-io/thymis
-   ```
-3. **Create a New Branch**: Always work on a new branch, giving it a descriptive name.
-   ```sh
-   git checkout -b new-feature-x
-   ```
-4. **Make Your Changes**: Develop and test your changes locally.
-5. **Commit Your Changes**: Commit with a clear message describing your updates.
-   ```sh
-   git commit -m 'Implemented new feature x.'
-   ```
-6. **Push to GitHub**: Push the changes to your forked repository.
-   ```sh
-   git push origin new-feature-x
-   ```
-7. **Submit a Pull Request**: Create a PR against the original project repository. Clearly describe the changes and their motivations.
-
-Once your PR is reviewed and approved, it will be merged into the main branch.
-
-</details>
 
 ---
 
-##  License
+## License
 
 This project is protected under the [GNU Affero General Public License v3.0](https://choosealicense.com/licenses/agpl-3.0/) License. For more details, refer to the [LICENSE](./LICENSE) file.
 
 ---
 
-##  Acknowledgments
+## Acknowledgments
 
 We love using these technologies and tools:
 
@@ -181,7 +142,3 @@ We love using these technologies and tools:
 - [FastAPI](https://fastapi.tiangolo.com/)
 - [Python](https://www.python.org/)
 - [Node.js](https://nodejs.org/)
-
-[**Return**](#-quick-links)
-
----

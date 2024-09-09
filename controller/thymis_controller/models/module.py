@@ -1,12 +1,12 @@
-from typing import List, Literal, Optional, Union
+from typing import List, Literal, Optional, Tuple, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, JsonValue
 
-ValueTypes = Literal["bool", "string", "path", "package", "textarea"]
+type ValueTypes = Literal["bool", "string", "path", "package", "textarea", "int"]
 
 
 class SelectOneType(BaseModel):
-    select_one: List[str] = Field(serialization_alias="select-one")
+    select_one: List[Tuple[str, str]] = Field(serialization_alias="select-one")
 
 
 class ListType(BaseModel):
@@ -16,14 +16,14 @@ class ListType(BaseModel):
     )
 
 
-Types = Union[ValueTypes, SelectOneType, ListType]
+type SettingTypes = Union[ValueTypes, SelectOneType, ListType]
 
 
 class Setting(BaseModel):
-    name: Optional[str] = None
-    type: Types
-    default: object
-    description: str
+    displayName: str
+    type: SettingTypes
+    description: Optional[str] = None
+    default: Optional[JsonValue] = None
     example: Optional[str] = None
     order: int = 0
 
@@ -35,4 +35,4 @@ class Module(BaseModel):
     settings: dict[str, Setting]
 
 
-__all__ = ["Setting", "Module", "SelectOneType", "ListType"]
+__all__ = ["Setting", "Module", "SelectOneType", "ListType", "SettingTypes"]

@@ -6,9 +6,6 @@ Thymis is a project that allows you to generate, deploy, and manage your own IoT
 It is based on [NixOS](https://nixos.org/), a Linux distribution that is built around the Nix package manager.
 
 The component of Thymis that generates, deploys, and manages IoT devices is called the Thymis-Controller.
-In the open-source version of Thymis, the Thymis-Controller generates, deploys, and manages the devices on the same machine that it is running on.
-
-To get started with Thymis, you can [create a Thymis-Controller Device Image](getting_started/creating_a_thymis_controller_device_image.md) and run it on your machine.
 
 Thymis Enterprise is a commercial version of Thymis that allows you to generate, deploy, and manage devices on multiple machines.
 Getting started with Thymis Enterprise is similar to getting started with Thymis, but there are some additional steps that you need to take.

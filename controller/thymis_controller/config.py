@@ -19,7 +19,7 @@ class GlobalSettings(BaseSettings):
     FRONTEND_BINARY_PATH: str | None = None
     AUTH_BASIC: bool = True
     AUTH_BASIC_USERNAME: str = "admin"
-    AUTH_BASIC_PASSWORD: str = "admin"
+    AUTH_BASIC_PASSWORD_FILE: str = "/var/lib/thymis/auth-basic-password"
 
     AUTH_OAUTH: bool = False
     AUTH_OAUTH_CLIENT_ID: str | None = None

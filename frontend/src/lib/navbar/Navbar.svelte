@@ -1,38 +1,28 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import UserMenu from './UserMenu.svelte';
-	import { DarkMode, NavBrand, NavHamburger, Navbar, Search, ToolbarButton } from 'flowbite-svelte';
+	import { DarkMode, NavBrand, NavHamburger, Search, ToolbarButton } from 'flowbite-svelte';
 	import GithubSolid from 'flowbite-svelte-icons/GithubSolid.svelte';
 	import LanguageSelect from './LanguageSelect.svelte';
-
-	export let fluid = true;
 
 	export let drawerHidden: boolean;
 	let clazz = '';
 	export { clazz as class };
 </script>
 
-<Navbar {fluid} class={clazz || ''} color="default">
-	<div class="flex w-fit items-center justify-start">
-		<NavHamburger
-			onClick={() => (drawerHidden = !drawerHidden)}
-			class="m-0 me-3 md:block lg:hidden"
-		/>
-		<NavBrand href="/" class="ms-2 md:me-24">
-			<img src="/favicon.png" class="me-3 h-6 sm:h-8" alt="Thymis Logo" />
-			<span class="self-center whitespace-nowrap text-xl font-semibold dark:text-white sm:text-2xl">
+<div class="flex flex-nowrap justify-between mx-2 sm:mx-4 {clazz || ''}" color="default">
+	<div class="flex items-center gap-2 sm:gap-4">
+		<NavHamburger onClick={() => (drawerHidden = !drawerHidden)} class="m-0 md:block lg:hidden" />
+		<NavBrand href="/">
+			<img src="/favicon.png" class="w-6 min-w-6 sm:w-8 sm:min-w-8" alt="Thymis Logo" />
+			<span class="ml-2 text-xl sm:text-2xl font-semibold dark:text-white hidden sm:block">
 				Thymis
 			</span>
 		</NavBrand>
-		<div class="w-8 lg:hidden">
-			<Search size="md" placeholder={$t('common.search')} />
-		</div>
-		<div class="w-96 hidden lg:block">
-			<Search size="md" placeholder={$t('common.search')} />
+		<div class="ms-2 w-2 sm:w-48 lg:w-64 xl:w-96 block">
+			<Search size="md" placeholder={$t('common.search')} class="py-1 sm:py-2" />
 		</div>
 	</div>
-
-	<div class="ms-auto flex items-center gap-2 p-1">
+	<div class="flex items-center sm:gap-2 p-1">
 		<a
 			class="github-button"
 			href="https://github.com/thymis-io/thymis"
@@ -42,8 +32,7 @@
 				<GithubSolid />
 			</ToolbarButton>
 		</a>
-		<UserMenu />
 		<DarkMode />
 		<LanguageSelect />
 	</div>
-</Navbar>
+</div>
