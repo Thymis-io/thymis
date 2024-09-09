@@ -126,9 +126,9 @@
 			href: '/history'
 		},
 		{
-			name: $t('nav.settings'),
+			name: $t('nav.external-repositories'),
 			icon: GearSolid,
-			href: '/settings'
+			href: '/external-repositories'
 		}
 	];
 
