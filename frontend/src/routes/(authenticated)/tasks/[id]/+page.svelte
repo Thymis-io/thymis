@@ -33,7 +33,7 @@
 			if (task.data.env) {
 				command =
 					Object.entries(task.data.env)
-						.map(([key, value]) => `${key}=${value}`)
+						.map(([key, value]) => `${key}="${value}"`)
 						.join(' ') +
 					' ' +
 					command;
