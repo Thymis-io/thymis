@@ -113,7 +113,7 @@ class Agent:
 
         if not self.controller_host:
             logger.error("Controller host not set")
-            return
+            raise ValueError("Controller host not set")
 
         json_data = {
             "build_hash": self.state.build_hash,
