@@ -12,7 +12,7 @@ import traceback
 from pathlib import Path
 
 import git
-from pytest import Session
+from sqlalchemy.orm import Session
 from thymis_controller import crud, db_models, migration, models, modules, task
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
