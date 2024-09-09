@@ -9,7 +9,7 @@
 	} from '$lib/state';
 	import VncView from '$lib/vnc/VncView.svelte';
 	import DeployActions from '$lib/components/DeployActions.svelte';
-	import { deviceHasVNCModule } from '$lib/vnc/vnc';
+	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
 	export let data: PageData;
 </script>
@@ -23,7 +23,7 @@
 {:else if $globalNavSelectedTargetType === 'tag' && $globalNavSelectedTag}
 	<div class="grid grid-cols-3 gap-4">
 		{#each data.state.devices.filter( (device) => device.tags.includes($globalNavSelectedTag.identifier) ) as device}
-			{#if deviceHasVNCModule(device, $state)}
+			{#if targetShouldShowVNC(device, $state)}
 				<div>
 					<P class="mb-2 text-center">{device.displayName}</P>
 					<VncView {device} />

@@ -102,16 +102,16 @@ class Kiosk(modules.Module):
 
         f.write(
             f"""
-            services.xserver.enable = true;
-            services.displayManager.sddm.enable = true;
-            services.displayManager.autoLogin.enable = true;
-            services.displayManager.autoLogin.user = "thymiskiosk";
-            users.users.thymiskiosk = {{
+            services.xserver.enable = lib.mkOverride {priority} true;
+            services.displayManager.sddm.enable = lib.mkOverride {priority} true;
+            services.displayManager.autoLogin.enable = lib.mkOverride {priority} true;
+            services.displayManager.autoLogin.user = lib.mkOverride {priority} "thymiskiosk";
+            users.users.thymiskiosk = lib.mkOverride {priority} {{
                 isNormalUser = true;
                 createHome = true;
             }};
-            services.xserver.windowManager.i3.enable = true;
-            services.xserver.windowManager.i3.configFile = lib.mkForce (pkgs.writeText "i3-config" ''
+            services.xserver.windowManager.i3.enable = lib.mkOverride {priority} true;
+            services.xserver.windowManager.i3.configFile = lib.mkOverride {priority} (pkgs.writeText "i3-config" ''
             # i3 config file (v4)
             bar {{
                 mode invisible
@@ -123,9 +123,11 @@ class Kiosk(modules.Module):
             exec "/run/current-system/sw/bin/xset -dpms"
             exec "${{pkgs.unclutter}}/bin/unclutter"
             exec ${{pkgs.chromium}}/bin/chromium --kiosk {kiosk_url} --disable-gpu
-            {'exec ${pkgs.tigervnc}/bin/x0vncserver -display :0 -PasswordFile /etc/vncpasswd' if enable_vnc else ''}
+            {'exec ${pkgs.bash}/bin/bash -c "mkdir -p $HOME/tigervnc; ${pkgs.tigervnc}/bin/vncpasswd -f <<< \\"'+ vnc_password + '\\" > $HOME/tigervnc/passwd"' if enable_vnc else ''}
+            {'exec ${pkgs.tigervnc}/bin/x0vncserver -display :0 -PasswordFile=$HOME/tigervnc/passwd' if enable_vnc else ''}
             '');
-            systemd.services.display-manager.restartIfChanged = lib.mkForce true;
-            systemd.services.display-manager.environment.NONCE = "{nonce}";
+            systemd.services.display-manager.restartIfChanged = lib.mkOverride {priority} true;
+            systemd.services.display-manager.environment.NONCE = lib.mkOverride {priority} "{nonce}";
+            networking.firewall.allowedTCPPorts = [ 5900 ];
             """
         )
