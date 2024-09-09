@@ -147,7 +147,6 @@
 	>
 		<nav class="divide-y text-base font-medium">
 			<SidebarGroup ulClass="list-unstyled fw-normal small mb-4 space-y-2">
-				<GlobalNavSelect />
 				{#each navItems as { name, icon, children, href, hidden } (name)}
 					{#if children}
 						<SidebarDropdownWrapper
@@ -179,6 +178,7 @@
 					{/if}
 				{/each}
 				<hr />
+				<GlobalNavSelect />
 				{#each dynamicNavItems as { name, icon, children, href, hidden } (name)}
 					{#if children}
 						<SidebarDropdownWrapper
