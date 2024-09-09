@@ -39,6 +39,23 @@ in
             default = "";
             description = "Password for the wifi network";
           };
+          agent = lib.mkOption {
+            type = lib.types.submodule {
+              freeformType = settingsFormat.type;
+              options = {
+                enabled = lib.mkOption {
+                  type = lib.types.bool;
+                  default = false;
+                  description = "Enable the agent";
+                };
+                controller-url = lib.mkOption {
+                  type = lib.types.str;
+                  default = "";
+                  description = "URL of the Thymis Controller";
+                };
+              };
+            };
+          };
         };
       };
       default = { };
@@ -75,6 +92,18 @@ in
     };
     networking.firewall = {
       allowedTCPPorts = [ 22 ];
+    };
+    systemd.services.thymis-agent = {
+      description = "Thymis agent";
+      after = [ "network.target" ];
+      wantedBy = [ "multi-user.target" ];
+      script = "${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent";
+      path = [
+        "/run/current-system/sw"
+      ];
+      environment = {
+        CONTROLLER_HOST = cfg.agent.controller-url;
+      };
     };
   };
 }

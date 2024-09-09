@@ -1,8 +1,7 @@
 { poetry2nix
-, git
-, nixpkgs-fmt
 , nix
 , writeShellApplication
+, python312
 ,
 }:
 let
@@ -10,17 +9,14 @@ let
     name = "thymis-agent";
     projectDir = ./.;
     preferWheels = true;
-    overrides = poetry2nix.overrides.withDefaults (self: super: {
-      thymis-enterprise = null;
-    });
     groups = [ ];
     checkGroups = [ "test" ];
+    python = python312;
   }).dependencyEnv;
-  # in pythonEnv
 in
 writeShellApplication {
   name = "thymis-agent";
-  runtimeInputs = [ git nixpkgs-fmt nix ];
+  runtimeInputs = [ nix ];
   text = ''
     ${pythonEnv}/bin/uvicorn thymis_controller.main:app "$@"
   '';

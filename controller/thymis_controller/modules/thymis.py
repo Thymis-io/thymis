@@ -318,6 +318,38 @@ class ThymisDevice(modules.Module):
         order=60,
     )
 
+    agent_enabled = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Agent Enabled",
+            de="Agent aktiviert",
+        ),
+        nix_attr_name="thymis.config.agent.enabled",
+        type="bool",
+        default=True,
+        description=modules.LocalizedString(
+            en="Enable the agent, necessary for auto discover.",
+            de="Aktiviert den Agent, notwendig für Auto-Discover.",
+        ),
+        example="",
+        order=70,
+    )
+
+    agent_controller_url = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Thymis Controller URL",
+            de="Thymis Controller-URL",
+        ),
+        nix_attr_name="thymis.config.agent.controller-url",
+        type="string",
+        default="",
+        description=modules.LocalizedString(
+            en="URL of this Thymis Controller instance",
+            de="URL dieser Thymis Controller-Instanz",
+        ),
+        example="",
+        order=80,
+    )
+
     def write_nix_settings(
         self, f, module_settings: models.ModuleSettings, priority: int
     ):
