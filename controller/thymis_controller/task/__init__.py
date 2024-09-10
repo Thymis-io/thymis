@@ -487,7 +487,7 @@ class DeployDeviceTask(CommandTask):
                 f"root@{device.targetHost}",
             ],
             env={
-                "NIX_SSHOPTS": "-o StrictHostKeyChecking=accept-new",
+                "NIX_SSHOPTS": "-o StrictHostKeyChecking=accept-new -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no",
                 "PATH": os.getenv("PATH"),
             },
         )
