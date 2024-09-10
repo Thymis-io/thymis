@@ -323,7 +323,7 @@ class ThymisDevice(modules.Module):
             en="Agent Enabled",
             de="Agent aktiviert",
         ),
-        nix_attr_name="thymis.config.agent.enabled",
+        nix_attr_name="thymis.config.agent.enable",
         type="bool",
         default=False,
         description=modules.LocalizedString(

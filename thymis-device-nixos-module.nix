@@ -43,7 +43,7 @@ in
             type = lib.types.submodule {
               freeformType = settingsFormat.type;
               options = {
-                enabled = lib.mkOption {
+                enable = lib.mkOption {
                   type = lib.types.bool;
                   default = false;
                   description = "Enable the agent";
@@ -93,7 +93,8 @@ in
     networking.firewall = {
       allowedTCPPorts = [ 22 ];
     };
-    systemd.services.thymis-agent = lib.mkIf cfg.agent.enabled {
+    thymis.config.agent.enable = lib.mkDefault false;
+    systemd.services.thymis-agent = lib.mkIf cfg.agent.enable {
       description = "Thymis agent";
       after = [ "network.target" "sshd.service" ];
       wantedBy = [ "multi-user.target" ];
