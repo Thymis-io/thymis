@@ -40,6 +40,16 @@
 			}
 		}
 	}
+
+	// remove nix_process from task.data if present
+	let cleanedTaskData = task?.data;
+	$: {
+		let taskData = JSON.parse(JSON.stringify(task?.data));
+		if ('nix_process' in taskData) {
+			delete taskData['nix_process'];
+		}
+		cleanedTaskData = taskData;
+	}
 </script>
 
 <h1 class="text-2xl font-bold">Task Detail for Task {task.id}: {task.display_name}</h1>
@@ -56,9 +66,13 @@
 	<h2 class="text-xl font-bold">End Time: <RenderUnixTimestamp timestamp={task.end_time} /></h2>
 {/if}
 
-<h2 class="text-xl font-bold truncate" title={JSON.stringify(task.data)}>
-	Detail: {JSON.stringify(task.data)}
-</h2>
+<h2 class="text-xl font-bold truncate">Detail: {JSON.stringify(cleanedTaskData)}</h2>
+
+{#if 'nix_process' in task.data}
+	<h2 class="text-xl font-bold">This is a nix command</h2>
+	<!-- activities -->
+	<MonospaceText code={JSON.stringify(task.data.nix_process, undefined, 2)} />
+{/if}
 
 {#if task.type === 'commandtask'}
 	<h2 class="text-xl font-bold">Command:</h2>

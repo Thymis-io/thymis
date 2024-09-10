@@ -1,6 +1,7 @@
 import asyncio
 import collections
 import copy
+import datetime
 import json
 import logging
 import os
@@ -12,6 +13,7 @@ from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from thymis_controller import models, project
 from thymis_controller.nix import NIX_CMD
+from thymis_controller.nix.log_parse import NixProcess
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +30,9 @@ class TaskController:
 
     task_limit: int
 
+    last_send_time: datetime.datetime
+    min_send_interval: datetime.timedelta
+
     def __init__(self):
         self.all_tasks_list = []
         self.all_tasks_dict = {}
@@ -38,6 +43,10 @@ class TaskController:
         self.running_tasks = []
         self.active_listeners = []
         self.barriers = {}
+
+        self.last_send_time = datetime.datetime.now()
+        self.last_send_content = None
+        self.min_send_interval = datetime.timedelta(milliseconds=100)
 
     def count_command_tasks_running(self):
         return len(
@@ -104,7 +113,19 @@ class TaskController:
         await self.try_run_front_of_queue()
 
     async def send_all_tasks(self):
+        if datetime.datetime.now() - self.last_send_time < self.min_send_interval:
+            asyncio.create_task(self.send_all_tasks_delayed())
+            return
+        content = json.dumps(jsonable_encoder(self.get_tasks()))
+        if content == self.last_send_content:
+            return
+        self.last_send_time = datetime.datetime.now()
         await self.send_broadcast(json.dumps(jsonable_encoder(self.get_tasks())))
+        self.last_send_content = content
+
+    async def send_all_tasks_delayed(self):
+        await asyncio.sleep((2 * self.min_send_interval).total_seconds())
+        await self.send_all_tasks()
 
     async def send_broadcast(self, data: str):
         for connection in self.active_listeners:
@@ -453,13 +474,48 @@ class CompositeTask(Task):
 
 
 class BuildTask(CommandTask):
-    def __init__(self, repo_dir):
-        super().__init__(
-            "nix",
-            [*NIX_CMD[1:], "build", f"{repo_dir}#thymis", "--out-link", "/tmp/thymis"],
-        )
+    def __init__(self, repo_dir):  # pylint: disable=super-init-not-called
+        Task.__init__(
+            self, f"Building project"
+        )  # pylint: disable=non-parent-init-called
 
-        self.display_name = "Building project"
+        self.repo_dir = repo_dir
+
+        self.program = "nix"
+        self.nix_process = NixProcess(
+            ["build", f"{repo_dir}#thymis", "--out-link", "/tmp/thymis"]
+        )
+        self.nix_process.subscribe(self.process_subscriber)
+        self.args = self.nix_process.args
+        self.env = self.nix_process.env
+        self.stdout = self.nix_process.stdout
+        self.stderr = bytearray()
+
+    async def _run(self):
+        return await self.nix_process.run()
+
+    async def process_subscriber(self, nix_process: NixProcess):
+        self.process = nix_process.process
+        await self.controller.send_all_tasks()
+
+    def get_model(self) -> models.CommandTask:
+        return models.CommandTask(
+            id=str(self.id),
+            type="commandtask",
+            display_name=self.display_name,
+            start_time=self.start_time,
+            end_time=self.end_time,
+            state=self.state,
+            exception=str(self.exception),
+            stdout=self.stdout.decode(),
+            stderr=self.stderr.decode(),
+            data={
+                "program": self.program,
+                "args": self.args,
+                "env": self.env,
+                "nix_process": self.nix_process.get_model(),
+            },
+        )
 
 
 class DeployProjectTask(CompositeTask):
