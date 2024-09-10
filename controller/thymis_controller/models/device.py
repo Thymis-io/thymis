@@ -1,5 +1,5 @@
 from git import List
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class RegisterDeviceRequest(BaseModel):
@@ -9,9 +9,9 @@ class RegisterDeviceRequest(BaseModel):
 
 
 class RegisteredDevice(BaseModel):
-    identifier: str
-    public_key: str
-    device_host: str
+    identifier: str = Field(serialization_alias="identifier")
+    public_key: str = Field(serialization_alias="publicKey")
+    device_host: str = Field(serialization_alias="deviceHost")
 
 
 __all__ = ["RegisterDeviceRequest", "RegisteredDevice"]
