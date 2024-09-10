@@ -13,7 +13,7 @@
 		"terminal": "Terminal",
 		"global-vnc": "VNC All Devices",
 		"device-vnc": "VNC",
-		"settings": "Settings"
+		"external-repositories": "External Repositories"
 	},
 	"common": {
 		"search": "Search...",
