@@ -10,6 +10,7 @@ import sys
 import tempfile
 import traceback
 from pathlib import Path
+from typing import List
 
 import git
 from sqlalchemy.orm import Session
@@ -246,7 +247,7 @@ class Project:
         hostkeys = crud.hostkey.get_all(db_session)
         with open(self.known_hosts_path, "w", encoding="utf-8") as f:
             for hostkey in hostkeys:
-                f.write(f"{hostkey.device_host} ssh-ed25519 {hostkey.public_key}\n")
+                f.write(f"{hostkey.device_host} {hostkey.public_key}\n")
 
         logger.info("Updated known_hosts file at %s", self.known_hosts_path)
 
@@ -261,18 +262,20 @@ class Project:
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildTask(self.path))
 
-    def create_deploy_device_task(self, device_identifier: str):
+    def create_deploy_device_task(self, device_identifier: str, target_host: str):
         device = next(
             device
             for device in self.read_state().devices
             if device.identifier == device_identifier
         )
         return task.global_task_controller.add_task(
-            task.DeployDeviceTask(self.path, device)
+            task.DeployDeviceTask(self.path, device, target_host)
         )
 
-    def create_deploy_project_task(self):
-        return task.global_task_controller.add_task(task.DeployProjectTask(self))
+    def create_deploy_project_task(self, devices: List[models.RegisteredDevice]):
+        return task.global_task_controller.add_task(
+            task.DeployProjectTask(self, devices)
+        )
 
     def create_update_task(self):
         return task.global_task_controller.add_task(task.UpdateTask(self.path))
@@ -280,11 +283,22 @@ class Project:
     def create_build_device_image_task(
         self, device_identifier: str, db_session: Session
     ):
+        device_state = next(
+            device
+            for device in self.read_state().devices
+            if device.identifier == device_identifier
+        )
         return task.global_task_controller.add_task(
-            task.BuildDeviceImageTask(self.path, device_identifier, db_session)
+            task.BuildDeviceImageTask(
+                self.path,
+                device_identifier,
+                db_session,
+                device_state.model_dump(),
+                self.repo.head.object.hexsha,
+            )
         )
 
-    def create_restart_device_task(self, device: models.Device):
+    def create_restart_device_task(self, device: models.Device, target_host: str):
         return task.global_task_controller.add_task(
-            task.RestartDeviceTask(device, self.known_hosts_path)
+            task.RestartDeviceTask(device, self.known_hosts_path, target_host)
         )

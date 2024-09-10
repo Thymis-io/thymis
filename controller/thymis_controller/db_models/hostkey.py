@@ -7,9 +7,8 @@ from thymis_controller.database.base import Base
 class HostKey(Base):
     __tablename__ = "hostkeys"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    build_hash = Column(String, unique=True)
+    identifier = Column(String, primary_key=True, index=True)
+    build_hash = Column(String)
     public_key = Column(String)
-    identifier = Column(String, unique=True)
-    device_host = Column(String)
+    device_host = Column(String)  # working ip address
     created_at = Column(DateTime, default=datetime.datetime.now(datetime.timezone.utc))

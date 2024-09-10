@@ -6,26 +6,31 @@ from thymis_controller.dependencies import get_project
 from thymis_controller.project import Project
 
 
-def create_or_update(db_session: Session, identifier: str, build_hash: str):
-    hostkey = (
-        db_session.query(db_models.HostKey)
-        .where(db_models.HostKey.identifier == identifier)
-        .first()
+def create(
+    db_session: Session,
+    identifier: str,
+    build_hash: str,
+    public_key: str,
+    device_host: str,
+):
+    host_key = db_models.HostKey(
+        identifier=identifier,
+        build_hash=build_hash,
+        public_key=public_key,
+        device_host=device_host,
+        created_at=datetime.datetime.now(datetime.timezone.utc),
     )
-
-    if hostkey is None:
-        hostkey = db_models.HostKey(
-            identifier=identifier,
-            build_hash=build_hash,
-        )
-        db_session.add(hostkey)
-    else:
-        hostkey.created_at = datetime.datetime.now(datetime.timezone.utc)
-        hostkey.build_hash = build_hash
-        # TODO maybe delete the old public key
-
+    db_session.add(host_key)
     db_session.commit()
-    return hostkey
+    return host_key
+
+
+def build_hash_is_registered(db_session: Session, build_hash: str):
+    return (
+        db_session.query(db_models.HostKey)
+        .where(db_models.HostKey.build_hash == build_hash)
+        .first()
+    ) is not None
 
 
 def register_device(
@@ -56,3 +61,12 @@ def register_device(
 
 def get_all(db_session: Session):
     return db_session.query(db_models.HostKey).all()
+
+
+def get_device_host(db_session: Session, identifier: str):
+    device = (
+        db_session.query(db_models.HostKey)
+        .where(db_models.HostKey.identifier == identifier)
+        .first()
+    )
+    return device and device.device_host or None

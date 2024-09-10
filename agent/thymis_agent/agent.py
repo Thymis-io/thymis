@@ -7,6 +7,7 @@ import sched
 import socket
 from dataclasses import dataclass
 
+import psutil
 import requests
 
 logger = logging.getLogger(__name__)
@@ -105,8 +106,22 @@ class Agent:
 
     def detect_public_key(self):
         with open("/etc/ssh/ssh_host_ed25519_key.pub", "r") as f:
-            public_key = f.read().split(" ")[1]
-        return public_key
+            public_key = f.read().split(" ")
+        return public_key[0] + " " + public_key[1]
+
+    def detect_ip_addresses(self):
+        def get_ip_addresses(family):
+            for interface, snics in psutil.net_if_addrs().items():
+                if interface == "lo":
+                    continue
+                for snic in snics:
+                    if snic.family == family:
+                        yield snic.address
+
+        ipv4s = set(get_ip_addresses(socket.AF_INET))
+        ipv6s = set(get_ip_addresses(socket.AF_INET6))
+
+        return [*ipv4s, *ipv6s]
 
     def register(self) -> bool:
         logger.info("Attempting to register device")
@@ -118,6 +133,7 @@ class Agent:
         json_data = {
             "build_hash": self.state.build_hash,
             "public_key": self.state.public_key,
+            "ip_addresses": self.detect_ip_addresses(),
         }
 
         response = requests.post(
@@ -161,3 +177,7 @@ def main():
     scheduler.periodic(REPORT_INTERVAL, agent.report)
 
     scheduler.run()
+
+
+if __name__ == "__main__":
+    main()

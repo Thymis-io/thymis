@@ -1,8 +1,9 @@
 import asyncio
+from typing import List
 
 from fastapi import APIRouter, Depends, Request, WebSocket
 from fastapi.responses import FileResponse, RedirectResponse
-from thymis_controller import dependencies, models, modules, project
+from thymis_controller import crud, db_models, dependencies, models, modules, project
 from thymis_controller.dependencies import (
     SessionAD,
     get_project,
@@ -52,12 +53,19 @@ router.include_router(task.router)
 @router.post("/action/deploy")
 async def deploy(
     summary: str,
+    session: SessionAD,
     project: project.Project = Depends(get_project),
 ):
     project.commit(summary)
 
+    registered_devices = []
+    for device in crud.hostkey.get_all(session):
+        registered_devices.append(
+            models.RegisteredDevice.model_validate(device, from_attributes=True)
+        )
+
     # runs a nix command to deploy the flake
-    await project.create_deploy_project_task()
+    await project.create_deploy_project_task(registered_devices)
 
     return {"message": "nix deploy started"}
 
@@ -74,11 +82,13 @@ async def build_download_image(
 @router.post("/action/restart-device")
 async def restart_device(
     identifier: str,
+    db_session: SessionAD,
     project: project.Project = Depends(get_project),
     state: State = Depends(dependencies.get_state),
 ):
     device = next(device for device in state.devices if device.identifier == identifier)
-    await project.create_restart_device_task(device)
+    target_host = crud.hostkey.get_device_host(db_session, identifier)
+    await project.create_restart_device_task(device, target_host)
 
 
 @router.get("/download-image")
@@ -147,6 +157,20 @@ async def websocket_endpoint(
     finally:
         tcp_to_ws_task.cancel()
         ws_to_tcp_task.cancel()
+
+
+@router.get("/devices", response_model=List[models.RegisteredDevice])
+def get_registed_devices(session: SessionAD):
+    """
+    Get all devices that registered themselves with the controller as host key
+    """
+    registered_devices = []
+    for device in crud.hostkey.get_all(session):
+        registered_devices.append(
+            models.RegisteredDevice.model_validate(device, from_attributes=True)
+        )
+
+    return registered_devices
 
 
 @router.get("/testSession")

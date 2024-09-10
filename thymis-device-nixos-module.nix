@@ -95,7 +95,7 @@ in
     };
     systemd.services.thymis-agent = lib.mkIf cfg.agent.enabled {
       description = "Thymis agent";
-      after = [ "network.target" ];
+      after = [ "network.target" "sshd.service" ];
       wantedBy = [ "multi-user.target" ];
       script = "${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent";
       path = [

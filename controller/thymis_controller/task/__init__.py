@@ -6,7 +6,7 @@ import logging
 import os
 import time
 import uuid
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
@@ -465,11 +465,25 @@ class BuildTask(CommandTask):
 
 
 class DeployProjectTask(CompositeTask):
-    def __init__(self, project: "project.Project"):
+    def __init__(
+        self, project: "project.Project", devices: List[models.RegisteredDevice]
+    ):
+        deployable_devices = []
+        for device in devices:
+            state = next(
+                state
+                for state in project.read_state().devices
+                if state.identifier == device.identifier
+            )
+            if state:
+                deployable_devices.append((device.device_host, state))
+
         super().__init__(
             [
-                DeployDeviceTask(project.path, device, project.known_hosts_path)
-                for device in project.read_state().devices
+                DeployDeviceTask(
+                    project.path, state, project.known_hosts_path, target_host
+                )
+                for target_host, state in deployable_devices
             ]
         )
 
@@ -477,7 +491,7 @@ class DeployProjectTask(CompositeTask):
 
 
 class DeployDeviceTask(CommandTask):
-    def __init__(self, repo_dir, device: models.Device, known_hosts_path):
+    def __init__(self, repo_dir, device: models.Device, known_hosts_path, target_host):
         super().__init__(
             "nixos-rebuild",
             [
@@ -486,7 +500,7 @@ class DeployDeviceTask(CommandTask):
                 "--flake",
                 f"{repo_dir}#{device.identifier}",
                 "--target-host",
-                f"root@{device.targetHost}",
+                f"root@{target_host}",
             ],
             env={
                 "NIX_SSHOPTS": f"-o StrictHostKeyChecking=accept-new -o UserKnownHostsFile={known_hosts_path}",
@@ -494,7 +508,7 @@ class DeployDeviceTask(CommandTask):
             },
         )
 
-        self.display_name = f"Deploying to {device.targetHost}"
+        self.display_name = f"Deploying to {target_host}"
 
 
 class UpdateTask(CommandTask):
@@ -507,7 +521,7 @@ class BuildDeviceImageTask(CommandTask):
     db_session: Session
     build_hash: str
 
-    def __init__(self, repo_dir, identifier, db_session):
+    def __init__(self, repo_dir, identifier, db_session, device_state, commit_hash):
         super().__init__(
             "nix",
             [
@@ -524,6 +538,8 @@ class BuildDeviceImageTask(CommandTask):
         self.image_path = f"/tmp/thymis-devices.{identifier}"
         self.build_hash = None
         self.db_session = db_session
+        self.device_state = device_state
+        self.commit_hash = commit_hash
 
     async def _run(self):
         r = await super()._run()
@@ -535,7 +551,13 @@ class BuildDeviceImageTask(CommandTask):
         store_path = build_output["outputs"]["out"]  # TODO: or maybe drvPath?
         self.build_hash = store_path[len("/nix/store/") :].split("-")[0]
 
-        crud.hostkey.create_or_update(self.db_session, self.identifier, self.build_hash)
+        crud.image.create(
+            self.db_session,
+            self.identifier,
+            self.build_hash,
+            self.device_state,
+            self.commit_hash,
+        )
 
         return r
 
@@ -559,14 +581,14 @@ class BuildDeviceImageTask(CommandTask):
 
 
 class RestartDeviceTask(CommandTask):
-    def __init__(self, device: models.Device, known_hosts_path):
+    def __init__(self, device: models.Device, known_hosts_path, target_host):
         super().__init__(
             "ssh",
             [
                 "-o StrictHostKeyChecking=accept-new",
                 f"-o UserKnownHostsFile={known_hosts_path}",
                 "-o ConnectTimeout=30",
-                f"root@{device.targetHost}",
+                f"root@{target_host}",
                 "reboot",
             ],
         )

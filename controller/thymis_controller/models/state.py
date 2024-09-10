@@ -18,7 +18,6 @@ class ModuleSettings(BaseModel):
 class Device(BaseModel):
     displayName: str
     identifier: str
-    targetHost: str
     modules: List[ModuleSettings]
     tags: List[str]
 
