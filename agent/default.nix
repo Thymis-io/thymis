@@ -18,6 +18,6 @@ writeShellApplication {
   name = "thymis-agent";
   runtimeInputs = [ nix ];
   text = ''
-    ${pythonEnv}/bin/uvicorn thymis_controller.main:app "$@"
+    ${pythonEnv}/bin/thymis-agent
   '';
 }

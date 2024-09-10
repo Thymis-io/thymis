@@ -11,8 +11,12 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
+requests = "^2.32.3"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+thymis-agent = 'thymis_agent.agent:main'

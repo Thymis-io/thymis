@@ -139,7 +139,7 @@ class Agent:
         logging.info("Reporting state to controller, currently not implemented")
 
 
-if __name__ == "__main__":
+def main():
     logging.basicConfig(level=logging.DEBUG)
 
     REPORT_INTERVAL = 60
