@@ -489,7 +489,7 @@ class DeployDeviceTask(CommandTask):
                 f"root@{device.targetHost}",
             ],
             env={
-                "NIX_SSHOPTS": f'-o StrictHostKeyChecking=accept-new -o "UserKnownHostsFile {known_hosts_path}"',
+                "NIX_SSHOPTS": f"-o StrictHostKeyChecking=accept-new -o UserKnownHostsFile={known_hosts_path}",
                 "PATH": os.getenv("PATH"),
             },
         )
