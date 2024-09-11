@@ -34,7 +34,6 @@
 			</ToolbarButton>
 		</a>
 		<DarkMode />
-		<LanguageSelect />
 		<UserMenu />
 	</div>
 </div>
