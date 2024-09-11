@@ -1,0 +1,30 @@
+  networking = {
+    "{%- for n in static_networks %}"
+    interfaces.""{{n.interface}}"" = lib.mkOverride "{{priority}}" {
+      "{%- if n.ipv4address %}"
+      ipv4.addresses = [{
+          address = ""{{n.ipv4address}}"";
+          prefixLength = "{{n.ipv4prefixLength}}";
+      }];
+      "{%- endif %}"
+      "{%- if n.ipv6address %}"
+      ipv6.addresses = [{
+          address = ""{{n.ipv6address}}"";
+          prefixLength = "{{n.ipv6prefixLength}}";
+      }];
+      "{%- endif %}"
+    };
+    "{%- endfor %}"
+    "{%- if default_gateway %}"
+    defaultGateway = lib.mkOverride "{{priority}}" {
+      address = ""{{default_gateway.address}}"";
+      interface = ""{{default_gateway.interface}}"";
+    };
+    "{%- endif %}"
+    "{%- if default_gateway6 %}"
+    defaultGateway6 = lib.mkOverride "{{priority}}" {
+      address = ""{{default_gateway6.address}}"";
+      interface = ""{{default_gateway6.interface}}"";
+    };
+    "{%- endif %}"
+  };

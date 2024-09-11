@@ -3,7 +3,7 @@ import pathlib
 import thymis_controller.modules.modules as modules
 from thymis_controller import models
 from thymis_controller.lib import read_into_base64
-from thymis_controller.nix import convert_python_value_to_nix
+from thymis_controller.nix import convert_python_value_to_nix, template_env
 from thymis_controller.project import Project
 
 
@@ -334,6 +334,132 @@ class ThymisDevice(modules.Module):
         order=60,
     )
 
+    static_networks = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Static Network",
+            de="Statisches Netzwerk",
+        ),
+        type=modules.ListType(
+            settings={
+                "interface": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Interface",
+                        de="Schnittstelle",
+                    ),
+                    type="string",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The interface.",
+                        de="Die Schnittstelle.",
+                    ),
+                    example="ens3",
+                ),
+                "ipv4address": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="IPv4",
+                        de="IPv4",
+                    ),
+                    type="string",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The IPv4 address.",
+                        de="Die IPv4 Adresse.",
+                    ),
+                    example="",
+                ),
+                "ipv4prefixLength": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="IPv4 Prefix Length",
+                        de="IPv4 Präfix Länge",
+                    ),
+                    type="int",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The IPv4 prefix length.",
+                        de="Die IPv4 Präfix Länge.",
+                    ),
+                    example="",
+                ),
+                "ipv6address": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="IPv6",
+                        de="IPv6",
+                    ),
+                    type="string",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The IPv6 address.",
+                        de="Die IPv6 Adresse.",
+                    ),
+                    example="",
+                ),
+                "ipv6prefixLength": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="IPv6 Prefix Length",
+                        de="IPv6 Präfix Länge",
+                    ),
+                    type="int",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The IPv6 prefix length.",
+                        de="Die IPv6 Präfix Länge.",
+                    ),
+                    example="",
+                ),
+                "gateway": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Default Gateway IPv4",
+                        de="Standard Gateway IPv4",
+                    ),
+                    type="string",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The default gateway IPv4.",
+                        de="Das Standard Gateway IPv6.",
+                    ),
+                    example="",
+                ),
+                "gateway6": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Default Gateway IPv6",
+                        de="Standard Gateway IPv6",
+                    ),
+                    type="string",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The default gateway IPv6.",
+                        de="Das Standard Gateway IPv6.",
+                    ),
+                    example="",
+                ),
+                "isDefaultGateway": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Set as Default Gateway",
+                        de="Setze als Standard Gateway",
+                    ),
+                    type="bool",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="Set as default gateway.",
+                        de="Setze als Standard Gateway.",
+                    ),
+                    example="",
+                ),
+            },
+            element_name=modules.LocalizedString(
+                en="Network",
+                de="Netzwerk",
+            ),
+        ),
+        default=None,
+        description=modules.LocalizedString(
+            en="Static network configuration.",
+            de="Statische Netzwerkkonfiguration.",
+        ),
+        example="",
+        order=70,
+    )
+
     def write_nix_settings(
         self, f, module_settings: models.ModuleSettings, priority: int, project: Project
     ):
@@ -347,6 +473,12 @@ class ThymisDevice(modules.Module):
             module_settings.settings["authorized_keys"]
             if "authorized_keys" in module_settings.settings
             else self.authorized_keys.default
+        )
+
+        static_networks = (
+            module_settings.settings["static_networks"]
+            if "static_networks" in module_settings.settings
+            else self.static_networks.default
         )
 
         if device_type:
@@ -369,5 +501,37 @@ class ThymisDevice(modules.Module):
             f.write(
                 f"  users.users.root.openssh.authorizedKeys.keys = lib.mkOverride {priority} {key_list_nix};\n"
             )
+
+        if static_networks:
+            template = template_env.get_template("networking.nix.j2")
+
+            # get first network with isDefaultGateway set to True
+            default_gateway_network = next(
+                (
+                    network
+                    for network in static_networks
+                    if network.get("isDefaultGateway", False)
+                ),
+                None,
+            )
+            default_gateway = {}
+            default_gateway6 = {}
+            if default_gateway_network:
+                if "ipv4address" in default_gateway_network:
+                    default_gateway["address"] = default_gateway_network["gateway"]
+                    default_gateway["interface"] = default_gateway_network["interface"]
+                if "ipv6address" in default_gateway_network:
+                    default_gateway6["address"] = default_gateway_network["gateway6"]
+                    default_gateway6["interface"] = default_gateway_network["interface"]
+
+            rt = template.render(
+                {
+                    **module_settings.settings,
+                    "default_gateway": default_gateway,
+                    "default_gateway6": default_gateway6,
+                    "priority": priority,
+                }
+            )
+            f.write(rt)
 
         return super().write_nix_settings(f, module_settings, priority, project)
