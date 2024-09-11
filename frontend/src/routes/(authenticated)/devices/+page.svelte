@@ -160,15 +160,13 @@
 								<Button
 									pill
 									size="sm"
-									class="p-3 py-1.5"
+									class="p-2 py-0.5"
 									href={`/config?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
 								>
-									<TagIcon size={20} class="mr-2" />
-									<!-- <span
-									class="inline-block bg-blue-300 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-1"
-								> -->
+									<TagIcon size={15} class="mr-1" />
+									<span class="text-nowrap">
 									{findTag(tag)?.displayName ?? tag}
-									<!-- </span> -->
+									</span>
 								</Button>
 							{/each}
 						</div>
