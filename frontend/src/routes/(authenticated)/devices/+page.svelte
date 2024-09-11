@@ -143,7 +143,8 @@
 						saveState();
 					}}
 				/>
-				<TableBodyCell>{device.target}</TableBodyCell>
+				<TableBodyCell>{device.target ? device.target : $t('devices.unknown-target')}</TableBodyCell
+				>
 				<TableBodyCell tdClass="p-2 px-2 md:px-4">
 					<div class="flex justify-between">
 						<div class="flex gap-2">

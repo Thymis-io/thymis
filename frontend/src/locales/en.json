@@ -47,7 +47,8 @@
 		"edit-name-title": "Edit Name",
 		"edit-hostname-title": "Edit target hostname",
 		"edit-tags-title": "Edit Tags",
-		"new-tag-placeholder": "New Tag..."
+		"new-tag-placeholder": "New Tag...",
+		"unknown-target": "Unknown Target"
 	},
 	"create-device": {
 		"title": "Create a new device",

@@ -47,7 +47,8 @@
 		"edit-name-title": "Namen Bearbeiten",
 		"edit-hostname-title": "Ziel Hostnamen Bearbeiten",
 		"edit-tags-title": "Tags Bearbeiten",
-		"new-tag-placeholder": "Neuer Tag..."
+		"new-tag-placeholder": "Neuer Tag...",
+		"unknown-target": "Unbekanntes Ziel"
 	},
 	"create-device": {
 		"title": "Neues Gerät Erstellen",
