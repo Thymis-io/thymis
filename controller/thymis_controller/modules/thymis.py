@@ -4,6 +4,7 @@ import thymis_controller.modules.modules as modules
 from thymis_controller import models
 from thymis_controller.lib import read_into_base64
 from thymis_controller.nix import convert_python_value_to_nix
+from thymis_controller.project import Project
 
 
 class ThymisController(modules.Module):
@@ -161,14 +162,14 @@ class ThymisController(modules.Module):
     )
 
     def write_nix_settings(
-        self, f, module_settings: models.ModuleSettings, priority: int
+        self, f, module_settings: models.ModuleSettings, priority: int, project: Project
     ):
         f.write(f"  imports = [\n")
         f.write(f"    inputs.thymis.nixosModules.thymis-controller\n")
         f.write(f"  ];\n")
         f.write("  services.thymis-controller.enable = true;\n")
 
-        return super().write_nix_settings(f, module_settings, priority)
+        return super().write_nix_settings(f, module_settings, priority, project)
 
 
 class ThymisDevice(modules.Module):
@@ -319,7 +320,7 @@ class ThymisDevice(modules.Module):
     )
 
     def write_nix_settings(
-        self, f, module_settings: models.ModuleSettings, priority: int
+        self, f, module_settings: models.ModuleSettings, priority: int, project: Project
     ):
         device_type = (
             module_settings.settings["device_type"]
@@ -339,12 +340,23 @@ class ThymisDevice(modules.Module):
             f.write(f"  ];\n")
 
         if authorized_keys:
-            key_list = convert_python_value_to_nix(
-                list(map(lambda x: x["key"] if "key" in x else None, authorized_keys)),
+            keys = list(
+                map(lambda x: x["key"] if "key" in x else None, authorized_keys)
+            )
+            keys.append(project.public_key)
+            key_list_nix = convert_python_value_to_nix(
+                keys,
                 ident=1,
             )
             f.write(
-                f"  users.users.root.openssh.authorizedKeys.keys = lib.mkOverride {priority} {key_list};\n"
+                f"  users.users.root.openssh.authorizedKeys.keys = lib.mkOverride {priority} {key_list_nix};\n"
+            )
+        else:
+            controller_key_list_nix = convert_python_value_to_nix(
+                [project.public_key], ident=1
+            )
+            f.write(
+                f"  users.users.root.openssh.authorizedKeys.keys = lib.mkOverride {priority} {controller_key_list_nix};\n"
             )
 
-        return super().write_nix_settings(f, module_settings, priority)
+        return super().write_nix_settings(f, module_settings, priority, project)

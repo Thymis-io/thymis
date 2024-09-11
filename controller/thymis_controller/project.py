@@ -11,7 +11,8 @@ import traceback
 from pathlib import Path
 
 import git
-from thymis_controller import migration, models, modules, task
+from thymis_controller import migration, models, task
+from thymis_controller.config import global_settings
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
 
@@ -40,6 +41,8 @@ lockfile = None
 
 
 def load_repositories(flake_path: os.PathLike, repositories: dict[str, models.Repo]):
+    from thymis_controller import modules
+
     # only run if lockfile changed
     global lockfile
     # lockfile sits at path/flake.lock
@@ -116,6 +119,7 @@ def get_module_class_instance_by_type(module_type: str):
 class Project:
     path: pathlib.Path
     repo: git.Repo
+    public_key: str
 
     def __init__(self, path):
         self.path = pathlib.Path(path)
@@ -127,6 +131,21 @@ class Project:
             self.repo = git.Repo.init(self.path)
         else:
             self.repo = git.Repo(self.path)
+
+        # get public key of controller instance
+        # TODO defnitely make sure that the key has no password, see main.py: init_ssh_key
+        check_process = subprocess.run(
+            ["ssh-keygen", "-y", "-f", global_settings.SSH_KEY_PATH],
+            capture_output=True,
+            text=True,
+        )
+
+        if check_process.returncode != 0:
+            logger.error("Failed to get public key: %s", check_process.stderr)
+            self.public_key = ""
+        else:
+            self.public_key = check_process.stdout.strip()
+
         # create a state, if not exists
         state_path = self.path / "state.json"
         if not state_path.exists():
@@ -191,7 +210,7 @@ class Project:
         for module_settings in modules:
             try:
                 module = get_module_class_instance_by_type(module_settings.type)
-                module.write_nix(path, module_settings, priority)
+                module.write_nix(path, module_settings, priority, self)
             except Exception as e:
                 logger.error(
                     "Error while writing module %s: %s", module_settings.type, e
