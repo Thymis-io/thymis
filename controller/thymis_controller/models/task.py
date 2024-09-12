@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, JsonValue
 
@@ -10,7 +10,7 @@ class NixProcessStatus(BaseModel):
     expected: int
     running: int
     failed: int
-    errors: list[JsonValue] = []
+    errors: list[Any] = []
     logs_by_level: dict[int, list[str]] = {}
 
 

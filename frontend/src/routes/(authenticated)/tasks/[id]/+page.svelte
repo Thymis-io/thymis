@@ -65,7 +65,12 @@
 		<li>Expected: {task.status.expected}</li>
 		<li>Running: {task.status.running}</li>
 		<li>Failed: {task.status.failed}</li>
-		<ul>Errors: {task.status.errors.map((error) => JSON.stringify(error)).join(', ')}</ul>
+		<ul>
+			Errors:
+			{#each task.status.errors as error}
+				<MonospaceText code={error.msg}></MonospaceText>
+			{/each}
+		</ul>
 		<li>Logs by Level: {JSON.stringify(task.status.logs_by_level)}</li>
 	</ul>
 {/if}
