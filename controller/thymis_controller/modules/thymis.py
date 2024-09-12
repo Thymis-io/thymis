@@ -532,6 +532,6 @@ class ThymisDevice(modules.Module):
                     "priority": priority,
                 }
             )
-            f.write(rt)
+            f.write(rt + "\n")
 
         return super().write_nix_settings(f, module_settings, priority, project)
