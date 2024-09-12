@@ -460,6 +460,41 @@ class ThymisDevice(modules.Module):
         order=70,
     )
 
+    nameservers = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Nameservers",
+            de="Nameserver",
+        ),
+        type=modules.ListType(
+            settings={
+                "nameserver": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Nameserver",
+                        de="Nameserver",
+                    ),
+                    type="string",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The DNS nameserver.",
+                        de="Der DNS-Nameserver.",
+                    ),
+                    example="",
+                )
+            },
+            element_name=modules.LocalizedString(
+                en="Nameserver",
+                de="Nameserver",
+            ),
+        ),
+        default=None,
+        description=modules.LocalizedString(
+            en="Nameservers",
+            de="Nameserver",
+        ),
+        example="",
+        order=80,
+    )
+
     def write_nix_settings(
         self, f, module_settings: models.ModuleSettings, priority: int, project: Project
     ):
@@ -479,6 +514,12 @@ class ThymisDevice(modules.Module):
             module_settings.settings["static_networks"]
             if "static_networks" in module_settings.settings
             else self.static_networks.default
+        )
+
+        nameservers = (
+            module_settings.settings["nameservers"]
+            if "nameservers" in module_settings.settings
+            else self.nameservers.default
         )
 
         if device_type:
@@ -529,6 +570,7 @@ class ThymisDevice(modules.Module):
                     **module_settings.settings,
                     "default_gateway": default_gateway,
                     "default_gateway6": default_gateway6,
+                    "nameservers": nameservers,
                     "priority": priority,
                 }
             )

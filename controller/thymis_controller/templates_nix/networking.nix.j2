@@ -27,4 +27,11 @@
       interface = ""{{default_gateway6.interface}}"";
     };
     "{%- endif %}"
+    "{%- if nameservers %}"
+    nameservers = lib.mkOverride "{{priority}}" [
+      "{%- for ns in nameservers %}"
+      ""{{ns.nameserver}}""
+      "{%- endfor %}"
+    ];
+    "{%- endif %}"
   };
