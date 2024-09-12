@@ -7,6 +7,7 @@ from typing import Annotated, Any, List, Literal, Optional, Union
 
 import jinja2
 from pydantic import BaseModel, Discriminator, Tag, ValidationError
+from thymis_controller import models
 from thymis_controller.nix import NIX_CMD
 
 logger = logging.getLogger(__name__)
@@ -163,11 +164,13 @@ class ActivityInfo:
     failed: int = 0
     phase: Optional[str] = None
     expected_by_type: dict[int, int] = dataclasses.field(default_factory=dict)
+    last_line: Optional[str] = None
 
 
 class NixProcess:
-    def __init__(self, args, cwd=None, env=None):
+    def __init__(self, args, nix_command=None, cwd=None, env=None):
         self.args = args + ["--log-format", "internal-json", "-v"]
+        self.nix_command = nix_command
         self.cwd = cwd
         self.env = env
 
@@ -190,10 +193,10 @@ class NixProcess:
 
         self.errors = []
 
-        self.filesLinked = 0
-        self.bytesLinked = 0
-        self.corruptedPaths = 0
-        self.untrustedPaths = 0
+        self.files_linked = 0
+        self.bytes_linked = 0
+        self.corrupted_paths = 0
+        self.untrusted_paths = 0
 
     async def stream_reader(
         self,
@@ -212,14 +215,18 @@ class NixProcess:
                 #
                 # So, if line is empty, we have reached EOF
                 break
-            out.extend(line)
             if parse_lines:
-                self.handle_line(line)
+                try:
+                    self.handle_line(line)
+                except ValueError:
+                    out.extend(line)
+            else:
+                out.extend(line)
             await self.notify_subscribers()
 
     async def run(self):
         proc = await asyncio.create_subprocess_exec(
-            NIX_CMD[0],
+            self.nix_command or NIX_CMD[0],
             *NIX_CMD[1:],
             *self.args,
             stdout=asyncio.subprocess.PIPE,
@@ -291,12 +298,21 @@ class NixProcess:
         elif isinstance(parsed.nix_line, ResultNixLine):
             line_type = parsed.nix_line.type
             if line_type == ResultType.FILE_LINKED:
-                self.filesLinked += 1
-                self.bytesLinked += int(parsed.nix_line.fields[0])
+                self.files_linked += 1
+                self.bytes_linked += int(parsed.nix_line.fields[0])
+                logger.info("Linked %s bytes", parsed.nix_line.fields[0])
+                logger.info("Linked %s files", self.files_linked)
+            elif (
+                line_type == ResultType.BUILD_LOG_LINE
+                or line_type == ResultType.POST_BUILD_LOG_LINE
+            ):
+                last_line = str(parsed.nix_line.fields[0]).rstrip(" \n\r\t")
+                activity_info = self.activity_info_by_id[parsed.nix_line.id]
+                activity_info.last_line = last_line
             elif line_type == ResultType.UNTRUSTED_PATH:
-                self.untrustedPaths += 1
+                self.untrusted_paths += 1
             elif line_type == ResultType.CORRUPTED_PATH:
-                self.corruptedPaths += 1
+                self.corrupted_paths += 1
             elif line_type == ResultType.SET_PHASE:
                 activity_info = self.activity_info_by_id[parsed.nix_line.id]
                 activity_info.phase = parsed.nix_line.fields[0]
@@ -321,19 +337,23 @@ class NixProcess:
                 self.activities_done_expect_failed_by_type[
                     set_for_type
                 ].expected += activity_info.expected_by_type[set_for_type]
+            elif line_type == ResultType.FETCH_STATUS:
+                last_line = str(parsed.nix_line.fields[0])
+                activity_info = self.activity_info_by_id[parsed.nix_line.id]
+                activity_info.last_line = last_line
             else:
                 logger.info("Unhandled result: %s", parsed)
         elif isinstance(parsed.nix_line, MessageNixLine):
             if parsed.nix_line.level == 0:
-                self.error_logs.append(parsed.nix_line)
+                self.error_logs.append(parsed.nix_line.msg)
             elif parsed.nix_line.level == 1:
-                self.warnings.append(parsed.nix_line)
+                self.warnings.append(parsed.nix_line.msg)
             elif parsed.nix_line.level == 2:
-                self.notices.append(parsed.nix_line)
+                self.notices.append(parsed.nix_line.msg)
             elif parsed.nix_line.level == 3:
-                self.infos.append(parsed.nix_line)
+                self.infos.append(parsed.nix_line.msg)
             elif parsed.nix_line.level >= 4:
-                self.other_messages.append(parsed.nix_line)
+                self.other_messages.append(parsed.nix_line.msg)
         elif isinstance(parsed.nix_line, ErrorInfoNixLine):
             self.errors.append(parsed.nix_line)
         else:
@@ -362,21 +382,38 @@ class NixProcess:
             global_failed += failed
         return global_done, global_expected, global_running, global_failed
 
-    def get_model(self):
+    def get_model(self) -> models.NixProcessStatus:
         (
             global_done,
             global_expected,
             global_running,
             global_failed,
         ) = self.calc_activities_done_expected_failed()
-        return {
-            "global_done": global_done,
-            "global_expected": global_expected,
-            "global_running": global_running,
-            "global_failed": global_failed,
-            "errors": self.errors,
-            "error_logs": self.error_logs,
-            "warnings": self.warnings,
-            "notices": self.notices,
-            "infos": self.infos,
-        }
+
+        return models.NixProcessStatus(
+            done=global_done,
+            expected=global_expected,
+            running=global_running,
+            failed=global_failed,
+            errors=self.errors,
+            logs_by_level={
+                0: self.error_logs,
+                1: self.warnings,
+                2: self.notices,
+                3: self.infos,
+                # 4: self.other_messages,
+            },
+        )
+
+    def cancel(self):
+        if self.process:
+            self.process.kill()
+        else:
+            logger.warning("No process to kill")
+
+    def copy_for_retry(self):
+        return NixProcess(
+            self.args,
+            cwd=self.cwd,
+            env=self.env,
+        )

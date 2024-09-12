@@ -19,7 +19,7 @@
 	// if task is a command, build it by cat-ting data.program, data.args and data.env
 	let command: string | undefined = undefined;
 	$: {
-		if (task && task.type === 'commandtask') {
+		if (task && (task.type === 'commandtask' || task.type === 'nixcommandtask')) {
 			let args = [];
 			// for (let arg of task.data.args) {
 			for (let arg of task.data.args as string[]) {
@@ -40,16 +40,6 @@
 			}
 		}
 	}
-
-	// remove nix_process from task.data if present
-	let cleanedTaskData = task?.data;
-	$: {
-		let taskData = JSON.parse(JSON.stringify(task?.data));
-		if ('nix_process' in taskData) {
-			delete taskData['nix_process'];
-		}
-		cleanedTaskData = taskData;
-	}
 </script>
 
 <h1 class="text-2xl font-bold">Task Detail for Task {task.id}: {task.display_name}</h1>
@@ -66,15 +56,21 @@
 	<h2 class="text-xl font-bold">End Time: <RenderUnixTimestamp timestamp={task.end_time} /></h2>
 {/if}
 
-<h2 class="text-xl font-bold truncate">Detail: {JSON.stringify(cleanedTaskData)}</h2>
+<h2 class="text-xl font-bold truncate">Detail: {JSON.stringify(task.data)}</h2>
 
-{#if 'nix_process' in task.data}
-	<h2 class="text-xl font-bold">This is a nix command</h2>
-	<!-- activities -->
-	<MonospaceText code={JSON.stringify(task.data.nix_process, undefined, 2)} />
+{#if task.type === 'nixcommandtask'}
+	<h2 class="text-xl font-bold">Nix Process Status:</h2>
+	<ul>
+		<li>Done: {task.status.done}</li>
+		<li>Expected: {task.status.expected}</li>
+		<li>Running: {task.status.running}</li>
+		<li>Failed: {task.status.failed}</li>
+		<ul>Errors: {task.status.errors.map((error) => JSON.stringify(error)).join(', ')}</ul>
+		<li>Logs by Level: {JSON.stringify(task.status.logs_by_level)}</li>
+	</ul>
 {/if}
 
-{#if task.type === 'commandtask'}
+{#if task.type === 'commandtask' || task.type === 'nixcommandtask'}
 	<h2 class="text-xl font-bold">Command:</h2>
 	<MonospaceText code={command} />
 	<h2 class="text-xl font-bold">Stdout:</h2>

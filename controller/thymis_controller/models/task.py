@@ -1,8 +1,17 @@
 from typing import Literal, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, JsonValue
 
-TaskState = Literal["pending", "running", "completed", "failed"]
+type TaskState = Literal["pending", "running", "completed", "failed"]
+
+
+class NixProcessStatus(BaseModel):
+    done: int
+    expected: int
+    running: int
+    failed: int
+    errors: list[JsonValue] = []
+    logs_by_level: dict[int, list[str]] = {}
 
 
 class Task(BaseModel):
@@ -26,9 +35,21 @@ class CommandTask(Task):
     stderr: str
 
 
+class NixCommandTask(CommandTask):
+    type: Literal["nixcommandtask"] = "nixcommandtask"
+    status: NixProcessStatus
+
+
 class CompositeTask(Task):
     type: Literal["compositetask"] = "compositetask"
     tasks: list[Task]
 
 
-__all__ = ["TaskState", "Task", "CommandTask", "CompositeTask"]
+__all__ = [
+    "TaskState",
+    "Task",
+    "CommandTask",
+    "CompositeTask",
+    "NixProcessStatus",
+    "NixCommandTask",
+]

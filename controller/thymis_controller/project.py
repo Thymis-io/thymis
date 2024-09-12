@@ -257,7 +257,7 @@ class Project:
         logger.info(f"Reverted commit: {commit_to_revert}")
 
     def create_build_task(self):
-        return task.global_task_controller.add_task(task.BuildTask(self.path))
+        return task.global_task_controller.add_task(task.BuildProjectTask(self.path))
 
     def create_deploy_device_task(self, device_identifier: str):
         device = next(
