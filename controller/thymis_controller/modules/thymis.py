@@ -517,10 +517,10 @@ class ThymisDevice(modules.Module):
             default_gateway = {}
             default_gateway6 = {}
             if default_gateway_network:
-                if "ipv4address" in default_gateway_network:
+                if default_gateway_network.get("ipv4address"):
                     default_gateway["address"] = default_gateway_network["gateway"]
                     default_gateway["interface"] = default_gateway_network["interface"]
-                if "ipv6address" in default_gateway_network:
+                if default_gateway_network.get("ipv6address"):
                     default_gateway6["address"] = default_gateway_network["gateway6"]
                     default_gateway6["interface"] = default_gateway_network["interface"]
 
