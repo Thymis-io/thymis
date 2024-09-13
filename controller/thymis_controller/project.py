@@ -133,18 +133,17 @@ class Project:
             self.repo = git.Repo(self.path)
 
         # get public key of controller instance
-        # TODO definitely make sure that the key has no password, see main.py: init_ssh_key
-        check_process = subprocess.run(
-            ["ssh-keygen", "-y", "-f", global_settings.SSH_KEY_PATH],
+        public_key_process = subprocess.run(
+            ["ssh-keygen", "-y", "-f", global_settings.SSH_KEY_PATH, "-P", ""],
             capture_output=True,
             text=True,
         )
 
-        if check_process.returncode != 0:
-            logger.error("Failed to get public key: %s", check_process.stderr)
-            self.public_key = ""
+        if public_key_process.returncode != 0:
+            logger.error("Failed to get public key: %s", public_key_process.stderr)
+            self.public_key = None
         else:
-            self.public_key = check_process.stdout.strip()
+            self.public_key = public_key_process.stdout.strip()
 
         # create a state, if not exists
         state_path = self.path / "state.json"

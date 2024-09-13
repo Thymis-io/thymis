@@ -118,7 +118,15 @@ def init_ssh_key():
     # ssh key exists
     logger.info("SSH key found at %s", global_settings.SSH_KEY_PATH)
 
-    # TODO check if ssh key is password protected
+    check_process = subprocess.run(
+        ["ssh-keygen", "-y", "-f", global_settings.SSH_KEY_PATH, "-P", ""],
+        capture_output=True,
+        text=True,
+    )
+
+    if check_process.returncode != 0:
+        logger.error(f"Failed to verify SSH key: {check_process.stderr}")
+        return
 
 
 @asynccontextmanager
