@@ -133,7 +133,7 @@ class Project:
             self.repo = git.Repo(self.path)
 
         # get public key of controller instance
-        # TODO defnitely make sure that the key has no password, see main.py: init_ssh_key
+        # TODO definitely make sure that the key has no password, see main.py: init_ssh_key
         check_process = subprocess.run(
             ["ssh-keygen", "-y", "-f", global_settings.SSH_KEY_PATH],
             capture_output=True,
