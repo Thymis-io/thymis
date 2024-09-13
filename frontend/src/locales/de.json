@@ -19,7 +19,8 @@
 		"search": "Suchen...",
 		"save": "Speichern",
 		"cancel": "Abbrechen",
-		"no-tag-or-device-selected": "Kein Tag oder Gerät ausgewählt"
+		"no-tag-or-device-selected": "Kein Tag oder Gerät ausgewählt",
+		"logout": "Abmelden"
 	},
 	"vnc": {
 		"connection-failed": "Verbindungsfehler",
