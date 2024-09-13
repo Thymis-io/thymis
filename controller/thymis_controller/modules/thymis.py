@@ -343,20 +343,16 @@ class ThymisDevice(modules.Module):
             keys = list(
                 map(lambda x: x["key"] if "key" in x else None, authorized_keys)
             )
+        else:
+            keys = []
+
+        if project.public_key:
             keys.append(project.public_key)
-            key_list_nix = convert_python_value_to_nix(
-                keys,
-                ident=1,
-            )
+
+        if len(keys) > 0:
+            key_list_nix = convert_python_value_to_nix(keys, ident=1)
             f.write(
                 f"  users.users.root.openssh.authorizedKeys.keys = lib.mkOverride {priority} {key_list_nix};\n"
-            )
-        else:
-            controller_key_list_nix = convert_python_value_to_nix(
-                [project.public_key], ident=1
-            )
-            f.write(
-                f"  users.users.root.openssh.authorizedKeys.keys = lib.mkOverride {priority} {controller_key_list_nix};\n"
             )
 
         return super().write_nix_settings(f, module_settings, priority, project)
