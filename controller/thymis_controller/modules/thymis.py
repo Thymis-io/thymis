@@ -55,6 +55,21 @@ class ThymisController(modules.Module):
         example="http://localhost:8000",
         order=30,
     )
+    ssh_key_path = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="SSH Key Path",
+            de="SSH-Key Pfad",
+        ),
+        nix_attr_name="services.thymis-controller.ssh-key-path",
+        type="string",
+        default=None,
+        description=modules.LocalizedString(
+            en="The path to the SSH key for deploying to devices.",
+            de="Der Pfad zum SSH-Key, um auf Geräte auszurollen.",
+        ),
+        example="/var/lib/thymis/id_thymis",
+        order=35,
+    )
     auth_basic = modules.Setting(
         display_name=modules.LocalizedString(
             en="Basic Auth",
