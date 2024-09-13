@@ -266,11 +266,13 @@ class Project:
             if device.identifier == device_identifier
         )
         return task.global_task_controller.add_task(
-            task.DeployDeviceTask(self.path, device)
+            task.DeployDeviceTask(self.path, device, global_settings.SSH_KEY_PATH)
         )
 
     def create_deploy_project_task(self):
-        return task.global_task_controller.add_task(task.DeployProjectTask(self))
+        return task.global_task_controller.add_task(
+            task.DeployProjectTask(self, global_settings.SSH_KEY_PATH)
+        )
 
     def create_update_task(self):
         return task.global_task_controller.add_task(task.UpdateTask(self.path))
@@ -281,4 +283,6 @@ class Project:
         )
 
     def create_restart_device_task(self, device: models.Device):
-        return task.global_task_controller.add_task(task.RestartDeviceTask(device))
+        return task.global_task_controller.add_task(
+            task.RestartDeviceTask(device, global_settings.SSH_KEY_PATH)
+        )

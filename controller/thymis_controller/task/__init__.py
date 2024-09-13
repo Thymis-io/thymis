@@ -463,10 +463,10 @@ class BuildTask(CommandTask):
 
 
 class DeployProjectTask(CompositeTask):
-    def __init__(self, project: "project.Project"):
+    def __init__(self, project: "project.Project", ssh_key_path: str):
         super().__init__(
             [
-                DeployDeviceTask(project.path, device)
+                DeployDeviceTask(project.path, device, ssh_key_path)
                 for device in project.read_state().devices
             ]
         )
@@ -475,7 +475,7 @@ class DeployProjectTask(CompositeTask):
 
 
 class DeployDeviceTask(CommandTask):
-    def __init__(self, repo_dir, device: models.Device):
+    def __init__(self, repo_dir, device: models.Device, ssh_key_path: str):
         super().__init__(
             "nixos-rebuild",
             [
@@ -487,7 +487,7 @@ class DeployDeviceTask(CommandTask):
                 f"root@{device.targetHost}",
             ],
             env={
-                "NIX_SSHOPTS": "-o StrictHostKeyChecking=accept-new -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no",
+                "NIX_SSHOPTS": f"-i {ssh_key_path} -o StrictHostKeyChecking=accept-new -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no",
                 "PATH": os.getenv("PATH"),
             },
         )
@@ -536,12 +536,13 @@ class BuildDeviceImageTask(CommandTask):
 
 
 class RestartDeviceTask(CommandTask):
-    def __init__(self, device: models.Device):
+    def __init__(self, device: models.Device, key_path: str):
         super().__init__(
             "ssh",
             [
                 "-o StrictHostKeyChecking=accept-new",
                 "-o ConnectTimeout=30",
+                f"-i{key_path}",
                 f"root@{device.targetHost}",
                 "reboot",
             ],
