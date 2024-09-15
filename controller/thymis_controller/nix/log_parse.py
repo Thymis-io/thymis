@@ -2,6 +2,7 @@ import asyncio
 import dataclasses
 import json
 import logging
+import re
 from enum import IntEnum
 from typing import Annotated, Any, List, Literal, Optional, Union
 
@@ -11,6 +12,10 @@ from thymis_controller import models
 from thymis_controller.nix import NIX_CMD
 
 logger = logging.getLogger(__name__)
+
+
+# 7-bit C1 ANSI sequences, https://stackoverflow.com/a/14693789
+ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
 
 class ActivityType(IntEnum):
@@ -121,6 +126,8 @@ def parse_nix_line(line: bytes) -> ParsedNixLineModel:
     line = line[len(b"@nix ") :]
     parsed = json.loads(line)
     parsed_obj = ParsedNixLineModel.model_validate({"nix_line": parsed})
+    if hasattr(parsed_obj.nix_line, "msg") and type(parsed_obj.nix_line.msg) == str:
+        parsed_obj.nix_line.msg = ansi_escape.sub("", parsed_obj.nix_line.msg)
     return parsed_obj
 
 
