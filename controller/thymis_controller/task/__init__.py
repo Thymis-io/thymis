@@ -412,7 +412,7 @@ class NixCommandTask(Task):
     def __init__(self, display_name, args, nix_command=None, env=None):
         super().__init__(display_name)
 
-        self.nix_process = NixProcess(args, nix_command, env)
+        self.nix_process = NixProcess(args, nix_command, None, env)
         self.nix_process.subscribe(self.process_subscriber)
 
     async def _run(self):
