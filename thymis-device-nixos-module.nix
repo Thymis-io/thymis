@@ -41,7 +41,6 @@ in
           };
           agent = lib.mkOption {
             type = lib.types.submodule {
-              freeformType = settingsFormat.type;
               options = {
                 enable = lib.mkOption {
                   type = lib.types.bool;
