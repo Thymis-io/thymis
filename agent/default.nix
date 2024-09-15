@@ -1,5 +1,4 @@
 { poetry2nix
-, nix
 , writeShellApplication
 , python312
 ,
@@ -16,7 +15,6 @@ let
 in
 writeShellApplication {
   name = "thymis-agent";
-  runtimeInputs = [ nix ];
   text = ''
     ${pythonEnv}/bin/thymis-agent
   '';
