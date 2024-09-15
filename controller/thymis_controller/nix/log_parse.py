@@ -414,6 +414,7 @@ class NixProcess:
     def copy_for_retry(self):
         return NixProcess(
             self.args,
+            nix_command=self.nix_command,
             cwd=self.cwd,
             env=self.env,
         )
