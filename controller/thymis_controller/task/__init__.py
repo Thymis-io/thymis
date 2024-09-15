@@ -517,7 +517,7 @@ class DeployDeviceTask(CommandTask):
                 f"root@{target_host}",
             ],
             env={
-                "NIX_SSHOPTS": f"-i {ssh_key_path} -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile={known_hosts_path}",
+                "NIX_SSHOPTS": f"-i {ssh_key_path} -o UserKnownHostsFile={known_hosts_path}",
                 "PATH": os.getenv("PATH"),
             },
         )
@@ -601,7 +601,6 @@ class RestartDeviceTask(CommandTask):
         super().__init__(
             "ssh",
             [
-                "-o StrictHostKeyChecking=accept-new",
                 f"-o UserKnownHostsFile={known_hosts_path}",
                 "-o ConnectTimeout=30",
                 f"-i{key_path}",
