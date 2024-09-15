@@ -1,5 +1,6 @@
 import thymis_controller.modules.modules as modules
 from thymis_controller import models
+from thymis_controller.project import Project
 
 
 class WhateverModule(modules.Module):
@@ -17,7 +18,7 @@ class WhateverModule(modules.Module):
     )
 
     def write_nix_settings(
-        self, f, module_settings: models.ModuleSettings, priority: int
+        self, f, module_settings: models.ModuleSettings, priority: int, project: Project
     ):
         settings = (
             module_settings.settings["settings"]

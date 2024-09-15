@@ -8,6 +8,7 @@ from pydantic import JsonValue
 from thymis_controller import models
 from thymis_controller.models.module import SettingTypes, ValueTypes
 from thymis_controller.nix import convert_python_value_to_nix
+from thymis_controller.project import Project
 
 
 class HasLocalize(typing.Protocol):
@@ -54,6 +55,7 @@ class Module(ABC):
         path: os.PathLike,
         module_settings: "models.ModuleSettings",
         priority: int,
+        project: Project,
     ):
         filename = f"{self.type}.nix"
 
@@ -61,12 +63,16 @@ class Module(ABC):
             f.write("{ pkgs, lib, inputs, ... }:\n")
             f.write("{\n")
 
-            self.write_nix_settings(f, module_settings, priority)
+            self.write_nix_settings(f, module_settings, priority, project)
 
             f.write("}\n")
 
     def write_nix_settings(
-        self, f, module_settings: "models.ModuleSettings", priority: int
+        self,
+        f,
+        module_settings: "models.ModuleSettings",
+        priority: int,
+        project: Project,
     ):
         for attr, value in module_settings.settings.items():
             try:
