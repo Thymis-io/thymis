@@ -25,6 +25,11 @@ in
         default = "http://localhost:8000";
         description = "Base URL of the controller, how it will be accessed from the outside";
       };
+      ssh-key-path = lib.mkOption {
+        type = lib.types.path;
+        default = "/var/lib/thymis/id_thymis";
+        description = "Path to the SSH key used for deploying to devices";
+      };
       auth-basic = lib.mkOption {
         type = lib.types.bool;
         default = true;
@@ -73,6 +78,7 @@ in
         THYMIS_REPO_PATH = cfg.repo-path;
         THYMIS_DATABASE_URL = cfg.database-url;
         THYMIS_BASE_URL = cfg.base-url;
+        THYMIS_SSH_KEY_PATH = cfg.ssh-key-path;
         THYMIS_AUTH_BASIC = builtins.toString cfg.auth-basic;
         THYMIS_AUTH_BASIC_USERNAME = cfg.auth-basic-username;
         THYMIS_AUTH_BASIC_PASSWORD_FILE = cfg.auth-basic-password-file;
@@ -94,8 +100,8 @@ in
           '';
         };
       };
-      boot.binfmt.emulatedSystems = (lib.lists.optional cfg.system-binfmt-aarch64-enable "aarch64-linux")
-        ++ (lib.lists.optional cfg.system-binfmt-x86_64-enable "x86_64-linux");
     };
+    boot.binfmt.emulatedSystems = (lib.lists.optional cfg.system-binfmt-aarch64-enable "aarch64-linux")
+      ++ (lib.lists.optional cfg.system-binfmt-x86_64-enable "x86_64-linux");
   };
 }

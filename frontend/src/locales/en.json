@@ -13,13 +13,14 @@
 		"terminal": "Terminal",
 		"global-vnc": "VNC All Devices",
 		"device-vnc": "VNC",
-		"settings": "Settings"
+		"external-repositories": "External Repositories"
 	},
 	"common": {
 		"search": "Search...",
 		"save": "Save",
 		"cancel": "Cancel",
-		"no-tag-or-device-selected": "No tag or device selected"
+		"no-tag-or-device-selected": "No tag or device selected",
+		"logout": "Logout"
 	},
 	"vnc": {
 		"connection-failed": "Connection failed",

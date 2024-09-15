@@ -33,7 +33,7 @@
 			if (task.data.env) {
 				command =
 					Object.entries(task.data.env)
-						.map(([key, value]) => `${key}=${value}`)
+						.map(([key, value]) => `${key}="${value}"`)
 						.join(' ') +
 					' ' +
 					command;
@@ -56,7 +56,9 @@
 	<h2 class="text-xl font-bold">End Time: <RenderUnixTimestamp timestamp={task.end_time} /></h2>
 {/if}
 
-<h2 class="text-xl font-bold">Detail: {JSON.stringify(task.data)}</h2>
+<h2 class="text-xl font-bold truncate" title={JSON.stringify(task.data)}>
+	Detail: {JSON.stringify(task.data)}
+</h2>
 
 {#if task.type === 'commandtask'}
 	<h2 class="text-xl font-bold">Command:</h2>

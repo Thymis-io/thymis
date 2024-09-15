@@ -466,7 +466,10 @@ class BuildTask(CommandTask):
 
 class DeployProjectTask(CompositeTask):
     def __init__(
-        self, project: "project.Project", devices: List[models.RegisteredDevice]
+        self,
+        project: "project.Project",
+        devices: List[models.RegisteredDevice],
+        ssh_key_path: str,
     ):
         deployable_devices = []
         for device in devices:
@@ -481,7 +484,11 @@ class DeployProjectTask(CompositeTask):
         super().__init__(
             [
                 DeployDeviceTask(
-                    project.path, state, project.known_hosts_path, target_host
+                    project.path,
+                    state,
+                    ssh_key_path,
+                    project.known_hosts_path,
+                    target_host,
                 )
                 for target_host, state in deployable_devices
             ]
@@ -491,7 +498,14 @@ class DeployProjectTask(CompositeTask):
 
 
 class DeployDeviceTask(CommandTask):
-    def __init__(self, repo_dir, device: models.Device, known_hosts_path, target_host):
+    def __init__(
+        self,
+        repo_dir,
+        device: models.Device,
+        ssh_key_path: str,
+        known_hosts_path,
+        target_host,
+    ):
         super().__init__(
             "nixos-rebuild",
             [
@@ -503,7 +517,7 @@ class DeployDeviceTask(CommandTask):
                 f"root@{target_host}",
             ],
             env={
-                "NIX_SSHOPTS": f"-o StrictHostKeyChecking=accept-new -o UserKnownHostsFile={known_hosts_path}",
+                "NIX_SSHOPTS": f"-i {ssh_key_path} -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile={known_hosts_path}",
                 "PATH": os.getenv("PATH"),
             },
         )
@@ -581,13 +595,16 @@ class BuildDeviceImageTask(CommandTask):
 
 
 class RestartDeviceTask(CommandTask):
-    def __init__(self, device: models.Device, known_hosts_path, target_host):
+    def __init__(
+        self, device: models.Device, key_path: str, known_hosts_path, target_host
+    ):
         super().__init__(
             "ssh",
             [
                 "-o StrictHostKeyChecking=accept-new",
                 f"-o UserKnownHostsFile={known_hosts_path}",
                 "-o ConnectTimeout=30",
+                f"-i{key_path}",
                 f"root@{target_host}",
                 "reboot",
             ],

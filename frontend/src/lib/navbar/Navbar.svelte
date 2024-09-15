@@ -3,6 +3,7 @@
 	import { DarkMode, NavBrand, NavHamburger, Search, ToolbarButton } from 'flowbite-svelte';
 	import GithubSolid from 'flowbite-svelte-icons/GithubSolid.svelte';
 	import LanguageSelect from './LanguageSelect.svelte';
+	import UserMenu from './UserMenu.svelte';
 
 	export let drawerHidden: boolean;
 	let clazz = '';
@@ -33,6 +34,6 @@
 			</ToolbarButton>
 		</a>
 		<DarkMode />
-		<LanguageSelect />
+		<UserMenu />
 	</div>
 </div>

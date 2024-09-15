@@ -4,6 +4,7 @@ import logging
 import pathlib
 import secrets
 import shutil
+import subprocess
 import tempfile
 from contextlib import asynccontextmanager
 
@@ -85,12 +86,56 @@ def init_password_file():
         )
 
 
+def init_ssh_key():
+    if not global_settings.SSH_KEY_PATH.exists():
+        logger.warning(
+            "SSH key not found at %s, generating a new one",
+            global_settings.SSH_KEY_PATH,
+        )
+
+        # generate a new ssh key with subprocess
+        keygen_process = subprocess.run(
+            [
+                "ssh-keygen",
+                "-t",
+                "ed25519",
+                "-f",
+                global_settings.SSH_KEY_PATH,
+                "-N",
+                "",
+                "-C",
+                "thymis-controler",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        if keygen_process.returncode != 0:
+            logger.error(f"Failed to generate SSH key: {keygen_process.stderr}")
+            return
+        logger.info("SSH key generated at %s", global_settings.SSH_KEY_PATH)
+        return
+
+    # ssh key exists
+    logger.info("SSH key found at %s", global_settings.SSH_KEY_PATH)
+
+    check_process = subprocess.run(
+        ["ssh-keygen", "-y", "-f", global_settings.SSH_KEY_PATH, "-P", ""],
+        capture_output=True,
+        text=True,
+    )
+
+    if check_process.returncode != 0:
+        logger.error(f"Failed to verify SSH key: {check_process.stderr}")
+        return
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up...")
     check_and_move_old_repo()
     peform_db_upgrade()
     init_password_file()
+    init_ssh_key()
     logger.info("starting frontend")
     await frontend.frontend.run()
     logger.info("frontend started")

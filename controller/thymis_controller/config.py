@@ -16,6 +16,8 @@ class GlobalSettings(BaseSettings):
 
     BASE_URL: str = "http://localhost:8000"
 
+    SSH_KEY_PATH: pathlib.Path = pathlib.Path("/var/lib/thymis/id_thymis")
+
     FRONTEND_BINARY_PATH: str | None = None
     AUTH_BASIC: bool = True
     AUTH_BASIC_USERNAME: str = "admin"

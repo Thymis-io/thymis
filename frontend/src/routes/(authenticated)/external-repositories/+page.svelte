@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { PageData } from './$types';
+	import type { PageData } from '../settings/$types';
 	import { saveState, state } from '$lib/state';
 	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
 	import {
@@ -61,8 +61,7 @@
 	};
 </script>
 
-<Heading tag="h3">{$t('nav.settings')}</Heading>
-<Heading tag="h4" class="mt-4">{$t('settings.repo.title')}</Heading>
+<Heading tag="h3">{$t('nav.external-repositories')}</Heading>
 <Table class="mt-4">
 	<TableHead>
 		<TableHeadCell>{$t('settings.repo.name')}</TableHeadCell>

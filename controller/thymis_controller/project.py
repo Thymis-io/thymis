@@ -14,7 +14,8 @@ from typing import List
 
 import git
 from sqlalchemy.orm import Session
-from thymis_controller import crud, db_models, migration, models, modules, task
+from thymis_controller import crud, migration, models, task
+from thymis_controller.config import global_settings
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
 
@@ -43,6 +44,8 @@ lockfile = None
 
 
 def load_repositories(flake_path: os.PathLike, repositories: dict[str, models.Repo]):
+    from thymis_controller import modules
+
     # only run if lockfile changed
     global lockfile
     # lockfile sits at path/flake.lock
@@ -120,6 +123,7 @@ class Project:
     path: pathlib.Path
     repo: git.Repo
     known_hosts_path: pathlib.Path
+    public_key: str
 
     def __init__(self, path, db_session: Session):
         self.path = pathlib.Path(path)
@@ -131,6 +135,20 @@ class Project:
             self.repo = git.Repo.init(self.path)
         else:
             self.repo = git.Repo(self.path)
+
+        # get public key of controller instance
+        public_key_process = subprocess.run(
+            ["ssh-keygen", "-y", "-f", global_settings.SSH_KEY_PATH, "-P", ""],
+            capture_output=True,
+            text=True,
+        )
+
+        if public_key_process.returncode != 0:
+            logger.error("Failed to get public key: %s", public_key_process.stderr)
+            self.public_key = None
+        else:
+            self.public_key = public_key_process.stdout.strip()
+
         # create a state, if not exists
         state_path = self.path / "state.json"
         if not state_path.exists():
@@ -199,7 +217,7 @@ class Project:
         for module_settings in modules:
             try:
                 module = get_module_class_instance_by_type(module_settings.type)
-                module.write_nix(path, module_settings, priority)
+                module.write_nix(path, module_settings, priority, self)
             except Exception as e:
                 logger.error(
                     "Error while writing module %s: %s", module_settings.type, e
@@ -269,12 +287,14 @@ class Project:
             if device.identifier == device_identifier
         )
         return task.global_task_controller.add_task(
-            task.DeployDeviceTask(self.path, device, target_host)
+            task.DeployDeviceTask(
+                self.path, device, target_host, global_settings.SSH_KEY_PATH
+            )
         )
 
     def create_deploy_project_task(self, devices: List[models.RegisteredDevice]):
         return task.global_task_controller.add_task(
-            task.DeployProjectTask(self, devices)
+            task.DeployProjectTask(self, devices, global_settings.SSH_KEY_PATH)
         )
 
     def create_update_task(self):
@@ -300,5 +320,7 @@ class Project:
 
     def create_restart_device_task(self, device: models.Device, target_host: str):
         return task.global_task_controller.add_task(
-            task.RestartDeviceTask(device, self.known_hosts_path, target_host)
+            task.RestartDeviceTask(
+                device, global_settings.SSH_KEY_PATH, self.known_hosts_path, target_host
+            )
         )

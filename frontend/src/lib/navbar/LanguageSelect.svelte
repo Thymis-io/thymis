@@ -4,16 +4,10 @@
 	import { Select } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import { invalidate } from '$app/navigation';
-	import type { ChangeEventHandler } from 'svelte/elements';
 
 	let locales = [
 		{ name: $t('language.en'), value: 'en' },
 		{ name: $t('language.de'), value: 'de' }
-	];
-
-	let localesShort = [
-		{ name: 'en', value: 'en' },
-		{ name: 'de', value: 'de' }
 	];
 
 	onMount(() => {
@@ -42,18 +36,9 @@
 </script>
 
 <Select
-	class="ml-2 w-32 hidden md:block"
+	class="w-32"
 	size="sm"
 	items={locales}
-	value={$locale}
-	on:change={saveLocale}
-	placeholder={$t('language.select')}
-/>
-
-<Select
-	class="ml-1 w-16 block md:hidden py-1 sm:py-2"
-	size="sm"
-	items={localesShort}
 	value={$locale}
 	on:change={saveLocale}
 	placeholder={$t('language.select')}

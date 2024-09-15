@@ -4,6 +4,7 @@ import thymis_controller.modules.modules as modules
 from thymis_controller import models
 from thymis_controller.lib import read_into_base64
 from thymis_controller.nix import convert_python_value_to_nix
+from thymis_controller.project import Project
 
 
 class ThymisController(modules.Module):
@@ -53,6 +54,21 @@ class ThymisController(modules.Module):
         ),
         example="http://localhost:8000",
         order=30,
+    )
+    ssh_key_path = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="SSH Key Path",
+            de="SSH-Key Pfad",
+        ),
+        nix_attr_name="services.thymis-controller.ssh-key-path",
+        type="string",
+        default=None,
+        description=modules.LocalizedString(
+            en="The path to the SSH key for deploying to devices.",
+            de="Der Pfad zum SSH-Key, um auf Geräte auszurollen.",
+        ),
+        example="/var/lib/thymis/id_thymis",
+        order=35,
     )
     auth_basic = modules.Setting(
         display_name=modules.LocalizedString(
@@ -161,14 +177,14 @@ class ThymisController(modules.Module):
     )
 
     def write_nix_settings(
-        self, f, module_settings: models.ModuleSettings, priority: int
+        self, f, module_settings: models.ModuleSettings, priority: int, project: Project
     ):
         f.write(f"  imports = [\n")
         f.write(f"    inputs.thymis.nixosModules.thymis-controller\n")
         f.write(f"  ];\n")
         f.write("  services.thymis-controller.enable = true;\n")
 
-        return super().write_nix_settings(f, module_settings, priority)
+        return super().write_nix_settings(f, module_settings, priority, project)
 
 
 class ThymisDevice(modules.Module):
@@ -351,7 +367,7 @@ class ThymisDevice(modules.Module):
     )
 
     def write_nix_settings(
-        self, f, module_settings: models.ModuleSettings, priority: int
+        self, f, module_settings: models.ModuleSettings, priority: int, project: Project
     ):
         device_type = (
             module_settings.settings["device_type"]
@@ -374,12 +390,19 @@ class ThymisDevice(modules.Module):
             f.write(f'fileExtension = ".img";\n')
 
         if authorized_keys:
-            key_list = convert_python_value_to_nix(
-                list(map(lambda x: x["key"] if "key" in x else None, authorized_keys)),
-                ident=1,
+            keys = list(
+                map(lambda x: x["key"] if "key" in x else None, authorized_keys)
             )
+        else:
+            keys = []
+
+        if project.public_key:
+            keys.append(project.public_key)
+
+        if len(keys) > 0:
+            key_list_nix = convert_python_value_to_nix(keys, ident=1)
             f.write(
-                f"  users.users.root.openssh.authorizedKeys.keys = lib.mkOverride {priority} {key_list};\n"
+                f"  users.users.root.openssh.authorizedKeys.keys = lib.mkOverride {priority} {key_list_nix};\n"
             )
 
-        return super().write_nix_settings(f, module_settings, priority)
+        return super().write_nix_settings(f, module_settings, priority, project)

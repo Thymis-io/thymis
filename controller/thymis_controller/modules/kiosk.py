@@ -1,5 +1,6 @@
 import thymis_controller.modules.modules as modules
 from thymis_controller import models
+from thymis_controller.project import Project
 
 
 class Kiosk(modules.Module):
@@ -66,7 +67,7 @@ class Kiosk(modules.Module):
     )
 
     def write_nix_settings(
-        self, f, module_settings: models.ModuleSettings, priority: int
+        self, f, module_settings: models.ModuleSettings, priority: int, project: Project
     ):
         kiosk_url = (
             module_settings.settings["kiosk_url"]
