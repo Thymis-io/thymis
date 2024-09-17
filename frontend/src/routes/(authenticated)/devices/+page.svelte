@@ -115,7 +115,7 @@
 	>
 		{#each devices as device (device.id)}
 			<tr
-				class="border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700"
+				class="border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
 				animate:flip={{ duration: flipDurationMs }}
 			>
 				<TableBodyCell tdClass="p-2">
@@ -166,7 +166,7 @@
 						</button>
 					</div>
 				</TableBodyCell>
-				<TableBodyCell tdClass="p-2 px-2 md:px-4 whitespace-nowrap">
+				<TableBodyCell tdClass="p-2 px-2 md:px-4">
 					<div class="flex gap-2">
 						<Button
 							class="px-4 py-2"

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Button, Helper, Input, Label, Modal, MultiSelect, P, Select } from 'flowbite-svelte';
+	import { Button, Helper, Input, Label, Modal, P, Select } from 'flowbite-svelte';
 	import {
 		type Device,
 		type Module,
@@ -12,6 +12,7 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { nameToIdentifier } from './deviceName';
+	import MultiSelect from 'svelte-multiselect';
 
 	export let open = false;
 
@@ -44,8 +45,8 @@
 	};
 
 	$: tags = $state.tags;
-	$: tagsSelect = tags.map((tag) => ({ value: tag.identifier, name: tag.displayName }));
-	let selectedTags: string[] = [];
+	$: tagsSelect = tags.map((tag) => ({ value: tag.identifier, label: tag.displayName }));
+	let selectedTags: { value: string; label: string }[] = [];
 
 	const submitData = async () => {
 		if (
@@ -65,7 +66,7 @@
 			displayName,
 			identifier,
 			targetHost: '',
-			tags: selectedTags,
+			tags: selectedTags.map((tag) => tag.value),
 			modules: [{ type: thymisDeviceModule?.type, settings: thymisDeviceModuleSettings }]
 		};
 		$state.devices = [...$state.devices, device];
@@ -91,6 +92,7 @@
 			displayNameHtmlInput?.focus();
 		}, 1);
 	}}
+	bodyClass="p-4 md:p-5 space-y-4 flex-1"
 >
 	<form>
 		<div class="mb-4">
@@ -121,7 +123,12 @@
 			{#if tags.length > 0}
 				<Label for="tags">
 					{$t('create-device.tags')}
-					<MultiSelect id="tags" items={tagsSelect} bind:value={selectedTags} />
+					<MultiSelect
+						id="tags"
+						options={tagsSelect}
+						bind:selected={selectedTags}
+						outerDivClass="w-full"
+					/>
 				</Label>
 			{:else}
 				<P>{$t('create-device.no-tags')}</P>
