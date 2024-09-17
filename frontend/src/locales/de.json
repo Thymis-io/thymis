@@ -13,7 +13,8 @@
 		"terminal": "Terminal",
 		"global-vnc": "VNC Alle Geräte",
 		"device-vnc": "VNC",
-		"external-repositories": "Externe Repositories"
+		"external-repositories": "Externe Repositories",
+		"tags": "Tags"
 	},
 	"common": {
 		"search": "Suchen...",
@@ -192,5 +193,12 @@
 		"latest-task": "Letzte Aufgabe",
 		"pending": "Ausstehend",
 		"running": "Läuft"
+	},
+	"tags": {
+		"actions": {
+			"create": "Tag Erstellen",
+			"edit": "Bearbeiten",
+			"delete": "Löschen"
+		}
 	}
 }

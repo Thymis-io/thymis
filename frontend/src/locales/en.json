@@ -13,7 +13,8 @@
 		"terminal": "Terminal",
 		"global-vnc": "VNC All Devices",
 		"device-vnc": "VNC",
-		"external-repositories": "External Repositories"
+		"external-repositories": "External Repositories",
+		"tags": "Tags"
 	},
 	"common": {
 		"search": "Search...",
@@ -190,6 +191,13 @@
 			"actions": "Actions",
 			"edit-name": "Edit Name",
 			"edit-url": "Edit URL",
+			"delete": "Delete"
+		}
+	},
+	"tags": {
+		"actions": {
+			"create": "Create Tag",
+			"edit": "Edit",
 			"delete": "Delete"
 		}
 	}

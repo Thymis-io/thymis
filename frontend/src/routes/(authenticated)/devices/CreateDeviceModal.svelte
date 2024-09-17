@@ -10,7 +10,6 @@
 		state
 	} from '$lib/state';
 	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
 	import { nameToIdentifier } from './deviceName';
 	import MultiSelect from 'svelte-multiselect';
 

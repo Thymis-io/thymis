@@ -102,7 +102,7 @@
 <EditTagModal bind:currentlyEditingDevice />
 <Table shadow>
 	<TableHead>
-		<TableHeadCell padding="p-2" />
+		<TableHeadCell padding="p-2 w-12" />
 		<TableHeadCell padding="p-2">{$t('devices.table.name')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('devices.table.target-host')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('devices.table.tags')}</TableHeadCell>
