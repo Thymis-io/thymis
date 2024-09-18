@@ -23,9 +23,12 @@
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
 	import { flip } from 'svelte/animate';
 	import { nameToIdentifier } from '$lib/nameValidation';
+	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 
 	const flipDurationMs = 200;
 	let dragDisabled = true;
+
+	let deviceToDelete: Device | undefined = undefined;
 
 	export let data: PageData;
 
@@ -99,6 +102,14 @@
 	<DeployActions />
 </div>
 <CreateDeviceModal bind:open={deviceModalOpen} />
+<DeleteConfirm
+	target={deviceToDelete?.displayName}
+	on:confirm={() => {
+		if (deviceToDelete) deleteDevice(deviceToDelete);
+		deviceToDelete = undefined;
+	}}
+	on:cancel={() => (deviceToDelete = undefined)}
+/>
 <EditTagModal bind:currentlyEditingDevice />
 <Table shadow>
 	<TableHead>
@@ -196,7 +207,7 @@
 						<Button
 							class="ml-8 px-4 py-2"
 							color="alternative"
-							on:click={() => deleteDevice(device.data)}
+							on:click={() => (deviceToDelete = device.data)}
 						>
 							{$t('devices.actions.delete')}
 						</Button>

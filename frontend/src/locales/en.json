@@ -204,5 +204,11 @@
 			"delete": "Delete",
 			"add": "Add Tag"
 		}
+	},
+	"deleteConfirm": {
+		"title": "Delete {target}",
+		"text": "Are you sure you want to delete {target}?",
+		"confirm": "Delete",
+		"cancel": "Cancel"
 	}
 }

@@ -23,12 +23,14 @@
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import { nameToIdentifier, nameValidation } from '$lib/nameValidation';
+	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 
 	$: tags = $state.tags.map((t) => ({ id: t.identifier, data: t }));
 	$: projectTags = $state.tags;
 	$: projectTagIds = projectTags.map((t) => t.identifier);
 
 	let newTag = '';
+	let deleteTag: Tag | undefined = undefined;
 
 	const flipDurationMs = 200;
 	let dragDisabled = true;
@@ -127,6 +129,16 @@
 	<DeployActions />
 </div>
 
+<DeleteConfirm
+	target={deleteTag?.displayName}
+	on:confirm={() => {
+		if (deleteTag) {
+			removeTag(deleteTag.identifier);
+			deleteTag = undefined;
+		}
+	}}
+	on:cancel={() => (deleteTag = undefined)}
+/>
 <Table shadow>
 	<TableHead>
 		<TableHeadCell padding="p-2 w-12" />
@@ -200,7 +212,7 @@
 					<Button
 						size="sm"
 						color="alternative"
-						on:click={() => removeTag(tag.data.identifier)}
+						on:click={() => (deleteTag = tag.data)}
 						class="ml-8 p-3 py-1.5 gap-2"
 					>
 						<Trash />

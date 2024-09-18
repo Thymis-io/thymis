@@ -203,5 +203,11 @@
 			"delete": "Löschen",
 			"add": "Tag Hinzufügen"
 		}
+	},
+	"deleteConfirm": {
+		"title": "{target} löschen",
+		"text": "Sind Sie sicher, dass Sie {target} löschen möchten?",
+		"cancel": "Abbrechen",
+		"confirm": "Löschen"
 	}
 }
