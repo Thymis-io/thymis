@@ -43,6 +43,12 @@
 
 	const removeTag = (tag: string) => {
 		$state.tags = projectTags.filter((t) => t.identifier !== tag);
+
+		$state.devices = $state.devices.map((d) => {
+			d.tags = d.tags.filter((t) => t !== tag);
+			return d;
+		});
+
 		saveState();
 	};
 
