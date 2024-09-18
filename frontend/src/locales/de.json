@@ -107,6 +107,8 @@
 		"device-type": "Gerätetyp – Um welche Art von Hardwaregerät handelt es sich? \n- Erforderlich",
 		"device-type-cannot-be-empty": "Der Gerätetyp darf nicht leer sein.",
 		"device-with-display-name-name-exists": "Das Gerät mit dem Anzeigenamen „{displayName}“ ist bereits im Projekt vorhanden.",
+		"tag-type-can-not-be-empty": "Der Tag-Typ darf nicht leer sein.",
+		"tag-with-display-name-name-exists": "Der Tag mit dem Anzeigenamen „{displayName}“ ist bereits im Projekt vorhanden.",
 		"display-name": "Anzeigename – Wie das Gerät in der Benutzeroberfläche angezeigt wird – Erforderlich",
 		"display-name-cannot-be-empty": "Der Anzeigename darf nicht leer sein.",
 		"identifier-exists": "Bezeichner existiert bereits.",
@@ -198,7 +200,8 @@
 		"actions": {
 			"create": "Tag Erstellen",
 			"edit": "Bearbeiten",
-			"delete": "Löschen"
+			"delete": "Löschen",
+			"add": "Tag Hinzufügen"
 		}
 	}
 }

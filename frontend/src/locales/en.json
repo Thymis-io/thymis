@@ -106,13 +106,16 @@
 		"name-helper": "Device will be called {identifier} internally.",
 		"display-name": "Display name - How the device will be displayed in the UI - Required",
 		"display-name-cannot-be-empty": "Display name cannot be empty.",
+		"display-name-tag": "Display name - How the tag will be displayed in the UI",
 		"identifier-exists": "Identifier already exists.",
 		"device-type": "Device type - What type of hardware device is this? - Required",
 		"tags": "Device tags - What tags should be assigned to this device?",
 		"no-tags": "Your project has no tags yet, so you can't assign any to this device.",
 		"create": "Create device",
 		"device-type-cannot-be-empty": "Device type cannot be empty.",
-		"device-with-display-name-name-exists": "Device with display name \"{displayName}\" already exists in project."
+		"device-with-display-name-name-exists": "Device with display name \"{displayName}\" already exists in project.",
+		"tag-type-cannot-be-empty": "Tag type cannot be empty.",
+		"tag-with-display-name-name-exists": "Tag with display name \"{displayName}\" already exists in project."
 	},
 	"history": {
 		"open-diff": "Show Changes",
@@ -198,7 +201,8 @@
 		"actions": {
 			"create": "Create Tag",
 			"edit": "Edit",
-			"delete": "Delete"
+			"delete": "Delete",
+			"add": "Add Tag"
 		}
 	}
 }

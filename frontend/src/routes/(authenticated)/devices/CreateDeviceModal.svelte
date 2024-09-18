@@ -10,20 +10,12 @@
 		state
 	} from '$lib/state';
 	import { page } from '$app/stores';
-	import { nameToIdentifier } from './deviceName';
+	import { nameToIdentifier, nameValidation, deviceTypeValidation } from '$lib/nameValidation';
 	import MultiSelect from 'svelte-multiselect';
 
 	export let open = false;
 
 	let displayName = '';
-	const nameValidation = (displayName: string): string | undefined => {
-		if (displayName.length === 0) return $t('create-device.display-name-cannot-be-empty');
-		if ($state.devices.find((device) => device.displayName === displayName))
-			return $t('create-device.device-with-display-name-name-exists', { values: { displayName } });
-		const identifier = nameToIdentifier(displayName);
-		if ($state.devices.find((device) => device.identifier === identifier))
-			return $t('create-device.identifier-exists');
-	};
 
 	$: availableModules = $page.data.availableModules as Module[];
 	$: thymisDeviceModule = availableModules.find(
@@ -39,9 +31,6 @@
 		name: $t(`options.nix.thymis.config.device-type-options.${deviceType}`)
 	}));
 	let selectedDeviceType: string | undefined = undefined;
-	const deviceTypeValidation = (deviceType: string | undefined): string | undefined => {
-		if (!deviceType) return $t('create-device.device-type-cannot-be-empty');
-	};
 
 	$: tags = $state.tags;
 	$: tagsSelect = tags.map((tag) => ({ value: tag.identifier, label: tag.displayName }));
@@ -49,7 +38,7 @@
 
 	const submitData = async () => {
 		if (
-			nameValidation(displayName) ||
+			nameValidation(displayName, 'device') ||
 			deviceTypeValidation(selectedDeviceType) ||
 			!thymisDeviceModule?.type ||
 			!selectedDeviceType
@@ -98,8 +87,8 @@
 			<Label for="display-name"
 				>{$t('create-device.display-name')}
 				<Input id="display-name" bind:value={displayName} />
-				{#if nameValidation(displayName)}
-					<Helper color="red">{nameValidation(displayName)}</Helper>
+				{#if nameValidation(displayName, 'device')}
+					<Helper color="red">{nameValidation(displayName, 'device')}</Helper>
 				{:else}
 					<Helper color="green"
 						>{$t('create-device.name-helper', {
@@ -137,7 +126,9 @@
 			<Button
 				type="button"
 				class="btn btn-primary"
-				disabled={!!(nameValidation(displayName) || deviceTypeValidation(selectedDeviceType))}
+				disabled={!!(
+					nameValidation(displayName, 'device') || deviceTypeValidation(selectedDeviceType)
+				)}
 				on:click={submitData}
 			>
 				{$t('create-device.create')}

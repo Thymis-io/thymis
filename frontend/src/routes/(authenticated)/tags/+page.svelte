@@ -3,7 +3,16 @@
 	import { page } from '$app/stores';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import { type Device, saveState, state, type Tag } from '$lib/state';
-	import { Button, Input, Table, TableBodyCell, TableHead, TableHeadCell } from 'flowbite-svelte';
+	import {
+		Button,
+		Input,
+		Table,
+		TableBodyCell,
+		TableHead,
+		TableHeadCell,
+		Label,
+		Helper
+	} from 'flowbite-svelte';
 	import Trash from 'lucide-svelte/icons/trash';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Pen from 'lucide-svelte/icons/pen';
@@ -13,6 +22,7 @@
 	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
+	import { nameToIdentifier, nameValidation } from '$lib/nameValidation';
 
 	$: tags = $state.tags.map((t) => ({ id: t.identifier, data: t }));
 	$: projectTags = $state.tags;
@@ -24,7 +34,7 @@
 	let dragDisabled = true;
 
 	const addTag = (newTag: string) => {
-		const newIdentifier = newTag.toLocaleLowerCase().replaceAll(' ', '-');
+		const newIdentifier = nameToIdentifier(newTag);
 
 		if (newTag && !projectTagIds.includes(newIdentifier)) {
 			$state.tags = [
@@ -36,9 +46,9 @@
 					modules: []
 				}
 			];
-		}
 
-		saveState();
+			saveState();
+		}
 	};
 
 	const removeTag = (tag: string) => {
@@ -53,7 +63,7 @@
 	};
 
 	const renameTag = (oldTagIdentifier: string, newTag: string) => {
-		const newIdentifier = newTag.toLocaleLowerCase().replaceAll(' ', '-');
+		const newIdentifier = nameToIdentifier(newTag);
 
 		if (newTag && !projectTagIds.includes(newIdentifier)) {
 			$state.tags = projectTags.map((t) => {
@@ -177,13 +187,41 @@
 	</tbody>
 </Table>
 
-<div class="flex gap-2 mt-4 items-center">
-	<span class="whitespace-nowrap">{$t('tags.actions.create')}:</span>
-	<Input type="text" bind:value={newTag} />
-	<button
+<div class="flex gap-2 mt-8">
+	<Label for="display-name">
+		{$t('create-device.display-name-tag')}
+		<Input
+			id="display-name"
+			bind:value={newTag}
+			on:keydown={(e) => {
+				if (!nameValidation(newTag, 'tag') && e.key === 'Enter') {
+					addTag(newTag);
+					newTag = '';
+				}
+			}}
+		/>
+		{#if newTag !== ''}
+			{#if nameValidation(newTag, 'tag')}
+				<Helper color="red">{nameValidation(newTag, 'tag')}</Helper>
+			{:else}
+				<Helper color="green"
+					>{$t('create-device.name-helper', {
+						values: { identifier: nameToIdentifier(newTag) }
+					})}
+				</Helper>
+			{/if}
+		{/if}
+	</Label>
+	<Button
 		on:click={() => {
 			addTag(newTag);
 			newTag = '';
-		}}><Plus /></button
+		}}
+		disabled={!!nameValidation(newTag, 'tag')}
+		color="alternative"
+		class="p-2 gap-2 mt-5"
 	>
+		<Plus />
+		{$t('tags.actions.add')}
+	</Button>
 </div>

@@ -22,7 +22,7 @@
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
 	import { flip } from 'svelte/animate';
-	import { nameToIdentifier } from './deviceName';
+	import { nameToIdentifier } from '$lib/nameValidation';
 
 	const flipDurationMs = 200;
 	let dragDisabled = true;
