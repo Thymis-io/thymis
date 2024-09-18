@@ -80,7 +80,10 @@
 			});
 
 			saveState();
+			return true;
 		}
+
+		return false;
 	};
 
 	const handleConsider = (e: CustomEvent<DndEvent<{ id: string; data: Tag }>>) => {
@@ -137,6 +140,7 @@
 		on:finalize={handleFinalize}
 	>
 		{#each tags as tag (tag.id)}
+			{@const displayName = tag.data.displayName}
 			<tr
 				class="border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
 				animate:flip={{ duration: flipDurationMs }}
@@ -158,9 +162,30 @@
 					</div>
 				</TableBodyCell>
 				<TableBodyEditCell
-					bind:value={tag.data.displayName}
-					onEnter={() => renameTag(tag.data.identifier, tag.data.displayName)}
-				/>
+					value={displayName}
+					onEnter={(value) => {
+						const success = renameTag(tag.data.identifier, value);
+
+						if (!success) {
+							// Reset the display name if the rename was unsuccessful
+							tag.data.displayName = tag.data.displayName;
+						}
+					}}
+				>
+					<svelte:fragment slot="bottom" let:value={newTagDisplayName}>
+						{#if nameValidation(newTagDisplayName, 'tag')}
+							{#if newTagDisplayName !== displayName}
+								<Helper color="red">{nameValidation(newTagDisplayName, 'tag')}</Helper>
+							{/if}
+						{:else}
+							<Helper color="green">
+								{$t('create-device.name-helper', {
+									values: { identifier: nameToIdentifier(newTagDisplayName) }
+								})}
+							</Helper>
+						{/if}
+					</svelte:fragment>
+				</TableBodyEditCell>
 				<TableBodyCell tdClass="p-2" />
 				<TableBodyCell tdClass="p-2">
 					<Button
