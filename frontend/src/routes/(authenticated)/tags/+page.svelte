@@ -46,6 +46,27 @@
 		saveState();
 	};
 
+	const renameTag = (oldTagIdentifier: string, newTag: string) => {
+		const newIdentifier = newTag.toLocaleLowerCase().replaceAll(' ', '-');
+
+		if (newTag && !projectTagIds.includes(newIdentifier)) {
+			$state.tags = projectTags.map((t) => {
+				if (t.identifier === oldTagIdentifier) {
+					t.displayName = newTag;
+					t.identifier = newIdentifier;
+				}
+				return t;
+			});
+
+			$state.devices = $state.devices.map((d) => {
+				d.tags = d.tags.map((t) => (t === oldTagIdentifier ? newIdentifier : t));
+				return d;
+			});
+
+			saveState();
+		}
+	};
+
 	const handleConsider = (e: CustomEvent<DndEvent<{ id: string; data: Tag }>>) => {
 		const {
 			items: newItems,
@@ -122,10 +143,7 @@
 				</TableBodyCell>
 				<TableBodyEditCell
 					bind:value={tag.data.displayName}
-					onEnter={() => {
-						tag.data.identifier = tag.data.displayName.toLocaleLowerCase().replaceAll(' ', '-');
-						saveState();
-					}}
+					onEnter={() => renameTag(tag.data.identifier, tag.data.displayName)}
 				/>
 				<TableBodyCell tdClass="p-2" />
 				<TableBodyCell tdClass="p-2">
