@@ -540,7 +540,7 @@ class ThymisDevice(modules.Module):
         if len(keys) > 0:
             key_list_nix = convert_python_value_to_nix(keys, ident=1)
             f.write(
-                f"  users.users.root.openssh.authorizedKeys.keys = lib.mkOverride {priority} {key_list_nix};\n"
+                f"  users.users.root.openssh.authorizedKeys.keys = {key_list_nix};\n"
             )
 
         if static_networks:
