@@ -29,7 +29,7 @@ Thymis is an open-source platform designed for managing and configuring IoT devi
 |-|
 |Screenshot of the Control Panel|
 
-|<video src="https://github.com/Thymis-io/thymis/assets/37669174/25626805-1a0a-4b97-b75d-1b7fc82d1e6b" width="300" />|
+|<video src="https://github.com/user-attachments/assets/c4f240d8-8fde-4987-989d-c598d4cba487" width="300" />|
 |-|
 |Video of a Kiosk Deployment to 3 Devices changing the URL to [https://thymis.io/](https://thymis.io/)
 
