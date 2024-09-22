@@ -84,6 +84,12 @@
 	let dynamicNavItems: NavItem[] = [];
 	$: dynamicNavItems = [
 		{
+			name: $t(`nav.device-details`),
+			icon: SlidersSolid,
+			href: '/device-details',
+			hidden: !$globalNavSelectedDevice
+		},
+		{
 			name: $t(`nav.config-${$globalNavSelectedTargetType}`),
 			icon: SlidersSolid,
 			href: '/config',
