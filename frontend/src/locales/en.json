@@ -104,6 +104,7 @@
 			}
 		},
 		"name-helper": "Device will be called {identifier} internally.",
+		"name-helper-tag": "Tag will be called {identifier} internally.",
 		"display-name": "Display name - How the device will be displayed in the UI - Required",
 		"display-name-cannot-be-empty": "Display name cannot be empty.",
 		"display-name-tag": "Display name - How the tag will be displayed in the UI",
@@ -114,7 +115,6 @@
 		"create": "Create device",
 		"device-type-cannot-be-empty": "Device type cannot be empty.",
 		"device-with-display-name-name-exists": "Device with display name \"{displayName}\" already exists in project.",
-		"tag-type-cannot-be-empty": "Tag type cannot be empty.",
 		"tag-with-display-name-name-exists": "Tag with display name \"{displayName}\" already exists in project."
 	},
 	"history": {
@@ -199,16 +199,20 @@
 	},
 	"tags": {
 		"actions": {
-			"create": "Create Tag",
 			"edit": "Edit",
 			"delete": "Delete",
-			"add": "Add Tag"
-		}
+			"add": "Add Tag",
+			"create": "Create tag"
+		},
+		"devices": "Devices"
 	},
 	"deleteConfirm": {
 		"title": "Delete {target}",
 		"text": "Are you sure you want to delete {target}?",
 		"confirm": "Delete",
 		"cancel": "Cancel"
+	},
+	"tag": {
+		"device": "Device"
 	}
 }

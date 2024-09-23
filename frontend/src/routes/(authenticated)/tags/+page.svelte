@@ -11,7 +11,8 @@
 		TableHead,
 		TableHeadCell,
 		Label,
-		Helper
+		Helper,
+		Tooltip
 	} from 'flowbite-svelte';
 	import Trash from 'lucide-svelte/icons/trash';
 	import Plus from 'lucide-svelte/icons/plus';
@@ -143,7 +144,7 @@
 	<TableHead>
 		<TableHeadCell padding="p-2 w-12" />
 		<TableHeadCell padding="p-2">{$t('devices.table.name')}</TableHeadCell>
-		<TableHeadCell padding="p-2" />
+		<TableHeadCell padding="p-2">{$t('tags.devices')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('devices.table.actions')}</TableHeadCell>
 	</TableHead>
 	<tbody
@@ -191,14 +192,26 @@
 							{/if}
 						{:else}
 							<Helper color="green">
-								{$t('create-device.name-helper', {
+								{$t('create-device.name-helper-tag', {
 									values: { identifier: nameToIdentifier(newTagDisplayName) }
 								})}
 							</Helper>
 						{/if}
 					</svelte:fragment>
 				</TableBodyEditCell>
-				<TableBodyCell tdClass="p-2" />
+				<TableBodyCell tdClass="p-2">
+					{@const devicesWithTag = $state.devices.filter((d) =>
+						d.tags.includes(tag.data.identifier)
+					)}
+					<span id="devicesWithTagCount-{tag.data.identifier}">
+						{devicesWithTag.length}
+						{devicesWithTag.length === 1 ? $t('tag.device') : $t('tags.devices')}:&nbsp;
+						{devicesWithTag.length > 0 ? devicesWithTag.map((d) => d.displayName).join(', ') : ''}
+					</span>
+					<Tooltip triggeredBy="#devicesWithTagCount-{tag.data.identifier}">
+						{devicesWithTag.map((d) => d.displayName).join(', ')}
+					</Tooltip>
+				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					<Button
 						size="sm"
@@ -224,7 +237,8 @@
 	</tbody>
 </Table>
 
-<div class="flex gap-2 mt-8">
+<h2 class="text-xl font-bold mt-8">{$t('tags.actions.create')}</h2>
+<div class="flex gap-2 mt-1">
 	<Label for="display-name">
 		{$t('create-device.display-name-tag')}
 		<Input
@@ -242,7 +256,7 @@
 				<Helper color="red">{nameValidation(newTag, 'tag')}</Helper>
 			{:else}
 				<Helper color="green"
-					>{$t('create-device.name-helper', {
+					>{$t('create-device.name-helper-tag', {
 						values: { identifier: nameToIdentifier(newTag) }
 					})}
 				</Helper>
