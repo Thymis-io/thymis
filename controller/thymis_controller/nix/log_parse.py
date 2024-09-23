@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
 
+# See https://github.com/NixOS/nix/blob/68ba6ff4709d936c1a714de35da08f8ed354c710/src/libutil/logging.hh#L11
 class ActivityType(IntEnum):
     UNKNOWN = 0
     COPY_PATH = 100
@@ -66,6 +67,7 @@ def get_nix_line_discriminator(v: Any):
     return action
 
 
+# Closely follows  https://github.com/NixOS/nix/blob/11452ce674918084be9aac1d92e1481177f78e0c/src/libmain/progress-bar.cc
 class MessageNixLine(BaseModel):
     action: Literal["msg"]
     level: int
