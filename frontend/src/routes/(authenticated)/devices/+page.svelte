@@ -23,30 +23,11 @@
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
 	import { flip } from 'svelte/animate';
 	import { nameToIdentifier } from '$lib/nameValidation';
-	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 
 	const flipDurationMs = 200;
 	let dragDisabled = true;
 
-	let deviceToDelete: Device | undefined = undefined;
-
 	export let data: PageData;
-
-	const deleteDevice = async (device: Device) => {
-		data.state.devices = data.state.devices.filter((d) => d.identifier !== device.identifier);
-		await saveState();
-	};
-
-	const restartDevice = async (device: Device) => {
-		fetch(`/api/action/restart-device?identifier=${device.identifier}`, { method: 'POST' });
-	};
-
-	const buildAndDownloadImage = async (device: Device) => {
-		console.log('Building and downloading image');
-		await fetch(`/api/action/build-download-image?identifier=${device.identifier}`, {
-			method: 'POST'
-		});
-	};
 
 	const findTag = (identifier: string) => {
 		return data.state.tags.find((t) => t.identifier === identifier);
@@ -102,14 +83,6 @@
 	<DeployActions />
 </div>
 <CreateDeviceModal bind:open={deviceModalOpen} />
-<DeleteConfirm
-	target={deviceToDelete?.displayName}
-	on:confirm={() => {
-		if (deviceToDelete) deleteDevice(deviceToDelete);
-		deviceToDelete = undefined;
-	}}
-	on:cancel={() => (deviceToDelete = undefined)}
-/>
 <EditTagModal bind:currentlyEditingDevice />
 <Table shadow>
 	<TableHead>
@@ -165,7 +138,7 @@
 								>
 									<TagIcon size={15} class="mr-1" />
 									<span class="text-nowrap">
-									{findTag(tag)?.displayName ?? tag}
+										{findTag(tag)?.displayName ?? tag}
 									</span>
 								</Button>
 							{/each}
@@ -187,27 +160,6 @@
 							)}`}
 						>
 							{$t('devices.actions.edit')}
-						</Button>
-						<Button
-							class="px-4 py-2"
-							color="alternative"
-							on:click={() => buildAndDownloadImage(device.data)}
-						>
-							{$t('devices.actions.download')}
-						</Button>
-						<Button
-							class="px-4 py-2"
-							color="alternative"
-							on:click={() => restartDevice(device.data)}
-						>
-							{$t('devices.actions.restart')}
-						</Button>
-						<Button
-							class="ml-8 px-4 py-2"
-							color="alternative"
-							on:click={() => (deviceToDelete = device.data)}
-						>
-							{$t('devices.actions.delete')}
 						</Button>
 					</div>
 				</TableBodyCell>
