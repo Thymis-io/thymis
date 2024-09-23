@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
 	import { tasksByIdStore } from '$lib/taskstatus';
 	import { Button } from 'flowbite-svelte';
@@ -40,6 +41,13 @@
 			}
 		}
 	}
+
+	// <!-- logs_by_level={
+	// 	0: self.error_logs,
+	// 	1: self.warnings,
+	// 	2: self.notices,
+	// 	3: self.infos, -->
+	$: log_level_names = [$t('error'), $t('warning'), $t('notice'), $t('info')];
 </script>
 
 <h1 class="text-2xl font-bold">Task Detail for Task {task.id}: {task.display_name}</h1>
@@ -71,8 +79,23 @@
 				<MonospaceText code={error.msg}></MonospaceText>
 			{/each}
 		</ul>
-		<li>Logs by Level: {JSON.stringify(task.status.logs_by_level)}</li>
+		<!-- <li>Logs by Level: {JSON.stringify(task.status.logs_by_level)}</li> -->
 	</ul>
+	<!-- logs_by_level={
+		0: self.error_logs,
+		1: self.warnings,
+		2: self.notices,
+		3: self.infos, -->
+	<!-- logs by level: we show a monospace text for each level -->
+	{#each log_level_names as level_name, idx}
+		{#if task.status.logs_by_level[idx].length > 0}
+			<h2 class="text-xl font-bold">{level_name} Logs:</h2>
+			{@const logs = task.status.logs_by_level[idx].join('\n')}
+			<MonospaceText code={logs} />
+		{:else}
+			<h2 class="text-xl font-bold">No {level_name} Logs</h2>
+		{/if}
+	{/each}
 {/if}
 
 {#if task.type === 'commandtask' || task.type === 'nixcommandtask'}
