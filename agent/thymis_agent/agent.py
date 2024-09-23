@@ -62,7 +62,7 @@ class Storage:
 @dataclass
 class DeviceState:
     registered: bool = False
-    identifier: str | None = None
+    hostname: str | None = None
     build_hash: str | None = None
     public_key: str | None = None
 
@@ -78,8 +78,8 @@ class Agent:
 
         self.state = self.storage.read_state()
 
-        if not self.state.identifier:
-            self.state.identifier = self.detect_identifier()
+        if not self.state.hostname:
+            self.state.hostname = self.detect_hostname()
 
         if not self.state.build_hash:
             self.state.build_hash = self.detect_build_hash()
@@ -97,7 +97,7 @@ class Agent:
     def _write_state(self):
         self.storage.write_state(self.state)
 
-    def detect_identifier(self):
+    def detect_hostname(self):
         return socket.gethostname()
 
     def detect_build_hash(self):
