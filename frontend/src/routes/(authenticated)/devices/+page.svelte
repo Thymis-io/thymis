@@ -29,22 +29,6 @@
 
 	export let data: PageData;
 
-	const deleteDevice = async (device: Device) => {
-		data.state.devices = data.state.devices.filter((d) => d.identifier !== device.identifier);
-		await saveState();
-	};
-
-	const restartDevice = async (device: Device) => {
-		fetch(`/api/action/restart-device?identifier=${device.identifier}`, { method: 'POST' });
-	};
-
-	const buildAndDownloadImage = async (device: Device) => {
-		console.log('Building and downloading image');
-		await fetch(`/api/action/build-download-image?identifier=${device.identifier}`, {
-			method: 'POST'
-		});
-	};
-
 	const findTag = (identifier: string) => {
 		return data.state.tags.find((t) => t.identifier === identifier);
 	};
@@ -176,27 +160,6 @@
 							)}`}
 						>
 							{$t('devices.actions.edit')}
-						</Button>
-						<Button
-							class="px-4 py-2"
-							color="alternative"
-							on:click={() => buildAndDownloadImage(device.data)}
-						>
-							{$t('devices.actions.download')}
-						</Button>
-						<Button
-							class="px-4 py-2"
-							color="alternative"
-							on:click={() => restartDevice(device.data)}
-						>
-							{$t('devices.actions.restart')}
-						</Button>
-						<Button
-							class="ml-8 px-4 py-2"
-							color="alternative"
-							on:click={() => deleteDevice(device.data)}
-						>
-							{$t('devices.actions.delete')}
 						</Button>
 					</div>
 				</TableBodyCell>
