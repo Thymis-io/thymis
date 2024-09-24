@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
-	import { Button, Badge } from 'flowbite-svelte';
+	import { Button, Badge, P } from 'flowbite-svelte';
 	import {
 		saveState,
 		type Device,
@@ -40,6 +40,7 @@
 		return data.state.tags.find((t) => t.identifier === identifier);
 	};
 
+	let currentDevice: Device | undefined = $globalNavSelectedDevice;
 	let currentlyEditingDevice: Device | undefined = undefined;
 	let deviceToDelete: Device | undefined = undefined;
 </script>
@@ -53,83 +54,84 @@
 	}}
 	on:cancel={() => (deviceToDelete = undefined)}
 />
-<div class="flex justify-between mb-4">
-	<div />
-	<DeployActions />
-</div>
-{#if $globalNavSelectedTargetType === 'device' && $globalNavSelectedDevice}
-	<div class="grid grid-cols-3 gap-4">
-		{#each data.state.devices.filter((device) => device.identifier === $globalNavSelectedDevice.identifier) as device}
-			<div class="flex flex-wrap align-start gap-2">
-				<h1>{device.displayName}</h1>
-				<div>
-					<Badge large size="sm" class="p-2 py-0.5">
-						<Circle size={15} class="mr-1" color="lightgreen" />
-						<span class="text-nowrap"> Online </span>
-					</Badge>
+{#if $globalNavSelectedTargetType === 'device' && currentDevice}
+	<div class="flex justify-between mb-4">
+		<div class="flex flex-wrap gap-2">
+			<h1 class="text-3xl font-bold dark:text-white">{currentDevice.displayName}</h1>
+			<Badge large size="sm" class="p-2 py-0.5 self-center">
+				<Circle size={15} class="mr-1" color="lightgreen" />
+				<span class="text-nowrap"> Online </span>
+			</Badge>
+		</div>
+		<DeployActions />
+	</div>
+
+	<div class="grid grid-cols-2 gap-4">
+		<div class="grid grid-cols-1 gap-4">
+			<div class="flex flex-wrap align-start gap-2 self-start">
+				<p>Host</p>
+				<p>{currentDevice.targetHost}</p>
+			</div>
+			<div>
+				<div class="flex justify-between">
+					<div class="flex gap-2 flex-wrap">
+						{#each currentDevice.tags as tag, i}
+							<Button
+								pill
+								size="sm"
+								class="p-2 py-0.5"
+								href={`/config?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
+							>
+								<TagIcon size={15} class="mr-1" />
+								<span class="text-nowrap">
+									{findTag(tag)?.displayName ?? tag}
+								</span>
+							</Button>
+						{/each}
+					</div>
+					<button class="btn ml-2 p-0" on:click={() => (currentlyEditingDevice = currentDevice)}>
+						<Pen size="20" />
+					</button>
 				</div>
 			</div>
 			<div>
-				<div class="flex flex-wrap align-start gap-2">
-					<p>Host</p>
-					<p>{device.targetHost}</p>
-				</div>
-				<div>
-					<div class="flex justify-between">
-						<div class="flex gap-2">
-							{#each device.tags as tag, i}
-								<Button
-									pill
-									size="sm"
-									class="p-2 py-0.5"
-									href={`/config?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
-								>
-									<TagIcon size={15} class="mr-1" />
-									<span class="text-nowrap">
-										{findTag(tag)?.displayName ?? tag}
-									</span>
-								</Button>
-							{/each}
-						</div>
-						<button class="btn ml-2 p-0" on:click={() => (currentlyEditingDevice = device)}>
-							<Pen size="20" />
-						</button>
-					</div>
-				</div>
-				<div>
-					<div class="flex gap-2">
-						<p>Module bearbeiten</p>
-						<Button
-							class="px-4 py-2"
-							color="alternative"
-							href={`/config?${buildGlobalNavSearchParam($page.url.search, 'device', device.identifier)}`}
-						>
-							{$t('devices.actions.edit')}
-						</Button>
-					</div>
+				<div class="flex gap-2">
+					<p class="self-center">Module bearbeiten</p>
+					<Button
+						class="px-4 py-2"
+						color="alternative"
+						href={`/config?${buildGlobalNavSearchParam($page.url.search, 'device', currentDevice.identifier)}`}
+					>
+						{$t('devices.actions.edit')}
+					</Button>
 				</div>
 			</div>
+		</div>
 
-			<div class="flex flex-wrap align-start gap-2">
+		<div class="grid grid-cols-1">
+			<div class="flex flex-wrap align-start gap-2 self-start">
+				<p>Actions</p>
+			</div>
+			<div class="flex flex-wrap align-start gap-2 self-start">
 				<Button
 					class="px-4 py-2"
 					color="alternative"
-					on:click={() => buildAndDownloadImage(device)}
+					on:click={() => buildAndDownloadImage(currentDevice)}
 				>
 					{$t('devices.actions.download')}
 				</Button>
-				<Button class="px-4 py-2" color="alternative" on:click={() => restartDevice(device)}>
+				<Button class="px-4 py-2" color="alternative" on:click={() => restartDevice(currentDevice)}>
 					{$t('devices.actions.restart')}
 				</Button>
 				<Button
 					class="ml-8 px-4 py-2"
 					color="alternative"
-					on:click={() => (deviceToDelete = device)}
+					on:click={() => (deviceToDelete = currentDevice)}
 				>
 					{$t('devices.actions.delete')}
 				</Button>
 			</div>
-		{/each}
+		</div>
 	</div>
 {:else if $globalNavSelectedTargetType === 'tag' && $globalNavSelectedTag}
 	<div class="grid grid-cols-3 gap-4">
