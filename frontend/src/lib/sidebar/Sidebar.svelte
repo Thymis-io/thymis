@@ -19,6 +19,7 @@
 	import ChartSimpleSolid from 'svelte-awesome-icons/ChartSimpleSolid.svelte';
 	import GearSolid from 'svelte-awesome-icons/GearSolid.svelte';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
+	import ListCollapse from 'lucide-svelte/icons/list-collapse';
 	import {
 		globalNavSelectedDevice,
 		globalNavSelectedTag,
@@ -84,7 +85,7 @@
 	$: dynamicNavItems = [
 		{
 			name: $t(`nav.device-details`),
-			icon: SlidersSolid,
+			icon: ListCollapse,
 			href: '/device-details',
 			hidden: !$globalNavSelectedDevice
 		},
