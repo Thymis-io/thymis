@@ -70,3 +70,38 @@ def get_device_host(db_session: Session, identifier: str):
         .first()
     )
     return device and device.device_host or None
+
+
+def get_by_public_key(db_session: Session, public_key: str):
+    return (
+        db_session.query(db_models.HostKey)
+        .where(db_models.HostKey.public_key == public_key)
+        .first()
+    )
+
+
+def get_by_build_hash(db_session: Session, build_hash: str):
+    return (
+        db_session.query(db_models.HostKey)
+        .where(db_models.HostKey.build_hash == build_hash)
+        .first()
+    )
+
+
+def rename_device(db_session: Session, old_identifier: str, new_identifier: str):
+    device = (
+        db_session.query(db_models.HostKey)
+        .where(db_models.HostKey.identifier == old_identifier)
+        .first()
+    )
+    device.identifier = new_identifier
+    db_session.commit()
+    return device
+
+
+def has_device(db_session: Session, identifier: str):
+    return (
+        db_session.query(db_models.HostKey)
+        .where(db_models.HostKey.identifier == identifier)
+        .first()
+    ) is not None

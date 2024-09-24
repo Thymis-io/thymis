@@ -6,6 +6,7 @@ import pathlib
 import sched
 import socket
 from dataclasses import dataclass
+from typing import List
 
 import psutil
 import requests
@@ -18,8 +19,11 @@ class AgentScheduler(sched.scheduler):
         super().__init__(*args, **kwargs)
 
     def periodic(self, interval, action, actionargs=()):
+        try:
+            action(*actionargs)
+        except Exception as e:
+            logger.error("Action failed: %s", e)
         self.enter(interval, 1, self.periodic, (interval, action, actionargs))
-        action(*actionargs)
 
     def retry_if_fails(self, interval, action, actionargs=()):
         try:
@@ -63,8 +67,10 @@ class Storage:
 class DeviceState:
     registered: bool = False
     hostname: str | None = None
-    build_hash: str | None = None
+    init_build_hash: str | None = None
+    current_build_hash: str | None = None
     public_key: str | None = None
+    ip_addresses: List[str] | None = None
 
 
 class Agent:
@@ -81,11 +87,15 @@ class Agent:
         if not self.state.hostname:
             self.state.hostname = self.detect_hostname()
 
-        if not self.state.build_hash:
-            self.state.build_hash = self.detect_build_hash()
+        if not self.state.init_build_hash:
+            self.state.init_build_hash = self.detect_build_hash()
+            self.state.current_build_hash = self.state.init_build_hash
 
         if not self.state.public_key:
             self.state.public_key = self.detect_public_key()
+
+        if not self.state.ip_addresses:
+            self.state.ip_addresses = self.detect_ip_addresses()
 
         self._write_state()
         logging.info("Agent initialized with state %s", self.state)
@@ -123,6 +133,15 @@ class Agent:
 
         return [*ipv4s, *ipv6s]
 
+    def registered_only(func):
+        def wrapper(self, *args, **kwargs):
+            if self.registered:
+                return func(self, *args, **kwargs)
+            else:
+                return None
+
+        return wrapper
+
     def register(self) -> bool:
         logger.info("Attempting to register device")
 
@@ -131,7 +150,7 @@ class Agent:
             raise ValueError("Controller host not set")
 
         json_data = {
-            "build_hash": self.state.build_hash,
+            "build_hash": self.state.init_build_hash,
             "public_key": self.state.public_key,
             "ip_addresses": self.detect_ip_addresses(),
         }
@@ -151,6 +170,49 @@ class Agent:
         self._write_state()
         logger.info("Device registered successfully")
 
+    def _send_heartbeat(self, ip_addresses: List[str]):
+        logger.info("Sending heartbeat to controller")
+        json_data = {
+            "public_key": self.state.public_key,
+            "ip_addresses": ip_addresses,
+        }
+
+        response = requests.post(
+            f"{self.controller_host}/agent/heartbeat", json=json_data
+        )
+
+        if response.status_code != 200:
+            logger.error(
+                "Failed to send heartbeat. Controller returned %s",
+                response.status_code,
+            )
+            raise Exception("Failed to send heartbeat")
+
+        logger.info("Heartbeat sent successfully")
+
+    @registered_only
+    def heartbeat(self, reason: str = None):
+        ip_addresses = self.detect_ip_addresses()
+        self._send_heartbeat(ip_addresses)
+
+    @registered_only
+    def check_for_ip_change(self):
+        ip_addresses = self.detect_ip_addresses()
+        if self.state.ip_addresses != ip_addresses:
+            logger.info("IP addresses changed, reporting to controller")
+            self.heartbeat("ip_change")
+            self.state.ip_addresses = ip_addresses
+            self._write_state()
+
+    @registered_only
+    def check_for_deploy(self):
+        current_build_hash = self.detect_build_hash()
+        if self.state.current_build_hash != current_build_hash:
+            logger.info("Build hash changed, reporting to controller")
+            self.heartbeat("deploy")
+            self.state.current_build_hash = current_build_hash
+            self._write_state()
+
     def report(self):
         logging.info("Reporting state to controller, currently not implemented")
 
@@ -159,6 +221,8 @@ def main():
     logging.basicConfig(level=logging.DEBUG)
 
     REPORT_INTERVAL = 60
+    TIMEOUT_INTERVAL = 600
+    CHECK_INTERVAL = 20
 
     controller_host = os.getenv("CONTROLLER_HOST")
 
@@ -173,6 +237,10 @@ def main():
     # TODO maybe implement any way to reregister if the controller loses the registration
     if not agent.registered:
         scheduler.retry_if_fails(10, agent.register)
+
+    scheduler.retry_if_fails(TIMEOUT_INTERVAL, agent.heartbeat, ["restart"])
+    scheduler.periodic(CHECK_INTERVAL, agent.check_for_ip_change)
+    scheduler.periodic(CHECK_INTERVAL, agent.check_for_deploy)
 
     scheduler.periodic(REPORT_INTERVAL, agent.report)
 

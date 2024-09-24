@@ -213,7 +213,8 @@ class Project:
     def create_folder_and_write_modules(self, base_path, identifier, modules, priority):
         path = self.path / base_path / identifier
         path.mkdir(exist_ok=True)
-        os.mknod(path / ".gitignore")
+        if not path / ".gitignore":  # TODO remove workaround for gitignore
+            os.mknod(path / ".gitignore")
         for module_settings in modules:
             try:
                 module = get_module_class_instance_by_type(module_settings.type)

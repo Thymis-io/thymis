@@ -383,7 +383,9 @@ class ThymisDevice(modules.Module):
 
         if device_type:
             f.write(f"  imports = [\n")
-            f.write(f"    inputs.thymis.nixosModules.thymis-device-{device_type}\n")
+            f.write(
+                f"    inputs.thymis.nixosModules.thymis-device-{device_type[0]}\n"
+            )  # TODO remove workaround
             f.write(f"  ];\n")
 
         if authorized_keys:
