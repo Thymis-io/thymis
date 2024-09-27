@@ -40,7 +40,7 @@
 		return data.state.tags.find((t) => t.identifier === identifier);
 	};
 
-	let currentDevice: Device | undefined = $globalNavSelectedDevice;
+	$: currentDevice = $globalNavSelectedDevice;
 	let currentlyEditingDevice: Device | undefined = undefined;
 	let deviceToDelete: Device | undefined = undefined;
 </script>
