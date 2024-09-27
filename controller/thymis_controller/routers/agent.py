@@ -97,25 +97,35 @@ def register(
                 f"Device with build hash {register_request.build_hash} already registered. Updating device."
             )
             state = project.read_state()
-            origin_device = next(
-                device
-                for device in state.devices
-                if device.identifier == image.identifier
-            )
-            # TODO check if origin_device was deleted or not found
+
+            origin_device = None
+            for device in state.devices:
+                if device.identifier == image.identifier:
+                    origin_device = device
+                    break
+            else:
+                logger.error(
+                    f"Device with identifier {image.identifier} not found in state. Cannot replace device."
+                )
+                raise HTTPException(
+                    status_code=500,
+                    detail="Device not found in state. Cannot replace device. Internal Server Error.",
+                )
+
             device = origin_device.model_copy()
 
             # find new name
-            x = 1
-            device_name = lambda x: f"{image.identifier}-old-{x}"
-            check_name = lambda x: any(
-                device.identifier == device_name(x) for device in state.devices
-            )
-            while check_name(x):
+            def device_name(x, text=image.identifier):
+                if x == 0:
+                    return f"{text}-old"
+                return f"{text}-old-{x}"
+
+            x = 0
+            while any(device.identifier == device_name(x) for device in state.devices):
                 x += 1
 
             device.identifier = device_name(x)
-            device.displayName = f"{device.displayName}-old-{x}"
+            device.displayName = device_name(x, text=device.displayName)
             state.devices.append(device)
             project.write_state_and_reload(state)
 

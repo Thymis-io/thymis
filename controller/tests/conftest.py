@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import sessionmaker
-from thymis_controller import crud
+from thymis_controller import crud, db_models
 from thymis_controller.dependencies import get_db_session, get_project
 from thymis_controller.models.state import Device
 

@@ -84,6 +84,7 @@ def get_by_build_hash(db_session: Session, build_hash: str):
     return (
         db_session.query(db_models.HostKey)
         .where(db_models.HostKey.build_hash == build_hash)
+        .order_by(db_models.HostKey.created_at.desc())
         .first()
     )
 
