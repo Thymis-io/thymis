@@ -239,18 +239,33 @@
 
 <h2 class="text-xl font-bold mt-8">{$t('tags.actions.create')}</h2>
 <div class="flex gap-2 mt-1">
-	<Label for="display-name">
+	<Label for="display-name" class="w-[600px]">
 		{$t('create-device.display-name-tag')}
-		<Input
-			id="display-name"
-			bind:value={newTag}
-			on:keydown={(e) => {
-				if (!nameValidation(newTag, 'tag') && e.key === 'Enter') {
+		<div class="flex flex-row gap-2">
+			<Input
+				id="display-name"
+				class="min-w-48"
+				bind:value={newTag}
+				on:keydown={(e) => {
+					if (!nameValidation(newTag, 'tag') && e.key === 'Enter') {
+						addTag(newTag);
+						newTag = '';
+					}
+				}}
+			/>
+			<Button
+				on:click={() => {
 					addTag(newTag);
 					newTag = '';
-				}
-			}}
-		/>
+				}}
+				disabled={!!nameValidation(newTag, 'tag')}
+				color="alternative"
+				class="p-2 gap-2 whitespace-nowrap"
+			>
+				<Plus />
+				{$t('tags.actions.add')}
+			</Button>
+		</div>
 		{#if newTag !== ''}
 			{#if nameValidation(newTag, 'tag')}
 				<Helper color="red">{nameValidation(newTag, 'tag')}</Helper>
@@ -263,16 +278,4 @@
 			{/if}
 		{/if}
 	</Label>
-	<Button
-		on:click={() => {
-			addTag(newTag);
-			newTag = '';
-		}}
-		disabled={!!nameValidation(newTag, 'tag')}
-		color="alternative"
-		class="p-2 gap-2 mt-5"
-	>
-		<Plus />
-		{$t('tags.actions.add')}
-	</Button>
 </div>
