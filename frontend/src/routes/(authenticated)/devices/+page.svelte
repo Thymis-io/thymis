@@ -85,9 +85,8 @@
 	}) satisfies KeyboardEventHandler<HTMLDivElement>;
 
 	$: devices = data.state.devices.map((d) => {
-		let registeredDevice = data.registeredDevices?.find((rd) => rd.identifier === d.identifier);
 		console.log(data.registeredDevices);
-		return { id: d.identifier, data: d, target: registeredDevice?.deviceHost };
+		return { id: d.identifier, data: d };
 	});
 
 	let deviceModalOpen = false;
@@ -143,8 +142,7 @@
 						saveState();
 					}}
 				/>
-				<TableBodyCell>{device.target ? device.target : $t('devices.unknown-target')}</TableBodyCell
-				>
+				<TableBodyCell>{$t('devices.unknown-target')}</TableBodyCell>
 				<TableBodyCell tdClass="p-2 px-2 md:px-4">
 					<div class="flex justify-between">
 						<div class="flex gap-2">
