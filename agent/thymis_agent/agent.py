@@ -238,9 +238,10 @@ def main():
     if not agent.registered:
         scheduler.retry_if_fails(10, agent.register)
 
-    scheduler.retry_if_fails(TIMEOUT_INTERVAL, agent.heartbeat, ["restart"])
+    scheduler.retry_if_fails(10, agent.heartbeat, ["restart"])
     scheduler.periodic(CHECK_INTERVAL, agent.check_for_ip_change)
     scheduler.periodic(CHECK_INTERVAL, agent.check_for_deploy)
+    scheduler.periodic(TIMEOUT_INTERVAL, agent.heartbeat, ["timeout"])
 
     scheduler.periodic(REPORT_INTERVAL, agent.report)
 
