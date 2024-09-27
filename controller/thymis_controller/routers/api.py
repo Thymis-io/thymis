@@ -1,7 +1,7 @@
 import asyncio
-from typing import List
+from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket
 from fastapi.responses import FileResponse, RedirectResponse
 from thymis_controller import (
     crud,
@@ -182,7 +182,15 @@ def get_registed_devices(session: SessionAD):
 
 
 @router.post("/scan-public-key", response_model=str)
-def scan_public_key(host: str):
+# regex host
+def scan_public_key(
+    host: Annotated[
+        str,
+        Query(
+            pattern="^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$"
+        ),
+    ]
+):
     """
     Scan a public key for a device
     """
