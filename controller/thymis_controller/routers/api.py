@@ -1,9 +1,17 @@
 import asyncio
 from typing import List
 
-from fastapi import APIRouter, Depends, Request, WebSocket
+from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket
 from fastapi.responses import FileResponse, RedirectResponse
-from thymis_controller import crud, db_models, dependencies, models, modules, project
+from thymis_controller import (
+    crud,
+    db_models,
+    dependencies,
+    models,
+    modules,
+    project,
+    utils,
+)
 from thymis_controller.dependencies import (
     SessionAD,
     get_project,
@@ -171,6 +179,19 @@ def get_registed_devices(session: SessionAD):
         )
 
     return registered_devices
+
+
+@router.post("/scan-public-key", response_model=str)
+def scan_public_key(host: str):
+    """
+    Scan a public key for a device
+    """
+    # TODO maybe return rsa key if no ed25519 key is found
+    for address, key in utils.ssh_keyscan_host(host):
+        if key.startswith("ssh-ed25519"):
+            return key
+    else:
+        raise HTTPException(status_code=400, detail="No valid public key found")
 
 
 @router.get("/testSession")
