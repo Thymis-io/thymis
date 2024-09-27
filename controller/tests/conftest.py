@@ -18,7 +18,7 @@ engine = create_engine(
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def db_session():
     """Create a new database session with a rollback at the end of the test."""
     from thymis_controller import db_models
@@ -34,7 +34,7 @@ def db_session():
     connection.close()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def project(db_session):
     from thymis_controller.project import Project
 
@@ -44,7 +44,7 @@ def project(db_session):
     tmpdir.cleanup()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def test_client(db_session, project) -> TestClient:
     """Create a test client that uses the override_get_db fixture to return a session."""
     from thymis_controller.main import app
@@ -61,49 +61,3 @@ def test_client(db_session, project) -> TestClient:
     app.dependency_overrides[get_db_session] = override_get_db
     app.dependency_overrides[get_project] = override_get_project
     return TestClient(app)
-
-
-# mock an entry in the image table
-@pytest.fixture(scope="module")
-def mock_image_entry(db_session):
-    image = crud.image.create(
-        db_session,
-        build_hash="test_hash",
-        identifier="test-device",
-        device_state={},
-        commit_hash="test_commit",
-    )
-    db_session.add(image)
-    db_session.commit()
-    return {"build_hash": "test_hash", "identifier": "test-device"}
-
-
-@pytest.fixture(scope="module")
-def mock_hostkey_entry(db_session):
-    hostkey = crud.hostkey.create(
-        db_session,
-        identifier="test-device-gdfgh3j9df",
-        build_hash="test_hash",
-        public_key="test_public",
-        device_host="test_host",
-    )
-    db_session.add(hostkey)
-    db_session.commit()
-    return {
-        "build_hash": "test_hash",
-        "identifier": "test-device",
-        "public_key": "test_public",
-    }
-
-
-@pytest.fixture(scope="module")
-def mock_device_in_state(db_session, mock_image_entry, project):
-    state = project.read_state()
-    state.devices.append(
-        Device(
-            identifier=mock_image_entry["identifier"],
-            displayName="test-device",
-            tags=[],
-            modules=[],
-        )
-    )
