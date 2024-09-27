@@ -15,7 +15,7 @@
 		"device-vnc": "VNC",
 		"external-repositories": "External Repositories",
 		"tags": "Tags",
-    	"device-details": "Details"
+		"device-details": "Details"
 	},
 	"common": {
 		"search": "Search...",
