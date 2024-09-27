@@ -5,7 +5,11 @@ from fastapi.testclient import TestClient
 from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import sessionmaker
 from thymis_controller import crud, db_models
-from thymis_controller.dependencies import get_db_session, get_project
+from thymis_controller.dependencies import (
+    get_db_session,
+    get_project,
+    require_valid_user_session,
+)
 from thymis_controller.models.state import Device
 
 # Create an in-memory SQLite database for testing
@@ -58,6 +62,10 @@ def test_client(db_session, project) -> TestClient:
     def override_get_project():
         return project
 
+    def override_authenticate():
+        return True
+
     app.dependency_overrides[get_db_session] = override_get_db
     app.dependency_overrides[get_project] = override_get_project
+    app.dependency_overrides[require_valid_user_session] = override_authenticate
     return TestClient(app)
