@@ -11,6 +11,7 @@
 	} from '@tanstack/svelte-table';
 
 	import TaskbarActions from './TaskbarActions.svelte';
+	import TaskbarStatus from './TaskbarStatus.svelte';
 	import { derived } from 'svelte/store';
 	import RenderUnixTimestamp from '$lib/components/RenderUnixTimestamp.svelte';
 
@@ -50,8 +51,11 @@
 					header: 'Task',
 					size: 300
 				}),
-				columnHelper.accessor('state', {
-					cell: (item) => item.getValue(),
+				columnHelper.accessor((task) => task, {
+					// cell: (item) => item.getValue(),
+					// header: 'Status',
+					// size: 100
+					cell: (item) => flexRender(TaskbarStatus, { task: item.getValue() }),
 					header: 'Status',
 					size: 100
 				}),

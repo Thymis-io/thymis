@@ -140,7 +140,11 @@ async def _reverse_proxy(request: fastapi.Request):
         content=request.stream(),
         timeout=None,
     )
-    rp_resp = await client.send(rp_req, stream=True)
+    try:
+        rp_resp = await client.send(rp_req, stream=True)
+    except Exception as e:
+        logger.error("Failed to proxy request: %s", e)
+        raise e
     return StreamingResponse(
         rp_resp.aiter_raw(),
         status_code=rp_resp.status_code,

@@ -18,12 +18,24 @@ export type CommandTask = Omit<TaskVanilla, 'type'> & {
 	stdout: string;
 	stderr: string;
 };
+export type NixCommandTask = Omit<CommandTask, 'type'> & {
+	type: 'nixcommandtask';
+	status: {
+		done: number;
+		expected: number;
+		running: number;
+		failed: number;
+		errors: unknown[];
+		logs_by_level: Record<number, string[]>;
+	};
+};
+
 export type CompositeTask = Omit<TaskVanilla, 'type'> & {
 	type: 'compositetask';
 	tasks: TaskList;
 };
 
-export type Task = TaskVanilla | CommandTask | CompositeTask;
+export type Task = TaskVanilla | CommandTask | CompositeTask | NixCommandTask;
 
 export type TaskList = Task[];
 

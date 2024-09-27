@@ -25,7 +25,7 @@
 			Retry
 		</Button>
 	{/if}
-	<a href="/tasks/{task.id}">
+	<a data-sveltekit-preload-data="tap" href="/tasks/{task.id}/">
 		<Button class="btn btn-sm btn-primary px-4 py-2">View</Button>
 	</a>
 </div>

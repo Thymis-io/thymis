@@ -1,6 +1,7 @@
 import asyncio
 import collections
 import copy
+import datetime
 import json
 import logging
 import os
@@ -12,6 +13,7 @@ from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
 from thymis_controller import models, project
 from thymis_controller.nix import NIX_CMD
+from thymis_controller.nix.log_parse import NixProcess
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +30,9 @@ class TaskController:
 
     task_limit: int
 
+    last_send_time: datetime.datetime
+    min_send_interval: datetime.timedelta
+
     def __init__(self):
         self.all_tasks_list = []
         self.all_tasks_dict = {}
@@ -38,6 +43,10 @@ class TaskController:
         self.running_tasks = []
         self.active_listeners = []
         self.barriers = {}
+
+        self.last_send_time = datetime.datetime.now()
+        self.last_send_content = None
+        self.min_send_interval = datetime.timedelta(milliseconds=100)
 
     def count_command_tasks_running(self):
         return len(
@@ -104,7 +113,19 @@ class TaskController:
         await self.try_run_front_of_queue()
 
     async def send_all_tasks(self):
+        if datetime.datetime.now() - self.last_send_time < self.min_send_interval:
+            asyncio.create_task(self.send_all_tasks_delayed())
+            return
+        content = json.dumps(jsonable_encoder(self.get_tasks()))
+        if content == self.last_send_content:
+            return
+        self.last_send_time = datetime.datetime.now()
         await self.send_broadcast(json.dumps(jsonable_encoder(self.get_tasks())))
+        self.last_send_content = content
+
+    async def send_all_tasks_delayed(self):
+        await asyncio.sleep((2 * self.min_send_interval).total_seconds())
+        await self.send_all_tasks()
 
     async def send_broadcast(self, data: str):
         for connection in self.active_listeners:
@@ -385,6 +406,70 @@ class CommandTask(Task):
         return new_task
 
 
+class NixCommandTask(Task):
+    nix_process: NixProcess
+
+    def __init__(self, display_name, args, nix_command=None, env=None):
+        super().__init__(display_name)
+
+        self.nix_process = NixProcess(args, nix_command, None, env)
+        self.nix_process.subscribe(self.process_subscriber)
+
+    async def _run(self):
+        return await self.nix_process.run()
+
+    async def process_subscriber(self, nix_process: NixProcess):
+        await self.controller.send_all_tasks()
+
+    def get_model(self) -> models.NixCommandTask:
+        return models.NixCommandTask(
+            id=str(self.id),
+            type="nixcommandtask",
+            display_name=self.display_name,
+            start_time=self.start_time,
+            end_time=self.end_time,
+            state=self.state,
+            exception=str(self.exception),
+            stdout=self.nix_process.stdout.decode(),
+            stderr=self.nix_process.stderr.decode(),
+            status=self.nix_process.get_model(),
+            data={
+                "args": self.nix_process.args,
+                "env": self.nix_process.env,
+                "program": self.nix_process.nix_command or NIX_CMD[0],
+            },
+        )
+
+    async def cancel(self):
+        self.cancelled = True
+        if self.state == "pending":
+            self.state = "failed"
+            self.exception = Exception("Task was cancelled")
+            self.end_time = time.time()
+            await self.controller.cleanup_task(self)
+        elif self.state == "running":
+            self.nix_process.cancel()
+            self.state = "failed"
+            self.exception = Exception("Task was cancelled")
+            self.end_time = time.time()
+            await self.controller.cleanup_task(self)
+        else:
+            raise ValueError("Task is not pending or running")
+
+    def copy_for_retry(self):
+        new_task = copy.copy(self)
+        new_task.id = uuid.uuid4()
+        new_task.start_time = time.time()
+        new_task.end_time = None
+        new_task.state = "pending"
+        new_task.exception = None
+        new_task.controller = None
+        new_task.cancelled = False
+        new_task.nix_process = self.nix_process.copy_for_retry()
+        new_task.nix_process.subscribe(new_task.process_subscriber)
+        return new_task
+
+
 class CompositeTask(Task):
     tasks: list[Task]
 
@@ -452,14 +537,13 @@ class CompositeTask(Task):
         return new_task
 
 
-class BuildTask(CommandTask):
+class BuildProjectTask(NixCommandTask):
     def __init__(self, repo_dir):
         super().__init__(
-            "nix",
-            [*NIX_CMD[1:], "build", f"{repo_dir}#thymis", "--out-link", "/tmp/thymis"],
+            "Building project",
+            ["build", f"{repo_dir}#thymis", "--out-link", "/tmp/thymis"],
         )
-
-        self.display_name = "Building project"
+        self.repo_dir = repo_dir
 
 
 class DeployProjectTask(CompositeTask):
@@ -474,38 +558,38 @@ class DeployProjectTask(CompositeTask):
         self.display_name = "Deploying project"
 
 
-class DeployDeviceTask(CommandTask):
+class DeployDeviceTask(NixCommandTask):
     def __init__(self, repo_dir, device: models.Device, ssh_key_path: str):
         super().__init__(
-            "nixos-rebuild",
+            f"Deploying to {device.identifier} on {device.targetHost}",
             [
-                *NIX_CMD[1:],
                 "switch",
                 "--flake",
                 f"{repo_dir}#{device.identifier}",
                 "--target-host",
                 f"root@{device.targetHost}",
             ],
+            "nixos-rebuild",
             env={
-                "NIX_SSHOPTS": f"-i {ssh_key_path} -o StrictHostKeyChecking=accept-new -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no",
+                "NIX_SSHOPTS": f"-i {ssh_key_path} -o StrictHostKeyChecking=accept-new -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ConnectTimeout=10",
                 "PATH": os.getenv("PATH"),
             },
         )
 
-        self.display_name = f"Deploying to {device.targetHost}"
 
-
-class UpdateTask(CommandTask):
+class UpdateTask(NixCommandTask):
     def __init__(self, repo_dir):
-        super().__init__("nix", [*NIX_CMD[1:], "flake", "update", repo_dir])
+        super().__init__(
+            "Updating flake",
+            ["flake", "update", repo_dir],
+        )
 
 
-class BuildDeviceImageTask(CommandTask):
+class BuildDeviceImageTask(NixCommandTask):
     def __init__(self, repo_dir, identifier):
         super().__init__(
-            "nix",
+            f"Building image for {identifier}",
             [
-                *NIX_CMD[1:],
                 "build",
                 f'{repo_dir}#nixosConfigurations."{identifier}".config.formats.sd-card-image',
                 "--out-link",
@@ -513,24 +597,25 @@ class BuildDeviceImageTask(CommandTask):
             ],
         )
 
-        self.display_name = f"Building image for {identifier}"
         self.identifier = identifier
 
-    def get_model(self) -> models.CommandTask:
-        return models.CommandTask(
+    def get_model(self) -> models.NixCommandTask:
+        return models.NixCommandTask(
             id=str(self.id),
-            type="commandtask",
+            type="nixcommandtask",
             display_name=self.display_name,
             start_time=self.start_time,
             end_time=self.end_time,
             state=self.state,
             exception=str(self.exception),
-            stdout=self.stdout.decode(),
-            stderr=self.stderr.decode(),
+            stdout=self.nix_process.stdout.decode(),
+            stderr=self.nix_process.stderr.decode(),
+            status=self.nix_process.get_model(),
             data={
                 "identifier": self.identifier,
-                "program": self.program,
-                "args": self.args,
+                "args": self.nix_process.args,
+                "env": self.nix_process.env,
+                "program": self.nix_process.nix_command or NIX_CMD[0],
             },
         )
 
