@@ -103,7 +103,7 @@ async def device_and_build_download_image_for_clone(
         x += 1
 
     new_identifier = device_name(x)
-
+    crud.hostkey.rename_device(db_session, identifier, new_identifier)
     project.clone_state_device(identifier, new_identifier, lambda n: f"{n}-{x}")
     await project.create_build_device_image_task(new_identifier, db_session)
 
