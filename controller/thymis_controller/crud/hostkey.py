@@ -106,3 +106,18 @@ def has_device(db_session: Session, identifier: str):
         .where(db_models.HostKey.identifier == identifier)
         .first()
     ) is not None
+
+
+def get_by_identifier(db_session: Session, identifier: str):
+    return (
+        db_session.query(db_models.HostKey)
+        .where(db_models.HostKey.identifier == identifier)
+        .first()
+    )
+
+
+def delete(db_session: Session, identifier: str):
+    db_session.query(db_models.HostKey).where(
+        db_models.HostKey.identifier == identifier
+    ).delete()
+    db_session.commit()

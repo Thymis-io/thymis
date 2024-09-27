@@ -13,10 +13,20 @@ class DeviceHeartbeatRequest(BaseModel):
     ip_addresses: List[str]
 
 
-class RegisteredDevice(BaseModel):
+class Hostkey(BaseModel):
     identifier: str = Field(serialization_alias="identifier")
     public_key: str = Field(serialization_alias="publicKey")
     device_host: str = Field(serialization_alias="deviceHost")
 
 
-__all__ = ["RegisterDeviceRequest", "RegisteredDevice", "DeviceHeartbeatRequest"]
+class CreateHostkeyRequest(BaseModel):
+    public_key: str = Field(serialization_alias="publicKey")
+    device_host: str = Field(serialization_alias="deviceHost")
+
+
+__all__ = [
+    "RegisterDeviceRequest",
+    "Hostkey",
+    "DeviceHeartbeatRequest",
+    "CreateHostkeyRequest",
+]

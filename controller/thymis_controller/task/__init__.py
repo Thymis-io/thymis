@@ -468,7 +468,7 @@ class DeployProjectTask(CompositeTask):
     def __init__(
         self,
         project: "project.Project",
-        devices: List[models.RegisteredDevice],
+        devices: List[models.Hostkey],
         ssh_key_path: str,
     ):
         deployable_devices = []

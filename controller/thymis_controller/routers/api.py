@@ -1,5 +1,5 @@
 import asyncio
-from typing import Annotated, List
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket
 from fastapi.responses import FileResponse, RedirectResponse
@@ -69,7 +69,7 @@ async def deploy(
     registered_devices = []
     for device in crud.hostkey.get_all(session):
         registered_devices.append(
-            models.RegisteredDevice.model_validate(device, from_attributes=True)
+            models.Hostkey.model_validate(device, from_attributes=True)
         )
 
     # runs a nix command to deploy the flake
@@ -188,18 +188,42 @@ async def websocket_endpoint(
         ws_to_tcp_task.cancel()
 
 
-@router.get("/devices", response_model=List[models.RegisteredDevice])
-def get_registed_devices(session: SessionAD):
+@router.get("/hostkey/{identifier}", response_model=models.Hostkey)
+def get_hostkey(db_session: SessionAD, identifier: str):
     """
-    Get all devices that registered themselves with the controller as host key
+    Get the hostkey for a device
     """
-    registered_devices = []
-    for device in crud.hostkey.get_all(session):
-        registered_devices.append(
-            models.RegisteredDevice.model_validate(device, from_attributes=True)
-        )
+    hostkey = crud.hostkey.get_by_identifier(db_session, identifier)
+    if not hostkey:
+        raise HTTPException(status_code=404, detail="Hostkey not found")
+    return hostkey
 
-    return registered_devices
+
+@router.put("/hostkey/{identifier}", response_model=models.Hostkey)
+def create_hostkey(
+    identifier: str,
+    hostkey: models.CreateHostkeyRequest,
+    db_session: SessionAD,
+):
+    """
+    Create a hostkey for a device
+    """
+    if crud.hostkey.get_by_identifier(db_session, identifier):
+        crud.hostkey.delete(db_session, identifier)
+
+    return crud.hostkey.create(
+        db_session, identifier, None, hostkey.public_key, hostkey.device_host
+    )
+
+
+@router.delete("/hostkey/{identifier}")
+def delete_hostkey(db_session: SessionAD, identifier: str):
+    """
+    Delete the hostkey for a device
+    """
+    if not crud.hostkey.get_by_identifier(db_session, identifier):
+        raise HTTPException(status_code=404, detail="Hostkey not found")
+    crud.hostkey.delete(db_session, identifier)
 
 
 @router.post("/scan-public-key", response_model=str)

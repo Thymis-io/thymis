@@ -307,7 +307,7 @@ class Project:
             )
         )
 
-    def create_deploy_project_task(self, devices: List[models.RegisteredDevice]):
+    def create_deploy_project_task(self, devices: List[models.Hostkey]):
         return task.global_task_controller.add_task(
             task.DeployProjectTask(self, devices, global_settings.SSH_KEY_PATH)
         )
