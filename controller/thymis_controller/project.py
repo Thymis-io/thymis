@@ -278,6 +278,20 @@ class Project:
         self.repo.index.commit(f"Revert to {sha1}: {commit_to_revert.message}")
         logger.info(f"Reverted commit: {commit_to_revert}")
 
+    def clone_state_device(
+        self, device_identifier, new_device_identifier, new_device_display_name=None
+    ):
+        state = self.read_state()
+        device = next(
+            device for device in state.devices if device.identifier == device_identifier
+        )
+        new_device = device.model_copy()
+        new_device.identifier = new_device_identifier
+        if new_device_display_name:
+            new_device.displayName = new_device_display_name(device.displayName)
+        state.devices.append(new_device)
+        self.write_state_and_reload(state)
+
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildTask(self.path))
 

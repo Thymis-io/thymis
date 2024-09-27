@@ -87,6 +87,27 @@ async def build_download_image(
     await project.create_build_device_image_task(identifier, db_session)
 
 
+@router.post("/action/build-download-image-for-clone")
+async def device_and_build_download_image_for_clone(
+    identifier: str,
+    db_session: SessionAD,
+    project: project.Project = Depends(get_project),
+):
+    state = project.read_state()
+    x = 1
+    device_name = lambda x: f"{identifier}-{x}"
+    check_name = lambda x: any(
+        device.identifier == device_name(x) for device in state.devices
+    )
+    while check_name(x):
+        x += 1
+
+    new_identifier = device_name(x)
+
+    project.clone_state_device(identifier, new_identifier, lambda n: f"{n}-{x}")
+    await project.create_build_device_image_task(new_identifier, db_session)
+
+
 @router.post("/action/restart-device")
 async def restart_device(
     identifier: str,
