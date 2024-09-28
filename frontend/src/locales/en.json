@@ -38,7 +38,7 @@
 			"status": "Status"
 		},
 		"actions": {
-			"edit": "Edit",
+			"edit": "Edit Modules",
 			"download": "Download Image",
 			"restart": "Restart",
 			"delete": "Delete"
@@ -215,5 +215,14 @@
 	},
 	"tag": {
 		"device": "Device"
+	},
+	"device-details": {
+		"network": "Network",
+		"targetHost": "Target Host",
+		"tags": "Tags",
+		"config": "Configuration",
+		"actions": "Actions",
+		"danger": "Danger",
+		"modules": "Modules"
 	}
 }

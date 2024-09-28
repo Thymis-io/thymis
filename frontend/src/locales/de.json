@@ -37,7 +37,7 @@
 			"status": "Status"
 		},
 		"actions": {
-			"edit": "Bearbeiten",
+			"edit": "Module Bearbeiten",
 			"download": "Image Herunterladen",
 			"restart": "Neustarten",
 			"delete": "Löschen"
