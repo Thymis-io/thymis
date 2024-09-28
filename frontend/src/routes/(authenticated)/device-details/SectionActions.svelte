@@ -25,7 +25,7 @@
 
 <Section class={className} title={$t('device-details.actions')}>
 	<Button
-		class="px-4 py-2 gap-2"
+		class="px-4 py-2 gap-2 flex justify-start"
 		color="alternative"
 		on:click={() => buildAndDownloadImage(device)}
 	>
@@ -33,7 +33,11 @@
 		{$t('devices.actions.download')}
 	</Button>
 	<div />
-	<Button class="px-4 py-2 gap-2" color="alternative" on:click={() => restartDevice(device)}>
+	<Button
+		class="px-4 py-2 gap-2 justify-start"
+		color="alternative"
+		on:click={() => restartDevice(device)}
+	>
 		<RotateCcw size="20" />
 		{$t('devices.actions.restart')}
 	</Button>
