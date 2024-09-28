@@ -2,7 +2,10 @@
 	import { t } from 'svelte-i18n';
 	import Section from './Section.svelte';
 	import { type Device, type Module, state } from '$lib/state';
-	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
+	import {
+		buildGlobalNavSearchParam,
+		buildConfigSelectModuleSearchParam
+	} from '$lib/searchParamHelpers';
 	import { page } from '$app/stores';
 	import { Button } from 'flowbite-svelte';
 	import Pen from 'lucide-svelte/icons/pen';
@@ -33,16 +36,22 @@
 	<p>{$t('device-details.modules')}:</p>
 	<div class="flex gap-2 items-center flex-wrap">
 		{#each getOwnModules(device, availableModules) as module}
-			<Button pill size="sm" class="p-2 py-1 gap-2 text-nowrap">
-				<img src={module.icon ?? '/favicon.png'} alt={module.displayName} class="w-5 h-5" />
-				{module.displayName}
-			</Button>
+			<a
+				href={`/config?${buildConfigSelectModuleSearchParam(
+					$page.url.search,
+					'device',
+					device.identifier,
+					'device',
+					device.identifier,
+					module
+				)}`}
+			>
+				<Button pill size="sm" class="p-2 py-1 gap-2 text-nowrap">
+					<img src={module.icon ?? '/favicon.png'} alt={module.displayName} class="w-5 h-5" />
+					{module.displayName}
+				</Button>
+			</a>
 		{/each}
-		<a href={`/config?${buildGlobalNavSearchParam($page.url.search, 'device', device.identifier)}`}>
-			<button class="btn ml-4 p-0">
-				<Pen size="20" />
-			</button>
-		</a>
 	</div>
 	<p>{$t('device-details.tags')}:</p>
 	<div class="flex gap-2 items-center">
