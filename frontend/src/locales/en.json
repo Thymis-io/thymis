@@ -49,7 +49,8 @@
 		"edit-name-title": "Edit Name",
 		"edit-hostname-title": "Edit target hostname",
 		"edit-tags-title": "Edit Tags",
-		"new-tag-placeholder": "New Tag..."
+		"new-tag-placeholder": "New Tag...",
+		"device-limit-info": "{deviceCount}/{deviceLimit} devices in use.\nUpgrade your licence at {licenceLink}"
 	},
 	"create-device": {
 		"title": "Create a new device",

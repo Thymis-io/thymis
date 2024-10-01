@@ -49,7 +49,8 @@
 		"edit-name-title": "Namen Bearbeiten",
 		"edit-hostname-title": "Ziel Hostnamen Bearbeiten",
 		"edit-tags-title": "Tags Bearbeiten",
-		"new-tag-placeholder": "Neuer Tag..."
+		"new-tag-placeholder": "Neuer Tag...",
+		"device-limit-info": "{deviceCount}/{deviceLimit} Geräte in Gebrauch.\nUpgraden Sie Ihre Lizenz auf {licenceLink}"
 	},
 	"create-device": {
 		"title": "Neues Gerät Erstellen",
