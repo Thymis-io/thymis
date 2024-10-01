@@ -235,7 +235,7 @@ class Task:
 
     def get_model(self):
         return models.PlainTask(
-            id=self.id,
+            id=str(self.id),
             start_time=self.start_time,
             end_time=self.end_time,
             display_name=self.display_name,
@@ -547,6 +547,8 @@ class BuildProjectTask(NixCommandTask):
 
 
 class DeployProjectTask(CompositeTask):
+    project: "project.Project"
+
     def __init__(self, project: "project.Project", ssh_key_path: str):
         super().__init__(
             [
@@ -555,7 +557,14 @@ class DeployProjectTask(CompositeTask):
             ]
         )
 
+        self.project = project
         self.display_name = "Deploying project"
+
+    def _run(self):
+        device_count = len(self.project.read_state().devices)
+        if device_count > 5:
+            raise Exception(f"Too many devices for free license ({device_count}/5)")
+        return super()._run()
 
 
 class DeployDeviceTask(NixCommandTask):
