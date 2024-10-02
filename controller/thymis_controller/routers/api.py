@@ -173,9 +173,15 @@ async def terminal_websocket(
 
     client = SSHClient()
     client.load_system_host_keys()
-    client.connect(tcp_ip, tcp_port, "root")
 
-    channel = client.invoke_shell()
+    try:
+        client.connect(tcp_ip, tcp_port, "root")
+        channel = client.invoke_shell()
+    except Exception as e:
+        await websocket.send_bytes(str(e).encode())
+        await websocket.close()
+        client.close()
+        return
 
     channel_to_ws_task = asyncio.create_task(channel_to_websocket(channel, websocket))
     ws_to_channel_task = asyncio.create_task(websocket_to_channel(channel, websocket))
