@@ -14,7 +14,8 @@
 		"global-vnc": "VNC All Devices",
 		"device-vnc": "VNC",
 		"external-repositories": "External Repositories",
-		"tags": "Tags"
+		"tags": "Tags",
+		"device-details": "Details"
 	},
 	"common": {
 		"search": "Search...",
@@ -37,7 +38,7 @@
 			"status": "Status"
 		},
 		"actions": {
-			"edit": "Edit",
+			"edit": "Edit Modules",
 			"download": "Download Image",
 			"restart": "Restart",
 			"delete": "Delete"
@@ -215,5 +216,14 @@
 	},
 	"tag": {
 		"device": "Device"
+	},
+	"device-details": {
+		"network": "Network",
+		"targetHost": "Target Host",
+		"tags": "Tags",
+		"config": "Configuration",
+		"actions": "Actions",
+		"danger": "Danger",
+		"modules": "Modules"
 	}
 }
