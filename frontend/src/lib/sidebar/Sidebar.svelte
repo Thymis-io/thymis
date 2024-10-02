@@ -19,6 +19,7 @@
 	import ChartSimpleSolid from 'svelte-awesome-icons/ChartSimpleSolid.svelte';
 	import GearSolid from 'svelte-awesome-icons/GearSolid.svelte';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
+	import TagIcon from 'lucide-svelte/icons/tag';
 	import {
 		globalNavSelectedDevice,
 		globalNavSelectedTag,
@@ -113,6 +114,11 @@
 			name: $t('nav.devices'),
 			icon: ServerSolid,
 			href: '/devices'
+		},
+		{
+			name: $t('nav.tags'),
+			icon: TagIcon,
+			href: '/tags'
 		},
 		{
 			name: $t('nav.global-vnc'),

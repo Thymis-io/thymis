@@ -30,4 +30,5 @@
 			<Pen size="18" />
 		</button>
 	</div>
+	<slot name="bottom" {value} />
 </TableBodyCell>

@@ -22,10 +22,13 @@
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
 	import { flip } from 'svelte/animate';
-	import { nameToIdentifier } from './deviceName';
+	import { nameToIdentifier } from '$lib/nameValidation';
+	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 
 	const flipDurationMs = 200;
 	let dragDisabled = true;
+
+	let deviceToDelete: Device | undefined = undefined;
 
 	export let data: PageData;
 
@@ -100,10 +103,18 @@
 	<DeployActions />
 </div>
 <CreateDeviceModal bind:open={deviceModalOpen} />
+<DeleteConfirm
+	target={deviceToDelete?.displayName}
+	on:confirm={() => {
+		if (deviceToDelete) deleteDevice(deviceToDelete);
+		deviceToDelete = undefined;
+	}}
+	on:cancel={() => (deviceToDelete = undefined)}
+/>
 <EditTagModal bind:currentlyEditingDevice />
 <Table shadow>
 	<TableHead>
-		<TableHeadCell padding="p-2" />
+		<TableHeadCell padding="p-2 w-12" />
 		<TableHeadCell padding="p-2">{$t('devices.table.name')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('devices.table.target-host')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('devices.table.tags')}</TableHeadCell>
@@ -116,7 +127,7 @@
 	>
 		{#each devices as device (device.id)}
 			<tr
-				class="border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700"
+				class="border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
 				animate:flip={{ duration: flipDurationMs }}
 			>
 				<TableBodyCell tdClass="p-2">
@@ -167,7 +178,7 @@
 						</button>
 					</div>
 				</TableBodyCell>
-				<TableBodyCell tdClass="p-2 px-2 md:px-4 whitespace-nowrap">
+				<TableBodyCell tdClass="p-2 px-2 md:px-4">
 					<div class="flex gap-2">
 						<Button
 							class="px-4 py-2"
@@ -197,7 +208,7 @@
 						<Button
 							class="ml-8 px-4 py-2"
 							color="alternative"
-							on:click={() => deleteDevice(device.data)}
+							on:click={() => (deviceToDelete = device.data)}
 						>
 							{$t('devices.actions.delete')}
 						</Button>

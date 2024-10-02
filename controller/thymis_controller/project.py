@@ -293,7 +293,7 @@ class Project:
         self.write_state_and_reload(state)
 
     def create_build_task(self):
-        return task.global_task_controller.add_task(task.BuildTask(self.path))
+        return task.global_task_controller.add_task(task.BuildProjectTask(self.path))
 
     def create_deploy_device_task(self, device_identifier: str, target_host: str):
         device = next(
