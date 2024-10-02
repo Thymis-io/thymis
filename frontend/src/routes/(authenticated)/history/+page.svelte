@@ -12,13 +12,13 @@
 
 	const lineColor = (line: string) => {
 		if (line.startsWith('+')) {
-			return 'text-green-400';
+			return 'text-green-500 fark:text-green-400';
 		} else if (line.startsWith('-')) {
-			return 'text-red-400';
+			return 'text-red-500 dark:text-red-400';
 		} else if (line.startsWith('@@')) {
-			return 'text-cyan-400';
+			return 'text-cyan-600 dark:text-cyan-400';
 		}
-		return 'text-gray-200';
+		return 'text-gray-700 dark:text-gray-200';
 	};
 </script>
 
@@ -35,11 +35,11 @@
 			<li class="mb-2 text-gray-600">
 				<div class="flex justify-between">
 					<div>
-						<span class="text-gray-600">{history.message}</span>
+						<span class="text-gray-600 dark:text-gray-400">{history.message}</span>
 						<br />
-						<span class="text-gray-400"> by {history.author}</span>
-						<span class="text-gray-400"> on {history.date}</span>
-						<span class="text-gray-400"> with hash {history.SHA1}</span>
+						<span class="text-gray-400 dark:text-gray-600"> by {history.author}</span>
+						<span class="text-gray-400 dark:text-gray-600"> on {history.date}</span>
+						<span class="text-gray-400 dark:text-gray-600"> with hash {history.SHA1}</span>
 					</div>
 					<div class="shrink">
 						<Button
