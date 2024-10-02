@@ -41,7 +41,7 @@ async def channel_to_websocket(channel: Channel, websocket: WebSocket):
             if channel.closed:
                 break
             if not channel.recv_ready():
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.01)
                 continue
             data = channel.recv(1024)
             if not data:

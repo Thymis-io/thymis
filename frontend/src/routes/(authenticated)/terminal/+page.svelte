@@ -26,10 +26,12 @@
 		ws = new WebSocket(url);
 
 		const fitAddon = new (await XtermAddon.FitAddon()).FitAddon();
-		const attachAddon = new (await XtermAddon.AttachAddon()).AttachAddon(ws);
 		terminal.loadAddon(fitAddon);
-		terminal.loadAddon(attachAddon);
 		fitAddon.fit();
+		console.log(fitAddon.proposeDimensions());
+
+		const attachAddon = new (await XtermAddon.AttachAddon()).AttachAddon(ws);
+		terminal.loadAddon(attachAddon);
 	};
 
 	$: {
@@ -42,4 +44,4 @@
 	}
 </script>
 
-<Xterm {options} on:load={onLoad} />
+<Xterm {options} on:load={onLoad} class="w-full h-full" />
