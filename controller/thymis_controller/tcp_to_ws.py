@@ -38,6 +38,8 @@ async def websocket_to_tcp(tcp_writer, websocket):
 async def channel_to_websocket(channel: Channel, websocket: WebSocket):
     try:
         while True:
+            if channel.closed:
+                break
             if not channel.recv_ready():
                 await asyncio.sleep(0.1)
                 continue
