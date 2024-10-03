@@ -39,6 +39,9 @@
 		const attachAddon = new (await XtermAddon.AttachAddon()).AttachAddon(ws);
 		terminal.loadAddon(attachAddon);
 
+		const webglAddon = new (await XtermAddon.WebglAddon()).WebglAddon();
+		terminal.loadAddon(webglAddon);
+
 		terminal.writeln(`Connecting to ${device.displayName}...`);
 	};
 
