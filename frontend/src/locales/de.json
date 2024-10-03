@@ -41,7 +41,8 @@
 			"edit": "Module Bearbeiten",
 			"download": "Image Herunterladen",
 			"restart": "Neustarten",
-			"delete": "Löschen"
+			"delete": "Löschen",
+			"view-details": "Details anzeigen"
 		},
 		"status": {
 			"online": "Online",
