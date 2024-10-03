@@ -202,11 +202,11 @@ class ThymisDevice(modules.Module):
         nix_attr_name="thymis.config.device-type",
         type=modules.SelectOneType(
             select_one=[
-                ("generic-x86_64", "generic-x86_64"),
-                ("raspberry-pi-3", "raspberry-pi-3"),
-                ("raspberry-pi-4", "raspberry-pi-4"),
-                ("raspberry-pi-5", "raspberry-pi-5"),
-                ("generic-aarch64", "generic-aarch64"),
+                ("Generic x86-64", "generic-x86_64"),
+                ("Raspberry Pi 3", "raspberry-pi-3"),
+                ("Raspberry Pi 4", "raspberry-pi-4"),
+                ("Raspberry Pi 5", "raspberry-pi-5"),
+                ("Generic AArch64", "generic-aarch64"),
             ]
         ),
         default="",

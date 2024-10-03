@@ -27,8 +27,8 @@
 		? thymisDeviceModule?.settings['device_type'].type['select-one']
 		: [];
 	$: deviceTypesSelect = deviceTypes?.map((deviceType) => ({
-		value: deviceType,
-		name: $t(`options.nix.thymis.config.device-type-options.${deviceType}`)
+		name: deviceType[0],
+		value: deviceType[1]
 	}));
 	let selectedDeviceType: string | undefined = undefined;
 
