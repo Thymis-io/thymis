@@ -14,6 +14,7 @@ let
     preferWheels = true;
     overrides = poetry2nix.overrides.withDefaults (self: super: {
       thymis-enterprise = null;
+      bcrypt = python312.pkgs.bcrypt;
     });
     groups = [ ];
     checkGroups = [ "test" ];
