@@ -17,9 +17,9 @@
 		cursorBlink: true
 	};
 
-	async function onLoad(event: CustomEvent<{ terminal: Terminal }>) {
+	const onLoad = (event: CustomEvent<{ terminal: Terminal }>) => {
 		terminal = event.detail.terminal;
-	}
+	};
 
 	const initTerminal = async (device: Device, terminal: Terminal) => {
 		const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
@@ -29,7 +29,6 @@
 		const fitAddon = new (await XtermAddon.FitAddon()).FitAddon();
 		terminal.loadAddon(fitAddon);
 		fitAddon.fit();
-		console.log(fitAddon.proposeDimensions());
 
 		const attachAddon = new (await XtermAddon.AttachAddon()).AttachAddon(ws);
 		terminal.loadAddon(attachAddon);
@@ -41,14 +40,6 @@
 		terminal?.reset();
 		ws?.close();
 	};
-
-	onMount(() => {
-		resetConnection();
-
-		if (device && terminal) {
-			initTerminal(device, terminal);
-		}
-	});
 
 	onDestroy(() => {
 		resetConnection();
