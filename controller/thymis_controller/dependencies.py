@@ -6,7 +6,6 @@ from typing import Annotated, Generator, Optional, Union
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
 from thymis_controller.crud import web_session
-from thymis_controller.database.connection import engine
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +32,8 @@ def get_state(project: Project = Depends(get_project)):
 
 
 def get_db_session() -> Generator[Session, None, None]:
+    from thymis_controller.database.connection import engine
+
     with Session(engine) as session:
         yield session
 
