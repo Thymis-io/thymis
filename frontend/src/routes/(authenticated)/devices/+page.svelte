@@ -103,21 +103,16 @@
 			on:click={() => (deviceModalOpen = true)}
 			disabled={devices.length >= 5}
 		>
-			{$t('devices.create-new')}
+			{$t('devices.create-new', {
+				values: {
+					deviceCount: devices.length,
+					deviceLimit: 5
+				}
+			})}
 		</Button>
 	</div>
 	<DeployActions />
 </div>
-<p class="text-sm mb-4">
-	{@html $t('devices.device-limit-info', {
-		values: {
-			deviceCount: devices.length,
-			deviceLimit: 5,
-			licenceLink:
-				'<a target="_blank" rel="noopener noreferrer" class="underline" href="https://thymis.io/en/pricing/">Thymis.io</a>'
-		}
-	})}
-</p>
 <CreateDeviceModal bind:open={deviceModalOpen} />
 <DeleteConfirm
 	target={deviceToDelete?.displayName}

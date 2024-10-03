@@ -28,7 +28,7 @@
 		"control-device": "Gerät Steuern"
 	},
 	"devices": {
-		"create-new": "Neues Gerät Erstellen",
+		"create-new": "Neues Gerät Erstellen ({deviceCount}/{deviceLimit})",
 		"table": {
 			"name": "Name",
 			"target-host": "Ziel Host",
@@ -49,8 +49,7 @@
 		"edit-name-title": "Namen Bearbeiten",
 		"edit-hostname-title": "Ziel Hostnamen Bearbeiten",
 		"edit-tags-title": "Tags Bearbeiten",
-		"new-tag-placeholder": "Neuer Tag...",
-		"device-limit-info": "{deviceCount}/{deviceLimit} Geräte in Gebrauch.\nUpgraden Sie Ihre Lizenz auf {licenceLink}"
+		"new-tag-placeholder": "Neuer Tag..."
 	},
 	"create-device": {
 		"title": "Neues Gerät Erstellen",
