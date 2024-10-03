@@ -97,30 +97,28 @@
 </script>
 
 <div class="flex justify-between mb-4">
-	<div class="flex gap-4 flex-col items-start xl:flex-row xl:items-center">
-		<Button
-			color="alternative"
-			class="whitespace-nowrap"
-			on:click={() => (deviceModalOpen = true)}
-			disabled={devices.length >= 5}
-		>
-			{$t('devices.create-new', {
+	<Button
+		color="alternative"
+		class="whitespace-nowrap"
+		on:click={() => (deviceModalOpen = true)}
+		disabled={devices.length >= 5}
+	>
+		{$t('devices.create-new', {
+			values: {
+				deviceCount: devices.length,
+				deviceLimit: 5
+			}
+		})}
+	</Button>
+	{#if devices.length >= 5}
+		<Tooltip class="z-50 whitespace-pre">
+			{$t('devices.limit-explain', {
 				values: {
-					deviceCount: devices.length,
 					deviceLimit: 5
 				}
 			})}
-		</Button>
-		{#if devices.length >= 5}
-			<Tooltip class="z-50 whitespace-pre">
-				{$t('devices.limit-explain', {
-					values: {
-						deviceLimit: 5
-					}
-				})}
-			</Tooltip>
-		{/if}
-	</div>
+		</Tooltip>
+	{/if}
 	<DeployActions />
 </div>
 <CreateDeviceModal bind:open={deviceModalOpen} />
