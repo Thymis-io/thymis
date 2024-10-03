@@ -153,13 +153,13 @@
 						<Button
 							class="px-4 py-2"
 							color="alternative"
-							href={`/config?${buildGlobalNavSearchParam(
+							href={`/device-details?${buildGlobalNavSearchParam(
 								$page.url.search,
 								'device',
 								device.data.identifier
 							)}`}
 						>
-							{$t('devices.actions.edit')}
+							{$t('devices.actions.view-details')}
 						</Button>
 					</div>
 				</TableBodyCell>

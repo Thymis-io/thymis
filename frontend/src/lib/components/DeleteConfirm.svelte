@@ -22,7 +22,7 @@
 		<Button on:click={() => dispatch('cancel')} color="alternative">
 			{$t('deleteConfirm.cancel')}
 		</Button>
-		<Button on:click={() => dispatch('confirm')} color="primary" class="ml-2">
+		<Button on:click={() => dispatch('confirm')} color="red" class="ml-2">
 			{$t('deleteConfirm.confirm')}
 		</Button>
 	</div>

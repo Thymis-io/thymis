@@ -41,7 +41,8 @@
 			"edit": "Edit Modules",
 			"download": "Download Image",
 			"restart": "Restart",
-			"delete": "Delete"
+			"delete": "Delete",
+			"view-details": "View Details"
 		},
 		"status": {
 			"online": "Online",
