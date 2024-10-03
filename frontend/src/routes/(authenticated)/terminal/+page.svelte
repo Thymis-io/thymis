@@ -31,6 +31,11 @@
 		terminal.loadAddon(fitAddon);
 		fitAddon.fit();
 
+		const observer = new ResizeObserver(() => {
+			fitAddon?.fit();
+		});
+		if (terminal.element) observer.observe(terminal.element);
+
 		const attachAddon = new (await XtermAddon.AttachAddon()).AttachAddon(ws);
 		terminal.loadAddon(attachAddon);
 
