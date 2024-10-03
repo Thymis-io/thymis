@@ -33,6 +33,8 @@
 
 		const observer = new ResizeObserver(() => {
 			fitAddon?.fit();
+			const dims = fitAddon.proposeDimensions();
+			ws.send(`\x04${JSON.stringify(dims)}`);
 		});
 		if (terminal.element) observer.observe(terminal.element);
 

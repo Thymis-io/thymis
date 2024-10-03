@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 from fastapi import WebSocket, WebSocketDisconnect
 from paramiko import Channel
@@ -61,7 +62,12 @@ async def websocket_to_channel(channel: Channel, websocket: WebSocket):
             data = await websocket.receive_text()
             if not data:
                 break
-            channel.send(data.encode())
+            if data.startswith("\x04"):
+                data = data[1:]
+                data = json.loads(data)
+                channel.resize_pty(width=data["cols"], height=data["rows"])
+            else:
+                channel.send(data.encode())
     except WebSocketDisconnect:
         pass
     except asyncio.CancelledError:
