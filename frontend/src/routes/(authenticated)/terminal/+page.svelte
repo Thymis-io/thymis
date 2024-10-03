@@ -15,7 +15,7 @@
 
 	const options: ITerminalOptions & ITerminalInitOnlyOptions = {
 		cursorBlink: true,
-		letterSpacing: undefined
+		letterSpacing: 0
 	};
 
 	const onLoad = (event: CustomEvent<{ terminal: Terminal }>) => {
