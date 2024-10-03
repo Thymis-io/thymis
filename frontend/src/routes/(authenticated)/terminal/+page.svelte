@@ -14,7 +14,8 @@
 	let ws: WebSocket;
 
 	const options: ITerminalOptions & ITerminalInitOnlyOptions = {
-		cursorBlink: true
+		cursorBlink: true,
+		letterSpacing: undefined
 	};
 
 	const onLoad = (event: CustomEvent<{ terminal: Terminal }>) => {
