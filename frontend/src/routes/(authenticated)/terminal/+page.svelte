@@ -6,6 +6,7 @@
 		Terminal
 	} from '@battlefieldduck/xterm-svelte';
 	import { globalNavSelectedDevice, type Device } from '$lib/state';
+	import { onDestroy, onMount } from 'svelte';
 
 	$: device = $globalNavSelectedDevice;
 
@@ -32,11 +33,29 @@
 
 		const attachAddon = new (await XtermAddon.AttachAddon()).AttachAddon(ws);
 		terminal.loadAddon(attachAddon);
+
+		terminal.writeln(`Connecting to ${device.displayName}...`);
 	};
 
-	$: {
+	const resetConnection = () => {
 		terminal?.reset();
 		ws?.close();
+	};
+
+	onMount(() => {
+		resetConnection();
+
+		if (device && terminal) {
+			initTerminal(device, terminal);
+		}
+	});
+
+	onDestroy(() => {
+		resetConnection();
+	});
+
+	$: {
+		resetConnection();
 
 		if (device && terminal) {
 			initTerminal(device, terminal);
