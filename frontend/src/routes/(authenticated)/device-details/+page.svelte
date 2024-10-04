@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
 	import { Badge } from 'flowbite-svelte';
 	import {
@@ -9,10 +8,10 @@
 	} from '$lib/state';
 	import Circle from 'lucide-svelte/icons/circle';
 	import DeployActions from '$lib/components/DeployActions.svelte';
-	import SectionNetwork from './SectionNetwork.svelte';
 	import SectionConfiguration from './SectionConfiguration.svelte';
 	import SectionActions from './SectionActions.svelte';
 	import SectionDanger from './SectionDanger.svelte';
+	import SectionHostkey from './SectionHostkey.svelte';
 
 	export let data: PageData;
 
@@ -31,7 +30,7 @@
 		<DeployActions />
 	</div>
 	<div class="grid grid-cols-3 grid-flow-row gap-x-4 gap-y-12 mt-8">
-		<SectionNetwork class="col-span-2" device={currentDevice} />
+		<SectionHostkey class="col-span-2" hostkey={data.hostkey} device={currentDevice} />
 		<SectionActions class="col-span-1" device={currentDevice} />
 		<SectionConfiguration
 			class="col-span-2"
