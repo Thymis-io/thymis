@@ -88,6 +88,7 @@
               pkgs.pre-commit
               pkgs.playwright-driver.browsers
               pkgs.mdbook
+              pkgs.nixpkgs-fmt
             ];
             shellHook = ''
               export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
