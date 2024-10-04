@@ -24,6 +24,7 @@ pydantic-settings = "^2.4.0"
 alembic = "^1.13.2"
 sqlalchemy = "^2.0.32"
 python-multipart = "^0.0.9"
+paramiko = "^3.5.0"
 
 [tool.poetry.group.enterprise]
 optional = true

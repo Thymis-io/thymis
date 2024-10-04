@@ -29,7 +29,7 @@
 		"control-device": "Gerät Steuern"
 	},
 	"devices": {
-		"create-new": "Neues Gerät Erstellen",
+		"create-new": "Neues Gerät Erstellen ({deviceCount}/{deviceLimit})",
 		"table": {
 			"name": "Name",
 			"target-host": "Ziel Host",
@@ -52,7 +52,8 @@
 		"edit-hostname-title": "Ziel Hostnamen Bearbeiten",
 		"edit-tags-title": "Tags Bearbeiten",
 		"new-tag-placeholder": "Neuer Tag...",
-		"unknown-target": "Unbekanntes Ziel"
+		"unknown-target": "Unbekanntes Ziel",
+		"limit-explain": "Sie können bis zu {deviceLimit} Geräte verwalten.\nFür größere Projekte bieten wir auf thymis.io/ skalierbare Pläne an, die Ihren Anforderungen entsprechen"
 	},
 	"create-device": {
 		"title": "Neues Gerät Erstellen",

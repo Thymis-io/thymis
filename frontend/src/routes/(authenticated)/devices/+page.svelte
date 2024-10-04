@@ -9,7 +9,8 @@
 		TableBodyCell,
 		TableBodyRow,
 		TableHead,
-		TableHeadCell
+		TableHeadCell,
+		Tooltip
 	} from 'flowbite-svelte';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import GripVertical from 'lucide-svelte/icons/grip-vertical';
@@ -78,9 +79,28 @@
 </script>
 
 <div class="flex justify-between mb-4">
-	<Button color="alternative" on:click={() => (deviceModalOpen = true)}>
-		{$t('devices.create-new')}
+	<Button
+		color="alternative"
+		class="whitespace-nowrap"
+		on:click={() => (deviceModalOpen = true)}
+		disabled={devices.length >= 5}
+	>
+		{$t('devices.create-new', {
+			values: {
+				deviceCount: devices.length,
+				deviceLimit: 5
+			}
+		})}
 	</Button>
+	{#if devices.length >= 5}
+		<Tooltip class="z-50 whitespace-pre">
+			{$t('devices.limit-explain', {
+				values: {
+					deviceLimit: 5
+				}
+			})}
+		</Tooltip>
+	{/if}
 	<DeployActions />
 </div>
 <CreateDeviceModal bind:open={deviceModalOpen} />

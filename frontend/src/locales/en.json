@@ -29,7 +29,7 @@
 		"control-device": "Control Device"
 	},
 	"devices": {
-		"create-new": "Create New Device",
+		"create-new": "Create New Device ({deviceCount}/{deviceLimit})",
 		"table": {
 			"name": "Name",
 			"target-host": "Target Host",
@@ -53,7 +53,8 @@
 		"edit-hostname-title": "Edit target hostname",
 		"edit-tags-title": "Edit Tags",
 		"new-tag-placeholder": "New Tag...",
-		"unknown-target": "Unknown Target"
+		"unknown-target": "Unknown Target",
+		"limit-explain": "You can manage up to {deviceLimit} devices.\nFor larger projects, we offer scalable plans to meet your needs at thymis.io/"
 	},
 	"create-device": {
 		"title": "Create a new device",

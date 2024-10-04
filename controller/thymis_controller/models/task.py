@@ -48,6 +48,7 @@ class CompositeTask(Task):
 __all__ = [
     "TaskState",
     "Task",
+    "PlainTask",
     "CommandTask",
     "CompositeTask",
     "NixProcessStatus",

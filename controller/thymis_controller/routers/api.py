@@ -3,15 +3,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket
 from fastapi.responses import FileResponse, RedirectResponse
-from thymis_controller import (
-    crud,
-    db_models,
-    dependencies,
-    models,
-    modules,
-    project,
-    utils,
-)
+from paramiko import SSHClient
+from thymis_controller import crud, dependencies, models, modules, project, utils
 from thymis_controller.dependencies import (
     SessionAD,
     get_project,
@@ -19,7 +12,12 @@ from thymis_controller.dependencies import (
 )
 from thymis_controller.models.state import State
 from thymis_controller.routers import task
-from thymis_controller.tcp_to_ws import tcp_to_websocket, websocket_to_tcp
+from thymis_controller.tcp_to_ws import (
+    channel_to_websocket,
+    tcp_to_websocket,
+    websocket_to_channel,
+    websocket_to_tcp,
+)
 
 router = APIRouter(
     dependencies=[Depends(require_valid_user_session)],
@@ -160,7 +158,7 @@ async def update(
 
 
 @router.websocket("/vnc/{identifier}")
-async def websocket_endpoint(
+async def vnc_websocket(
     identifier: str,
     websocket: WebSocket,
     state: State = Depends(dependencies.get_state),
@@ -246,6 +244,48 @@ def scan_public_key(
             return key
     else:
         raise HTTPException(status_code=400, detail="No valid public key found")
+
+
+@router.websocket("/terminal/{identifier}")
+async def terminal_websocket(
+    identifier: str,
+    websocket: WebSocket,
+    state: State = Depends(dependencies.get_state),
+):
+    device = next(device for device in state.devices if device.identifier == identifier)
+
+    if device is None:
+        await websocket.close()
+        return
+
+    await websocket.accept()
+
+    tcp_ip = device.targetHost
+    tcp_port = 22
+
+    client = SSHClient()
+    client.load_system_host_keys()
+
+    try:
+        client.connect(tcp_ip, tcp_port, "root")
+        channel = client.invoke_shell()
+    except Exception as e:
+        await websocket.send_bytes(str(e).encode())
+        await websocket.close()
+        client.close()
+        return
+
+    channel_to_ws_task = asyncio.create_task(channel_to_websocket(channel, websocket))
+    ws_to_channel_task = asyncio.create_task(websocket_to_channel(channel, websocket))
+
+    try:
+        await asyncio.gather(channel_to_ws_task, ws_to_channel_task)
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        channel_to_ws_task.cancel()
+        ws_to_channel_task.cancel()
+        client.close()
 
 
 @router.get("/testSession")
