@@ -2,8 +2,9 @@
 	import { t } from 'svelte-i18n';
 	import { invalidate } from '$app/navigation';
 	import { Button, Modal } from 'flowbite-svelte';
+	import type { Commit } from '$lib/history';
 
-	export let commit: { SHA1: string; message: string } | undefined;
+	export let commit: Commit | undefined;
 
 	const revertCommit = async (commitSHA: string | undefined) => {
 		if (commitSHA === undefined) return;

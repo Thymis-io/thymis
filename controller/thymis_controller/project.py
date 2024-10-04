@@ -16,6 +16,7 @@ import git
 from sqlalchemy.orm import Session
 from thymis_controller import crud, migration, models, task
 from thymis_controller.config import global_settings
+from thymis_controller.models import history
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
 
@@ -241,20 +242,20 @@ class Project:
 
     def get_history(self):
         return [
-            {
-                "message": commit.message,
-                "author": commit.author.name,
-                "date": commit.authored_datetime,
-                "SHA": commit.hexsha,
-                "SHA1": self.repo.git.rev_parse(commit.hexsha, short=True),
-                "state_diff": self.repo.git.diff(
+            history.Commit(
+                message=commit.message,
+                author=commit.author.name,
+                date=commit.authored_datetime,
+                SHA=commit.hexsha,
+                SHA1=self.repo.git.rev_parse(commit.hexsha, short=True),
+                state_diff=self.repo.git.diff(
                     commit.hexsha,
                     commit.parents[0].hexsha if len(commit.parents) > 0 else None,
                     "-R",
                     "state.json",
                     unified=5,
                 ).split("\n")[4:],
-            }
+            )
             for commit in self.repo.iter_commits()
         ]
 
@@ -292,6 +293,9 @@ class Project:
             new_device.displayName = new_device_display_name(device.displayName)
         state.devices.append(new_device)
         self.write_state_and_reload(state)
+
+    def get_remotes(self):
+        return [history.Remote(name=r.name, url=r.url) for r in self.repo.remotes]
 
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildProjectTask(self.path))
