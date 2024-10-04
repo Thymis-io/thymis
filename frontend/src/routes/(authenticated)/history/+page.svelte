@@ -5,10 +5,11 @@
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import Undo from 'lucide-svelte/icons/undo-2';
 	import RollbackModal from './RollbackModal.svelte';
+	import type { Commit } from '$lib/history';
 
 	export let data: PageData;
 
-	let revertCommit: { SHA1: string; message: string } | undefined;
+	let revertCommit: Commit | undefined;
 
 	const lineColor = (line: string) => {
 		if (line.startsWith('+')) {
