@@ -39,7 +39,8 @@
 		},
 		"actions": {
 			"edit": "Module Bearbeiten",
-			"download": "Image Herunterladen",
+			"download": "Ersetzungs Image Herunterladen",
+			"download-image-for-clone": "Clone Image Herunterladen",
 			"restart": "Neustarten",
 			"delete": "Löschen",
 			"view-details": "Details anzeigen"
@@ -226,6 +227,24 @@
 		"modules": "Module",
 		"network": "Netzwerk",
 		"tags": "Tags",
-		"targetHost": "Ziel Host"
+		"targetHost": "Ziel Host",
+		"hostkey": "Hostkey",
+		"publicKey": "Public Key",
+		"add-hostkey": "Hostkey Hinzufügen",
+		"delete-hostkey": "Hostkey Löschen",
+		"edit-hostkey": "Hostkey Bearbeiten",
+		"refresh-hostkey": "Hostkey Aktualisieren"
+	},
+	"edit-hostkey": {
+		"create": "Erstellen",
+		"device-host": "Zielhost des Gerätes",
+		"host-empty": "Host erforderlich",
+		"host-invalid": "Host ist ungültig",
+		"host-valid": "Host ist gültig",
+		"public-key": "Public Key des Gerätes",
+		"scan-public-key": "Nach Public Key Scannen",
+		"scan-public-key-tooltip": "Automatische Suche nach dem Public Key des Geräts im Netzwerk. Verwendet den oben angegebenen Zielhost.\nÜberprüfen Sie anschließend, ob der Public Key korrekt ist",
+		"title": "Hostkey Bearbeiten",
+		"update": "Aktualisieren"
 	}
 }

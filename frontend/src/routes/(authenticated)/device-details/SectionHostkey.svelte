@@ -47,31 +47,37 @@
 
 <EditHostkeyModal bind:hostkey bind:open={editHostKeyModalOpen} {device} />
 <Section class={className} title={$t('device-details.hostkey')}>
-	<div class="flex flex-col">
-		<div class="flex flex-row">
+	<div class="flex flex-col gap-2">
+		{#if hostkey}
+			<div class="grid grid-cols-[max-content_1fr] gap-x-2">
+				<p class="break-all">{$t('device-details.targetHost')}:</p>
+				<p class="break-all">{hostkey.deviceHost}</p>
+				<p class="break-all">{$t('device-details.publicKey')}:</p>
+				<p class="break-all">{hostkey.publicKey}</p>
+			</div>
+		{/if}
+		<div class="flex flex-row gap-2">
 			{#if hostkey}
-				<Button pill size="sm" class="p-2 py-1" on:click={() => (editHostKeyModalOpen = true)}>
-					<Pencil size={15} class="mr-1" />
+				<Button size="sm" class="gap-2" on:click={() => (editHostKeyModalOpen = true)}>
+					<Pencil size={18} />
+					<span>{$t('device-details.edit-hostkey')}</span>
 				</Button>
 			{:else}
-				<Button pill size="sm" class="p-2 py-1" on:click={() => (editHostKeyModalOpen = true)}>
-					<PlusCircle size={15} class="mr-1" />
+				<Button size="sm" class="gap-2" on:click={() => (editHostKeyModalOpen = true)}>
+					<PlusCircle size={18} />
+					<span>{$t('device-details.add-hostkey')}</span>
 				</Button>
 			{/if}
-			<Button pill size="sm" class="p-2 py-1" on:click={() => refreshHostkey()}>
-				<RefreshCw size={15} class="mr-1" />
+			<Button size="sm" class="gap-2" on:click={() => refreshHostkey()}>
+				<RefreshCw size={18} />
+				<span>{$t('device-details.refresh-hostkey')}</span>
 			</Button>
 			{#if hostkey}
-				<Button pill size="sm" class="p-2 py-1" on:click={() => deleteHostkey()}>
-					<Trash2 size={15} class="mr-1" />
+				<Button size="sm" class="gap-2" on:click={() => deleteHostkey()}>
+					<Trash2 size={18} />
+					<span>{$t('device-details.delete-hostkey')}</span>
 				</Button>
 			{/if}
 		</div>
-		{#if hostkey}
-			<div class="flex flex-col">
-				<p>{$t('device-details.targetHost')}: {hostkey.deviceHost}</p>
-				<p>{$t('device-details.publicKey')}: {hostkey.publicKey}</p>
-			</div>
-		{/if}
 	</div>
 </Section>

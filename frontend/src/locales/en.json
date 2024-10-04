@@ -227,6 +227,24 @@
 		"config": "Configuration",
 		"actions": "Actions",
 		"danger": "Danger",
-		"modules": "Modules"
+		"modules": "Modules",
+		"hostkey": "Hostkey",
+		"publicKey": "Public Key",
+		"edit-hostkey": "Edit Hostkey",
+		"add-hostkey": "Add Hostkey",
+		"refresh-hostkey": "Refresh Hostkey",
+		"delete-hostkey": "Delete Hostkey"
+	},
+	"edit-hostkey": {
+		"title": "Edit Hostkey",
+		"device-host": "Device Target Host",
+		"host-empty": "Host required",
+		"host-invalid": "Host is invalid",
+		"host-valid": "Host is valid",
+		"public-key": "Device Public Key",
+		"scan-public-key": "Scan For Public Key",
+		"scan-public-key-tooltip": "Automatically scan for the public key of the device in the network. Uses the specified target host from above.\nVerify if the key is correct afterwards",
+		"update": "Update",
+		"create": "Create"
 	}
 }

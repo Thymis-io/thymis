@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Button, Helper, Input, Label, Modal, Spinner } from 'flowbite-svelte';
+	import { Button, Helper, Input, Label, Modal, Spinner, Tooltip } from 'flowbite-svelte';
 	import type { Hostkey } from '$lib/hostkey';
 	import type { Device } from '$lib/state';
 
@@ -117,6 +117,7 @@
 					{/if}
 					{$t('edit-hostkey.scan-public-key')}
 				</Button>
+				<Tooltip class="whitespace-pre">{$t('edit-hostkey.scan-public-key-tooltip')}</Tooltip>
 				<Label color="red">{scanningPublicKeyError}</Label>
 			</div>
 		</div>
