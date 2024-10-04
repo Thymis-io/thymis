@@ -207,7 +207,7 @@ def test_register_replace_device(test_client):
     assert own_hostkey.identifier == first_device["identifier"]
 
 
-def test_heartbeat(test_client):
+def test_heartbeat(test_client, project):
     heartbeat_request = {
         "public_key": "public_key",
         "ip_addresses": ["127.0.0.1"],
@@ -222,6 +222,7 @@ def test_heartbeat(test_client):
         build_hash="test_hash",
         public_key=heartbeat_request["public_key"],
         device_host="127.0.0.1",
+        project=project,
     )
 
     assert models.DeviceHeartbeatRequest.model_validate(heartbeat_request) is not None
