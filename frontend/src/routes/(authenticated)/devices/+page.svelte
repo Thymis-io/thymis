@@ -109,7 +109,7 @@
 	<TableHead>
 		<TableHeadCell padding="p-2 w-12" />
 		<TableHeadCell padding="p-2">{$t('devices.table.name')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('devices.table.target-host')}</TableHeadCell>
+		<!-- <TableHeadCell padding="p-2">{$t('devices.table.target-host')}</TableHeadCell> -->
 		<TableHeadCell padding="p-2">{$t('devices.table.tags')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('devices.table.actions')}</TableHeadCell>
 	</TableHead>
@@ -146,7 +146,7 @@
 						saveState();
 					}}
 				/>
-				<TableBodyCell>{$t('devices.unknown-target')}</TableBodyCell>
+				<!-- <TableBodyCell>{$t('devices.unknown-target')}</TableBodyCell> -->
 				<TableBodyCell tdClass="p-2 px-2 md:px-4">
 					<div class="flex justify-between">
 						<div class="flex gap-2">
