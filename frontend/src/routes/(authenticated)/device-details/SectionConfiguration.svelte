@@ -46,9 +46,10 @@
 					module
 				)}`}
 			>
-				<Button pill size="sm" class="p-2 py-1 gap-2 text-nowrap">
+				<Button pill size="sm" class="p-4 py-2 gap-2 text-nowrap">
 					<img src={module.icon ?? '/favicon.png'} alt={module.displayName} class="w-5 h-5" />
 					{module.displayName}
+					<Pen size="20" />
 				</Button>
 			</a>
 		{/each}
@@ -60,18 +61,20 @@
 				<Button
 					pill
 					size="sm"
-					class="p-2 py-1"
+					class="p-4 py-2 gap-2"
 					href={`/config?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
 				>
-					<TagIcon size={15} class="mr-1" />
+					<TagIcon size={20} />
 					<span class="text-nowrap">
 						{findTag(tag)?.displayName ?? tag}
 					</span>
+					<Pen size="20" />
 				</Button>
 			{/each}
 		</div>
-		<button class="btn ml-4 p-0" on:click={() => (currentlyEditingDevice = device)}>
+		<Button color="alternative" class="gap-2" on:click={() => (currentlyEditingDevice = device)}>
 			<Pen size="20" />
-		</button>
+			<span>{$t('device-details.edit-tags')}</span>
+		</Button>
 	</div>
 </Section>

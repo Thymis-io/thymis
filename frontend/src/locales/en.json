@@ -236,7 +236,8 @@
 		"edit-hostkey": "Edit Hostkey",
 		"add-hostkey": "Add Hostkey",
 		"refresh-hostkey": "Refresh Hostkey",
-		"delete-hostkey": "Delete Hostkey"
+		"delete-hostkey": "Delete Hostkey",
+		"edit-tags": "Edit Tags"
 	},
 	"edit-hostkey": {
 		"title": "Edit Hostkey",
