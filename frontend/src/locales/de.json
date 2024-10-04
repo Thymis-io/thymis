@@ -43,7 +43,10 @@
 			"download-image-for-clone": "Clone Image Herunterladen",
 			"restart": "Neustarten",
 			"delete": "Löschen",
-			"view-details": "Details anzeigen"
+			"view-details": "Details anzeigen",
+			"download-image-for-clone-tooltip": "Lade ein neues Geräte-Image herunter, um einen Klon des aktuellen Geräts zu erstellen.\nDadurch wird ein neues Gerät mit der gleichen Konfiguration erstellt und registriert",
+			"download-image-tooltip": "Lade ein neues Geräte-Image herunter, um das aktuelle Gerät zu ersetzen",
+			"restart-tooltip": "Starte das Gerät neu"
 		},
 		"status": {
 			"online": "Online",

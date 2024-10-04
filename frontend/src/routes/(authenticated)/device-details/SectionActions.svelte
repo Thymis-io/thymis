@@ -47,6 +47,7 @@
 		<Download size="20" />
 		{$t('devices.actions.download')}
 	</Button>
+	<Tooltip class="whitespace-pre">{$t('devices.actions.download-image-tooltip')}</Tooltip>
 	<Button
 		class="px-4 py-2 gap-2 flex justify-start"
 		color="alternative"
@@ -55,6 +56,7 @@
 		<Download size="20" />
 		{$t('devices.actions.download-image-for-clone')}
 	</Button>
+	<Tooltip class="whitespace-pre">{$t('devices.actions.download-image-for-clone-tooltip')}</Tooltip>
 	<Button
 		class="px-4 py-2 gap-2 justify-start"
 		color="alternative"
@@ -63,4 +65,5 @@
 		<RotateCcw size="20" />
 		{$t('devices.actions.restart')}
 	</Button>
+	<Tooltip>{$t('devices.actions.restart-tooltip')}</Tooltip>
 </Section>

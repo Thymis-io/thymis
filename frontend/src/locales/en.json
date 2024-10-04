@@ -43,7 +43,10 @@
 			"download-image-for-clone": "Download Clone Image",
 			"restart": "Restart",
 			"delete": "Delete",
-			"view-details": "View Details"
+			"view-details": "View Details",
+			"download-image-tooltip": "Download a new device image to replace the current device",
+			"download-image-for-clone-tooltip": "Download a new device image to create a clone of the current device.\nThis will create and register a new device with the same configuration",
+			"restart-tooltip": "Restart the device"
 		},
 		"status": {
 			"online": "Online",
