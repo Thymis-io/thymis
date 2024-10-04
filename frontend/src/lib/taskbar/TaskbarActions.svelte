@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { type Task, cancelTask, retryTask, runImmediately } from '$lib/taskstatus';
+	import { page } from '$app/stores';
 	import { Button } from 'flowbite-svelte';
 	export let task: Task;
 </script>
@@ -25,7 +26,7 @@
 			Retry
 		</Button>
 	{/if}
-	<a data-sveltekit-preload-data="tap" href="/tasks/{task.id}/">
+	<a data-sveltekit-preload-data="tap" href="/tasks/{task.id}{$page.url.search}">
 		<Button class="btn btn-sm btn-primary px-4 py-2">View</Button>
 	</a>
 </div>

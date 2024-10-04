@@ -90,6 +90,7 @@ def register(
                 build_hash=register_request.build_hash,
                 public_key=register_request.public_key,
                 device_host=device_host,
+                project=project,
             )
         else:
             # registering device is not the same as the one in the hostkey table, replacing device
@@ -137,6 +138,7 @@ def register(
                 build_hash=register_request.build_hash,
                 public_key=register_request.public_key,
                 device_host=device_host,
+                project=project,
             )
     else:
         # device is not registered
@@ -159,6 +161,7 @@ def register(
             build_hash=register_request.build_hash,
             public_key=register_request.public_key,
             device_host=device_host,
+            project=project,
         )
     project.update_known_hosts(db_session)
 

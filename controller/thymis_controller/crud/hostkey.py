@@ -12,6 +12,7 @@ def create(
     build_hash: str,
     public_key: str,
     device_host: str,
+    project: Project,
 ):
     host_key = db_models.HostKey(
         identifier=identifier,
@@ -22,6 +23,10 @@ def create(
     )
     db_session.add(host_key)
     db_session.commit()
+
+    # update known hosts
+    project.update_known_hosts(db_session)
+
     return host_key
 
 

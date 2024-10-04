@@ -2,6 +2,7 @@ import pathlib
 
 import thymis_controller.modules.modules as modules
 from thymis_controller import models
+from thymis_controller.config import global_settings
 from thymis_controller.lib import read_into_base64
 from thymis_controller.nix import convert_python_value_to_nix, template_env
 from thymis_controller.project import Project
@@ -325,7 +326,7 @@ class ThymisDevice(modules.Module):
                 de="Schlüsselname",
             ),
         ),
-        default=None,
+        default=[],
         description=modules.LocalizedString(
             en="Authorized keys.",
             de="Authorisierte Schlüssel.",
@@ -541,6 +542,13 @@ class ThymisDevice(modules.Module):
             if "authorized_keys" in module_settings.settings
             else self.authorized_keys.default
         )
+
+        # add key at global_settings.SSH_KEY_PATH
+
+        if (path := pathlib.Path(global_settings.SSH_KEY_PATH) / ".pub").exists():
+            with path.open() as f_key:
+                public_key = f_key.read().strip()
+            authorized_keys.append({"key": public_key})
 
         static_networks = (
             module_settings.settings["static_networks"]

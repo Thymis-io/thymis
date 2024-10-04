@@ -29,34 +29,22 @@ def test_get_hostkey_not_found(test_client):
     assert response.status_code == 404
 
 
-def test_get_hostkey(test_client):
+def test_get_hostkey(test_client, project):
     db_session_func = test_client.app.dependency_overrides.get(get_db_session)
     db_session = next(db_session_func())
 
-    crud.hostkey.create(
-        db_session,
-        "test_id",
-        None,
-        "test_public_key",
-        "test",
-    )
+    crud.hostkey.create(db_session, "test_id", None, "test_public_key", "test", project)
 
     response = test_client.get(f"{PATH_PREFIX}/test_id")
     assert response.status_code == 200
     assert response.json()["publicKey"] == "test_public_key"
 
 
-def test_delete_hostkey(test_client):
+def test_delete_hostkey(test_client, project):
     db_session_func = test_client.app.dependency_overrides.get(get_db_session)
     db_session = next(db_session_func())
 
-    crud.hostkey.create(
-        db_session,
-        "test_id",
-        None,
-        "test_public_key",
-        "test",
-    )
+    crud.hostkey.create(db_session, "test_id", None, "test_public_key", "test", project)
 
     response = test_client.delete(f"{PATH_PREFIX}/test_id")
     assert response.status_code == 200

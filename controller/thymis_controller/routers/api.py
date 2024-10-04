@@ -203,6 +203,7 @@ def create_hostkey(
     identifier: str,
     hostkey: models.CreateHostkeyRequest,
     db_session: SessionAD,
+    project: project.Project = Depends(get_project),
 ):
     """
     Create a hostkey for a device
@@ -211,7 +212,7 @@ def create_hostkey(
         crud.hostkey.delete(db_session, identifier)
 
     return crud.hostkey.create(
-        db_session, identifier, None, hostkey.public_key, hostkey.device_host
+        db_session, identifier, None, hostkey.public_key, hostkey.device_host, project
     )
 
 
