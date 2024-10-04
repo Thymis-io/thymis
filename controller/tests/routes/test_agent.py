@@ -48,7 +48,7 @@ def test_register_device(test_client):
     assert hostkey.build_hash == "test_hash"
 
 
-def test_register_clone_device(test_client):
+def test_register_clone_device(test_client, project):
     db_session_func = test_client.app.dependency_overrides.get(get_db_session)
     db_session = next(db_session_func())
 
@@ -75,7 +75,7 @@ def test_register_clone_device(test_client):
         "device_host": "127.0.0.1",
     }
 
-    crud.hostkey.create(db_session=db_session, **first_device)
+    crud.hostkey.create(db_session=db_session, **first_device, project=project)
 
     second_device = {
         "build_hash": "test_hash",
