@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Button, Helper, Input, Label, Modal } from 'flowbite-svelte';
+	import { Button, Helper, Input, Label, Modal, Spinner } from 'flowbite-svelte';
 	import type { Hostkey } from '$lib/hostkey';
 	import type { Device } from '$lib/state';
 
@@ -10,6 +10,8 @@
 	export let device: Device;
 	let deviceHost: string = '';
 	let publicKey: string = '';
+	let isScanningPublicKey = false;
+	let scanningPublicKeyError = '';
 
 	const hostValidation = (host: string) => {
 		if (host.length === 0) {
@@ -44,6 +46,29 @@
 			console.error('Unrecognized Error. Failed to update hostkey');
 		}
 	};
+
+	const scanPublicKey = async () => {
+		scanningPublicKeyError = '';
+		isScanningPublicKey = true;
+
+		const response = await fetch(`/api/scan-public-key?host=${deviceHost}`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		isScanningPublicKey = false;
+
+		if (response.ok) {
+			const data = await response.json();
+			publicKey = data;
+		} else {
+			const data = await response.json();
+			scanningPublicKeyError = data.detail;
+			console.error('Unrecognized Error. Failed to scan public key');
+		}
+	};
 </script>
 
 <Modal
@@ -75,11 +100,25 @@
 				{/if}
 			</Label>
 		</div>
-		<div class="mb-4">
-			<Label for="public-key"
-				>{$t('edit-hostkey.public-key')}
+		<div class="mb-4 flex gap-2">
+			<Label for="public-key" class="w-full">
+				{$t('edit-hostkey.public-key')}
 				<Input id="public-key" bind:value={publicKey} />
 			</Label>
+			<div>
+				<Button
+					class="mt-5 whitespace-nowrap gap-2"
+					color="alternative"
+					on:click={scanPublicKey}
+					disabled={isScanningPublicKey || deviceHost.length === 0}
+				>
+					{#if isScanningPublicKey}
+						<Spinner class="w-5 h-5" />
+					{/if}
+					{$t('edit-hostkey.scan-public-key')}
+				</Button>
+				<Label color="red">{scanningPublicKeyError}</Label>
+			</div>
 		</div>
 		<div class="flex justify-end">
 			<Button
