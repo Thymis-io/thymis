@@ -19,6 +19,21 @@
 		});
 	};
 
+	const buildAndDownloadImageForClone = async (device: Device) => {
+		console.log('Building and downloading image');
+		const response = await fetch(
+			`/api/action/build-download-image-for-clone?identifier=${device.identifier}`,
+			{
+				method: 'POST'
+			}
+		);
+		if (response.ok) {
+			// TODO update state
+		} else {
+			console.error('Failed to build and download image for clone');
+		}
+	};
+
 	let className = '';
 	export { className as class };
 </script>
@@ -31,6 +46,14 @@
 	>
 		<Download size="20" />
 		{$t('devices.actions.download')}
+	</Button>
+	<Button
+		class="px-4 py-2 gap-2 flex justify-start"
+		color="alternative"
+		on:click={() => buildAndDownloadImageForClone(device)}
+	>
+		<Download size="20" />
+		{$t('devices.actions.download-image-for-clone')}
 	</Button>
 	<div />
 	<Button

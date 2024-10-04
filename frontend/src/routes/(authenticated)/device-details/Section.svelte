@@ -7,7 +7,7 @@
 
 <div class={className}>
 	<h1 class="text-1xl font-bold mb-2">{title}</h1>
-	<div class="grid grid-cols-[max-content_1fr] gap-2">
+	<div class="flex flex-col gap-2">
 		<slot />
 	</div>
 </div>
