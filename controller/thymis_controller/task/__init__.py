@@ -591,7 +591,7 @@ class DeployDeviceTask(NixCommandTask):
         target_host,
     ):
         super().__init__(
-            f"Deploying to {device.identifier} on {device.targetHost}",
+            f"Deploying to {device.identifier} on {target_host}",
             [
                 "switch",
                 "--flake",
@@ -601,7 +601,7 @@ class DeployDeviceTask(NixCommandTask):
             ],
             "nixos-rebuild",
             env={
-                "NIX_SSHOPTS": f"-i {ssh_key_path} -o UserKnownHostsFile={known_hosts_path} -o ConnectTimeout=10",
+                "NIX_SSHOPTS": f"-i {ssh_key_path} -o UserKnownHostsFile={known_hosts_path} -o StrictHostKeyChecking=yes -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ConnectTimeout=10",
                 "PATH": os.getenv("PATH"),
             },
         )
