@@ -26,7 +26,7 @@ in
             description = "Name of the device";
           };
           password = lib.mkOption {
-            type = lib.types.str;
+            type = lib.types.nullOr lib.types.str;
             description = "Password for the root user";
             default = null;
           };
