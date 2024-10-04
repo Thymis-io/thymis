@@ -49,7 +49,7 @@
 			device_type: selectedDeviceType,
 			device_name: identifier,
 			nix_state_version: '24.05',
-			agent_controller_url: `${window.location.protocol}://${window.location.host}`,
+			agent_controller_url: `${window.location.protocol}//${window.location.host}`,
 			agent_enabled: true
 		};
 		const device: Device = {
