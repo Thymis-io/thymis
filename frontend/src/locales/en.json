@@ -234,7 +234,7 @@
 		"hostkey": "Hostkey",
 		"publicKey": "Public Key",
 		"edit-hostkey": "Edit Hostkey",
-		"add-hostkey": "Add Hostkey",
+		"add-hostkey": "Set Hostkey",
 		"refresh-hostkey": "Refresh Hostkey",
 		"delete-hostkey": "Delete Hostkey",
 		"edit-tags": "Edit Tags"

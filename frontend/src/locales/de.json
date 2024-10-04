@@ -233,7 +233,7 @@
 		"targetHost": "Ziel Host",
 		"hostkey": "Hostkey",
 		"publicKey": "Public Key",
-		"add-hostkey": "Hostkey Hinzufügen",
+		"add-hostkey": "Hostkey Setzen",
 		"delete-hostkey": "Hostkey Löschen",
 		"edit-hostkey": "Hostkey Bearbeiten",
 		"refresh-hostkey": "Hostkey Aktualisieren"

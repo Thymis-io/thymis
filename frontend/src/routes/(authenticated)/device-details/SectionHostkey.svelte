@@ -15,33 +15,6 @@
 	let className = '';
 	export { className as class };
 
-	const deleteHostkey = async () => {
-		if (!hostkey) return;
-		const response = await fetch(`/api/hostkey/${hostkey.identifier}`, {
-			method: 'DELETE'
-		});
-		if (response.ok) {
-			hostkey = undefined;
-		} else {
-			console.error('Unrecognized Error. Failed to delete hostkey');
-		}
-	};
-
-	const refreshHostkey = async () => {
-		if (!device) return;
-		const response = await fetch(`/api/hostkey/${device.identifier}`, {
-			method: 'GET'
-		});
-		if (response.ok) {
-			hostkey = await response.json();
-		} else if (response.status === 404) {
-			console.error('Hostkey not found');
-			hostkey = undefined;
-		} else {
-			console.error('Unrecognized Error. Failed to refresh hostkey');
-		}
-	};
-
 	let editHostKeyModalOpen = false;
 </script>
 
@@ -76,16 +49,6 @@
 				>
 					<PlusCircle size={18} />
 					<span>{$t('device-details.add-hostkey')}</span>
-				</Button>
-			{/if}
-			<Button size="sm" class="gap-2" color="alternative" on:click={() => refreshHostkey()}>
-				<RefreshCw size={18} />
-				<span>{$t('device-details.refresh-hostkey')}</span>
-			</Button>
-			{#if hostkey}
-				<Button size="sm" class="gap-2" color="alternative" on:click={() => deleteHostkey()}>
-					<Trash2 size={18} />
-					<span>{$t('device-details.delete-hostkey')}</span>
 				</Button>
 			{/if}
 		</div>
