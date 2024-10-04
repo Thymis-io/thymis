@@ -1,10 +1,12 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
 	import { Badge } from 'flowbite-svelte';
 	import {
 		globalNavSelectedDevice,
 		globalNavSelectedTag,
-		globalNavSelectedTargetType
+		globalNavSelectedTargetType,
+		state
 	} from '$lib/state';
 	import Circle from 'lucide-svelte/icons/circle';
 	import DeployActions from '$lib/components/DeployActions.svelte';
@@ -12,6 +14,9 @@
 	import SectionActions from './SectionActions.svelte';
 	import SectionDanger from './SectionDanger.svelte';
 	import SectionHostkey from './SectionHostkey.svelte';
+	import { targetShouldShowVNC } from '$lib/vnc/vnc';
+	import VncView from '$lib/vnc/VncView.svelte';
+	import Section from './Section.svelte';
 
 	export let data: PageData;
 
@@ -29,15 +34,20 @@
 		</div>
 		<DeployActions />
 	</div>
-	<div class="grid grid-cols-3 grid-flow-row gap-x-4 gap-y-12 mt-8">
-		<SectionHostkey class="col-span-2" hostkey={data.hostkey} device={currentDevice} />
+	<div class="grid grid-cols-4 grid-flow-row gap-x-4 gap-y-12 mt-8">
+		<SectionHostkey class="col-span-3" hostkey={data.hostkey} device={currentDevice} />
 		<SectionActions class="col-span-1" device={currentDevice} />
 		<SectionConfiguration
-			class="col-span-2"
+			class="col-span-3"
 			device={currentDevice}
 			availableModules={data.availableModules}
 		/>
 		<SectionDanger class="col-span-1" device={currentDevice} />
+		{#if targetShouldShowVNC(currentDevice, $state)}
+			<Section class="col-span-2" title={$t('nav.device-vnc')}>
+				<VncView device={currentDevice} />
+			</Section>
+		{/if}
 	</div>
 {:else if $globalNavSelectedTargetType === 'tag' && $globalNavSelectedTag}
 	<div class="grid grid-cols-3 gap-4">

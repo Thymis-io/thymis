@@ -1,14 +1,16 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { Device } from '$lib/state';
+	import type { Device, Module } from '$lib/state';
 	import { state } from '$lib/state';
-	import { controllerHost } from '$lib/api';
 	import { Card, Spinner, Toggle, P } from 'flowbite-svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { deviceVNCPassword, targetShouldShowVNC } from '$lib/vnc/vnc';
 	import { page } from '$app/stores';
+	import { getHostkey } from '$lib/hostkey';
+	import { browser } from '$app/environment';
 
 	export let device: Device;
+	let deviceHost: string;
 	let rfb: any;
 	let connected = false;
 	let connectionFailed = false;
@@ -25,7 +27,7 @@
 		const url = `${scheme}://${window.location.host}/api/vnc/${device.identifier}`;
 
 		const password = deviceVNCPassword(device, $state, $page.data.availableModules as Module[]);
-		const canvas = document.getElementById(`vnc-canvas-${device.targetHost}`);
+		const canvas = document.getElementById(`vnc-canvas-${deviceHost}`);
 
 		if (rfb) {
 			rfb.disconnect();
@@ -64,12 +66,20 @@
 			rfb = null;
 		}
 	});
+
+	$: {
+		if (browser) {
+			getHostkey(fetch, device.identifier).then((hostkey) => {
+				deviceHost = hostkey.deviceHost;
+			});
+		}
+	}
 </script>
 
 {#if hasVNC}
 	<Card class="w-full max-w-none" padding="sm">
 		<div class="flex flex-wrap justify-between h-12 content-start gap-2">
-			<pre class="text-base">vncviewer {device.targetHost}:5900</pre>
+			<pre class="text-base">vncviewer {deviceHost}:5900</pre>
 			<div class="flex items-center gap-2">
 				<P>{$t('vnc.control-device')}</P>
 				<Toggle
@@ -80,7 +90,7 @@
 				/>
 			</div>
 		</div>
-		<div id={`vnc-canvas-${device.targetHost}`} class="relative w-full aspect-video mt-4">
+		<div id={`vnc-canvas-${deviceHost}`} class="relative w-full aspect-video mt-4">
 			{#if connectionFailed}
 				<p
 					class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-red-500"
