@@ -48,7 +48,7 @@ def test_register_device(test_client):
     assert hostkey.build_hash == "test_hash"
 
 
-def test_register_clone_device(test_client, project):
+def test_register_clone_device(test_client):
     db_session_func = test_client.app.dependency_overrides.get(get_db_session)
     db_session = next(db_session_func())
 
@@ -66,7 +66,7 @@ def test_register_clone_device(test_client, project):
         "device_state": state_device.model_dump(),
     }
 
-    crud.image.create(db_session=db_session, **image, project=project)
+    crud.image.create(db_session=db_session, **image)
 
     first_device = {
         "build_hash": "test_hash",
