@@ -55,7 +55,6 @@
 		<Download size="20" />
 		{$t('devices.actions.download-image-for-clone')}
 	</Button>
-	<div />
 	<Button
 		class="px-4 py-2 gap-2 justify-start"
 		color="alternative"
@@ -64,5 +63,4 @@
 		<RotateCcw size="20" />
 		{$t('devices.actions.restart')}
 	</Button>
-	<div />
 </Section>

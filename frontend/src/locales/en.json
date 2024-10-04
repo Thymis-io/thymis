@@ -39,7 +39,8 @@
 		},
 		"actions": {
 			"edit": "Edit Modules",
-			"download": "Download Image",
+			"download": "Download Replacement Image",
+			"download-image-for-clone": "Download Clone Image",
 			"restart": "Restart",
 			"delete": "Delete",
 			"view-details": "View Details"

@@ -32,5 +32,4 @@
 		<Trash size="20" />
 		{$t('devices.actions.delete')}
 	</Button>
-	<div />
 </Section>

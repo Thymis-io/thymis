@@ -33,7 +33,7 @@
 
 <EditTagModal bind:currentlyEditingDevice />
 <Section class={className} title={$t('device-details.config')}>
-	<p>{$t('device-details.modules')}:</p>
+	<p>{$t('device-details.modules')}</p>
 	<div class="flex gap-2 items-center flex-wrap">
 		{#each getOwnModules(device, availableModules) as module}
 			<a
@@ -53,7 +53,7 @@
 			</a>
 		{/each}
 	</div>
-	<p>{$t('device-details.tags')}:</p>
+	<p>{$t('device-details.tags')}</p>
 	<div class="flex gap-2 items-center">
 		<div class="flex gap-2 flex-wrap">
 			{#each device.tags as tag, i}
