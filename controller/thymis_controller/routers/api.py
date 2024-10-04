@@ -252,18 +252,20 @@ def scan_public_key(
 @router.websocket("/terminal/{identifier}")
 async def terminal_websocket(
     identifier: str,
+    db_session: SessionAD,
     websocket: WebSocket,
     state: State = Depends(dependencies.get_state),
 ):
     device = next(device for device in state.devices if device.identifier == identifier)
+    target_host = crud.hostkey.get_device_host(db_session, identifier)
 
-    if device is None:
+    if device is None or target_host is None:
         await websocket.close()
         return
 
     await websocket.accept()
 
-    tcp_ip = device.targetHost
+    tcp_ip = target_host
     tcp_port = 22
 
     client = SSHClient()

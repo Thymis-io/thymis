@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
-	import { Badge } from 'flowbite-svelte';
+	import { Badge, Card } from 'flowbite-svelte';
 	import {
 		globalNavSelectedDevice,
 		globalNavSelectedTag,
@@ -17,6 +17,7 @@
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import VncView from '$lib/vnc/VncView.svelte';
 	import Section from './Section.svelte';
+	import Terminal from '$lib/terminal/Terminal.svelte';
 
 	export let data: PageData;
 
@@ -48,6 +49,11 @@
 				<VncView device={currentDevice} />
 			</Section>
 		{/if}
+		<Section class="col-span-2" title={$t('nav.terminal')}>
+			<Card class="w-full max-w-none" padding="sm">
+				<Terminal device={currentDevice} />
+			</Card>
+		</Section>
 	</div>
 {:else if $globalNavSelectedTargetType === 'tag' && $globalNavSelectedTag}
 	<div class="grid grid-cols-3 gap-4">
