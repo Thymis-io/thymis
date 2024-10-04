@@ -58,22 +58,32 @@
 		{/if}
 		<div class="flex flex-row gap-2">
 			{#if hostkey}
-				<Button size="sm" class="gap-2" on:click={() => (editHostKeyModalOpen = true)}>
+				<Button
+					size="sm"
+					class="gap-2"
+					color="alternative"
+					on:click={() => (editHostKeyModalOpen = true)}
+				>
 					<Pencil size={18} />
 					<span>{$t('device-details.edit-hostkey')}</span>
 				</Button>
 			{:else}
-				<Button size="sm" class="gap-2" on:click={() => (editHostKeyModalOpen = true)}>
+				<Button
+					size="sm"
+					class="gap-2"
+					color="alternative"
+					on:click={() => (editHostKeyModalOpen = true)}
+				>
 					<PlusCircle size={18} />
 					<span>{$t('device-details.add-hostkey')}</span>
 				</Button>
 			{/if}
-			<Button size="sm" class="gap-2" on:click={() => refreshHostkey()}>
+			<Button size="sm" class="gap-2" color="alternative" on:click={() => refreshHostkey()}>
 				<RefreshCw size={18} />
 				<span>{$t('device-details.refresh-hostkey')}</span>
 			</Button>
 			{#if hostkey}
-				<Button size="sm" class="gap-2" on:click={() => deleteHostkey()}>
+				<Button size="sm" class="gap-2" color="alternative" on:click={() => deleteHostkey()}>
 					<Trash2 size={18} />
 					<span>{$t('device-details.delete-hostkey')}</span>
 				</Button>
