@@ -28,6 +28,7 @@ in
           password = lib.mkOption {
             type = lib.types.str;
             description = "Password for the root user";
+            default = null;
           };
           wifi-ssid = lib.mkOption {
             type = lib.types.str;
@@ -63,7 +64,7 @@ in
   };
   config = {
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
-    users.users.root.password = cfg.password;
+    users.users.root.password = lib.mkIf (cfg.password != null) cfg.password;
     services.openssh = {
       enable = true;
       settings.PermitRootLogin = "yes";
@@ -87,7 +88,7 @@ in
     users.users.thymis = {
       isNormalUser = true;
       createHome = true;
-      password = cfg.password;
+      password = lib.mkIf (cfg.password != null) cfg.password;
     };
     networking.firewall = {
       allowedTCPPorts = [ 22 ];
