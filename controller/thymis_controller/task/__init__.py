@@ -698,6 +698,7 @@ class RestartDeviceTask(CommandTask):
             "ssh",
             [
                 f"-o UserKnownHostsFile={known_hosts_path}",
+                "-o StrictHostKeyChecking=yes",
                 "-o ConnectTimeout=30",
                 f"-i{key_path}",
                 f"root@{target_host}",
