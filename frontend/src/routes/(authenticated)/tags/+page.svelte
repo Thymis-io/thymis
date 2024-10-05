@@ -2,15 +2,13 @@
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
 	import DeployActions from '$lib/components/DeployActions.svelte';
-	import { type Device, saveState, state, type Tag } from '$lib/state';
+	import { saveState, state, type Tag } from '$lib/state';
 	import {
 		Button,
-		Input,
 		Table,
 		TableBodyCell,
 		TableHead,
 		TableHeadCell,
-		Label,
 		Helper,
 		Tooltip
 	} from 'flowbite-svelte';
@@ -25,34 +23,17 @@
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import { nameToIdentifier, nameValidation } from '$lib/nameValidation';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
+	import CreateTagModal from './CreateTagModal.svelte';
 
 	$: tags = $state.tags.map((t) => ({ id: t.identifier, data: t }));
 	$: projectTags = $state.tags;
 	$: projectTagIds = projectTags.map((t) => t.identifier);
 
-	let newTag = '';
 	let deleteTag: Tag | undefined = undefined;
+	let createTagModalOpen = false;
 
 	const flipDurationMs = 200;
 	let dragDisabled = true;
-
-	const addTag = (newTag: string) => {
-		const newIdentifier = nameToIdentifier(newTag);
-
-		if (newTag && !projectTagIds.includes(newIdentifier)) {
-			$state.tags = [
-				...projectTags,
-				{
-					displayName: newTag,
-					identifier: newIdentifier,
-					priority: 90,
-					modules: []
-				}
-			];
-
-			saveState();
-		}
-	};
 
 	const removeTag = (tag: string) => {
 		$state.tags = projectTags.filter((t) => t.identifier !== tag);
@@ -126,7 +107,17 @@
 </script>
 
 <div class="flex justify-between mb-4">
-	<h1 class="text-3xl font-bold dark:text-white">Tags</h1>
+	<div class="flex gap-2">
+		<h1 class="text-3xl font-bold dark:text-white">Tags</h1>
+		<Button
+			color="alternative"
+			class="whitespace-nowrap gap-2"
+			on:click={() => (createTagModalOpen = true)}
+		>
+			<Plus size={20} />
+			{$t('tags.actions.create')}
+		</Button>
+	</div>
 	<DeployActions />
 </div>
 
@@ -140,6 +131,7 @@
 	}}
 	on:cancel={() => (deleteTag = undefined)}
 />
+<CreateTagModal bind:open={createTagModalOpen} />
 <Table shadow>
 	<TableHead>
 		<TableHeadCell padding="p-2 w-12" />
@@ -236,46 +228,3 @@
 		{/each}
 	</tbody>
 </Table>
-
-<h2 class="text-xl font-bold mt-8">{$t('tags.actions.create')}</h2>
-<div class="flex gap-2 mt-1">
-	<Label for="display-name" class="w-[600px]">
-		{$t('create-device.display-name-tag')}
-		<div class="flex flex-row gap-2">
-			<Input
-				id="display-name"
-				class="min-w-48"
-				bind:value={newTag}
-				on:keydown={(e) => {
-					if (!nameValidation(newTag, 'tag') && e.key === 'Enter') {
-						addTag(newTag);
-						newTag = '';
-					}
-				}}
-			/>
-			<Button
-				on:click={() => {
-					addTag(newTag);
-					newTag = '';
-				}}
-				disabled={!!nameValidation(newTag, 'tag')}
-				color="alternative"
-				class="p-2 gap-2 whitespace-nowrap"
-			>
-				<Plus />
-				{$t('tags.actions.add')}
-			</Button>
-		</div>
-		{#if newTag !== ''}
-			{#if nameValidation(newTag, 'tag')}
-				<Helper color="red">{nameValidation(newTag, 'tag')}</Helper>
-			{:else}
-				<Helper color="green"
-					>{$t('create-device.name-helper-tag', {
-						values: { identifier: nameToIdentifier(newTag) }
-					})}
-				</Helper>
-			{/if}
-		{/if}
-	</Label>
-</div>
