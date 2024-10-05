@@ -211,7 +211,7 @@
 						class="p-3 py-1.5 gap-2"
 						href={`/config?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.data.identifier)}`}
 					>
-						<Pen />
+						<Pen size={18} />
 						{$t('tags.actions.edit')}
 					</Button>
 					<Button
@@ -220,7 +220,7 @@
 						on:click={() => (deleteTag = tag.data)}
 						class="ml-8 p-3 py-1.5 gap-2"
 					>
-						<Trash />
+						<Trash size={18} />
 						{$t('tags.actions.delete')}
 					</Button>
 				</TableBodyCell>
