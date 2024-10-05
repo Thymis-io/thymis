@@ -55,7 +55,6 @@
 		const device: Device = {
 			displayName,
 			identifier,
-			targetHost: '',
 			tags: selectedTags.map((tag) => tag.value),
 			modules: [{ type: thymisDeviceModule?.type, settings: thymisDeviceModuleSettings }]
 		};

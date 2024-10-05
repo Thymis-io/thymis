@@ -105,7 +105,7 @@
 					<img src={module.icon ?? '/favicon.png'} alt={module.displayName} class="w-6 h-6" />
 					<P>{module.displayName}</P>
 				</a>
-				{#if removeModule && (!('targetHost' in context) || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}
+				{#if removeModule && ($globalNavSelectedTargetType !== 'device' || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}
 					<button
 						class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
 						on:click={() => removeModule(context, module)}
