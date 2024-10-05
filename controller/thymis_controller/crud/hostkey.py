@@ -65,7 +65,12 @@ def register_device(
 
 
 def get_all(db_session: Session):
-    return db_session.query(db_models.HostKey).all()
+    # order by created_at as a workaround, paramiko only matches the first key (unlike OpenSSH)
+    return (
+        db_session.query(db_models.HostKey)
+        .order_by(db_models.HostKey.created_at.desc())
+        .all()
+    )
 
 
 def get_device_host(db_session: Session, identifier: str):

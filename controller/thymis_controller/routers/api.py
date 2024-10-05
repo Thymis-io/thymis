@@ -255,6 +255,7 @@ async def terminal_websocket(
     db_session: SessionAD,
     websocket: WebSocket,
     state: State = Depends(dependencies.get_state),
+    project: project.Project = Depends(get_project),
 ):
     device = next(device for device in state.devices if device.identifier == identifier)
     target_host = crud.hostkey.get_device_host(db_session, identifier)
@@ -269,7 +270,7 @@ async def terminal_websocket(
     tcp_port = 22
 
     client = SSHClient()
-    client.load_system_host_keys()
+    client.load_host_keys(project.known_hosts_path)
 
     try:
         client.connect(tcp_ip, tcp_port, "root")
