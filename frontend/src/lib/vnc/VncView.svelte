@@ -27,7 +27,7 @@
 		const url = `${scheme}://${window.location.host}/api/vnc/${device.identifier}`;
 
 		const password = deviceVNCPassword(device, $state, $page.data.availableModules as Module[]);
-		const canvas = document.getElementById(`vnc-canvas-${deviceHost}`);
+		const canvas = document.getElementById(`vnc-canvas-${device.identifier}`);
 
 		if (rfb) {
 			rfb.disconnect();
@@ -90,7 +90,7 @@
 				/>
 			</div>
 		</div>
-		<div id={`vnc-canvas-${deviceHost}`} class="relative w-full aspect-video mt-4">
+		<div id={`vnc-canvas-${device.identifier}`} class="relative w-full aspect-video mt-4">
 			{#if connectionFailed}
 				<p
 					class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-red-500"
