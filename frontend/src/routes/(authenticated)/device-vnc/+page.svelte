@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
 	import { P } from 'flowbite-svelte';
 	import {
@@ -15,7 +16,7 @@
 </script>
 
 <div class="flex justify-between mb-4">
-	<div />
+	<h1 class="text-3xl font-bold dark:text-white">{$t('nav.device-vnc')}</h1>
 	<DeployActions />
 </div>
 {#if $globalNavSelectedTargetType === 'device' && $globalNavSelectedDevice}

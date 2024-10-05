@@ -27,7 +27,7 @@
 {#if $globalNavSelectedTargetType === 'device' && currentDevice}
 	<div class="flex justify-between mb-4">
 		<div class="flex flex-wrap gap-4 items-center">
-			<h1 class="text-3xl dark:text-white">{currentDevice.displayName}</h1>
+			<h1 class="text-3xl font-bold dark:text-white">{currentDevice.displayName}</h1>
 			<!-- <Badge large class="p-2 py-0.5 gap-1 self-center">
 				<Circle size={15} color="lightgreen" />
 				<span class="text-nowrap"> Online </span>

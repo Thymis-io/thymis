@@ -107,8 +107,8 @@
 </script>
 
 <div class="flex justify-between mb-4">
-	<div class="flex gap-2">
-		<h1 class="text-3xl font-bold dark:text-white">Tags</h1>
+	<div class="flex gap-4">
+		<h1 class="text-3xl font-bold dark:text-white">{$t('nav.tags')}</h1>
 		<Button
 			color="alternative"
 			class="whitespace-nowrap gap-2"
