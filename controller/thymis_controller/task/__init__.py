@@ -560,9 +560,12 @@ class DeployProjectTask(CompositeTask):
         deployable_devices = []
         for device in devices:
             state = next(
-                state
-                for state in project.read_state().devices
-                if state.identifier == device.identifier
+                (
+                    state
+                    for state in project.read_state().devices
+                    if state.identifier == device.identifier
+                ),
+                None,
             )
             if state:
                 deployable_devices.append((device.device_host, state))
@@ -615,7 +618,7 @@ class DeployDeviceTask(NixCommandTask):
             },
         )
 
-        self.display_name = f"Deploying to {target_host}"
+        self.display_name = f"Deploying to {device.identifier} on {target_host}"
 
 
 class UpdateTask(NixCommandTask):
