@@ -9,6 +9,7 @@
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 
 	let search = '';
+	let open = false;
 
 	const isSearched = (search: string, item: string) => {
 		if (!search) {
@@ -38,6 +39,7 @@
 	class="overflow-y-auto px-3 pb-3 text-sm h-full relative"
 	containerClass="z-50 left-4 right-4 flex flex-col whitespace-nowrap"
 	strategy="absolute"
+	bind:open
 >
 	<div slot="header" class="p-3">
 		<Search size="md" bind:value={search} placeholder={$t('common.search')} />
@@ -47,6 +49,7 @@
 			<DropdownItem
 				href={`?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.identifier)}`}
 				class={'flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded'}
+				on:click={() => (open = false)}
 			>
 				<TagIcon size={22} class="shrink-0" />
 				<span class="text-base">{tag.displayName}</span>
@@ -58,6 +61,7 @@
 			<DropdownItem
 				href={`?${buildGlobalNavSearchParam($page.url.search, 'device', device.identifier)}`}
 				class={'flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded'}
+				on:click={() => (open = false)}
 			>
 				<HardDrive size={22} class="shrink-0" />
 				<span class="text-base">{device.displayName}</span>
