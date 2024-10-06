@@ -1,3 +1,5 @@
+from thymis_controller.modules.raspberry_pi_4 import RaspberryPi4
+
 from .kiosk import Kiosk
 from .modules import Module
 from .oci_container import OCIContainers
@@ -10,6 +12,7 @@ ALL_MODULES: list[Module] = [
     WhateverModule(),
     Kiosk(),
     OCIContainers(),
+    RaspberryPi4(),
 ]
 
 ALL_MODULES_START = ALL_MODULES.copy()
