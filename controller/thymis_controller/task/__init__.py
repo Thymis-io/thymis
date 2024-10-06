@@ -622,11 +622,19 @@ class DeployDeviceTask(NixCommandTask):
 
 
 class UpdateTask(NixCommandTask):
-    def __init__(self, repo_dir):
+    project: "project.Project"
+
+    def __init__(self, repo_dir, project: "project.Project"):
         super().__init__(
             "Updating flake",
             ["flake", "update", repo_dir],
         )
+        self.project = project
+
+    async def _run(self):
+        r = await super()._run()
+        self.project.write_state_and_reload(self.project.read_state())
+        return r
 
 
 class BuildDeviceImageTask(NixCommandTask):

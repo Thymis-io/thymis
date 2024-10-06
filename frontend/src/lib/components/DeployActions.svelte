@@ -5,6 +5,7 @@
 	import ArrowsRotateSolid from 'svelte-awesome-icons/ArrowsRotateSolid.svelte';
 	import PlaySolid from 'svelte-awesome-icons/PlaySolid.svelte';
 	import DeployModal from '$lib/components/DeployModal.svelte';
+	import { invalidate } from '$app/navigation';
 
 	const build = async () => {
 		await fetch(`/api/action/build`, { method: 'POST' });
@@ -12,6 +13,7 @@
 
 	const update = async () => {
 		await fetch(`/api/action/update`, { method: 'POST' });
+		invalidate((url) => url.pathname === '/api/available_modules');
 	};
 
 	let openDeploy = false;
