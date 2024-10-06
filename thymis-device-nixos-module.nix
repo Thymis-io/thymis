@@ -26,8 +26,9 @@ in
             description = "Name of the device";
           };
           password = lib.mkOption {
-            type = lib.types.str;
+            type = lib.types.nullOr lib.types.str;
             description = "Password for the root user";
+            default = null;
           };
           wifi-ssid = lib.mkOption {
             type = lib.types.str;
@@ -39,6 +40,22 @@ in
             default = "";
             description = "Password for the wifi network";
           };
+          agent = lib.mkOption {
+            type = lib.types.submodule {
+              options = {
+                enable = lib.mkOption {
+                  type = lib.types.bool;
+                  default = false;
+                  description = "Enable the agent";
+                };
+                controller-url = lib.mkOption {
+                  type = lib.types.str;
+                  default = "";
+                  description = "URL of the Thymis Controller";
+                };
+              };
+            };
+          };
         };
       };
       default = { };
@@ -47,7 +64,7 @@ in
   };
   config = {
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
-    users.users.root.password = cfg.password;
+    users.users.root.password = lib.mkIf (cfg.password != null) cfg.password;
     services.openssh = {
       enable = true;
       settings.PermitRootLogin = "yes";
@@ -71,10 +88,23 @@ in
     users.users.thymis = {
       isNormalUser = true;
       createHome = true;
-      password = cfg.password;
+      password = lib.mkIf (cfg.password != null) cfg.password;
     };
     networking.firewall = {
       allowedTCPPorts = [ 22 ];
+    };
+    thymis.config.agent.enable = lib.mkDefault false;
+    systemd.services.thymis-agent = lib.mkIf cfg.agent.enable {
+      description = "Thymis agent";
+      after = [ "network.target" "sshd.service" ];
+      wantedBy = [ "multi-user.target" ];
+      script = "${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent";
+      path = [
+        "/run/current-system/sw"
+      ];
+      environment = {
+        CONTROLLER_HOST = cfg.agent.controller-url;
+      };
     };
   };
 }

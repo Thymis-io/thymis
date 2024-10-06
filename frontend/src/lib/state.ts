@@ -70,7 +70,6 @@ export type Tag = {
 export type Device = {
 	displayName: string;
 	identifier: string;
-	targetHost: string;
 	modules: ModuleSettings[];
 	tags: string[];
 };

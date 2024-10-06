@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "thymis-agent"
+version = "0.1.0"
+description = ""
+authors = ["Adrian Block <adrian.block@thymis.io>", "Eli Kogan-Wang <eli.kogan-wang@thymis.io", "Maximilian Schmöcker <maximilian.schmoecker@thymis.io>", "Florian Schönlau <florian.schoenlau@thymis.io"]
+license = "AGPLv3"
+readme = "README.md"
+packages = [
+    { include = "thymis_agent" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.32.3"
+psutil = "^6.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+thymis-agent = 'thymis_agent.agent:main'

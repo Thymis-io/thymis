@@ -20,6 +20,7 @@
 	import GearSolid from 'svelte-awesome-icons/GearSolid.svelte';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import TagIcon from 'lucide-svelte/icons/tag';
+	import ListCollapse from 'lucide-svelte/icons/list-collapse';
 	import {
 		globalNavSelectedDevice,
 		globalNavSelectedTag,
@@ -83,6 +84,12 @@
 
 	let dynamicNavItems: NavItem[] = [];
 	$: dynamicNavItems = [
+		{
+			name: $t(`nav.device-details`),
+			icon: ListCollapse,
+			href: '/device-details',
+			hidden: !$globalNavSelectedDevice
+		},
 		{
 			name: $t(`nav.config-${$globalNavSelectedTargetType}`),
 			icon: SlidersSolid,

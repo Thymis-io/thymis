@@ -1,5 +1,6 @@
 import pathlib
 
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 
@@ -29,10 +30,9 @@ class GlobalSettings(BaseSettings):
     AUTH_OAUTH_AUTHORIZATION_ENDPOINT: str | None = None
     AUTH_OAUTH_TOKEN_ENDPOINT: str | None = None
 
-    class Config:
-        env_prefix = "THYMIS_"
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = ConfigDict(
+        env_prefix="THYMIS_", env_file=".env", env_file_encoding="utf-8"
+    )
 
 
 global_settings = GlobalSettings()

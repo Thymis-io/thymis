@@ -88,6 +88,7 @@
               pkgs.pre-commit
               pkgs.playwright-driver.browsers
               pkgs.mdbook
+              pkgs.nixpkgs-fmt
             ];
             shellHook = ''
               export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
@@ -107,10 +108,16 @@
             );
             thymis-frontend = thymis-frontend;
           };
+          thymis-agent = pkgs.callPackage ./agent {
+            poetry2nix = (
+              (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; })
+            );
+          };
         in
         {
           thymis-controller = thymis-controller;
           thymis-controller-container = import ./docker.nix { inherit pkgs thymis-controller; };
+          thymis-agent = thymis-agent;
         }
       );
       nixosModules = nixosModules;

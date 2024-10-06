@@ -7,11 +7,14 @@ import pkgutil
 import shutil
 import subprocess
 import sys
+import tempfile
 import traceback
 from pathlib import Path
+from typing import List
 
 import git
-from thymis_controller import migration, models, task
+from sqlalchemy.orm import Session
+from thymis_controller import crud, migration, models, task
 from thymis_controller.config import global_settings
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
@@ -119,9 +122,10 @@ def get_module_class_instance_by_type(module_type: str):
 class Project:
     path: pathlib.Path
     repo: git.Repo
+    known_hosts_path: pathlib.Path
     public_key: str
 
-    def __init__(self, path):
+    def __init__(self, path, db_session: Session):
         self.path = pathlib.Path(path)
         # create the path if not exists
         self.path.mkdir(exist_ok=True, parents=True)
@@ -158,6 +162,10 @@ class Project:
         except subprocess.CalledProcessError as e:
             logger.error("Error while migrating state: %s", e)
             traceback.print_exc()
+
+        logger.info("Initializing known_hosts file")
+        self.known_hosts_path = None
+        self.update_known_hosts(db_session)
 
     def read_state(self):
         with open(Path(self.path) / "state.json", "r", encoding="utf-8") as f:
@@ -205,7 +213,7 @@ class Project:
     def create_folder_and_write_modules(self, base_path, identifier, modules, priority):
         path = self.path / base_path / identifier
         path.mkdir(exist_ok=True)
-        os.mknod(path / ".gitignore")
+        os.mknod(path / ".gitkeep")
         for module_settings in modules:
             try:
                 module = get_module_class_instance_by_type(module_settings.type)
@@ -248,6 +256,19 @@ class Project:
             for commit in self.repo.iter_commits()
         ]
 
+    def update_known_hosts(self, db_session: Session):
+        if not self.known_hosts_path or not self.known_hosts_path.exists():
+            self.known_hosts_path = pathlib.Path(
+                tempfile.NamedTemporaryFile(delete=False).name
+            )
+
+        hostkeys = crud.hostkey.get_all(db_session)
+        with open(self.known_hosts_path, "w", encoding="utf-8") as f:
+            for hostkey in hostkeys:
+                f.write(f"{hostkey.device_host} {hostkey.public_key}\n")
+
+        logger.info("Updated known_hosts file at %s", self.known_hosts_path)
+
     def revert_commit(self, commit: str):
         commit_to_revert = self.repo.commit(commit)
         sha1 = self.repo.git.rev_parse(commit_to_revert.hexsha, short=True)
@@ -256,33 +277,64 @@ class Project:
         self.repo.index.commit(f"Revert to {sha1}: {commit_to_revert.message}")
         logger.info(f"Reverted commit: {commit_to_revert}")
 
+    def clone_state_device(
+        self, device_identifier, new_device_identifier, new_device_display_name=None
+    ):
+        state = self.read_state()
+        device = next(
+            device for device in state.devices if device.identifier == device_identifier
+        )
+        new_device = device.model_copy()
+        new_device.identifier = new_device_identifier
+        if new_device_display_name:
+            new_device.displayName = new_device_display_name(device.displayName)
+        state.devices.append(new_device)
+        self.write_state_and_reload(state)
+
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildProjectTask(self.path))
 
-    def create_deploy_device_task(self, device_identifier: str):
+    def create_deploy_device_task(self, device_identifier: str, target_host: str):
         device = next(
             device
             for device in self.read_state().devices
             if device.identifier == device_identifier
         )
         return task.global_task_controller.add_task(
-            task.DeployDeviceTask(self.path, device, global_settings.SSH_KEY_PATH)
+            task.DeployDeviceTask(
+                self.path, device, target_host, global_settings.SSH_KEY_PATH
+            )
         )
 
-    def create_deploy_project_task(self):
+    def create_deploy_project_task(self, devices: List[models.Hostkey]):
         return task.global_task_controller.add_task(
-            task.DeployProjectTask(self, global_settings.SSH_KEY_PATH)
+            task.DeployProjectTask(self, devices, global_settings.SSH_KEY_PATH)
         )
 
     def create_update_task(self):
         return task.global_task_controller.add_task(task.UpdateTask(self.path))
 
-    def create_build_device_image_task(self, device_identifier: str):
+    def create_build_device_image_task(
+        self, device_identifier: str, db_session: Session
+    ):
+        device_state = next(
+            device
+            for device in self.read_state().devices
+            if device.identifier == device_identifier
+        )
         return task.global_task_controller.add_task(
-            task.BuildDeviceImageTask(self.path, device_identifier)
+            task.BuildDeviceImageTask(
+                self.path,
+                device_identifier,
+                db_session,
+                device_state.model_dump(),
+                self.repo.head.object.hexsha,
+            )
         )
 
-    def create_restart_device_task(self, device: models.Device):
+    def create_restart_device_task(self, device: models.Device, target_host: str):
         return task.global_task_controller.add_task(
-            task.RestartDeviceTask(device, global_settings.SSH_KEY_PATH)
+            task.RestartDeviceTask(
+                device, global_settings.SSH_KEY_PATH, self.known_hosts_path, target_host
+            )
         )

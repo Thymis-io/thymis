@@ -116,7 +116,7 @@ taskStatus.subscribe((tasks) => {
 	// if a task.type is commandtask, and the task just finished, download the image
 	// tasks have a uuid now at .id
 	tasks.forEach((task) => {
-		if (task.type !== 'commandtask') return;
+		if (task.type !== 'nixcommandtask') return;
 		if (task.state !== 'completed') return;
 		if (!('program' in task.data)) return;
 		if (task.data.program !== 'nix') return;

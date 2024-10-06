@@ -17,8 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import engine_from_config
 from thymis_controller.config import global_settings
 from thymis_controller.database.base import Base
-from thymis_controller.database.connection import engine
-from thymis_controller.routers import api, auth, frontend
+from thymis_controller.routers import agent, api, auth, frontend
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +27,8 @@ script = ScriptDirectory.from_config(alembic_config)
 
 
 def peform_db_upgrade():
+    from thymis_controller.database.connection import engine
+
     with engine.begin() as connection:
         alembic_config.attributes["connection"] = connection
         logger.info("Performing database upgrade")
@@ -192,6 +193,7 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/auth")
 app.include_router(api.router, prefix="/api")
+app.include_router(agent.router, prefix="/agent")
 app.include_router(frontend.router)
 
 

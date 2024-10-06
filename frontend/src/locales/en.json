@@ -14,7 +14,8 @@
 		"global-vnc": "VNC All Devices",
 		"device-vnc": "VNC",
 		"external-repositories": "External Repositories",
-		"tags": "Tags"
+		"tags": "Tags",
+		"device-details": "Details"
 	},
 	"common": {
 		"search": "Search...",
@@ -37,10 +38,15 @@
 			"status": "Status"
 		},
 		"actions": {
-			"edit": "Edit",
-			"download": "Download Image",
+			"edit": "Edit Modules",
+			"download": "Download Replacement Image",
+			"download-image-for-clone": "Download Clone Image",
 			"restart": "Restart",
-			"delete": "Delete"
+			"delete": "Delete",
+			"view-details": "View Details",
+			"download-image-tooltip": "Download a new device image to replace the current device",
+			"download-image-for-clone-tooltip": "Download a new device image to create a clone of the current device.\nThis will create and register a new device with the same configuration",
+			"restart-tooltip": "Restart the device"
 		},
 		"status": {
 			"online": "Online",
@@ -50,6 +56,7 @@
 		"edit-hostname-title": "Edit target hostname",
 		"edit-tags-title": "Edit Tags",
 		"new-tag-placeholder": "New Tag...",
+		"unknown-target": "Unknown Target",
 		"limit-explain": "You can manage up to {deviceLimit} devices.\nFor larger projects, we offer scalable plans to meet your needs at thymis.io/"
 	},
 	"create-device": {
@@ -215,5 +222,33 @@
 	},
 	"tag": {
 		"device": "Device"
+	},
+	"device-details": {
+		"network": "Network",
+		"targetHost": "Target Host",
+		"tags": "Tags",
+		"config": "Configuration",
+		"actions": "Actions",
+		"danger": "Danger",
+		"modules": "Modules",
+		"hostkey": "Hostkey",
+		"publicKey": "Public Key",
+		"edit-hostkey": "Edit Hostkey",
+		"add-hostkey": "Set Hostkey",
+		"refresh-hostkey": "Refresh Hostkey",
+		"delete-hostkey": "Delete Hostkey",
+		"edit-tags": "Edit Tags"
+	},
+	"edit-hostkey": {
+		"title": "Edit Hostkey",
+		"device-host": "Device Target Host",
+		"host-empty": "Host required",
+		"host-invalid": "Host is invalid",
+		"host-valid": "Host is valid",
+		"public-key": "Device Public Key",
+		"scan-public-key": "Scan For Public Key",
+		"scan-public-key-tooltip": "Automatically scan for the public key of the device in the network. Uses the specified target host from above.\nVerify if the key is correct afterwards",
+		"update": "Update",
+		"create": "Create"
 	}
 }

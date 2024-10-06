@@ -14,7 +14,8 @@
 		"global-vnc": "VNC Alle Geräte",
 		"device-vnc": "VNC",
 		"external-repositories": "Externe Repositories",
-		"tags": "Tags"
+		"tags": "Tags",
+		"device-details": "Details"
 	},
 	"common": {
 		"search": "Suchen...",
@@ -37,10 +38,15 @@
 			"status": "Status"
 		},
 		"actions": {
-			"edit": "Bearbeiten",
-			"download": "Image Herunterladen",
+			"edit": "Module Bearbeiten",
+			"download": "Ersetzungs Image Herunterladen",
+			"download-image-for-clone": "Clone Image Herunterladen",
 			"restart": "Neustarten",
-			"delete": "Löschen"
+			"delete": "Löschen",
+			"view-details": "Details anzeigen",
+			"download-image-for-clone-tooltip": "Lade ein neues Geräte-Image herunter, um einen Klon des aktuellen Geräts zu erstellen.\nDadurch wird ein neues Gerät mit der gleichen Konfiguration erstellt und registriert",
+			"download-image-tooltip": "Lade ein neues Geräte-Image herunter, um das aktuelle Gerät zu ersetzen",
+			"restart-tooltip": "Starte das Gerät neu"
 		},
 		"status": {
 			"online": "Online",
@@ -50,6 +56,7 @@
 		"edit-hostname-title": "Ziel Hostnamen Bearbeiten",
 		"edit-tags-title": "Tags Bearbeiten",
 		"new-tag-placeholder": "Neuer Tag...",
+		"unknown-target": "Unbekanntes Ziel",
 		"limit-explain": "Sie können bis zu {deviceLimit} Geräte verwalten.\nFür größere Projekte bieten wir auf thymis.io/ skalierbare Pläne an, die Ihren Anforderungen entsprechen"
 	},
 	"create-device": {
@@ -215,5 +222,32 @@
 	},
 	"tag": {
 		"device": "Gerät"
+	},
+	"device-details": {
+		"actions": "Aktionen",
+		"config": "Konfiguration",
+		"danger": "Gefährlich",
+		"modules": "Module",
+		"network": "Netzwerk",
+		"tags": "Tags",
+		"targetHost": "Ziel Host",
+		"hostkey": "Hostkey",
+		"publicKey": "Public Key",
+		"add-hostkey": "Hostkey Setzen",
+		"delete-hostkey": "Hostkey Löschen",
+		"edit-hostkey": "Hostkey Bearbeiten",
+		"refresh-hostkey": "Hostkey Aktualisieren"
+	},
+	"edit-hostkey": {
+		"create": "Erstellen",
+		"device-host": "Zielhost des Gerätes",
+		"host-empty": "Host erforderlich",
+		"host-invalid": "Host ist ungültig",
+		"host-valid": "Host ist gültig",
+		"public-key": "Public Key des Gerätes",
+		"scan-public-key": "Nach Public Key Scannen",
+		"scan-public-key-tooltip": "Automatische Suche nach dem Public Key des Geräts im Netzwerk. Verwendet den oben angegebenen Zielhost.\nÜberprüfen Sie anschließend, ob der Public Key korrekt ist",
+		"title": "Hostkey Bearbeiten",
+		"update": "Aktualisieren"
 	}
 }

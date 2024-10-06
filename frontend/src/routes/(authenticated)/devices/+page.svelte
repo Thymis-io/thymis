@@ -24,30 +24,11 @@
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
 	import { flip } from 'svelte/animate';
 	import { nameToIdentifier } from '$lib/nameValidation';
-	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 
 	const flipDurationMs = 200;
 	let dragDisabled = true;
 
-	let deviceToDelete: Device | undefined = undefined;
-
 	export let data: PageData;
-
-	const deleteDevice = async (device: Device) => {
-		data.state.devices = data.state.devices.filter((d) => d.identifier !== device.identifier);
-		await saveState();
-	};
-
-	const restartDevice = async (device: Device) => {
-		fetch(`/api/action/restart-device?identifier=${device.identifier}`, { method: 'POST' });
-	};
-
-	const buildAndDownloadImage = async (device: Device) => {
-		console.log('Building and downloading image');
-		await fetch(`/api/action/build-download-image?identifier=${device.identifier}`, {
-			method: 'POST'
-		});
-	};
 
 	const findTag = (identifier: string) => {
 		return data.state.tags.find((t) => t.identifier === identifier);
@@ -89,6 +70,7 @@
 	}) satisfies KeyboardEventHandler<HTMLDivElement>;
 
 	$: devices = data.state.devices.map((d) => {
+		console.log(data.registeredDevices);
 		return { id: d.identifier, data: d };
 	});
 
@@ -122,20 +104,12 @@
 	<DeployActions />
 </div>
 <CreateDeviceModal bind:open={deviceModalOpen} />
-<DeleteConfirm
-	target={deviceToDelete?.displayName}
-	on:confirm={() => {
-		if (deviceToDelete) deleteDevice(deviceToDelete);
-		deviceToDelete = undefined;
-	}}
-	on:cancel={() => (deviceToDelete = undefined)}
-/>
 <EditTagModal bind:currentlyEditingDevice />
 <Table shadow>
 	<TableHead>
 		<TableHeadCell padding="p-2 w-12" />
 		<TableHeadCell padding="p-2">{$t('devices.table.name')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('devices.table.target-host')}</TableHeadCell>
+		<!-- <TableHeadCell padding="p-2">{$t('devices.table.target-host')}</TableHeadCell> -->
 		<TableHeadCell padding="p-2">{$t('devices.table.tags')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('devices.table.actions')}</TableHeadCell>
 	</TableHead>
@@ -172,7 +146,7 @@
 						saveState();
 					}}
 				/>
-				<TableBodyEditCell bind:value={device.data.targetHost} onEnter={() => saveState()} />
+				<!-- <TableBodyCell>{$t('devices.unknown-target')}</TableBodyCell> -->
 				<TableBodyCell tdClass="p-2 px-2 md:px-4">
 					<div class="flex justify-between">
 						<div class="flex gap-2">
@@ -180,15 +154,13 @@
 								<Button
 									pill
 									size="sm"
-									class="p-3 py-1.5"
+									class="p-2 py-0.5"
 									href={`/config?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
 								>
-									<TagIcon size={20} class="mr-2" />
-									<!-- <span
-									class="inline-block bg-blue-300 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-1"
-								> -->
-									{findTag(tag)?.displayName ?? tag}
-									<!-- </span> -->
+									<TagIcon size={15} class="mr-1" />
+									<span class="text-nowrap">
+										{findTag(tag)?.displayName ?? tag}
+									</span>
 								</Button>
 							{/each}
 						</div>
@@ -202,34 +174,13 @@
 						<Button
 							class="px-4 py-2"
 							color="alternative"
-							href={`/config?${buildGlobalNavSearchParam(
+							href={`/device-details?${buildGlobalNavSearchParam(
 								$page.url.search,
 								'device',
 								device.data.identifier
 							)}`}
 						>
-							{$t('devices.actions.edit')}
-						</Button>
-						<Button
-							class="px-4 py-2"
-							color="alternative"
-							on:click={() => buildAndDownloadImage(device.data)}
-						>
-							{$t('devices.actions.download')}
-						</Button>
-						<Button
-							class="px-4 py-2"
-							color="alternative"
-							on:click={() => restartDevice(device.data)}
-						>
-							{$t('devices.actions.restart')}
-						</Button>
-						<Button
-							class="ml-8 px-4 py-2"
-							color="alternative"
-							on:click={() => (deviceToDelete = device.data)}
-						>
-							{$t('devices.actions.delete')}
+							{$t('devices.actions.view-details')}
 						</Button>
 					</div>
 				</TableBodyCell>

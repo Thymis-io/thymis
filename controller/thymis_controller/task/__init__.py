@@ -7,12 +7,14 @@ import logging
 import os
 import time
 import uuid
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
-from thymis_controller import models, project
-from thymis_controller.nix import NIX_CMD
+from sqlalchemy.orm import Session
+from thymis_controller import crud, models, project
+from thymis_controller.config import global_settings
+from thymis_controller.nix import NIX_CMD, get_build_output
 from thymis_controller.nix.log_parse import NixProcess
 
 logger = logging.getLogger(__name__)
@@ -549,11 +551,35 @@ class BuildProjectTask(NixCommandTask):
 class DeployProjectTask(CompositeTask):
     project: "project.Project"
 
-    def __init__(self, project: "project.Project", ssh_key_path: str):
+    def __init__(
+        self,
+        project: "project.Project",
+        devices: List[models.Hostkey],
+        ssh_key_path: str,
+    ):
+        deployable_devices = []
+        for device in devices:
+            state = next(
+                (
+                    state
+                    for state in project.read_state().devices
+                    if state.identifier == device.identifier
+                ),
+                None,
+            )
+            if state:
+                deployable_devices.append((device.device_host, state))
+
         super().__init__(
             [
-                DeployDeviceTask(project.path, device, ssh_key_path)
-                for device in project.read_state().devices
+                DeployDeviceTask(
+                    project.path,
+                    state,
+                    ssh_key_path,
+                    project.known_hosts_path,
+                    target_host,
+                )
+                for target_host, state in deployable_devices
             ]
         )
 
@@ -568,22 +594,31 @@ class DeployProjectTask(CompositeTask):
 
 
 class DeployDeviceTask(NixCommandTask):
-    def __init__(self, repo_dir, device: models.Device, ssh_key_path: str):
+    def __init__(
+        self,
+        repo_dir,
+        device: models.Device,
+        ssh_key_path: str,
+        known_hosts_path,
+        target_host,
+    ):
         super().__init__(
-            f"Deploying to {device.identifier} on {device.targetHost}",
+            f"Deploying to {device.identifier} on {target_host}",
             [
                 "switch",
                 "--flake",
                 f"{repo_dir}#{device.identifier}",
                 "--target-host",
-                f"root@{device.targetHost}",
+                f"root@{target_host}",
             ],
             "nixos-rebuild",
             env={
-                "NIX_SSHOPTS": f"-i {ssh_key_path} -o StrictHostKeyChecking=accept-new -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ConnectTimeout=10",
+                "NIX_SSHOPTS": f"-i {ssh_key_path} -o UserKnownHostsFile={known_hosts_path} -o StrictHostKeyChecking=yes -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ConnectTimeout=10",
                 "PATH": os.getenv("PATH"),
             },
         )
+
+        self.display_name = f"Deploying to {device.identifier} on {target_host}"
 
 
 class UpdateTask(NixCommandTask):
@@ -595,7 +630,11 @@ class UpdateTask(NixCommandTask):
 
 
 class BuildDeviceImageTask(NixCommandTask):
-    def __init__(self, repo_dir, identifier):
+    image_path: str
+    db_session: Session
+    build_hash: str
+
+    def __init__(self, repo_dir, identifier, db_session, device_state, commit_hash):
         super().__init__(
             f"Building image for {identifier}",
             [
@@ -607,6 +646,31 @@ class BuildDeviceImageTask(NixCommandTask):
         )
 
         self.identifier = identifier
+        self.image_path = f"/tmp/thymis-devices.{identifier}"
+        self.build_hash = None
+        self.db_session = db_session
+        self.device_state = device_state
+        self.commit_hash = commit_hash
+
+    async def _run(self):
+        r = await super()._run()
+        if r != 0:
+            return
+
+        build_output = get_build_output(global_settings.REPO_PATH, self.identifier)
+
+        store_path = build_output["outputs"]["out"]  # TODO: or maybe drvPath?
+        self.build_hash = store_path[len("/nix/store/") :].split("-")[0]
+
+        crud.image.create(
+            self.db_session,
+            self.identifier,
+            self.build_hash,
+            self.device_state,
+            self.commit_hash,
+        )
+
+        return r
 
     def get_model(self) -> models.NixCommandTask:
         return models.NixCommandTask(
@@ -630,14 +694,17 @@ class BuildDeviceImageTask(NixCommandTask):
 
 
 class RestartDeviceTask(CommandTask):
-    def __init__(self, device: models.Device, key_path: str):
+    def __init__(
+        self, device: models.Device, key_path: str, known_hosts_path, target_host
+    ):
         super().__init__(
             "ssh",
             [
-                "-o StrictHostKeyChecking=accept-new",
+                f"-o UserKnownHostsFile={known_hosts_path}",
+                "-o StrictHostKeyChecking=yes",
                 "-o ConnectTimeout=30",
                 f"-i{key_path}",
-                f"root@{device.targetHost}",
+                f"root@{target_host}",
                 "reboot",
             ],
         )

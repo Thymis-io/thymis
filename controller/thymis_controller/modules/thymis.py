@@ -2,6 +2,7 @@ import pathlib
 
 import thymis_controller.modules.modules as modules
 from thymis_controller import models
+from thymis_controller.config import global_settings
 from thymis_controller.lib import read_into_base64
 from thymis_controller.nix import convert_python_value_to_nix, template_env
 from thymis_controller.project import Project
@@ -325,13 +326,45 @@ class ThymisDevice(modules.Module):
                 de="Schlüsselname",
             ),
         ),
-        default=None,
+        default=[],
         description=modules.LocalizedString(
             en="Authorized keys.",
             de="Authorisierte Schlüssel.",
         ),
         example="",
         order=60,
+    )
+
+    agent_enabled = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Agent Enabled",
+            de="Agent aktiviert",
+        ),
+        nix_attr_name="thymis.config.agent.enable",
+        type="bool",
+        default=False,
+        description=modules.LocalizedString(
+            en="Enable the agent, necessary for auto discover.",
+            de="Aktiviert den Agent, notwendig für Auto-Discover.",
+        ),
+        example="",
+        order=70,
+    )
+
+    agent_controller_url = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Thymis Controller URL",
+            de="Thymis Controller-URL",
+        ),
+        nix_attr_name="thymis.config.agent.controller-url",
+        type="string",
+        default="",
+        description=modules.LocalizedString(
+            en="URL of this Thymis Controller instance",
+            de="URL dieser Thymis Controller-Instanz",
+        ),
+        example="",
+        order=80,
     )
 
     static_networks = modules.Setting(
@@ -457,7 +490,7 @@ class ThymisDevice(modules.Module):
             de="Statische Netzwerkkonfiguration.",
         ),
         example="",
-        order=70,
+        order=90,
     )
 
     nameservers = modules.Setting(
@@ -492,7 +525,7 @@ class ThymisDevice(modules.Module):
             de="Nameserver",
         ),
         example="",
-        order=80,
+        order=100,
     )
 
     def write_nix_settings(
@@ -509,6 +542,13 @@ class ThymisDevice(modules.Module):
             if "authorized_keys" in module_settings.settings
             else self.authorized_keys.default
         )
+
+        # add key at global_settings.SSH_KEY_PATH
+
+        if (path := pathlib.Path(global_settings.SSH_KEY_PATH) / ".pub").exists():
+            with path.open() as f_key:
+                public_key = f_key.read().strip()
+            authorized_keys.append({"key": public_key})
 
         static_networks = (
             module_settings.settings["static_networks"]

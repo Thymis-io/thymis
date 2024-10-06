@@ -3,6 +3,7 @@ import os
 import thymis_controller.modules.modules as modules
 from thymis_controller import models
 from thymis_controller.nix import template_env
+from thymis_controller.project import Project
 
 
 class OCIContainers(modules.Module):
@@ -203,6 +204,7 @@ class OCIContainers(modules.Module):
         path: os.PathLike,
         module_settings: "models.ModuleSettings",
         priority: int,
+        project: Project,
     ):
         filename = f"{self.type}.nix"
 
