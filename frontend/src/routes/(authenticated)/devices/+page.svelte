@@ -13,6 +13,8 @@
 		Tooltip
 	} from 'flowbite-svelte';
 	import TagIcon from 'lucide-svelte/icons/tag';
+	import Plus from 'lucide-svelte/icons/plus';
+	import Search from 'lucide-svelte/icons/search';
 	import GripVertical from 'lucide-svelte/icons/grip-vertical';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import CreateDeviceModal from './CreateDeviceModal.svelte';
@@ -79,19 +81,23 @@
 </script>
 
 <div class="flex justify-between mb-4">
-	<Button
-		color="alternative"
-		class="whitespace-nowrap"
-		on:click={() => (deviceModalOpen = true)}
-		disabled={devices.length >= 5}
-	>
-		{$t('devices.create-new', {
-			values: {
-				deviceCount: devices.length,
-				deviceLimit: 5
-			}
-		})}
-	</Button>
+	<div class="flex gap-4">
+		<h1 class="text-3xl font-bold dark:text-white">{$t('nav.devices')}</h1>
+		<Button
+			color="alternative"
+			class="whitespace-nowrap gap-2"
+			on:click={() => (deviceModalOpen = true)}
+			disabled={devices.length >= 5}
+		>
+			<Plus size={20} />
+			{$t('devices.create-new', {
+				values: {
+					deviceCount: devices.length,
+					deviceLimit: 5
+				}
+			})}
+		</Button>
+	</div>
 	{#if devices.length >= 5}
 		<Tooltip class="z-50 whitespace-pre">
 			{$t('devices.limit-explain', {
@@ -172,7 +178,7 @@
 				<TableBodyCell tdClass="p-2 px-2 md:px-4">
 					<div class="flex gap-2">
 						<Button
-							class="px-4 py-2"
+							class="px-3 py-1.5 gap-2"
 							color="alternative"
 							href={`/device-details?${buildGlobalNavSearchParam(
 								$page.url.search,
@@ -180,6 +186,7 @@
 								device.data.identifier
 							)}`}
 						>
+							<Search size={16} />
 							{$t('devices.actions.view-details')}
 						</Button>
 					</div>

@@ -15,6 +15,7 @@
 	import Plus from 'lucide-svelte/icons/plus';
 	import Trash from 'lucide-svelte/icons/trash';
 	import { buildConfigSelectModuleSearchParam } from '$lib/searchParamHelpers';
+	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 
 	export let contextType: string | null;
 	export let context: Tag | Device | undefined;
@@ -24,6 +25,8 @@
 	export let configSelectedModule: Module | undefined;
 	export let configSelectedModuleContextType: string | null;
 	export let configSelectedModuleContext: Tag | Device | undefined;
+
+	let moduleToRemove: Module | undefined;
 
 	const addModule = (target: Tag | Device | undefined, module: Module) => {
 		if (target && !target.modules.find((m) => m.type === module.type)) {
@@ -52,6 +55,11 @@
 	$: console.log(context?.displayName, contextType);
 </script>
 
+<DeleteConfirm
+	target={moduleToRemove?.displayName}
+	on:confirm={() => moduleToRemove && removeModule?.(context, moduleToRemove)}
+	on:cancel={() => (moduleToRemove = undefined)}
+/>
 <div class="flex justify-between mb-2">
 	<div class="flex gap-2 inline-block items-center">
 		<slot name="icon" />
@@ -108,7 +116,7 @@
 				{#if removeModule && ($globalNavSelectedTargetType !== 'device' || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}
 					<button
 						class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
-						on:click={() => removeModule(context, module)}
+						on:click={() => (moduleToRemove = module)}
 					>
 						<Trash size={20} />
 					</button>

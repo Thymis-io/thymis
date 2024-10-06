@@ -207,7 +207,7 @@
 	},
 	"tags": {
 		"actions": {
-			"edit": "Bearbeiten",
+			"edit": "Tag Konfigurieren",
 			"delete": "Löschen",
 			"add": "Tag Hinzufügen",
 			"create": "Tag erstellen"
