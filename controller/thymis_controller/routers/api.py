@@ -135,7 +135,7 @@ def download_image(
     file_endings = ["img", "qcow2", "iso"]
 
     # search for file in /tmp/thymis-devices.{identifier}/*
-    for root, dirs, files in os.walk(f"/tmp/thymis-devices.{identifier}"):
+    for root, dirs, files in os.walk(f"/tmp/thymis-devices.{device.identifier}"):
         for file in files:
             if file.endswith(tuple(file_endings)):
                 return FileResponse(os.path.join(root, file))
