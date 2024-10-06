@@ -85,6 +85,8 @@ def load_repositories(flake_path: os.PathLike, repositories: dict[str, models.Re
         for module in pkgutil.walk_packages([path]):
             try:
                 imported_module = importlib.import_module(module.name)
+                # required to detect changes if this is a second import
+                importlib.reload(imported_module)
                 logger.info("Imported module %s", module.name)
                 for name, value in imported_module.__dict__.items():
                     logger.info("Checking value %s", name)
