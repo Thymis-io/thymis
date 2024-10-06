@@ -138,7 +138,7 @@ def download_image(
     for root, dirs, files in os.walk(f"/tmp/thymis-devices.{identifier}"):
         for file in files:
             if file.endswith(tuple(file_endings)):
-                return FileResponse(f"{root}/{file}")
+                return FileResponse(os.path.join(root, file), filename=file)
 
     raise HTTPException(status_code=404, detail="Image not found")
 
