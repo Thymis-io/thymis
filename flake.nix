@@ -56,6 +56,22 @@
         };
       }).config.system.build.thymis-image;
 
+      thymis-controller-generic-x86_64-image = (nixpkgs.lib.nixosSystem {
+        modules = [
+          nixosModules.thymis-device
+          nixosModules."thymis-device-generic-x86_64"
+          nixosModules."thymis-image-qcow"
+          nixosModules.thymis-controller
+          {
+            services.thymis-controller.enable = true;
+            system.stateVersion = "24.05";
+          }
+        ];
+        specialArgs = {
+          inherit inputs;
+        };
+      }).config.system.build.thymis-image;
+
       removeRecurseForDerivations = nixpkgs.lib.filterAttrsRecursive (k: v: k != "recurseForDerivations");
     in
     {
@@ -108,8 +124,10 @@
       );
       nixosModules = nixosModules;
       thymis-controller-pi-4-sd-image = thymis-controller-pi-4-sd-image;
+      thymis-controller-generic-x86_64-image = thymis-controller-generic-x86_64-image;
       hydraJobs = {
         thymis-controller-pi-4-sd-image = thymis-controller-pi-4-sd-image;
+        thymis-controller-generic-x86_64-image = thymis-controller-generic-x86_64-image;
       };
     };
 }
