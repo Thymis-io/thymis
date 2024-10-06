@@ -140,6 +140,10 @@ def register(
                 device_host=device_host,
                 project=project,
             )
+
+            # remove old hostkey, to prevent deploying to the old device
+            # TODO maybe: invalidate instead of delete
+            crud.hostkey.delete(db_session, device.identifier)
     else:
         # device is not registered
         logger.info(

@@ -190,9 +190,7 @@ def test_register_replace_device(test_client):
         .first()
     )
 
-    assert prior_hostkey is not None
-    assert prior_hostkey.build_hash == first_image["build_hash"]
-    assert prior_hostkey.identifier == f"{first_image['identifier']}-old"
+    assert prior_hostkey is None
 
     own_hostkey = (
         db_session.query(db_models.HostKey)
