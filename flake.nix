@@ -40,45 +40,22 @@
         (import ./image-formats.nix { inherit inputs; lib = nixpkgs.lib; })
       );
 
-
-      download-image = { thymis-config ? throw "thymis-config is required. Provide with --argstr" }:
-        let
-          thymis-config-parsed = builtins.fromJSON thymis-config;
-        in
-        (nixpkgs.lib.nixosSystem {
-          modules = [
-            nixosModules.thymis-device
-            nixosModules."thymis-device-${thymis-config-parsed.device-type}"
-            {
-              thymis.config = thymis-config-parsed;
-              # thymis.controller.enable = true;
-              system.stateVersion = "24.05";
-            }
-          ];
-          specialArgs = {
-            inherit inputs;
-          };
-        });
-      all-download-images =
-        let
-          devices = import ./devices.nix { lib = nixpkgs.lib; };
-          device-formats = builtins.mapAttrs
-            (name: device:
-              let
-                thymis-config = {
-                  device-type = name;
-                  password = "";
-                };
-              in
-              (download-image { thymis-config = builtins.toJSON thymis-config; }).config.formats // {
-                recurseForDerivations = true;
-              })
-            devices;
-
-        in
-        device-formats // {
-          recurseForDerivations = true;
+      thymis-controller-pi-4-sd-image = (nixpkgs.lib.nixosSystem {
+        modules = [
+          nixosModules.thymis-device
+          nixosModules."thymis-device-raspberry-pi-4"
+          nixosModules."thymis-image-sd-card-image"
+          nixosModules.thymis-controller
+          {
+            services.thymis-controller.enable = true;
+            system.stateVersion = "24.05";
+          }
+        ];
+        specialArgs = {
+          inherit inputs;
         };
+      }).config.system.build.thymis-image;
+
       removeRecurseForDerivations = nixpkgs.lib.filterAttrsRecursive (k: v: k != "recurseForDerivations");
     in
     {
@@ -130,9 +107,9 @@
         }
       );
       nixosModules = nixosModules;
-      all-download-images = all-download-images;
+      thymis-controller-pi-4-sd-image = thymis-controller-pi-4-sd-image;
       hydraJobs = {
-        all-download-images = removeRecurseForDerivations all-download-images;
+        thymis-controller-pi-4-sd-image = thymis-controller-pi-4-sd-image;
       };
     };
 }

@@ -7,7 +7,7 @@ on:
       - master
 
 jobs:
-  build-iso:
+  build-sd-image:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,8 +21,8 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@v2
       - name: pin nixpkgs
         run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-23.11
-      - name: build generic-x86_64.install-iso
-        run: nix build .#all-download-images.generic-x86_64.install-iso --print-build-logs
+      - name: build thymis-controller-pi-4-sd-image
+        run: nix build .#thymis-controller-pi-4-sd-image --print-build-logs
   build:
     runs-on: ubuntu-latest
     steps:
