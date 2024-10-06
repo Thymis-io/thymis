@@ -208,7 +208,10 @@ class ThymisDevice(modules.Module):
                 ("Raspberry Pi 4", "raspberry-pi-4"),
                 ("Raspberry Pi 5", "raspberry-pi-5"),
                 ("Generic AArch64", "generic-aarch64"),
-            ]
+            ],
+            extra_data={
+                "thymis_controller.modules.thymis.ThymisDevice": "is_device_type",
+            },
         ),
         default="",
         description=modules.LocalizedString(
@@ -217,6 +220,39 @@ class ThymisDevice(modules.Module):
         ),
         example="",
         order=10,
+    )
+
+    image_format = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Image Format",
+            de="Image Format",
+        ),
+        nix_attr_name="thymis.config.image-format",
+        type=modules.SelectOneType(
+            select_one=[
+                ("SD-Card Image", "sd-card-image"),
+                ("Virtual Disk Image (qcow)", "qcow"),
+                ("Installation ISO", "iso"),
+            ],
+            extra_data={
+                "thymis_controller.modules.thymis.ThymisDevice": {
+                    "available_formats_for_device": {
+                        "generic-x86_64": ["qcow", "iso"],
+                        "generic-aarch64": ["qcow"],
+                        "raspberry-pi-3": ["sd-card-image"],
+                        "raspberry-pi-4": ["sd-card-image"],
+                        "raspberry-pi-5": ["sd-card-image"],
+                    }
+                },
+            },
+        ),
+        default="",
+        description=modules.LocalizedString(
+            en="The image format.",
+            de="Das Image-Format.",
+        ),
+        example="",
+        order=15,
     )
 
     device_name = modules.Setting(
@@ -537,6 +573,12 @@ class ThymisDevice(modules.Module):
             else self.device_type.default
         )
 
+        image_format = (
+            module_settings.settings["image_format"]
+            if "image_format" in module_settings.settings
+            else self.image_format.default
+        )
+
         authorized_keys = (
             module_settings.settings["authorized_keys"]
             if "authorized_keys" in module_settings.settings
@@ -562,10 +604,15 @@ class ThymisDevice(modules.Module):
             else self.nameservers.default
         )
 
+        f.write(f"  imports = [\n")
+
         if device_type:
-            f.write(f"  imports = [\n")
             f.write(f"    inputs.thymis.nixosModules.thymis-device-{device_type}\n")
-            f.write(f"  ];\n")
+
+        if image_format:
+            f.write(f"    inputs.thymis.nixosModules.thymis-image-{image_format}\n")
+
+        f.write(f"  ];\n")
 
         if authorized_keys:
             keys = list(

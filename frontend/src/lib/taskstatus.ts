@@ -118,17 +118,23 @@ taskStatus.subscribe((tasks) => {
 	tasks.forEach((task) => {
 		if (task.type !== 'nixcommandtask') return;
 		if (task.state !== 'completed') return;
+		console.log('nixcommandtask completed1', task);
 		if (!('program' in task.data)) return;
 		if (task.data.program !== 'nix') return;
 		if (!('args' in task.data)) return;
+		console.log('nixcommandtask completed2', task);
 		if (!(task.data.args instanceof Array)) return;
 		// if (task.data.args[0] !== 'build') return;
 		if (task.data.args.indexOf('build') === -1) return;
 		if (!('identifier' in task.data)) return;
+		console.log('nixcommandtask completed3', task);
 		// check: this task was previously in the list, but not completed
 		const otherTask = lastTaskStatus.find((t) => t.id === task.id);
+		console.log('nixcommandtask completed4', task, otherTask);
 		if (!otherTask) return;
+		console.log('nixcommandtask completed5', task, otherTask);
 		if (otherTask.state === 'completed') return;
+		console.log('nixcommandtask completed6', task, otherTask);
 		// download the image
 		const a = document.createElement('a');
 		a.href = `/api/download-image?identifier=${task.data.identifier}`;

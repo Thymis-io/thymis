@@ -50,6 +50,7 @@
 			<div class="flex">
 				<ConfigRenderer
 					{setting}
+					moduleSettings={settings}
 					value={settings?.settings[key]}
 					disabled={!canEdit}
 					onChange={(value) => setSetting(module, key, value)}

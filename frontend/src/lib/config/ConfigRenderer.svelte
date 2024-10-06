@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ListSettingType, SelectOneSettingType, Setting } from '$lib/state';
+	import type { ListSettingType, ModuleSettings, SelectOneSettingType, Setting } from '$lib/state';
 	import ConfigString from './ConfigString.svelte';
 	import ConfigBool from './ConfigBool.svelte';
 	import ConfigTextarea from './ConfigTextarea.svelte';
@@ -10,6 +10,8 @@
 	export let setting: Setting;
 	export let value: unknown;
 	export let disabled: boolean;
+
+	export let moduleSettings: ModuleSettings | undefined;
 
 	export let onChange: (value: any) => void;
 
@@ -61,7 +63,13 @@
 {:else if settingIsTextarea(setting)}
 	<ConfigTextarea {value} placeholder={setting.example} {onChange} {disabled} />
 {:else if settingIsSelectOne(setting)}
-	<ConfigSelectOne {value} {setting} {onChange} {disabled} />
+	<ConfigSelectOne {value} {setting} {moduleSettings} {onChange} {disabled} />
 {:else if settingIsListOf(setting)}
-	<ConfigList values={Array.isArray(value) ? value : []} settings={setting} {onChange} {disabled} />
+	<ConfigList
+		values={Array.isArray(value) ? value : []}
+		{setting}
+		{moduleSettings}
+		{onChange}
+		{disabled}
+	/>
 {/if}

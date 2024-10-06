@@ -26,12 +26,21 @@
       nixosModules = {
         thymis-device = ./thymis-device-nixos-module.nix;
         thymis-controller = ./thymis-controller-nixos-module.nix;
-      } // nixpkgs.lib.mapAttrs'
+      } // (nixpkgs.lib.mapAttrs'
         (name: value: {
           name = "thymis-device-${name}";
           value = value;
         })
-        (import ./devices.nix { inherit inputs; lib = nixpkgs.lib; });
+        (import ./devices.nix { inherit inputs; lib = nixpkgs.lib; })
+      ) // (nixpkgs.lib.mapAttrs'
+        (name: value: {
+          name = "thymis-image-${name}";
+          value = value;
+        })
+        (import ./image-formats.nix { inherit inputs; lib = nixpkgs.lib; })
+      );
+
+
       download-image = { thymis-config ? throw "thymis-config is required. Provide with --argstr" }:
         let
           thymis-config-parsed = builtins.fromJSON thymis-config;
