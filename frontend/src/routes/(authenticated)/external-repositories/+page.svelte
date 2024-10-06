@@ -13,6 +13,7 @@
 		TableBodyRow,
 		TableBodyCell
 	} from 'flowbite-svelte';
+	import DeployActions from '$lib/components/DeployActions.svelte';
 
 	export let data: PageData;
 
@@ -61,8 +62,11 @@
 	};
 </script>
 
-<Heading tag="h3">{$t('nav.external-repositories')}</Heading>
-<Table class="mt-4">
+<div class="flex justify-between mb-4">
+	<h1 class="text-3xl font-bold dark:text-white">{$t('nav.external-repositories')}</h1>
+	<DeployActions />
+</div>
+<Table shadow>
 	<TableHead>
 		<TableHeadCell>{$t('settings.repo.name')}</TableHeadCell>
 		<TableHeadCell>{$t('settings.repo.url')}</TableHeadCell>

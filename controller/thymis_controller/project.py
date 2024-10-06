@@ -314,7 +314,7 @@ class Project:
         )
 
     def create_update_task(self):
-        return task.global_task_controller.add_task(task.UpdateTask(self.path))
+        return task.global_task_controller.add_task(task.UpdateTask(self.path, self))
 
     def create_build_device_image_task(
         self, device_identifier: str, db_session: Session
