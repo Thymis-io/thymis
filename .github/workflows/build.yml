@@ -20,7 +20,7 @@ jobs:
             extra-substituters = https://cache.thymis.io
       - uses: DeterminateSystems/magic-nix-cache-action@v2
       - name: pin nixpkgs
-        run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-23.11
+        run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-24.05
       - name: build thymis-controller-generic-x86_64-image
         run: nix build .#thymis-controller-generic-x86_64-image --print-build-logs
   build:
