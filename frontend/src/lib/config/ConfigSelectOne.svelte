@@ -3,7 +3,7 @@
 	import { Select, Tooltip } from 'flowbite-svelte';
 	import type { ModuleSettings, SelectOneSettingType, Setting } from '$lib/state';
 
-	export let value: unknown = '';
+	export let value: string = '';
 	export let setting: Setting<SelectOneSettingType>;
 
 	export let moduleSettings: ModuleSettings | undefined;
@@ -22,32 +22,38 @@
 	let available_settings = setting.type['select-one'];
 
 	$: {
-		if (extraData && 'thymis_controller.modules.thymis.ThymisDevice' in extraData) {
-			if (typeof extraData['thymis_controller.modules.thymis.ThymisDevice'] === 'string') {
-			} else if (typeof extraData['thymis_controller.modules.thymis.ThymisDevice'] === 'object') {
-				const device_type =
-					moduleSettings && 'device_type' in moduleSettings?.settings
-						? moduleSettings?.settings['device_type']
-						: undefined;
-				if (!device_type || typeof device_type !== 'string') {
-					console.error('device_type not found in moduleSettings');
-				} else {
-					const available_formats_for_device =
-						extraData['thymis_controller.modules.thymis.ThymisDevice'][
-							'available_formats_for_device'
-						][device_type];
-					if (available_formats_for_device) {
-						available_settings = setting.type['select-one'].filter((option) =>
-							available_formats_for_device.includes(option[1])
-						);
-					} else {
-						console.error('available_formats_for_device not found in extra_data');
+		if (extraData && 'restrict_values_on_other_key' in extraData) {
+			let available_settings_set = new Set<string>(
+				setting.type['select-one'].map((option) => option[1])
+			);
+			if (typeof extraData['restrict_values_on_other_key'] === 'object') {
+				for (const otherKey in extraData['restrict_values_on_other_key']) {
+					if (!moduleSettings?.settings || !(otherKey in moduleSettings?.settings)) {
+						continue;
 					}
+					const otherValue = moduleSettings?.settings[otherKey];
+					if (!otherValue || !(typeof otherValue === 'string')) {
+						continue;
+					}
+					const restrictValues =
+						extraData['restrict_values_on_other_key'][otherKey][otherValue] || [];
+					available_settings_set = available_settings_set.intersection(new Set(restrictValues));
 				}
+			}
+			available_settings = setting.type['select-one'].filter((option) =>
+				available_settings_set.has(option[1])
+			);
+			console.log('available_settings', available_settings);
+			// if current value is not in available settings, set it to the first available
+			if (!available_settings.map((option) => option[1]).includes(value)) {
+				value = available_settings?.[0]?.[1];
 			}
 		} else {
 			available_settings = setting.type['select-one'];
 		}
+	}
+
+	$: {
 	}
 </script>
 

@@ -209,9 +209,6 @@ class ThymisDevice(modules.Module):
                 ("Raspberry Pi 5", "raspberry-pi-5"),
                 ("Generic AArch64", "generic-aarch64"),
             ],
-            extra_data={
-                "thymis_controller.modules.thymis.ThymisDevice": "is_device_type",
-            },
         ),
         default="",
         description=modules.LocalizedString(
@@ -235,8 +232,8 @@ class ThymisDevice(modules.Module):
                 ("Installation ISO", "iso"),
             ],
             extra_data={
-                "thymis_controller.modules.thymis.ThymisDevice": {
-                    "available_formats_for_device": {
+                "restrict_values_on_other_key": {
+                    "device_type": {
                         "generic-x86_64": ["qcow", "iso"],
                         "generic-aarch64": ["qcow"],
                         "raspberry-pi-3": ["sd-card-image"],
