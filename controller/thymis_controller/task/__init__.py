@@ -50,9 +50,13 @@ class TaskController:
         self.last_send_content = None
         self.min_send_interval = datetime.timedelta(milliseconds=100)
 
-    def count_command_tasks_running(self):
+    def count_compute_intensive_tasks_running(self):
         return len(
-            [task for task in self.running_tasks if isinstance(task, CommandTask)]
+            [
+                task
+                for task in self.running_tasks
+                if isinstance(task, (CommandTask, NixCommandTask))
+            ]
         )
 
     async def add_task(
@@ -75,7 +79,7 @@ class TaskController:
         await self.send_all_tasks()
 
     async def try_run_front_of_queue(self):
-        if self.count_command_tasks_running() >= self.task_limit:
+        if self.count_compute_intensive_tasks_running() >= self.task_limit:
             return
         if len(self.task_queue) == 0:
             return
