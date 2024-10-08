@@ -2,6 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import { Select, Tooltip } from 'flowbite-svelte';
 	import type { ModuleSettings, SelectOneSettingType, Setting } from '$lib/state';
+	import { browser } from '$app/environment';
 
 	export let value: string = '';
 	export let setting: Setting<SelectOneSettingType>;
@@ -46,7 +47,7 @@
 			// if current value is not in available settings, set it to the first available
 			if (!available_settings.map((option) => option[1]).includes(value)) {
 				value = available_settings?.[0]?.[1];
-				onChange(value);
+				if (browser) onChange(value);
 			}
 		} else {
 			available_settings = setting.type['select-one'];
