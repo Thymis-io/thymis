@@ -79,7 +79,7 @@ in
         THYMIS_DATABASE_URL = cfg.database-url;
         THYMIS_BASE_URL = cfg.base-url;
         THYMIS_SSH_KEY_PATH = cfg.ssh-key-path;
-        THYMIS_AUTH_BASIC = builtins.toString cfg.auth-basic;
+        THYMIS_AUTH_BASIC = lib.boolToString cfg.auth-basic;
         THYMIS_AUTH_BASIC_USERNAME = cfg.auth-basic-username;
         THYMIS_AUTH_BASIC_PASSWORD_FILE = cfg.auth-basic-password-file;
         UVICORN_HOST = cfg.listen-host;
