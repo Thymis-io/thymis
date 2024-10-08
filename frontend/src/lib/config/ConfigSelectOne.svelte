@@ -43,7 +43,6 @@
 			available_settings = setting.type['select-one'].filter((option) =>
 				available_settings_set.has(option[1])
 			);
-			console.log('available_settings', available_settings);
 			// if current value is not in available settings, set it to the first available
 			if (!available_settings.map((option) => option[1]).includes(value)) {
 				value = available_settings?.[0]?.[1];
@@ -51,9 +50,6 @@
 		} else {
 			available_settings = setting.type['select-one'];
 		}
-	}
-
-	$: {
 	}
 </script>
 
