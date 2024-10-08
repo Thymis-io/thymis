@@ -117,9 +117,8 @@ class Kiosk(modules.Module):
             bar {{
                 mode invisible
             }}
-            exec "/run/current-system/sw/bin/xrandr --newmode 1024x600_60.00  48.96  1024 1064 1168 1312  600 601 604 622  -HSync +Vsync"
-            exec "/run/current-system/sw/bin/xrandr --addmode HDMI-1 1024x600_60.00"
-            exec "/run/current-system/sw/bin/xrandr --output HDMI-1 --mode {xrandr_mode} --rotate {xrandr_rotation}"
+            exec "/run/current-system/sw/bin/xrandr --newmode 1024x600_60.00  48.96  1024 1064 1168 1312  600 601 604 622  -HSync +Vsync; /run/current-system/sw/bin/xrandr --addmode HDMI-1 1024x600_60.00;"
+            exec "sleep 2; /run/current-system/sw/bin/xrandr --output HDMI-1 --mode {xrandr_mode} --rotate {xrandr_rotation}"
             exec "/run/current-system/sw/bin/xset s off"
             exec "/run/current-system/sw/bin/xset -dpms"
             exec "${{pkgs.unclutter}}/bin/unclutter"

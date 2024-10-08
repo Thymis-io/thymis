@@ -319,6 +319,7 @@ class Project:
     def create_build_device_image_task(
         self, device_identifier: str, db_session: Session
     ):
+        self.commit(f"Build image for {device_identifier}")
         device_state = next(
             device
             for device in self.read_state().devices

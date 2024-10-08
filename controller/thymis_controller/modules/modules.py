@@ -7,7 +7,7 @@ from typing import List, Optional, Tuple, Union
 from pydantic import JsonValue
 from thymis_controller import models
 from thymis_controller.models.module import SettingTypes, ValueTypes
-from thymis_controller.nix import convert_python_value_to_nix
+from thymis_controller.nix import convert_python_value_to_nix, format_nix_file
 from thymis_controller.project import Project
 
 
@@ -66,6 +66,8 @@ class Module(ABC):
             self.write_nix_settings(f, module_settings, priority, project)
 
             f.write("}\n")
+
+        format_nix_file(str(path / filename))
 
     def write_nix_settings(
         self,
