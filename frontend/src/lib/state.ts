@@ -28,6 +28,8 @@ export type ModuleSettingsWithOrigin = {
 
 export type SelectOneSettingType = {
 	'select-one': string[][];
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	extra_data?: Record<string, any>;
 };
 
 export type ListSettingType = {

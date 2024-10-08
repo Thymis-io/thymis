@@ -1,4 +1,5 @@
 import asyncio
+import os
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket
@@ -131,7 +132,15 @@ def download_image(
     if device is None:
         return RedirectResponse("/")
 
-    return FileResponse(f"/tmp/thymis-devices.{device.identifier}")
+    file_endings = ["img", "qcow2", "iso"]
+
+    # search for file in /tmp/thymis-devices.{identifier}/*
+    for root, dirs, files in os.walk(f"/tmp/thymis-devices.{device.identifier}"):
+        for file in files:
+            if file.endswith(tuple(file_endings)):
+                return FileResponse(os.path.join(root, file))
+
+    raise HTTPException(status_code=404, detail="Image not found")
 
 
 @router.get("/history")

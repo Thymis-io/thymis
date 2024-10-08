@@ -7,6 +7,7 @@ type ValueTypes = Literal["bool", "string", "path", "package", "textarea", "int"
 
 class SelectOneType(BaseModel):
     select_one: List[Tuple[str, str]] = Field(serialization_alias="select-one")
+    extra_data: Optional[dict[str, JsonValue]] = Field(default=None)
 
 
 class ListType(BaseModel):

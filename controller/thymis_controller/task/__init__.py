@@ -647,7 +647,7 @@ class BuildDeviceImageTask(NixCommandTask):
             f"Building image for {identifier}",
             [
                 "build",
-                f'{repo_dir}#nixosConfigurations."{identifier}".config.formats.sd-card-image',
+                f'{repo_dir}#nixosConfigurations."{identifier}".config.system.build.thymis-image',
                 "--out-link",
                 f"/tmp/thymis-devices.{identifier}",
             ],

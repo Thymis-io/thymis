@@ -103,13 +103,15 @@ class LocalizedString:
 @dataclass
 class SelectOneType:
     select_one: List[Tuple[Localizable, str] | str]
+    extra_data: Optional[dict[str, JsonValue]] = None
 
     def get_model(self, locale: str) -> models.SelectOneType:
         return models.SelectOneType(
             select_one=[
                 (localize(locale, v[0]), v[1]) if isinstance(v, tuple) else (v, v)
                 for v in self.select_one
-            ]
+            ],
+            extra_data=self.extra_data,
         )
 
 
