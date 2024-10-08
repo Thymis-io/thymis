@@ -4,8 +4,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket
 from fastapi.responses import FileResponse, RedirectResponse
-from paramiko import SSHClient
+from paramiko import PKey, SSHClient
 from thymis_controller import crud, dependencies, models, modules, project, utils
+from thymis_controller.config import global_settings
 from thymis_controller.dependencies import (
     SessionAD,
     get_project,
@@ -280,9 +281,10 @@ async def terminal_websocket(
 
     client = SSHClient()
     client.load_host_keys(project.known_hosts_path)
+    pkey: PKey = PKey.from_path(global_settings.SSH_KEY_PATH)
 
     try:
-        client.connect(tcp_ip, tcp_port, "root")
+        client.connect(tcp_ip, tcp_port, "root", pkey=pkey)
         channel = client.invoke_shell()
     except Exception as e:
         await websocket.send_bytes(str(e).encode())
