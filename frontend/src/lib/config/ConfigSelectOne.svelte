@@ -46,6 +46,7 @@
 			// if current value is not in available settings, set it to the first available
 			if (!available_settings.map((option) => option[1]).includes(value)) {
 				value = available_settings?.[0]?.[1];
+				onChange(value);
 			}
 		} else {
 			available_settings = setting.type['select-one'];
