@@ -86,7 +86,7 @@
             packages = [
               pkgs.poetry
               pkgs.python312
-              pkgs.nodejs
+              pkgs.nodejs_22
               pkgs.pre-commit
               pkgs.playwright-driver.browsers
               pkgs.mdbook
