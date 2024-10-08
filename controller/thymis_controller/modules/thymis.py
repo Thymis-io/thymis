@@ -341,10 +341,7 @@ class ThymisDevice(modules.Module):
         type=modules.ListType(
             settings={
                 "key": modules.Setting(
-                    display_name=modules.LocalizedString(
-                        en="Key",
-                        de="Schlüssel",
-                    ),
+                    display_name="",
                     type="string",
                     default="",
                     description=modules.LocalizedString(
@@ -355,8 +352,8 @@ class ThymisDevice(modules.Module):
                 )
             },
             element_name=modules.LocalizedString(
-                en="Key name",
-                de="Schlüsselname",
+                en="Key",
+                de="Schlüssel",
             ),
         ),
         default=[],
