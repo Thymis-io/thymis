@@ -56,6 +56,8 @@ Key features of Thymis include:
 
 The project uses SvelteKit for the frontend and FastAPI for a device controller. The frontend communicates with the controller using a REST API. The controller is responsible for managing device and module data.
 
+![Thymis Architecture Diagram](./docs/src/architecture.jpg)
+
 ## Getting Started
 
 See the [Getting Started](https://docs.thymis.io/getting_started) guide in the documentation for detailed instructions on setting up Thymis.
