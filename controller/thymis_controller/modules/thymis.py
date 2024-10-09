@@ -667,6 +667,9 @@ class ThymisDevice(modules.Module):
 
         if image_format:
             f.write(f"    inputs.thymis.nixosModules.thymis-image-{image_format}\n")
+        elif device_type:
+            first_format = self.find_image_format_by_device_type(device_type)
+            f.write(f"    inputs.thymis.nixosModules.thymis-image-{first_format}\n")
 
         f.write(f"  ];\n")
 
@@ -729,3 +732,16 @@ class ThymisDevice(modules.Module):
         f.write(f'  time.timeZone = "{time_zone}";\n')
 
         return super().write_nix_settings(f, module_settings, priority, project)
+
+    def find_image_format_by_device_type(self, device_type):
+        restricted = self.image_format.type.extra_data["restrict_values_on_other_key"]
+        available_formats = restricted["device_type"][device_type]
+
+        return next(
+            (
+                format[1]
+                for format in self.image_format.type.select_one
+                if format[1] in available_formats
+            ),
+            None,
+        )
