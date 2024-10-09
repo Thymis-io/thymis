@@ -43,4 +43,3 @@ Provisioning a new device with Thymis involves creating a fully-configured disk 
 3. The device should now be running with the configuration you specified.
 
 Congratulations! You have successfully provisioned a new device with Thymis. For more information on managing your devices and configurations, refer to the [System Configuration](system_configuration.md) guide.
-[]
