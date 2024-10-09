@@ -7,4 +7,4 @@ See the [Thymis NixOS module](./getting_started/nixos.md) for instructions on de
 
 ## For developers
 
-See the [GitHub readme](https://github.com/thymis-io/thymis/blob/main/README.md#getting-started-(development)) for instructions on setting up Thymis for development.
+See the [GitHub Readme](https://github.com/Thymis-io/thymis#getting-started) for instructions on setting up Thymis for development.
