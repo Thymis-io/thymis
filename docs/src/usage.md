@@ -7,13 +7,16 @@ Before diving into specific features, make sure that your Thymis setup is up and
 ### 1. Provisioning a New Device
 Provisioning devices is at the core of Thymis. This involves creating a disk or SD card image with your desired NixOS configuration and deploying it to your target devices. Detailed steps can be found in the [Provisioning a new device](usage/provisioning.md) section.
 
-### 2. System Configuration
+### 2. Adding an Existing NixOS Device
+If you already have a NixOS device that you want to manage with Thymis, you can easily add it to the Thymis controller. This allows you to monitor and update the device configuration remotely. Learn how to add an existing device in the [Adding an existing NixOS device](usage/existing_device.md) guide.
+
+### 3. System Configuration
 Thymis leverages NixOS’s declarative configuration, making it easy to manage and update device settings consistently. Learn more about setting up and modifying your device configurations in the [System Configuration](usage/system_configuration.md) guide.
 
-### 3. Terminal Usage
+### 4. Terminal Usage
 For more advanced control, you can directly interact with your devices via the terminal interface. This section provides instructions on how to access your devices remotely, execute commands, and troubleshoot issues using terminal commands. More details are available in the [Terminal Usage](usage/terminal.md) guide.
 
-### 4. VNC Usage
+### 5. VNC Usage
 Thymis supports remote graphical access to your devices using VNC. This feature is useful when you need to interact with a device’s GUI remotely. The [VNC Usage](usage/vnc.md) section explains how to set up and use VNC for your devices.
 
 ## Tips for Effective Use
