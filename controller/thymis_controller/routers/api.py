@@ -3,6 +3,7 @@ import os
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, RedirectResponse
 from paramiko import PKey, SSHClient
 from thymis_controller import crud, dependencies, models, modules, project, utils
@@ -284,8 +285,9 @@ async def terminal_websocket(
     pkey: PKey = PKey.from_path(global_settings.SSH_KEY_PATH)
 
     try:
-        client.connect(tcp_ip, tcp_port, "root", pkey=pkey)
-        channel = client.invoke_shell()
+        channel = await run_in_threadpool(
+            connect_to_ssh_shell, client, tcp_ip, tcp_port, pkey
+        )
     except Exception as e:
         await websocket.send_bytes(str(e).encode())
         await websocket.close()
@@ -303,6 +305,11 @@ async def terminal_websocket(
         channel_to_ws_task.cancel()
         ws_to_channel_task.cancel()
         client.close()
+
+
+def connect_to_ssh_shell(client: SSHClient, tcp_ip: str, tcp_port: int, pkey: PKey):
+    client.connect(tcp_ip, tcp_port, "root", pkey=pkey, timeout=30)
+    return client.invoke_shell()
 
 
 @router.get("/testSession")
