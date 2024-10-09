@@ -79,3 +79,5 @@ sudo nixos-rebuild switch --flake .#MY_SYSTEM_HERE
 ```
 
 4. Access the Thymis controller at the base URL you configured (e.g. `https://my-thymis-controller/`).
+
+The password for basic authentication is stored in the file `/var/lib/thymis/auth-basic-password`. If not present, it will be generated automatically and filled with a random password. Use this password to log in to the controller, together with the username set during configuration.
