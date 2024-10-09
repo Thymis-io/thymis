@@ -124,8 +124,12 @@ The controller takes care of running the frontend for you. You can access thymis
 
 ## Project Roadmap
 
-- [ ] `Release 0.1.0`: Initial release of the project.
+- [x] `Release 0.1.0`
+  - Initial release of the project
+  - Including basic device management features
 
+- [ ] `Release 0.2.0`
+   - New features and bug fixes, possibly containing breaking changes.
 
 ---
 
