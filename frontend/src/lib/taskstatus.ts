@@ -101,7 +101,6 @@ const startSocket = () => {
 	socket = new WebSocket(`${scheme}://${window.location.host}/api/task_status`);
 	socket.onmessage = async (event) => {
 		const data = JSON.parse(event.data) as TaskList;
-		console.log('task_status socket message', data);
 		taskStatus.set(data);
 		await invalidate((url) => url.pathname.startsWith('/tasks'));
 	};
