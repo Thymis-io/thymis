@@ -41,12 +41,12 @@
 	<ChevronDownOutline class="h-4 ms-2 text-white dark:text-white" /></Button
 >
 <Dropdown
-	class="overflow-y-auto px-3 pb-3 text-sm h-full relative"
+	class="overflow-y-auto px-3 h-60 text-sm relative"
 	containerClass="z-50 left-4 right-4 flex flex-col whitespace-nowrap"
 	strategy="absolute"
 	bind:open
 >
-	<div slot="header" class="p-3">
+	<div slot="header" class="p-3 pb-0">
 		<Search size="md" bind:value={search} placeholder={$t('common.search')} />
 	</div>
 	{#each $state.tags as tag}
