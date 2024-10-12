@@ -18,4 +18,12 @@ class Remote(BaseModel):
     url: str
 
 
-__all__ = ["Commit", "Remote"]
+class GitInfo(BaseModel):
+    active_branch: str
+    remote_branch: str | None
+    ahead: int
+    behind: int
+    remotes: List[Remote]
+
+
+__all__ = ["Commit", "Remote", "GitInfo"]
