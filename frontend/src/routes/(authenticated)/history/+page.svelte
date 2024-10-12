@@ -28,9 +28,24 @@
 	<h1 class="text-3xl font-bold dark:text-white">History</h1>
 	<DeployActions />
 </div>
-{#await data.history}
+{#await Promise.all([data.history, data.gitInfo])}
 	<p>Loading...</p>
-{:then historyList}
+{:then [historyList, gitInfo]}
+	<div class="mb-4">
+		<p>On branch {gitInfo.active_branch}</p>
+		{#if gitInfo.behind == 0 && gitInfo.ahead == 0}
+			<p>Your branch is up to date with {gitInfo.remote_branch}</p>
+		{:else if gitInfo.behind > 0 && gitInfo.ahead == 0}
+			<p>Your branch is behind {gitInfo.remote_branch} by {gitInfo.behind} commits</p>
+		{:else if gitInfo.behind == 0 && gitInfo.ahead > 0}
+			<p>Your branch is ahead of {gitInfo.remote_branch} by {gitInfo.ahead} commits</p>
+		{:else}
+			<p>
+				Your branch is behind {gitInfo.remote_branch} by {gitInfo.behind} commits and ahead by {gitInfo.ahead}
+				commits
+			</p>
+		{/if}
+	</div>
 	<ul class="list-disc ml-4">
 		{#each historyList as history, index}
 			<li class="mb-2 text-gray-600">
