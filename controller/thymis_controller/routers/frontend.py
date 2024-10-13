@@ -29,8 +29,12 @@ def frontend_binary_path():
     return global_settings.FRONTEND_BINARY_PATH
 
 
-def controller_base_url_host():
-    return urlparse(global_settings.BASE_URL).netloc
+def controller_base_url():
+    return (
+        urlparse(global_settings.BASE_URL).scheme
+        + "://"
+        + urlparse(global_settings.BASE_URL).netloc
+    )
 
 
 class Frontend:
@@ -61,7 +65,7 @@ class Frontend:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 env={
-                    "PUBLIC_CONTROLLER_HOST": controller_base_url_host(),
+                    "PUBLIC_CONTROLLER_HOST": controller_base_url(),
                     "PATH": os.environ["PATH"],
                 },
             )
@@ -72,7 +76,7 @@ class Frontend:
                 env={
                     "PORT": str(FRONTEND_PORT),
                     "HOST": "127.0.0.1",
-                    "PUBLIC_CONTROLLER_HOST": controller_base_url_host(),
+                    "PUBLIC_CONTROLLER_HOST": controller_base_url(),
                 },
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
