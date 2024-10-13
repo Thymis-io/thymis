@@ -20,9 +20,8 @@ export const handleFetch: HandleFetch = async ({ request, fetch, event }) => {
 			const cookies = request.headers.get('cookie') || '';
 			request.headers.set('cookie', `${cookies}; session=${session}`);
 		}
-		// replace host with controllerHost
-		let new_url = request.url.replace(event.url.host, controllerHost);
-		new_url = new_url.replace('https:', 'http:');
+		const parsedControllerHost = new URL(controllerHost);
+		let new_url = request.url.replace(parsedRequestUrl.origin, parsedControllerHost.origin);
 		console.log('fetching:', new_url);
 		request = new Request(new_url, request);
 	}
