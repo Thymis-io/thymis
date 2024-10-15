@@ -4,6 +4,7 @@
 	import type { PageData } from './$types';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import Undo from 'lucide-svelte/icons/undo-2';
+	import Settings from 'lucide-svelte/icons/settings';
 	import RollbackModal from './RollbackModal.svelte';
 	import type { Commit } from '$lib/history';
 
