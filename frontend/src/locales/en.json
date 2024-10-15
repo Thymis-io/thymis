@@ -132,7 +132,8 @@
 		"no-revert": "Already at this state",
 		"rollback-modal-title": "Revert commit",
 		"rollback-modal-body": "This will discard all uncommitted changes and create a new commit with the state of the selected commit.\n\n{newCommit}\n\nAre you sure you want to continue?",
-		"rollback-modal-confirm": "Revert"
+		"rollback-modal-confirm": "Revert",
+		"git-settings": "Git Settings"
 	},
 	"deploy": {
 		"build": "Build",
@@ -250,5 +251,22 @@
 		"scan-public-key-tooltip": "Automatically scan for the public key of the device in the network. Uses the specified target host from above.\nVerify if the key is correct afterwards",
 		"update": "Update",
 		"create": "Create"
+	},
+	"git-config": {
+		"remotes": {
+			"name": "Name",
+			"url": "URL",
+			"actions": "Actions"
+		},
+		"edit-remote": "Edit",
+		"delete-remote": "Delete",
+		"create-remote-modal-title": "Create New Git Remote",
+		"edit-remote-modal-title": "Edit Git Remote",
+		"remotes-title": "Git Remotes",
+		"remote-name": "Remote Name",
+		"remote-name-required": "Name is required",
+		"remote-name-exists": "Name is alreay used",
+		"remote-url": "Remote URL",
+		"remote-url-required": "URL is required"
 	}
 }
