@@ -4,6 +4,7 @@
 	import type { PageData } from './$types';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import Undo from 'lucide-svelte/icons/undo-2';
+	import Settings from 'lucide-svelte/icons/settings';
 	import RollbackModal from './RollbackModal.svelte';
 	import type { Commit } from '$lib/history';
 
@@ -31,6 +32,14 @@
 {#await data.history}
 	<p>Loading...</p>
 {:then historyList}
+	<div class="my-8 flex items-end">
+		<a href="/git-config">
+			<Button class="gap-2 whitespace-nowrap" color="alternative">
+				<Settings size={20} />
+				{$t('history.git-settings')}
+			</Button>
+		</a>
+	</div>
 	<ul class="list-disc ml-4">
 		{#each historyList as history, index}
 			<li class="mb-2 text-gray-600">

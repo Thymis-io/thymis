@@ -132,7 +132,8 @@
 		"no-revert": "Bereits auf diesem Commit",
 		"rollback-modal-body": "Hierdurch werden alle nicht gespeicherten Änderungen verworfen und ein neuer Commit mit dem Zustand des ausgewählten Commits erstellt.\n\n\n{newCommit}\n\n\nSind Sie sicher, dass Sie fortfahren möchten?",
 		"rollback-modal-confirm": "Zurücksetzen",
-		"rollback-modal-title": "Commit zurücksetzen"
+		"rollback-modal-title": "Commit zurücksetzen",
+		"git-settings": "Git Einstellungen"
 	},
 	"deploy": {
 		"build": "Erstellen",
@@ -236,7 +237,8 @@
 		"add-hostkey": "Hostkey Setzen",
 		"delete-hostkey": "Hostkey Löschen",
 		"edit-hostkey": "Hostkey Bearbeiten",
-		"refresh-hostkey": "Hostkey Aktualisieren"
+		"refresh-hostkey": "Hostkey Aktualisieren",
+		"edit-tags": "Tags Bearbeiten"
 	},
 	"edit-hostkey": {
 		"create": "Erstellen",
@@ -249,5 +251,22 @@
 		"scan-public-key-tooltip": "Automatische Suche nach dem Public Key des Geräts im Netzwerk. Verwendet den oben angegebenen Zielhost.\nÜberprüfen Sie anschließend, ob der Public Key korrekt ist",
 		"title": "Hostkey Bearbeiten",
 		"update": "Aktualisieren"
+	},
+	"git-config": {
+		"create-remote-modal-title": "Neue Git Remote erstellen",
+		"delete-remote": "Löschen",
+		"edit-remote": "Bearbeiten",
+		"edit-remote-modal-title": "Git Remote bearbeiten",
+		"remote-name": "Remote Name",
+		"remote-name-exists": "Name wird bereits verwendet",
+		"remote-name-required": "Name ist erforderlich",
+		"remote-url": "Remote-URL",
+		"remote-url-required": "URL ist erforderlich",
+		"remotes": {
+			"actions": "Aktionen",
+			"name": "Name",
+			"url": "URL"
+		},
+		"remotes-title": "Git Remotes"
 	}
 }
