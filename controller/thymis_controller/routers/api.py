@@ -201,6 +201,11 @@ def delete_git_remote(
     project.delete_git_remote(remote)
 
 
+@router.post("/git/fetch", tags=["history"])
+def fetch_git(project: project.Project = Depends(get_project)):
+    project.fetch_git()
+
+
 @router.post("/action/update")
 async def update(
     project: project.Project = Depends(get_project),

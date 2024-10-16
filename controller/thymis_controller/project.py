@@ -241,23 +241,27 @@ class Project:
             self.repo.index.commit(summary)
 
     def get_history(self):
-        return [
-            history.Commit(
-                message=commit.message,
-                author=commit.author.name,
-                date=commit.authored_datetime,
-                SHA=commit.hexsha,
-                SHA1=self.repo.git.rev_parse(commit.hexsha, short=True),
-                state_diff=self.repo.git.diff(
-                    commit.hexsha,
-                    commit.parents[0].hexsha if len(commit.parents) > 0 else None,
-                    "-R",
-                    "state.json",
-                    unified=5,
-                ).split("\n")[4:],
-            )
-            for commit in self.repo.iter_commits()
-        ]
+        try:
+            return [
+                history.Commit(
+                    message=commit.message,
+                    author=commit.author.name,
+                    date=commit.authored_datetime,
+                    SHA=commit.hexsha,
+                    SHA1=self.repo.git.rev_parse(commit.hexsha, short=True),
+                    state_diff=self.repo.git.diff(
+                        commit.hexsha,
+                        commit.parents[0].hexsha if len(commit.parents) > 0 else None,
+                        "-R",
+                        "state.json",
+                        unified=5,
+                    ).split("\n")[4:],
+                )
+                for commit in self.repo.iter_commits()
+            ]
+        except Exception as e:
+            print(e)
+            return []
 
     def update_known_hosts(self, db_session: Session):
         if not self.known_hosts_path or not self.known_hosts_path.exists():
@@ -333,6 +337,9 @@ class Project:
 
     def delete_git_remote(self, name: str):
         self.repo.delete_remote(name)
+
+    def fetch_git(self):
+        self.repo.git.fetch("--all")
 
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildProjectTask(self.path))
