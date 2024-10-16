@@ -72,7 +72,6 @@
 	}) satisfies KeyboardEventHandler<HTMLDivElement>;
 
 	$: devices = data.state.devices.map((d) => {
-		console.log(data.registeredDevices);
 		return { id: d.identifier, data: d };
 	});
 
