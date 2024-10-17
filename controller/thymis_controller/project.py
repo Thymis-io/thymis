@@ -20,6 +20,7 @@ from thymis_controller.config import global_settings
 from thymis_controller.models import history
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
+from thymis_controller.notifications import notification_manager
 
 logger = logging.getLogger(__name__)
 
@@ -242,6 +243,14 @@ class Project:
         except git.BadName:
             self.repo.index.commit(summary)
 
+        try:
+            self.repo.git.push()
+        except git.GitCommandError as e:
+            message = (
+                f"{' '.join(e.command)} failed with status code {e.status}{e.stderr}"
+            )
+            notification_manager.broadcast(message)
+
     def get_history(self):
         try:
             with self.history_lock:
@@ -266,8 +275,9 @@ class Project:
                     )
                     for commit in self.repo.iter_commits()
                 ]
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
+            notification_manager.broadcast(str(e))
             return []
 
     def update_known_hosts(self, db_session: Session):
@@ -373,7 +383,9 @@ class Project:
         return task.global_task_controller.add_task(task.UpdateTask(self.path, self))
 
     def create_build_device_image_task(
-        self, device_identifier: str, db_session: Session
+        self,
+        device_identifier: str,
+        db_session: Session,
     ):
         self.commit(f"Build image for {device_identifier}")
         device_state = next(
