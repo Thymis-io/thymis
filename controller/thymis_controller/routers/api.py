@@ -64,9 +64,10 @@ router.include_router(task.router)
 async def deploy(
     summary: str,
     session: SessionAD,
+    request: Request,
     project: project.Project = Depends(get_project),
 ):
-    project.commit(summary)
+    project.commit(summary, request.state.notification_manager)
 
     registered_devices = []
     for device in crud.hostkey.get_all(session):
@@ -84,15 +85,19 @@ async def deploy(
 async def build_download_image(
     identifier: str,
     db_session: SessionAD,
+    request: Request,
     project: project.Project = Depends(get_project),
 ):
-    await project.create_build_device_image_task(identifier, db_session)
+    await project.create_build_device_image_task(
+        identifier, db_session, request.state.notification_manager
+    )
 
 
 @router.post("/action/build-download-image-for-clone")
 async def device_and_build_download_image_for_clone(
     identifier: str,
     db_session: SessionAD,
+    request: Request,
     project: project.Project = Depends(get_project),
 ):
     state = project.read_state()
@@ -108,7 +113,9 @@ async def device_and_build_download_image_for_clone(
     if crud.hostkey.has_device(db_session, identifier):
         crud.hostkey.rename_device(db_session, identifier, new_identifier)
     project.clone_state_device(identifier, new_identifier, lambda n: f"{n}-{x}")
-    await project.create_build_device_image_task(new_identifier, db_session)
+    await project.create_build_device_image_task(
+        new_identifier, db_session, request.state.notification_manager
+    )
 
 
 @router.post("/action/restart-device")
@@ -152,8 +159,8 @@ async def notification_websocket(websocket: WebSocket):
 
 
 @router.get("/history", tags=["history"])
-def get_history(project: project.Project = Depends(get_project)):
-    return project.get_history()
+def get_history(request: Request, project: project.Project = Depends(get_project)):
+    return project.get_history(request.state.notification_manager)
 
 
 @router.post("/history/revert-commit", tags=["history"])
