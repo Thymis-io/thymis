@@ -2,7 +2,15 @@ import asyncio
 import os
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    Query,
+    Request,
+    WebSocket,
+)
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, RedirectResponse
 from paramiko import PKey, SSHClient
@@ -13,7 +21,9 @@ from thymis_controller.dependencies import (
     get_project,
     require_valid_user_session,
 )
+from thymis_controller.models import history
 from thymis_controller.models.state import State
+from thymis_controller.notifications import notification_manager
 from thymis_controller.routers import task
 from thymis_controller.tcp_to_ws import (
     channel_to_websocket,
@@ -63,9 +73,10 @@ router.include_router(task.router)
 async def deploy(
     summary: str,
     session: SessionAD,
+    background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
 ):
-    project.commit(summary)
+    project.commit(summary, background_tasks)
 
     registered_devices = []
     for device in crud.hostkey.get_all(session):
@@ -83,15 +94,19 @@ async def deploy(
 async def build_download_image(
     identifier: str,
     db_session: SessionAD,
+    background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
 ):
-    await project.create_build_device_image_task(identifier, db_session)
+    await project.create_build_device_image_task(
+        identifier, db_session, background_tasks
+    )
 
 
 @router.post("/action/build-download-image-for-clone")
 async def device_and_build_download_image_for_clone(
     identifier: str,
     db_session: SessionAD,
+    background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
 ):
     state = project.read_state()
@@ -107,7 +122,9 @@ async def device_and_build_download_image_for_clone(
     if crud.hostkey.has_device(db_session, identifier):
         crud.hostkey.rename_device(db_session, identifier, new_identifier)
     project.clone_state_device(identifier, new_identifier, lambda n: f"{n}-{x}")
-    await project.create_build_device_image_task(new_identifier, db_session)
+    await project.create_build_device_image_task(
+        new_identifier, db_session, background_tasks
+    )
 
 
 @router.post("/action/restart-device")
@@ -145,18 +162,64 @@ def download_image(
     raise HTTPException(status_code=404, detail="Image not found")
 
 
-@router.get("/history")
+@router.websocket("/notification")
+async def notification_websocket(websocket: WebSocket):
+    await notification_manager.connect(websocket)
+
+
+@router.get("/history", tags=["history"])
 def get_history(project: project.Project = Depends(get_project)):
     return project.get_history()
 
 
-@router.post("/history/revert-commit")
+@router.post("/history/revert-commit", tags=["history"])
 def revert_commit(
     commit_sha: str,
     project: project.Project = Depends(get_project),
 ):
     project.revert_commit(commit_sha)
     return {"message": "reverted commit"}
+
+
+@router.get("/git/info", tags=["history"])
+def get_git_info(project: project.Project = Depends(get_project)):
+    return project.git_info()
+
+
+@router.post("/git/remote", tags=["history"])
+def add_git_remote(
+    remote: history.Remote, project: project.Project = Depends(get_project)
+):
+    if project.has_git_remote(remote.name):
+        raise HTTPException(
+            status_code=409, detail=f"Remote '{remote.name}' already exists"
+        )
+    project.add_git_remote(remote)
+
+
+@router.patch("/git/remote/{remote}", tags=["history"])
+def update_git_remote(
+    remote: str,
+    remote_update: history.Remote,
+    project: project.Project = Depends(get_project),
+):
+    if not project.has_git_remote(remote):
+        raise HTTPException(status_code=404, detail=f"Remote '{remote}' not found")
+    if remote != remote_update.name and project.has_git_remote(remote_update.name):
+        raise HTTPException(
+            status_code=409, detail=f"Remote '{remote_update.name}' already exists"
+        )
+    project.update_git_remote(remote, remote_update)
+
+
+@router.delete("/git/remote/{remote}", tags=["history"])
+def delete_git_remote(
+    remote: str,
+    project: project.Project = Depends(get_project),
+):
+    if not project.has_git_remote(remote):
+        raise HTTPException(status_code=404, detail=f"Remote '{remote}' not found")
+    project.delete_git_remote(remote)
 
 
 @router.post("/action/update")
