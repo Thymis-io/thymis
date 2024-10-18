@@ -8,7 +8,7 @@ In order to deploy the Thymis controller, you can use the Thymis NixOS module.
 
 ```nix
 {
-  inputs.thymis.url = "github:Thymis-io/thymis";
+  inputs.thymis.url = "github:Thymis-io/thymis/v0.1";
 }
 ```
 
