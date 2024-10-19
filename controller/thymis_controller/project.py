@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import traceback
 from pathlib import Path
 from typing import List
@@ -129,6 +130,7 @@ class Project:
     repo: git.Repo
     known_hosts_path: pathlib.Path
     public_key: str
+    history_lock = threading.Lock()
 
     def __init__(self, path, db_session: Session):
         self.path = pathlib.Path(path)
@@ -252,26 +254,31 @@ class Project:
 
     def get_history(self, background_tasks: BackgroundTasks):
         try:
-            return [
-                history.Commit(
-                    message=commit.message,
-                    author=commit.author.name,
-                    date=commit.authored_datetime,
-                    SHA=commit.hexsha,
-                    SHA1=self.repo.git.rev_parse(commit.hexsha, short=True),
-                    state_diff=self.repo.git.diff(
-                        commit.hexsha,
-                        commit.parents[0].hexsha if len(commit.parents) > 0 else None,
-                        "-R",
-                        "state.json",
-                        unified=5,
-                    ).split("\n")[4:],
-                )
-                for commit in self.repo.iter_commits()
-            ]
+            with self.history_lock:
+                return [
+                    history.Commit(
+                        message=commit.message,
+                        author=commit.author.name,
+                        date=commit.authored_datetime,
+                        SHA=commit.hexsha,
+                        SHA1=self.repo.git.rev_parse(commit.hexsha, short=True),
+                        state_diff=self.repo.git.diff(
+                            commit.hexsha,
+                            (
+                                commit.parents[0].hexsha
+                                if len(commit.parents) > 0
+                                else None
+                            ),
+                            "-R",
+                            "state.json",
+                            unified=5,
+                        ).split("\n")[4:],
+                    )
+                    for commit in self.repo.iter_commits()
+                ]
         except Exception as e:
+            traceback.print_exc()
             background_tasks.add_task(notification_manager.broadcast, str(e))
-            print(e)
             return []
 
     def update_known_hosts(self, db_session: Session):
