@@ -250,7 +250,7 @@ class Project:
             )
             background_tasks.add_task(notification_manager.broadcast, message)
 
-    def get_history(self):
+    def get_history(self, background_tasks: BackgroundTasks):
         try:
             return [
                 history.Commit(
@@ -270,6 +270,7 @@ class Project:
                 for commit in self.repo.iter_commits()
             ]
         except Exception as e:
+            background_tasks.add_task(notification_manager.broadcast, str(e))
             print(e)
             return []
 
