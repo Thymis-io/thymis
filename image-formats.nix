@@ -8,6 +8,7 @@ let
           inputs.nixos-generators.nixosModules.qcow
         ];
         system.build.thymis-image = config.system.build.qcow;
+        key = "github:thymis-io/thymis/image-formats.nix:qcow";
       };
       install-iso = { config, ... }: {
         imports = [
@@ -15,6 +16,7 @@ let
         ];
         system.build.thymis-image = config.system.build.isoImage;
         warnings = [ "This format is not entirely supported yet" ];
+        key = "github:thymis-io/thymis/image-formats.nix:install-iso";
       };
       sd-card-image = { config, ... }: {
         imports = [
@@ -22,6 +24,7 @@ let
         ];
         sdImage.compressImage = false;
         system.build.thymis-image = config.system.build.sdImage;
+        key = "github:thymis-io/thymis/image-formats.nix:sd-card-image";
       };
     };
 in
