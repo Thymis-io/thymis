@@ -38,7 +38,12 @@ router = APIRouter(
 
 
 @router.get("/state")
-def get_state(state: State = Depends(dependencies.get_state)):
+def get_state(
+    background_tasks: BackgroundTasks,
+    project: project.Project = Depends(get_project),
+    state: State = Depends(dependencies.get_state),
+):
+    background_tasks.add_task(project.pull_git, background_tasks)
     return state
 
 
