@@ -168,8 +168,10 @@ async def notification_websocket(websocket: WebSocket):
 
 
 @router.get("/history", tags=["history"])
-def get_history(project: project.Project = Depends(get_project)):
-    return project.get_history()
+def get_history(
+    background_tasks: BackgroundTasks, project: project.Project = Depends(get_project)
+):
+    return project.get_history(background_tasks)
 
 
 @router.post("/history/revert-commit", tags=["history"])

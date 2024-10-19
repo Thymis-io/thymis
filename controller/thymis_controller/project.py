@@ -252,7 +252,7 @@ class Project:
             )
             background_tasks.add_task(notification_manager.broadcast, message)
 
-    def get_history(self):
+    def get_history(self, background_tasks: BackgroundTasks):
         try:
             with self.history_lock:
                 return [
@@ -276,8 +276,9 @@ class Project:
                     )
                     for commit in self.repo.iter_commits()
                 ]
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
+            background_tasks.add_task(notification_manager.broadcast, str(e))
             return []
 
     def update_known_hosts(self, db_session: Session):
