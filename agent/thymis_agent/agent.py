@@ -91,8 +91,8 @@ class Agent:
             self.state.init_build_hash = self.detect_build_hash()
             self.state.current_build_hash = self.state.init_build_hash
 
-        if not self.state.public_key:
-            self.state.public_key = self.detect_public_key()
+        # if not self.state.public_key:
+        self.state.public_key = self.detect_public_key()
 
         if not self.state.ip_addresses:
             self.state.ip_addresses = self.detect_ip_addresses()
