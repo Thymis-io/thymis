@@ -258,7 +258,7 @@ class NixProcess:
         r = await proc.wait()
         if r != 0:
             raise RuntimeError(
-                f"Command {NIX_CMD[0]} {' '.join(self.args)} failed with exit code {r}"
+                f"Command {NIX_CMD[0]} {' '.join(str(a) for a in self.args)} failed with code {r}"
             )
 
         await asyncio.gather(read_stdout_task, read_stderr_task)
