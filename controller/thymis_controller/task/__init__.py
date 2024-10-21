@@ -5,6 +5,7 @@ import datetime
 import json
 import logging
 import os
+import threading
 import time
 import uuid
 from typing import List, Optional
@@ -35,6 +36,8 @@ class TaskController:
     last_send_time: datetime.datetime
     min_send_interval: datetime.timedelta
 
+    send_timer: threading.Timer
+
     def __init__(self):
         self.all_tasks_list = []
         self.all_tasks_dict = {}
@@ -49,6 +52,7 @@ class TaskController:
         self.last_send_time = datetime.datetime.now()
         self.last_send_content = None
         self.min_send_interval = datetime.timedelta(milliseconds=100)
+        self.send_timer = None
 
     def count_compute_intensive_tasks_running(self):
         return len(
@@ -120,7 +124,13 @@ class TaskController:
 
     async def send_all_tasks(self):
         if datetime.datetime.now() - self.last_send_time < self.min_send_interval:
-            asyncio.create_task(self.send_all_tasks_delayed())
+            if self.send_timer is not None:
+                self.send_timer.cancel()
+            self.send_timer = threading.Timer(
+                self.min_send_interval.total_seconds(),
+                lambda: asyncio.run(self.send_all_tasks()),
+            )
+            self.send_timer.start()
             return
         content = json.dumps(jsonable_encoder(self.get_tasks()))
         if content == self.last_send_content:
@@ -128,10 +138,6 @@ class TaskController:
         self.last_send_time = datetime.datetime.now()
         await self.send_broadcast(json.dumps(jsonable_encoder(self.get_tasks())))
         self.last_send_content = content
-
-    async def send_all_tasks_delayed(self):
-        await asyncio.sleep((2 * self.min_send_interval).total_seconds())
-        await self.send_all_tasks()
 
     async def send_broadcast(self, data: str):
         for connection in self.active_listeners:

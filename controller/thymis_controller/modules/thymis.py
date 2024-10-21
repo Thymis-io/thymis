@@ -629,13 +629,6 @@ class ThymisDevice(modules.Module):
             else self.authorized_keys.default
         )
 
-        # add key at global_settings.SSH_KEY_PATH
-
-        if (path := pathlib.Path(global_settings.SSH_KEY_PATH) / ".pub").exists():
-            with path.open() as f_key:
-                public_key = f_key.read().strip()
-            authorized_keys.append({"key": public_key})
-
         static_networks = (
             module_settings.settings["static_networks"]
             if "static_networks" in module_settings.settings
