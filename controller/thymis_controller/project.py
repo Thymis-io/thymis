@@ -8,16 +8,20 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import traceback
 from pathlib import Path
 from typing import List
 
 import git
+from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
 from thymis_controller import crud, migration, models, task
 from thymis_controller.config import global_settings
+from thymis_controller.models import history
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
+from thymis_controller.notifications import notification_manager
 
 logger = logging.getLogger(__name__)
 
@@ -126,6 +130,7 @@ class Project:
     repo: git.Repo
     known_hosts_path: pathlib.Path
     public_key: str
+    history_lock = threading.Lock()
 
     def __init__(self, path, db_session: Session):
         self.path = pathlib.Path(path)
@@ -230,7 +235,7 @@ class Project:
         repositories = BUILTIN_REPOSITORIES | state.repositories
         load_repositories(path, repositories)
 
-    def commit(self, summary: str):
+    def commit(self, summary: str, background_tasks: BackgroundTasks):
         self.repo.git.add(".")
         try:
             if self.repo.index.diff("HEAD"):
@@ -239,24 +244,42 @@ class Project:
         except git.BadName:
             self.repo.index.commit(summary)
 
-    def get_history(self):
-        return [
-            {
-                "message": commit.message,
-                "author": commit.author.name,
-                "date": commit.authored_datetime,
-                "SHA": commit.hexsha,
-                "SHA1": self.repo.git.rev_parse(commit.hexsha, short=True),
-                "state_diff": self.repo.git.diff(
-                    commit.hexsha,
-                    commit.parents[0].hexsha if len(commit.parents) > 0 else None,
-                    "-R",
-                    "state.json",
-                    unified=5,
-                ).split("\n")[4:],
-            }
-            for commit in self.repo.iter_commits()
-        ]
+        try:
+            self.repo.git.push()
+        except git.GitCommandError as e:
+            message = (
+                f"{' '.join(e.command)} failed with status code {e.status}{e.stderr}"
+            )
+            background_tasks.add_task(notification_manager.broadcast, message)
+
+    def get_history(self, background_tasks: BackgroundTasks):
+        try:
+            with self.history_lock:
+                return [
+                    history.Commit(
+                        message=commit.message,
+                        author=commit.author.name,
+                        date=commit.authored_datetime,
+                        SHA=commit.hexsha,
+                        SHA1=self.repo.git.rev_parse(commit.hexsha, short=True),
+                        state_diff=self.repo.git.diff(
+                            commit.hexsha,
+                            (
+                                commit.parents[0].hexsha
+                                if len(commit.parents) > 0
+                                else None
+                            ),
+                            "-R",
+                            "state.json",
+                            unified=5,
+                        ).split("\n")[4:],
+                    )
+                    for commit in self.repo.iter_commits()
+                ]
+        except Exception as e:
+            traceback.print_exc()
+            background_tasks.add_task(notification_manager.broadcast, str(e))
+            return []
 
     def update_known_hosts(self, db_session: Session):
         if not self.known_hosts_path or not self.known_hosts_path.exists():
@@ -293,6 +316,59 @@ class Project:
         state.devices.append(new_device)
         self.write_state_and_reload(state)
 
+    def get_remotes(self):
+        return [history.Remote(name=r.name, url=r.url) for r in self.repo.remotes]
+
+    def git_ahead_count(self, from_ref: str, to_ref: str):
+        return self.repo.git.rev_list(f"{from_ref}..{to_ref}", count=True)
+
+    def git_info(self):
+        active_branch = self.repo.active_branch
+        tracking_branch = active_branch.tracking_branch()
+
+        if tracking_branch:
+            ahead = self.git_ahead_count(tracking_branch.name, active_branch.name)
+            behind = self.git_ahead_count(active_branch.name, tracking_branch.name)
+        else:
+            ahead = 0
+            behind = 0
+
+        return history.GitInfo(
+            active_branch=self.repo.active_branch.name,
+            remote_branch=tracking_branch.name if tracking_branch else None,
+            ahead=ahead,
+            behind=behind,
+            remotes=self.get_remotes(),
+        )
+
+    def has_git_remote(self, name: str):
+        return name in [remote.name for remote in self.repo.remotes]
+
+    def add_git_remote(self, remote: history.Remote):
+        self.repo.create_remote(remote.name, remote.url)
+
+    def update_git_remote(self, name: str, remote_update: history.Remote):
+        if name != remote_update.name:
+            self.repo.git.remote("rename", name, remote_update.name)
+        if self.repo.remote(remote_update.name).url != remote_update.url:
+            self.repo.git.remote("set-url", remote_update.name, remote_update.url)
+
+    def delete_git_remote(self, name: str):
+        self.repo.delete_remote(name)
+
+    def fetch_git(self):
+        self.repo.git.fetch("--all")
+
+    def pull_git(self, background_tasks: BackgroundTasks):
+        try:
+            self.repo.git.pull("--ff-only")
+        except git.GitCommandError as e:
+            stderr = e.stderr.replace("hint:", "\t").replace("\n\t\n", "\n")
+            message = (
+                f"{' '.join(e.command)} failed with status code {e.status}{stderr}"
+            )
+            background_tasks.add_task(notification_manager.broadcast, message)
+
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildProjectTask(self.path))
 
@@ -317,9 +393,12 @@ class Project:
         return task.global_task_controller.add_task(task.UpdateTask(self.path, self))
 
     def create_build_device_image_task(
-        self, device_identifier: str, db_session: Session
+        self,
+        device_identifier: str,
+        db_session: Session,
+        background_tasks: BackgroundTasks,
     ):
-        self.commit(f"Build image for {device_identifier}")
+        self.commit(f"Build image for {device_identifier}", background_tasks)
         device_state = next(
             device
             for device in self.read_state().devices
