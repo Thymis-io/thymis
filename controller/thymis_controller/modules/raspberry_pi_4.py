@@ -5,18 +5,6 @@ from thymis_controller.modules import modules
 class RaspberryPi4(modules.Module):
     display_name: str = "Raspberry Pi 4"
 
-    bluetooth = modules.Setting(
-        display_name=modules.LocalizedString(
-            en="Bluetooth",
-            de="Bluetooth",
-        ),
-        type="bool",
-        default="false",
-        description="Enable or disable Bluetooth.",
-        example="false",
-        order=10,
-    )
-
     audio_enable = modules.Setting(
         display_name=modules.LocalizedString(
             en="Audio",
@@ -47,20 +35,6 @@ class RaspberryPi4(modules.Module):
             if "audio_enable" in module_settings.settings
             else self.audio_enable.default
         )
-
-        if bluetooth:
-            service = """
-    systemd.services.btattach = {
-        before = [ "bluetooth.service" ];
-        after = [ "dev-ttyAMA0.device" ];
-        wantedBy = [ "multi-user.target" ];
-        serviceConfig = {
-            ExecStart = "${pkgs.bluez}/bin/btattach -B /dev/ttyAMA0 -P bcm -S 3000000";
-        };
-    };
-            """
-            f.write(service)
-            f.write("\n")
 
         if audio_enable:
             f.write('hardware.raspberry-pi."4".audio.enable = true;\n')
