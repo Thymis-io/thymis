@@ -14,7 +14,6 @@ from pathlib import Path
 from typing import List
 
 import git
-from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
 from thymis_controller import crud, migration, models, task
 from thymis_controller.config import global_settings
@@ -235,7 +234,7 @@ class Project:
         repositories = BUILTIN_REPOSITORIES | state.repositories
         load_repositories(path, repositories)
 
-    def commit(self, summary: str, background_tasks: BackgroundTasks):
+    def commit(self, summary: str):
         self.repo.git.add(".")
         try:
             if self.repo.index.diff("HEAD"):
@@ -250,9 +249,9 @@ class Project:
             message = (
                 f"{' '.join(e.command)} failed with status code {e.status}{e.stderr}"
             )
-            background_tasks.add_task(notification_manager.broadcast, message)
+            notification_manager.broadcast(message, True)
 
-    def get_history(self, background_tasks: BackgroundTasks):
+    def get_history(self):
         try:
             with self.history_lock:
                 return [
@@ -278,7 +277,7 @@ class Project:
                 ]
         except Exception as e:
             traceback.print_exc()
-            background_tasks.add_task(notification_manager.broadcast, str(e))
+            notification_manager.broadcast(str(e), True)
             return []
 
     def update_known_hosts(self, db_session: Session):
@@ -351,13 +350,12 @@ class Project:
         self,
         name: str,
         remote_update: history.Remote,
-        background_tasks: BackgroundTasks,
     ):
         if name != remote_update.name:
             self.repo.git.remote("rename", name, remote_update.name)
         if self.repo.remote(remote_update.name).url != remote_update.url:
             self.repo.git.remote("set-url", remote_update.name, remote_update.url)
-        self.pull_git(background_tasks)
+        self.pull_git()
 
     def delete_git_remote(self, name: str):
         self.repo.delete_remote(name)
@@ -365,7 +363,7 @@ class Project:
     def fetch_git(self):
         self.repo.git.fetch("--all")
 
-    def pull_git(self, background_tasks: BackgroundTasks):
+    def pull_git(self):
         try:
             # fail if git askings for credentials to avoid blocking
             os.environ["GIT_TERMINAL_PROMPT"] = "0"
@@ -379,7 +377,7 @@ class Project:
                 message = (
                     f"{' '.join(e.command)} failed with status code {e.status}{stderr}"
                 )
-            background_tasks.add_task(notification_manager.broadcast, message, False)
+            notification_manager.broadcast(message, False)
 
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildProjectTask(self.path))
@@ -408,9 +406,8 @@ class Project:
         self,
         device_identifier: str,
         db_session: Session,
-        background_tasks: BackgroundTasks,
     ):
-        self.commit(f"Build image for {device_identifier}", background_tasks)
+        self.commit(f"Build image for {device_identifier}")
         device_state = next(
             device
             for device in self.read_state().devices
