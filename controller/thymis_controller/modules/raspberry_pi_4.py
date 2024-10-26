@@ -24,12 +24,6 @@ class RaspberryPi4(modules.Module):
         priority: int,
         project: modules.Project,
     ):
-        bluetooth = (
-            module_settings.settings["bluetooth"]
-            if "bluetooth" in module_settings.settings
-            else self.bluetooth.default
-        )
-
         audio_enable = (
             module_settings.settings["audio_enable"]
             if "audio_enable" in module_settings.settings
