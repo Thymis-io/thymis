@@ -138,6 +138,7 @@ async def lifespan(app: FastAPI):
     peform_db_upgrade()
     init_password_file()
     init_ssh_key()
+    asyncio.get_event_loop().create_task(api.pull_git())
     logger.info("starting frontend")
     await frontend.frontend.run()
     logger.info("frontend started")
