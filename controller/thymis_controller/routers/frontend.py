@@ -84,13 +84,12 @@ class Frontend:
 
         # read stdout and stderr in background
         async def read_stream(stream: asyncio.StreamReader, level=logging.INFO):
-            while self.process.returncode is None and not self.stopped:
+            while not stream.at_eof():
                 line = await stream.readline()
                 if line:
                     logger.log(
                         level, "frontend process: %s", line.decode("utf-8").strip()
                     )
-                await asyncio.sleep(0.001)
 
         # start threads
         asyncio.create_task(read_stream(self.process.stdout))
