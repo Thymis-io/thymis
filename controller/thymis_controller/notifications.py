@@ -1,6 +1,8 @@
+import asyncio
+import threading
 import traceback
 
-from fastapi import BackgroundTasks, WebSocket, WebSocketDisconnect
+from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.websockets import WebSocketState
 
 
@@ -33,10 +35,25 @@ class NotificationManager:
             and websocket.client_state != WebSocketState.DISCONNECTED
         )
 
-    async def send_personal_message(self, message: str, websocket: WebSocket):
+    def send_personal_message(self, message: str, websocket: WebSocket):
+        threading.Thread(
+            target=lambda: self.run_async_in_thread(
+                self._send_personal_message, message, websocket
+            )
+        ).start()
+
+    async def _send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_json({"message": message})
 
-    async def broadcast(self, message: str, queue_if_unsent: bool = True):
+    def broadcast(self, message: str, queue_if_unsent: bool = True):
+        self.run_async_in_thread(self._broadcast, message, queue_if_unsent)
+
+    @staticmethod
+    def run_async_in_thread(async_func, *args, **kwargs):
+        loop = asyncio.get_event_loop()
+        loop.create_task(async_func(*args, **kwargs))
+
+    async def _broadcast(self, message: str, queue_if_unsent: bool = True):
         message_sent = False
         for connection in self.active_connections:
             if not self.is_connection_healthy(connection):

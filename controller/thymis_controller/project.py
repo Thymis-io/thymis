@@ -14,7 +14,6 @@ from pathlib import Path
 from typing import List
 
 import git
-from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
 from thymis_controller import crud, migration, models, task
 from thymis_controller.config import global_settings
@@ -235,7 +234,7 @@ class Project:
         repositories = BUILTIN_REPOSITORIES | state.repositories
         load_repositories(path, repositories)
 
-    def commit(self, summary: str, background_tasks: BackgroundTasks):
+    def commit(self, summary: str):
         self.repo.git.add(".")
         try:
             if self.repo.index.diff("HEAD"):
@@ -250,9 +249,9 @@ class Project:
             message = (
                 f"{' '.join(e.command)} failed with status code {e.status}{e.stderr}"
             )
-            background_tasks.add_task(notification_manager.broadcast, message)
+            notification_manager.broadcast(message, True)
 
-    def get_history(self, background_tasks: BackgroundTasks):
+    def get_history(self):
         try:
             with self.history_lock:
                 return [
@@ -278,7 +277,7 @@ class Project:
                 ]
         except Exception as e:
             traceback.print_exc()
-            background_tasks.add_task(notification_manager.broadcast, str(e))
+            notification_manager.broadcast(str(e), True)
             return []
 
     def update_known_hosts(self, db_session: Session):
@@ -387,9 +386,8 @@ class Project:
         self,
         device_identifier: str,
         db_session: Session,
-        background_tasks: BackgroundTasks,
     ):
-        self.commit(f"Build image for {device_identifier}", background_tasks)
+        self.commit(f"Build image for {device_identifier}")
         device_state = next(
             device
             for device in self.read_state().devices
