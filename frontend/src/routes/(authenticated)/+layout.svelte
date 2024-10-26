@@ -13,6 +13,8 @@
 	import TaskbarSmall from '$lib/taskbar/TaskbarSmall.svelte';
 	import { browser } from '$app/environment';
 	import { SvelteToast } from '@zerodevx/svelte-toast';
+	import { onMount } from 'svelte';
+	import { startNotificationSocket } from '$lib/notification';
 
 	export let data: LayoutData;
 
@@ -48,6 +50,10 @@
 	$: $taskStatus = data.allTasks;
 
 	let drawerHidden = true;
+
+	onMount(() => {
+		startNotificationSocket();
+	});
 </script>
 
 <svelte:head>
