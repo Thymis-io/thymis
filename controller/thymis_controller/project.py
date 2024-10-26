@@ -369,7 +369,7 @@ class Project:
             message = (
                 f"{' '.join(e.command)} failed with status code {e.status}{stderr}"
             )
-            background_tasks.add_task(notification_manager.broadcast, message)
+            background_tasks.add_task(notification_manager.broadcast, message, False)
 
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildProjectTask(self.path))
