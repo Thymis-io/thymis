@@ -10,6 +10,7 @@ export type Commit = {
 export type Remote = {
 	name: string;
 	url: string;
+	branches: string[];
 };
 
 export type GitInfo = {
