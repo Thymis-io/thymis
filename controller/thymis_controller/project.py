@@ -243,9 +243,12 @@ class Project:
         except git.BadName:
             self.repo.index.commit(summary)
 
+        self.pull_git()
+
         try:
             self.repo.git.push()
         except git.GitCommandError as e:
+            traceback.print_exc()
             message = (
                 f"{' '.join(e.command)} failed with status code {e.status}{e.stderr}"
             )
@@ -315,8 +318,15 @@ class Project:
         state.devices.append(new_device)
         self.write_state_and_reload(state)
 
-    def get_remotes(self):
-        return [history.Remote(name=r.name, url=r.url) for r in self.repo.remotes]
+    def get_remotes(self):  #
+        return [
+            history.Remote(
+                name=remote.name,
+                url=remote.url,
+                branches=[ref.name for ref in remote.refs],
+            )
+            for remote in self.repo.remotes
+        ]
 
     def git_ahead_count(self, from_ref: str, to_ref: str):
         return self.repo.git.rev_list(f"{from_ref}..{to_ref}", count=True)
@@ -360,6 +370,16 @@ class Project:
     def delete_git_remote(self, name: str):
         self.repo.delete_remote(name)
 
+    def switch_remote_branch(self, branch: str):
+        try:
+            self.repo.git.branch(
+                self.repo.active_branch.name, f"--set-upstream-to={branch}"
+            )
+        except git.GitCommandError as e:
+            traceback.print_exc()
+            notification_manager.broadcast(str(e))
+        self.pull_git()
+
     def fetch_git(self):
         self.repo.git.fetch("--all")
 
@@ -369,6 +389,7 @@ class Project:
             os.environ["GIT_TERMINAL_PROMPT"] = "0"
             self.repo.git.pull("--ff-only")
         except git.GitCommandError as e:
+            traceback.print_exc()
             stderr = e.stderr.replace("hint:", "\t").replace("\n\t\n", "\n")
             if "terminal prompts disabled" in stderr:
                 remote = self.git_info().remote_branch
