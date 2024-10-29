@@ -274,6 +274,15 @@
 		"remote-name-required": "Name is required",
 		"remote-name-exists": "Name is alreay used",
 		"remote-url": "Remote URL",
-		"remote-url-required": "URL is required"
+		"remote-url-required": "URL is required",
+		"confirm-switch-modal-title-from-to": "Switch from {fromBranch} to {toBranch}",
+		"confirm-switch-modal-title-new": "Switch to {branch}",
+		"confirm-switch-modal-cancel": "Cancel",
+		"confirm-switch-modal-confirm": "Switch to {branch}",
+		"confirm-switch-modal-text": "Switching branches will discard all unsaved changes.",
+		"remote-info": "History is synced with remote repository:",
+		"remote-info-out-of-sync": "History is out of sync with remote repository:",
+		"no-remote-info": "History is not synced with remote repository:",
+		"external-repo-link": "Open Repository"
 	}
 }

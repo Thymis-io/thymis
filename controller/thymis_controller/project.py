@@ -257,6 +257,9 @@ class Project:
     def get_history(self):
         try:
             with self.history_lock:
+                if not self.repo.head.is_valid():
+                    return []
+
                 return [
                     history.Commit(
                         message=commit.message,
@@ -358,13 +361,13 @@ class Project:
     def has_git_remote(self, name: str):
         return name in [remote.name for remote in self.repo.remotes]
 
-    def add_git_remote(self, remote: history.Remote):
+    def add_git_remote(self, remote: history.UpdateRemote):
         self.repo.create_remote(remote.name, remote.url)
 
     def update_git_remote(
         self,
         name: str,
-        remote_update: history.Remote,
+        remote_update: history.UpdateRemote,
     ):
         if name != remote_update.name:
             self.repo.git.remote("rename", name, remote_update.name)
@@ -377,9 +380,9 @@ class Project:
 
     def switch_remote_branch(self, branch: str):
         try:
-            self.repo.git.branch(
-                self.repo.active_branch.name, f"--set-upstream-to={branch}"
-            )
+            self.repo.git.reset("--hard")
+            local_branch = branch.split("/", 1)[-1]
+            self.repo.git.switch("-C", local_branch, branch)
         except git.GitCommandError as e:
             traceback.print_exc()
             notification_manager.broadcast(str(e))
@@ -395,6 +398,9 @@ class Project:
 
     def pull_git(self):
         self.fetch_git_all()
+
+        if not self.repo.head.is_valid() or not self.git_info().remote_branch:
+            return
 
         try:
             # fail if git askings for credentials to avoid blocking
