@@ -31,7 +31,8 @@ class RaspberryPi4(modules.Module):
         )
 
         if audio_enable:
-            f.write('hardware.raspberry-pi."4".audio.enable = true;\n')
+            # see https://github.com/NixOS/nixos-hardware/issues/703#issuecomment-1869075978
+            f.write('boot.kernelParams = [ "snd_bcm2835.enable_hdmi=1" ];\n')
             f.write("sound.enable = true;\n")
 
         return super().write_nix_settings(f, module_settings, priority, project)
