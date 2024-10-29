@@ -4,6 +4,7 @@
 	import Pen from 'lucide-svelte/icons/pen';
 	import Trash from 'lucide-svelte/icons/trash';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
+	import ExternalLink from 'lucide-svelte/icons/external-link';
 	import {
 		Button,
 		Dropdown,
@@ -19,6 +20,7 @@
 	import type { Remote } from '$lib/history';
 	import RemoteModal from './RemoteModal.svelte';
 	import { invalidate } from '$app/navigation';
+	import { base } from '$app/paths';
 
 	export let data: PageData;
 
@@ -43,6 +45,33 @@
 
 		await invalidate((url) => url.pathname === '/api/git/info');
 		switchingRemoteBranch = false;
+	};
+
+	$: remote = data.gitInfo.remotes.find(
+		(r) => data.gitInfo.remote_branch && r.branches.includes(data.gitInfo.remote_branch)
+	);
+
+	const guessRemoteHttpUrl = (remote: Remote | undefined, remoteBranch: string | undefined) => {
+		const remoteUrl = remote?.url;
+
+		if (!remoteUrl) {
+			return;
+		}
+
+		let baseUrl = '';
+
+		if (remoteUrl.startsWith('http')) {
+			baseUrl = remoteUrl.replace(/\.git$/, '');
+		} else if (new RegExp(/.*@.*:/).test(remoteUrl)) {
+			baseUrl = `https://${remoteUrl
+				.replace(/.*@/, '')
+				.replace(/:/, '/')
+				.replace(/\.git$/, '')}`;
+		}
+
+		if (baseUrl) {
+			return baseUrl + '/tree/' + remoteBranch?.replace(`${remote.name}/`, '');
+		}
 	};
 </script>
 
@@ -72,6 +101,13 @@
 			{/each}
 		</Dropdown>
 	{/if}
+	<a
+		href={guessRemoteHttpUrl(remote, data.gitInfo.remote_branch ?? undefined)}
+		target="_blank"
+		rel="noopener noreferrer"
+	>
+		<ExternalLink size={20} />
+	</a>
 </div>
 <span>Commits ahead: {data.gitInfo.ahead}, commits behind: {data.gitInfo.behind}</span>
 <p class="mt-4">{$t('git-config.remotes-title')}</p>
