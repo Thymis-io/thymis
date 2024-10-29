@@ -172,7 +172,7 @@ def get_git_info(project: project.Project = Depends(get_project)):
 
 @router.post("/git/remote", tags=["history"])
 def add_git_remote(
-    remote: history.Remote, project: project.Project = Depends(get_project)
+    remote: history.UpdateRemote, project: project.Project = Depends(get_project)
 ):
     if project.has_git_remote(remote.name):
         raise HTTPException(
@@ -184,7 +184,7 @@ def add_git_remote(
 @router.patch("/git/remote/{remote}", tags=["history"])
 def update_git_remote(
     remote: str,
-    remote_update: history.Remote,
+    remote_update: history.UpdateRemote,
     project: project.Project = Depends(get_project),
 ):
     if not project.has_git_remote(remote):
