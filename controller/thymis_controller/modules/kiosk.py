@@ -21,7 +21,7 @@ class Kiosk(modules.Module):
     xrandr_mode = modules.Setting(
         display_name=modules.LocalizedString(
             en="Display mode",
-            de="Bildschirm Modus",
+            de="Bildschirmmodus",
         ),
         type="string",
         default="1024x600_60.00",
