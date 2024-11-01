@@ -60,7 +60,7 @@ class Module(ABC):
         filename = f"{self.type}.nix"
 
         with open(path / filename, "w+", encoding="utf-8") as f:
-            f.write("{ pkgs, lib, inputs, ... }:\n")
+            f.write("{ pkgs, lib, inputs, config, ... }:\n")
             f.write("{\n")
 
             self.write_nix_settings(f, module_settings, priority, project)

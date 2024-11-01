@@ -20,8 +20,8 @@ class Kiosk(modules.Module):
 
     xrandr_mode = modules.Setting(
         display_name=modules.LocalizedString(
-            en="xrandr mode",
-            de="xrandr mode",
+            en="Display mode",
+            de="Bildschirm Modus",
         ),
         type="string",
         default="1024x600_60.00",
@@ -32,14 +32,26 @@ class Kiosk(modules.Module):
 
     xrandr_rotation = modules.Setting(
         display_name=modules.LocalizedString(
-            en="xrandr rotation",
-            de="xrandr rotation",
+            en="Display rotation",
+            de="Bildschirmrotation",
         ),
         type=modules.SelectOneType(select_one=["normal", "left", "right", "inverted"]),
         default="normal",
         description="xrandr rotation.",
         example="normal",
         order=50,
+    )
+
+    volume = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Volume",
+            de="Lautstärke",
+        ),
+        type="int",
+        default=100,
+        description="Volume between 0% and 100%.",
+        example="100",
+        order=55,
     )
 
     enable_vnc = modules.Setting(
@@ -99,6 +111,14 @@ class Kiosk(modules.Module):
             else self.xrandr_rotation.default
         )
 
+        volume = (
+            module_settings.settings["volume"]
+            if "volume" in module_settings.settings
+            else self.volume.default
+        )
+
+        volume = max(0, min(100, int(volume)))
+
         nonce = hash(str(module_settings.__dict__))
 
         f.write(
@@ -111,6 +131,9 @@ class Kiosk(modules.Module):
                 isNormalUser = true;
                 createHome = true;
             }};
+            # see https://github.com/NixOS/nixos-hardware/issues/703#issuecomment-1869075978
+            boot.kernelParams = lib.mkIf (config.thymis.config.device-type == "raspberry-pi-4") [ "snd_bcm2835.enable_headphones=1" "snd_bcm2835.enable_hdmi=1" ];
+            hardware.pulseaudio.enable = lib.mkIf (config.thymis.config.device-type == "raspberry-pi-4") true;
             services.xserver.windowManager.i3.enable = lib.mkOverride {priority} true;
             services.xserver.windowManager.i3.configFile = lib.mkOverride {priority} (pkgs.writeText "i3-config" ''
             # i3 config file (v4)
@@ -125,6 +148,7 @@ class Kiosk(modules.Module):
             exec ${{pkgs.chromium}}/bin/chromium --kiosk {kiosk_url} --disable-gpu
             {'exec ${pkgs.bash}/bin/bash -c "mkdir -p $HOME/tigervnc; ${pkgs.tigervnc}/bin/vncpasswd -f <<< \\"'+ vnc_password + '\\" > $HOME/tigervnc/passwd"' if enable_vnc else ''}
             {'exec ${pkgs.tigervnc}/bin/x0vncserver -display :0 -PasswordFile=$HOME/tigervnc/passwd' if enable_vnc else ''}
+            exec "${{pkgs.pamixer}}/bin/pamixer --set-volume {volume}"
             '');
             systemd.services.display-manager.restartIfChanged = lib.mkOverride {priority} true;
             systemd.services.display-manager.environment.NONCE = lib.mkOverride {priority} "{nonce}";
