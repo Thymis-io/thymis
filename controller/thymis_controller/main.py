@@ -15,9 +15,7 @@ from alembic.script import ScriptDirectory
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from sqlalchemy import engine_from_config
 from thymis_controller.config import global_settings
-from thymis_controller.database.base import Base
 from thymis_controller.routers import agent, api, auth, frontend
 
 logger = logging.getLogger(__name__)

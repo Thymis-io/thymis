@@ -7,6 +7,7 @@ from typing import Annotated, Generator, Optional, Union
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
 from thymis_controller.crud import web_session
+from thymis_controller.repo import Repo
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +17,10 @@ from thymis_controller.config import global_settings
 from thymis_controller.project import Project
 
 global_project = None
+global_repo = None
 SESSION_LIFETIME = datetime.timedelta(days=1)
 project_lock = threading.Lock()
+repo_lock = threading.Lock()
 
 
 def get_project():
@@ -29,6 +32,17 @@ def get_project():
 
             global_project = Project(REPO_PATH, next(get_db_session()))
         return global_project
+
+
+def get_repo():
+    global global_repo
+
+    with repo_lock:
+        if global_repo is None:
+            REPO_PATH = global_settings.REPO_PATH.resolve()
+
+            global_repo = Repo(REPO_PATH)
+        return global_repo
 
 
 def get_state(project: Project = Depends(get_project)):
