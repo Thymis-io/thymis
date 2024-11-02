@@ -15,9 +15,7 @@ from alembic.script import ScriptDirectory
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from sqlalchemy import engine_from_config
 from thymis_controller.config import global_settings
-from thymis_controller.database.base import Base
 from thymis_controller.routers import agent, api, auth, frontend
 
 logger = logging.getLogger(__name__)
@@ -138,7 +136,7 @@ async def lifespan(app: FastAPI):
     peform_db_upgrade()
     init_password_file()
     init_ssh_key()
-    asyncio.get_event_loop().create_task(api.pull_git())
+    asyncio.get_event_loop().create_task(api.sync_repo())
     logger.info("starting frontend")
     await frontend.frontend.run()
     logger.info("frontend started")
