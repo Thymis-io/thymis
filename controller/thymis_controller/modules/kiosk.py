@@ -131,9 +131,23 @@ class Kiosk(modules.Module):
                 isNormalUser = true;
                 createHome = true;
             }};
-            # see https://github.com/NixOS/nixos-hardware/issues/703#issuecomment-1869075978
-            boot.kernelParams = lib.mkIf (config.thymis.config.device-type == "raspberry-pi-4") [ "snd_bcm2835.enable_headphones=1" "snd_bcm2835.enable_hdmi=1" ];
-            hardware.pulseaudio.enable = lib.mkIf (config.thymis.config.device-type == "raspberry-pi-4") true;
+            boot.kernelParams =
+              let
+                kernelParams = {{
+                  # see https://github.com/NixOS/nixos-hardware/issues/703#issuecomment-1869075978
+                  "raspberry-pi-4" = [ "snd_bcm2835.enable_headphones=1" "snd_bcm2835.enable_hdmi=1" ];
+                }};
+              in
+              lib.mkIf (builtins.hasAttr config.thymis.config.device-type kernelParams) kernelParams.${{config.thymis.config.device-type}};
+            boot.initrd.kernelModules =
+              let
+                kernelModules = {{
+                  "raspberry-pi-3" = [ "vc4" "bcm2835_dma" "i2c_bcm2835" ];
+                }};
+              in
+              lib.mkIf (builtins.hasAttr config.thymis.config.device-type kernelModules) kernelModules.${{config.thymis.config.device-type}};
+            hardware.pulseaudio.enable = lib.mkIf (config.thymis.config.device-type == "raspberry-pi-3" || config.thymis.config.device-type == "raspberry-pi-4") true;
+            hardware.pulseaudio.support32Bit = true;
             services.xserver.windowManager.i3.enable = lib.mkOverride {priority} true;
             services.xserver.windowManager.i3.configFile = lib.mkOverride {priority} (pkgs.writeText "i3-config" ''
             # i3 config file (v4)
