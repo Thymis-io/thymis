@@ -54,6 +54,18 @@ class Kiosk(modules.Module):
         order=55,
     )
 
+    audio_sink_fuzzy = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Audio Sink",
+            de="Audio Sink",
+        ),
+        type="string",
+        default="",
+        description="Select the audio sink via a fuzzy search. Eg. 'audio' or 'hdmi' can be used to match the default output or HDMI on a Raspberry Pi 3.\nTo list available sinks, the following commands can be used on the device:\n> machinectl shell thymiskiosk@.host\n> pactl list short sinks",
+        example="HDMI",
+        order=57,
+    )
+
     enable_vnc = modules.Setting(
         display_name=modules.LocalizedString(
             en="Enable VNC server",
@@ -119,6 +131,12 @@ class Kiosk(modules.Module):
 
         volume = max(0, min(100, int(volume)))
 
+        audio_sink_fuzzy = (
+            module_settings.settings["audio_sink_fuzzy"]
+            if "audio_sink_fuzzy" in module_settings.settings
+            else self.audio_sink_fuzzy.default
+        )
+
         nonce = hash(str(module_settings.__dict__))
 
         f.write(
@@ -148,6 +166,7 @@ class Kiosk(modules.Module):
             {'exec ${pkgs.bash}/bin/bash -c "mkdir -p $HOME/tigervnc; ${pkgs.tigervnc}/bin/vncpasswd -f <<< \\"'+ vnc_password + '\\" > $HOME/tigervnc/passwd"' if enable_vnc else ''}
             {'exec ${pkgs.tigervnc}/bin/x0vncserver -display :0 -PasswordFile=$HOME/tigervnc/passwd' if enable_vnc else ''}
             exec "${{pkgs.pamixer}}/bin/pamixer --set-volume {volume}"
+            {f'exec "${{pkgs.pulseaudio}}/bin/pactl set-default-sink \'\'$(${{pkgs.pulseaudio}}/bin/pactl list short sinks | grep -m1 -i \'{audio_sink_fuzzy}\' | cut -f1)"' if audio_sink_fuzzy else ''}
             '');
             systemd.services.display-manager.restartIfChanged = lib.mkOverride {priority} true;
             systemd.services.display-manager.environment.NONCE = lib.mkOverride {priority} "{nonce}";

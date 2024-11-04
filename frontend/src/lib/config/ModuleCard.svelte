@@ -31,7 +31,7 @@
 </script>
 
 <Card
-	class="max-w-none grid grid-cols-[minmax(50px,3fr)_1fr] sm:grid-cols-[auto_150px] xl:grid-cols-[auto_250px] gap-4"
+	class="max-w-none grid grid-cols-[minmax(50px,3fr)_1fr] sm:grid-cols-[auto_250px] xl:grid-cols-[auto_350px] gap-4"
 	padding={'sm'}
 >
 	{#each settingEntries as [key, setting]}
@@ -146,7 +146,7 @@
 				{/if}
 			</div>
 		</div>
-		<P class="mt-6">{setting.description}</P>
+		<P class="mt-6 whitespace-pre-line">{setting.description}</P>
 	{:else}
 		<div>{$t('config.no-settings')}</div>
 	{/each}
