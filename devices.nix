@@ -10,6 +10,10 @@ let
         nixpkgs.hostPlatform = "aarch64-linux";
       };
       raspberry-pi-3 = { ... }: {
+        boot.kernelModules = [ "vc4" "bcm2835_dma" "i2c_bcm2835" ];
+        boot.loader.raspberryPi.firmwareConfig = ''
+          dtparam=audio=on
+        '';
         nixpkgs.overlays = [
           (final: super: {
             makeModulesClosure = x:
@@ -22,6 +26,7 @@ let
         imports = [
           inputs.nixos-hardware.nixosModules.raspberry-pi-4
         ];
+        boot.kernelParams = [ "snd_bcm2835.enable_headphones=1" "snd_bcm2835.enable_hdmi=1" ];
         hardware.raspberry-pi."4".fkms-3d.enable = true;
         nixpkgs.overlays = [
           (final: super: {
