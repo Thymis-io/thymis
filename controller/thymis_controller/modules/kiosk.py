@@ -1,5 +1,8 @@
+import os
+
 import thymis_controller.modules.modules as modules
 from thymis_controller import models
+from thymis_controller.nix import format_nix_file
 from thymis_controller.project import Project
 
 
@@ -78,6 +81,37 @@ class Kiosk(modules.Module):
         order=70,
     )
 
+    def write_nix(
+        self,
+        path: os.PathLike,
+        module_settings: "models.ModuleSettings",
+        priority: int,
+        project: Project,
+    ):
+        filename = f"{self.type}.nix"
+
+        with open(path / filename, "w+", encoding="utf-8") as f:
+            f.write("let\n")
+            self.write_nix_vars(f)
+            f.write("in\n")
+            f.write("{ pkgs, lib, inputs, config, ... }:\n")
+            f.write("{\n")
+
+            self.write_nix_settings(f, module_settings, priority, project)
+
+            f.write("}\n")
+
+        format_nix_file(str(path / filename))
+
+    def write_nix_vars(self, f):
+        f.write(
+            'kernelModules.raspberry-pi-3 = [ "vc4" "bcm2835_dma" "i2c_bcm2835" ];\n'
+        )
+        # see https://github.com/NixOS/nixos-hardware/issues/703#issuecomment-1869075978
+        f.write(
+            'kernelParams.raspberry-pi-4 = [ "snd_bcm2835.enable_headphones=1" "snd_bcm2835.enable_hdmi=1" ];\n'
+        )
+
     def write_nix_settings(
         self, f, module_settings: models.ModuleSettings, priority: int, project: Project
     ):
@@ -131,21 +165,11 @@ class Kiosk(modules.Module):
                 isNormalUser = true;
                 createHome = true;
             }};
-            boot.kernelParams =
-              let
-                kernelParams = {{
-                  # see https://github.com/NixOS/nixos-hardware/issues/703#issuecomment-1869075978
-                  "raspberry-pi-4" = [ "snd_bcm2835.enable_headphones=1" "snd_bcm2835.enable_hdmi=1" ];
-                }};
-              in
-              lib.mkIf (builtins.hasAttr config.thymis.config.device-type kernelParams) kernelParams.${{config.thymis.config.device-type}};
-            boot.initrd.kernelModules =
-              let
-                kernelModules = {{
-                  "raspberry-pi-3" = [ "vc4" "bcm2835_dma" "i2c_bcm2835" ];
-                }};
-              in
-              lib.mkIf (builtins.hasAttr config.thymis.config.device-type kernelModules) kernelModules.${{config.thymis.config.device-type}};
+            boot.kernelParams = lib.mkIf (builtins.hasAttr config.thymis.config.device-type kernelParams) kernelParams.${{config.thymis.config.device-type}};
+            boot.initrd.kernelModules = lib.mkIf (builtins.hasAttr config.thymis.config.device-type kernelModules) kernelModules.${{config.thymis.config.device-type}};
+            boot.loader.raspberryPi.firmwareConfig = ''
+                dtparam=audio=on
+            '';
             hardware.pulseaudio.enable = lib.mkIf (config.thymis.config.device-type == "raspberry-pi-3" || config.thymis.config.device-type == "raspberry-pi-4") true;
             hardware.pulseaudio.support32Bit = true;
             services.xserver.windowManager.i3.enable = lib.mkOverride {priority} true;
@@ -167,5 +191,5 @@ class Kiosk(modules.Module):
             systemd.services.display-manager.restartIfChanged = lib.mkOverride {priority} true;
             systemd.services.display-manager.environment.NONCE = lib.mkOverride {priority} "{nonce}";
             networking.firewall.allowedTCPPorts = [ 5900 ];
-            """
+            """.strip()
         )
