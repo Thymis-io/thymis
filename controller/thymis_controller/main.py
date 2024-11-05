@@ -130,6 +130,17 @@ def init_ssh_key():
         return
 
 
+async def sync_repo(notification_manager: NotificationManager):
+    from thymis_controller.dependencies import get_repo
+
+    repo = get_repo()
+
+    while True:
+        repo.pull(notification_manager)
+        repo.push(notification_manager)
+        await asyncio.sleep(60 * 5)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up...")
@@ -139,6 +150,7 @@ async def lifespan(app: FastAPI):
     init_ssh_key()
     notification_manager = NotificationManager()
     notification_manager.start()
+    sync_task = asyncio.get_event_loop().create_task(sync_repo(notification_manager))
     logger.info("starting frontend")
     await frontend.frontend.run()
     logger.info("frontend started")
@@ -147,6 +159,7 @@ async def lifespan(app: FastAPI):
     logger.info("Starting controller at \033[1m%s\033[0m", global_settings.BASE_URL)
     yield {"notification_manager": notification_manager}
     notification_manager.stop()
+    sync_task.cancel()
     logger.info("stopping frontend")
     await frontend.frontend.stop()
     logger.info("frontend stopped")
