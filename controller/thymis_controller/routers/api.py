@@ -16,7 +16,6 @@ from thymis_controller.dependencies import (
 )
 from thymis_controller.models.state import State
 from thymis_controller.notifications import notification_manager
-from thymis_controller.repeat import repeat_every
 from thymis_controller.routers import task
 from thymis_controller.tcp_to_ws import (
     channel_to_websocket,
@@ -152,13 +151,6 @@ def download_image(
 @router.websocket("/notification")
 async def notification_websocket(websocket: WebSocket):
     await notification_manager.connect(websocket)
-
-
-@repeat_every(seconds=60 * 5)
-async def sync_repo():
-    repo = get_repo()
-    repo.pull()
-    repo.push()
 
 
 @router.get("/history", tags=["history"])
