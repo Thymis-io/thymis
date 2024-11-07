@@ -104,7 +104,7 @@ export const saveState = async () => {
 		body: JSON.stringify(currentState)
 	});
 	await invalidate((url) => url.pathname === '/api/state');
-	await build();
+	// await build();
 };
 
 export const build = async () => {
