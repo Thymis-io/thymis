@@ -135,13 +135,6 @@
 		"rollback-modal-confirm": "Revert",
 		"git-settings": "Git Settings"
 	},
-	"git": {
-		"push": "Push {changes, plural, =0 {} =1 {1 Change} other {# Changes}}",
-		"pull": "Pull {changes, plural, =0 {} =1 {1 Change} other {# Changes}}",
-		"fetch": "Fetch",
-		"nothing-to-push": "Nothing to push",
-		"fetch-tooltip": "Check for changes"
-	},
 	"deploy": {
 		"build": "Build",
 		"deploy": "Deploy",
