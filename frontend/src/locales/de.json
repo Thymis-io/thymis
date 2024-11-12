@@ -253,20 +253,29 @@
 		"update": "Aktualisieren"
 	},
 	"git-config": {
-		"create-remote-modal-title": "Neue Git Remote erstellen",
-		"delete-remote": "Löschen",
-		"edit-remote": "Bearbeiten",
-		"edit-remote-modal-title": "Git Remote bearbeiten",
-		"remote-name": "Remote Name",
-		"remote-name-exists": "Name wird bereits verwendet",
-		"remote-name-required": "Name ist erforderlich",
-		"remote-url": "Remote-URL",
-		"remote-url-required": "URL ist erforderlich",
 		"remotes": {
-			"actions": "Aktionen",
 			"name": "Name",
-			"url": "URL"
+			"url": "URL",
+			"actions": "Aktionen"
 		},
-		"remotes-title": "Git Remotes"
+		"edit-remote": "Bearbeiten",
+		"delete-remote": "Löschen",
+		"create-remote-modal-title": "Neue Git Remote erstellen",
+		"edit-remote-modal-title": "Git Remote bearbeiten",
+		"remotes-title": "Git Remotes",
+		"remote-name": "Remote Name",
+		"remote-name-required": "Name ist erforderlich",
+		"remote-name-exists": "Name wird bereits verwendet",
+		"remote-url": "Remote URL",
+		"remote-url-required": "URL ist erforderlich",
+		"confirm-switch-modal-title-from-to": "Von {fromBranch} zu {toBranch} wechseln",
+		"confirm-switch-modal-title-new": "Zu {branch} wechseln",
+		"confirm-switch-modal-cancel": "Abbrechen",
+		"confirm-switch-modal-confirm": "Zu {branch} wechseln",
+		"confirm-switch-modal-text": "Wenn Sie den Branch wechseln, werden alle nicht gespeicherten Änderungen verworfen.",
+		"remote-info": "Die Historie ist mit dem Remote Repository synchronisiert:",
+		"remote-info-out-of-sync": "Die Historie ist out-of-sync mit dem Remote Repository:",
+		"no-remote-info": "Die Historie wird nicht mit dem Remote Repository synchronisiert:",
+		"external-repo-link": "Öffne Repository"
 	}
 }
