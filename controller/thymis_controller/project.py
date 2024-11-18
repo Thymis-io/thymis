@@ -336,13 +336,8 @@ class Project:
         tracking_branch = active_branch.tracking_branch()
 
         if tracking_branch:
-            try:
-                ahead = self.git_ahead_count(tracking_branch.name, active_branch.name)
-                behind = self.git_ahead_count(active_branch.name, tracking_branch.name)
-            except:
-                traceback.print_exc()
-                ahead = 0
-                behind = 0
+            ahead = self.git_ahead_count(tracking_branch.name, active_branch.name)
+            behind = self.git_ahead_count(active_branch.name, tracking_branch.name)
         else:
             ahead = 0
             behind = 0
@@ -383,19 +378,12 @@ class Project:
         except git.GitCommandError as e:
             traceback.print_exc()
             notification_manager.broadcast(str(e))
-
         self.pull_git()
 
-    def fetch_git_all(self):
-        try:
-            self.repo.git.fetch("--all", "--prune")
-        except git.GitCommandError as e:
-            traceback.print_exc()
-            notification_manager.broadcast(str(e))
+    def fetch_git(self):
+        self.repo.git.fetch("--all")
 
     def pull_git(self):
-        self.fetch_git_all()
-
         try:
             # fail if git askings for credentials to avoid blocking
             os.environ["GIT_TERMINAL_PROMPT"] = "0"

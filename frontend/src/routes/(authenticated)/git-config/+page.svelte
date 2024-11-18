@@ -13,8 +13,7 @@
 		TableBodyCell,
 		TableBodyRow,
 		TableHead,
-		TableHeadCell,
-		Spinner
+		TableHeadCell
 	} from 'flowbite-svelte';
 	import type { Remote } from '$lib/history';
 	import RemoteModal from './RemoteModal.svelte';
@@ -25,7 +24,6 @@
 	let editRemote: Remote | undefined;
 	let createRemote: boolean = false;
 	let originalEditRemoteName: string | undefined;
-	let switchingRemoteBranch = false;
 
 	const deleteRemote = async (name: string) => {
 		await fetch(`/api/git/remote/${name}`, {
@@ -36,13 +34,11 @@
 	};
 
 	const changeRemoteBranch = async (branch: string) => {
-		switchingRemoteBranch = true;
 		await fetch(`/api/git/switch-remote-branch/${encodeURIComponent(branch)}`, {
 			method: 'PATCH'
 		});
 
-		await invalidate((url) => url.pathname === '/api/git/info');
-		switchingRemoteBranch = false;
+		invalidate((url) => url.pathname === '/api/git/info');
 	};
 </script>
 
@@ -52,28 +48,24 @@
 	create={createRemote}
 	remotes={data.gitInfo.remotes}
 />
-<div class="flex flex-row gap-2 items-center">
+<div class="flex flex-row gap-2">
 	<span>On branch {data.gitInfo.active_branch}, following</span>
-	{#if switchingRemoteBranch}
-		<Spinner size={5} />
-	{:else}
-		<button class="flex flex-row gap-1 items-center"
-			>{data.gitInfo.remote_branch} <ChevronDown size={20} /></button
-		>
-		<Dropdown>
-			{#each data.gitInfo.remotes as remote}
-				{#each remote.branches as branch}
-					{@const isRemoteBranch = data.gitInfo.remote_branch === branch}
-					<DropdownItem
-						on:click={() => changeRemoteBranch(branch)}
-						class={`${isRemoteBranch ? 'text-primary-500' : ''}`}>{branch}</DropdownItem
-					>
-				{/each}
+	<button class="flex flex-row items-center gap-1"
+		>{data.gitInfo.remote_branch} <ChevronDown size={20} /></button
+	>
+	<Dropdown>
+		{#each data.gitInfo.remotes as remote}
+			{#each remote.branches as branch}
+				{@const isRemoteBranch = data.gitInfo.remote_branch === branch}
+				<DropdownItem
+					on:click={() => changeRemoteBranch(branch)}
+					class={`${isRemoteBranch ? 'text-primary-500' : ''}`}>{branch}</DropdownItem
+				>
 			{/each}
-		</Dropdown>
-	{/if}
+		{/each}
+	</Dropdown>
+	<span>commits ahead: {data.gitInfo.ahead}, commits behind: {data.gitInfo.behind}</span>
 </div>
-<span>Commits ahead: {data.gitInfo.ahead}, commits behind: {data.gitInfo.behind}</span>
 <p class="mt-4">{$t('git-config.remotes-title')}</p>
 <Table shadow>
 	<TableHead>
