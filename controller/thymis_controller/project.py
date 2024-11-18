@@ -361,8 +361,6 @@ class Project:
 
     def pull_git(self, background_tasks: BackgroundTasks):
         try:
-            # fail if git askings for credentials to avoid blocking
-            os.environ["GIT_TERMINAL_PROMPT"] = "0"
             self.repo.git.pull("--ff-only")
         except git.GitCommandError as e:
             stderr = e.stderr.replace("hint:", "\t").replace("\n\t\n", "\n")
