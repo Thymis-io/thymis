@@ -249,7 +249,7 @@ class Project:
             message = (
                 f"{' '.join(e.command)} failed with status code {e.status}{e.stderr}"
             )
-            notification_manager.broadcast(message)
+            notification_manager.broadcast(message, True)
 
     def get_history(self):
         try:
@@ -277,7 +277,7 @@ class Project:
                 ]
         except Exception as e:
             traceback.print_exc()
-            notification_manager.broadcast(str(e))
+            notification_manager.broadcast(str(e), True)
             return []
 
     def update_known_hosts(self, db_session: Session):
@@ -377,7 +377,7 @@ class Project:
                 message = (
                     f"{' '.join(e.command)} failed with status code {e.status}{stderr}"
                 )
-            notification_manager.broadcast(message)
+            notification_manager.broadcast(message, False)
 
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildProjectTask(self.path))
