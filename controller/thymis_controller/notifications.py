@@ -1,5 +1,3 @@
-import traceback
-
 from fastapi import BackgroundTasks, WebSocket, WebSocketDisconnect
 from fastapi.websockets import WebSocketState
 
@@ -42,9 +40,9 @@ class NotificationManager:
             try:
                 await connection.send_json({"message": message})
                 send_anywhere = True
-            except Exception:
+            except Exception as e:
+                print(e)
                 self.active_connections.remove(connection)
-                traceback.print_exc()
         if not send_anywhere:
             self.queued_messages.append(message)
 
