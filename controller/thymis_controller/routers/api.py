@@ -74,9 +74,10 @@ router.include_router(task.router)
 async def deploy(
     summary: str,
     session: SessionAD,
+    background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
 ):
-    project.commit(summary)
+    project.commit(summary, background_tasks)
 
     registered_devices = []
     for device in crud.hostkey.get_all(session):
@@ -94,15 +95,19 @@ async def deploy(
 async def build_download_image(
     identifier: str,
     db_session: SessionAD,
+    background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
 ):
-    await project.create_build_device_image_task(identifier, db_session)
+    await project.create_build_device_image_task(
+        identifier, db_session, background_tasks
+    )
 
 
 @router.post("/action/build-download-image-for-clone")
 async def device_and_build_download_image_for_clone(
     identifier: str,
     db_session: SessionAD,
+    background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
 ):
     state = project.read_state()
@@ -118,7 +123,9 @@ async def device_and_build_download_image_for_clone(
     if crud.hostkey.has_device(db_session, identifier):
         crud.hostkey.rename_device(db_session, identifier, new_identifier)
     project.clone_state_device(identifier, new_identifier, lambda n: f"{n}-{x}")
-    await project.create_build_device_image_task(new_identifier, db_session)
+    await project.create_build_device_image_task(
+        new_identifier, db_session, background_tasks
+    )
 
 
 @router.post("/action/restart-device")
@@ -164,12 +171,18 @@ async def notification_websocket(websocket: WebSocket):
 @repeat_every(seconds=60 * 5)
 async def pull_git():
     project = get_project()
-    project.pull_git()
+    background_tasks = BackgroundTasks()
+    project.pull_git(background_tasks)
+
+    for task in background_tasks.tasks:
+        await task()
 
 
 @router.get("/history", tags=["history"])
-def get_history(project: project.Project = Depends(get_project)):
-    return project.get_history()
+def get_history(
+    background_tasks: BackgroundTasks, project: project.Project = Depends(get_project)
+):
+    return project.get_history(background_tasks)
 
 
 @router.post("/history/revert-commit", tags=["history"])
@@ -201,6 +214,7 @@ def add_git_remote(
 def update_git_remote(
     remote: str,
     remote_update: history.Remote,
+    background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
 ):
     if not project.has_git_remote(remote):
@@ -209,7 +223,7 @@ def update_git_remote(
         raise HTTPException(
             status_code=409, detail=f"Remote '{remote_update.name}' already exists"
         )
-    project.update_git_remote(remote, remote_update)
+    project.update_git_remote(remote, remote_update, background_tasks)
 
 
 @router.delete("/git/remote/{remote}", tags=["history"])
