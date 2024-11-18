@@ -13,7 +13,6 @@ from thymis_controller.dependencies import (
     get_project,
     require_valid_user_session,
 )
-from thymis_controller.models import history
 from thymis_controller.models.state import State
 from thymis_controller.routers import task
 from thymis_controller.tcp_to_ws import (
@@ -163,42 +162,6 @@ def revert_commit(
 @router.get("/git/info", tags=["history"])
 def get_git_info(project: project.Project = Depends(get_project)):
     return project.git_info()
-
-
-@router.post("/git/remote", tags=["history"])
-def add_git_remote(
-    remote: history.Remote, project: project.Project = Depends(get_project)
-):
-    if project.has_git_remote(remote.name):
-        raise HTTPException(
-            status_code=409, detail=f"Remote '{remote.name}' already exists"
-        )
-    project.add_git_remote(remote)
-
-
-@router.patch("/git/remote/{remote}", tags=["history"])
-def update_git_remote(
-    remote: str,
-    remote_update: history.Remote,
-    project: project.Project = Depends(get_project),
-):
-    if not project.has_git_remote(remote):
-        raise HTTPException(status_code=404, detail=f"Remote '{remote}' not found")
-    if remote != remote_update.name and project.has_git_remote(remote_update.name):
-        raise HTTPException(
-            status_code=409, detail=f"Remote '{remote_update.name}' already exists"
-        )
-    project.update_git_remote(remote, remote_update)
-
-
-@router.delete("/git/remote/{remote}", tags=["history"])
-def delete_git_remote(
-    remote: str,
-    project: project.Project = Depends(get_project),
-):
-    if not project.has_git_remote(remote):
-        raise HTTPException(status_code=404, detail=f"Remote '{remote}' not found")
-    project.delete_git_remote(remote)
 
 
 @router.post("/action/update")

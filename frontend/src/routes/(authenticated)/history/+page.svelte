@@ -4,7 +4,6 @@
 	import type { PageData } from './$types';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import Undo from 'lucide-svelte/icons/undo-2';
-	import Settings from 'lucide-svelte/icons/settings';
 	import RollbackModal from './RollbackModal.svelte';
 	import type { Commit } from '$lib/history';
 
@@ -32,28 +31,20 @@
 {#await Promise.all([data.history, data.gitInfo])}
 	<p>Loading...</p>
 {:then [historyList, gitInfo]}
-	<div class="my-8 flex justify-between">
-		<div>
-			<p>On branch {gitInfo.active_branch}</p>
-			{#if gitInfo.behind == 0 && gitInfo.ahead == 0}
-				<p>Your branch is up to date with {gitInfo.remote_branch}</p>
-			{:else if gitInfo.behind > 0 && gitInfo.ahead == 0}
-				<p>Your branch is behind {gitInfo.remote_branch} by {gitInfo.behind} commits</p>
-			{:else if gitInfo.behind == 0 && gitInfo.ahead > 0}
-				<p>Your branch is ahead of {gitInfo.remote_branch} by {gitInfo.ahead} commits</p>
-			{:else}
-				<p>
-					Your branch is behind {gitInfo.remote_branch} by {gitInfo.behind} commits and ahead by {gitInfo.ahead}
-					commits
-				</p>
-			{/if}
-		</div>
-		<a href="/git-config">
-			<Button class="gap-2" color="alternative">
-				<Settings size={20} />
-				{$t('history.git-settings')}
-			</Button>
-		</a>
+	<div class="mb-4">
+		<p>On branch {gitInfo.active_branch}</p>
+		{#if gitInfo.behind == 0 && gitInfo.ahead == 0}
+			<p>Your branch is up to date with {gitInfo.remote_branch}</p>
+		{:else if gitInfo.behind > 0 && gitInfo.ahead == 0}
+			<p>Your branch is behind {gitInfo.remote_branch} by {gitInfo.behind} commits</p>
+		{:else if gitInfo.behind == 0 && gitInfo.ahead > 0}
+			<p>Your branch is ahead of {gitInfo.remote_branch} by {gitInfo.ahead} commits</p>
+		{:else}
+			<p>
+				Your branch is behind {gitInfo.remote_branch} by {gitInfo.behind} commits and ahead by {gitInfo.ahead}
+				commits
+			</p>
+		{/if}
 	</div>
 	<ul class="list-disc ml-4">
 		{#each historyList as history, index}

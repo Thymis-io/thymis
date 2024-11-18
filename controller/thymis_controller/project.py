@@ -319,21 +319,6 @@ class Project:
             remotes=self.get_remotes(),
         )
 
-    def has_git_remote(self, name: str):
-        return name in [remote.name for remote in self.repo.remotes]
-
-    def add_git_remote(self, remote: history.Remote):
-        self.repo.create_remote(remote.name, remote.url)
-
-    def update_git_remote(self, name: str, remote_update: history.Remote):
-        if name != remote_update.name:
-            self.repo.git.remote("rename", name, remote_update.name)
-        if self.repo.remote(remote_update.name).url != remote_update.url:
-            self.repo.git.remote("set-url", remote_update.name, remote_update.url)
-
-    def delete_git_remote(self, name: str):
-        self.repo.delete_remote(name)
-
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildProjectTask(self.path))
 
