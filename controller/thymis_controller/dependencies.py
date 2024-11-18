@@ -18,7 +18,7 @@ global_project = None
 SESSION_LIFETIME = datetime.timedelta(days=1)
 
 
-async def get_project():
+def get_project():
     global global_project
     if global_project is None:
         REPO_PATH = global_settings.REPO_PATH.resolve()
