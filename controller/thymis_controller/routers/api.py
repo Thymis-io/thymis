@@ -11,11 +11,9 @@ from thymis_controller.config import global_settings
 from thymis_controller.dependencies import (
     SessionAD,
     get_project,
-    get_repo,
     require_valid_user_session,
 )
 from thymis_controller.models.state import State
-from thymis_controller.notifications import notification_manager
 from thymis_controller.routers import task
 from thymis_controller.tcp_to_ws import (
     channel_to_websocket,
@@ -65,10 +63,9 @@ router.include_router(task.router)
 async def deploy(
     summary: str,
     session: SessionAD,
-    repo: project.Repo = Depends(get_repo),
     project: project.Project = Depends(get_project),
 ):
-    repo.commit(summary)
+    project.commit(summary)
 
     registered_devices = []
     for device in crud.hostkey.get_all(session):
@@ -148,72 +145,18 @@ def download_image(
     raise HTTPException(status_code=404, detail="Image not found")
 
 
-@router.websocket("/notification")
-async def notification_websocket(websocket: WebSocket):
-    await notification_manager.connect(websocket)
+@router.get("/history")
+def get_history(project: project.Project = Depends(get_project)):
+    return project.get_history()
 
 
-@router.get("/history", tags=["history"])
-def get_history(repo: project.Repo = Depends(get_repo)):
-    return repo.history()
-
-
-@router.post("/history/revert-commit", tags=["history"])
+@router.post("/history/revert-commit")
 def revert_commit(
     commit_sha: str,
-    repo: project.Repo = Depends(get_repo),
+    project: project.Project = Depends(get_project),
 ):
-    repo.revert_commit(commit_sha)
+    project.revert_commit(commit_sha)
     return {"message": "reverted commit"}
-
-
-@router.get("/git/info", tags=["history"])
-def repo_info(repo: project.Repo = Depends(get_repo)):
-    return repo.info()
-
-
-@router.post("/git/remote", tags=["history"])
-def add_git_remote(
-    remote: models.history.UpdateRemote, repo: project.Repo = Depends(get_repo)
-):
-    if repo.has_remote(remote.name):
-        raise HTTPException(
-            status_code=409, detail=f"Remote '{remote.name}' already exists"
-        )
-    repo.add_remote(remote)
-
-
-@router.patch("/git/remote/{remote}", tags=["history"])
-def update_git_remote(
-    remote: str,
-    remote_update: models.history.UpdateRemote,
-    repo: project.Repo = Depends(get_repo),
-):
-    if not repo.has_remote(remote):
-        raise HTTPException(status_code=404, detail=f"Remote '{remote}' not found")
-    if remote != remote_update.name and repo.has_remote(remote_update.name):
-        raise HTTPException(
-            status_code=409, detail=f"Remote '{remote_update.name}' already exists"
-        )
-    repo.update_remote(remote, remote_update)
-
-
-@router.delete("/git/remote/{remote}", tags=["history"])
-def delete_git_remote(
-    remote: str,
-    repo: project.Repo = Depends(get_repo),
-):
-    if not repo.has_remote(remote):
-        raise HTTPException(status_code=404, detail=f"Remote '{remote}' not found")
-    repo.delete_remote(remote)
-
-
-@router.patch("/git/switch-remote-branch/{branch:path}", tags=["history"])
-def switch_remote_branch(
-    branch: str,
-    repo: project.Repo = Depends(get_repo),
-):
-    repo.switch_remote_branch(branch)
 
 
 @router.post("/action/update")

@@ -1,16 +1,14 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Button, AccordionItem, Accordion, Tooltip, P, Spinner } from 'flowbite-svelte';
+	import { Button, AccordionItem, Accordion, Tooltip, P } from 'flowbite-svelte';
 	import type { PageData } from './$types';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import Undo from 'lucide-svelte/icons/undo-2';
-	import Settings from 'lucide-svelte/icons/settings';
 	import RollbackModal from './RollbackModal.svelte';
-	import type { Commit } from '$lib/history';
 
 	export let data: PageData;
 
-	let revertCommit: Commit | undefined;
+	let revertCommit: { SHA1: string; message: string } | undefined;
 
 	const lineColor = (line: string) => {
 		if (line.startsWith('+')) {
@@ -29,17 +27,9 @@
 	<h1 class="text-3xl font-bold dark:text-white">History</h1>
 	<DeployActions />
 </div>
-{#await data.history_and_git_info}
+{#await data.history}
 	<p>Loading...</p>
-{:then [historyList, gitInfo]}
-	<div class="my-8 flex items-end">
-		<a href="/git-config">
-			<Button class="gap-2 whitespace-nowrap" color="alternative">
-				<Settings size={20} />
-				{$t('history.git-settings')}
-			</Button>
-		</a>
-	</div>
+{:then historyList}
 	<ul class="list-disc ml-4">
 		{#each historyList as history, index}
 			<li class="mb-2 text-gray-600">

@@ -132,8 +132,7 @@
 		"no-revert": "Bereits auf diesem Commit",
 		"rollback-modal-body": "Hierdurch werden alle nicht gespeicherten Änderungen verworfen und ein neuer Commit mit dem Zustand des ausgewählten Commits erstellt.\n\n\n{newCommit}\n\n\nSind Sie sicher, dass Sie fortfahren möchten?",
 		"rollback-modal-confirm": "Zurücksetzen",
-		"rollback-modal-title": "Commit zurücksetzen",
-		"git-settings": "Git Einstellungen"
+		"rollback-modal-title": "Commit zurücksetzen"
 	},
 	"deploy": {
 		"build": "Erstellen",
@@ -237,8 +236,7 @@
 		"add-hostkey": "Hostkey Setzen",
 		"delete-hostkey": "Hostkey Löschen",
 		"edit-hostkey": "Hostkey Bearbeiten",
-		"refresh-hostkey": "Hostkey Aktualisieren",
-		"edit-tags": "Tags Bearbeiten"
+		"refresh-hostkey": "Hostkey Aktualisieren"
 	},
 	"edit-hostkey": {
 		"create": "Erstellen",
@@ -251,31 +249,5 @@
 		"scan-public-key-tooltip": "Automatische Suche nach dem Public Key des Geräts im Netzwerk. Verwendet den oben angegebenen Zielhost.\nÜberprüfen Sie anschließend, ob der Public Key korrekt ist",
 		"title": "Hostkey Bearbeiten",
 		"update": "Aktualisieren"
-	},
-	"git-config": {
-		"remotes": {
-			"name": "Name",
-			"url": "URL",
-			"actions": "Aktionen"
-		},
-		"edit-remote": "Bearbeiten",
-		"delete-remote": "Löschen",
-		"create-remote-modal-title": "Neue Git Remote erstellen",
-		"edit-remote-modal-title": "Git Remote bearbeiten",
-		"remotes-title": "Git Remotes",
-		"remote-name": "Remote Name",
-		"remote-name-required": "Name ist erforderlich",
-		"remote-name-exists": "Name wird bereits verwendet",
-		"remote-url": "Remote URL",
-		"remote-url-required": "URL ist erforderlich",
-		"confirm-switch-modal-title-from-to": "Von {fromBranch} zu {toBranch} wechseln",
-		"confirm-switch-modal-title-new": "Zu {branch} wechseln",
-		"confirm-switch-modal-cancel": "Abbrechen",
-		"confirm-switch-modal-confirm": "Zu {branch} wechseln",
-		"confirm-switch-modal-text": "Wenn Sie den Branch wechseln, werden alle nicht gespeicherten Änderungen verworfen.",
-		"remote-info": "Die Historie ist mit dem Remote Repository synchronisiert:",
-		"remote-info-out-of-sync": "Die Historie ist out-of-sync mit dem Remote Repository:",
-		"no-remote-info": "Die Historie wird nicht mit dem Remote Repository synchronisiert:",
-		"external-repo-link": "Öffne Repository"
 	}
 }

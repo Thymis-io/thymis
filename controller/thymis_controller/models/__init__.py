@@ -1,5 +1,4 @@
 from .device import *
-from .history import *
 from .module import *
 from .state import *
 from .task import *
@@ -11,7 +10,6 @@ __all__ = (
     + task.__all__  # pylint: disable=undefined-variable
     + web_session.__all__  # pylint: disable=undefined-variable
     + device.__all__  # pylint: disable=undefined-variable
-    + history.__all__  # pylint: disable=undefined-variable
 )
 
 # See https://stackoverflow.com/questions/60440945/correct-way-to-re-export-modules-from-init-py

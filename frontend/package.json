@@ -27,7 +27,6 @@
 		"@tanstack/svelte-table": "^8.20.1",
 		"@typescript-eslint/eslint-plugin": "^8.8.0",
 		"@typescript-eslint/parser": "^8.11.0",
-		"@zerodevx/svelte-toast": "^0.9.6",
 		"autoprefixer": "^10.4.20",
 		"dotenv": "^16.4.5",
 		"eslint": "^9.13.0",
