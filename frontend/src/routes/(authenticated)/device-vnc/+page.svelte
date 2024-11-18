@@ -5,20 +5,23 @@
 	import {
 		globalNavSelectedDevice,
 		globalNavSelectedTag,
+		globalNavSelectedTarget,
 		globalNavSelectedTargetType,
 		state
 	} from '$lib/state';
 	import VncView from '$lib/vnc/VncView.svelte';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
+	import Tabbar from '$lib/components/Tabbar.svelte';
 
 	export let data: PageData;
 </script>
 
 <div class="flex justify-between mb-4">
-	<h1 class="text-3xl font-bold dark:text-white">{$t('nav.device-vnc')}</h1>
+	<h1 class="text-3xl font-bold dark:text-white">{$globalNavSelectedTarget?.displayName}</h1>
 	<DeployActions />
 </div>
+<Tabbar />
 {#if $globalNavSelectedTargetType === 'device' && $globalNavSelectedDevice}
 	<VncView device={$globalNavSelectedDevice} />
 {:else if $globalNavSelectedTargetType === 'tag' && $globalNavSelectedTag}
