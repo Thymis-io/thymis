@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
+	import { type Device, saveState, state, type Tag } from '$lib/state';
 	import { Button, Modal, Label, P, Input, Helper } from 'flowbite-svelte';
-	import type { EditRemote, Remote } from '$lib/history';
+	import type { Remote } from '$lib/history';
 	import { invalidate } from '$app/navigation';
 
-	export let remote: EditRemote | undefined;
+	export let remote: Remote | undefined;
 	export let originalName: string | undefined;
 	export let create: boolean = false;
 	export let remotes: Remote[];
 
-	const saveRemote = async (remote: EditRemote) => {
+	const saveRemote = async (remote: Remote) => {
 		if (create) {
 			await fetch('/api/git/remote', {
 				method: 'POST',

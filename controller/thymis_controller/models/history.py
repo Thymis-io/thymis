@@ -13,11 +13,6 @@ class Commit(BaseModel):
     state_diff: List[str]
 
 
-class UpdateRemote(BaseModel):
-    name: str
-    url: str
-
-
 class Remote(BaseModel):
     name: str
     url: str

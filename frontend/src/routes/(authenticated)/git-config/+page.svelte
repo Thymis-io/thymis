@@ -5,7 +5,6 @@
 	import Trash from 'lucide-svelte/icons/trash';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 	import ExternalLink from 'lucide-svelte/icons/external-link';
-	import Warning from 'lucide-svelte/icons/triangle-alert';
 	import {
 		Button,
 		Dropdown,
@@ -16,21 +15,18 @@
 		TableBodyRow,
 		TableHead,
 		TableHeadCell,
-		Tooltip,
 		Spinner
 	} from 'flowbite-svelte';
-	import type { Remote, EditRemote } from '$lib/history';
+	import type { Remote } from '$lib/history';
 	import RemoteModal from './RemoteModal.svelte';
 	import { invalidate } from '$app/navigation';
-	import ConfirmSwitchModal from './ConfirmSwitchModal.svelte';
+	import { base } from '$app/paths';
 
 	export let data: PageData;
 
-	let editRemote: EditRemote | undefined;
+	let editRemote: Remote | undefined;
 	let createRemote: boolean = false;
 	let originalEditRemoteName: string | undefined;
-
-	let switchBranch: string | undefined = undefined;
 	let switchingRemoteBranch = false;
 
 	const deleteRemote = async (name: string) => {
@@ -41,7 +37,7 @@
 		invalidate((url) => url.pathname === '/api/git/info');
 	};
 
-	const switchRemoteBranch = async (branch: string) => {
+	const changeRemoteBranch = async (branch: string) => {
 		switchingRemoteBranch = true;
 		await fetch(`/api/git/switch-remote-branch/${encodeURIComponent(branch)}`, {
 			method: 'PATCH'
@@ -85,50 +81,35 @@
 	create={createRemote}
 	remotes={data.gitInfo.remotes}
 />
-<ConfirmSwitchModal
-	currentBranch={data.gitInfo.remote_branch ?? undefined}
-	remoteBranch={switchBranch}
-	on:confirm={() => switchBranch && switchRemoteBranch(switchBranch)}
-	on:cancel={() => (switchBranch = undefined)}
-/>
 <div class="flex flex-row gap-2 items-center">
-	{#if data.gitInfo.remote_branch && data.gitInfo.ahead === 0 && data.gitInfo.ahead === 0}
-		<span>{$t('git-config.remote-info')}</span>
-	{:else if data.gitInfo.remote_branch}
-		<Warning color="yellow" />
-		<span>{$t('git-config.remote-info-out-of-sync')}</span>
-	{:else}
-		<span>{$t('git-config.no-remote-info')}</span>
-	{/if}
+	<span>On branch {data.gitInfo.active_branch}, following</span>
 	{#if switchingRemoteBranch}
 		<Spinner size={5} />
 	{:else}
 		<button class="flex flex-row gap-1 items-center"
-			>{data.gitInfo.remote_branch ?? '-'} <ChevronDown size={20} /></button
+			>{data.gitInfo.remote_branch} <ChevronDown size={20} /></button
 		>
 		<Dropdown>
 			{#each data.gitInfo.remotes as remote}
 				{#each remote.branches as branch}
 					{@const isRemoteBranch = data.gitInfo.remote_branch === branch}
 					<DropdownItem
-						on:click={() => (switchBranch = branch)}
+						on:click={() => changeRemoteBranch(branch)}
 						class={`${isRemoteBranch ? 'text-primary-500' : ''}`}>{branch}</DropdownItem
 					>
 				{/each}
 			{/each}
 		</Dropdown>
-		{#if guessRemoteHttpUrl(remote, data.gitInfo.remote_branch ?? undefined)}
-			<a
-				href={guessRemoteHttpUrl(remote, data.gitInfo.remote_branch ?? undefined)}
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				<ExternalLink size={20} />
-			</a>
-			<Tooltip placement="top" class="z-50">{$t('git-config.external-repo-link')}</Tooltip>
-		{/if}
 	{/if}
+	<a
+		href={guessRemoteHttpUrl(remote, data.gitInfo.remote_branch ?? undefined)}
+		target="_blank"
+		rel="noopener noreferrer"
+	>
+		<ExternalLink size={20} />
+	</a>
 </div>
+<span>Commits ahead: {data.gitInfo.ahead}, commits behind: {data.gitInfo.behind}</span>
 <p class="mt-4">{$t('git-config.remotes-title')}</p>
 <Table shadow>
 	<TableHead>

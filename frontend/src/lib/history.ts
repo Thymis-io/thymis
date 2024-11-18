@@ -7,11 +7,6 @@ export type Commit = {
 	state_diff: string[];
 };
 
-export type EditRemote = {
-	name: string;
-	url: string;
-};
-
 export type Remote = {
 	name: string;
 	url: string;
