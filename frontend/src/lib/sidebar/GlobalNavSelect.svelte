@@ -12,6 +12,7 @@
 		state
 	} from '../state';
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
+	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
 	let search = '';
 	let open = false;
@@ -53,9 +54,15 @@
 		{@const active =
 			$globalNavSelectedTargetType === 'tag' &&
 			$globalNavSelectedTag?.identifier === tag.identifier}
+		{@const subpage = [
+			'/config',
+			targetShouldShowVNC(tag, $state) ? '/device-vnc' : undefined
+		].includes($page.url.pathname)
+			? $page.url.pathname
+			: '/config'}
 		{#if isSearched(search, tag.displayName)}
 			<DropdownItem
-				href={`?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.identifier)}`}
+				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.identifier)}`}
 				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-500' : ''}`}
 				on:click={() => (open = false)}
 			>
@@ -68,9 +75,17 @@
 		{@const active =
 			$globalNavSelectedTargetType === 'device' &&
 			$globalNavSelectedDevice?.identifier === device.identifier}
+		{@const subpage = [
+			'/device-details',
+			'/config',
+			targetShouldShowVNC(device, $state) ? '/device-vnc' : undefined,
+			'/terminal'
+		].includes($page.url.pathname)
+			? $page.url.pathname
+			: '/device-details'}
 		{#if isSearched(search, device.displayName)}
 			<DropdownItem
-				href={`?${buildGlobalNavSearchParam($page.url.search, 'device', device.identifier)}`}
+				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'device', device.identifier)}`}
 				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-500' : ''}`}
 				on:click={() => (open = false)}
 			>
