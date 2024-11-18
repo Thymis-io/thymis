@@ -222,14 +222,6 @@ def delete_git_remote(
     project.delete_git_remote(remote)
 
 
-@router.patch("/git/switch-remote-branch/{branch:path}", tags=["history"])
-def switch_remote_branch(
-    branch: str,
-    project: project.Project = Depends(get_project),
-):
-    project.switch_remote_branch(branch)
-
-
 @router.post("/action/update")
 async def update(
     project: project.Project = Depends(get_project),

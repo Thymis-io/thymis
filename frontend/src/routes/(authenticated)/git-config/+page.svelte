@@ -3,11 +3,8 @@
 	import type { PageData } from './$types';
 	import Pen from 'lucide-svelte/icons/pen';
 	import Trash from 'lucide-svelte/icons/trash';
-	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 	import {
 		Button,
-		Dropdown,
-		DropdownItem,
 		Table,
 		TableBody,
 		TableBodyCell,
@@ -32,14 +29,6 @@
 
 		invalidate((url) => url.pathname === '/api/git/info');
 	};
-
-	const changeRemoteBranch = async (branch: string) => {
-		await fetch(`/api/git/switch-remote-branch/${encodeURIComponent(branch)}`, {
-			method: 'PATCH'
-		});
-
-		invalidate((url) => url.pathname === '/api/git/info');
-	};
 </script>
 
 <RemoteModal
@@ -48,24 +37,7 @@
 	create={createRemote}
 	remotes={data.gitInfo.remotes}
 />
-<div class="flex flex-row gap-2">
-	<span>On branch {data.gitInfo.active_branch}, following</span>
-	<button class="flex flex-row items-center gap-1"
-		>{data.gitInfo.remote_branch} <ChevronDown size={20} /></button
-	>
-	<Dropdown>
-		{#each data.gitInfo.remotes as remote}
-			{#each remote.branches as branch}
-				{@const isRemoteBranch = data.gitInfo.remote_branch === branch}
-				<DropdownItem
-					on:click={() => changeRemoteBranch(branch)}
-					class={`${isRemoteBranch ? 'text-primary-500' : ''}`}>{branch}</DropdownItem
-				>
-			{/each}
-		{/each}
-	</Dropdown>
-	<span>commits ahead: {data.gitInfo.ahead}, commits behind: {data.gitInfo.behind}</span>
-</div>
+<p>On branch {data.gitInfo.active_branch}, following {data.gitInfo.remote_branch}</p>
 <p class="mt-4">{$t('git-config.remotes-title')}</p>
 <Table shadow>
 	<TableHead>

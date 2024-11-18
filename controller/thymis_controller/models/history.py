@@ -16,7 +16,6 @@ class Commit(BaseModel):
 class Remote(BaseModel):
     name: str
     url: str
-    branches: list[str]
 
 
 class GitInfo(BaseModel):
