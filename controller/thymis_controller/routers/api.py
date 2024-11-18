@@ -214,7 +214,6 @@ def add_git_remote(
 def update_git_remote(
     remote: str,
     remote_update: history.Remote,
-    background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
 ):
     if not project.has_git_remote(remote):
@@ -223,7 +222,7 @@ def update_git_remote(
         raise HTTPException(
             status_code=409, detail=f"Remote '{remote_update.name}' already exists"
         )
-    project.update_git_remote(remote, remote_update, background_tasks)
+    project.update_git_remote(remote, remote_update)
 
 
 @router.delete("/git/remote/{remote}", tags=["history"])

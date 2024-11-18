@@ -347,17 +347,11 @@ class Project:
     def add_git_remote(self, remote: history.Remote):
         self.repo.create_remote(remote.name, remote.url)
 
-    def update_git_remote(
-        self,
-        name: str,
-        remote_update: history.Remote,
-        background_tasks: BackgroundTasks,
-    ):
+    def update_git_remote(self, name: str, remote_update: history.Remote):
         if name != remote_update.name:
             self.repo.git.remote("rename", name, remote_update.name)
         if self.repo.remote(remote_update.name).url != remote_update.url:
             self.repo.git.remote("set-url", remote_update.name, remote_update.url)
-        self.pull_git(background_tasks)
 
     def delete_git_remote(self, name: str):
         self.repo.delete_remote(name)
@@ -372,13 +366,9 @@ class Project:
             self.repo.git.pull("--ff-only")
         except git.GitCommandError as e:
             stderr = e.stderr.replace("hint:", "\t").replace("\n\t\n", "\n")
-            if "terminal prompts disabled" in stderr:
-                remote = self.git_info().remote_branch
-                message = f"Failed to pull from git remote {remote}: repository not found or credentials missing"
-            else:
-                message = (
-                    f"{' '.join(e.command)} failed with status code {e.status}{stderr}"
-                )
+            message = (
+                f"{' '.join(e.command)} failed with status code {e.status}{stderr}"
+            )
             background_tasks.add_task(notification_manager.broadcast, message, False)
 
     def create_build_task(self):
