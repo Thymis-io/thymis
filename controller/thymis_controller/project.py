@@ -8,16 +8,19 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import traceback
 from pathlib import Path
 from typing import List
 
+import git
 from sqlalchemy.orm import Session
 from thymis_controller import crud, migration, models, task
 from thymis_controller.config import global_settings
+from thymis_controller.models import history
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
-from thymis_controller.repo import Repo
+from thymis_controller.notifications import notification_manager
 
 logger = logging.getLogger(__name__)
 
@@ -123,16 +126,21 @@ def get_module_class_instance_by_type(module_type: str):
 
 class Project:
     path: pathlib.Path
-    repo: Repo
+    repo: git.Repo
     known_hosts_path: pathlib.Path
     public_key: str
+    history_lock = threading.Lock()
 
     def __init__(self, path, db_session: Session):
         self.path = pathlib.Path(path)
         # create the path if not exists
         self.path.mkdir(exist_ok=True, parents=True)
-
-        self.repo = Repo(self.path)
+        # create a git repo if not exists
+        if not (self.path / ".git").exists():
+            print("Initializing git repo")
+            self.repo = git.Repo.init(self.path)
+        else:
+            self.repo = git.Repo(self.path)
 
         # get public key of controller instance
         public_key_process = subprocess.run(
@@ -178,7 +186,7 @@ class Project:
         repositories = BUILTIN_REPOSITORIES | state.repositories
         with open(self.path / "flake.nix", "w+", encoding="utf-8") as f:
             f.write(render_flake_nix(repositories))
-        self.repo.stage_all()
+        self.repo.git.add(".")
         # write missing flake.lock entries using nix flake lock
         subprocess.run(
             ["nix", *NIX_CMD[1:], "flake", "lock"], cwd=self.path, check=True
@@ -206,7 +214,7 @@ class Project:
             self.create_folder_and_write_modules(
                 "tags", tag.identifier, tag.modules, tag.priority
             )
-        self.repo.stage_all()
+        self.repo.git.add(".")
 
     def create_folder_and_write_modules(self, base_path, identifier, modules, priority):
         path = self.path / base_path / identifier
@@ -226,6 +234,58 @@ class Project:
         repositories = BUILTIN_REPOSITORIES | state.repositories
         load_repositories(path, repositories)
 
+    def commit(self, summary: str):
+        self.repo.git.add(".")
+        try:
+            if self.repo.index.diff("HEAD"):
+                self.repo.index.commit(summary)
+                logger.info("Committed changes: %s", summary)
+        except git.BadName:
+            self.repo.index.commit(summary)
+
+        self.pull_git()
+
+        try:
+            self.repo.git.push()
+        except git.GitCommandError as e:
+            traceback.print_exc()
+            message = (
+                f"{' '.join(e.command)} failed with status code {e.status}{e.stderr}"
+            )
+            notification_manager.broadcast(message)
+
+    def get_history(self):
+        try:
+            with self.history_lock:
+                if not self.repo.head.is_valid():
+                    return []
+
+                return [
+                    history.Commit(
+                        message=commit.message,
+                        author=commit.author.name,
+                        date=commit.authored_datetime,
+                        SHA=commit.hexsha,
+                        SHA1=self.repo.git.rev_parse(commit.hexsha, short=True),
+                        state_diff=self.repo.git.diff(
+                            commit.hexsha,
+                            (
+                                commit.parents[0].hexsha
+                                if len(commit.parents) > 0
+                                else None
+                            ),
+                            "-R",
+                            "state.json",
+                            unified=5,
+                        ).split("\n")[4:],
+                    )
+                    for commit in self.repo.iter_commits()
+                ]
+        except Exception as e:
+            traceback.print_exc()
+            notification_manager.broadcast(str(e))
+            return []
+
     def update_known_hosts(self, db_session: Session):
         if not self.known_hosts_path or not self.known_hosts_path.exists():
             self.known_hosts_path = pathlib.Path(
@@ -238,6 +298,14 @@ class Project:
                 f.write(f"{hostkey.device_host} {hostkey.public_key}\n")
 
         logger.info("Updated known_hosts file at %s", self.known_hosts_path)
+
+    def revert_commit(self, commit: str):
+        commit_to_revert = self.repo.commit(commit)
+        sha1 = self.repo.git.rev_parse(commit_to_revert.hexsha, short=True)
+        self.repo.git.rm("-r", ".")
+        self.repo.git.checkout(commit_to_revert.hexsha, ".")
+        self.repo.index.commit(f"Revert to {sha1}: {commit_to_revert.message}")
+        logger.info(f"Reverted commit: {commit_to_revert}")
 
     def clone_state_device(
         self, device_identifier, new_device_identifier, new_device_display_name=None
@@ -253,6 +321,103 @@ class Project:
         state.devices.append(new_device)
         self.write_state_and_reload(state)
 
+    def get_remotes(self):  #
+        return [
+            history.Remote(
+                name=remote.name,
+                url=remote.url,
+                branches=[ref.name for ref in remote.refs],
+            )
+            for remote in self.repo.remotes
+        ]
+
+    def git_ahead_count(self, from_ref: str, to_ref: str):
+        return self.repo.git.rev_list(f"{from_ref}..{to_ref}", count=True)
+
+    def git_info(self):
+        active_branch = self.repo.active_branch
+        tracking_branch = active_branch.tracking_branch()
+
+        if tracking_branch:
+            try:
+                ahead = self.git_ahead_count(tracking_branch.name, active_branch.name)
+                behind = self.git_ahead_count(active_branch.name, tracking_branch.name)
+            except:
+                traceback.print_exc()
+                ahead = 0
+                behind = 0
+        else:
+            ahead = 0
+            behind = 0
+
+        return history.GitInfo(
+            active_branch=self.repo.active_branch.name,
+            remote_branch=tracking_branch.name if tracking_branch else None,
+            ahead=ahead,
+            behind=behind,
+            remotes=self.get_remotes(),
+        )
+
+    def has_git_remote(self, name: str):
+        return name in [remote.name for remote in self.repo.remotes]
+
+    def add_git_remote(self, remote: history.UpdateRemote):
+        self.repo.create_remote(remote.name, remote.url)
+
+    def update_git_remote(
+        self,
+        name: str,
+        remote_update: history.UpdateRemote,
+    ):
+        if name != remote_update.name:
+            self.repo.git.remote("rename", name, remote_update.name)
+        if self.repo.remote(remote_update.name).url != remote_update.url:
+            self.repo.git.remote("set-url", remote_update.name, remote_update.url)
+        self.pull_git()
+
+    def delete_git_remote(self, name: str):
+        self.repo.delete_remote(name)
+
+    def switch_remote_branch(self, branch: str):
+        try:
+            self.repo.git.reset("--hard")
+            local_branch = branch.split("/", 1)[-1]
+            self.repo.git.switch("-C", local_branch, branch)
+        except git.GitCommandError as e:
+            traceback.print_exc()
+            notification_manager.broadcast(str(e))
+
+        self.pull_git()
+
+    def fetch_git_all(self):
+        try:
+            self.repo.git.fetch("--all", "--prune")
+        except git.GitCommandError as e:
+            traceback.print_exc()
+            notification_manager.broadcast(str(e))
+
+    def pull_git(self):
+        self.fetch_git_all()
+
+        if not self.repo.head.is_valid() or not self.git_info().remote_branch:
+            return
+
+        try:
+            # fail if git askings for credentials to avoid blocking
+            os.environ["GIT_TERMINAL_PROMPT"] = "0"
+            self.repo.git.pull("--ff-only")
+        except git.GitCommandError as e:
+            traceback.print_exc()
+            stderr = e.stderr.replace("hint:", "\t").replace("\n\t\n", "\n")
+            if "terminal prompts disabled" in stderr:
+                remote = self.git_info().remote_branch
+                message = f"Failed to pull from git remote {remote}: repository not found or credentials missing"
+            else:
+                message = (
+                    f"{' '.join(e.command)} failed with status code {e.status}{stderr}"
+                )
+            notification_manager.broadcast(message)
+
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildProjectTask(self.path))
 
@@ -264,11 +429,7 @@ class Project:
         )
         return task.global_task_controller.add_task(
             task.DeployDeviceTask(
-                self.path,
-                device,
-                global_settings.SSH_KEY_PATH,
-                self.known_hosts_path,
-                target_host,
+                self.path, device, target_host, global_settings.SSH_KEY_PATH
             )
         )
 
@@ -285,7 +446,7 @@ class Project:
         device_identifier: str,
         db_session: Session,
     ):
-        self.repo.commit(f"Build image for {device_identifier}")
+        self.commit(f"Build image for {device_identifier}")
         device_state = next(
             device
             for device in self.read_state().devices
@@ -297,7 +458,7 @@ class Project:
                 device_identifier,
                 db_session,
                 device_state.model_dump(),
-                self.repo.hexsha(),
+                self.repo.head.object.hexsha,
             )
         )
 

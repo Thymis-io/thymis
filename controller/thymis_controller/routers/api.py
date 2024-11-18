@@ -2,7 +2,15 @@ import asyncio
 import os
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    Query,
+    Request,
+    WebSocket,
+)
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, RedirectResponse
 from paramiko import PKey, SSHClient
@@ -11,9 +19,9 @@ from thymis_controller.config import global_settings
 from thymis_controller.dependencies import (
     SessionAD,
     get_project,
-    get_repo,
     require_valid_user_session,
 )
+from thymis_controller.models import history
 from thymis_controller.models.state import State
 from thymis_controller.notifications import notification_manager
 from thymis_controller.repeat import repeat_every
@@ -66,10 +74,9 @@ router.include_router(task.router)
 async def deploy(
     summary: str,
     session: SessionAD,
-    repo: project.Repo = Depends(get_repo),
     project: project.Project = Depends(get_project),
 ):
-    repo.commit(summary)
+    project.commit(summary)
 
     registered_devices = []
     for device in crud.hostkey.get_all(session):
@@ -155,73 +162,72 @@ async def notification_websocket(websocket: WebSocket):
 
 
 @repeat_every(seconds=60 * 5)
-async def sync_repo():
-    repo = get_repo()
-    repo.pull()
-    repo.push()
+async def pull_git():
+    project = get_project()
+    project.pull_git()
 
 
 @router.get("/history", tags=["history"])
-def get_history(repo: project.Repo = Depends(get_repo)):
-    return repo.history()
+def get_history(project: project.Project = Depends(get_project)):
+    return project.get_history()
 
 
 @router.post("/history/revert-commit", tags=["history"])
 def revert_commit(
     commit_sha: str,
-    repo: project.Repo = Depends(get_repo),
+    project: project.Project = Depends(get_project),
 ):
-    repo.revert_commit(commit_sha)
+    project.revert_commit(commit_sha)
     return {"message": "reverted commit"}
 
 
 @router.get("/git/info", tags=["history"])
-def repo_info(repo: project.Repo = Depends(get_repo)):
-    return repo.info()
+def get_git_info(project: project.Project = Depends(get_project)):
+    return project.git_info()
 
 
 @router.post("/git/remote", tags=["history"])
 def add_git_remote(
-    remote: models.history.UpdateRemote, repo: project.Repo = Depends(get_repo)
+    remote: history.UpdateRemote, project: project.Project = Depends(get_project)
 ):
-    if repo.has_remote(remote.name):
+    if project.has_git_remote(remote.name):
         raise HTTPException(
             status_code=409, detail=f"Remote '{remote.name}' already exists"
         )
-    repo.add_remote(remote)
+    project.add_git_remote(remote)
 
 
 @router.patch("/git/remote/{remote}", tags=["history"])
 def update_git_remote(
     remote: str,
-    remote_update: models.history.UpdateRemote,
-    repo: project.Repo = Depends(get_repo),
+    remote_update: history.UpdateRemote,
+    project: project.Project = Depends(get_project),
 ):
-    if not repo.has_remote(remote):
+    if not project.has_git_remote(remote):
         raise HTTPException(status_code=404, detail=f"Remote '{remote}' not found")
-    if remote != remote_update.name and repo.has_remote(remote_update.name):
+    if remote != remote_update.name and project.has_git_remote(remote_update.name):
         raise HTTPException(
             status_code=409, detail=f"Remote '{remote_update.name}' already exists"
         )
-    repo.update_remote(remote, remote_update)
+    project.update_git_remote(remote, remote_update)
 
 
 @router.delete("/git/remote/{remote}", tags=["history"])
 def delete_git_remote(
     remote: str,
-    repo: project.Repo = Depends(get_repo),
+    project: project.Project = Depends(get_project),
 ):
-    if not repo.has_remote(remote):
+    if not project.has_git_remote(remote):
         raise HTTPException(status_code=404, detail=f"Remote '{remote}' not found")
-    repo.delete_remote(remote)
+    project.delete_git_remote(remote)
 
 
 @router.patch("/git/switch-remote-branch/{branch:path}", tags=["history"])
 def switch_remote_branch(
     branch: str,
-    repo: project.Repo = Depends(get_repo),
+    project: project.Project = Depends(get_project),
 ):
-    repo.switch_remote_branch(branch)
+    project.switch_remote_branch(branch)
 
 
 @router.post("/action/update")
