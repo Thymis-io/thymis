@@ -352,16 +352,6 @@ class Project:
     def fetch_git(self):
         self.repo.git.fetch("--all")
 
-    def pull_git(self, background_tasks: BackgroundTasks):
-        try:
-            self.repo.git.pull("--ff-only")
-        except git.GitCommandError as e:
-            stderr = e.stderr.replace("hint:", "\t").replace("\n\t\n", "\n")
-            message = (
-                f"{' '.join(e.command)} failed with status code {e.status}{stderr}"
-            )
-            background_tasks.add_task(notification_manager.broadcast, message)
-
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildProjectTask(self.path))
 
