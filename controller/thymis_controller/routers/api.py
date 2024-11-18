@@ -159,9 +159,9 @@ def revert_commit(
     return {"message": "reverted commit"}
 
 
-@router.get("/git/info", tags=["history"])
-def get_git_info(project: project.Project = Depends(get_project)):
-    return project.git_info()
+@router.get("/history/remotes", tags=["history"])
+def get_remotes(project: project.Project = Depends(get_project)):
+    return project.get_remotes()
 
 
 @router.post("/action/update")

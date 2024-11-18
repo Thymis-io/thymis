@@ -297,28 +297,6 @@ class Project:
     def get_remotes(self):
         return [history.Remote(name=r.name, url=r.url) for r in self.repo.remotes]
 
-    def git_ahead_count(self, from_ref: str, to_ref: str):
-        return self.repo.git.rev_list(f"{from_ref}..{to_ref}", count=True)
-
-    def git_info(self):
-        active_branch = self.repo.active_branch
-        tracking_branch = active_branch.tracking_branch()
-
-        if tracking_branch:
-            ahead = self.git_ahead_count(tracking_branch.name, active_branch.name)
-            behind = self.git_ahead_count(active_branch.name, tracking_branch.name)
-        else:
-            ahead = 0
-            behind = 0
-
-        return history.GitInfo(
-            active_branch=self.repo.active_branch.name,
-            remote_branch=tracking_branch.name if tracking_branch else None,
-            ahead=ahead,
-            behind=behind,
-            remotes=self.get_remotes(),
-        )
-
     def create_build_task(self):
         return task.global_task_controller.add_task(task.BuildProjectTask(self.path))
 

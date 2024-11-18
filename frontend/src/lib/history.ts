@@ -11,11 +11,3 @@ export type Remote = {
 	name: string;
 	url: string;
 };
-
-export type GitInfo = {
-	active_branch: string;
-	remote_branch: string | null;
-	ahead: number;
-	behind: number;
-	remotes: Remote[];
-};
