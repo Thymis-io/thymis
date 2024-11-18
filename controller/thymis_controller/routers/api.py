@@ -145,23 +145,18 @@ def download_image(
     raise HTTPException(status_code=404, detail="Image not found")
 
 
-@router.get("/history", tags=["history"])
+@router.get("/history")
 def get_history(project: project.Project = Depends(get_project)):
     return project.get_history()
 
 
-@router.post("/history/revert-commit", tags=["history"])
+@router.post("/history/revert-commit")
 def revert_commit(
     commit_sha: str,
     project: project.Project = Depends(get_project),
 ):
     project.revert_commit(commit_sha)
     return {"message": "reverted commit"}
-
-
-@router.get("/history/remotes", tags=["history"])
-def get_remotes(project: project.Project = Depends(get_project)):
-    return project.get_remotes()
 
 
 @router.post("/action/update")
