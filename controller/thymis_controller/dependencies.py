@@ -1,6 +1,5 @@
 import datetime
 import logging
-import threading
 import uuid
 from typing import Annotated, Generator, Optional, Union
 
@@ -17,18 +16,15 @@ from thymis_controller.project import Project
 
 global_project = None
 SESSION_LIFETIME = datetime.timedelta(days=1)
-project_lock = threading.Lock()
 
 
-def get_project():
+async def get_project():
     global global_project
+    if global_project is None:
+        REPO_PATH = global_settings.REPO_PATH.resolve()
 
-    with project_lock:
-        if global_project is None:
-            REPO_PATH = global_settings.REPO_PATH.resolve()
-
-            global_project = Project(REPO_PATH, next(get_db_session()))
-        return global_project
+        global_project = Project(REPO_PATH, next(get_db_session()))
+    return global_project
 
 
 def get_state(project: Project = Depends(get_project)):
