@@ -32,17 +32,10 @@ class Notification:
 class NotificationManager:
     queue: Queue[Notification] = Queue()
     retry_queue: Queue[Notification] = Queue()
-    alive: bool
 
     def __init__(self):
         self.active_connections: list[WebSocket] = []
-
-    def start(self):
-        self.alive = True
         threading.Thread(target=self.start_send_queue).start()
-
-    def stop(self):
-        self.alive = False
 
     def start_send_queue(self):
         asyncio.run(self.send_queue())
@@ -58,7 +51,7 @@ class NotificationManager:
         return None
 
     async def send_queue(self):
-        while self.alive:
+        while True:
             notification = self.next_notification()
 
             if not notification:
