@@ -5,6 +5,7 @@ import type { LayoutLoad } from './$types';
 import type { State, Module } from '$lib/state';
 import { error, redirect } from '@sveltejs/kit';
 import { getAllTasks } from '$lib/taskstatus';
+import { startNotificationSocket } from '$lib/notification';
 
 export const load = (async ({ fetch, url, data }) => {
 	let lang = 'en';
@@ -31,6 +32,10 @@ export const load = (async ({ fetch, url, data }) => {
 		locale.set(lang);
 	}
 	await waitLocale(lang);
+
+	if (browser) {
+		startNotificationSocket();
+	}
 
 	const stateResponse = await fetch(`/api/state`, {
 		method: 'GET',
