@@ -14,12 +14,13 @@ class NotificationManager:
         await websocket.accept()
         self.active_connections.append(websocket)
 
-        for message in self.queued_messages:
-            await self.broadcast(message, False)
+        queued_messages = list(self.queued_messages)
         self.queued_messages = []
+        for message in queued_messages:
+            await self.broadcast(message)
 
         try:
-            while self.is_connection_healthy(websocket):
+            while websocket.application_state != WebSocketState.DISCONNECTED:
                 await websocket.receive_bytes()
         except WebSocketDisconnect:
             self.disconnect(websocket)
@@ -27,32 +28,25 @@ class NotificationManager:
     def disconnect(self, websocket: WebSocket):
         self.active_connections.remove(websocket)
 
-    def is_connection_healthy(self, websocket: WebSocket):
-        return (
-            websocket.application_state != WebSocketState.DISCONNECTED
-            and websocket.client_state != WebSocketState.DISCONNECTED
-        )
-
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_json({"message": message})
 
-    async def broadcast(self, message: str, queue_if_unsent: bool = True):
-        message_sent = False
+    async def broadcast(self, message: str):
+        send_anywhere = False
         for connection in self.active_connections:
-            if not self.is_connection_healthy(connection):
+            if (
+                connection.application_state == WebSocketState.DISCONNECTED
+                or connection.client_state == WebSocketState.DISCONNECTED
+            ):
                 continue
             try:
                 await connection.send_json({"message": message})
-                message_sent = True
+                send_anywhere = True
             except Exception:
                 self.active_connections.remove(connection)
                 traceback.print_exc()
-
-        if queue_if_unsent and not message_sent:
+        if not send_anywhere:
             self.queued_messages.append(message)
-
-            if len(self.queued_messages) > 10:
-                self.queued_messages = self.queued_messages[-10:]
 
 
 notification_manager = NotificationManager()
