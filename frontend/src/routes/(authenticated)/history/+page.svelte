@@ -29,7 +29,7 @@
 	<h1 class="text-3xl font-bold dark:text-white">History</h1>
 	<DeployActions />
 </div>
-{#await data.history_and_git_info}
+{#await Promise.all([data.history, data.gitInfo])}
 	<p>Loading...</p>
 {:then [historyList, gitInfo]}
 	<div class="my-8 flex items-end">
