@@ -1,16 +1,12 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Button, AccordionItem, Accordion, Tooltip, P, Spinner } from 'flowbite-svelte';
+	import { Button, AccordionItem, Accordion, Tooltip, P } from 'flowbite-svelte';
 	import type { PageData } from './$types';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import Undo from 'lucide-svelte/icons/undo-2';
 	import Settings from 'lucide-svelte/icons/settings';
-	import Push from 'lucide-svelte/icons/arrow-up-from-line';
-	import Pull from 'lucide-svelte/icons/arrow-down-to-line';
-	import Fetch from 'lucide-svelte/icons/cloud-download';
 	import RollbackModal from './RollbackModal.svelte';
 	import type { Commit } from '$lib/history';
-	import { invalidate } from '$app/navigation';
 
 	export let data: PageData;
 
@@ -26,16 +22,6 @@
 		}
 		return 'text-gray-700 dark:text-gray-200';
 	};
-
-	let isFetching = false;
-
-	const gitFetch = async () => {
-		isFetching = true;
-		await fetch('/api/git/fetch', { method: 'POST' });
-		isFetching = false;
-
-		invalidate((url) => url.pathname === '/api/git/info');
-	};
 </script>
 
 <RollbackModal bind:commit={revertCommit} />
@@ -46,45 +32,24 @@
 {#await Promise.all([data.history, data.gitInfo])}
 	<p>Loading...</p>
 {:then [historyList, gitInfo]}
-	<div class="my-8 flex justify-between items-end">
-		<div class="flex flex-wrap gap-4 items-end">
-			<div>
-				<p>On branch {gitInfo.active_branch}</p>
-				{#if gitInfo.behind == 0 && gitInfo.ahead == 0}
-					<p>Your branch is up to date with {gitInfo.remote_branch}</p>
-				{:else if gitInfo.behind > 0 && gitInfo.ahead == 0}
-					<p>Your branch is behind {gitInfo.remote_branch} by {gitInfo.behind} commits</p>
-				{:else if gitInfo.behind == 0 && gitInfo.ahead > 0}
-					<p>Your branch is ahead of {gitInfo.remote_branch} by {gitInfo.ahead} commits</p>
-				{:else}
-					<p>
-						Your branch is behind {gitInfo.remote_branch} by {gitInfo.behind} commits and ahead by {gitInfo.ahead}
-						commits
-					</p>
-				{/if}
-			</div>
-			<Button class="h-10 gap-2" disabled={gitInfo.ahead === 0}>
-				<Push size={20} />
-				{$t('git.push', { values: { changes: gitInfo.ahead } })}
-			</Button>
-			{#if gitInfo.ahead === 0}
-				<Tooltip>{$t('git.nothing-to-push')}</Tooltip>
+	<div class="my-8 flex justify-between">
+		<div>
+			<p>On branch {gitInfo.active_branch}</p>
+			{#if gitInfo.behind == 0 && gitInfo.ahead == 0}
+				<p>Your branch is up to date with {gitInfo.remote_branch}</p>
+			{:else if gitInfo.behind > 0 && gitInfo.ahead == 0}
+				<p>Your branch is behind {gitInfo.remote_branch} by {gitInfo.behind} commits</p>
+			{:else if gitInfo.behind == 0 && gitInfo.ahead > 0}
+				<p>Your branch is ahead of {gitInfo.remote_branch} by {gitInfo.ahead} commits</p>
+			{:else}
+				<p>
+					Your branch is behind {gitInfo.remote_branch} by {gitInfo.behind} commits and ahead by {gitInfo.ahead}
+					commits
+				</p>
 			{/if}
-			<Button class="h-10 gap-2">
-				<Pull size={20} />
-				{$t('git.pull', { values: { changes: gitInfo.behind } })}
-			</Button>
-			<Button class="h-10 gap-2" on:click={gitFetch}>
-				{#if isFetching}
-					<Spinner size="6" />
-				{/if}
-				<Fetch size={20} />
-				{$t('git.fetch')}
-			</Button>
-			<Tooltip>{$t('git.fetch-tooltip')}</Tooltip>
 		</div>
 		<a href="/git-config">
-			<Button class="gap-2 whitespace-nowrap" color="alternative">
+			<Button class="gap-2" color="alternative">
 				<Settings size={20} />
 				{$t('history.git-settings')}
 			</Button>
