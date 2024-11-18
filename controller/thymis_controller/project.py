@@ -13,14 +13,12 @@ from pathlib import Path
 from typing import List
 
 import git
-from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
 from thymis_controller import crud, migration, models, task
 from thymis_controller.config import global_settings
 from thymis_controller.models import history
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
-from thymis_controller.notifications import notification_manager
 
 logger = logging.getLogger(__name__)
 
@@ -233,7 +231,7 @@ class Project:
         repositories = BUILTIN_REPOSITORIES | state.repositories
         load_repositories(path, repositories)
 
-    def commit(self, summary: str, background_tasks: BackgroundTasks):
+    def commit(self, summary: str):
         self.repo.git.add(".")
         try:
             if self.repo.index.diff("HEAD"):
@@ -241,14 +239,6 @@ class Project:
                 logger.info("Committed changes: %s", summary)
         except git.BadName:
             self.repo.index.commit(summary)
-
-        try:
-            self.repo.git.push()
-        except git.GitCommandError as e:
-            message = (
-                f"{' '.join(e.command)} failed with status code {e.status}{e.stderr}"
-            )
-            background_tasks.add_task(notification_manager.broadcast, message)
 
     def get_history(self):
         try:
@@ -375,12 +365,9 @@ class Project:
         return task.global_task_controller.add_task(task.UpdateTask(self.path, self))
 
     def create_build_device_image_task(
-        self,
-        device_identifier: str,
-        db_session: Session,
-        background_tasks: BackgroundTasks,
+        self, device_identifier: str, db_session: Session
     ):
-        self.commit(f"Build image for {device_identifier}", background_tasks)
+        self.commit(f"Build image for {device_identifier}")
         device_state = next(
             device
             for device in self.read_state().devices

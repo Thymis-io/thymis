@@ -2,15 +2,7 @@ import asyncio
 import os
 from typing import Annotated
 
-from fastapi import (
-    APIRouter,
-    BackgroundTasks,
-    Depends,
-    HTTPException,
-    Query,
-    Request,
-    WebSocket,
-)
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, RedirectResponse
 from paramiko import PKey, SSHClient
@@ -23,7 +15,6 @@ from thymis_controller.dependencies import (
 )
 from thymis_controller.models import history
 from thymis_controller.models.state import State
-from thymis_controller.notifications import notification_manager
 from thymis_controller.routers import task
 from thymis_controller.tcp_to_ws import (
     channel_to_websocket,
@@ -73,10 +64,9 @@ router.include_router(task.router)
 async def deploy(
     summary: str,
     session: SessionAD,
-    background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
 ):
-    project.commit(summary, background_tasks)
+    project.commit(summary)
 
     registered_devices = []
     for device in crud.hostkey.get_all(session):
@@ -94,19 +84,15 @@ async def deploy(
 async def build_download_image(
     identifier: str,
     db_session: SessionAD,
-    background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
 ):
-    await project.create_build_device_image_task(
-        identifier, db_session, background_tasks
-    )
+    await project.create_build_device_image_task(identifier, db_session)
 
 
 @router.post("/action/build-download-image-for-clone")
 async def device_and_build_download_image_for_clone(
     identifier: str,
     db_session: SessionAD,
-    background_tasks: BackgroundTasks,
     project: project.Project = Depends(get_project),
 ):
     state = project.read_state()
@@ -122,9 +108,7 @@ async def device_and_build_download_image_for_clone(
     if crud.hostkey.has_device(db_session, identifier):
         crud.hostkey.rename_device(db_session, identifier, new_identifier)
     project.clone_state_device(identifier, new_identifier, lambda n: f"{n}-{x}")
-    await project.create_build_device_image_task(
-        new_identifier, db_session, background_tasks
-    )
+    await project.create_build_device_image_task(new_identifier, db_session)
 
 
 @router.post("/action/restart-device")
@@ -160,11 +144,6 @@ def download_image(
                 return FileResponse(os.path.join(root, file))
 
     raise HTTPException(status_code=404, detail="Image not found")
-
-
-@router.websocket("/notification")
-async def notification_websocket(websocket: WebSocket):
-    await notification_manager.connect(websocket)
 
 
 @router.get("/history", tags=["history"])
