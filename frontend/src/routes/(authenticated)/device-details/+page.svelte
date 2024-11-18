@@ -18,6 +18,8 @@
 	import VncView from '$lib/vnc/VncView.svelte';
 	import Section from './Section.svelte';
 	import Terminal from '$lib/terminal/Terminal.svelte';
+	import Tabbar from '$lib/components/Tabbar.svelte';
+	import GlobalNavSelect from '$lib/sidebar/GlobalNavSelect.svelte';
 
 	export let data: PageData;
 
@@ -26,7 +28,7 @@
 
 {#if $globalNavSelectedTargetType === 'device' && currentDevice}
 	<div class="flex justify-between mb-4">
-		<div class="flex flex-wrap gap-4 items-center">
+		<div class="flex flex-wrap gap-4">
 			<h1 class="text-3xl font-bold dark:text-white">{currentDevice.displayName}</h1>
 			<!-- <Badge large class="p-2 py-0.5 gap-1 self-center">
 				<Circle size={15} color="lightgreen" />
@@ -35,7 +37,8 @@
 		</div>
 		<DeployActions />
 	</div>
-	<div class="grid grid-cols-4 grid-flow-row gap-x-4 gap-y-12 mt-8">
+	<Tabbar />
+	<div class="grid grid-cols-4 grid-flow-row gap-x-4 gap-y-12">
 		<SectionHostkey class="col-span-3" hostkey={data.hostkey} device={currentDevice} />
 		<SectionActions class="col-span-1" device={currentDevice} />
 		<SectionConfiguration

@@ -13,21 +13,12 @@
 	import AngleDownOutline from 'flowbite-svelte-icons/AngleDownOutline.svelte';
 	import AngleUpOutline from 'flowbite-svelte-icons/AngleUpOutline.svelte';
 	import ServerSolid from 'svelte-awesome-icons/ServerSolid.svelte';
-	import SlidersSolid from 'svelte-awesome-icons/SlidersSolid.svelte';
 	import CodeCommitSolid from 'svelte-awesome-icons/CodeCommitSolid.svelte';
-	import TerminalSolid from 'svelte-awesome-icons/TerminalSolid.svelte';
 	import ChartSimpleSolid from 'svelte-awesome-icons/ChartSimpleSolid.svelte';
 	import GearSolid from 'svelte-awesome-icons/GearSolid.svelte';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import TagIcon from 'lucide-svelte/icons/tag';
-	import ListCollapse from 'lucide-svelte/icons/list-collapse';
-	import {
-		globalNavSelectedDevice,
-		globalNavSelectedTag,
-		globalNavSelectedTarget,
-		globalNavSelectedTargetType,
-		state
-	} from '$lib/state';
+	import { state } from '$lib/state';
 	import GlobalNavSelect from '$lib/sidebar/GlobalNavSelect.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
@@ -73,42 +64,6 @@
 	$: anyTargetHasVNC =
 		$state.devices.some((device) => targetShouldShowVNC(device, $state)) ||
 		$state.tags.some((tag) => targetShouldShowVNC(tag, $state));
-
-	// $: selectedTargetHasAnyVNCModule =
-	// 	$globalNavSelectedTarget?.modules.some(isVNCModule) ||
-	// 	$state.devices
-	// 		.filter((device) => device.tags.some((tag) => tag === $globalNavSelectedTag?.identifier))
-	// 		?.some((device) => deviceHasVNCModule(device, $state));
-	$: selectedTargetHasAnyVNCModule =
-		$globalNavSelectedTarget && targetShouldShowVNC($globalNavSelectedTarget, $state);
-
-	let dynamicNavItems: NavItem[] = [];
-	$: dynamicNavItems = [
-		{
-			name: $t(`nav.device-details`),
-			icon: ListCollapse,
-			href: '/device-details',
-			hidden: !$globalNavSelectedDevice
-		},
-		{
-			name: $t(`nav.config-${$globalNavSelectedTargetType}`),
-			icon: SlidersSolid,
-			href: '/config',
-			hidden: !$globalNavSelectedTarget
-		},
-		{
-			name: $t('nav.device-vnc'),
-			icon: ScreenShare,
-			href: '/device-vnc',
-			hidden: !selectedTargetHasAnyVNCModule
-		},
-		{
-			name: $t('nav.terminal'),
-			icon: TerminalSolid,
-			href: '/terminal',
-			hidden: !$globalNavSelectedDevice
-		}
-	];
 
 	let navItems: NavItem[] = [];
 	$: navItems = [
@@ -160,6 +115,8 @@
 	>
 		<nav class="divide-y text-base font-medium">
 			<SidebarGroup ulClass="list-unstyled fw-normal small mb-4 space-y-2">
+				<GlobalNavSelect />
+				<hr />
 				{#each navItems as { name, icon, children, href, hidden } (name)}
 					{#if children}
 						<SidebarDropdownWrapper
@@ -167,38 +124,6 @@
 							label={name}
 							ulClass="mt-0.5"
 							btnClass="flex p-2 rounded-lg items-center justify-start gap-4 text-base font-medium hover:text-primary-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-							spanClass=""
-							class={dropdowns[name]
-								? 'text-primary-700 dark:text-white'
-								: 'text-gray-500 dark:text-gray-400'}
-						>
-							<AngleDownOutline slot="arrowdown" class="ms-auto text-gray-800 dark:text-white" />
-							<AngleUpOutline slot="arrowup" class="ms-auto text-gray-800 dark:text-white" />
-							<svelte:component this={icon} slot="icon" />
-							{#each Object.entries(children) as [title, href]}
-								<SidebarItem
-									label={title}
-									href={href + $page.url.search}
-									{spanClass}
-									{activeClass}
-								/>
-							{/each}
-						</SidebarDropdownWrapper>
-					{:else if !hidden}
-						<SidebarItem label={name} href={href + $page.url.search} {spanClass} {activeClass}>
-							<svelte:component this={icon} slot="icon" size={18} />
-						</SidebarItem>
-					{/if}
-				{/each}
-				<hr />
-				<GlobalNavSelect />
-				{#each dynamicNavItems as { name, icon, children, href, hidden } (name)}
-					{#if children}
-						<SidebarDropdownWrapper
-							bind:isOpen={dropdowns[name]}
-							label={name}
-							ulClass="mt-0.5"
-							btnClass="flex p-2 rounded-lg items-center justify-start gap-4 w-full text-base font-medium tracking-wide hover:text-primary-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
 							spanClass=""
 							class={dropdowns[name]
 								? 'text-primary-700 dark:text-white'

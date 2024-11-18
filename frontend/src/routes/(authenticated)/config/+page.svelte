@@ -28,6 +28,7 @@
 	import { queryParam } from 'sveltekit-search-params';
 	import { derived } from 'svelte/store';
 	import { page } from '$app/stores';
+	import Tabbar from '$lib/components/Tabbar.svelte';
 
 	export let data: PageData;
 
@@ -145,7 +146,7 @@
 </script>
 
 <div class="flex justify-between mb-4">
-	<h1 class="text-xl sm:text-3xl font-bold dark:text-white">
+	<!-- <h1 class="text-xl sm:text-3xl font-bold dark:text-white">
 		{#if $globalNavSelectedTag}
 			{$t('config.header.tag-module', {
 				values: {
@@ -163,9 +164,11 @@
 		{:else}
 			{$t('config.header.module', { values: { module: $configSelectedModule?.displayName } })}
 		{/if}
-	</h1>
+	</h1> -->
+	<h1 class="text-3xl font-bold dark:text-white">{$globalNavSelectedTarget?.displayName}</h1>
 	<DeployActions />
 </div>
+<Tabbar />
 <div class="grid grid-flow-row grid-cols-1 md:grid-cols-[250px_auto] gap-4">
 	<Card class="max-w-none" padding={'sm'}>
 		<ModuleList

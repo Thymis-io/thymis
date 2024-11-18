@@ -1,0 +1,81 @@
+<script lang="ts">
+	import { page } from '$app/stores';
+	import { TabItem, Tabs } from 'flowbite-svelte';
+	import { t } from 'svelte-i18n';
+
+	import SlidersSolid from 'svelte-awesome-icons/SlidersSolid.svelte';
+	import TerminalSolid from 'svelte-awesome-icons/TerminalSolid.svelte';
+	import ScreenShare from 'lucide-svelte/icons/screen-share';
+	import ListCollapse from 'lucide-svelte/icons/list-collapse';
+	import {
+		globalNavSelectedDevice,
+		globalNavSelectedTag,
+		globalNavSelectedTarget,
+		state
+	} from '$lib/state';
+	import { targetShouldShowVNC } from '$lib/vnc/vnc';
+
+	type NavItem = {
+		name: string;
+		icon: any;
+		href: string;
+		hidden?: boolean;
+		children?: Record<string, string>;
+	};
+
+	$: selectedTargetHasAnyVNCModule =
+		$globalNavSelectedTarget && targetShouldShowVNC($globalNavSelectedTarget, $state);
+
+	let dynamicNavItems: NavItem[] = [];
+	$: dynamicNavItems = [
+		{
+			name: $t(`nav.device-details`),
+			icon: ListCollapse,
+			href: '/device-details',
+			hidden: !$globalNavSelectedDevice
+		},
+		{
+			name: $t(`nav.config-device`),
+			icon: SlidersSolid,
+			href: '/config',
+			hidden: !$globalNavSelectedDevice
+		},
+		{
+			name: $t(`nav.config-tag`),
+			icon: SlidersSolid,
+			href: '/config',
+			hidden: !$globalNavSelectedTag
+		},
+		{
+			name: $t('nav.device-vnc'),
+			icon: ScreenShare,
+			href: '/device-vnc',
+			hidden: !selectedTargetHasAnyVNCModule
+		},
+		{
+			name: $t('nav.terminal'),
+			icon: TerminalSolid,
+			href: '/terminal',
+			hidden: !$globalNavSelectedDevice
+		}
+	];
+</script>
+
+<Tabs
+	contentClass="mb-4"
+	activeClasses="inline-block text-sm font-medium text-center rounded-t-lg disabled:cursor-not-allowed p-2 text-primary-600 bg-gray-100 dark:bg-gray-800 dark:text-primary-500"
+	inactiveClasses="inline-block text-sm font-medium text-center rounded-t-lg disabled:cursor-not-allowed p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+>
+	{#each dynamicNavItems as item}
+		{#if !item.hidden}
+			<a href={item.href + $page.url.search}>
+				<TabItem open={$page.url.pathname === item.href}>
+					<div slot="title" class="flex items-center gap-2 min-w-48">
+						<svelte:component this={item.icon} size={18} />
+						<span class="ml-2">{item.name}</span>
+					</div>
+				</TabItem>
+			</a>
+		{/if}
+	{/each}
+</Tabs>
