@@ -1,22 +1,16 @@
+import { handleFetch } from './fetchHandler';
+
 export type Hostkey = {
 	identifier: string;
 	public_key: string;
 	device_host: string;
 };
 
-export const getHostkey = async (fetch: Window.fetch, identifier: string) => {
-	let hostkey: Hostkey = null;
-	const response = await fetch(`/api/hostkey/${identifier}`);
+export const getHostkey = async (fetch: typeof window.fetch, identifier: string) => {
+	let hostkey: Hostkey | null = null;
+	const response = await handleFetch(`/api/hostkey/${identifier}`, undefined, { 404: null }, fetch);
 	if (response.ok) {
 		hostkey = await response.json();
-	} else if (response.status === 404) {
-		hostkey = null;
-	} else {
-		console.log(
-			'Unrecognized Error. Failed to fetch hostkey:',
-			response.status,
-			response.statusText
-		);
 	}
 	return hostkey;
 };

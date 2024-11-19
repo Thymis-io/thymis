@@ -2,13 +2,14 @@
 	import { t } from 'svelte-i18n';
 	import { Button, Modal, Label, Input } from 'flowbite-svelte';
 	import { invalidate } from '$app/navigation';
+	import { handleFetch } from '$lib/fetchHandler';
 
 	export let open = false;
 
 	$: summary = new Date().toLocaleString() + ': ';
 
 	const deploy = async () => {
-		await fetch(`/api/action/deploy?summary=${summary}`, {
+		await handleFetch(`/api/action/deploy?summary=${summary}`, {
 			method: 'POST'
 		});
 		await invalidate((url) => url.pathname === '/api/history');

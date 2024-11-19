@@ -1,6 +1,7 @@
 import { invalidate } from '$app/navigation';
 import { derived, writable } from 'svelte/store';
 import { queryParam } from 'sveltekit-search-params';
+import { handleFetch } from './fetchHandler';
 
 export type ModuleSettings = {
 	type: string;
@@ -96,7 +97,7 @@ state.subscribe((value) => {
 
 export const saveState = async () => {
 	state.set(currentState);
-	const response = await fetch(`/api/state`, {
+	const response = await handleFetch(`/api/state`, {
 		method: 'PATCH',
 		headers: {
 			'content-type': 'application/json'
@@ -108,7 +109,7 @@ export const saveState = async () => {
 };
 
 export const build = async () => {
-	await fetch(`/api/action/build`, { method: 'POST' });
+	await handleFetch(`/api/action/build`, { method: 'POST' });
 };
 
 export const getTagByIdentifier = (state: State, identifier: string) => {
