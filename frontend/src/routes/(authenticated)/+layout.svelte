@@ -110,7 +110,7 @@
 	}}
 />
 
-<style>
+<style lang="postcss">
 	:root {
 		--navbar-height: 4rem;
 	}

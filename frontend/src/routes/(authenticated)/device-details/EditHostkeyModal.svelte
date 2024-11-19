@@ -3,6 +3,7 @@
 	import { Button, Helper, Input, Label, Modal, Spinner, Tooltip } from 'flowbite-svelte';
 	import type { Hostkey } from '$lib/hostkey';
 	import type { Device } from '$lib/state';
+	import { handleFetch } from '$lib/fetchHandler';
 
 	export let open = false;
 
@@ -29,7 +30,7 @@
 
 	const submitData = async () => {
 		if (!device) return;
-		const response = await fetch(`/api/hostkey/${device.identifier}`, {
+		const response = await handleFetch(`/api/hostkey/${device.identifier}`, {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json'
@@ -42,8 +43,6 @@
 		if (response.ok) {
 			hostkey = await response.json();
 			open = false;
-		} else {
-			console.error('Unrecognized Error. Failed to update hostkey');
 		}
 	};
 
@@ -51,7 +50,7 @@
 		scanningPublicKeyError = '';
 		isScanningPublicKey = true;
 
-		const response = await fetch(`/api/scan-public-key?host=${deviceHost}`, {
+		const response = await handleFetch(`/api/scan-public-key?host=${deviceHost}`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'

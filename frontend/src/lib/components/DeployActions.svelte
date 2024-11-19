@@ -6,13 +6,14 @@
 	import Boxes from 'lucide-svelte/icons/boxes';
 	import DeployModal from '$lib/components/DeployModal.svelte';
 	import { invalidate } from '$app/navigation';
+	import { handleFetch } from '$lib/fetchHandler';
 
 	const build = async () => {
-		await fetch(`/api/action/build`, { method: 'POST' });
+		await handleFetch(`/api/action/build`, { method: 'POST' });
 	};
 
 	const update = async () => {
-		await fetch(`/api/action/update`, { method: 'POST' });
+		await handleFetch(`/api/action/update`, { method: 'POST' });
 		invalidate((url) => url.pathname === '/api/available_modules');
 	};
 

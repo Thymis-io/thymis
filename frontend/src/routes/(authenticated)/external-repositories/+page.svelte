@@ -1,11 +1,9 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { PageData } from '../settings/$types';
 	import { saveState, state } from '$lib/state';
 	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
 	import {
 		Button,
-		Heading,
 		Table,
 		TableHead,
 		TableHeadCell,
@@ -14,8 +12,6 @@
 		TableBodyCell
 	} from 'flowbite-svelte';
 	import DeployActions from '$lib/components/DeployActions.svelte';
-
-	export let data: PageData;
 
 	const generateUniqueKey = () => {
 		let num = 1;

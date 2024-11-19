@@ -5,6 +5,7 @@ import type { LayoutLoad } from './$types';
 import type { State, Module } from '$lib/state';
 import { error, redirect } from '@sveltejs/kit';
 import { getAllTasks } from '$lib/taskstatus';
+import { handleFetch } from '$lib/fetchHandler';
 
 export const load = (async ({ fetch, url, data }) => {
 	let lang = 'en';
@@ -32,12 +33,17 @@ export const load = (async ({ fetch, url, data }) => {
 	}
 	await waitLocale(lang);
 
-	const stateResponse = await fetch(`/api/state`, {
-		method: 'GET',
-		headers: {
-			'content-type': 'application/json'
-		}
-	});
+	const stateResponse = await handleFetch(
+		`/api/state`,
+		{
+			method: 'GET',
+			headers: {
+				'content-type': 'application/json'
+			}
+		},
+		{},
+		fetch
+	);
 
 	if (stateResponse.status === 401) {
 		redirect(307, '/login?redirect=' + encodeURIComponent(url.pathname));
@@ -47,12 +53,17 @@ export const load = (async ({ fetch, url, data }) => {
 		error(500, 'Could not fetch state');
 	}
 
-	const availableModulesResponse = await fetch(`/api/available_modules`, {
-		method: 'GET',
-		headers: {
-			'content-type': 'application/json'
-		}
-	});
+	const availableModulesResponse = await handleFetch(
+		`/api/available_modules`,
+		{
+			method: 'GET',
+			headers: {
+				'content-type': 'application/json'
+			}
+		},
+		{},
+		fetch
+	);
 
 	const availableModules = (await availableModulesResponse.json()) as Module[];
 

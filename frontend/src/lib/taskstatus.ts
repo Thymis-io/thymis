@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import { derived, writable, type Readable } from 'svelte/store';
 import { invalidate } from '$app/navigation';
+import { handleFetch } from './fetchHandler';
 
 export type TaskState = 'pending' | 'running' | 'completed' | 'failed';
 export type TaskVanilla = {
@@ -64,33 +65,41 @@ taskStatus.subscribe((value) => {
 });
 
 export const getAllTasks = async (fetch: typeof window.fetch = window.fetch) => {
-	const response = await fetch(`/api/tasks`);
+	const response = await handleFetch(`/api/tasks`, undefined, {}, fetch);
 	return (await response.json()) as TaskList;
 };
 
 export const getTask = async (taskId: string, fetch: typeof window.fetch = window.fetch) => {
-	const response = await fetch(`/api/tasks/${taskId}`);
+	const response = await handleFetch(`/api/tasks/${taskId}`, undefined, {}, fetch);
 	return (await response.json()) as Task;
 };
 
 export const cancelTask = async (taskId: string, fetch: typeof window.fetch = window.fetch) => {
-	const response = await fetch(`/api/tasks/${taskId}/cancel`, {
-		method: 'POST'
-	});
+	const response = await handleFetch(`/api/tasks/${taskId}/cancel`, { method: 'POST' }, {}, fetch);
 	return response;
 };
 
 export const retryTask = async (taskId: string, fetch: typeof window.fetch = window.fetch) => {
-	const response = await fetch(`/api/tasks/${taskId}/retry`, {
-		method: 'POST'
-	});
+	const response = await handleFetch(
+		`/api/tasks/${taskId}/retry`,
+		{
+			method: 'POST'
+		},
+		{},
+		fetch
+	);
 	return response;
 };
 
 export const runImmediately = async (taskId: string, fetch: typeof window.fetch = window.fetch) => {
-	const response = await fetch(`/api/tasks/${taskId}/run_immediately`, {
-		method: 'POST'
-	});
+	const response = await handleFetch(
+		`/api/tasks/${taskId}/run_immediately`,
+		{
+			method: 'POST'
+		},
+		{},
+		fetch
+	);
 	return response;
 };
 

@@ -1,13 +1,10 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { PageData } from './$types';
 	import { P } from 'flowbite-svelte';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import { state } from '$lib/state';
 	import VncView from '$lib/vnc/VncView.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
-
-	export let data: PageData;
 </script>
 
 <div class="flex justify-between mb-4">
