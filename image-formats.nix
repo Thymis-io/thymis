@@ -26,6 +26,13 @@ let
         system.build.thymis-image = config.system.build.sdImage;
         key = "github:thymis-io/thymis/image-formats.nix:sd-card-image";
       };
+      nixos-vm = { config, modulesPath, ... }: {
+        imports = [
+          "${modulesPath}/virtualisation/qemu-vm.nix"
+        ];
+        system.build.thymis-image = config.system.build.vm;
+        key = "github:thymis-io/thymis/image-formats.nix:nixos-vm";
+      };
     };
 in
 imageFormats

@@ -230,12 +230,13 @@ class ThymisDevice(modules.Module):
                 ("SD-Card Image", "sd-card-image"),
                 ("Virtual Disk Image (qcow)", "qcow"),
                 ("Installation ISO", "iso"),
+                ("NixOS VM", "nixos-vm"),
             ],
             extra_data={
                 "restrict_values_on_other_key": {
                     "device_type": {
-                        "generic-x86_64": ["qcow", "iso"],
-                        "generic-aarch64": ["qcow"],
+                        "generic-x86_64": ["nixos-vm", "qcow", "install-iso"],
+                        "generic-aarch64": ["nixos-vm", "qcow"],
                         "raspberry-pi-3": ["sd-card-image"],
                         "raspberry-pi-4": ["sd-card-image"],
                         "raspberry-pi-5": ["sd-card-image"],
