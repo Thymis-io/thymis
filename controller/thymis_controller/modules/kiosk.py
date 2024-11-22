@@ -158,7 +158,7 @@ class Kiosk(modules.Module):
                 mode invisible
             }}
             exec "/run/current-system/sw/bin/xrandr --newmode 1024x600_60.00  48.96  1024 1064 1168 1312  600 601 604 622  -HSync +Vsync; /run/current-system/sw/bin/xrandr --addmode HDMI-1 1024x600_60.00;"
-            {'exec "sleep 2; /run/current-system/sw/bin/xrandr --output HDMI-1 --rotate {xrandr_rotation}"' if xrandr_rotation != 'normal' else ''}
+            {f'exec "sleep 2; /run/current-system/sw/bin/xrandr --output HDMI-1 --rotate {xrandr_rotation}"' if xrandr_rotation != 'normal' else ''}
             {f'exec "sleep 2; /run/current-system/sw/bin/xrandr --output HDMI-1 --mode {xrandr_mode}"' if "xrandr_mode" in module_settings.settings else 'exec "sleep 2; /run/current-system/sw/bin/xrandr --output HDMI-1 --auto"'}
             exec "/run/current-system/sw/bin/xset s off"
             exec "/run/current-system/sw/bin/xset -dpms"
