@@ -1,11 +1,22 @@
-from sqlalchemy import JSON, UUID, BigInteger, Column, DateTime, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    UUID,
+    BigInteger,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    Uuid,
+)
 from thymis_controller.database.base import Base
 
 
 class Task(Base):
     __tablename__ = "tasks"
 
-    id = Column(UUID, primary_key=True, index=True)
+    id = Column(Uuid(as_uuid=True), primary_key=True, index=True)
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=True)
     state = Column(String(50), nullable=False)
@@ -15,7 +26,7 @@ class Task(Base):
     task_submission_data = Column(JSON, nullable=True)  # New field for submission data
 
     # Composite Task Fields
-    parent_task_id = Column(UUID, nullable=True)
+    parent_task_id = Column(Uuid(as_uuid=True), ForeignKey("tasks.id"), nullable=True)
     children = Column(JSON, nullable=True)
 
     # Unified Process Fields
