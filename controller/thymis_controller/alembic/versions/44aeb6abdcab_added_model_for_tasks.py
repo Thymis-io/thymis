@@ -19,7 +19,7 @@ def upgrade():
     # Create the tasks table
     op.create_table(
         "tasks",
-        sa.Column("id", sa.UUID(), primary_key=True, nullable=False),
+        sa.Column("id", sa.Uuid(as_uuid=True), primary_key=True, nullable=False),
         sa.Column("start_time", sa.DateTime(), nullable=False),
         sa.Column("end_time", sa.DateTime(), nullable=True),
         sa.Column("state", sa.String(50), nullable=False),
@@ -31,7 +31,10 @@ def upgrade():
         ),  # New field for submission data
         # Composite Task Fields
         sa.Column(
-            "parent_task_id", sa.UUID(), sa.ForeignKey("tasks.id"), nullable=True
+            "parent_task_id",
+            sa.Uuid(as_uuid=True),
+            sa.ForeignKey("tasks.id"),
+            nullable=True,
         ),
         sa.Column("children", sa.JSON, nullable=True),
         # Unified Process Fields
