@@ -63,6 +63,7 @@
 
 <Tabs
 	contentClass="mb-4"
+	defaultClass="flex flex-wrap gap-x-2"
 	activeClasses="inline-block text-sm font-medium text-center rounded-t-lg disabled:cursor-not-allowed p-2 text-primary-600 bg-gray-100 dark:bg-gray-800 dark:text-primary-500"
 	inactiveClasses="inline-block text-sm font-medium text-center rounded-t-lg disabled:cursor-not-allowed p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
 >
@@ -70,9 +71,9 @@
 		{#if !item.hidden}
 			<a href={item.href + $page.url.search}>
 				<TabItem open={$page.url.pathname === item.href}>
-					<div slot="title" class="flex items-center gap-2 min-w-48">
+					<div slot="title" class="flex items-center px-1 gap-2 md:min-w-32 xl:min-w-48">
 						<svelte:component this={item.icon} size={18} />
-						<span class="ml-2">{item.name}</span>
+						<span>{item.name}</span>
 					</div>
 				</TabItem>
 			</a>
