@@ -116,7 +116,6 @@
 		<nav class="divide-y text-base font-medium">
 			<SidebarGroup ulClass="list-unstyled fw-normal small mb-4 space-y-2">
 				<GlobalNavSelect />
-				<hr />
 				{#each navItems as { name, icon, children, href, hidden } (name)}
 					{#if children}
 						<SidebarDropdownWrapper
@@ -133,16 +132,11 @@
 							<AngleUpOutline slot="arrowup" class="ms-auto text-gray-800 dark:text-white" />
 							<svelte:component this={icon} slot="icon" />
 							{#each Object.entries(children) as [title, href]}
-								<SidebarItem
-									label={title}
-									href={href + $page.url.search}
-									{spanClass}
-									{activeClass}
-								/>
+								<SidebarItem label={title} {href} {spanClass} {activeClass} />
 							{/each}
 						</SidebarDropdownWrapper>
 					{:else if !hidden}
-						<SidebarItem label={name} href={href + $page.url.search} {spanClass} {activeClass}>
+						<SidebarItem label={name} {href} {spanClass} {activeClass}>
 							<svelte:component this={icon} slot="icon" size={18} />
 						</SidebarItem>
 					{/if}
