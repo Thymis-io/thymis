@@ -319,7 +319,11 @@ class Project:
         )
         return task.global_task_controller.add_task(
             task.DeployDeviceTask(
-                self.path, device, target_host, global_settings.SSH_KEY_PATH
+                self.path,
+                device,
+                global_settings.SSH_KEY_PATH,
+                self.known_hosts_path,
+                target_host,
             )
         )
 
