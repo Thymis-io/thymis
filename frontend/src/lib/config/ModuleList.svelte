@@ -76,7 +76,7 @@
 				configSelectedModule
 			)}"
 		>
-			<Pen />
+			<Pen size="20" />
 		</ToolbarButton>
 		<Tooltip type="auto">
 			<P size="sm">{$t('config.edit_tag_modules')}</P>
@@ -107,10 +107,14 @@
 						context.identifier,
 						module
 					)}"
-					class={`block p-2 w-full flex gap-2`}
+					class={`block px-2 py-1.5 w-full flex gap-2 items-center`}
 					data-sveltekit-noscroll
 				>
-					<img src={module.icon ?? '/favicon.png'} alt={module.displayName} class="w-6 h-6" />
+					<img
+						src={module.icon ?? '/favicon.png'}
+						alt={module.displayName}
+						class="w-[20px] w-[20px]"
+					/>
 					<P>{module.displayName}</P>
 				</a>
 				{#if removeModule && ($globalNavSelectedTargetType !== 'device' || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}

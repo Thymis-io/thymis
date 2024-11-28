@@ -63,7 +63,7 @@
 		value: option[1]
 	}))}
 	{disabled}
-	class={disabled ? 'opacity-70' : ''}
+	class={`h-8 px-2 py-1 ${disabled ? 'opacity-70' : ''}`}
 />
 {#if disabled}
 	<Tooltip type="auto" placement={'top'}>{$t('config.editDisabled')}</Tooltip>

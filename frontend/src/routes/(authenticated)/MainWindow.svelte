@@ -9,7 +9,7 @@
 	class="!block lg:!grid"
 	type="horizontal"
 	pos="16rem"
-	min="16rem"
+	min="10rem"
 	max="64rem"
 	priority="min"
 	leftPaneClass="!hidden lg:!block"

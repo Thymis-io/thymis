@@ -11,7 +11,14 @@
 	};
 </script>
 
-<Toggle class="mt-1.5" size="small" {name} checked={value} on:change={changeInternal} {disabled} />
+<Toggle
+	class="mt-1.5 h-8"
+	size="small"
+	{name}
+	checked={value}
+	on:change={changeInternal}
+	{disabled}
+/>
 {#if disabled}
 	<Tooltip type="auto" placement={'top-start'}>{$t('config.editDisabled')}</Tooltip>
 {/if}

@@ -47,7 +47,7 @@
 			<P class="mb-1">
 				{$t(setting.displayName)}
 			</P>
-			<div class="flex">
+			<div class="flex gap-1">
 				<ConfigRenderer
 					{setting}
 					moduleSettings={settings}
@@ -59,15 +59,15 @@
 				{#if canEdit}
 					{#if settings?.settings[key] !== undefined}
 						<button
-							class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+							class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 							on:click={() => setSetting(module, key, null)}
 						>
-							<X />
+							<X size="20" />
 						</button>
 						<Tooltip type="auto"><P size="sm">{$t('config.clear')}</P></Tooltip>
 					{:else}
 						<button
-							class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+							class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 							on:click={() =>
 								setSetting(
 									module,
@@ -77,7 +77,7 @@
 										: ''
 								)}
 						>
-							<Pen />
+							<Pen size="20" />
 						</button>
 						<Tooltip type="auto"><P size="sm">{$t('config.edit')}</P></Tooltip>
 					{/if}
@@ -86,8 +86,8 @@
 					{#if other && other.length > 0}
 						{#if sameOrigin(settings, other[0])}
 							{@const otherDefinitions = other.filter((o) => !sameOrigin(settings, o))}
-							<button class="btn p-0 ml-2 sm:ml-0" on:click={() => {}}>
-								<Route class="text-primary-400" />
+							<button class="m-0 p-1" on:click={() => {}}>
+								<Route class="text-primary-400" size="20" />
 							</button>
 							<Tooltip type="auto" class="z-50">
 								<P size="sm" class="whitespace-pre-line">{$t('config.passed')}</P>
@@ -107,8 +107,8 @@
 							{@const otherDefinitions = other.filter(
 								(o) => !sameOrigin(o, settings) && !sameOrigin(o, other[0])
 							)}
-							<button class="btn p-0 ml-2 sm:ml-0" on:click={() => {}}>
-								<RouteOff class="text-primary-400" />
+							<button class="m-0 p-1" on:click={() => {}}>
+								<RouteOff class="text-primary-400" size="20" />
 							</button>
 							<Tooltip type="auto" class="z-50">
 								<P size="sm" class="whitespace-pre-line">{@html $t('config.notPassed')}</P>
@@ -127,16 +127,16 @@
 							</Tooltip>
 						{/if}
 					{:else if self !== undefined}
-						<button class="btn p-0 ml-2 sm:ml-0" on:click={() => {}}>
-							<Route class="text-primary-400" />
+						<button class="m-0 p-1" on:click={() => {}}>
+							<Route class="text-primary-400" size="20" />
 						</button>
 						<Tooltip type="auto" class="z-50">
 							<P size="sm" class="whitespace-pre-line">{@html $t('config.passed')}</P>
 							<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P>
 						</Tooltip>
 					{:else}
-						<button class="btn p-0 ml-2 sm:ml-0" on:click={() => {}}>
-							<RouteOff class="text-primary-400" />
+						<button class="m-0 p-1" on:click={() => {}}>
+							<RouteOff class="text-primary-400" size="20" />
 						</button>
 						<Tooltip type="auto" class="z-50">
 							<P size="sm" class="whitespace-pre-line">{@html $t('config.notSet')}</P>
@@ -146,7 +146,7 @@
 				{/if}
 			</div>
 		</div>
-		<P class="mt-6 whitespace-pre-line">{setting.description}</P>
+		<P class="mt-[1.9rem] whitespace-pre-line">{setting.description}</P>
 	{:else}
 		<div>{$t('config.no-settings')}</div>
 	{/each}
