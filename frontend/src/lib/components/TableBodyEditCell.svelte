@@ -14,6 +14,7 @@
 		{#if isEditing}
 			<Input
 				class="w-full min-w-32"
+				size="sm"
 				bind:value
 				on:blur={() => onEnter?.(value)}
 				on:keypress={(e) => {
@@ -27,7 +28,7 @@
 			<span class="w-full p-0">{value}</span>
 		{/if}
 		<button class="btn ml-2" on:click={() => (isEditing = !isEditing)}>
-			<Pen size="18" />
+			<Pen size={'1rem'} class="min-w-4" />
 		</button>
 	</div>
 	<slot name="bottom" {value} />

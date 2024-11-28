@@ -183,9 +183,9 @@
 		>
 			<slot slot="icon">
 				{#if $globalNavSelectedTag}
-					<TagIcon />
+					<TagIcon size="20" />
 				{:else if $globalNavSelectedDevice}
-					<HardDrive />
+					<HardDrive size="20" />
 				{/if}
 			</slot>
 		</ModuleList>
@@ -200,7 +200,7 @@
 					configSelectedModuleContext={$configSelectedModuleContext}
 					configSelectedModuleContextType={$configSelectedModuleContextType}
 				>
-					<TagIcon slot="icon" />
+					<TagIcon slot="icon" size="20" />
 				</ModuleList>
 			</div>
 		{/each}

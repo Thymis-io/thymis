@@ -85,7 +85,7 @@
 		<h1 class="text-3xl font-bold dark:text-white">{$t('nav.devices')}</h1>
 		<Button
 			color="alternative"
-			class="whitespace-nowrap gap-2"
+			class="whitespace-nowrap gap-2 px-2 py-1 m-1"
 			on:click={() => (deviceModalOpen = true)}
 			disabled={devices.length >= 5}
 		>
@@ -112,7 +112,7 @@
 <CreateDeviceModal bind:open={deviceModalOpen} />
 <EditTagModal bind:currentlyEditingDevice />
 <Table shadow>
-	<TableHead>
+	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2 w-12" />
 		<TableHeadCell padding="p-2">{$t('devices.table.name')}</TableHeadCell>
 		<!-- <TableHeadCell padding="p-2">{$t('devices.table.target-host')}</TableHeadCell> -->
@@ -141,7 +141,7 @@
 							on:touchstart={startDrag}
 							on:keydown={handleKeyDown}
 						>
-							<GripVertical size="20" />
+							<GripVertical size={'1rem'} class="min-w-4" />
 						</div>
 					</div>
 				</TableBodyCell>
@@ -158,12 +158,11 @@
 						<div class="flex gap-2">
 							{#each device.data.tags as tag, i}
 								<Button
-									pill
 									size="sm"
-									class="p-2 py-0.5"
+									class="p-2 py-0.5 gap-1"
 									href={`/config?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
 								>
-									<TagIcon size={15} class="mr-1" />
+									<TagIcon size={'0.75rem'} class="min-w-3" />
 									<span class="text-nowrap">
 										{findTag(tag)?.displayName ?? tag}
 									</span>
@@ -171,7 +170,7 @@
 							{/each}
 						</div>
 						<button class="btn ml-2 p-0" on:click={() => (currentlyEditingDevice = device.data)}>
-							<Pen size="20" />
+							<Pen size={'1rem'} class="min-w-4" />
 						</button>
 					</div>
 				</TableBodyCell>
@@ -186,7 +185,7 @@
 								device.data.identifier
 							)}`}
 						>
-							<Search size={16} />
+							<Search size={'0.75rem'} class="min-w-3" />
 							{$t('devices.actions.view-details')}
 						</Button>
 					</div>

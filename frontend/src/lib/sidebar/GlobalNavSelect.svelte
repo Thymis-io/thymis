@@ -27,14 +27,14 @@
 	};
 </script>
 
-<Button class="w-full flex gap-2 justify-start p-3 " color="alternative">
+<Button class="w-full flex gap-2 justify-start p-2 " color="alternative">
 	{#if $globalNavSelectedTag}
-		<TagIcon size={20} class="min-w-[20px]" />
+		<TagIcon size={'1rem'} class="min-w-4" />
 		<span class="text-base text-primary-400 truncate" title={$globalNavSelectedTag?.displayName}>
 			{$globalNavSelectedTag?.displayName}
 		</span>
 	{:else if $globalNavSelectedDevice}
-		<HardDrive size={20} class="min-w-[20px]" />
+		<HardDrive size={'1rem'} class="min-w-4" />
 		<span class="text-base text-primary-400 truncate" title={$globalNavSelectedDevice?.displayName}>
 			{$globalNavSelectedDevice?.displayName}
 		</span>
@@ -52,7 +52,7 @@
 	bind:open
 >
 	<div slot="header" class="p-3 pb-0">
-		<Search size="md" bind:value={search} placeholder={$t('common.search')} />
+		<Search size="sm" bind:value={search} placeholder={$t('common.search')} />
 	</div>
 	{#each $state.tags as tag}
 		{@const active =
@@ -70,7 +70,7 @@
 				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-400' : ''}`}
 				on:click={() => (open = false)}
 			>
-				<TagIcon size={22} class="shrink-0" />
+				<TagIcon size={'1rem'} class="min-w-4" />
 				<span class="text-base truncate" title={tag.displayName}>{tag.displayName}</span>
 			</DropdownItem>
 		{/if}
@@ -93,7 +93,7 @@
 				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-400' : ''}`}
 				on:click={() => (open = false)}
 			>
-				<HardDrive size={22} class="shrink-0" />
+				<HardDrive size={'1rem'} class="min-w-4" />
 				<span class="text-base truncate" title={device.displayName}>{device.displayName}</span>
 			</DropdownItem>
 		{/if}

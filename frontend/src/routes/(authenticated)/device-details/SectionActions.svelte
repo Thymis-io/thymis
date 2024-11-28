@@ -40,29 +40,29 @@
 
 <Section class={className} title={$t('device-details.actions')}>
 	<Button
-		class="px-4 py-2 gap-2 flex justify-start"
+		class="px-2 py-1.5 gap-2 flex justify-start"
 		color="alternative"
 		on:click={() => buildAndDownloadImage(device)}
 	>
-		<Download size="20" />
+		<Download size={'1rem'} class="min-w-4" />
 		{$t('devices.actions.download')}
 	</Button>
 	<Tooltip class="whitespace-pre">{$t('devices.actions.download-image-tooltip')}</Tooltip>
 	<Button
-		class="px-4 py-2 gap-2 flex justify-start"
+		class="px-2 py-1.5 gap-2 flex justify-start"
 		color="alternative"
 		on:click={() => buildAndDownloadImageForClone(device)}
 	>
-		<Download size="20" />
+		<Download size={'1rem'} class="min-w-4" />
 		{$t('devices.actions.download-image-for-clone')}
 	</Button>
 	<Tooltip class="whitespace-pre">{$t('devices.actions.download-image-for-clone-tooltip')}</Tooltip>
 	<Button
-		class="px-4 py-2 gap-2 justify-start"
+		class="px-2 py-1.5 gap-2 justify-start"
 		color="alternative"
 		on:click={() => restartDevice(device)}
 	>
-		<RotateCcw size="20" />
+		<RotateCcw size={'1rem'} class="min-w-4" />
 		{$t('devices.actions.restart')}
 	</Button>
 	<Tooltip>{$t('devices.actions.restart-tooltip')}</Tooltip>

@@ -23,22 +23,22 @@
 	<div class="flex flex-col gap-2">
 		{#if hostkey}
 			<div class="grid grid-cols-[max-content_1fr] gap-x-2">
-				<p class="break-all">{$t('device-details.targetHost')}:</p>
-				<p class="break-all">{hostkey.deviceHost}</p>
-				<p class="break-all">{$t('device-details.publicKey')}:</p>
-				<p class="break-all">{hostkey.publicKey}</p>
+				<p class="break-all text-base">{$t('device-details.targetHost')}:</p>
+				<p class="break-all text-base">{hostkey.deviceHost}</p>
+				<p class="break-all text-base">{$t('device-details.publicKey')}:</p>
+				<p class="break-all text-base">{hostkey.publicKey}</p>
 			</div>
 		{/if}
 		<div class="flex flex-row gap-2">
 			{#if hostkey}
 				<Button
 					size="sm"
-					class="gap-2"
+					class="gap-2 p-2 py-1.5"
 					color="alternative"
 					on:click={() => (editHostKeyModalOpen = true)}
 				>
-					<Pencil size={18} />
-					<span>{$t('device-details.edit-hostkey')}</span>
+					<Pencil size={16} />
+					<span class="text.-base">{$t('device-details.edit-hostkey')}</span>
 				</Button>
 			{:else}
 				<Button
@@ -47,7 +47,7 @@
 					color="alternative"
 					on:click={() => (editHostKeyModalOpen = true)}
 				>
-					<PlusCircle size={18} />
+					<PlusCircle size={'1rem'} class="min-w-4" />
 					<span>{$t('device-details.add-hostkey')}</span>
 				</Button>
 			{/if}

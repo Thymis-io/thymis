@@ -54,14 +54,16 @@
 	{/each}
 	<Card class="flex flex-row gap-1 w-full max-w-full drop-shadow" padding={'xs'}>
 		<button
-			class="p-2 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 gap-2"
+			class="p-1 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 gap-2"
 			{disabled}
 			on:click={() => onChange([...values, {}])}
 		>
-			<Plus />
-			{setting.type['element-name']
-				? $t(`config.add-element`, { values: { element: $t(setting.type['element-name']) } })
-				: $t('config.add_list_element')}
+			<Plus size="20" />
+			<span class="text-base">
+				{setting.type['element-name']
+					? $t(`config.add-element`, { values: { element: $t(setting.type['element-name']) } })
+					: $t('config.add_list_element')}
+			</span>
 		</button>
 	</Card>
 </div>

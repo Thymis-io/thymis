@@ -12,7 +12,14 @@
 	};
 </script>
 
-<Input type="text" {placeholder} value={value || ''} {disabled} on:change={changeInternal} />
+<Input
+	type="text"
+	class="px-2 py-1"
+	{placeholder}
+	value={value || ''}
+	{disabled}
+	on:change={changeInternal}
+/>
 {#if disabled}
 	<Tooltip type="auto" placement={'top'}>{$t('config.editDisabled')}</Tooltip>
 {/if}

@@ -111,7 +111,7 @@
 		<h1 class="text-3xl font-bold dark:text-white">{$t('nav.tags')}</h1>
 		<Button
 			color="alternative"
-			class="whitespace-nowrap gap-2"
+			class="whitespace-nowrap gap-2 px-2 py-1 m-1"
 			on:click={() => (createTagModalOpen = true)}
 		>
 			<Plus size={20} />
@@ -133,7 +133,7 @@
 />
 <CreateTagModal bind:open={createTagModalOpen} />
 <Table shadow>
-	<TableHead>
+	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2 w-12" />
 		<TableHeadCell padding="p-2">{$t('devices.table.name')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('tags.devices')}</TableHeadCell>

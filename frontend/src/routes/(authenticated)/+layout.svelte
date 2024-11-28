@@ -96,7 +96,7 @@
 
 <style>
 	:root {
-		--navbar-height: 4rem;
+		--navbar-height: 3rem;
 	}
 	:global(div.multiselect) {
 		@apply !p-2;

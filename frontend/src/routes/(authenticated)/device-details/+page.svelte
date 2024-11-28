@@ -36,7 +36,7 @@
 		<DeployActions />
 	</div>
 	<Tabbar />
-	<div class="grid grid-cols-4 grid-flow-row gap-x-4 gap-y-12">
+	<div class="grid grid-cols-4 grid-flow-row gap-x-2 gap-y-6">
 		<SectionHostkey class="col-span-3" hostkey={data.hostkey} device={currentDevice} />
 		<SectionActions class="col-span-1" device={currentDevice} />
 		<SectionConfiguration

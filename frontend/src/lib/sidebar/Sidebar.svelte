@@ -30,7 +30,7 @@
 
 	let spanClass = 'ms-4';
 	let childClass =
-		'p-2 hover:bg-gray-100 text-gray-500 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 flex items-center flex-wrap font-medium';
+		'p-2 hover:bg-gray-100 text-gray-500 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 flex items-center font-medium';
 
 	let nonActiveClass =
 		childClass +
@@ -111,7 +111,7 @@
 	asideClass="{asideClass} lg:sticky lg:top-0 border-e border-gray-200 dark:border-gray-600 lg:block"
 >
 	<SidebarWrapper
-		divClass="overflow-y-auto px-4 pt-2 lg:pt-4 bg-white scrolling-touch h-full lg:block dark:bg-gray-800 lg:me-0"
+		divClass="overflow-y-auto p-2 bg-white scrolling-touch h-full lg:block dark:bg-gray-800 lg:me-0"
 	>
 		<nav class="divide-y text-base font-medium">
 			<SidebarGroup ulClass="list-unstyled fw-normal small mb-4 space-y-2">
@@ -130,14 +130,14 @@
 						>
 							<AngleDownOutline slot="arrowdown" class="ms-auto text-gray-800 dark:text-white" />
 							<AngleUpOutline slot="arrowup" class="ms-auto text-gray-800 dark:text-white" />
-							<svelte:component this={icon} slot="icon" />
+							<svelte:component this={icon} slot="icon" size={16} />
 							{#each Object.entries(children) as [title, href]}
-								<SidebarItem label={title} {href} {spanClass} {activeClass} />
+								<SidebarItem label={title} {href} {activeClass} />
 							{/each}
 						</SidebarDropdownWrapper>
 					{:else if !hidden}
-						<SidebarItem label={name} {href} {spanClass} {activeClass}>
-							<svelte:component this={icon} slot="icon" size={18} />
+						<SidebarItem label={name} {href} {activeClass}>
+							<svelte:component this={icon} slot="icon" size={'1rem'} class="min-w-4" />
 						</SidebarItem>
 					{/if}
 				{/each}

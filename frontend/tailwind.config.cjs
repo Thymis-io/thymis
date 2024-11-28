@@ -54,6 +54,20 @@ module.exports = {
 				min: 'min-content',
 				max: 'max-content',
 				fit: 'fit-content'
+			},
+			borderRadius: {
+				none: '0',
+				sm: '0.1rem',
+				md: '0.2rem',
+				lg: '0.3rem'
+			},
+			fontSize: {
+				sm: '0.7rem',
+				base: '0.8rem',
+				lg: '1rem',
+				xl: '1.25rem',
+				'2xl': '1.5rem',
+				'3xl': '1.875rem'
 			}
 		}
 	},

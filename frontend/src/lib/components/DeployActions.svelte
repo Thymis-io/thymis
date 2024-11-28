@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Button } from 'flowbite-svelte';
-	import GearsSolid from 'svelte-awesome-icons/GearsSolid.svelte';
-	import ArrowsRotateSolid from 'svelte-awesome-icons/ArrowsRotateSolid.svelte';
-	import PlaySolid from 'svelte-awesome-icons/PlaySolid.svelte';
+	import Hammer from 'lucide-svelte/icons/hammer';
+	import Refresh from 'lucide-svelte/icons/refresh-ccw';
+	import Boxes from 'lucide-svelte/icons/boxes';
 	import DeployModal from '$lib/components/DeployModal.svelte';
 	import { invalidate } from '$app/navigation';
 
@@ -19,22 +19,18 @@
 	let openDeploy = false;
 </script>
 
-<div class="flex flex-wrap justify-end align-start gap-1 sm:gap-2 w-96 sm:w-[400px]">
-	<Button color="alternative" class="gap-2 px-2 sm:px-4 py-1 sm:py-2 h-min" on:click={build}>
-		<PlaySolid class="w-[10px] sm:w-[12px]" />
-		<span class="text-xs sm:text-sm">{$t('deploy.build')}</span>
+<div class="flex flex-wrap justify-end align-start my-1.5 gap-1 sm:gap-2 w-96 sm:w-[400px]">
+	<Button color="alternative" class="gap-2 px-2 py-1.5 h-min" on:click={build}>
+		<Hammer size={'1rem'} class="min-w-4" />
+		<span class="text-base">{$t('deploy.build')}</span>
 	</Button>
-	<Button color="alternative" class="gap-2 px-2 sm:px-4 py-1 sm:py-2 h-min" on:click={update}>
-		<ArrowsRotateSolid class="w-[12px] sm:w-[16px]" />
-		<span class="text-xs sm:text-sm">{$t('deploy.update')}</span>
+	<Button color="alternative" class="gap-2 px-2 py-1.5 h-min" on:click={update}>
+		<Refresh size={'1rem'} class="min-w-4" />
+		<span class="text-base">{$t('deploy.update')}</span>
 	</Button>
-	<Button
-		color="alternative"
-		class="gap-2 px-2 sm:px-4 py-1 sm:py-2 h-min"
-		on:click={() => (openDeploy = true)}
-	>
-		<GearsSolid class="w-[14px] sm:w-[18px]" />
-		<span class="text-xs sm:text-sm">{$t('deploy.deploy')}</span>
+	<Button color="alternative" class="gap-2 px-2 py-1.5 h-min" on:click={() => (openDeploy = true)}>
+		<Boxes size={'1rem'} class="min-w-4" />
+		<span class="text-base">{$t('deploy.deploy')}</span>
 	</Button>
 	<DeployModal bind:open={openDeploy} />
 </div>
