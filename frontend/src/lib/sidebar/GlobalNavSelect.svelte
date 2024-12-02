@@ -30,12 +30,12 @@
 <Button class="w-full flex gap-2 justify-start p-3 " color="alternative">
 	{#if $globalNavSelectedTag}
 		<TagIcon size={20} class="min-w-[20px]" />
-		<span class="text-base text-primary-500 truncate" title={$globalNavSelectedTag?.displayName}>
+		<span class="text-base text-primary-400 truncate" title={$globalNavSelectedTag?.displayName}>
 			{$globalNavSelectedTag?.displayName}
 		</span>
 	{:else if $globalNavSelectedDevice}
 		<HardDrive size={20} class="min-w-[20px]" />
-		<span class="text-base text-primary-500 truncate" title={$globalNavSelectedDevice?.displayName}>
+		<span class="text-base text-primary-400 truncate" title={$globalNavSelectedDevice?.displayName}>
 			{$globalNavSelectedDevice?.displayName}
 		</span>
 	{:else}
@@ -67,7 +67,7 @@
 		{#if isSearched(search, tag.displayName)}
 			<DropdownItem
 				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.identifier)}`}
-				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-500' : ''}`}
+				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-400' : ''}`}
 				on:click={() => (open = false)}
 			>
 				<TagIcon size={22} class="shrink-0" />
@@ -90,7 +90,7 @@
 		{#if isSearched(search, device.displayName)}
 			<DropdownItem
 				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'device', device.identifier)}`}
-				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-500' : ''}`}
+				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-400' : ''}`}
 				on:click={() => (open = false)}
 			>
 				<HardDrive size={22} class="shrink-0" />

@@ -64,7 +64,7 @@
 <Tabs
 	contentClass="mb-4"
 	defaultClass="flex flex-wrap gap-x-2"
-	activeClasses="inline-block text-sm font-medium text-center rounded-t-lg disabled:cursor-not-allowed p-2 text-primary-600 bg-gray-100 dark:bg-gray-800 dark:text-primary-500"
+	activeClasses="inline-block text-sm font-medium text-center rounded-t-lg disabled:cursor-not-allowed p-2 text-primary-600 bg-gray-100 dark:bg-gray-800 dark:text-primary-400"
 	inactiveClasses="inline-block text-sm font-medium text-center rounded-t-lg disabled:cursor-not-allowed p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
 >
 	{#each dynamicNavItems as item}
