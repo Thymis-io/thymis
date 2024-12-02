@@ -43,7 +43,7 @@
 						<span class="text-gray-400 dark:text-gray-600"> with hash {history.SHA1}</span>
 					</div>
 					<div class="shrink">
-						<Button
+						<!-- <Button
 							class="p-2 mr-2 w-full flex justify-center gap-2 rounded"
 							color="alternative"
 							on:click={() => (revertCommit = history)}
@@ -51,7 +51,7 @@
 						>
 							<Undo />
 							{$t('history.revert-commit-button')}
-						</Button>
+						</Button> -->
 						<Tooltip type="auto">
 							<P size="sm">
 								{#if index === 0}
