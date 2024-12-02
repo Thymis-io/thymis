@@ -63,7 +63,7 @@
 
 <div style={sizingStyleString} class={clazz}>
 	<Table class="table-fixed" divClass="max-h-full relative overflow-x-auto overflow-y-auto">
-		<TableHead class="sticky top-0">
+		<TableHead class="border-2 dark:border-0 sticky top-0">
 			{#each $table.getHeaderGroups() as headerGroup}
 				{#each headerGroup.headers as header}
 					<th class="text-xs normal-case" style="width: calc(var(--header-{header.id}-width)*1px)">

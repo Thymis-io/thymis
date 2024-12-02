@@ -27,19 +27,25 @@
 	};
 </script>
 
-<Button class="w-full flex gap-2 justify-start p-2 " color="alternative">
+<Button class="text-base w-full flex gap-2 justify-start p-2 " color="alternative">
 	{#if $globalNavSelectedTag}
 		<TagIcon size={'1rem'} class="min-w-4" />
-		<span class="text-base text-primary-400 truncate" title={$globalNavSelectedTag?.displayName}>
+		<span
+			class="font-semibold text-primary-600 dark:text-primary-400 truncate"
+			title={$globalNavSelectedTag?.displayName}
+		>
 			{$globalNavSelectedTag?.displayName}
 		</span>
 	{:else if $globalNavSelectedDevice}
 		<HardDrive size={'1rem'} class="min-w-4" />
-		<span class="text-base text-primary-400 truncate" title={$globalNavSelectedDevice?.displayName}>
+		<span
+			class="font-semibold text-primary-600 dark:text-primary-400 truncate"
+			title={$globalNavSelectedDevice?.displayName}
+		>
 			{$globalNavSelectedDevice?.displayName}
 		</span>
 	{:else}
-		<span class="text-base truncate" title={$t('common.no-tag-or-device-selected')}>
+		<span class="font-semibold truncate" title={$t('common.no-tag-or-device-selected')}>
 			{$t('common.no-tag-or-device-selected')}
 		</span>
 	{/if}
@@ -67,7 +73,7 @@
 		{#if isSearched(search, tag.displayName)}
 			<DropdownItem
 				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.identifier)}`}
-				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-400' : ''}`}
+				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-600 dark:text-primary-400' : ''}`}
 				on:click={() => (open = false)}
 			>
 				<TagIcon size={'1rem'} class="min-w-4" />
@@ -90,7 +96,7 @@
 		{#if isSearched(search, device.displayName)}
 			<DropdownItem
 				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'device', device.identifier)}`}
-				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-400' : ''}`}
+				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-600 dark:text-primary-400' : ''}`}
 				on:click={() => (open = false)}
 			>
 				<HardDrive size={'1rem'} class="min-w-4" />

@@ -87,7 +87,7 @@
 						{#if sameOrigin(settings, other[0])}
 							{@const otherDefinitions = other.filter((o) => !sameOrigin(settings, o))}
 							<button class="m-0 p-1" on:click={() => {}}>
-								<Route class="text-primary-400" size="20" />
+								<Route class="text-primary-600 dark:text-primary-400" size="20" />
 							</button>
 							<Tooltip type="auto" class="z-50">
 								<P size="sm" class="whitespace-pre-line">{$t('config.passed')}</P>
@@ -108,7 +108,7 @@
 								(o) => !sameOrigin(o, settings) && !sameOrigin(o, other[0])
 							)}
 							<button class="m-0 p-1" on:click={() => {}}>
-								<RouteOff class="text-primary-400" size="20" />
+								<RouteOff class="text-primary-600 dark:text-primary-400" size="20" />
 							</button>
 							<Tooltip type="auto" class="z-50">
 								<P size="sm" class="whitespace-pre-line">{@html $t('config.notPassed')}</P>
@@ -128,7 +128,7 @@
 						{/if}
 					{:else if self !== undefined}
 						<button class="m-0 p-1" on:click={() => {}}>
-							<Route class="text-primary-400" size="20" />
+							<Route class="text-primary-600 dark:text-primary-400" size="20" />
 						</button>
 						<Tooltip type="auto" class="z-50">
 							<P size="sm" class="whitespace-pre-line">{@html $t('config.passed')}</P>
@@ -136,7 +136,7 @@
 						</Tooltip>
 					{:else}
 						<button class="m-0 p-1" on:click={() => {}}>
-							<RouteOff class="text-primary-400" size="20" />
+							<RouteOff class="text-primary-600 dark:text-primary-400" size="20" />
 						</button>
 						<Tooltip type="auto" class="z-50">
 							<P size="sm" class="whitespace-pre-line">{@html $t('config.notSet')}</P>

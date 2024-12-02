@@ -147,11 +147,11 @@
 		{#each tags as tag (tag.id)}
 			{@const displayName = tag.data.displayName}
 			<tr
-				class="border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
+				class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
 				animate:flip={{ duration: flipDurationMs }}
 			>
 				<TableBodyCell tdClass="p-2">
-					<div class="flex items justify-center">
+					<div class="flex items-center justify-center">
 						<div
 							tabindex={dragDisabled ? 0 : -1}
 							aria-label="drag-handle"
@@ -162,7 +162,7 @@
 							on:touchstart={startDrag}
 							on:keydown={handleKeyDown}
 						>
-							<GripVertical size="20" />
+							<GripVertical size={'1rem'} class="min-w-4" />
 						</div>
 					</div>
 				</TableBodyCell>
@@ -204,7 +204,7 @@
 						{devicesWithTag.map((d) => d.displayName).join(', ')}
 					</Tooltip>
 				</TableBodyCell>
-				<TableBodyCell tdClass="p-2">
+				<TableBodyCell tdClass="p-1">
 					<Button
 						size="sm"
 						color="alternative"

@@ -61,9 +61,9 @@
 	on:cancel={() => (moduleToRemove = undefined)}
 />
 <div class="flex justify-between mb-2">
-	<div class="flex gap-2 inline-block items-center">
+	<div class="text-gray-900 dark:text-white font-semibold flex gap-2 items-center">
 		<slot name="icon" />
-		<P>{context?.displayName}</P>
+		<span>{context?.displayName}</span>
 	</div>
 	{#if $globalNavSelectedTarget?.identifier !== context?.identifier}
 		<ToolbarButton

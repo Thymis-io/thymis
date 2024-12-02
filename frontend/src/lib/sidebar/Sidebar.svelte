@@ -114,29 +114,11 @@
 		divClass="overflow-y-auto p-2 bg-white scrolling-touch h-full lg:block dark:bg-gray-800 lg:me-0"
 	>
 		<nav class="divide-y text-base font-medium">
-			<SidebarGroup ulClass="list-unstyled fw-normal small mb-4 space-y-2">
+			<SidebarGroup ulClass="list-unstyled fw-normal mb-4 space-y-2">
 				<GlobalNavSelect />
 				{#each navItems as { name, icon, children, href, hidden } (name)}
-					{#if children}
-						<SidebarDropdownWrapper
-							bind:isOpen={dropdowns[name]}
-							label={name}
-							ulClass="mt-0.5"
-							btnClass="flex p-2 rounded-lg items-center justify-start gap-4 text-base font-medium hover:text-primary-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-							spanClass=""
-							class={dropdowns[name]
-								? 'text-primary-700 dark:text-white'
-								: 'text-gray-500 dark:text-gray-400'}
-						>
-							<AngleDownOutline slot="arrowdown" class="ms-auto text-gray-800 dark:text-white" />
-							<AngleUpOutline slot="arrowup" class="ms-auto text-gray-800 dark:text-white" />
-							<svelte:component this={icon} slot="icon" size={16} />
-							{#each Object.entries(children) as [title, href]}
-								<SidebarItem label={title} {href} {activeClass} />
-							{/each}
-						</SidebarDropdownWrapper>
-					{:else if !hidden}
-						<SidebarItem label={name} {href} {activeClass}>
+					{#if !hidden}
+						<SidebarItem spanClass="ms-3 font-semibold" label={name} {href} {activeClass}>
 							<svelte:component this={icon} slot="icon" size={'1rem'} class="min-w-4" />
 						</SidebarItem>
 					{/if}
