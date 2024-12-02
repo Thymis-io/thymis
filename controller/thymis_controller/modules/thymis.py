@@ -229,7 +229,7 @@ class ThymisDevice(modules.Module):
             select_one=[
                 ("SD-Card Image", "sd-card-image"),
                 ("Virtual Disk Image (qcow)", "qcow"),
-                ("Installation ISO", "iso"),
+                ("Installation ISO", "install-iso"),
                 ("NixOS VM", "nixos-vm"),
             ],
             extra_data={
