@@ -8,7 +8,6 @@
 		globalNavSelectedTargetType,
 		state
 	} from '$lib/state';
-	import Circle from 'lucide-svelte/icons/circle';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import SectionConfiguration from './SectionConfiguration.svelte';
 	import SectionActions from './SectionActions.svelte';
@@ -19,7 +18,6 @@
 	import Section from './Section.svelte';
 	import Terminal from '$lib/terminal/Terminal.svelte';
 	import Tabbar from '$lib/components/Tabbar.svelte';
-	import GlobalNavSelect from '$lib/sidebar/GlobalNavSelect.svelte';
 
 	export let data: PageData;
 
