@@ -27,9 +27,9 @@
 	};
 </script>
 
-<Button class="text-base w-full flex gap-2 justify-start p-2 " color="alternative">
+<Button class="text-base w-full flex gap-2 justify-start p-2" color="alternative">
 	{#if $globalNavSelectedTag}
-		<TagIcon size={'1rem'} class="min-w-4" />
+		<TagIcon size={'1rem'} class="min-w-4 text-primary-600 dark:text-primary-400" />
 		<span
 			class="font-semibold text-primary-600 dark:text-primary-400 truncate"
 			title={$globalNavSelectedTag?.displayName}
@@ -37,7 +37,7 @@
 			{$globalNavSelectedTag?.displayName}
 		</span>
 	{:else if $globalNavSelectedDevice}
-		<HardDrive size={'1rem'} class="min-w-4" />
+		<HardDrive size={'1rem'} class="min-w-4 text-primary-600 dark:text-primary-400" />
 		<span
 			class="font-semibold text-primary-600 dark:text-primary-400 truncate"
 			title={$globalNavSelectedDevice?.displayName}
