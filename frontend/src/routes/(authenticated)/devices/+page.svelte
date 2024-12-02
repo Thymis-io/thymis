@@ -126,7 +126,7 @@
 	>
 		{#each devices as device (device.id)}
 			<tr
-				class="border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
+				class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
 				animate:flip={{ duration: flipDurationMs }}
 			>
 				<TableBodyCell tdClass="p-2">
@@ -174,7 +174,7 @@
 						</button>
 					</div>
 				</TableBodyCell>
-				<TableBodyCell tdClass="p-2 px-2 md:px-4">
+				<TableBodyCell tdClass="p-1 px-2 md:px-4">
 					<div class="flex gap-2">
 						<Button
 							class="px-3 py-1.5 gap-2"
@@ -185,7 +185,7 @@
 								device.data.identifier
 							)}`}
 						>
-							<Search size={'0.75rem'} class="min-w-3" />
+							<Search size={18} class="min-w-3" />
 							{$t('devices.actions.view-details')}
 						</Button>
 					</div>
