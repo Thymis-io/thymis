@@ -31,6 +31,7 @@ export const load = (async ({ fetch, url, data }) => {
 		locale.set(lang);
 	}
 	await waitLocale(lang);
+
 	const stateResponse = await fetch(`/api/state`, {
 		method: 'GET',
 		headers: {
