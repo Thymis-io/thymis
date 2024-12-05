@@ -5,6 +5,7 @@
 	import Pen from 'lucide-svelte/icons/pen';
 	import {
 		Button,
+		Helper,
 		Table,
 		TableBodyCell,
 		TableBodyRow,
@@ -25,7 +26,7 @@
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
 	import { flip } from 'svelte/animate';
-	import { nameToIdentifier } from '$lib/nameValidation';
+	import { nameToIdentifier, nameValidation } from '$lib/nameValidation';
 
 	const flipDurationMs = 200;
 	let dragDisabled = true;
@@ -71,8 +72,20 @@
 		if ((e.key === 'Enter' || e.key === ' ') && dragDisabled) dragDisabled = false;
 	}) satisfies KeyboardEventHandler<HTMLDivElement>;
 
+	const renameDevice = (device: Device, displayName: string) => {
+		const identifier = nameToIdentifier(displayName);
+
+		if (identifier && !data.state.devices.some((d) => d.identifier === identifier)) {
+			device.displayName = displayName;
+			device.identifier = identifier;
+			saveState();
+			return true;
+		}
+
+		return false;
+	};
+
 	$: devices = data.state.devices.map((d) => {
-		console.log(data.registeredDevices);
 		return { id: d.identifier, data: d };
 	});
 
@@ -146,12 +159,30 @@
 					</div>
 				</TableBodyCell>
 				<TableBodyEditCell
-					bind:value={device.data.displayName}
-					onEnter={() => {
-						device.data.identifier = nameToIdentifier(device.data.displayName);
-						saveState();
+					value={device.data.displayName}
+					onEnter={(value) => {
+						const success = renameDevice(device.data, value);
+
+						if (!success) {
+							// Reset the display name if the rename was unsuccessful
+							device.data.displayName = device.data.displayName;
+						}
 					}}
-				/>
+				>
+					<svelte:fragment slot="bottom" let:value={newDisplayName}>
+						{#if nameValidation(newDisplayName, 'device')}
+							{#if newDisplayName !== device.data.displayName}
+								<Helper color="red">{nameValidation(newDisplayName, 'device')}</Helper>
+							{/if}
+						{:else}
+							<Helper color="green">
+								{$t('create-device.name-helper', {
+									values: { identifier: nameToIdentifier(newDisplayName) }
+								})}
+							</Helper>
+						{/if}
+					</svelte:fragment>
+				</TableBodyEditCell>
 				<!-- <TableBodyCell>{$t('devices.unknown-target')}</TableBodyCell> -->
 				<TableBodyCell tdClass="p-2 px-2 md:px-4">
 					<div class="flex justify-between">
