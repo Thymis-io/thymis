@@ -96,7 +96,7 @@ state.subscribe((value) => {
 
 export const saveState = async () => {
 	state.set(currentState);
-	await fetch(`/api/state`, {
+	const response = await fetch(`/api/state`, {
 		method: 'PATCH',
 		headers: {
 			'content-type': 'application/json'
@@ -104,7 +104,7 @@ export const saveState = async () => {
 		body: JSON.stringify(currentState)
 	});
 	await invalidate((url) => url.pathname === '/api/state');
-	// await build();
+	return response.ok;
 };
 
 export const build = async () => {
