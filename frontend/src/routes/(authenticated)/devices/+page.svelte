@@ -72,14 +72,35 @@
 		if ((e.key === 'Enter' || e.key === ' ') && dragDisabled) dragDisabled = false;
 	}) satisfies KeyboardEventHandler<HTMLDivElement>;
 
-	const renameDevice = (device: Device, displayName: string) => {
+	const renameDevice = async (device: Device, displayName: string) => {
+		const oldIdentifier = device.identifier;
 		const identifier = nameToIdentifier(displayName);
 
 		if (identifier && !data.state.devices.some((d) => d.identifier === identifier)) {
 			device.displayName = displayName;
 			device.identifier = identifier;
-			saveState();
-			return true;
+
+			const success = await saveState();
+
+			if (success) {
+				const oldHostkeyRequest = await fetch(`/api/hostkey/${oldIdentifier}`);
+
+				if (oldHostkeyRequest.ok) {
+					const oldHostkey = await oldHostkeyRequest.json();
+					await fetch(`/api/hostkey/${identifier}`, {
+						method: 'PUT',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							public_key: oldHostkey.publicKey,
+							device_host: oldHostkey.deviceHost
+						})
+					});
+					await fetch(`/api/hostkey/${oldIdentifier}`, { method: 'DELETE' });
+				}
+				return true;
+			}
 		}
 
 		return false;
@@ -160,8 +181,8 @@
 				</TableBodyCell>
 				<TableBodyEditCell
 					value={device.data.displayName}
-					onEnter={(value) => {
-						const success = renameDevice(device.data, value);
+					onEnter={async (value) => {
+						const success = await renameDevice(device.data, value);
 
 						if (!success) {
 							// Reset the display name if the rename was unsuccessful
