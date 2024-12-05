@@ -24,9 +24,9 @@
 		{#if hostkey}
 			<div class="grid grid-cols-[max-content_1fr] gap-x-2">
 				<p class="break-all text-base">{$t('device-details.targetHost')}:</p>
-				<p class="break-all text-base">{hostkey.deviceHost}</p>
+				<p class="break-all text-base">{hostkey.device_host}</p>
 				<p class="break-all text-base">{$t('device-details.publicKey')}:</p>
-				<p class="break-all text-base">{hostkey.publicKey}</p>
+				<p class="break-all text-base">{hostkey.public_key}</p>
 			</div>
 		{/if}
 		<div class="flex flex-row gap-2">

@@ -77,8 +77,8 @@
 	outsideclose
 	size="lg"
 	on:open={() => {
-		deviceHost = hostkey ? hostkey.deviceHost : '';
-		publicKey = hostkey ? hostkey.publicKey : '';
+		deviceHost = hostkey ? hostkey.device_host : '';
+		publicKey = hostkey ? hostkey.public_key : '';
 	}}
 	on:open={() => {
 		setTimeout(() => {

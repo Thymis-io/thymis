@@ -70,7 +70,7 @@
 	$: {
 		if (browser) {
 			getHostkey(fetch, device.identifier).then((hostkey) => {
-				deviceHost = hostkey.deviceHost;
+				deviceHost = hostkey.device_host;
 			});
 		}
 	}

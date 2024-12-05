@@ -14,14 +14,14 @@ class DeviceHeartbeatRequest(BaseModel):
 
 
 class Hostkey(BaseModel):
-    identifier: str = Field(serialization_alias="identifier")
-    public_key: str = Field(serialization_alias="publicKey")
-    device_host: str = Field(serialization_alias="deviceHost")
+    identifier: str
+    public_key: str
+    device_host: str
 
 
 class CreateHostkeyRequest(BaseModel):
-    public_key: str = Field(serialization_alias="publicKey")
-    device_host: str = Field(serialization_alias="deviceHost")
+    public_key: str
+    device_host: str
 
 
 __all__ = [

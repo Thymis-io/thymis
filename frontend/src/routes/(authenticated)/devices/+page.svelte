@@ -92,10 +92,7 @@
 						headers: {
 							'Content-Type': 'application/json'
 						},
-						body: JSON.stringify({
-							public_key: oldHostkey.publicKey,
-							device_host: oldHostkey.deviceHost
-						})
+						body: JSON.stringify(oldHostkey)
 					});
 					await fetch(`/api/hostkey/${oldIdentifier}`, { method: 'DELETE' });
 				}

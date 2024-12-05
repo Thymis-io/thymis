@@ -1,7 +1,7 @@
 export type Hostkey = {
 	identifier: string;
-	publicKey: string;
-	deviceHost: string;
+	public_key: string;
+	device_host: string;
 };
 
 export const getHostkey = async (fetch: Window.fetch, identifier: string) => {

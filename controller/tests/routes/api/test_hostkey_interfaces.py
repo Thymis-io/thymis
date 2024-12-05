@@ -12,7 +12,7 @@ def test_create_hostkey(test_client):
     )
     response = test_client.put(f"{PATH_PREFIX}/test_id", json=hostkey.model_dump())
     assert response.status_code == 200
-    assert response.json()["publicKey"] == "test_public_key"
+    assert response.json()["public_key"] == "test_public_key"
 
     hostkey = models.CreateHostkeyRequest(
         public_key="test_public_key2",
@@ -21,7 +21,7 @@ def test_create_hostkey(test_client):
 
     response = test_client.put(f"{PATH_PREFIX}/test_id", json=hostkey.model_dump())
     assert response.status_code == 200
-    assert response.json()["publicKey"] == "test_public_key2"
+    assert response.json()["public_key"] == "test_public_key2"
 
 
 def test_get_hostkey_not_found(test_client):
@@ -37,7 +37,7 @@ def test_get_hostkey(test_client, project):
 
     response = test_client.get(f"{PATH_PREFIX}/test_id")
     assert response.status_code == 200
-    assert response.json()["publicKey"] == "test_public_key"
+    assert response.json()["public_key"] == "test_public_key"
 
 
 def test_delete_hostkey(test_client, project):
