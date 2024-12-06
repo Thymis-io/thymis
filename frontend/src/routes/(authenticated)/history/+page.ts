@@ -1,9 +1,9 @@
-import { handleFetch } from '$lib/fetchHandler';
+import { fetchWithNotify } from '$lib/fetchWithNotify';
 import type { Commit } from '$lib/history';
 import type { PageLoad } from './$types';
 
 export const load = (async ({ fetch }) => {
-	const history_response = handleFetch(
+	const history_response = fetchWithNotify(
 		`/api/history`,
 		{
 			method: 'GET',

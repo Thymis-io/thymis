@@ -1,7 +1,7 @@
 import { invalidate } from '$app/navigation';
 import { derived, writable } from 'svelte/store';
 import { queryParam } from 'sveltekit-search-params';
-import { handleFetch } from './fetchHandler';
+import { fetchWithNotify } from './fetchWithNotify';
 
 export type ModuleSettings = {
 	type: string;
@@ -97,7 +97,7 @@ state.subscribe((value) => {
 
 export const saveState = async () => {
 	state.set(currentState);
-	const response = await handleFetch(`/api/state`, {
+	const response = await fetchWithNotify(`/api/state`, {
 		method: 'PATCH',
 		headers: {
 			'content-type': 'application/json'
@@ -109,7 +109,7 @@ export const saveState = async () => {
 };
 
 export const build = async () => {
-	await handleFetch(`/api/action/build`, { method: 'POST' });
+	await fetchWithNotify(`/api/action/build`, { method: 'POST' });
 };
 
 export const getTagByIdentifier = (state: State, identifier: string) => {

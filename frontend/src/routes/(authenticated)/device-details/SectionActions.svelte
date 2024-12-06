@@ -5,24 +5,24 @@
 	import { Button, Input, Tooltip } from 'flowbite-svelte';
 	import Download from 'lucide-svelte/icons/download';
 	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
-	import { handleFetch } from '$lib/fetchHandler';
+	import { fetchWithNotify } from '$lib/fetchWithNotify';
 
 	export let device: Device;
 
 	const restartDevice = async (device: Device) => {
-		await handleFetch(`/api/action/restart-device?identifier=${device.identifier}`, {
+		await fetchWithNotify(`/api/action/restart-device?identifier=${device.identifier}`, {
 			method: 'POST'
 		});
 	};
 
 	const buildAndDownloadImage = async (device: Device) => {
-		await handleFetch(`/api/action/build-download-image?identifier=${device.identifier}`, {
+		await fetchWithNotify(`/api/action/build-download-image?identifier=${device.identifier}`, {
 			method: 'POST'
 		});
 	};
 
 	const buildAndDownloadImageForClone = async (device: Device) => {
-		const response = await handleFetch(
+		const response = await fetchWithNotify(
 			`/api/action/build-download-image-for-clone?identifier=${device.identifier}`,
 			{
 				method: 'POST'
