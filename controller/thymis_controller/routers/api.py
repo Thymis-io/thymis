@@ -14,7 +14,6 @@ from thymis_controller.dependencies import (
     require_valid_user_session,
 )
 from thymis_controller.models.state import State
-from thymis_controller.notifications import notification_manager
 from thymis_controller.routers import task
 from thymis_controller.tcp_to_ws import (
     channel_to_websocket,
@@ -148,7 +147,7 @@ def download_image(
 
 @router.websocket("/notification")
 async def notification_websocket(websocket: WebSocket):
-    await notification_manager.connect(websocket)
+    await websocket.state.notification_manager.connect(websocket)
 
 
 @router.get("/history", tags=["history"])
