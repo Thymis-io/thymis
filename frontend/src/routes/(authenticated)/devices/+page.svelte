@@ -27,6 +27,7 @@
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
 	import { flip } from 'svelte/animate';
 	import { nameToIdentifier, nameValidation } from '$lib/nameValidation';
+	import { fetchWithNotify } from '$lib/fetchWithNotify';
 
 	const flipDurationMs = 200;
 	let dragDisabled = true;
@@ -83,18 +84,22 @@
 			const success = await saveState();
 
 			if (success) {
-				const oldHostkeyRequest = await fetch(`/api/hostkey/${oldIdentifier}`);
+				const oldHostkeyRequest = await fetchWithNotify(
+					`/api/hostkey/${oldIdentifier}`,
+					undefined,
+					{ 404: null }
+				);
 
 				if (oldHostkeyRequest.ok) {
 					const oldHostkey = await oldHostkeyRequest.json();
-					await fetch(`/api/hostkey/${identifier}`, {
+					await fetchWithNotify(`/api/hostkey/${identifier}`, {
 						method: 'PUT',
 						headers: {
 							'Content-Type': 'application/json'
 						},
 						body: JSON.stringify(oldHostkey)
 					});
-					await fetch(`/api/hostkey/${oldIdentifier}`, { method: 'DELETE' });
+					await fetchWithNotify(`/api/hostkey/${oldIdentifier}`, { method: 'DELETE' });
 				}
 				return true;
 			}

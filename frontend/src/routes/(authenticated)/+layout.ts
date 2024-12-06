@@ -5,7 +5,7 @@ import type { LayoutLoad } from './$types';
 import type { State, Module } from '$lib/state';
 import { error, redirect } from '@sveltejs/kit';
 import { getAllTasks } from '$lib/taskstatus';
-import { handleFetch } from '$lib/fetchHandler';
+import { fetchWithNotify } from '$lib/fetchWithNotify';
 
 export const load = (async ({ fetch, url, data }) => {
 	let lang = 'en';
@@ -33,7 +33,7 @@ export const load = (async ({ fetch, url, data }) => {
 	}
 	await waitLocale(lang);
 
-	const stateResponse = await handleFetch(
+	const stateResponse = await fetchWithNotify(
 		`/api/state`,
 		{
 			method: 'GET',
@@ -53,7 +53,7 @@ export const load = (async ({ fetch, url, data }) => {
 		error(500, 'Could not fetch state');
 	}
 
-	const availableModulesResponse = await handleFetch(
+	const availableModulesResponse = await fetchWithNotify(
 		`/api/available_modules`,
 		{
 			method: 'GET',

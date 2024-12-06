@@ -1,4 +1,4 @@
-import { handleFetch } from './fetchHandler';
+import { fetchWithNotify } from './fetchWithNotify';
 
 export type Hostkey = {
 	identifier: string;
@@ -8,7 +8,12 @@ export type Hostkey = {
 
 export const getHostkey = async (fetch: typeof window.fetch, identifier: string) => {
 	let hostkey: Hostkey | null = null;
-	const response = await handleFetch(`/api/hostkey/${identifier}`, undefined, { 404: null }, fetch);
+	const response = await fetchWithNotify(
+		`/api/hostkey/${identifier}`,
+		undefined,
+		{ 404: null },
+		fetch
+	);
 	if (response.ok) {
 		hostkey = await response.json();
 	}

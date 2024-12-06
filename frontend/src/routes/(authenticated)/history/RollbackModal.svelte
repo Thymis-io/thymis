@@ -3,14 +3,14 @@
 	import { invalidate } from '$app/navigation';
 	import { Button, Modal } from 'flowbite-svelte';
 	import type { Commit } from '$lib/history';
-	import { handleFetch } from '$lib/fetchHandler';
+	import { fetchWithNotify } from '$lib/fetchWithNotify';
 
 	export let commit: Commit | undefined;
 
 	const revertCommit = async (commitSHA: string | undefined) => {
 		if (commitSHA === undefined) return;
 
-		await handleFetch(`/api/history/revert-commit?commit_sha=${commitSHA}`, { method: 'POST' });
+		await fetchWithNotify(`/api/history/revert-commit?commit_sha=${commitSHA}`, { method: 'POST' });
 		await invalidate((url) => url.pathname === '/api/history' || url.pathname === '/api/state');
 
 		commit = undefined;

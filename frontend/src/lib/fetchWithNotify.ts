@@ -4,7 +4,7 @@ export type CustomResponseMessage = {
 	[statusCode: number]: string | null;
 };
 
-export const handleFetch = async (
+export const fetchWithNotify = async (
 	url: string,
 	init?: RequestInit,
 	customResponse?: CustomResponseMessage,
