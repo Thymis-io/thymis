@@ -110,6 +110,3 @@ class NotificationManager:
             except Exception:
                 self.disconnect(connection)
                 traceback.print_exc()
-
-
-notification_manager = NotificationManager()
