@@ -14,6 +14,9 @@ class TaskWorkerPoolManager:
 
         raise NotImplementedError("Implement me!")
 
+    async def start(self):
+        pass
+
 
 def worker_run_task(task: task_models.Task, conn: (Connection, Connection)):
-    raise NotImplementedError("Implement me!")
+    pass
