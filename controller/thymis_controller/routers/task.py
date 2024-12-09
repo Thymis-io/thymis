@@ -1,19 +1,22 @@
 import uuid
 
-from fastapi import APIRouter, WebSocket
-from thymis_controller.task import global_task_controller
+from fastapi import APIRouter, Depends, WebSocket
+from thymis_controller.dependencies import SessionAD, TaskControllerAD
+from thymis_controller.task import TaskController
 
 router = APIRouter()
 
+global_task_controller = None
+
 
 @router.websocket("/task_status")
-async def task_status(websocket: WebSocket):
-    await global_task_controller.connect(websocket)
+async def task_status(websocket: WebSocket, task_controller: TaskControllerAD):
+    await task_controller.subscribe_ui(websocket)
 
 
 @router.get("/tasks")
-async def get_tasks():
-    return global_task_controller.get_tasks()
+async def get_tasks(task_controller: TaskControllerAD, session: SessionAD):
+    return task_controller.get_tasks(session)
 
 
 @router.get("/tasks/{task_id}")
