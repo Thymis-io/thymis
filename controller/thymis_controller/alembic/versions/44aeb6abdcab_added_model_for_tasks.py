@@ -23,9 +23,8 @@ def upgrade():
         sa.Column("start_time", sa.DateTime(), nullable=False),
         sa.Column("end_time", sa.DateTime(), nullable=True),
         sa.Column("state", sa.String(50), nullable=False),
-        sa.Column("display_name", sa.String(255), nullable=False),
         sa.Column("exception", sa.Text(), nullable=True),
-        sa.Column("type", sa.String(50), nullable=False),
+        sa.Column("task_type", sa.String(50), nullable=False),
         sa.Column(
             "task_submission_data", sa.JSON(), nullable=True
         ),  # New field for submission data

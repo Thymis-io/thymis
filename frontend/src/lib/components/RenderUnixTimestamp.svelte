@@ -1,12 +1,16 @@
 <script lang="ts">
-	export let timestamp: number;
+	export let timestamp: string | null;
 
 	let date: Date;
 
-	$: date = new Date(timestamp * 1000);
+	$: console.log('timestamp', timestamp);
+
+	$: console.log('date', date);
+
+	$: date = new Date(Date.parse(timestamp));
 </script>
 
-{#if date}
+{#if timestamp && date}
 	<time datetime={date.toISOString()}>
 		{date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
 	</time>
