@@ -1,3 +1,5 @@
+import uuid
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session, load_only
 from thymis_controller import db_models
@@ -43,26 +45,18 @@ def create(
     db_session: Session,
     start_time,
     state,
-    display_name,
-    type,
+    task_type,
     task_submission_data,
     parent_task_id,
-    children,
-    process_program,
-    process_args,
-    process_env,
 ):
+    id = uuid.uuid4()
     task = db_models.Task(
+        id=id,
         start_time=start_time,
         state=state,
-        display_name=display_name,
-        type=type,
+        task_type=task_type,
         task_submission_data=task_submission_data,
         parent_task_id=parent_task_id,
-        children=children,
-        process_program=process_program,
-        process_args=process_args,
-        process_env=process_env,
     )
     db_session.add(task)
 
@@ -76,8 +70,7 @@ def get_tasks_short(db_session: Session):
         select(db_models.Task).options(
             load_only(
                 db_models.Task.id,
-                db_models.Task.type,
-                db_models.Task.display_name,
+                db_models.Task.task_type,
                 db_models.Task.state,
                 db_models.Task.start_time,
                 db_models.Task.end_time,
@@ -90,13 +83,16 @@ def get_tasks_short(db_session: Session):
     return [
         TaskShort(
             id=task.id,
-            type=task.type,
-            display_name=task.display_name,
+            task_type=task.task_type,
             state=task.state,
             start_time=task.start_time,
             end_time=task.end_time,
             exception=task.exception,
-            data=task.task_submission_data,
+            task_submission_data=task.task_submission_data,
         )
         for task in all_tasks
     ]
+
+
+def get_task_by_id(db_session, task_id):
+    return db_session.query(db_models.Task).filter(db_models.Task.id == task_id).first()
