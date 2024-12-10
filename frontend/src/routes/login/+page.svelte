@@ -2,7 +2,7 @@
 	import { queryParam } from 'sveltekit-search-params';
 	import '../../app.postcss';
 	import type { Writable } from 'svelte/store';
-	import { enhance } from '$app/forms';
+	import Navbar from '$lib/navbar/Navbar.svelte';
 
 	const redirectString = queryParam('redirect');
 	const authError: Writable<string | null> = queryParam('authError');
@@ -12,7 +12,16 @@
 	<title>Thymis - Sign in</title>
 </svelte:head>
 
-<section class="bg-gray-50 dark:bg-gray-900">
+<section class="bg-gray-50 dark:bg-gray-900 dark:text-white">
+	<header
+		class="fixed top-0 z-40 mx-auto w-full flex-none border-b border-gray-200 bg-white dark:border-gray-600 dark:bg-gray-800"
+	>
+		<Navbar
+			class="h-[calc(var(--navbar-height))] max-h-[calc(var(--navbar-height))]"
+			drawerHidden={false}
+			authenticated={false}
+		/>
+	</header>
 	<div class="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
 		<div
 			class="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700"
@@ -71,3 +80,9 @@
 		</div>
 	</div>
 </section>
+
+<style lang="postcss">
+	:root {
+		--navbar-height: 4rem;
+	}
+</style>
