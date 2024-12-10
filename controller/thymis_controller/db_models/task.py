@@ -20,9 +20,8 @@ class Task(Base):
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=True)
     state = Column(String(50), nullable=False)
-    display_name = Column(String(255), nullable=False)
     exception = Column(Text, nullable=True)
-    type = Column(String(50), nullable=False)
+    task_type = Column(String(50), nullable=False)
     task_submission_data = Column(JSON, nullable=True)  # New field for submission data
 
     # Composite Task Fields

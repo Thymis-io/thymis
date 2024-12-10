@@ -215,6 +215,9 @@ class Project:
             )
         self.repo.git.add(".")
 
+    def reload_from_disk(self):
+        self.write_state_and_reload(self.read_state())
+
     def create_folder_and_write_modules(self, base_path, identifier, modules, priority):
         path = self.path / base_path / identifier
         path.mkdir(exist_ok=True)
@@ -332,8 +335,15 @@ class Project:
             task.DeployProjectTask(self, devices, global_settings.SSH_KEY_PATH)
         )
 
-    def create_update_task(self):
-        return task.global_task_controller.add_task(task.UpdateTask(self.path, self))
+    def create_update_task(
+        self, task_controller: "task.TaskController", db_session: Session
+    ):
+        return task_controller.submit(
+            models.task.ProjectFlakeUpdateTaskSubmission(
+                project_path=str(self.path),
+            ),
+            db_session,
+        )
 
     def create_build_device_image_task(
         self, device_identifier: str, db_session: Session

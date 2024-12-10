@@ -20,8 +20,10 @@ async def get_tasks(task_controller: TaskControllerAD, session: SessionAD):
 
 
 @router.get("/tasks/{task_id}")
-async def get_task(task_id: uuid.UUID):
-    return global_task_controller.get_task(task_id)
+async def get_task(
+    task_id: uuid.UUID, task_controller: TaskControllerAD, db_session: SessionAD
+):
+    return task_controller.get_task(task_id, db_session)
 
 
 @router.post("/tasks/{task_id}/cancel")

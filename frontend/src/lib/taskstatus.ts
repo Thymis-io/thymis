@@ -4,24 +4,26 @@ import { invalidate } from '$app/navigation';
 import { fetchWithNotify } from './fetchWithNotify';
 
 export type TaskState = 'pending' | 'running' | 'completed' | 'failed';
-export type TaskVanilla = {
+
+export type Task = {
 	id: string;
-	type: 'task';
-	display_name: string;
+	start_time: string;
+	end_time?: string;
 	state: TaskState;
 	exception?: string;
-	start_time: number;
-	end_time?: number;
-	data: Record<string, unknown>;
-};
-export type CommandTask = Omit<TaskVanilla, 'type'> & {
-	type: 'commandtask';
-	stdout: string;
-	stderr: string;
-};
-export type NixCommandTask = Omit<CommandTask, 'type'> & {
-	type: 'nixcommandtask';
-	status: {
+	task_type: string;
+	task_submission_data: Record<string, unknown>;
+
+	parent_task_id?: string;
+	children?: string[];
+
+	process_program?: string;
+	process_args?: string[];
+	process_env?: Record<string, string>;
+	process_stdout?: string;
+	process_stderr?: string;
+
+	nix_status?: {
 		done: number;
 		expected: number;
 		running: number;
@@ -29,40 +31,32 @@ export type NixCommandTask = Omit<CommandTask, 'type'> & {
 		errors: unknown[];
 		logs_by_level: Record<number, string[]>;
 	};
+	nix_files_linked?: number;
+	nix_bytes_linked?: number;
+	nix_corrupted_paths?: number;
+	nix_untrusted_paths?: number;
+	nix_errors?: Record<string, unknown>;
+	nix_warnings?: Record<string, unknown>;
+	nix_notices?: Record<string, unknown>;
+	nix_infos?: Record<string, unknown>;
 };
 
-export type CompositeTask = Omit<TaskVanilla, 'type'> & {
-	type: 'compositetask';
-	tasks: TaskList;
+export type TaskShort = {
+	id: string;
+	task_type: string;
+	state: TaskState;
+	start_time: string;
+	end_time?: string;
+	exception?: string;
+	data: Record<string, unknown>;
 };
 
-export type Task = TaskVanilla | CommandTask | CompositeTask | NixCommandTask;
-
-export type TaskList = Task[];
+export type TaskList = TaskShort[];
 
 let socket: WebSocket | undefined;
 
 export const taskStatus = writable<TaskList>([]);
 export const tasksById: Record<string, Task> = {};
-export const tasksByIdStore: Readable<Record<string, Task>> = derived<
-	typeof taskStatus,
-	Record<string, Task>
->(
-	taskStatus,
-	($taskStatus, set) => {
-		const tasksById: Record<string, Task> = {};
-		for (const task of $taskStatus) {
-			tasksById[task.id] = task;
-		}
-		set(tasksById);
-	},
-	{}
-);
-taskStatus.subscribe((value) => {
-	for (const task of value) {
-		tasksById[task.id] = task;
-	}
-});
 
 export const getAllTasks = async (fetch: typeof window.fetch = window.fetch) => {
 	const response = await fetchWithNotify(`/api/tasks`, undefined, {}, fetch);

@@ -33,6 +33,9 @@ def get_project():
         return global_project
 
 
+ProjectAD = Annotated[Project, Depends(get_project)]
+
+
 def get_state(project: Project = Depends(get_project)):
     return project.read_state()
 

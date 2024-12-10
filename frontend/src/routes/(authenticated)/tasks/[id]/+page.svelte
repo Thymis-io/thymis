@@ -2,14 +2,51 @@
 	import type { PageData } from './$types';
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
-	import { tasksByIdStore } from '$lib/taskstatus';
 	import { Button } from 'flowbite-svelte';
 	import MonospaceText from '$lib/components/MonospaceText.svelte';
 	import RenderUnixTimestamp from '$lib/components/RenderUnixTimestamp.svelte';
 
 	export let data: PageData;
 
-	$: task = $tasksByIdStore[$page.params.id] || data.task;
+	$: task = data.task;
+
+	// 	export type TaskState = 'pending' | 'running' | 'completed' | 'failed';
+
+	// export type Task = {
+	// 	id: string;
+	// 	start_time: string;
+	// 	end_time?: string;
+	// 	state: TaskState;
+	// 	exception?: string;
+	// 	task_type: string;
+	// 	task_submission_data: Record<string, unknown>;
+
+	// 	parent_task_id?: string;
+	// 	children?: string[];
+
+	// 	process_program?: string;
+	// 	process_args?: string[];
+	// 	process_env?: Record<string, string>;
+	// 	process_stdout?: string;
+	// 	process_stderr?: string;
+
+	// 	nix_status?: {
+	// 		done: number;
+	// 		expected: number;
+	// 		running: number;
+	// 		failed: number;
+	// 		errors: unknown[];
+	// 		logs_by_level: Record<number, string[]>;
+	// 	};
+	// 	nix_files_linked?: number;
+	// 	nix_bytes_linked?: number;
+	// 	nix_corrupted_paths?: number;
+	// 	nix_untrusted_paths?: number;
+	// 	nix_errors?: Record<string, unknown>;
+	// 	nix_warnings?: Record<string, unknown>;
+	// 	nix_notices?: Record<string, unknown>;
+	// 	nix_infos?: Record<string, unknown>;
+	// };
 
 	// if task is undefined, go to 404
 	const cleanStdOut = (stdoutorerr: string) => {
@@ -17,107 +54,106 @@
 		return stdoutorerr.replaceAll(toRemove, '');
 	};
 
-	// if task is a command, build it by cat-ting data.program, data.args and data.env
-	let command: string | undefined = undefined;
-	$: {
-		if (task && (task.type === 'commandtask' || task.type === 'nixcommandtask')) {
-			let args = [];
-			// for (let arg of task.data.args) {
-			for (let arg of task.data.args as string[]) {
-				if (arg.includes(' ')) {
-					args.push(`"${arg}"`);
-				} else {
-					args.push(arg);
-				}
-			}
-			command = task.data.program + ' ' + args.join(' ');
-			if (task.data.env) {
-				command =
-					Object.entries(task.data.env)
-						.map(([key, value]) => `${key}="${value}"`)
-						.join(' ') +
-					' ' +
-					command;
-			}
-		}
-	}
-
 	// <!-- logs_by_level={
 	// 	0: self.error_logs,
 	// 	1: self.warnings,
 	// 	2: self.notices,
 	// 	3: self.infos, -->
 	$: log_level_names = [$t('error'), $t('warning'), $t('notice'), $t('info')];
+
+	const escapeForDoubleQuotes = (str: string) => {
+		// quote ", `, \ and $
+		return str.replaceAll(/["`\\$]/g, '\\$&');
+	};
 </script>
 
-<h1 class="text-2xl font-bold">Task Detail for Task {task.id}: {task.display_name}</h1>
+<h1>Task type={task.task_type}, id={task.id}</h1>
 
-<h2 class="text-xl font-bold">Task State: {task.state}</h2>
+<p>Current status: {task.state}</p>
 
-{#if task.state === 'failed'}
-	<h2 class="text-xl font-bold">Exception: {task.exception}</h2>
+{#if task.state === 'pending'}
+	<p>Task is pending</p>
+{:else if task.state === 'running'}
+	<p>Task is running</p>
+{:else if task.state === 'completed'}
+	<p>Task is completed</p>
+{:else if task.state === 'failed'}
+	<p>Task has failed</p>
 {/if}
 
-<h2 class="text-xl font-bold">Start Time: <RenderUnixTimestamp timestamp={task.start_time} /></h2>
-
-{#if task.end_time}
-	<h2 class="text-xl font-bold">End Time: <RenderUnixTimestamp timestamp={task.end_time} /></h2>
+{#if task.exception}
+	<p>Exception: {task.exception}</p>
 {/if}
 
-<h2 class="text-xl font-bold truncate">Detail: {JSON.stringify(task.data)}</h2>
+<div>
+	<h2>Task times</h2>
+	<p>Start time: <RenderUnixTimestamp timestamp={task.start_time} /></p>
+	{#if task.end_time}
+		<p>End time: <RenderUnixTimestamp timestamp={task.end_time} /></p>
+	{:else}
+		<p>Task is still running, no end time</p>
+	{/if}
+</div>
 
-{#if task.type === 'nixcommandtask'}
-	<h2 class="text-xl font-bold">Nix Process Status:</h2>
-	<ul>
-		<li>Done: {task.status.done}</li>
-		<li>Expected: {task.status.expected}</li>
-		<li>Running: {task.status.running}</li>
-		<li>Failed: {task.status.failed}</li>
-		<ul>
-			Errors:
-			{#each task.status.errors as error}
-				<MonospaceText code={error.msg}></MonospaceText>
-			{/each}
-		</ul>
-		<!-- <li>Logs by Level: {JSON.stringify(task.status.logs_by_level)}</li> -->
-	</ul>
-	<!-- logs_by_level={
-		0: self.error_logs,
-		1: self.warnings,
-		2: self.notices,
-		3: self.infos, -->
-	<!-- logs by level: we show a monospace text for each level -->
-	{#each log_level_names as level_name, idx}
-		{#if task.status.logs_by_level[idx].length > 0}
-			<h2 class="text-xl font-bold">{level_name} Logs:</h2>
-			{@const logs = task.status.logs_by_level[idx].join('\n')}
-			<MonospaceText code={logs} />
-		{:else}
-			<h2 class="text-xl font-bold">No {level_name} Logs</h2>
-		{/if}
-	{/each}
-{/if}
+<hr />
 
-{#if task.type === 'commandtask' || task.type === 'nixcommandtask'}
-	<h2 class="text-xl font-bold">Command:</h2>
-	<MonospaceText code={command} />
-	<h2 class="text-xl font-bold">Stdout:</h2>
-	<MonospaceText code={cleanStdOut(task.stdout)} />
-	<h2 class="text-xl font-bold">Stderr:</h2>
-	<MonospaceText code={cleanStdOut(task.stderr)} />
-{/if}
+<div>
+	<h2>Task submission data</h2>
+	<MonospaceText code={JSON.stringify(task.task_submission_data, null, 2)} />
+</div>
 
-{#if task.type === 'compositetask'}
-	<!-- We give links to the subtasks -->
-	<h2 class="text-xl font-bold">Subtasks:</h2>
-	<ul>
-		{#each task.tasks as subtask, idx}
-			<li>
-				<span>Subtask {idx}: {subtask.display_name}</span>
-				<a href="/tasks/{subtask.id}"
-					><Button class="btn btn-sm btn-primary m-1">View Subtask {idx}</Button></a
-				>
-			</li>
-		{/each}
-	</ul>
-{/if}
+<hr />
+
+<div>
+	<h2>Parent and children</h2>
+	{#if task.parent_task_id}
+		<p>Parent task: {task.parent_task_id}</p>
+	{:else}
+		<p>No parent task</p>
+	{/if}
+
+	{#if task.children && task.children.length > 0}
+		<p>Children tasks: {task.children.join(', ')}</p>
+	{:else}
+		<p>No children tasks</p>
+	{/if}
+</div>
+
+<hr />
+
+<div>
+	<h2>Process</h2>
+	{#if task.process_program && task.process_args && task.process_env}
+		<MonospaceText
+			code={Object.entries(task.process_env)
+				.map(([key, value]) => `${key}="${escapeForDoubleQuotes(value)}"`)
+				.join(' ') +
+				' ' +
+				task.process_program +
+				' ' +
+				task.process_args
+					.map((arg) =>
+						`"${escapeForDoubleQuotes(arg)}"` ? escapeForDoubleQuotes(arg) !== arg : arg
+					)
+					.join(' ')}
+		/>
+	{:else}
+		<p>No process information</p>
+	{/if}
+
+	{#if task.process_stdout}
+		<p>Standard output:</p>
+		<MonospaceText code={cleanStdOut(task.process_stdout)} />
+	{:else}
+		<p>No standard output</p>
+	{/if}
+
+	{#if task.process_stderr}
+		<p>Standard error:</p>
+		<MonospaceText code={cleanStdOut(task.process_stderr)} />
+	{:else}
+		<p>No standard error</p>
+	{/if}
+</div>
+
+<hr />
