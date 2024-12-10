@@ -4,9 +4,11 @@ import threading
 import uuid
 from typing import Annotated, Generator, Optional, Union
 
+from fastapi.requests import HTTPConnection
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
 from thymis_controller.crud import web_session
+from thymis_controller.task import TaskController
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +31,9 @@ def get_project():
 
             global_project = Project(REPO_PATH, next(get_db_session()))
         return global_project
+
+
+ProjectAD = Annotated[Project, Depends(get_project)]
 
 
 def get_state(project: Project = Depends(get_project)):
@@ -91,3 +96,10 @@ def apply_user_session(db_session: SessionAD, response: Response):
         samesite="strict",
         expires=exp,
     )
+
+
+def get_task_controller(connection: HTTPConnection):
+    return connection.state.task_controller
+
+
+TaskControllerAD = Annotated[TaskController, Depends(get_task_controller)]

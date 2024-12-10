@@ -2,7 +2,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from thymis_controller import crud, models
-from thymis_controller.dependencies import SessionAD, get_project
+from thymis_controller.dependencies import ProjectAD, SessionAD
 from thymis_controller.project import Project
 from thymis_controller.utils import determine_first_host_with_key
 
@@ -16,7 +16,7 @@ def register(
     register_request: models.RegisterDeviceRequest,
     request: Request,
     db_session: SessionAD,
-    project: Project = Depends(get_project),
+    project: ProjectAD,
 ):
     request_device_host = request.client.host
     logger.info(
