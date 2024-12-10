@@ -1,6 +1,8 @@
+import datetime
+import uuid
 from typing import Any, Literal, Optional, Union
 
-from pydantic import BaseModel, JsonValue
+from pydantic import BaseModel, ConfigDict, Field, JsonValue
 
 type TaskState = Literal["pending", "running", "completed", "failed"]
 
@@ -17,45 +19,44 @@ class NixProcessStatus(BaseModel):
 
 
 class Task(BaseModel):
-    id: str  # uuid
-    type: str
-    display_name: str
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID  # uuid
+    start_time: datetime.datetime
+    end_time: Optional[datetime.datetime]
     state: TaskState
-    start_time: float
-    end_time: Optional[float]
     exception: Optional[str]
-    data: dict = {}  # freeform data
+    task_type: str
+    task_submission_data: "TaskSubmissionData"
 
+    parent_task_id: Optional[uuid.UUID] = None
+    children: Optional[list[uuid.UUID]] = None
 
-class PlainTask(Task):
-    type: Literal["task"] = "task"
+    process_program: Optional[str]
+    process_args: Optional[list[str]]
+    process_env: Optional[dict[str, str]]
+    process_stdout: Optional[str]
+    process_stderr: Optional[str]
 
-
-class CommandTask(Task):
-    type: Literal["commandtask"] = "commandtask"
-    stdout: str
-    stderr: str
-
-
-class NixCommandTask(CommandTask):
-    type: Literal["nixcommandtask"] = "nixcommandtask"
-    status: NixProcessStatus
-
-
-class CompositeTask(Task):
-    type: Literal["compositetask"] = "compositetask"
-    tasks: list[Task]
+    nix_status: Optional[NixProcessStatus]
+    nix_files_linked: Optional[int]
+    nix_bytes_linked: Optional[int]
+    nix_corrupted_paths: Optional[int]
+    nix_untrusted_paths: Optional[int]
+    nix_errors: Optional[JsonValue]
+    nix_warnings: Optional[JsonValue]
+    nix_notices: Optional[JsonValue]
+    nix_infos: Optional[JsonValue]
 
 
 class TaskShort(BaseModel):
-    id: str  # uuid
-    type: str
-    display_name: str
+    id: uuid.UUID  # uuid
+    task_type: str
     state: TaskState
-    start_time: float
+    start_time: datetime.datetime
     end_time: Optional[float]
     exception: Optional[str]
-    data: dict = {}  # freeform data
+    task_submission_data: "TaskSubmissionData"
 
 
 # sent from frontend to controller
@@ -99,27 +100,46 @@ class TaskShort(BaseModel):
 #         )
 class TaskSubmission(BaseModel):
     id: str  # uuid
-    data: TaskSubmissionData
+    data: "TaskSubmissionData" = Field(discriminator="type")
 
 
 type TaskSubmissionData = Union[
-    DeployProjectTaskSubmission,
-    ProjectFlakeUpdateTaskSubmission,
-    BuildDeviceImageTaskSubmission,
-    SSHCommandTaskSubmission,
+    "DeployDevicesTaskSubmission",
+    "ProjectFlakeUpdateTaskSubmission",
+    "BuildDeviceImageTaskSubmission",
+    "SSHCommandTaskSubmission",
 ]
 
 
-class DeployProjectTaskSubmission(BaseModel):
-    devices: list[models.Hostkey]
+class DeployDeviceInformation(BaseModel):
+    identifier: str
+    host: str
+    port: int
+    username: str
+
+
+class DeployDevicesTaskSubmission(BaseModel):
+    type: Literal["deploy_devices_task"] = "deploy_devices_task"
+    devices: list[DeployDeviceInformation]
     ssh_key_path: str
+    known_hosts_path: str
+    parent_task_id: Optional[uuid.UUID] = None
+
+
+class DeployDeviceTaskSubmission(BaseModel):
+    type: Literal["deploy_device_task"]
+    device: DeployDeviceInformation
+    ssh_key_path: str
+    known_hosts_path: str
 
 
 class ProjectFlakeUpdateTaskSubmission(BaseModel):
-    pass
+    type: Literal["project_flake_update_task"] = "project_flake_update_task"
+    project_path: str
 
 
 class BuildDeviceImageTaskSubmission(BaseModel):
+    type: Literal["build_device_image_task"] = "build_device_image_task"
     project_path: str
     device_identifier: str
     device_state: dict
@@ -127,6 +147,7 @@ class BuildDeviceImageTaskSubmission(BaseModel):
 
 
 class SSHCommandTaskSubmission(BaseModel):
+    type: Literal["ssh_command_task"] = "ssh_command_task"
     target_host: str
     command: str
     ssh_key_path: str
@@ -141,9 +162,13 @@ class SSHCommandTaskSubmission(BaseModel):
 __all__ = [
     "TaskState",
     "Task",
-    "PlainTask",
-    "CommandTask",
-    "CompositeTask",
     "NixProcessStatus",
-    "NixCommandTask",
+    "TaskShort",
+    "TaskSubmission",
+    "TaskSubmissionData",
+    "DeployDeviceInformation",
+    "DeployDevicesTaskSubmission",
+    "ProjectFlakeUpdateTaskSubmission",
+    "BuildDeviceImageTaskSubmission",
+    "SSHCommandTaskSubmission",
 ]

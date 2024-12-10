@@ -151,6 +151,7 @@ async def lifespan(app: FastAPI):
         "task_controller": task_controller,
     }
     notification_manager.stop()
+    task_controller.stop()
     logger.info("stopping frontend")
     await frontend.frontend.stop()
     logger.info("frontend stopped")
