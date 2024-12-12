@@ -68,7 +68,7 @@ class Repo:
     def pull(self, notification_manager: NotificationManager):
         self.fetch_all(notification_manager)
 
-        if not self.repo.head.is_valid() or not self.info().remote_branch:
+        if not self._has_tracking_branch():
             return
 
         try:
@@ -163,7 +163,9 @@ class Repo:
             self.repo.git.remote("set-url", remote_update.name, remote_update.url)
         self.pull(notification_manager)
 
-    def switch_remote_branch(self, branch: str, notification_manager: NotificationManager):
+    def switch_remote_branch(
+        self, branch: str, notification_manager: NotificationManager
+    ):
         try:
             self.repo.git.reset("--hard")
             local_branch = branch.split("/", 1)[-1]
@@ -176,6 +178,12 @@ class Repo:
 
     def delete_remote(self, name: str):
         self.repo.delete_remote(name)
+
+    def _has_tracking_branch(self):
+        try:
+            return self.repo.active_branch.tracking_branch() is not None
+        except TypeError:
+            return False
 
     def _ahead_count(self, from_ref: str, to_ref: str):
         return self.repo.git.rev_list(f"{from_ref}..{to_ref}", count=True)
