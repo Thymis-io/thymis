@@ -36,7 +36,10 @@ let
         ];
         nixpkgs.hostPlatform = "aarch64-linux";
       };
-      raspberry-pi-5 = { pkgs, ... }: {
+      raspberry-pi-5 = { pkgs, modulesPath, ... }: {
+        disabledModules = [
+          "${modulesPath}/installer/sd-card/sd-image-aarch64.nix"
+        ];
         imports = [
           inputs.raspberry-pi-nix.nixosModules.raspberry-pi
         ];
