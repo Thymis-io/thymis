@@ -6,9 +6,8 @@ from typing import Annotated, Generator, Optional, Union
 
 from fastapi.requests import HTTPConnection
 from sqlalchemy.orm import Session
-from thymis_controller import db_models
 from thymis_controller.crud import web_session
-from thymis_controller.task import TaskController
+from thymis_controller.task.controller import TaskController
 
 logger = logging.getLogger(__name__)
 
@@ -102,4 +101,4 @@ def get_task_controller(connection: HTTPConnection):
     return connection.state.task_controller
 
 
-TaskControllerAD = Annotated[TaskController, Depends(get_task_controller)]
+TaskControllerAD = Annotated["TaskController", Depends(get_task_controller)]

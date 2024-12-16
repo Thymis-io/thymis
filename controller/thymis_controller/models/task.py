@@ -99,8 +99,12 @@ class TaskShort(BaseModel):
 #             )
 #         )
 class TaskSubmission(BaseModel):
-    id: str  # uuid
+    id: uuid.UUID  # uuid
     data: "TaskSubmissionData" = Field(discriminator="type")
+
+    @classmethod
+    def from_orm(cls, task: Task) -> "TaskSubmission":
+        return cls(id=task.id, data=task.task_submission_data)
 
 
 type TaskSubmissionData = Union[
