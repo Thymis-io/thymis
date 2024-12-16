@@ -1,5 +1,5 @@
-import subprocess
 import shlex
+import subprocess
 from typing import List
 
 from git import Tuple
