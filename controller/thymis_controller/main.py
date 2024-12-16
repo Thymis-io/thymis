@@ -30,7 +30,7 @@ script = ScriptDirectory.from_config(alembic_config)
 
 
 def peform_db_upgrade():
-    from thymis_controller.database.connection import engine
+    engine = create_sqlalchemy_engine()
 
     with engine.begin() as connection:
         alembic_config.attributes["connection"] = connection
@@ -144,18 +144,23 @@ async def lifespan(app: FastAPI):
     notification_manager.start()
     task_controller = TaskController()
     engine = create_sqlalchemy_engine()
-    async with task_controller.start(), sqlalchemy.orm.Session(engine) as db_session:
-        project = Project(global_settings.REPO_PATH.resolve(), db_session=db_session)
-        logger.info("starting frontend")
-        await frontend.frontend.run()
-        logger.info("frontend started")
-        logger.info("Starting controller at \033[1m%s\033[0m", global_settings.BASE_URL)
-        yield {
-            "notification_manager": notification_manager,
-            "task_controller": task_controller,
-            "project": project,
-            "engine": engine,
-        }
+    async with task_controller.start():
+        with sqlalchemy.orm.Session(engine) as db_session:
+            project = Project(
+                global_settings.REPO_PATH.resolve(), db_session=db_session
+            )
+            logger.info("starting frontend")
+            await frontend.frontend.run()
+            logger.info("frontend started")
+            logger.info(
+                "Starting controller at \033[1m%s\033[0m", global_settings.BASE_URL
+            )
+            yield {
+                "notification_manager": notification_manager,
+                "task_controller": task_controller,
+                "project": project,
+                "engine": engine,
+            }
     notification_manager.stop()
     logger.info("stopping frontend")
     await frontend.frontend.stop()

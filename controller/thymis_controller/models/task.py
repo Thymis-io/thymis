@@ -160,7 +160,25 @@ class SSHCommandTaskSubmission(BaseModel):
 
 # sent from task runner to controller
 
-# none yet
+
+class RunnerToControllerTaskUpdate(BaseModel):
+    id: uuid.UUID  # uuid of the task
+    update: "TaskUpdate" = Field(discriminator="type")
+
+
+TaskUpdate = Union[
+    "TaskPickedUpdate",
+    "TaskRejectedUpdate",
+]
+
+
+class TaskPickedUpdate(BaseModel):
+    type: Literal["task_picked"] = "task_picked"
+
+
+class TaskRejectedUpdate(BaseModel):
+    type: Literal["task_rejected"] = "task_rejected"
+    reason: str
 
 
 __all__ = [
@@ -175,4 +193,8 @@ __all__ = [
     "ProjectFlakeUpdateTaskSubmission",
     "BuildDeviceImageTaskSubmission",
     "SSHCommandTaskSubmission",
+    "RunnerToControllerTaskUpdate",
+    "TaskPickedUpdate",
+    "TaskRejectedUpdate",
+    "TaskUpdate",
 ]
