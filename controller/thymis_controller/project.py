@@ -131,7 +131,7 @@ class Project:
     public_key: str
     history_lock = threading.Lock()
 
-    def __init__(self, path, db_engine: sqlalchemy.Engine):
+    def __init__(self, path, db_session: sqlalchemy.orm.Session):
         self.path = pathlib.Path(path)
         # create the path if not exists
         self.path.mkdir(exist_ok=True, parents=True)
@@ -171,8 +171,7 @@ class Project:
 
         logger.info("Initializing known_hosts file")
         self.known_hosts_path = None
-        with sqlalchemy.orm.Session(bind=db_engine) as db_session:
-            self.update_known_hosts(db_session)
+        self.update_known_hosts(db_session)
 
     def read_state(self):
         with open(Path(self.path) / "state.json", "r", encoding="utf-8") as f:
