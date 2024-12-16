@@ -17,7 +17,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from thymis_controller.config import global_settings
 from thymis_controller.notifications import NotificationManager
 from thymis_controller.routers import agent, api, auth, frontend
-from thymis_controller.task import TaskController
+from thymis_controller.task.controller import TaskController
 
 logger = logging.getLogger(__name__)
 
@@ -140,18 +140,16 @@ async def lifespan(app: FastAPI):
     notification_manager = NotificationManager()
     notification_manager.start()
     task_controller = TaskController()
-    await task_controller.start()
-    logger.info("starting frontend")
-    await frontend.frontend.run()
-    logger.info("frontend started")
-    logger.info("frontend raise_if_terminated task created")
-    logger.info("Starting controller at \033[1m%s\033[0m", global_settings.BASE_URL)
-    yield {
-        "notification_manager": notification_manager,
-        "task_controller": task_controller,
-    }
+    async with task_controller.start():
+        logger.info("starting frontend")
+        await frontend.frontend.run()
+        logger.info("frontend started")
+        logger.info("Starting controller at \033[1m%s\033[0m", global_settings.BASE_URL)
+        yield {
+            "notification_manager": notification_manager,
+            "task_controller": task_controller,
+        }
     notification_manager.stop()
-    task_controller.stop()
     logger.info("stopping frontend")
     await frontend.frontend.stop()
     logger.info("frontend stopped")
