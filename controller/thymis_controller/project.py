@@ -72,8 +72,8 @@ def load_repositories(flake_path: os.PathLike, repositories: dict[str, models.Re
             continue
         with open(os.path.join(path, "README.md"), "r", encoding="utf-8") as f:
             if "contains thymis modules" not in f.read():
-                logger.warning("Repository %s contains no thymis modules", name)
-                logger.warning("Skipping %s", name)
+                logger.info("Repository %s contains no thymis modules", name)
+                logger.info("Skipping %s", name)
                 continue
         input_out_paths[name] = path
     # add the paths to sys.path
@@ -91,7 +91,7 @@ def load_repositories(flake_path: os.PathLike, repositories: dict[str, models.Re
                 importlib.reload(imported_module)
                 logger.info("Imported module %s", module.name)
                 for name, value in imported_module.__dict__.items():
-                    logger.info("Checking value %s", name)
+                    # logger.info("Checking value %s", name)
                     if not isinstance(value, type):
                         continue
                     cls = value
