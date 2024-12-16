@@ -1,8 +1,11 @@
 import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
-from thymis_controller.project import Project
+
+if TYPE_CHECKING:
+    from thymis_controller.project import Project
 
 
 def create(
@@ -39,7 +42,7 @@ def build_hash_is_registered(db_session: Session, build_hash: str):
 
 def register_device(
     db_session: Session,
-    project: Project,
+    project: "Project",
     build_hash: str,
     public_key: str,
     device_host: str,
