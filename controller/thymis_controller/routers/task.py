@@ -1,8 +1,8 @@
 import uuid
 
-from fastapi import APIRouter, Depends, WebSocket
+from fastapi import APIRouter, WebSocket
 from thymis_controller.dependencies import SessionAD, TaskControllerAD
-from thymis_controller.task import TaskController
+from thymis_controller.task.controller import TaskController
 
 router = APIRouter()
 
