@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { taskStatus, type Task } from '$lib/taskstatus';
+	import { taskStatus, type Task, type TaskShort } from '$lib/taskstatus';
 
 	import DataTable from './DataTable.svelte';
 	import {
@@ -30,11 +30,11 @@
 
 	const coreRowModel = getCoreRowModel();
 	const sortedRowModel = getSortedRowModel();
-	const columnHelper = createColumnHelper<Task>();
+	const columnHelper = createColumnHelper<TaskShort>();
 
 	const tableOptions = derived([taskStatus], ([taskStatusValue]) => {
 		return {
-			data: taskStatusValue,
+			data: Object.values(taskStatusValue).filter((task) => task),
 			columns: [
 				columnHelper.accessor('start_time', {
 					cell: (item) => flexRender(RenderUnixTimestamp, { timestamp: item.getValue() }),
@@ -46,8 +46,13 @@
 					header: 'End Time',
 					size: 120
 				}),
-				columnHelper.accessor('display_name', {
-					cell: (item) => item.getValue(),
+				// columnHelper.accessor('display_name', {
+				// 	cell: (item) => item.getValue(),
+				// 	header: 'Task',
+				// 	size: 300
+				// }),
+				columnHelper.accessor((task) => task, {
+					cell: (item) => item.getValue().task_type,
 					header: 'Task',
 					size: 300
 				}),
@@ -100,7 +105,7 @@
 					}
 				]
 			}
-		} satisfies Parameters<typeof createSvelteTable<Task>>[0];
+		} satisfies Parameters<typeof createSvelteTable<TaskShort>>[0];
 	});
 
 	const table = createSvelteTable(tableOptions);

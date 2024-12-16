@@ -14,7 +14,8 @@ from pathlib import Path
 from typing import List
 
 import git
-from sqlalchemy.orm import Session
+import sqlalchemy
+import sqlalchemy.orm
 from thymis_controller import crud, migration, models, task
 from thymis_controller.config import global_settings
 from thymis_controller.models import history
@@ -130,7 +131,7 @@ class Project:
     public_key: str
     history_lock = threading.Lock()
 
-    def __init__(self, path, db_session: Session):
+    def __init__(self, path, db_engine: sqlalchemy.Engine):
         self.path = pathlib.Path(path)
         # create the path if not exists
         self.path.mkdir(exist_ok=True, parents=True)
@@ -170,7 +171,8 @@ class Project:
 
         logger.info("Initializing known_hosts file")
         self.known_hosts_path = None
-        self.update_known_hosts(db_session)
+        with sqlalchemy.orm.Session(bind=db_engine) as db_session:
+            self.update_known_hosts(db_session)
 
     def read_state(self):
         with open(Path(self.path) / "state.json", "r", encoding="utf-8") as f:
@@ -273,7 +275,7 @@ class Project:
             traceback.print_exc()
             return []
 
-    def update_known_hosts(self, db_session: Session):
+    def update_known_hosts(self, db_session: sqlalchemy.orm.Session):
         if not self.known_hosts_path or not self.known_hosts_path.exists():
             self.known_hosts_path = pathlib.Path(
                 tempfile.NamedTemporaryFile(delete=False).name
@@ -336,7 +338,7 @@ class Project:
         )
 
     def create_update_task(
-        self, task_controller: "task.TaskController", db_session: Session
+        self, task_controller: "task.TaskController", db_session: sqlalchemy.orm.Session
     ):
         return task_controller.submit(
             models.task.ProjectFlakeUpdateTaskSubmission(
@@ -346,7 +348,7 @@ class Project:
         )
 
     def create_build_device_image_task(
-        self, device_identifier: str, db_session: Session
+        self, device_identifier: str, db_session: sqlalchemy.orm.Session
     ):
         self.commit(f"Build image for {device_identifier}")
         device_state = next(

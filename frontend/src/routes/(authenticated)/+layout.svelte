@@ -47,7 +47,13 @@
 		lastState = $state;
 	}
 
-	$: $taskStatus = data.allTasks;
+	$: {
+		let taskStatusValue = {};
+		for (const task of data.allTasks) {
+			taskStatusValue[task.id] = task;
+		}
+		$taskStatus = taskStatusValue;
+	}
 
 	let drawerHidden = true;
 
