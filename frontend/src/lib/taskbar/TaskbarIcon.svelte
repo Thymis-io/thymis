@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { type Task } from '$lib/taskstatus';
+	import { type TaskShort } from '$lib/taskstatus';
 	import { Tooltip } from 'flowbite-svelte';
 
-	export let tasks: Task[];
+	export let tasks: TaskShort[];
 	export let title: string;
 </script>
 

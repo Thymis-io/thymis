@@ -80,22 +80,14 @@ def get_tasks_short(db_session: Session):
         )
     ).all()
 
-    return [
-        TaskShort(
-            id=task.id,
-            task_type=task.task_type,
-            state=task.state,
-            start_time=task.start_time,
-            end_time=task.end_time,
-            exception=task.exception,
-            task_submission_data=task.task_submission_data,
-        )
-        for task in all_tasks
-    ]
+    return [TaskShort.from_orm_task(task) for task in all_tasks]
 
 
-def get_task_by_id(db_session, task_id):
-    return db_session.query(db_models.Task).filter(db_models.Task.id == task_id).first()
+def get_task_by_id(db_session, task_id: uuid.UUID) -> db_models.Task:
+    task = db_session.query(db_models.Task).filter(db_models.Task.id == task_id).first()
+    if task is None:
+        raise ValueError(f"Task with id {task_id} not found")
+    return task
 
 
 def get_pending_tasks(db_session):
