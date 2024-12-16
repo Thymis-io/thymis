@@ -25,5 +25,5 @@ def read_into_base64(path: str):
 
             return f"data:image/{extension};base64,{encoded}"
     except FileNotFoundError:
-        logger.error(f"File not found: {path}")
+        logger.error("File not found: %s", path)
         return None
