@@ -2,7 +2,6 @@ import datetime
 
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
-from thymis_controller.dependencies import get_project
 from thymis_controller.project import Project
 
 

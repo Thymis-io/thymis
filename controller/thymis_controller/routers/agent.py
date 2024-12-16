@@ -1,9 +1,8 @@
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request
 from thymis_controller import crud, models
 from thymis_controller.dependencies import ProjectAD, SessionAD
-from thymis_controller.project import Project
 from thymis_controller.utils import determine_first_host_with_key
 
 logger = logging.getLogger(__name__)

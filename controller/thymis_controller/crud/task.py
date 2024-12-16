@@ -96,3 +96,21 @@ def get_tasks_short(db_session: Session):
 
 def get_task_by_id(db_session, task_id):
     return db_session.query(db_models.Task).filter(db_models.Task.id == task_id).first()
+
+
+def get_pending_tasks(db_session):
+    return (
+        db_session.query(db_models.Task).filter(db_models.Task.state == "pending").all()
+    )
+
+
+def fail_running_tasks(db_session):
+    # runs on startup, fails any tasks that were running when the controller was last shut down
+    running_tasks = (
+        db_session.query(db_models.Task).filter(db_models.Task.state == "running").all()
+    )
+    for task in running_tasks:
+        task.state = "failed"
+        task.exception = "Task was running when controller was shut down"
+    db_session.commit()
+    return len(running_tasks)
