@@ -143,12 +143,10 @@ async def lifespan(app: FastAPI):
     notification_manager = NotificationManager()
     notification_manager.start()
     task_controller = TaskController()
-    engine = create_sqlalchemy_engine()
-    async with task_controller.start():
-        with sqlalchemy.orm.Session(engine) as db_session:
-            project = Project(
-                global_settings.REPO_PATH.resolve(), db_session=db_session
-            )
+    db_engine = create_sqlalchemy_engine()
+    with sqlalchemy.orm.Session(db_engine) as db_session:
+        async with task_controller.start(db_engine):
+            project = Project(global_settings.REPO_PATH.resolve(), db_engine=db_engine)
             logger.info("starting frontend")
             await frontend.frontend.run()
             logger.info("frontend started")
@@ -159,7 +157,7 @@ async def lifespan(app: FastAPI):
                 "notification_manager": notification_manager,
                 "task_controller": task_controller,
                 "project": project,
-                "engine": engine,
+                "engine": db_engine,
             }
     notification_manager.stop()
     logger.info("stopping frontend")

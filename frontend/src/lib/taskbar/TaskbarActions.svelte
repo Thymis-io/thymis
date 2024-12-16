@@ -2,7 +2,7 @@
 	import { type Task, cancelTask, retryTask, runImmediately } from '$lib/taskstatus';
 	import { page } from '$app/stores';
 	import { Button } from 'flowbite-svelte';
-	export let task: Task;
+	export let task: TaskShort;
 </script>
 
 <div class="flex flex-row items-center space-x-2">

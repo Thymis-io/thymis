@@ -8,11 +8,11 @@
 	import FailedIcon from 'lucide-svelte/icons/ban';
 	import { Tooltip } from 'flowbite-svelte';
 
-	$: pendingTasks = $taskStatus.filter((task) => task.state === 'pending');
-	$: runningTasks = $taskStatus.filter((task) => task.state === 'running');
-	$: completedTasks = $taskStatus.filter((task) => task.state === 'completed');
-	$: failedTasks = $taskStatus.filter((task) => task.state === 'failed');
-	$: lastestTask = $taskStatus[$taskStatus.length - 1];
+	$: pendingTasks = Object.values($taskStatus).filter((task) => task.state === 'pending');
+	$: runningTasks = Object.values($taskStatus).filter((task) => task.state === 'running');
+	$: completedTasks = Object.values($taskStatus).filter((task) => task.state === 'completed');
+	$: failedTasks = Object.values($taskStatus).filter((task) => task.state === 'failed');
+	$: latestTask = Object.values($taskStatus)[Object.values($taskStatus).length - 1];
 </script>
 
 <div
@@ -31,16 +31,16 @@
 		<FailedIcon size={20} slot="icon" class="w-full" />
 	</TaskbarIcon>
 	<div class="flex items-center gap-1 lg:gap-2 lg:ml-2">
-		{#if lastestTask}
+		{#if latestTask}
 			<span class="text-xs md:text-sm mr-1">
 				{$t('taskbar.latest-task')}:
 			</span>
 			<span class="text-xs md:text-sm truncate max-w-64">
-				{lastestTask.display_name}
+				{latestTask.task_type}
 			</span>
-			<Tooltip class="max-w-[100vw]">{lastestTask.display_name}</Tooltip>
+			<Tooltip class="max-w-[100vw]">{latestTask.task_type}</Tooltip>
 			<span class="text-xs md:text-sm">
-				({lastestTask.state})
+				({latestTask.state})
 			</span>
 		{/if}
 	</div>
