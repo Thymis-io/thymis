@@ -1,4 +1,5 @@
 import subprocess
+import shlex
 from typing import List
 
 from git import Tuple
@@ -13,7 +14,7 @@ def ssh_keyscan_host(host: str, port: int = 22) -> List[Tuple[str, str, str]]:
 
     :return: a list of tuples containing the host and the key
     """
-    cmd = ["ssh-keyscan", "-p", str(port), host]
+    cmd = ["ssh-keyscan", "-p", str(port), shlex.quote(host)]
     result = subprocess.run(cmd, capture_output=True, check=False)
 
     # return empty list if the host is not reachable
