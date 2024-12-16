@@ -1,29 +1,31 @@
 import datetime
 import logging
 import uuid
-from typing import Annotated, Generator, Optional, Union
+from typing import TYPE_CHECKING, Annotated, Generator, Optional, Union
 
 from fastapi import Cookie, Depends, HTTPException, Request, Response, WebSocket, status
 from fastapi.requests import HTTPConnection
 from sqlalchemy.orm import Session
 from thymis_controller.config import global_settings
 from thymis_controller.crud import web_session
-from thymis_controller.project import Project
 from thymis_controller.task.controller import TaskController
+
+if TYPE_CHECKING:
+    from thymis_controller.project import Project
 
 logger = logging.getLogger(__name__)
 
 SESSION_LIFETIME = datetime.timedelta(days=1)
 
 
-def get_project(connection: HTTPConnection) -> Project:
+def get_project(connection: HTTPConnection) -> "Project":
     return connection.state.project
 
 
-ProjectAD = Annotated[Project, Depends(get_project)]
+ProjectAD = Annotated["Project", Depends(get_project)]
 
 
-def get_state(project: Project = Depends(get_project)):
+def get_state(project: "Project" = Depends(get_project)):
     return project.read_state()
 
 
