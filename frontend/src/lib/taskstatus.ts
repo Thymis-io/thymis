@@ -51,16 +51,16 @@ export type TaskShort = {
 	data: Record<string, unknown>;
 };
 
-export type TaskList = TaskShort[];
+export type TasksShort = Record<string, TaskShort>;
 
 let socket: WebSocket | undefined;
 
-export const taskStatus = writable<TaskList>([]);
+export const taskStatus = writable<Record<string, TaskShort>>({});
 export const tasksById: Record<string, Task> = {};
 
 export const getAllTasks = async (fetch: typeof window.fetch = window.fetch) => {
 	const response = await fetchWithNotify(`/api/tasks`, undefined, {}, fetch);
-	return (await response.json()) as TaskList;
+	return (await response.json()) as TaskShort[];
 };
 
 export const getTask = async (taskId: string, fetch: typeof window.fetch = window.fetch) => {
@@ -108,8 +108,13 @@ const startSocket = () => {
 	const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 	socket = new WebSocket(`${scheme}://${window.location.host}/api/task_status`);
 	socket.onmessage = async (event) => {
-		const data = JSON.parse(event.data) as TaskList;
-		taskStatus.set(data);
+		console.log('task_status message', event.data);
+		const data = JSON.parse(event.data) as TaskShort;
+		taskStatus.update((ts) => {
+			ts[data.id] = data;
+			console.log('task_status update', ts);
+			return ts;
+		});
 		await invalidate((url) => url.pathname.startsWith('/tasks'));
 	};
 	socket.onclose = () => {
@@ -118,12 +123,13 @@ const startSocket = () => {
 	};
 };
 
-let lastTaskStatus: TaskList = [];
+let lastTaskStatus: TasksShort = {};
 taskStatus.subscribe((tasks) => {
 	// if a task.type is commandtask, and the task just finished, download the image
 	// tasks have a uuid now at .id
-	tasks.forEach((task) => {
-		if (task.type !== 'nixcommandtask') return;
+	// tasks.forEach((task) => {
+	Object.values(tasks).forEach((task) => {
+		if (task.task_type !== 'nixcommandtask') return;
 		if (task.state !== 'completed') return;
 		if (!('program' in task.data)) return;
 		if (task.data.program !== 'nix') return;
@@ -133,7 +139,7 @@ taskStatus.subscribe((tasks) => {
 		if (task.data.args.indexOf('build') === -1) return;
 		if (!('identifier' in task.data)) return;
 		// check: this task was previously in the list, but not completed
-		const otherTask = lastTaskStatus.find((t) => t.id === task.id);
+		const otherTask = lastTaskStatus[task.id];
 		if (!otherTask) return;
 		if (otherTask.state === 'completed') return;
 		// download the image

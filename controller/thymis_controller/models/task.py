@@ -54,9 +54,21 @@ class TaskShort(BaseModel):
     task_type: str
     state: TaskState
     start_time: datetime.datetime
-    end_time: Optional[float]
+    end_time: Optional[datetime.datetime]
     exception: Optional[str]
     task_submission_data: "TaskSubmissionData"
+
+    @classmethod
+    def from_orm_task(cls, task: Task) -> "TaskShort":
+        return cls(
+            id=task.id,
+            task_type=task.task_type,
+            state=task.state,
+            start_time=task.start_time,
+            end_time=task.end_time,
+            exception=task.exception,
+            task_submission_data=task.task_submission_data,
+        )
 
 
 # sent from frontend to controller
@@ -64,50 +76,18 @@ class TaskShort(BaseModel):
 # none yet
 
 # sent from controller to task runner
-# def create_deploy_project_task(self, devices: List[models.Hostkey]):
-#         return task.global_task_controller.add_task(
-#             task.DeployProjectTask(self, devices, global_settings.SSH_KEY_PATH)
-#         )
-
-#     def create_update_task(self):
-#         return task.global_task_controller.add_task(task.UpdateTask(self.path, self))
-
-#     def create_build_device_image_task(
-#         self, device_identifier: str, db_session: Session
-#     ):
-#         self.commit(f"Build image for {device_identifier}")
-#         device_state = next(
-#             device
-#             for device in self.read_state().devices
-#             if device.identifier == device_identifier
-#         )
-#         return task.global_task_controller.add_task(
-#             task.BuildDeviceImageTask(
-#                 self.path,
-#                 device_identifier,
-#                 db_session,
-#                 device_state.model_dump(),
-#                 self.repo.head.object.hexsha,
-#             )
-#         )
 
 
-#     def create_restart_device_task(self, device: models.Device, target_host: str):
-#         return task.global_task_controller.add_task(
-#             task.RestartDeviceTask(
-#                 device, global_settings.SSH_KEY_PATH, self.known_hosts_path, target_host
-#             )
-#         )
 class TaskSubmission(BaseModel):
     id: uuid.UUID  # uuid
     data: "TaskSubmissionData" = Field(discriminator="type")
 
     @classmethod
-    def from_orm(cls, task: Task) -> "TaskSubmission":
+    def from_orm_task(cls, task: Task) -> "TaskSubmission":
         return cls(id=task.id, data=task.task_submission_data)
 
 
-type TaskSubmissionData = Union[
+TaskSubmissionData = Union[
     "DeployDevicesTaskSubmission",
     "ProjectFlakeUpdateTaskSubmission",
     "BuildDeviceImageTaskSubmission",
