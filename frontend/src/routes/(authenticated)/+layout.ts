@@ -61,11 +61,20 @@ export const load = (async ({ fetch, url, data }) => {
 				'content-type': 'application/json'
 			}
 		},
-		{},
+		{
+			500: 'Could not fetch available modules'
+		},
 		fetch
 	);
 
-	const availableModules = (await availableModulesResponse.json()) as Module[];
+	let availableModules: Module[] = [];
+
+	// const availableModules = (await availableModulesResponse.json()) as Module[];
+	try {
+		availableModules = (await availableModulesResponse.json()) as Module[];
+	} catch (e) {
+		console.error('Error fetching available modules', e);
+	}
 
 	const allTasks = await getAllTasks(fetch);
 	const minimizeTaskbar = data?.minimizeTaskbar === 'true';
