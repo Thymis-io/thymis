@@ -2,6 +2,7 @@ import contextlib
 import logging
 from datetime import datetime
 
+import sqlalchemy
 from fastapi import WebSocket
 from sqlalchemy.orm import Session
 from thymis_controller import crud, models
@@ -22,15 +23,14 @@ class TaskController:
     def __init__(self):
         self.executor = TaskWorkerPoolManager()
         self.ui_subscription_manager = TaskUISubscriptionManager()
+        self.executor.subscribe_ui(self.ui_subscription_manager)
 
     @contextlib.asynccontextmanager
-    async def start(self):
-        async with self.executor.start():
-            await self.ui_subscription_manager.start()
-            yield self
-        self.stop()
-
-    def stop(self):
+    async def start(self, db_engine: sqlalchemy.Engine):
+        await self.executor.start(db_engine)
+        await self.ui_subscription_manager.start()
+        yield self
+        self.executor.stop()
         self.ui_subscription_manager.stop()
 
     def get_tasks(self, session: Session):
@@ -72,5 +72,6 @@ class TaskController:
 
     def get_task(self, task_id: str, db_session: Session):
         return models.task.Task.model_validate(
-            crud.task.get_task_by_id(db_session, task_id)
+            crud.task.get_task_by_id(db_session, task_id),
+            from_attributes=True,
         )

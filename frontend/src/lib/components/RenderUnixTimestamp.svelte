@@ -3,10 +3,6 @@
 
 	let date: Date;
 
-	$: console.log('timestamp', timestamp);
-
-	$: console.log('date', date);
-
 	$: date = new Date(Date.parse(timestamp));
 </script>
 
