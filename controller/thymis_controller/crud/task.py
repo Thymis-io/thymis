@@ -65,9 +65,10 @@ def create(
     return task
 
 
-def get_tasks_short(db_session: Session):
+def get_tasks_short(db_session: Session, limit: int = 100):
     all_tasks = db_session.scalars(
-        select(db_models.Task).options(
+        select(db_models.Task)
+        .options(
             load_only(
                 db_models.Task.id,
                 db_models.Task.task_type,
@@ -78,6 +79,7 @@ def get_tasks_short(db_session: Session):
                 db_models.Task.task_submission_data,
             )
         )
+        .limit(limit)
     ).all()
 
     return [TaskShort.from_orm_task(task) for task in all_tasks]

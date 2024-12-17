@@ -115,7 +115,7 @@ const startSocket = () => {
 			console.log('task_status update', ts);
 			return ts;
 		});
-		await invalidate((url) => url.pathname.startsWith('/tasks'));
+		await invalidate((url) => url.pathname.startsWith(`/api/tasks/${data.id}`));
 	};
 	socket.onclose = () => {
 		console.log('task_status socket closed');

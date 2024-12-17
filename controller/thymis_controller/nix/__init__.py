@@ -99,7 +99,7 @@ def convert_python_value_to_nix(value, ident=0):
 def format_nix_file(file_path):
     cmd = ["nixpkgs-fmt", file_path]
     try:
-        subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True, capture_output=True)
     except subprocess.CalledProcessError as e:
         logger.error(
             "Command failed: %s with exit code %s: %s",
