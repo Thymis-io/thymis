@@ -15,7 +15,7 @@ import fastapi
 import httpx
 import psutil
 import starlette.requests
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Response
 from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
 from thymis_controller.config import global_settings
@@ -218,6 +218,7 @@ async def _reverse_proxy(request: fastapi.Request):
     except Exception as e:
         logger.error("Failed to proxy request: %s", e)
         raise e
+    return Response(status_code=500)
 
 
 router.add_route(
