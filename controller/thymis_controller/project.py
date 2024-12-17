@@ -313,9 +313,6 @@ class Project:
     def get_remotes(self):
         return [history.Remote(name=r.name, url=r.url) for r in self.repo.remotes]
 
-    def create_build_task(self):
-        return task.global_task_controller.add_task(task.BuildProjectTask(self.path))
-
     def create_deploy_device_task(self, device_identifier: str, target_host: str):
         device = next(
             device

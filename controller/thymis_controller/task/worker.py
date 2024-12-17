@@ -59,6 +59,21 @@ def project_flake_update_task(task: models_task.TaskSubmission, conn: Connection
     report_task_finished(task, conn)
 
 
+def build_project_task(task: models_task.TaskSubmission, conn: Connection):
+    task_data = task.data
+    assert task_data.type == "build_project_task"
+    project_path = pathlib.Path(task_data.project_path).resolve()
+
+    # runs `nix build` in the project directory
+    run_command(
+        task,
+        conn,
+        ["nix", "build", ".#thymis", "--out-link", "/tmp/thymis"],
+        cwd=project_path,
+    )
+    report_task_finished(task, conn)
+
+
 def test_task(task: models_task.TaskSubmission, conn: Connection):
     print("Running test task")
     run_command(
@@ -82,6 +97,7 @@ def test_task(task: models_task.TaskSubmission, conn: Connection):
 
 SUPPORTED_TASK_TYPES = {
     "project_flake_update_task": project_flake_update_task,
+    "build_project_task": build_project_task,
     "test_task": test_task,
 }
 

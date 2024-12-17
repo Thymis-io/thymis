@@ -49,12 +49,17 @@ async def update_state(new_state: Request, project: ProjectAD):
 
 
 @router.post("/action/build")
-async def build_repo(project: ProjectAD):
-    # runs a nix command to build the flake
-    await project.create_build_task()
-    # now build_nix: type: BackgroundTasks -> None
+async def build_repo(
+    project: ProjectAD,
+    task_controller: TaskControllerAD,
+    db_session: SessionAD,
+):
+    task_controller.submit(
+        models.BuildProjectTaskSubmission(project_path=str(project.path)),
+        db_session=db_session,
+    )
 
-    return {"message": "nix build started"}
+    return {"message": "command started"}
 
 
 router.include_router(task.router)
