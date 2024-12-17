@@ -16,7 +16,7 @@
 		{#if authenticated}
 			<NavHamburger onClick={() => (drawerHidden = !drawerHidden)} class="m-0 md:block lg:hidden" />
 		{/if}
-		<NavBrand href="/">
+		<NavBrand href="https://thymis.io">
 			<img src="/favicon.png" class="w-6 min-w-6 sm:w-6 sm:min-w-6" alt="Thymis Logo" />
 			<span class="ml-2 text-xl sm:text-2xl font-semibold dark:text-white hidden sm:block">
 				Thymis
