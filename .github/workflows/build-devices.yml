@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: dbhi/qus/action@main
+        with:
+          targets: aarch64
       - name: Install Nix
         uses: cachix/install-nix-action@v27
         with:
@@ -18,6 +21,7 @@ jobs:
             system-features = kvm
             extra-trusted-public-keys = cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=
             extra-substituters = https://cache.thymis.io
+            extra-platforms = aarch64-linux
       - uses: DeterminateSystems/magic-nix-cache-action@v2
       - name: pin nixpkgs
         run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-24.05
@@ -28,6 +32,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: dbhi/qus/action@main
+        with:
+          targets: aarch64
       - name: Install Nix
         uses: cachix/install-nix-action@v27
         with:
@@ -35,6 +42,7 @@ jobs:
             system-features = kvm
             extra-trusted-public-keys = cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=
             extra-substituters = https://cache.thymis.io
+            extra-platforms = aarch64-linux
       - uses: DeterminateSystems/magic-nix-cache-action@v2
       - name: pin nixpkgs
         run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-24.05
