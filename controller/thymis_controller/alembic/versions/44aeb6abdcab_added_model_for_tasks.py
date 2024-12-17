@@ -40,8 +40,8 @@ def upgrade():
         sa.Column("process_program", sa.String(255), nullable=True),
         sa.Column("process_args", sa.JSON(), nullable=True),
         sa.Column("process_env", sa.JSON(), nullable=True),
-        sa.Column("process_stdout", sa.Text(), nullable=True),
-        sa.Column("process_stderr", sa.Text(), nullable=True),
+        sa.Column("process_stdout", sa.LargeBinary(), nullable=True),
+        sa.Column("process_stderr", sa.LargeBinary(), nullable=True),
         # Nix-Specific Extensions
         sa.Column("nix_status", sa.JSON(), nullable=True),
         sa.Column("nix_files_linked", sa.Integer, nullable=True),

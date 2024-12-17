@@ -149,6 +149,9 @@ class RunnerToControllerTaskUpdate(BaseModel):
 TaskUpdate = Union[
     "TaskPickedUpdate",
     "TaskRejectedUpdate",
+    "TaskStdOutErrUpdate",
+    "TaskCompletedUpdate",
+    "TaskFailedUpdate",
 ]
 
 
@@ -158,6 +161,21 @@ class TaskPickedUpdate(BaseModel):
 
 class TaskRejectedUpdate(BaseModel):
     type: Literal["task_rejected"] = "task_rejected"
+    reason: str
+
+
+class TaskStdOutErrUpdate(BaseModel):
+    type: Literal["task_stdout_err"] = "task_stdout_err"
+    stdoutb64: str  # base64 encoded
+    stderrb64: str  # base64 encoded
+
+
+class TaskCompletedUpdate(BaseModel):
+    type: Literal["task_completed"] = "task_completed"
+
+
+class TaskFailedUpdate(BaseModel):
+    type: Literal["task_failed"] = "task_failed"
     reason: str
 
 
@@ -174,7 +192,9 @@ __all__ = [
     "BuildDeviceImageTaskSubmission",
     "SSHCommandTaskSubmission",
     "RunnerToControllerTaskUpdate",
+    "TaskUpdate",
     "TaskPickedUpdate",
     "TaskRejectedUpdate",
-    "TaskUpdate",
+    "TaskCompletedUpdate",
+    "TaskFailedUpdate",
 ]

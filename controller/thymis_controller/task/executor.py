@@ -1,3 +1,4 @@
+import base64
 import concurrent.futures
 import logging
 import threading
@@ -5,6 +6,7 @@ import time
 from concurrent.futures import Future, ProcessPoolExecutor
 from datetime import datetime
 from multiprocessing.connection import Connection, Pipe
+from typing import assert_never
 
 import sqlalchemy.orm
 import thymis_controller.crud.task as crud_task
@@ -89,18 +91,39 @@ class TaskWorkerPoolManager:
                     if task is None:
                         logger.error("Received message for unknown task: %s", message)
                         continue
-                    if isinstance(message.update, models_task.TaskPickedUpdate):
-                        task.state = "running"
-                        db_session.commit()
-                    elif isinstance(message.update, models_task.TaskRejectedUpdate):
-                        task.state = "failed"
-                        task.exception = f"Task rejected: {message.update.reason}"
-                        task.end_time = datetime.now()
-                        db_session.commit()
-                    else:
-                        logger.error(
-                            "Received invalid message from worker: %s", message
-                        )
+                    match message.update:
+                        case models_task.TaskPickedUpdate():
+                            task.state = "running"
+                            db_session.commit()
+                        case models_task.TaskRejectedUpdate(reason=reason):
+                            task.state = "failed"
+                            task.exception = f"Task rejected: {reason}"
+                            task.end_time = datetime.now()
+                            db_session.commit()
+                        case models_task.TaskStdOutErrUpdate(
+                            stdoutb64=stdoutb64, stderrb64=stderrb64
+                        ):
+                            # initialize stdout and stderr if not already set
+                            if task.process_stdout is None:
+                                task.process_stdout = b""
+                            if task.process_stderr is None:
+                                task.process_stderr = b""
+                            # append new data to stdout and stderr
+                            task.process_stderr += base64.b64decode(stdoutb64)
+                            task.process_stderr += base64.b64decode(stderrb64)
+                            db_session.commit()
+                        case models_task.TaskCompletedUpdate():
+                            task.state = "completed"
+                            task.end_time = datetime.now()
+                            db_session.commit()
+                        case models_task.TaskFailedUpdate(reason=reason):
+                            task.state = "failed"
+                            task.exception = reason
+                            task.end_time = datetime.now()
+                            db_session.commit()
+                        case _:
+                            assert_never(message.update)
+
                     # notify UI
                     self.ui_subscription_manager.notify_task_update(task)
                     logger.info("Received message from worker: %s", message)
