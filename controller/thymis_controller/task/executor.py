@@ -84,17 +84,13 @@ class TaskWorkerPoolManager:
         logger.info("TaskWorkerPoolManager stopped")
 
     def listen_child_messages(self, conn: Connection):
-        with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
-            try:
-                while True:
-                    message = conn.recv()
-                    if not isinstance(
-                        message, models_task.RunnerToControllerTaskUpdate
-                    ):
-                        logger.error(
-                            "Received invalid message from worker: %s", message
-                        )
-                        continue
+        try:
+            while True:
+                message = conn.recv()
+                if not isinstance(message, models_task.RunnerToControllerTaskUpdate):
+                    logger.error("Received invalid message from worker: %s", message)
+                    continue
+                with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
                     task = crud_task.get_task_by_id(db_session, message.id)
                     if task is None:
                         logger.error("Received message for unknown task: %s", message)
@@ -139,9 +135,9 @@ class TaskWorkerPoolManager:
 
                     # notify UI
                     self.ui_subscription_manager.notify_task_update(task)
-            except EOFError:
-                logger.info("Worker connection closed")
-            self.ui_subscription_manager.notify_task_update(task)
+        except EOFError:
+            logger.info("Worker connection closed")
+        self.ui_subscription_manager.notify_task_update(task)
 
     def finish_task(self, future: Future):
         task_id = self.future_to_id[future]
