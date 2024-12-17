@@ -283,7 +283,8 @@ def scan_public_key(
     """
     Scan a public key for a device
     """
-    assert re.match(HOST_PATTERN, host), "Invalid host"
+    host = re.match(HOST_PATTERN, host).group(0)
+    assert host is not None
     # TODO maybe return rsa key if no ed25519 key is found
     for address, key in utils.ssh_keyscan_host(host):
         if key.startswith("ssh-ed25519"):
