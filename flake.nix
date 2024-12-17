@@ -40,6 +40,22 @@
         (import ./image-formats.nix { inherit inputs; lib = nixpkgs.lib; })
       );
 
+      thymis-controller-pi-3-sd-image = (nixpkgs.lib.nixosSystem {
+        modules = [
+          nixosModules.thymis-device
+          nixosModules."thymis-device-raspberry-pi-3"
+          nixosModules."thymis-image-sd-card-image"
+          nixosModules.thymis-controller
+          {
+            services.thymis-controller.enable = true;
+            system.stateVersion = "24.05";
+          }
+        ];
+        specialArgs = {
+          inherit inputs;
+        };
+      }).config.system.build.thymis-image;
+
       thymis-controller-pi-4-sd-image = (nixpkgs.lib.nixosSystem {
         modules = [
           nixosModules.thymis-device
@@ -139,10 +155,12 @@
         }
       );
       nixosModules = nixosModules;
+      thymis-controller-pi-3-sd-image = thymis-controller-pi-3-sd-image;
       thymis-controller-pi-4-sd-image = thymis-controller-pi-4-sd-image;
       thymis-controller-pi-5-sd-image = thymis-controller-pi-5-sd-image;
       thymis-controller-generic-x86_64-image = thymis-controller-generic-x86_64-image;
       hydraJobs = {
+        thymis-controller-pi-3-sd-image = thymis-controller-pi-3-sd-image;
         thymis-controller-pi-4-sd-image = thymis-controller-pi-4-sd-image;
         thymis-controller-pi-5-sd-image = thymis-controller-pi-5-sd-image;
         thymis-controller-generic-x86_64-image = thymis-controller-generic-x86_64-image;
