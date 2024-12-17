@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket
@@ -266,19 +267,23 @@ def delete_hostkey(db_session: SessionAD, identifier: str):
     crud.hostkey.delete(db_session, identifier)
 
 
+HOST_PATTERN = r"^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$"
+
+
 @router.post("/scan-public-key", response_model=str)
 # regex host
 def scan_public_key(
     host: Annotated[
         str,
         Query(
-            pattern=r"^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$"
+            pattern=HOST_PATTERN,
         ),
     ]
 ):
     """
     Scan a public key for a device
     """
+    assert re.match(HOST_PATTERN, host), "Invalid host"
     # TODO maybe return rsa key if no ed25519 key is found
     for address, key in utils.ssh_keyscan_host(host):
         if key.startswith("ssh-ed25519"):
