@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 import fastapi
 import httpx
 import psutil
+import starlette.requests
 from fastapi import APIRouter, FastAPI
 from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
@@ -203,6 +204,9 @@ async def _reverse_proxy(request: fastapi.Request):
     )
     try:
         rp_resp = await client.send(rp_req, stream=True)
+    except starlette.requests.ClientDisconnect as e:
+        logger.error("Client disconnected: %s", e)
+        return
     except Exception as e:
         logger.error("Failed to proxy request: %s", e)
         raise e
