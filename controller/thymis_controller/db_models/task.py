@@ -6,6 +6,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
+    LargeBinary,
     String,
     Text,
     Uuid,
@@ -32,8 +33,8 @@ class Task(Base):
     process_program = Column(String(255), nullable=True)
     process_args = Column(JSON, nullable=True)
     process_env = Column(JSON, nullable=True)
-    process_stdout = Column(Text, nullable=True)
-    process_stderr = Column(Text, nullable=True)
+    process_stdout = Column(LargeBinary, nullable=True)
+    process_stderr = Column(LargeBinary, nullable=True)
 
     # Nix-Specific Extensions
     nix_status = Column(JSON, nullable=True)
