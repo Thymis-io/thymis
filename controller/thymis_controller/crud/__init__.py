@@ -1,1 +1,1 @@
-from . import hostkey, image, web_session
+from . import hostkey, image, task, web_session

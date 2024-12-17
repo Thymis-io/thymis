@@ -1,24 +1,35 @@
 import uuid
 
-from fastapi import APIRouter, WebSocket
-from thymis_controller.task import global_task_controller
+from fastapi import APIRouter, Response, WebSocket
+from thymis_controller.dependencies import SessionAD, TaskControllerAD
+from thymis_controller.task.controller import TaskController
 
 router = APIRouter()
 
+global_task_controller = None
+
 
 @router.websocket("/task_status")
-async def task_status(websocket: WebSocket):
-    await global_task_controller.connect(websocket)
+async def task_status(websocket: WebSocket, task_controller: TaskControllerAD):
+    await task_controller.subscribe_ui(websocket)
 
 
 @router.get("/tasks")
-async def get_tasks():
-    return global_task_controller.get_tasks()
+async def get_tasks(task_controller: TaskControllerAD, session: SessionAD):
+    return task_controller.get_tasks(session)
 
 
 @router.get("/tasks/{task_id}")
-async def get_task(task_id: uuid.UUID):
-    return global_task_controller.get_task(task_id)
+async def get_task(
+    task_id: uuid.UUID, task_controller: TaskControllerAD, db_session: SessionAD
+):
+    try:
+        return task_controller.get_task(task_id, db_session)
+    except ValueError:
+        return Response(
+            content=f"Task with id {task_id} not found",
+            status_code=404,
+        )
 
 
 @router.post("/tasks/{task_id}/cancel")

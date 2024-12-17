@@ -14,7 +14,8 @@ from pathlib import Path
 from typing import List
 
 import git
-from sqlalchemy.orm import Session
+import sqlalchemy
+import sqlalchemy.orm
 from thymis_controller import crud, migration, models, task
 from thymis_controller.config import global_settings
 from thymis_controller.models import history
@@ -67,14 +68,15 @@ def load_repositories(flake_path: os.PathLike, repositories: dict[str, models.Re
             continue
         # check wether path / README.md exists and contains the string "contains thymis modules"
         if not os.path.exists(os.path.join(path, "README.md")):
-            logger.warning("Repository %s does not contain a README.md", name)
-            logger.warning("Skipping %s", name)
+            logger.debug("Repository %s does not contain a README.md", name)
+            logger.debug("Skipping %s", name)
             continue
         with open(os.path.join(path, "README.md"), "r", encoding="utf-8") as f:
             if "contains thymis modules" not in f.read():
-                logger.warning("Repository %s contains no thymis modules", name)
-                logger.warning("Skipping %s", name)
+                logger.debug("Repository %s contains no thymis modules", name)
+                logger.debug("Skipping %s", name)
                 continue
+        logger.info("Found repository %s at %s", name, path)
         input_out_paths[name] = path
     # add the paths to sys.path
     sys.path = startup_python_path.copy()
@@ -82,20 +84,20 @@ def load_repositories(flake_path: os.PathLike, repositories: dict[str, models.Re
     importlib.invalidate_caches()
     modules_found = []
     for name, path in input_out_paths.items():
-        logger.info("Adding %s at %s to sys.path", name, path)
+        logger.debug("Adding %s at %s to sys.path", name, path)
         sys.path.append(path)
         for module in pkgutil.walk_packages([path]):
             try:
                 imported_module = importlib.import_module(module.name)
                 # required to detect changes if this is a second import
                 importlib.reload(imported_module)
-                logger.info("Imported module %s", module.name)
+                logger.debug("Imported module %s", module.name)
                 for name, value in imported_module.__dict__.items():
-                    logger.info("Checking value %s", name)
+                    # logger.info("Checking value %s", name)
                     if not isinstance(value, type):
                         continue
                     cls = value
-                    logger.info("Found class %s", cls)
+                    logger.debug("Found class %s", cls)
                     if issubclass(cls, modules.Module) and cls != modules.Module:
                         module_obj = cls()
                         modules_found.append(module_obj)
@@ -130,7 +132,7 @@ class Project:
     public_key: str
     history_lock = threading.Lock()
 
-    def __init__(self, path, db_session: Session):
+    def __init__(self, path, db_session: sqlalchemy.orm.Session):
         self.path = pathlib.Path(path)
         # create the path if not exists
         self.path.mkdir(exist_ok=True, parents=True)
@@ -168,7 +170,7 @@ class Project:
             logger.error("Error while migrating state: %s", e)
             traceback.print_exc()
 
-        logger.info("Initializing known_hosts file")
+        logger.debug("Initializing known_hosts file")
         self.known_hosts_path = None
         self.update_known_hosts(db_session)
 
@@ -214,6 +216,9 @@ class Project:
                 "tags", tag.identifier, tag.modules, tag.priority
             )
         self.repo.git.add(".")
+
+    def reload_from_disk(self):
+        self.write_state_and_reload(self.read_state())
 
     def create_folder_and_write_modules(self, base_path, identifier, modules, priority):
         path = self.path / base_path / identifier
@@ -270,7 +275,7 @@ class Project:
             traceback.print_exc()
             return []
 
-    def update_known_hosts(self, db_session: Session):
+    def update_known_hosts(self, db_session: sqlalchemy.orm.Session):
         if not self.known_hosts_path or not self.known_hosts_path.exists():
             self.known_hosts_path = pathlib.Path(
                 tempfile.NamedTemporaryFile(delete=False).name
@@ -281,7 +286,7 @@ class Project:
             for hostkey in hostkeys:
                 f.write(f"{hostkey.device_host} {hostkey.public_key}\n")
 
-        logger.info("Updated known_hosts file at %s", self.known_hosts_path)
+        logger.debug("Updated known_hosts file at %s", self.known_hosts_path)
 
     def revert_commit(self, commit: str):
         commit_to_revert = self.repo.commit(commit)
@@ -332,11 +337,18 @@ class Project:
             task.DeployProjectTask(self, devices, global_settings.SSH_KEY_PATH)
         )
 
-    def create_update_task(self):
-        return task.global_task_controller.add_task(task.UpdateTask(self.path, self))
+    def create_update_task(
+        self, task_controller: "task.TaskController", db_session: sqlalchemy.orm.Session
+    ):
+        return task_controller.submit(
+            models.task.ProjectFlakeUpdateTaskSubmission(
+                project_path=str(self.path),
+            ),
+            db_session,
+        )
 
     def create_build_device_image_task(
-        self, device_identifier: str, db_session: Session
+        self, device_identifier: str, db_session: sqlalchemy.orm.Session
     ):
         self.commit(f"Build image for {device_identifier}")
         device_state = next(

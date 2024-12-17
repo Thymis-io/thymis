@@ -1,15 +1,18 @@
 import asyncio
 import os
+import re
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, RedirectResponse
 from paramiko import PKey, SSHClient
-from thymis_controller import crud, dependencies, models, modules, project, utils
+from thymis_controller import crud, dependencies, models, modules, utils
 from thymis_controller.config import global_settings
 from thymis_controller.dependencies import (
+    ProjectAD,
     SessionAD,
+    TaskControllerAD,
     get_project,
     require_valid_user_session,
 )
@@ -39,16 +42,14 @@ def get_available_modules(request: Request) -> list[models.Module]:
 
 
 @router.patch("/state")
-async def update_state(
-    new_state: Request, project: project.Project = Depends(get_project)
-):
+async def update_state(new_state: Request, project: ProjectAD):
     new_state = await new_state.json()
     new_state = State.model_validate(new_state)
     return project.write_state_and_reload(new_state)
 
 
 @router.post("/action/build")
-async def build_repo(project: project.Project = Depends(get_project)):
+async def build_repo(project: ProjectAD):
     # runs a nix command to build the flake
     await project.create_build_task()
     # now build_nix: type: BackgroundTasks -> None
@@ -63,7 +64,8 @@ router.include_router(task.router)
 async def deploy(
     summary: str,
     session: SessionAD,
-    project: project.Project = Depends(get_project),
+    project: ProjectAD,
+    task_controller: TaskControllerAD,
 ):
     project.commit(summary)
 
@@ -83,7 +85,7 @@ async def deploy(
 async def build_download_image(
     identifier: str,
     db_session: SessionAD,
-    project: project.Project = Depends(get_project),
+    project: ProjectAD,
 ):
     await project.create_build_device_image_task(identifier, db_session)
 
@@ -92,7 +94,7 @@ async def build_download_image(
 async def device_and_build_download_image_for_clone(
     identifier: str,
     db_session: SessionAD,
-    project: project.Project = Depends(get_project),
+    project: ProjectAD,
 ):
     state = project.read_state()
     x = 1
@@ -114,7 +116,7 @@ async def device_and_build_download_image_for_clone(
 async def restart_device(
     identifier: str,
     db_session: SessionAD,
-    project: project.Project = Depends(get_project),
+    project: ProjectAD,
     state: State = Depends(dependencies.get_state),
 ):
     device = next(device for device in state.devices if device.identifier == identifier)
@@ -151,31 +153,47 @@ async def notification_websocket(websocket: WebSocket):
 
 
 @router.get("/history", tags=["history"])
-def get_history(project: project.Project = Depends(get_project)):
+def get_history(project: ProjectAD):
     return project.get_history()
 
 
 @router.post("/history/revert-commit", tags=["history"])
 def revert_commit(
     commit_sha: str,
-    project: project.Project = Depends(get_project),
+    project: ProjectAD,
 ):
     project.revert_commit(commit_sha)
     return {"message": "reverted commit"}
 
 
 @router.get("/history/remotes", tags=["history"])
-def get_remotes(project: project.Project = Depends(get_project)):
+def get_remotes(project: ProjectAD):
     return project.get_remotes()
 
 
 @router.post("/action/update")
 async def update(
-    project: project.Project = Depends(get_project),
+    project: ProjectAD,
+    task_controller: TaskControllerAD,
+    db_session: SessionAD,
 ):
-    project.write_state_and_reload(project.read_state())
-    await project.create_update_task()
+    project.reload_from_disk()
+    project.create_update_task(task_controller, db_session)
+
     return {"message": "update started"}
+
+
+@router.post("/action/command")
+async def command(
+    task_controller: TaskControllerAD,
+    db_session: SessionAD,
+):
+    task_controller.submit(
+        models.TestTaskSubmission(),
+        db_session=db_session,
+    )
+
+    return {"message": "command started"}
 
 
 @router.websocket("/vnc/{identifier}")
@@ -226,7 +244,7 @@ def create_hostkey(
     identifier: str,
     hostkey: models.CreateHostkeyRequest,
     db_session: SessionAD,
-    project: project.Project = Depends(get_project),
+    project: ProjectAD,
 ):
     """
     Create a hostkey for a device
@@ -249,19 +267,24 @@ def delete_hostkey(db_session: SessionAD, identifier: str):
     crud.hostkey.delete(db_session, identifier)
 
 
+HOST_PATTERN = r"^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$"
+
+
 @router.post("/scan-public-key", response_model=str)
 # regex host
 def scan_public_key(
     host: Annotated[
         str,
         Query(
-            pattern=r"^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$"
+            pattern=HOST_PATTERN,
         ),
     ]
 ):
     """
     Scan a public key for a device
     """
+    host = re.match(HOST_PATTERN, host).group(0)
+    assert host is not None
     # TODO maybe return rsa key if no ed25519 key is found
     for address, key in utils.ssh_keyscan_host(host):
         if key.startswith("ssh-ed25519"):
@@ -275,8 +298,8 @@ async def terminal_websocket(
     identifier: str,
     db_session: SessionAD,
     websocket: WebSocket,
+    project: ProjectAD,
     state: State = Depends(dependencies.get_state),
-    project: project.Project = Depends(get_project),
 ):
     device = next(device for device in state.devices if device.identifier == identifier)
     target_host = crud.hostkey.get_device_host(db_session, identifier)

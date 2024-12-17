@@ -49,7 +49,11 @@ def convert_python_value_to_nix(value, ident=0):
         return f'"{value}"'
     elif isinstance(value, list):
         list_line = "\n" + "  " * (ident + 1)
-        return f"[{list_line}{list_line.join([convert_python_value_to_nix(v) for v in value if v is not None])}\n{'  ' * ident}]"
+        return (
+            f"[{list_line}"
+            f"{list_line.join([convert_python_value_to_nix(v) for v in value if v is not None])}\n"
+            f"{'  ' * ident}]"
+        )
     elif isinstance(value, dict):
         # we like the form { key1.key2.key....keyN = value; }
         if len(value) == 0:
@@ -95,7 +99,7 @@ def convert_python_value_to_nix(value, ident=0):
 def format_nix_file(file_path):
     cmd = ["nixpkgs-fmt", file_path]
     try:
-        subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True, capture_output=True)
     except subprocess.CalledProcessError as e:
         logger.error(
             "Command failed: %s with exit code %s: %s",
