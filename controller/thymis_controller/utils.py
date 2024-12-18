@@ -33,7 +33,7 @@ def ssh_keyscan_host(host: str, port: int = 22) -> List[Tuple[str, str, str]]:
 
 def determine_first_host_with_key(
     hosts: List[str], public_key: str, port: int = 22
-) -> str:
+) -> str | None:
     """
     Determine the first host in the list that has a key
 
