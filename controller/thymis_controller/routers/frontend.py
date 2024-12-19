@@ -214,7 +214,7 @@ async def _reverse_proxy(request: fastapi.Request):
             background=BackgroundTask(rp_resp.aclose),
         )
     except starlette.requests.ClientDisconnect as e:
-        logger.error("Client disconnected: %s", e)
+        logger.debug("Client disconnected: %s", e)
     except Exception as e:
         logger.error("Failed to proxy request: %s", e)
         raise e
