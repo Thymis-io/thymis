@@ -3,6 +3,7 @@ import logging
 from fastapi import APIRouter, HTTPException, Request
 from thymis_controller import crud, models
 from thymis_controller.dependencies import ProjectAD, SessionAD
+from thymis_controller.nix import check_device_reference
 from thymis_controller.utils import determine_first_host_with_key
 
 logger = logging.getLogger(__name__)
@@ -33,6 +34,16 @@ def register(
         raise HTTPException(status_code=400, detail="Your device is already registered")
 
     # TODO check if we can map the device to the Nix repository
+    if not check_device_reference(
+        project.path, register_request.commit_hash, register_request.config_id
+    ):
+        logging.error(
+            f"Device with public key {register_request.public_key} cannot be mapped to the Nix repository"
+        )
+        raise HTTPException(
+            status_code=400,
+            detail="Your device cannot be mapped to the Nix repository",
+        )
 
     # check if device is reachable
     reachable_deployed_host: str | None = determine_first_host_with_key(
