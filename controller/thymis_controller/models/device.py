@@ -5,7 +5,6 @@ from pydantic import BaseModel, Field
 class RegisterDeviceRequest(BaseModel):
     commit_hash: str
     config_id: str
-    nixos_state_version: int
     hardware_id: str
     public_key: str
     ip_addresses: List[str]
