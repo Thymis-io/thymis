@@ -208,6 +208,37 @@ def get_build_output(flake_path, identifier):
     return result[0]
 
 
+def check_device_reference(flake_path, commit_hash, config_id) -> bool:
+    """
+    Check if a device can be mapped to the Nix repository
+    :param flake_path: path to the flake
+    :param commit_hash: commit hash
+    :param config_id: configuration id
+    :return: True if the device can be mapped to the Nix repository, False otherwise
+    """
+    # first run `nix build .#inputs.<input_name>.outPath`
+    # then run `nix eval .#inputs.<input_name>.outPath --json`
+
+    cmd = NIX_CMD + [
+        "eval",
+        f"{flake_path}?rev={commit_hash}#nixosConfigurations.{config_id}",
+        "--json",
+    ]
+
+    try:
+        result = subprocess.run(cmd, check=True, cwd=flake_path, stderr=subprocess.PIPE)
+    except subprocess.CalledProcessError as e:
+        logger.error(
+            "Command failed: %s with exit code %s: %s",
+            e.cmd,
+            e.returncode,
+            e.stderr.decode(),
+        )
+        return None
+
+    return result.returncode == 0
+
+
 NIX_CMD = [
     "nix",
     "--option",
