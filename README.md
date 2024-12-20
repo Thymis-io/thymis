@@ -119,7 +119,11 @@ The controller takes care of running the frontend for you. You can access thymis
   - Initial release of the project
   - Including basic device management features
 
-- [ ] `Release 0.2.0`
+- [x] `Release 0.2.0`
+   - New features and bug fixes, possibly containing breaking changes.
+
+- [ ] `Release 0.3.0`
+   - Task persistence using the database
    - New features and bug fixes, possibly containing breaking changes.
 
 ---
