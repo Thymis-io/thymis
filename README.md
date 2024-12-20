@@ -118,14 +118,20 @@ The controller takes care of running the frontend for you. You can access thymis
 - [x] `Release 0.1.0`
   - Initial release of the project
   - Including basic device management features
+  - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.1.0)
+
+- [x] `Release 0.1.1`
+  - Bug fixes and minor improvements
+  - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.1.1)
 
 - [x] `Release 0.2.0`
-   - New features and bug fixes, possibly containing breaking changes.
+  - New features and bug fixes, possibly containing breaking changes.
+  - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.2.0)
 
 - [ ] `Release 0.3.0`
-   - Task persistence using the database
-   - Update to nixpkgs/NixOS 24.11
-   - New features and bug fixes, possibly containing breaking changes.
+  - Task persistence using the database
+  - Update to nixpkgs/NixOS 24.11
+  - New features and bug fixes, possibly containing breaking changes.
 
 ---
 
