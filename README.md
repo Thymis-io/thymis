@@ -124,6 +124,7 @@ The controller takes care of running the frontend for you. You can access thymis
 
 - [ ] `Release 0.3.0`
    - Task persistence using the database
+   - Update to nixpkgs/NixOS 24.11
    - New features and bug fixes, possibly containing breaking changes.
 
 ---
