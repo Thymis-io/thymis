@@ -28,3 +28,27 @@ test('shows devices', async ({ page }) => {
 
 	await expect(page).toHaveScreenshot();
 });
+
+test('explores more pages', async ({ page }) => {
+	// Navigate to the Devices page
+	await page.goto('/devices');
+	await expect(page).toHaveScreenshot();
+
+	// Navigate to the Tags page
+	const tagsNav = page.locator('a', { hasText: 'Tags' }).locator('visible=true').first();
+	await tagsNav.click();
+	await expect(page).toHaveScreenshot();
+
+	// Navigate to the History page
+	const historyNav = page.locator('a', { hasText: 'History' }).locator('visible=true').first();
+	await historyNav.click();
+	await expect(page).toHaveScreenshot();
+
+	// Navigate to the External Repositories page
+	const externalReposNav = page
+		.locator('a', { hasText: 'External Repositories' })
+		.locator('visible=true')
+		.first();
+	await externalReposNav.click();
+	await expect(page).toHaveScreenshot();
+});

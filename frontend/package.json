@@ -12,6 +12,7 @@
 		"lint": "prettier --plugin-search-dir . --check . && eslint .",
 		"format": "prettier --plugin-search-dir . --write .",
 		"test:integration": "playwright test",
+		"test:integration:update-snapshots": "playwright test --update-snapshots",
 		"test:unit": "vitest"
 	},
 	"devDependencies": {
