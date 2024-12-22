@@ -93,10 +93,13 @@
 					<MainWindow bind:drawerHidden slot="a">
 						<slot />
 					</MainWindow>
-					<div class="w-full relative dark:border-gray-600 bg-gray-50 dark:bg-gray-900" slot="b">
+					<div
+						class="w-full relative border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900"
+						slot="b"
+					>
 						<TaskbarMinimize bind:taskBarMinimized={taskbarMinimized} />
 						<Taskbar />
-						<div class="relative h-[40px]">
+						<div class="absolute w-full bottom-0 h-[40px]">
 							<TaskbarMinimize bind:taskBarMinimized={taskbarMinimized} class="mt-2" />
 							<TaskbarSmall />
 						</div>
