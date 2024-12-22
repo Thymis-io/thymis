@@ -6,9 +6,6 @@ import re
 import signal
 import subprocess
 import sys
-
-logger = logging.getLogger(__name__)
-
 from urllib.parse import urlparse
 
 import fastapi
@@ -19,6 +16,7 @@ from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
 from thymis_controller.config import global_settings
 
+logger = logging.getLogger(__name__)
 FRONTEND_PORT = 33100 + (int(os.environ.get("UVICORN_PORT", 0)) % 1000)
 
 
