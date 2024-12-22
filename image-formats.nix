@@ -21,6 +21,7 @@ let
       sd-card-image = { config, ... }: {
         imports = [
           inputs.nixos-generators.nixosModules.sd-aarch64
+          "${inputs.raspberry-pi-nix}/sd-image/default.nix"
         ];
         sdImage.compressImage = false;
         system.build.thymis-image = config.system.build.sdImage;
