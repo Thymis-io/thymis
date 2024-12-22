@@ -9,11 +9,22 @@ let
       generic-aarch64 = { ... }: {
         nixpkgs.hostPlatform = "aarch64-linux";
       };
-      raspberry-pi-3 = { ... }: {
+      raspberry-pi-3 = { modulesPath, ... }: {
+        disabledModules = [
+          "${modulesPath}/installer/sd-card/sd-image-aarch64.nix"
+        ];
+        imports = [
+          inputs.raspberry-pi-nix.nixosModules.raspberry-pi
+        ];
+        raspberry-pi-nix.board = "bcm2711";
+        hardware.raspberry-pi.config = {
+          all = {
+            base-dt-params = {
+              audio = true;
+            };
+          };
+        };
         boot.kernelModules = [ "vc4" "bcm2835_dma" "i2c_bcm2835" ];
-        boot.loader.raspberryPi.firmwareConfig = ''
-          dtparam=audio=on
-        '';
         nixpkgs.overlays = [
           (final: super: {
             makeModulesClosure = x:
@@ -23,6 +34,9 @@ let
         nixpkgs.hostPlatform = "aarch64-linux";
       };
       raspberry-pi-4 = { ... }: {
+        disabledModules = [
+          "${inputs.raspberry-pi-nix}/sd-image/default.nix"
+        ];
         imports = [
           inputs.nixos-hardware.nixosModules.raspberry-pi-4
         ];
