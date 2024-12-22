@@ -70,7 +70,7 @@ class TaskController:
 
         return task_db
 
-    def get_task(self, task_id: str, db_session: Session):
+    def get_task(self, task_id: str, db_session: Session) -> models.Task:
         return models.task.Task.model_validate(
             crud.task.get_task_by_id(db_session, task_id),
             from_attributes=True,

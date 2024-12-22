@@ -147,9 +147,9 @@ async def lifespan(app: FastAPI):
     with sqlalchemy.orm.Session(db_engine) as db_session:
         project = Project(global_settings.REPO_PATH.resolve(), db_session)
     async with task_controller.start(db_engine):
-        logger.info("starting frontend")
+        logger.debug("starting frontend")
         await frontend.frontend.run()
-        logger.info("frontend started")
+        logger.debug("frontend started")
         logger.info("Starting controller at \033[1m%s\033[0m", global_settings.BASE_URL)
         yield {
             "notification_manager": notification_manager,
@@ -166,6 +166,7 @@ async def lifespan(app: FastAPI):
 description = """
 API to control Nix operating system 🎛️
 """
+
 
 app = FastAPI(
     title="Thymis Controller API",
