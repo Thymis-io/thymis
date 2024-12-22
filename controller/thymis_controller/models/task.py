@@ -91,6 +91,7 @@ class TaskSubmission(BaseModel):
 
 TaskSubmissionData = Union[
     "DeployDevicesTaskSubmission",
+    "DeployDeviceTaskSubmission",
     "ProjectFlakeUpdateTaskSubmission",
     "BuildProjectTaskSubmission",
     "BuildDeviceImageTaskSubmission",
@@ -111,14 +112,14 @@ class DeployDevicesTaskSubmission(BaseModel):
     devices: list[DeployDeviceInformation]
     ssh_key_path: str
     known_hosts_path: str
-    parent_task_id: Optional[uuid.UUID] = None
 
 
 class DeployDeviceTaskSubmission(BaseModel):
-    type: Literal["deploy_device_task"]
+    type: Literal["deploy_device_task"] = "deploy_device_task"
     device: DeployDeviceInformation
     ssh_key_path: str
     known_hosts_path: str
+    parent_task_id: Optional[uuid.UUID] = None
 
 
 class ProjectFlakeUpdateTaskSubmission(BaseModel):

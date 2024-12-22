@@ -77,6 +77,7 @@ def get_tasks_short(db_session: Session, limit: int = 100):
                 db_models.Task.end_time,
                 db_models.Task.exception,
                 db_models.Task.task_submission_data,
+                db_models.Task.nix_status,
             )
         )
         .order_by(db_models.Task.start_time.desc())
