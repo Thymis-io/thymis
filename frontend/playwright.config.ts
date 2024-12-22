@@ -34,6 +34,7 @@ const commandFrame = (cmd) =>
 						THYMIS_REPO_PATH: '$TMPDIR/repository',
 						THYMIS_DATABASE_URL: 'sqlite:///$TMPDIR/thymis.sqlite',
 						THYMIS_AUTH_BASIC_PASSWORD_FILE: '$TMPDIR/auth-basic-password',
+						THYMIS_SSH_KEY_PATH: '$TMPDIR/id_thymis',
 						RUNNING_IN_PLAYWRIGHT: 'true'
 					},
 					withContentInFile('testadminpassword', '$THYMIS_AUTH_BASIC_PASSWORD_FILE', cmd)
