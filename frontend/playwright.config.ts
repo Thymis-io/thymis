@@ -54,7 +54,8 @@ const config: PlaywrightTestConfig = {
 			width: 1920,
 			height: 1080
 		}
-	}
+	},
+	reporter: [['list'], ['html']]
 };
 
 export default config;
