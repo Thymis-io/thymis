@@ -50,7 +50,7 @@ class NotificationManager:
     def next_notification(self) -> Notification | None:
         if self.queue.qsize() > 0:
             return self.queue.get()
-        elif self.retry_queue.qsize() > 0:
+        if self.retry_queue.qsize() > 0:
             notification = self.retry_queue.get()
 
             if notification.can_retry():
@@ -90,9 +90,9 @@ class NotificationManager:
         self.active_connections.remove(websocket)
 
     def is_connection_healthy(self, websocket: WebSocket):
-        return (
-            websocket.application_state != WebSocketState.DISCONNECTED
-            and websocket.client_state != WebSocketState.DISCONNECTED
+        return WebSocketState.DISCONNECTED not in (
+            websocket.application_state,
+            websocket.client_state,
         )
 
     def broadcast(self, message: str):

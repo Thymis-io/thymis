@@ -1,35 +1,23 @@
 import datetime
 import logging
-import threading
 import uuid
 from typing import Annotated, Generator, Optional, Union
 
+from fastapi import Cookie, Depends, HTTPException, Request, Response, WebSocket, status
 from fastapi.requests import HTTPConnection
 from sqlalchemy.orm import Session
+from thymis_controller.config import global_settings
 from thymis_controller.crud import web_session
+from thymis_controller.project import Project
 from thymis_controller.task.controller import TaskController
 
 logger = logging.getLogger(__name__)
 
-
-from fastapi import Cookie, Depends, HTTPException, Request, Response, WebSocket, status
-from thymis_controller.config import global_settings
-from thymis_controller.project import Project
-
-global_project = None
 SESSION_LIFETIME = datetime.timedelta(days=1)
-project_lock = threading.Lock()
 
 
-def get_project():
-    global global_project
-
-    with project_lock:
-        if global_project is None:
-            REPO_PATH = global_settings.REPO_PATH.resolve()
-
-            global_project = Project(REPO_PATH, next(get_db_session()))
-        return global_project
+def get_project(connection: HTTPConnection) -> Project:
+    return connection.state.project
 
 
 ProjectAD = Annotated[Project, Depends(get_project)]
@@ -39,10 +27,8 @@ def get_state(project: Project = Depends(get_project)):
     return project.read_state()
 
 
-def get_db_session() -> Generator[Session, None, None]:
-    from thymis_controller.database.connection import engine
-
-    with Session(engine) as session:
+def get_db_session(connection: HTTPConnection) -> Generator[Session, None, None]:
+    with Session(connection.state.engine) as session:
         yield session
 
 
@@ -97,7 +83,7 @@ def apply_user_session(db_session: SessionAD, response: Response):
     )
 
 
-def get_task_controller(connection: HTTPConnection):
+def get_task_controller(connection: HTTPConnection) -> "TaskController":
     return connection.state.task_controller
 
 

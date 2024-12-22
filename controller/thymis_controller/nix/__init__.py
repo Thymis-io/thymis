@@ -49,7 +49,11 @@ def convert_python_value_to_nix(value, ident=0):
         return f'"{value}"'
     elif isinstance(value, list):
         list_line = "\n" + "  " * (ident + 1)
-        return f"[{list_line}{list_line.join([convert_python_value_to_nix(v) for v in value if v is not None])}\n{'  ' * ident}]"
+        return (
+            f"[{list_line}"
+            f"{list_line.join([convert_python_value_to_nix(v) for v in value if v is not None])}\n"
+            f"{'  ' * ident}]"
+        )
     elif isinstance(value, dict):
         # we like the form { key1.key2.key....keyN = value; }
         if len(value) == 0:

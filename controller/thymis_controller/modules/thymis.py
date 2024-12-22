@@ -654,7 +654,7 @@ class ThymisDevice(modules.Module):
             else self.timezone.default
         )
 
-        f.write(f"  imports = [\n")
+        f.write("  imports = [\n")
 
         if device_type:
             f.write(f"    inputs.thymis.nixosModules.thymis-device-{device_type}\n")
@@ -665,7 +665,7 @@ class ThymisDevice(modules.Module):
             first_format = self.find_image_format_by_device_type(device_type)
             f.write(f"    inputs.thymis.nixosModules.thymis-image-{first_format}\n")
 
-        f.write(f"  ];\n")
+        f.write("  ];\n")
 
         if authorized_keys:
             keys = list(
