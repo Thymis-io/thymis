@@ -1,0 +1,61 @@
+name: Update Snapshots on Comment
+on:
+  issue_comment:
+    types: [created]
+jobs:
+  update-snapshots:
+    name: Update Snapshots
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/approve-snapshots')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Get branch of PR
+        uses: xt0rted/pull-request-comment-branch@v2
+        id: comment-branch
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
+      - name: Comment action started
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          message: |
+            ### Updating snapshots. Click [here](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) to see the status.
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            system-features = kvm
+            extra-trusted-public-keys = cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=
+            extra-substituters = https://cache.thymis.io
+      - uses: DeterminateSystems/magic-nix-cache-action@v2
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: |
+          npm ci
+        working-directory: frontend
+      - name: Build application
+        run: |
+          nix build .#thymis-controller
+      - name: Install Playwright Browser
+        run: |
+          npx playwright install --with-deps
+        working-directory: frontend
+      - name: Run tests
+        run: |
+          npm run test:integration -- --update-snapshots
+        working-directory: frontend
+      - name: Commit and push updated snapshots
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'Update e2e snapshots'
+      - name: Comment success
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          message: |
+            ### 🎉 Successfully updated and committed Playwright snapshots! 🎉
