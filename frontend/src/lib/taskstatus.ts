@@ -49,6 +49,14 @@ export type TaskShort = {
 	end_time?: string;
 	exception?: string;
 	data: Record<string, unknown>;
+
+	nix_status?: {
+		done: number;
+		expected: number;
+		running: number;
+		failed: number;
+		errors: unknown[];
+	};
 };
 
 export type TasksShort = Record<string, TaskShort>;
