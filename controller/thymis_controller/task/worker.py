@@ -153,7 +153,7 @@ def run_command(
     proc.wait()
     stdout_thread.join(0.5)
     stderr_thread.join(0.5)
-    update_thread.join(1)
+    update_thread.join(1.5)
 
     # if anything is still alive, complain
     if proc.poll() is None:
