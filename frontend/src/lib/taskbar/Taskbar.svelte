@@ -1,22 +1,27 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
 	import ResizableColumns from 'svelte-resizable-columns/src/ResizableColumns';
 	import 'svelte-resizable-columns/src/resizableColumns.css';
 	import { taskStatus, type Task, type TaskShort } from '$lib/taskstatus';
 
 	import TaskbarActions from './TaskbarActions.svelte';
 	import TaskbarStatus from './TaskbarStatus.svelte';
-	import { derived } from 'svelte/store';
 	import RenderUnixTimestamp from '$lib/components/RenderUnixTimestamp.svelte';
 
 	$: taskList = Object.values($taskStatus).sort((a, b) => (a.start_time < b.start_time ? 1 : -1));
 
 	const headers = [
-		{ name: 'Start Time' },
-		{ name: 'End Time' },
-		{ name: 'Name' },
-		{ name: 'Status' },
-		{ name: 'Actions', additionalStyle: 'width: 10%' }
+		{ name: $t('taskbar.start-time') },
+		{ name: $t('taskbar.end-time') },
+		{ name: $t('taskbar.task-type') },
+		{ name: $t('taskbar.status') },
+		{ name: $t('taskbar.actions'), additionalStyle: 'width: 10%' }
 	];
+
+	const localizeTaskType = {
+		build_project_task: $t('taskbar.task-types.build_project'),
+		project_flake_update_task: $t('taskbar.task-types.project_flake_update')
+	};
 </script>
 
 <div class="max-h-full overflow-scroll">
@@ -43,7 +48,7 @@
 						<RenderUnixTimestamp timestamp={task.end_time} />
 					</td>
 					<td class="border border-gray-300 dark:border-gray-700">
-						{task.task_type}
+						{task.task_type in localizeTaskType ? localizeTaskType[task.task_type] : task.task_type}
 					</td>
 					<td class="border border-gray-300 dark:border-gray-700">
 						<TaskbarStatus {task} />
