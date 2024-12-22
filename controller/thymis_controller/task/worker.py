@@ -18,12 +18,7 @@ def worker_run_task(task: models_task.TaskSubmission, conn: Connection):
     try:
         SUPPORTED_TASK_TYPES[task.data.type](task, conn)
     except Exception as e:
-        conn.send(
-            models_task.RunnerToControllerTaskUpdate(
-                id=task.id,
-                update=models_task.TaskFailedUpdate(reason=f"Exception: {e}"),
-            )
-        )
+        report_task_finished(task, conn, False, f"Exception: {e}")
     conn.close()
 
 
@@ -51,13 +46,16 @@ def project_flake_update_task(task: models_task.TaskSubmission, conn: Connection
     project_path = pathlib.Path(task_data.project_path).resolve()
 
     # runs `nix flake update` in the project directory
-    run_command(
+    returncode = run_command(
         task,
         conn,
         ["nix", "flake", "update"],
         cwd=project_path,
     )
-    report_task_finished(task, conn)
+    if returncode == 0:
+        report_task_finished(task, conn)
+    else:
+        report_task_finished(task, conn, False, "Flake update failed")
 
 
 def build_project_task(task: models_task.TaskSubmission, conn: Connection):
@@ -66,7 +64,7 @@ def build_project_task(task: models_task.TaskSubmission, conn: Connection):
     project_path = pathlib.Path(task_data.project_path).resolve()
 
     # runs `nix build` in the project directory
-    run_command(
+    returncode = run_command(
         task,
         conn,
         [
@@ -80,7 +78,10 @@ def build_project_task(task: models_task.TaskSubmission, conn: Connection):
         ],
         cwd=project_path,
     )
-    report_task_finished(task, conn)
+    if returncode == 0:
+        report_task_finished(task, conn)
+    else:
+        report_task_finished(task, conn, False, "Build failed")
 
 
 def test_task(task: models_task.TaskSubmission, conn: Connection):
@@ -205,14 +206,24 @@ def run_command(
         if update_thread.is_alive():
             raise RuntimeError("update_thread did not stop properly")
 
+    return proc.returncode
 
-def report_task_finished(task, conn):
-    conn.send(
-        models_task.RunnerToControllerTaskUpdate(
-            id=task.id,
-            update=models_task.TaskCompletedUpdate(),
+
+def report_task_finished(task, conn, success=True, reason=None):
+    if success:
+        conn.send(
+            models_task.RunnerToControllerTaskUpdate(
+                id=task.id,
+                update=models_task.TaskCompletedUpdate(),
+            )
         )
-    )
+    else:
+        conn.send(
+            models_task.RunnerToControllerTaskUpdate(
+                id=task.id,
+                update=models_task.TaskFailedUpdate(reason=reason),
+            )
+        )
 
 
 def stream_to_buffer(stream: IO[bytes], buffer: bytearray, lock: threading.Lock):
