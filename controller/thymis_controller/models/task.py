@@ -57,6 +57,7 @@ class TaskShort(BaseModel):
     end_time: Optional[datetime.datetime]
     exception: Optional[str]
     task_submission_data: "TaskSubmissionData"
+    nix_status: Optional[NixProcessStatus]
 
     @classmethod
     def from_orm_task(cls, task: Task) -> "TaskShort":
@@ -68,6 +69,7 @@ class TaskShort(BaseModel):
             end_time=task.end_time,
             exception=task.exception,
             task_submission_data=task.task_submission_data,
+            nix_status=task.nix_status,
         )
 
 
@@ -161,6 +163,7 @@ TaskUpdate = Union[
     "TaskPickedUpdate",
     "TaskRejectedUpdate",
     "TaskStdOutErrUpdate",
+    "TaskNixStatusUpdate",
     "TaskCompletedUpdate",
     "TaskFailedUpdate",
 ]
@@ -179,6 +182,11 @@ class TaskStdOutErrUpdate(BaseModel):
     type: Literal["task_stdout_err"] = "task_stdout_err"
     stdoutb64: str  # base64 encoded
     stderrb64: str  # base64 encoded
+
+
+class TaskNixStatusUpdate(BaseModel):
+    type: Literal["task_nix_status"] = "task_nix_status"
+    status: NixProcessStatus
 
 
 class TaskCompletedUpdate(BaseModel):
@@ -208,6 +216,8 @@ __all__ = [
     "TaskUpdate",
     "TaskPickedUpdate",
     "TaskRejectedUpdate",
+    "TaskStdOutErrUpdate",
+    "TaskNixStatusUpdate",
     "TaskCompletedUpdate",
     "TaskFailedUpdate",
 ]
