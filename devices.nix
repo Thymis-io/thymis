@@ -47,7 +47,7 @@ let
         hardware.raspberry-pi.config = {
           all = {
             dt-overlays = {
-              vc4-fkms-v3d = { enable = true; };
+              vc4-fkms-v3d = { enable = true; params = { }; };
             };
           };
         };
