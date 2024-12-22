@@ -1,5 +1,7 @@
 import { test, expect } from '../playwright/fixtures';
 
+test.describe.configure({ mode: 'serial' });
+
 test('shows devices', async ({ page }) => {
 	page.on('console', (msg) => {
 		console.log(`Error text: "${msg.text()}"`);
