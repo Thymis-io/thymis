@@ -68,7 +68,7 @@ jobs:
         working-directory: frontend
       - name: Run tests
         run: |
-          npm run test | tee output.log
+          npm run test 2>&1 | tee output.log
           if grep -q -e "Error: A snapshot doesn't exist at" -e "Screenshot comparison failed" output.log; then
             echo "Playwright tests failed due to a snapshot issue."
             echo "SNAPSHOT_DIFFERENCES=true" >> $GITHUB_ENV
