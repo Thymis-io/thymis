@@ -3,9 +3,6 @@ import { test, expect } from '../playwright/fixtures';
 test.describe.configure({ mode: 'serial' });
 
 test('shows devices', async ({ page }) => {
-	page.on('console', (msg) => {
-		console.log(`Error text: "${msg.text()}"`);
-	});
 	const resp = await page.goto('/devices');
 
 	// 200 OK is expected
