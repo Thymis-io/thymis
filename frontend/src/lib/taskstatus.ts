@@ -35,10 +35,10 @@ export type Task = {
 	nix_bytes_linked?: number;
 	nix_corrupted_paths?: number;
 	nix_untrusted_paths?: number;
-	nix_errors?: Record<string, unknown>;
-	nix_warnings?: Record<string, unknown>;
-	nix_notices?: Record<string, unknown>;
-	nix_infos?: Record<string, unknown>;
+	nix_errors?: string[];
+	nix_warnings?: string[];
+	nix_notices?: string[];
+	nix_infos?: string[];
 };
 
 export type TaskShort = {

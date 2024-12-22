@@ -142,6 +142,31 @@
 			<p>No process information</p>
 		{/if}
 
+		{#if task.nix_status?.errors && task.nix_status.errors.length > 0}
+			<p>Nix errors:</p>
+			<MonospaceText code={task.nix_status.errors.map((error) => error.msg).join('\n')} />
+		{/if}
+
+		{#if task.nix_errors && task.nix_errors.length > 0}
+			<p>Nix errors:</p>
+			<MonospaceText code={task.nix_errors.join('\n')} />
+		{/if}
+
+		{#if task.nix_warnings && task.nix_warnings.length > 0}
+			<p>Nix warnings:</p>
+			<MonospaceText code={task.nix_warnings.join('\n')} />
+		{/if}
+
+		{#if task.nix_notices && task.nix_notices.length > 0}
+			<p>Nix notices:</p>
+			<MonospaceText code={task.nix_notices.join('\n')} />
+		{/if}
+
+		{#if task.nix_infos && task.nix_infos.length > 0}
+			<p>Nix infos:</p>
+			<MonospaceText code={task.nix_infos.join('\n')} />
+		{/if}
+
 		{#if task.process_stdout}
 			<p>Standard output:</p>
 			<MonospaceText code={cleanStdOut(task.process_stdout)} />

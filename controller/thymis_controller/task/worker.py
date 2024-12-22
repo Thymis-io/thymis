@@ -7,6 +7,7 @@ from multiprocessing.connection import Connection
 from typing import IO, AnyStr, List
 
 import thymis_controller.models.task as models_task
+from thymis_controller.nix.log_parse import NixParser
 
 
 def worker_run_task(task: models_task.TaskSubmission, conn: Connection):
@@ -68,7 +69,15 @@ def build_project_task(task: models_task.TaskSubmission, conn: Connection):
     run_command(
         task,
         conn,
-        ["nix", "build", ".#thymis", "--out-link", "/tmp/thymis"],
+        [
+            "nix",
+            "build",
+            ".#thymis",
+            "--out-link",
+            "/tmp/thymis",
+            "--log-format",
+            "internal-json",
+        ],
         cwd=project_path,
     )
     report_task_finished(task, conn)
@@ -130,6 +139,8 @@ def run_command(
         target=stream_to_buffer, args=(proc.stderr, stderr_buffer, buffer_lock)
     )
 
+    nix_parser = NixParser()
+
     # another thread for regularly sending updates to the controller (every second?)
     # this thread should also clear the buffers after sending
     def flush_buffers():
@@ -138,9 +149,20 @@ def run_command(
         if stdout_buffer or stderr_buffer:
             with buffer_lock:
                 stdout = stdout_buffer.copy()
-                stderr = stderr_buffer.copy()
                 stdout_buffer.clear()
-                stderr_buffer.clear()
+                stderr = nix_parser.take_complete_lines(stderr_buffer)
+
+            has_processed_nix_lines = nix_parser.process_buffer(stderr)
+            if has_processed_nix_lines:
+                conn.send(
+                    models_task.RunnerToControllerTaskUpdate(
+                        id=task.id,
+                        update=models_task.TaskNixStatusUpdate(
+                            status=nix_parser.get_model()
+                        ),
+                    )
+                )
+
             conn.send(
                 models_task.RunnerToControllerTaskUpdate(
                     id=task.id,
