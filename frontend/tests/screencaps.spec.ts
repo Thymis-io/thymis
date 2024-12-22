@@ -7,22 +7,24 @@ test('shows devices', async ({ page }) => {
 	const resp = await page.goto('/devices');
 
 	// 200 OK is expected
-	expect(resp).not.toBeNull();
-	if (resp === null) {
-		throw new Error('resp is null');
-	}
-	expect(resp.status()).toBe(200);
-
+	expect(resp?.status()).toBe(200);
 	await expect(page).toHaveScreenshot();
 
 	// We can add Devices
 	const addDeviceButton = page.locator('button').filter({ hasText: 'Create New Device' });
-	expect(addDeviceButton).not.toBeNull();
 	await addDeviceButton.click();
 
-	// expect (await page.locator('input').count()).toBe(3);
-	// print the input fields
-	// await expect(page.locator('input')).toHaveCount(4);
+	await expect(page).toHaveScreenshot();
+
+	// select id display-name input and fill it with 'My Device 1'
+	const displayNameInput = page.locator('#display-name').first();
+	await displayNameInput.fill('My Device 1');
+
+	const deviceTypeSelect = page.locator('#device-type').first();
+	await deviceTypeSelect.selectOption({ label: 'Raspberry Pi 4' });
+
+	const saveButton = page.locator('button').filter({ hasText: 'Create device' });
+	await saveButton.click();
 
 	await expect(page).toHaveScreenshot();
 });

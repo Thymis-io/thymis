@@ -19,11 +19,16 @@ from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
 from thymis_controller.config import global_settings
 
-FRONTEND_PORT = 33100
+FRONTEND_PORT = 33100 + (int(os.environ.get("UVICORN_PORT", 0)) % 1000)
 
 
 def is_reload_enabled():
     return "--reload" in sys.argv
+
+
+def is_running_in_playwright():
+    # environment variable set by playwright server invocation
+    return "RUNNING_IN_PLAYWRIGHT" in os.environ
 
 
 def frontend_binary_path():
@@ -46,7 +51,7 @@ class Frontend:
         self.stopped = False
 
     async def run(self):
-        if is_reload_enabled():
+        if is_reload_enabled() and not is_running_in_playwright():
             frontend_path = (
                 pathlib.Path(__file__).parent.parent.parent.parent / "frontend"
             )
@@ -72,6 +77,27 @@ class Frontend:
                 },
             )
 
+        elif is_running_in_playwright():
+            frontend_path = (
+                pathlib.Path(__file__).parent.parent.parent.parent / "frontend"
+            )
+            assert (
+                frontend_path.exists()
+            ), f"frontend path {frontend_path} does not exist"
+            self.process = await asyncio.create_subprocess_exec(
+                "sh",
+                "-c",
+                f"npm run build && npm run preview -- --host 127.0.0.1 --port {str(FRONTEND_PORT)}",
+                cwd=frontend_path,
+                env={
+                    "PORT": str(FRONTEND_PORT),
+                    "HOST": "127.0.0.1",
+                    "PUBLIC_CONTROLLER_HOST": controller_base_url(),
+                    "PATH": os.environ["PATH"],
+                },
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
         else:
             self.process = await asyncio.create_subprocess_exec(
                 frontend_binary_path(),
@@ -101,9 +127,9 @@ class Frontend:
                 if line:
                     logger.info("frontend process: %s", line.decode("utf-8").strip())
                     if is_reload_enabled():
-                        # wait for vite
                         if re.search(
-                            r"VITE v\d+\.\d+\.\d+  ready in \d+", line.decode("utf-8")
+                            r"Local: +http",
+                            line.decode("utf-8"),
                         ):
                             self.started.set()
                             break
