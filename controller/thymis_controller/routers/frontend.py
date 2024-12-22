@@ -3,7 +3,6 @@ import logging
 import os
 import pathlib
 import re
-import signal
 import subprocess
 import sys
 from urllib.parse import urlparse
@@ -12,12 +11,14 @@ import fastapi
 import httpx
 import psutil
 import starlette.requests
-from fastapi import APIRouter, FastAPI, Response
+from fastapi import APIRouter, Response
 from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
 from thymis_controller.config import global_settings
 
+logger = logging.getLogger(__name__)
 logging.getLogger("httpx").setLevel(logging.WARNING)
+
 FRONTEND_PORT = 33100 + (int(os.environ.get("UVICORN_PORT", 0)) % 1000)
 
 
