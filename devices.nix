@@ -73,10 +73,9 @@ let
             };
           };
         };
-        hardware.opengl = {
+        hardware.graphics = {
           enable = true;
           extraPackages = [ pkgs.mesa.drivers ];
-          driSupport = true;
         };
         services.xserver.extraConfig = ''
           Section "OutputClass"
