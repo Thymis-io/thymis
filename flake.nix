@@ -2,8 +2,8 @@
   description = "Thymis";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-24.05";
-    home-manager.url = "github:nix-community/home-manager/release-24.05";
+    nixpkgs.url = "nixpkgs/nixos-24.11";
+    home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nixos-generators.url = "github:nix-community/nixos-generators";
     nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
@@ -48,7 +48,7 @@
           nixosModules.thymis-controller
           {
             services.thymis-controller.enable = true;
-            system.stateVersion = "24.05";
+            system.stateVersion = "24.11";
           }
         ];
         specialArgs = {
@@ -64,7 +64,7 @@
           nixosModules.thymis-controller
           {
             services.thymis-controller.enable = true;
-            system.stateVersion = "24.05";
+            system.stateVersion = "24.11";
           }
         ];
         specialArgs = {
@@ -80,7 +80,7 @@
           nixosModules.thymis-controller
           {
             services.thymis-controller.enable = true;
-            system.stateVersion = "24.05";
+            system.stateVersion = "24.11";
           }
         ];
         specialArgs = {
@@ -96,7 +96,7 @@
           nixosModules.thymis-controller
           {
             services.thymis-controller.enable = true;
-            system.stateVersion = "24.05";
+            system.stateVersion = "24.11";
           }
         ];
         specialArgs = {
@@ -127,6 +127,7 @@
             shellHook = ''
               export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+              export THYMIS_DEV_SHELL=true
             '';
           };
         });

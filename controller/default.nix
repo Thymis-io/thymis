@@ -13,10 +13,10 @@ let
     projectDir = ./.;
     preferWheels = true;
     overrides = poetry2nix.overrides.withDefaults (self: super: {
-      thymis-enterprise = null;
+      fastapi-cli = python312.pkgs.fastapi-cli;
       bcrypt = python312.pkgs.bcrypt;
     });
-    groups = [ ];
+    groups = [ "main" ];
     checkGroups = [ "test" ];
     python = python312;
   }).dependencyEnv;

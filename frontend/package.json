@@ -18,7 +18,7 @@
 		"@battlefieldduck/xterm-svelte": "^1.0.0",
 		"@floating-ui/dom": "^1.6.11",
 		"@novnc/novnc": "^1.5.0",
-		"@playwright/test": "^1.48.2",
+		"@playwright/test": "1.47.0",
 		"@sveltejs/adapter-node": "^5.2.9",
 		"@sveltejs/kit": "^2.7.3",
 		"@sveltejs/package": "^2.3.7",
