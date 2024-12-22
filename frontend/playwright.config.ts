@@ -44,6 +44,7 @@ const commandFrame = (cmd) =>
 	);
 
 const config: PlaywrightTestConfig = {
+	retries: 3,
 	webServer: {
 		command: commandFrame(command),
 		port: 8000
@@ -58,7 +59,8 @@ const config: PlaywrightTestConfig = {
 		},
 		launchOptions: {
 			args: ['--disable-lcd-text']
-		}
+		},
+		video: 'on-first-retry'
 	},
 	reporter: [['list'], ['html']],
 	expect: {
