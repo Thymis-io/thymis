@@ -52,3 +52,22 @@ test('explores more pages', async ({ page }) => {
 	await externalReposNav.click();
 	await expect(page).toHaveScreenshot();
 });
+
+test('view device details', async ({ page }) => {
+	// Navigate to Devices page
+	await page.goto('/devices');
+
+	// Click on "View Details" button
+	const viewDetailsButton = page
+		.locator('a', { hasText: 'View Details' })
+		.locator('visible=true')
+		.first();
+	await viewDetailsButton.click();
+
+	// Validate the Device Details page
+	// await expect(page.locator('h1')).toHaveText('Device Details');
+	await expect(page).toHaveScreenshot();
+
+	// Optionally, navigate back to Devices page
+	await page.goBack();
+});
