@@ -1,116 +1,58 @@
 <script lang="ts">
+	import ResizableColumns from 'svelte-resizable-columns/src/ResizableColumns';
+	import 'svelte-resizable-columns/src/resizableColumns.css';
 	import { taskStatus, type Task, type TaskShort } from '$lib/taskstatus';
-
-	import DataTable from './DataTable.svelte';
-	import {
-		createSvelteTable,
-		flexRender,
-		getCoreRowModel,
-		createColumnHelper,
-		getSortedRowModel
-	} from '@tanstack/svelte-table';
 
 	import TaskbarActions from './TaskbarActions.svelte';
 	import TaskbarStatus from './TaskbarStatus.svelte';
 	import { derived } from 'svelte/store';
 	import RenderUnixTimestamp from '$lib/components/RenderUnixTimestamp.svelte';
 
-	// columns:
-	// - start time
-	// - end time *if available*
-	// - task name (what type of task it is)
-	// - status (pending, running with progress bar, completed, failed)
-	// - detail (custom string for what the task does)
-	// - exception (if failed, custom string for what went wrong)
-	// - user (who started the task)
-	// - action buttons
-	//     - cancel: kills or dequeues the task
-	//     - retry: requeues the task
-	//     - view: opens a site-specific view of the task
+	$: taskList = Object.values($taskStatus).sort((a, b) => (a.start_time < b.start_time ? 1 : -1));
 
-	const coreRowModel = getCoreRowModel();
-	const sortedRowModel = getSortedRowModel();
-	const columnHelper = createColumnHelper<TaskShort>();
-
-	const tableOptions = derived([taskStatus], ([taskStatusValue]) => {
-		return {
-			data: Object.values(taskStatusValue).filter((task) => task),
-			columns: [
-				columnHelper.accessor('start_time', {
-					cell: (item) => flexRender(RenderUnixTimestamp, { timestamp: item.getValue() }),
-					header: 'Start Time',
-					size: 120
-				}),
-				columnHelper.accessor('end_time', {
-					cell: (item) => flexRender(RenderUnixTimestamp, { timestamp: item.getValue() }),
-					header: 'End Time',
-					size: 120
-				}),
-				// columnHelper.accessor('display_name', {
-				// 	cell: (item) => item.getValue(),
-				// 	header: 'Task',
-				// 	size: 300
-				// }),
-				columnHelper.accessor((task) => task, {
-					cell: (item) => item.getValue().task_type,
-					header: 'Task',
-					size: 300
-				}),
-				columnHelper.accessor((task) => task, {
-					// cell: (item) => item.getValue(),
-					// header: 'Status',
-					// size: 100
-					cell: (item) => flexRender(TaskbarStatus, { task: item.getValue() }),
-					header: 'Status',
-					size: 100
-				}),
-				columnHelper.accessor('data', {
-					cell: (item) => JSON.stringify(item.getValue()),
-					header: 'Detail',
-					size: 200
-				}),
-				columnHelper.accessor('exception', {
-					cell: (item) => item.getValue() || 'No exception',
-					header: 'Exception',
-					size: 100
-				}),
-				// columnHelper.display({
-				// 	cell: (item) => 'Not implemented',
-				// 	header: 'User',
-				// 	id: 'user',
-				// 	size: 100
-				// }),
-				columnHelper.accessor((task) => task, {
-					cell: (item) =>
-						flexRender(TaskbarActions, {
-							task: item.getValue()
-						}),
-					header: 'Actions',
-					size: 150
-				})
-			],
-			defaultColumn: {
-				minSize: 30,
-				size: 1000,
-				maxSize: 2000
-			},
-			columnResizeMode: 'onChange',
-			getCoreRowModel: coreRowModel,
-			getSortedRowModel: sortedRowModel,
-			initialState: {
-				sorting: [
-					{
-						id: 'start_time',
-						desc: true // sort by name in descending order by default
-					}
-				]
-			}
-		} satisfies Parameters<typeof createSvelteTable<TaskShort>>[0];
-	});
-
-	const table = createSvelteTable(tableOptions);
+	const headers = [
+		{ name: 'Start Time' },
+		{ name: 'End Time' },
+		{ name: 'Name' },
+		{ name: 'Status' },
+		{ name: 'Actions', additionalStyle: 'width: 10%' }
+	];
 </script>
 
-{#if $taskStatus}
-	<DataTable class="h-[calc(100%-40px)] flex" {table} />
-{/if}
+<div class="max-h-full overflow-scroll">
+	<table class="w-full border-collapse" use:ResizableColumns>
+		<thead>
+			<tr class="sticky top-0 bg-gray-100 dark:bg-gray-800">
+				{#each headers as header}
+					<th
+						class="border border-l-2 border-r-2 border-gray-300 dark:border-gray-600"
+						style={header.additionalStyle}
+					>
+						{header.name}
+					</th>
+				{/each}
+			</tr>
+		</thead>
+		<tbody>
+			{#each taskList as task}
+				<tr>
+					<td class="border border-gray-300 dark:border-gray-700">
+						<RenderUnixTimestamp timestamp={task.start_time} />
+					</td>
+					<td class="border border-gray-300 dark:border-gray-700">
+						<RenderUnixTimestamp timestamp={task.end_time} />
+					</td>
+					<td class="border border-gray-300 dark:border-gray-700">
+						{task.task_type}
+					</td>
+					<td class="border border-gray-300 dark:border-gray-700">
+						<TaskbarStatus {task} />
+					</td>
+					<td class="border border-gray-300 dark:border-gray-700 flex justify-center">
+						<TaskbarActions {task} />
+					</td>
+				</tr>
+			{/each}
+		</tbody>
+	</table>
+</div>
