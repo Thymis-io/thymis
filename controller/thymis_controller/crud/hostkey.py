@@ -11,7 +11,7 @@ def create(
     build_hash: str,
     public_key: str,
     device_host: str,
-    project: Project,
+    project: "Project",
 ):
     host_key = db_models.HostKey(
         identifier=identifier,

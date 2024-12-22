@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 from contextlib import asynccontextmanager
 
+import sqlalchemy.orm
 import thymis_controller.lib  # pylint: disable=unused-import
 from alembic import command
 from alembic.config import Config
@@ -15,7 +16,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from thymis_controller.config import global_settings
+from thymis_controller.database.connection import create_sqlalchemy_engine
 from thymis_controller.notifications import NotificationManager
+from thymis_controller.project import Project
 from thymis_controller.routers import agent, api, auth, frontend
 from thymis_controller.task.controller import TaskController
 
@@ -140,7 +143,9 @@ async def lifespan(app: FastAPI):
     notification_manager = NotificationManager()
     notification_manager.start()
     task_controller = TaskController()
-    async with task_controller.start():
+    engine = create_sqlalchemy_engine()
+    async with task_controller.start(), sqlalchemy.orm.Session(engine) as db_session:
+        project = Project(global_settings.REPO_PATH.resolve(), db_session=db_session)
         logger.info("starting frontend")
         await frontend.frontend.run()
         logger.info("frontend started")
@@ -148,6 +153,8 @@ async def lifespan(app: FastAPI):
         yield {
             "notification_manager": notification_manager,
             "task_controller": task_controller,
+            "project": project,
+            "engine": engine,
         }
     notification_manager.stop()
     logger.info("stopping frontend")
