@@ -2,11 +2,8 @@ import asyncio
 import logging
 import os
 import pathlib
-<<<<<<< HEAD
 import re
 import signal
-=======
->>>>>>> d22e0ec (wip tuesday evening)
 import subprocess
 import sys
 from urllib.parse import urlparse
