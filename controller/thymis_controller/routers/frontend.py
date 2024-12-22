@@ -81,7 +81,7 @@ class Frontend:
                 },
             )
 
-        elif is_running_in_playwright() and not is_in_local_devshell():
+        elif is_running_in_playwright() and is_in_local_devshell():
             frontend_path = (
                 pathlib.Path(__file__).parent.parent.parent.parent / "frontend"
             )
