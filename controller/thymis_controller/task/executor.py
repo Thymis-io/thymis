@@ -2,7 +2,6 @@ import base64
 import concurrent.futures
 import logging
 import threading
-import time
 from concurrent.futures import Future, ProcessPoolExecutor
 from datetime import datetime
 from multiprocessing.connection import Connection, Pipe
@@ -55,7 +54,7 @@ class TaskWorkerPoolManager:
     async def start(self, db_engine: sqlalchemy.Engine):
         self._db_engine = db_engine
 
-        with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
+        with (sqlalchemy.orm.Session(bind=self.db_engine) as db_session,):
             amount_running_when_shut_down = crud_task.fail_running_tasks(db_session)
             logger.info(
                 "Failed %d tasks that were running when the controller shut down",
@@ -70,16 +69,25 @@ class TaskWorkerPoolManager:
             )
 
     def stop(self):
-        concurrent.futures.wait((f for f, _, _ in self.futures.values()))
-        self.pool.shutdown()
+        logger.info("Stopping TaskWorkerPoolManager")
+        # join all pending futures
+        concurrent.futures.wait([future for future, _, _ in self.futures.values()])
+        logger.info("All worker futures finished")
+        # close all worker connections
+        for _, child_in, child_out in self.futures.values():
+            child_out.close()
+        logger.info("All worker connections closed")
         for thread in self.listen_threads.values():
             thread.join()
+        logger.info("All listen threads joined")
+        self.pool.shutdown(wait=True)
+        logger.info("TaskWorkerPoolManager stopped")
 
     def listen_child_messages(self, conn: Connection):
-        while True:
+        with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
             try:
-                message = conn.recv()
-                with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
+                while True:
+                    message = conn.recv()
                     if not isinstance(
                         message, models_task.RunnerToControllerTaskUpdate
                     ):
@@ -91,6 +99,7 @@ class TaskWorkerPoolManager:
                     if task is None:
                         logger.error("Received message for unknown task: %s", message)
                         continue
+                    logger.info("Received message from worker: %s", message)
                     match message.update:
                         case models_task.TaskPickedUpdate():
                             task.state = "running"
@@ -116,30 +125,35 @@ class TaskWorkerPoolManager:
                             task.state = "completed"
                             task.end_time = datetime.now()
                             db_session.commit()
+                            conn.close()
+                            break
                         case models_task.TaskFailedUpdate(reason=reason):
                             task.state = "failed"
                             task.exception = reason
                             task.end_time = datetime.now()
                             db_session.commit()
+                            conn.close()
+                            break
                         case _:
                             assert_never(message.update)
 
                     # notify UI
                     self.ui_subscription_manager.notify_task_update(task)
-                    logger.info("Received message from worker: %s", message)
             except EOFError:
-                # logger.info("Worker connection closed")
-                break
+                logger.info("Worker connection closed")
+            self.ui_subscription_manager.notify_task_update(task)
 
     def finish_task(self, future: Future):
         task_id = self.future_to_id[future]
         future, child_in, child_out = self.futures.pop(task_id)
+        # join listen thread
+        logger.info("Task %s worker finished, joining listen thread", task_id)
+        self.listen_threads[task_id].join()
         logger.info("Task %s worker finished execution", task_id)
         # if task is still running in the database, mark it as failed due to worker finishing before signalling success
-        time.sleep(1)
         with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
             task = crud_task.get_task_by_id(db_session, task_id)
-            if task.state == "running":
+            if task.state == "running" or task.state == "pending":
                 task.state = "failed"
                 task.exception = "Worker finished before signalling success"
                 db_session.commit()
