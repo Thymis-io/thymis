@@ -20,7 +20,9 @@ let
         hardware.raspberry-pi.config = {
           all = {
             base-dt-params = {
-              audio = true;
+              audio = {
+                enable = true;
+              };
             };
           };
         };
