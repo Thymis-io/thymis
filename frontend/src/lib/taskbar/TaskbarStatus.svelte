@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { type Task } from '$lib/taskstatus';
-	export let task: Task;
+	import { t } from 'svelte-i18n';
+	import { type TaskShort } from '$lib/taskstatus';
+	export let task: TaskShort;
 	import { Progressbar } from 'flowbite-svelte';
 
 	let progress = 0;
@@ -16,9 +17,16 @@
 	$: if (task.nix_status) {
 		progress = progressScalingFunction(task.nix_status.done, task.nix_status.expected);
 	}
+
+	const taskState = {
+		pending: $t('taskbar.pending'),
+		running: $t('taskbar.running'),
+		completed: $t('taskbar.completed'),
+		failed: $t('taskbar.failed')
+	};
 </script>
 
-{task.state}
+{task.state in taskState ? taskState[task.state] : task.state}
 
 {#if task.nix_status && task.state === 'running'}
 	<Progressbar {progress} />

@@ -155,7 +155,20 @@
 		"running": "Running",
 		"completed": "Completed",
 		"failed": "Failed",
-		"latest-task": "Latest Task"
+		"latest-task": "Latest Task",
+		"start-time": "Start Time",
+		"end-time": "End Time",
+		"task-type": "Name",
+		"status": "Status",
+		"actions": "Actions",
+		"cancel": "Cancel",
+		"run-immediately": "Run Immediately",
+		"retry": "Retry",
+		"details": "View",
+		"task-types": {
+			"build_project": "Build Project",
+			"project_flake_update": "Update Nix Flake"
+		}
 	},
 	"config": {
 		"header": {

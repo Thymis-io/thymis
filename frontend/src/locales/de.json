@@ -135,7 +135,7 @@
 		"rollback-modal-title": "Commit zurücksetzen"
 	},
 	"deploy": {
-		"build": "Erstellen",
+		"build": "Bauen",
 		"deploy": "Ausrollen",
 		"update": "Updaten",
 		"build-status": "Status: {status}",
@@ -203,7 +203,20 @@
 		"failed": "Fehlgeschlagen",
 		"latest-task": "Letzte Aufgabe",
 		"pending": "Ausstehend",
-		"running": "Läuft"
+		"running": "Läuft",
+		"start-time": "Start Zeit",
+		"end-time": "End Zeit",
+		"task-type": "Name",
+		"status": "Status",
+		"actions": "Aktionen",
+		"cancel": "Abbrechen",
+		"run-immediately": "Sofort Ausführen",
+		"retry": "Erneut Versuchen",
+		"details": "Anzeigen",
+		"task-types": {
+			"build_project": "Projekt Bauen",
+			"project_flake_update": "Nix Flake Updaten"
+		}
 	},
 	"tags": {
 		"actions": {
