@@ -85,10 +85,6 @@ jobs:
           name: playwright-report
           path: frontend/playwright-report/
           retention-days: 30
-        env:
-          THYMIS_REPO_PATH: ${{ runner.temp }}/thymis/repository
-          THYMIS_DATABASE_URL: sqlite:///${{ runner.temp }}/thymis/thymis.sqlite
-          THYMIS_AUTH_BASIC_PASSWORD_FILE: ${{ runner.temp }}/thymis/auth-basic-password
       - name: Comment on PR with report link
         uses: thollander/actions-comment-pull-request@v3
         if: ${{ failure() && env.SNAPSHOT_DIFFERENCES == 'true' }}
