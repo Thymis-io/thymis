@@ -35,15 +35,22 @@ let
         ];
         nixpkgs.hostPlatform = "aarch64-linux";
       };
-      raspberry-pi-4 = { ... }: {
+      raspberry-pi-4 = { modulesPath, ... }: {
         disabledModules = [
-          "${inputs.raspberry-pi-nix}/sd-image/default.nix"
+          "${modulesPath}/installer/sd-card/sd-image-aarch64.nix"
         ];
         imports = [
-          inputs.nixos-hardware.nixosModules.raspberry-pi-4
+          inputs.raspberry-pi-nix.nixosModules.raspberry-pi
         ];
+        raspberry-pi-nix.board = "bcm2711";
         boot.kernelParams = [ "snd_bcm2835.enable_headphones=1" "snd_bcm2835.enable_hdmi=1" ];
-        hardware.raspberry-pi."4".fkms-3d.enable = true;
+        hardware.raspberry-pi.config = {
+          all = {
+            dt-overlays = {
+              vc4-fkms-v3d = { enable = true; };
+            };
+          };
+        };
         nixpkgs.overlays = [
           (final: super: {
             makeModulesClosure = x:
