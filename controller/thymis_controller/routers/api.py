@@ -182,6 +182,19 @@ async def update(
     return {"message": "update started"}
 
 
+@router.post("/action/command")
+async def command(
+    task_controller: TaskControllerAD,
+    db_session: SessionAD,
+):
+    task_controller.submit(
+        models.TestTaskSubmission(),
+        db_session=db_session,
+    )
+
+    return {"message": "command started"}
+
+
 @router.websocket("/vnc/{identifier}")
 async def vnc_websocket(
     identifier: str,
