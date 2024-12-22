@@ -31,6 +31,10 @@ def is_running_in_playwright():
     return "RUNNING_IN_PLAYWRIGHT" in os.environ
 
 
+def is_in_local_devshell():
+    return "THYMIS_DEV_SHELL" in os.environ
+
+
 def frontend_binary_path():
     return global_settings.FRONTEND_BINARY_PATH
 
@@ -77,7 +81,7 @@ class Frontend:
                 },
             )
 
-        elif is_running_in_playwright():
+        elif is_running_in_playwright() and not is_in_local_devshell():
             frontend_path = (
                 pathlib.Path(__file__).parent.parent.parent.parent / "frontend"
             )
