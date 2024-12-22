@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import pathlib
+import re
 import signal
 import subprocess
 import sys
@@ -41,6 +42,7 @@ class Frontend:
     def __init__(self):
         self.url = f"http://127.0.0.1:{FRONTEND_PORT}"
         self.process = None
+        self.started = asyncio.Event()
         self.stopped = False
 
     async def run(self):
@@ -91,9 +93,35 @@ class Frontend:
                         level, "frontend process: %s", line.decode("utf-8").strip()
                     )
 
+        async def read_stream_wait_for_started(stream: asyncio.StreamReader):
+            # waits for line with regex "VITE v5.4.11  ready in 965 ms" or "Listening on http(s)://ip:port"
+            # hand off to read_stream after that
+            while not stream.at_eof():
+                line = await stream.readline()
+                if line:
+                    logger.info("frontend process: %s", line.decode("utf-8").strip())
+                    if is_reload_enabled():
+                        # wait for vite
+                        if re.search(
+                            r"VITE v\d+\.\d+\.\d+  ready in \d+", line.decode("utf-8")
+                        ):
+                            self.started.set()
+                            break
+                    else:
+                        # wait for fastify
+                        if re.search(
+                            r"Listening on http(s)?://\d+\.\d+\.\d+\.\d+:\d+",
+                            line.decode("utf-8"),
+                        ):
+                            self.started.set()
+                            break
+            return await read_stream(stream)
+
         # start threads
-        asyncio.create_task(read_stream(self.process.stdout))
+        asyncio.create_task(read_stream_wait_for_started(self.process.stdout))
         asyncio.create_task(read_stream(self.process.stderr, level=logging.ERROR))
+
+        await self.started.wait()
 
     async def raise_if_terminated(self):
         return_code = await self.process.wait()
