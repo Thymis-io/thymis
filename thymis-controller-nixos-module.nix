@@ -69,6 +69,7 @@ in
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
       script = "${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-controller}/bin/thymis-controller";
+      serviceConfig.Restart = "always";
       path = [
         "/run/current-system/sw"
         pkgs.git
