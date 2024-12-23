@@ -16,7 +16,6 @@ let
       fastapi-cli = python312.pkgs.fastapi-cli;
       bcrypt = python312.pkgs.bcrypt;
     });
-    groups = [ "main" ];
     checkGroups = [ "test" ];
     python = python312;
   }).dependencyEnv;

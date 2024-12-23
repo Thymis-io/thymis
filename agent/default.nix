@@ -8,7 +8,6 @@ let
     name = "thymis-agent";
     projectDir = ./.;
     preferWheels = true;
-    groups = [ ];
     checkGroups = [ "test" ];
     python = python312;
   }).dependencyEnv;

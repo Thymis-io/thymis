@@ -23,6 +23,22 @@ jobs:
         run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-24.11
       - name: build thymis-controller-generic-x86_64-image
         run: nix build .#thymis-controller-generic-x86_64-image --print-build-logs
+  build-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            system-features = kvm
+            extra-trusted-public-keys = cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=
+            extra-substituters = https://cache.thymis.io
+      - uses: DeterminateSystems/magic-nix-cache-action@v2
+      - name: pin nixpkgs
+        run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-24.11
+      - name: build thymis-agent
+        run: nix build .#thymis-agent --print-build-logs
   build:
     runs-on: ubuntu-latest
     steps:
