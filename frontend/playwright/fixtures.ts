@@ -32,7 +32,7 @@ export const test = baseTest.extend<{}, { workerStorageState: string }>({
 
 			// Perform authentication steps. Replace these actions with your own.
 
-			await page.goto('http://localhost:8000/login');
+			await page.goto('http://localhost:8000/login', { waitUntil: 'domcontentloaded' });
 
 			await page.waitForSelector('input[name="username"]');
 

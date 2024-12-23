@@ -113,6 +113,7 @@ class Frontend:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
+        asyncio.get_event_loop().create_task(self.raise_if_terminated())
 
         # read stdout and stderr in background
         async def read_stream(stream: asyncio.StreamReader, level=logging.INFO):
@@ -155,6 +156,7 @@ class Frontend:
 
     async def raise_if_terminated(self):
         return_code = await self.process.wait()
+        self.started.set()
         if not self.stopped:
             self.stopped = True
             logger.error("frontend process terminated with code %s", return_code)
