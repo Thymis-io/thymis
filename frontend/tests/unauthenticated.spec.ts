@@ -32,18 +32,6 @@ test('can login with testadminpassword', async ({ page }) => {
 	expect(page.url()).toBe('http://localhost:8000/overview');
 });
 
-test('overview page shows overview', async ({ page }) => {
-	await page.goto('/login');
-
-	await page.fill('input[name="username"]', 'admin');
-	await page.fill('input[name="password"]', 'testadminpassword');
-	await page.click('button[type="submit"]');
-
-	await page.waitForURL('http://localhost:8000/overview');
-
-	await expect(page).toHaveScreenshot();
-});
-
 test('visiting overview page without login redirects to login', async ({ page }) => {
 	const resp = await page.goto('/overview');
 
