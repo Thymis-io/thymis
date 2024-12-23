@@ -2,6 +2,18 @@ import { test, expect } from '../playwright/fixtures';
 
 test.describe.configure({ mode: 'serial' });
 
+test('overview page shows overview', async ({ page }) => {
+	await page.goto('/login');
+
+	await page.fill('input[name="username"]', 'admin');
+	await page.fill('input[name="password"]', 'testadminpassword');
+	await page.click('button[type="submit"]');
+
+	await page.waitForURL('http://localhost:8000/overview');
+
+	await expect(page).toHaveScreenshot();
+});
+
 test('shows devices', async ({ page }) => {
 	const resp = await page.goto('/devices');
 
