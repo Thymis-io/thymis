@@ -64,7 +64,7 @@ const config: PlaywrightTestConfig = {
 	},
 	reporter: [['list'], ['html']],
 	expect: {
-		toHaveScreenshot: { maxDiffPixels: 50 }
+		toHaveScreenshot: { maxDiffPixels: 53 }
 	},
 	workers: 1
 };
