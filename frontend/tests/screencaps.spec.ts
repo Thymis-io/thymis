@@ -38,6 +38,27 @@ test('shows devices', async ({ page }) => {
 	await saveButton.click();
 
 	await expect(page).toHaveScreenshot();
+
+	// go to device details page, delete device
+	const viewDetailsButton = page.locator('a', { hasText: 'View Details' }).first();
+	await viewDetailsButton.click();
+
+	await expect(page).toHaveScreenshot();
+
+	const deleteButton = page.locator('button').filter({ hasText: 'Delete' });
+	await deleteButton.click();
+
+	await expect(page).toHaveScreenshot();
+
+	const confirmButton = page.locator('button').filter({ hasText: 'Delete' }).nth(0);
+	await confirmButton.click();
+
+	await expect(page).toHaveScreenshot();
+
+	const devicesNav = page.locator('a', { hasText: 'Devices' }).locator('visible=true').first();
+	await devicesNav.click();
+
+	await expect(page).toHaveScreenshot();
 });
 
 test('explores more pages', async ({ page }) => {
@@ -62,23 +83,4 @@ test('explores more pages', async ({ page }) => {
 		.first();
 	await externalReposNav.click();
 	await expect(page).toHaveScreenshot();
-});
-
-test('view device details', async ({ page }) => {
-	// Navigate to Devices page
-	await page.goto('/devices');
-
-	// Click on "View Details" button
-	const viewDetailsButton = page
-		.locator('a', { hasText: 'View Details' })
-		.locator('visible=true')
-		.first();
-	await viewDetailsButton.click();
-
-	// Validate the Device Details page
-	// await expect(page.locator('h1')).toHaveText('Device Details');
-	await expect(page).toHaveScreenshot();
-
-	// Optionally, navigate back to Devices page
-	await page.goBack();
 });
