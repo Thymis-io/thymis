@@ -67,9 +67,10 @@
 	},
 	"overrides": {
 		"svelte-multiselect": {
-			"dependencies": {
-				"svelte": "$svelte"
-			}
+			"svelte": "$svelte"
+		},
+		"@sveltejs/kit": {
+			"cookie": "^0.7.0"
 		}
 	}
 }
