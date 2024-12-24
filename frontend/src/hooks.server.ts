@@ -9,7 +9,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 	if (lang) {
 		locale.set(lang);
 	}
-	return resolve(event);
+	return resolve(event, {
+		filterSerializedResponseHeaders: (name) => ['total-count'].includes(name)
+	});
 };
 
 export const handleFetch: HandleFetch = async ({ request, fetch, event }) => {

@@ -76,13 +76,21 @@ export const load = (async ({ fetch, url, data }) => {
 		console.error('Error fetching available modules', e);
 	}
 
-	const allTasks = await getAllTasks(fetch);
+	const taskPage = parseInt(new URLSearchParams(url.search).get('task-page') || '1');
+	const tasksPerPage = 20;
+	const { tasks: allTasks, totalCount: totalTaskCount } = await getAllTasks(
+		tasksPerPage,
+		(taskPage - 1) * tasksPerPage,
+		fetch
+	);
 	const minimizeTaskbar = data?.minimizeTaskbar === 'true';
 
 	return {
 		state: state,
 		availableModules: availableModules,
 		allTasks: allTasks,
+		totalTaskCount: totalTaskCount,
+		tasksPerPage: tasksPerPage,
 		minimizeTaskbar: minimizeTaskbar
 	};
 }) satisfies LayoutLoad;
