@@ -1,5 +1,6 @@
 import json
 import logging
+import pathlib
 import subprocess
 import typing
 
@@ -208,7 +209,9 @@ def get_build_output(flake_path, identifier):
     return result[0]
 
 
-def check_device_reference(flake_path, commit_hash, config_id) -> bool:
+def check_device_reference(
+    flake_path: pathlib.Path, commit_hash: str, config_id: str
+) -> bool:
     """
     Check if a device can be mapped to the Nix repository
     :param flake_path: path to the flake
@@ -216,27 +219,45 @@ def check_device_reference(flake_path, commit_hash, config_id) -> bool:
     :param config_id: configuration id
     :return: True if the device can be mapped to the Nix repository, False otherwise
     """
-    # first run `nix build .#inputs.<input_name>.outPath`
-    # then run `nix eval .#inputs.<input_name>.outPath --json`
 
     cmd = NIX_CMD + [
         "eval",
-        f"{flake_path}?rev={commit_hash}#nixosConfigurations.{config_id}",
+        f"{flake_path}?rev={commit_hash}#nixosConfigurations",
+        "--apply",
+        "builtins.attrNames",
         "--json",
     ]
 
     try:
-        result = subprocess.run(cmd, check=True, cwd=flake_path, stderr=subprocess.PIPE)
+        result = subprocess.run(
+            cmd,
+            check=True,
+            cwd=flake_path,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
     except subprocess.CalledProcessError as e:
         logger.error(
-            "Command failed: %s with exit code %s: %s",
+            "Check device reference failed: %s with exit code %s: %s\n%s",
             e.cmd,
             e.returncode,
+            e.stdout.decode(),
             e.stderr.decode(),
         )
-        return None
 
-    return result.returncode == 0
+    try:
+        result = json.loads(result.stdout)
+    except json.JSONDecodeError as e:
+        logger.error("Check device reference failed: Could not decode JSON: %s", e)
+        return False
+
+    if not isinstance(result, list):
+        logger.error(
+            "Check device reference failed: Expected a list, got %s", type(result)
+        )
+        return False
+
+    return config_id in result
 
 
 NIX_CMD = [
