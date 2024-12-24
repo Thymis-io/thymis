@@ -66,9 +66,18 @@ let socket: WebSocket | undefined;
 export const taskStatus = writable<Record<string, TaskShort>>({});
 export const tasksById: Record<string, Task> = {};
 
-export const getAllTasks = async (fetch: typeof window.fetch = window.fetch) => {
-	const response = await fetchWithNotify(`/api/tasks`, undefined, {}, fetch);
-	return (await response.json()) as TaskShort[];
+export const getAllTasks = async (
+	limit: number,
+	offset: number,
+	fetch: typeof window.fetch = window.fetch
+) => {
+	const url = `/api/tasks?limit=${limit}&offset=${offset}`;
+	const response = await fetchWithNotify(url, undefined, {}, fetch);
+	const totalCount = response.headers.get('total-count');
+	return {
+		tasks: (await response.json()) as TaskShort[],
+		totalCount: totalCount
+	};
 };
 
 export const getTask = async (taskId: string, fetch: typeof window.fetch = window.fetch) => {

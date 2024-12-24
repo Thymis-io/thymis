@@ -65,7 +65,7 @@ def create(
     return task
 
 
-def get_tasks_short(db_session: Session, limit: int = 100):
+def get_tasks_short(db_session: Session, limit: int = 100, offset: int = 0):
     all_tasks = db_session.scalars(
         select(db_models.Task)
         .options(
@@ -82,9 +82,14 @@ def get_tasks_short(db_session: Session, limit: int = 100):
         )
         .order_by(db_models.Task.start_time.desc())
         .limit(limit)
+        .offset(offset)
     ).all()
 
     return [TaskShort.from_orm_task(task) for task in all_tasks]
+
+
+def get_task_count(db_session: Session):
+    return db_session.query(db_models.Task).count()
 
 
 def get_task_by_id(db_session, task_id: uuid.UUID) -> db_models.Task:
