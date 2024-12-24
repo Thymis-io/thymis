@@ -1,6 +1,7 @@
 import json
 import logging
 import pathlib
+import re
 import subprocess
 import typing
 
@@ -219,6 +220,36 @@ def check_device_reference(
     :param config_id: configuration id
     :return: True if the device can be mapped to the Nix repository, False otherwise
     """
+
+    def check_is_commit_hash(s):
+        return re.match(r"[0-9a-f]{40}", s) is not None
+
+    if not check_is_commit_hash(commit_hash):
+        return False
+
+    def check_is_config_id(s):
+        # just don't make it too long, we don't want to have a DoS attack
+        return len(s) < 1024
+
+    if not check_is_config_id(config_id):
+        return False
+
+    git_check_commit_exists_cmd = ["git", "cat-file", "-e", f"{commit_hash}^{{commit}}"]
+    try:
+        subprocess.run(
+            git_check_commit_exists_cmd,
+            check=True,
+            cwd=flake_path,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except subprocess.CalledProcessError as e:
+        logger.error(
+            "Check device reference failed: Commit hash %s does not exist: %s",
+            commit_hash,
+            e.stderr.decode(),
+        )
+        return False
 
     cmd = NIX_CMD + [
         "eval",
