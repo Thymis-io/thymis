@@ -6,13 +6,22 @@
 	import RunningIcon from 'lucide-svelte/icons/play';
 	import CompletedIcon from 'lucide-svelte/icons/check';
 	import FailedIcon from 'lucide-svelte/icons/ban';
-	import { Tooltip } from 'flowbite-svelte';
+	import { Tooltip, Pagination, PaginationItem } from 'flowbite-svelte';
+	import { page } from '$app/stores';
+	import { LightPaginationNav } from 'svelte-paginate';
+	import { queryParam } from 'sveltekit-search-params';
 
 	$: pendingTasks = Object.values($taskStatus).filter((task) => task.state === 'pending');
 	$: runningTasks = Object.values($taskStatus).filter((task) => task.state === 'running');
 	$: completedTasks = Object.values($taskStatus).filter((task) => task.state === 'completed');
 	$: failedTasks = Object.values($taskStatus).filter((task) => task.state === 'failed');
 	$: latestTask = Object.values($taskStatus)[Object.values($taskStatus).length - 1];
+
+	$: currentPage = queryParam('task-page');
+
+	const switchPage = (page: number) => {
+		currentPage.set(page.toString());
+	};
 </script>
 
 <div
@@ -44,4 +53,11 @@
 			</span>
 		{/if}
 	</div>
+	<LightPaginationNav
+		totalItems={$page.data.totalTaskCount}
+		pageSize={$page.data.tasksPerPage}
+		limit={1}
+		currentPage={parseInt($currentPage || '1')}
+		on:setPage={(e) => switchPage(e.detail.page)}
+	/>
 </div>

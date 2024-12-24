@@ -15,8 +15,15 @@ async def task_status(websocket: WebSocket, task_controller: TaskControllerAD):
 
 
 @router.get("/tasks")
-async def get_tasks(task_controller: TaskControllerAD, session: SessionAD):
-    return task_controller.get_tasks(session)
+async def get_tasks(
+    task_controller: TaskControllerAD,
+    session: SessionAD,
+    response: Response,
+    limit: int = 100,
+    offset: int = 0,
+):
+    response.headers["total-count"] = str(task_controller.get_task_count(session))
+    return task_controller.get_tasks(session, limit, offset)
 
 
 @router.get("/tasks/{task_id}")
