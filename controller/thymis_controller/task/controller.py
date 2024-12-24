@@ -33,8 +33,11 @@ class TaskController:
         self.executor.stop()
         self.ui_subscription_manager.stop()
 
-    def get_tasks(self, session: Session):
-        return get_tasks_short(session)
+    def get_tasks(self, session: Session, limit: int = 100, offset: int = 0):
+        return get_tasks_short(session, limit, offset)
+
+    def get_task_count(self, session: Session):
+        return crud.task.get_task_count(session)
 
     async def subscribe_ui(self, websocket: WebSocket):
         await self.ui_subscription_manager.connect(websocket)

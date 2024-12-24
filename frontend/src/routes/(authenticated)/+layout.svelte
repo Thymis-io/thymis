@@ -158,4 +158,24 @@
 		@apply !m-[1px];
 		@apply !rounded-lg;
 	}
+	:global(.pagination-nav .option) {
+		@apply !px-2;
+		@apply !py-1;
+		@apply !text-base;
+		@apply !text-gray-800;
+		@apply dark:!text-gray-200;
+		@apply !bg-gray-200;
+		@apply dark:!bg-gray-600;
+		@apply outline;
+		@apply outline-1;
+		@apply outline-gray-200;
+		@apply dark:outline-gray-500;
+		@apply hover:!bg-gray-100;
+		@apply dark:hover:!bg-gray-700;
+	}
+	:global(.pagination-nav .option.active) {
+		@apply !bg-gray-300;
+		@apply dark:!bg-gray-500;
+		@apply !text-primary-500;
+	}
 </style>
