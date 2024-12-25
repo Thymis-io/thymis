@@ -222,7 +222,7 @@ def check_device_reference(
     """
 
     def check_is_commit_hash(s):
-        return re.match(r"[0-9a-f]{40}", s) is not None
+        return re.match(r"^[0-9a-f]{40}$", s) is not None
 
     if not check_is_commit_hash(commit_hash):
         return False
@@ -234,7 +234,7 @@ def check_device_reference(
     if not check_is_config_id(config_id):
         return False
 
-    git_check_commit_exists_cmd = ["git", "cat-file", "-e", f"{commit_hash}^{{commit}}"]
+    git_check_commit_exists_cmd = ["git", "cat-file", "-e", commit_hash + "^{commit}"]
     try:
         subprocess.run(
             git_check_commit_exists_cmd,
