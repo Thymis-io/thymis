@@ -51,7 +51,6 @@
 		"svelte-i18n": "^4.0.1",
 		"svelte-multiselect": "^10.3.0",
 		"svelte-outside-click": "^1.1.2",
-		"svelte-paginate": "^0.1.0",
 		"svelte-resizable-columns": "^1.0.14",
 		"sveltekit-search-params": "^3.0.0",
 		"tailwindcss": "^3.4.13",
