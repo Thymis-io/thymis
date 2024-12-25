@@ -1,4 +1,3 @@
-import asyncio
 import dataclasses
 import json
 import logging
@@ -176,20 +175,8 @@ class ActivityInfo:
     last_line: Optional[str] = None
 
 
-class NixProcess:
-    def __init__(self, args, nix_command=None, cwd=None, env=None):
-        self.args = args + ["--log-format", "internal-json", "-v"]
-        self.nix_command = nix_command
-        self.cwd = cwd
-        self.env = env
-
-        self.stdout = bytearray()
-        self.stderr = bytearray()
-
-        self.subscribers = set()
-
-        self.process = None
-
+class NixParser:
+    def __init__(self):
         self.activity_info_by_id: dict[int, ActivityInfo] = {}
         self.activities_done_expect_failed_by_type: dict[
             int, ActivitiesDoneExpectedFailed
@@ -207,70 +194,27 @@ class NixProcess:
         self.corrupted_paths = 0
         self.untrusted_paths = 0
 
-    async def stream_reader(
-        self,
-        stream: asyncio.StreamReader | None,
-        out: bytearray,
-        parse_lines: bool = False,
-    ):
-        while True:
-            line = await stream.readline()
-            if not line:
-                # readline doc:
-                # On success, return chunk that ends with newline.
-                # If only partial line can be read due to EOF,
-                # return incomplete line without terminating newline.
-                # When EOF was reached while no bytes read, empty bytes object is returned.
-                #
-                # So, if line is empty, we have reached EOF
-                break
-            if parse_lines:
-                try:
-                    self.handle_line(line)
-                except ValueError:
-                    out.extend(line)
+    @classmethod
+    def take_complete_lines(cls, buffer: bytearray):
+        output = bytearray()
+        if b"\n" not in buffer:
+            return output
+        last_newline = buffer.rfind(b"\n")
+        output[:] = buffer[: last_newline + 1].copy()
+        buffer[:] = buffer[last_newline + 1 :]
+        return output
+
+    def process_buffer(self, buffer: bytearray):
+        normal_stderr = bytearray()
+        has_handled_nix_lines = False
+        for line in buffer.splitlines(keepends=True):
+            if line.startswith(b"@nix "):
+                self.handle_line(line)
+                has_handled_nix_lines = True
             else:
-                out.extend(line)
-            await self.notify_subscribers()
-
-    async def run(self):
-        proc = await asyncio.create_subprocess_exec(
-            self.nix_command or NIX_CMD[0],
-            *NIX_CMD[1:],
-            *self.args,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            env=self.env,
-        )
-        self.process = proc
-        await self.notify_subscribers()
-        logger.info("Started process %s", proc.pid)
-
-        read_stdout_task = asyncio.create_task(
-            log_exceptions(self.stream_reader(proc.stdout, self.stdout))
-        )
-        read_stderr_task = asyncio.create_task(
-            log_exceptions(
-                self.stream_reader(proc.stderr, self.stderr, parse_lines=True)
-            )
-        )
-
-        r = await proc.wait()
-        if r != 0:
-            raise RuntimeError(
-                f"Command {NIX_CMD[0]} {' '.join(str(a) for a in self.args)} failed with code {r}"
-            )
-
-        await asyncio.gather(read_stdout_task, read_stderr_task)
-
-        return r
-
-    async def notify_subscribers(self):
-        for subscriber in self.subscribers:
-            await subscriber(self)
-
-    def subscribe(self, subscriber):
-        self.subscribers.add(subscriber)
+                normal_stderr += line
+        buffer[:] = normal_stderr
+        return has_handled_nix_lines
 
     def handle_line(self, line):
         # expect: line is "@nix {jsonjson}"
@@ -412,18 +356,4 @@ class NixProcess:
                 3: self.infos,
                 # 4: self.other_messages,
             },
-        )
-
-    def cancel(self):
-        if self.process:
-            self.process.kill()
-        else:
-            logger.warning("No process to kill")
-
-    def copy_for_retry(self):
-        return NixProcess(
-            self.args,
-            nix_command=self.nix_command,
-            cwd=self.cwd,
-            env=self.env,
         )

@@ -1,5 +1,8 @@
 from alembic import context
 from sqlalchemy import engine_from_config, pool
+from thymis_controller import db_models  # pylint: disable=unused-import
+from thymis_controller.config import global_settings
+from thymis_controller.database.base import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -15,9 +18,6 @@ config = context.config
 # target_metadata = mymodel.Base.metadata
 # target_metadata = None
 
-from thymis_controller import db_models  # pylint: disable=unused-import
-from thymis_controller.config import global_settings
-from thymis_controller.database.base import Base
 
 target_metadata = Base.metadata
 
