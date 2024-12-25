@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { Xterm, XtermAddon } from '@battlefieldduck/xterm-svelte';
-	import type {
-		ITerminalOptions,
-		ITerminalInitOnlyOptions,
-		Terminal
-	} from '@battlefieldduck/xterm-svelte';
+	import '@xterm/xterm/css/xterm.css';
 	import { type Device } from '$lib/state';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
+	import { Terminal, type ITerminalInitOnlyOptions, type ITerminalOptions } from '@xterm/xterm';
+	import { AttachAddon } from '@xterm/addon-attach';
+	import { FitAddon } from '@xterm/addon-fit';
+	import { WebglAddon } from '@xterm/addon-webgl';
 
 	export let device: Device | undefined;
 
 	let terminal: Terminal;
+	let divElement: HTMLDivElement;
 	let ws: WebSocket;
 
 	const options: ITerminalOptions & ITerminalInitOnlyOptions = {
@@ -18,16 +18,17 @@
 		letterSpacing: 0
 	};
 
-	const onLoad = (event: CustomEvent<{ terminal: Terminal }>) => {
-		terminal = event.detail.terminal;
-	};
+	onMount(() => {
+		terminal = new Terminal(options);
+		terminal.open(divElement);
+	});
 
 	const initTerminal = async (device: Device, terminal: Terminal) => {
 		const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 		const url = `${scheme}://${window.location.host}/api/terminal/${device.identifier}`;
 		ws = new WebSocket(url);
 
-		const fitAddon = new (await XtermAddon.FitAddon()).FitAddon();
+		const fitAddon = new FitAddon();
 		terminal.loadAddon(fitAddon);
 		fitAddon.fit();
 
@@ -38,11 +39,11 @@
 		});
 		if (terminal.element) observer.observe(terminal.element);
 
-		const webglAddon = new (await XtermAddon.WebglAddon()).WebglAddon();
+		const webglAddon = new WebglAddon();
 		terminal.loadAddon(webglAddon);
 
 		terminal.writeln(`Connecting to ${device.displayName}...`);
-		const attachAddon = new (await XtermAddon.AttachAddon()).AttachAddon(ws);
+		const attachAddon = new AttachAddon(ws);
 		terminal.loadAddon(attachAddon);
 	};
 
@@ -64,4 +65,4 @@
 	}
 </script>
 
-<Xterm {options} on:load={onLoad} class="w-full h-full" />
+<div class="w-full h-full" bind:this={divElement}></div>
