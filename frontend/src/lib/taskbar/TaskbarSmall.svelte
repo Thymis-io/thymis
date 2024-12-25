@@ -6,10 +6,10 @@
 	import RunningIcon from 'lucide-svelte/icons/play';
 	import CompletedIcon from 'lucide-svelte/icons/check';
 	import FailedIcon from 'lucide-svelte/icons/ban';
-	import { Tooltip, Pagination, PaginationItem } from 'flowbite-svelte';
+	import { Tooltip } from 'flowbite-svelte';
 	import { page } from '$app/stores';
-	import { LightPaginationNav } from 'svelte-paginate';
-	import { queryParam } from 'sveltekit-search-params';
+	import Paginator from '$lib/components/Paginator.svelte';
+	import { goto } from '$app/navigation';
 
 	$: pendingTasks = Object.values($taskStatus).filter((task) => task.state === 'pending');
 	$: runningTasks = Object.values($taskStatus).filter((task) => task.state === 'running');
@@ -17,10 +17,12 @@
 	$: failedTasks = Object.values($taskStatus).filter((task) => task.state === 'failed');
 	$: latestTask = Object.values($taskStatus)[Object.values($taskStatus).length - 1];
 
-	$: currentPage = queryParam('task-page');
+	let currentPage = $page.url.searchParams.get('task-page');
 
 	const switchPage = (page: number) => {
-		currentPage.set(page.toString());
+		currentPage = page.toString();
+		$page.url.searchParams.set('task-page', page.toString());
+		goto(`?${$page.url.searchParams.toString()}`);
 	};
 </script>
 
@@ -53,11 +55,10 @@
 			</span>
 		{/if}
 	</div>
-	<LightPaginationNav
-		totalItems={$page.data.totalTaskCount}
+	<Paginator
+		totalCount={$page.data.totalTaskCount}
 		pageSize={$page.data.tasksPerPage}
-		limit={1}
-		currentPage={parseInt($currentPage || '1')}
-		on:setPage={(e) => switchPage(e.detail.page)}
+		page={parseInt(currentPage ?? '1')}
+		onChange={(page) => switchPage(page)}
 	/>
 </div>
