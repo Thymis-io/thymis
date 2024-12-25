@@ -16,7 +16,6 @@
 		"test:unit": "vitest"
 	},
 	"devDependencies": {
-		"@floating-ui/dom": "^1.6.11",
 		"@novnc/novnc": "^1.5.0",
 		"@playwright/test": "1.47.0",
 		"@sveltejs/adapter-node": "^5.2.9",
