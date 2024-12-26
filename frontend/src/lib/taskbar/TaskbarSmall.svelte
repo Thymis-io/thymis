@@ -9,7 +9,7 @@
 	import { Tooltip } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import Paginator from '$lib/components/Paginator.svelte';
-	import { goto } from '$app/navigation';
+	import { queryParam } from 'sveltekit-search-params';
 
 	$: pendingTasks = Object.values($taskStatus).filter((task) => task.state === 'pending');
 	$: runningTasks = Object.values($taskStatus).filter((task) => task.state === 'running');
@@ -17,12 +17,12 @@
 	$: failedTasks = Object.values($taskStatus).filter((task) => task.state === 'failed');
 	$: latestTask = Object.values($taskStatus)[Object.values($taskStatus).length - 1];
 
-	let currentPage = $page.url.searchParams.get('task-page');
+	let currentPageParam = queryParam('task-page');
+	let currentPage = $currentPageParam;
 
-	const switchPage = (page: number) => {
+	const switchPage = async (page: number) => {
 		currentPage = page.toString();
-		$page.url.searchParams.set('task-page', page.toString());
-		goto(`?${$page.url.searchParams.toString()}`);
+		currentPageParam.set(currentPage);
 	};
 </script>
 
