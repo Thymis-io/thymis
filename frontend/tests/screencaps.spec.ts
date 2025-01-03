@@ -1,4 +1,4 @@
-import { test, expect } from '../playwright/fixtures';
+import { test, expect, type Locator, type Page } from '../playwright/fixtures';
 
 test.describe.configure({ mode: 'serial' });
 

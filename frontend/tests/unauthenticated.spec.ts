@@ -1,5 +1,5 @@
 import { test, expect } from '../playwright/fixtures';
-
+import { expectPageToHaveScreenshotWithHighlight } from './utils';
 // Reset storage state for this file to avoid being authenticated
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -42,6 +42,14 @@ colorSchemes.forEach((colorScheme) => {
 
 			expect(resp?.status()).toBe(200);
 			expect(resp?.url()).toBe('http://localhost:8000/login?redirect=%2Foverview');
+		});
+
+		test('highlight login button', async ({ page }) => {
+			await page.goto('/login');
+
+			const loginButton = page.locator('button[type="submit"]');
+			await expect(loginButton).toBeVisible();
+			await expectPageToHaveScreenshotWithHighlight(page, loginButton);
 		});
 	});
 });
