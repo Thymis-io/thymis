@@ -1,11 +1,8 @@
 <script lang="ts">
-	import { type NixCommandTask, type Task } from '$lib/taskstatus';
-	export let task: Task;
+	import { t } from 'svelte-i18n';
+	import { type TaskShort } from '$lib/taskstatus';
+	export let task: TaskShort;
 	import { Progressbar } from 'flowbite-svelte';
-
-	// $: isNixTask = task.type === 'nixcommandtask';
-	const isNixTask = (task: Task): task is NixCommandTask => task.type === 'nixcommandtask';
-	// progress bar in task.data.nix_process.global_done and global_expected
 
 	let progress = 0;
 	const progressScalingFunction = (done: number, expected: number) => {
@@ -17,19 +14,20 @@
 			return (f(done) / f(expected)) * 100;
 		}
 	};
-	$: if (isNixTask(task)) {
-		// if both are 0, progress is 0
-		// if (task.status.done === 0) {
-		// 	progress = 0;
-		// } else {
-		// 	progress = (task.status.done / task.status.expected) * 100;
-		// }
-		progress = progressScalingFunction(task.status.done, task.status.expected);
+	$: if (task.nix_status) {
+		progress = progressScalingFunction(task.nix_status.done, task.nix_status.expected);
 	}
+
+	const taskState = {
+		pending: $t('taskbar.pending'),
+		running: $t('taskbar.running'),
+		completed: $t('taskbar.completed'),
+		failed: $t('taskbar.failed')
+	};
 </script>
 
-{task.state}
+{task.state in taskState ? taskState[task.state] : task.state}
 
-{#if isNixTask(task) && task.state === 'running'}
+{#if task.nix_status && task.state === 'running'}
 	<Progressbar {progress} />
 {/if}

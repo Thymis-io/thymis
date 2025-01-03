@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 from contextlib import asynccontextmanager
 
+import sqlalchemy.orm
 import thymis_controller.lib  # pylint: disable=unused-import
 from alembic import command
 from alembic.config import Config
@@ -15,8 +16,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from thymis_controller.config import global_settings
+from thymis_controller.database.connection import create_sqlalchemy_engine
 from thymis_controller.notifications import NotificationManager
+from thymis_controller.project import Project
 from thymis_controller.routers import agent, api, auth, frontend
+from thymis_controller.task.controller import TaskController
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +30,7 @@ script = ScriptDirectory.from_config(alembic_config)
 
 
 def peform_db_upgrade():
-    from thymis_controller.database.connection import engine
+    engine = create_sqlalchemy_engine()
 
     with engine.begin() as connection:
         alembic_config.attributes["connection"] = connection
@@ -138,12 +142,21 @@ async def lifespan(app: FastAPI):
     init_ssh_key()
     notification_manager = NotificationManager()
     notification_manager.start()
-    logger.info("starting frontend")
-    await frontend.frontend.run()
-    logger.info("frontend started")
-    logger.info("frontend raise_if_terminated task created")
-    logger.info("Starting controller at \033[1m%s\033[0m", global_settings.BASE_URL)
-    yield {"notification_manager": notification_manager}
+    task_controller = TaskController()
+    db_engine = create_sqlalchemy_engine()
+    with sqlalchemy.orm.Session(db_engine) as db_session:
+        project = Project(global_settings.REPO_PATH.resolve(), db_session)
+    async with task_controller.start(db_engine):
+        logger.debug("starting frontend")
+        await frontend.frontend.run()
+        logger.debug("frontend started")
+        logger.info("Starting controller at \033[1m%s\033[0m", global_settings.BASE_URL)
+        yield {
+            "notification_manager": notification_manager,
+            "task_controller": task_controller,
+            "project": project,
+            "engine": db_engine,
+        }
     notification_manager.stop()
     logger.info("stopping frontend")
     await frontend.frontend.stop()
@@ -153,6 +166,7 @@ async def lifespan(app: FastAPI):
 description = """
 API to control Nix operating system 🎛️
 """
+
 
 app = FastAPI(
     title="Thymis Controller API",

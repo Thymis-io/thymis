@@ -3,21 +3,21 @@ import logging
 import os
 import pathlib
 import re
-import signal
 import subprocess
 import sys
-
-logger = logging.getLogger(__name__)
-
 from urllib.parse import urlparse
 
 import fastapi
 import httpx
 import psutil
-from fastapi import APIRouter, FastAPI
+import starlette.requests
+from fastapi import APIRouter, Response
 from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
 from thymis_controller.config import global_settings
+
+logger = logging.getLogger(__name__)
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 FRONTEND_PORT = 33100 + (int(os.environ.get("UVICORN_PORT", 0)) % 1000)
 
@@ -161,11 +161,11 @@ class Frontend:
             self.stopped = True
             logger.error("frontend process terminated with code %s", return_code)
             await asyncio.sleep(0.1)
-            os.kill(os.getpid(), signal.SIGINT)
+            # os.kill(os.getpid(), signal.SIGINT)
 
     async def stop(self):
         if self.stopped:
-            raise RuntimeError("frontend already stopped")
+            return
         self.stopped = True
         process_pid = self.process.pid
         parent = psutil.Process(process_pid)
@@ -205,15 +205,18 @@ async def _reverse_proxy(request: fastapi.Request):
     )
     try:
         rp_resp = await client.send(rp_req, stream=True)
+        return StreamingResponse(
+            rp_resp.aiter_raw(),
+            status_code=rp_resp.status_code,
+            headers=rp_resp.headers,
+            background=BackgroundTask(rp_resp.aclose),
+        )
+    except starlette.requests.ClientDisconnect as e:
+        logger.debug("Client disconnected: %s", e)
     except Exception as e:
         logger.error("Failed to proxy request: %s", e)
         raise e
-    return StreamingResponse(
-        rp_resp.aiter_raw(),
-        status_code=rp_resp.status_code,
-        headers=rp_resp.headers,
-        background=BackgroundTask(rp_resp.aclose),
-    )
+    return Response(status_code=500)
 
 
 router.add_route(

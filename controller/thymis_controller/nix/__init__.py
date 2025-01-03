@@ -1,5 +1,7 @@
 import json
 import logging
+import pathlib
+import re
 import subprocess
 import typing
 
@@ -49,7 +51,11 @@ def convert_python_value_to_nix(value, ident=0):
         return f'"{value}"'
     elif isinstance(value, list):
         list_line = "\n" + "  " * (ident + 1)
-        return f"[{list_line}{list_line.join([convert_python_value_to_nix(v) for v in value if v is not None])}\n{'  ' * ident}]"
+        return (
+            f"[{list_line}"
+            f"{list_line.join([convert_python_value_to_nix(v) for v in value if v is not None])}\n"
+            f"{'  ' * ident}]"
+        )
     elif isinstance(value, dict):
         # we like the form { key1.key2.key....keyN = value; }
         if len(value) == 0:
@@ -95,7 +101,7 @@ def convert_python_value_to_nix(value, ident=0):
 def format_nix_file(file_path):
     cmd = ["nixpkgs-fmt", file_path]
     try:
-        subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True, capture_output=True)
     except subprocess.CalledProcessError as e:
         logger.error(
             "Command failed: %s with exit code %s: %s",
@@ -202,6 +208,87 @@ def get_build_output(flake_path, identifier):
     # should be a dict
     assert isinstance(result, list)
     return result[0]
+
+
+def check_device_reference(
+    flake_path: pathlib.Path, commit_hash: str, config_id: str
+) -> bool:
+    """
+    Check if a device can be mapped to the Nix repository
+    :param flake_path: path to the flake
+    :param commit_hash: commit hash
+    :param config_id: configuration id
+    :return: True if the device can be mapped to the Nix repository, False otherwise
+    """
+
+    def check_is_commit_hash(s):
+        return re.match(r"^[0-9a-f]{40}$", s) is not None
+
+    if not check_is_commit_hash(commit_hash):
+        return False
+
+    def check_is_config_id(s):
+        # just don't make it too long, we don't want to have a DoS attack
+        return len(s) < 1024
+
+    if not check_is_config_id(config_id):
+        return False
+
+    git_check_commit_exists_cmd = ["git", "cat-file", "-e", commit_hash + "^{commit}"]
+    try:
+        subprocess.run(
+            git_check_commit_exists_cmd,
+            check=True,
+            cwd=flake_path,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except subprocess.CalledProcessError as e:
+        logger.error(
+            "Check device reference failed: Commit hash %s does not exist: %s",
+            commit_hash,
+            e.stderr.decode(),
+        )
+        return False
+
+    cmd = NIX_CMD + [
+        "eval",
+        f"{flake_path}?rev={commit_hash}#nixosConfigurations",
+        "--apply",
+        "builtins.attrNames",
+        "--json",
+    ]
+
+    try:
+        result = subprocess.run(
+            cmd,
+            check=True,
+            cwd=flake_path,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except subprocess.CalledProcessError as e:
+        logger.error(
+            "Check device reference failed: %s with exit code %s: %s\n%s",
+            e.cmd,
+            e.returncode,
+            e.stdout.decode(),
+            e.stderr.decode(),
+        )
+
+    try:
+        result = json.loads(result.stdout)
+    except json.JSONDecodeError as e:
+        logger.error("Check device reference failed: Could not decode JSON: %s", e)
+        return False
+
+    if not isinstance(result, list):
+        logger.error(
+            "Check device reference failed: Expected a list, got %s", type(result)
+        )
+        return False
+
+    return config_id in result
 
 
 NIX_CMD = [

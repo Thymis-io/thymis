@@ -4,24 +4,26 @@ import { invalidate } from '$app/navigation';
 import { fetchWithNotify } from './fetchWithNotify';
 
 export type TaskState = 'pending' | 'running' | 'completed' | 'failed';
-export type TaskVanilla = {
+
+export type Task = {
 	id: string;
-	type: 'task';
-	display_name: string;
+	start_time: string;
+	end_time?: string;
 	state: TaskState;
 	exception?: string;
-	start_time: number;
-	end_time?: number;
-	data: Record<string, unknown>;
-};
-export type CommandTask = Omit<TaskVanilla, 'type'> & {
-	type: 'commandtask';
-	stdout: string;
-	stderr: string;
-};
-export type NixCommandTask = Omit<CommandTask, 'type'> & {
-	type: 'nixcommandtask';
-	status: {
+	task_type: string;
+	task_submission_data: Record<string, unknown>;
+
+	parent_task_id?: string;
+	children?: string[];
+
+	process_program?: string;
+	process_args?: string[];
+	process_env?: Record<string, string>;
+	process_stdout?: string;
+	process_stderr?: string;
+
+	nix_status?: {
 		done: number;
 		expected: number;
 		running: number;
@@ -29,44 +31,53 @@ export type NixCommandTask = Omit<CommandTask, 'type'> & {
 		errors: unknown[];
 		logs_by_level: Record<number, string[]>;
 	};
+	nix_files_linked?: number;
+	nix_bytes_linked?: number;
+	nix_corrupted_paths?: number;
+	nix_untrusted_paths?: number;
+	nix_errors?: string[];
+	nix_warnings?: string[];
+	nix_notices?: string[];
+	nix_infos?: string[];
 };
 
-export type CompositeTask = Omit<TaskVanilla, 'type'> & {
-	type: 'compositetask';
-	tasks: TaskList;
+export type TaskShort = {
+	id: string;
+	task_type: string;
+	state: TaskState;
+	start_time: string;
+	end_time?: string;
+	exception?: string;
+	data: Record<string, unknown>;
+
+	nix_status?: {
+		done: number;
+		expected: number;
+		running: number;
+		failed: number;
+		errors: unknown[];
+	};
 };
 
-export type Task = TaskVanilla | CommandTask | CompositeTask | NixCommandTask;
-
-export type TaskList = Task[];
+export type TasksShort = Record<string, TaskShort>;
 
 let socket: WebSocket | undefined;
 
-export const taskStatus = writable<TaskList>([]);
+export const taskStatus = writable<Record<string, TaskShort>>({});
 export const tasksById: Record<string, Task> = {};
-export const tasksByIdStore: Readable<Record<string, Task>> = derived<
-	typeof taskStatus,
-	Record<string, Task>
->(
-	taskStatus,
-	($taskStatus, set) => {
-		const tasksById: Record<string, Task> = {};
-		for (const task of $taskStatus) {
-			tasksById[task.id] = task;
-		}
-		set(tasksById);
-	},
-	{}
-);
-taskStatus.subscribe((value) => {
-	for (const task of value) {
-		tasksById[task.id] = task;
-	}
-});
 
-export const getAllTasks = async (fetch: typeof window.fetch = window.fetch) => {
-	const response = await fetchWithNotify(`/api/tasks`, undefined, {}, fetch);
-	return (await response.json()) as TaskList;
+export const getAllTasks = async (
+	limit: number,
+	offset: number,
+	fetch: typeof window.fetch = window.fetch
+) => {
+	const url = `/api/tasks?limit=${limit}&offset=${offset}`;
+	const response = await fetchWithNotify(url, undefined, {}, fetch);
+	const totalCount = response.headers.get('total-count');
+	return {
+		tasks: (await response.json()) as TaskShort[],
+		totalCount: totalCount
+	};
 };
 
 export const getTask = async (taskId: string, fetch: typeof window.fetch = window.fetch) => {
@@ -114,9 +125,14 @@ const startSocket = () => {
 	const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 	socket = new WebSocket(`${scheme}://${window.location.host}/api/task_status`);
 	socket.onmessage = async (event) => {
-		const data = JSON.parse(event.data) as TaskList;
-		taskStatus.set(data);
-		await invalidate((url) => url.pathname.startsWith('/tasks'));
+		console.log('task_status message', event.data);
+		const data = JSON.parse(event.data) as TaskShort;
+		taskStatus.update((ts) => {
+			ts[data.id] = data;
+			console.log('task_status update', ts);
+			return ts;
+		});
+		await invalidate((url) => url.pathname.startsWith(`/api/tasks/${data.id}`));
 	};
 	socket.onclose = () => {
 		console.log('task_status socket closed');
@@ -124,12 +140,13 @@ const startSocket = () => {
 	};
 };
 
-let lastTaskStatus: TaskList = [];
+let lastTaskStatus: TasksShort = {};
 taskStatus.subscribe((tasks) => {
 	// if a task.type is commandtask, and the task just finished, download the image
 	// tasks have a uuid now at .id
-	tasks.forEach((task) => {
-		if (task.type !== 'nixcommandtask') return;
+	// tasks.forEach((task) => {
+	Object.values(tasks).forEach((task) => {
+		if (task.task_type !== 'nixcommandtask') return;
 		if (task.state !== 'completed') return;
 		if (!('program' in task.data)) return;
 		if (task.data.program !== 'nix') return;
@@ -139,7 +156,7 @@ taskStatus.subscribe((tasks) => {
 		if (task.data.args.indexOf('build') === -1) return;
 		if (!('identifier' in task.data)) return;
 		// check: this task was previously in the list, but not completed
-		const otherTask = lastTaskStatus.find((t) => t.id === task.id);
+		const otherTask = lastTaskStatus[task.id];
 		if (!otherTask) return;
 		if (otherTask.state === 'completed') return;
 		// download the image

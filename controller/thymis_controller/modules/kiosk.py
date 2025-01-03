@@ -91,7 +91,12 @@ class Kiosk(modules.Module):
     )
 
     def write_nix_settings(
-        self, f, module_settings: models.ModuleSettings, priority: int, project: Project
+        self,
+        f,
+        path,
+        module_settings: models.ModuleSettings,
+        priority: int,
+        project: Project,
     ):
         kiosk_url = (
             module_settings.settings["kiosk_url"]

@@ -61,19 +61,36 @@ export const load = (async ({ fetch, url, data }) => {
 				'content-type': 'application/json'
 			}
 		},
-		{},
+		{
+			500: 'Could not fetch available modules'
+		},
 		fetch
 	);
 
-	const availableModules = (await availableModulesResponse.json()) as Module[];
+	let availableModules: Module[] = [];
 
-	const allTasks = await getAllTasks(fetch);
+	// const availableModules = (await availableModulesResponse.json()) as Module[];
+	try {
+		availableModules = (await availableModulesResponse.json()) as Module[];
+	} catch (e) {
+		console.error('Error fetching available modules', e);
+	}
+
+	const taskPage = parseInt(url.searchParams.get('task-page') || '1');
+	const tasksPerPage = 20;
+	const { tasks: allTasks, totalCount: totalTaskCount } = await getAllTasks(
+		tasksPerPage,
+		(taskPage - 1) * tasksPerPage,
+		fetch
+	);
 	const minimizeTaskbar = data?.minimizeTaskbar === 'true';
 
 	return {
 		state: state,
 		availableModules: availableModules,
 		allTasks: allTasks,
+		totalTaskCount: totalTaskCount,
+		tasksPerPage: tasksPerPage,
 		minimizeTaskbar: minimizeTaskbar
 	};
 }) satisfies LayoutLoad;
