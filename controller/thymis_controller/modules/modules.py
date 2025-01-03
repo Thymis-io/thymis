@@ -1,7 +1,8 @@
-import os
+import pathlib
 import typing
 from abc import ABC
 from dataclasses import dataclass
+from io import StringIO
 from typing import List, Optional, Tuple, Union
 
 from pydantic import JsonValue
@@ -52,7 +53,7 @@ class Module(ABC):
 
     def write_nix(
         self,
-        path: os.PathLike,
+        path: pathlib.Path,
         module_settings: "models.ModuleSettings",
         priority: int,
         project: Project,
@@ -63,7 +64,7 @@ class Module(ABC):
             f.write("{ pkgs, lib, inputs, config, ... }:\n")
             f.write("{\n")
 
-            self.write_nix_settings(f, module_settings, priority, project)
+            self.write_nix_settings(f, path, module_settings, priority, project)
 
             f.write("}\n")
 
@@ -71,7 +72,8 @@ class Module(ABC):
 
     def write_nix_settings(
         self,
-        f,
+        f: StringIO,
+        path: pathlib.Path,
         module_settings: "models.ModuleSettings",
         priority: int,
         project: Project,
