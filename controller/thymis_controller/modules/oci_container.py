@@ -1,5 +1,3 @@
-import os
-
 import thymis_controller.modules.modules as modules
 from thymis_controller import models
 from thymis_controller.nix import template_env
@@ -201,7 +199,7 @@ class OCIContainers(modules.Module):
 
     def write_nix(
         self,
-        path: os.PathLike,
+        path,
         module_settings: "models.ModuleSettings",
         priority: int,
         project: Project,

@@ -220,7 +220,9 @@ class Project:
     def reload_from_disk(self):
         self.write_state_and_reload(self.read_state())
 
-    def create_folder_and_write_modules(self, base_path, identifier, modules, priority):
+    def create_folder_and_write_modules(
+        self, base_path: str, identifier: str, modules, priority
+    ):
         path = self.path / base_path / identifier
         path.mkdir(exist_ok=True)
         os.mknod(path / ".gitkeep")
