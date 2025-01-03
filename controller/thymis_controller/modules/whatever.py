@@ -18,7 +18,12 @@ class WhateverModule(modules.Module):
     )
 
     def write_nix_settings(
-        self, f, module_settings: models.ModuleSettings, priority: int, project: Project
+        self,
+        f,
+        path,
+        module_settings: models.ModuleSettings,
+        priority: int,
+        project: Project,
     ):
         settings = (
             module_settings.settings["settings"]

@@ -106,5 +106,6 @@ in
         CONTROLLER_HOST = cfg.agent.controller-url;
       };
     };
+    system.configurationRevision = lib.mkIf (inputs.self ? rev) inputs.self.rev;
   };
 }

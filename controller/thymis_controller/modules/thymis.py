@@ -178,14 +178,19 @@ class ThymisController(modules.Module):
     )
 
     def write_nix_settings(
-        self, f, module_settings: models.ModuleSettings, priority: int, project: Project
+        self,
+        f,
+        path,
+        module_settings: models.ModuleSettings,
+        priority: int,
+        project: Project,
     ):
         f.write(f"  imports = [\n")
         f.write(f"    inputs.thymis.nixosModules.thymis-controller\n")
         f.write(f"  ];\n")
         f.write("  services.thymis-controller.enable = true;\n")
 
-        return super().write_nix_settings(f, module_settings, priority, project)
+        return super().write_nix_settings(f, path, module_settings, priority, project)
 
 
 class ThymisDevice(modules.Module):
@@ -610,8 +615,17 @@ class ThymisDevice(modules.Module):
     )
 
     def write_nix_settings(
-        self, f, module_settings: models.ModuleSettings, priority: int, project: Project
+        self,
+        f,
+        path,
+        module_settings: models.ModuleSettings,
+        priority: int,
+        project: Project,
     ):
+        # get last 2 components of the path
+        write_target_type = path.parts[-2]
+        write_target_name = path.parts[-1]
+
         device_type = (
             module_settings.settings["device_type"]
             if "device_type" in module_settings.settings
@@ -666,6 +680,13 @@ class ThymisDevice(modules.Module):
             f.write(f"    inputs.thymis.nixosModules.thymis-image-{first_format}\n")
 
         f.write("  ];\n")
+
+        if write_target_type == "hosts":
+            f.write(f'  system.name = "thymis-{write_target_name}";\n')
+            f.write(f'  system.image.id = "{write_target_name}";\n')
+            f.write(
+                f"  system.image.version = lib.mkIf (inputs.self ? rev) inputs.self.rev;\n"
+            )
 
         if authorized_keys:
             keys = list(
@@ -725,7 +746,7 @@ class ThymisDevice(modules.Module):
 
         f.write(f'  time.timeZone = "{time_zone}";\n')
 
-        return super().write_nix_settings(f, module_settings, priority, project)
+        return super().write_nix_settings(f, path, module_settings, priority, project)
 
     def find_image_format_by_device_type(self, device_type):
         restricted = self.image_format.type.extra_data["restrict_values_on_other_key"]
