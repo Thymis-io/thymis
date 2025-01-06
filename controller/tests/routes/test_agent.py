@@ -25,8 +25,8 @@ def mock_check_device_reference(dflake_path, commit_hash: str, config_id: str):
     mock_determine_first_host_with_key,
 )
 def test_device_notify(test_client):
-    # db_session_func = test_client.app.dependency_overrides.get(get_db_session)
-    # db_session = next(db_session_func())
+    db_session_func = test_client.app.dependency_overrides.get(get_db_session)
+    db_session = next(db_session_func())
 
     json_data = {
         "config_id": "test",
@@ -40,3 +40,10 @@ def test_device_notify(test_client):
     response = test_client.post("/agent/notify", json=json_data)
     print(response.json())
     assert response.status_code == 200
+
+    assert (
+        crud.deployment_info.check_if_ssh_public_key_exists(db_session, "test") is True
+    )
+    assert (
+        crud.hardware_device.get_by_hardware_id(db_session, "test") is not None
+    )  # may change some time
