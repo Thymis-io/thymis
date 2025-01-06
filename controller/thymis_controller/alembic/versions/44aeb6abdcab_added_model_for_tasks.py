@@ -5,6 +5,7 @@ Revises: 02cb9f4abdab
 Create Date: 2024-11-21 14:47:51.595656
 
 """
+
 import sqlalchemy as sa
 from alembic import op
 
@@ -44,14 +45,15 @@ def upgrade():
         sa.Column("process_stderr", sa.LargeBinary(), nullable=True),
         # Nix-Specific Extensions
         sa.Column("nix_status", sa.JSON(), nullable=True),
+        sa.Column("nix_errors", sa.JSON(), nullable=True),
         sa.Column("nix_files_linked", sa.Integer, nullable=True),
         sa.Column("nix_bytes_linked", sa.BigInteger(), nullable=True),
         sa.Column("nix_corrupted_paths", sa.Integer(), nullable=True),
         sa.Column("nix_untrusted_paths", sa.Integer(), nullable=True),
-        sa.Column("nix_errors", sa.JSON(), nullable=True),
-        sa.Column("nix_warnings", sa.JSON(), nullable=True),
-        sa.Column("nix_notices", sa.JSON(), nullable=True),
-        sa.Column("nix_infos", sa.JSON(), nullable=True),
+        sa.Column("nix_error_logs", sa.JSON(), nullable=True),
+        sa.Column("nix_warning_logs", sa.JSON(), nullable=True),
+        sa.Column("nix_notice_logs", sa.JSON(), nullable=True),
+        sa.Column("nix_info_logs", sa.JSON(), nullable=True),
     )
     op.create_index(op.f("ix_tasks_id"), "tasks", ["id"], unique=False)
 

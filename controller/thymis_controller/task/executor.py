@@ -95,7 +95,7 @@ class TaskWorkerPoolManager:
                     if task is None:
                         logger.error("Received message for unknown task: %s", message)
                         continue
-                    logger.info("Received message from worker: %s", message)
+                    # logger.info("Received message from worker: %s", message)
                     match message.update:
                         case models_task.TaskPickedUpdate():
                             task.state = "running"
@@ -119,18 +119,15 @@ class TaskWorkerPoolManager:
                             db_session.commit()
                         case models_task.TaskNixStatusUpdate(status=status):
                             task.nix_status = status.model_dump(
-                                include=(
-                                    "done",
-                                    "expected",
-                                    "running",
-                                    "failed",
-                                    "errors",
-                                )
+                                include=("done", "expected", "running", "failed")
                             )
-                            task.nix_errors = status.logs_by_level.get(0)
-                            task.nix_warnings = status.logs_by_level.get(1)
-                            task.nix_notices = status.logs_by_level.get(2)
-                            task.nix_infos = status.logs_by_level.get(3)
+                            task.nix_errors = status.model_dump(include=("errors"))[
+                                "errors"
+                            ]
+                            task.nix_error_logs = status.logs_by_level.get(0)
+                            task.nix_warning_logs = status.logs_by_level.get(1)
+                            task.nix_notice_logs = status.logs_by_level.get(2)
+                            task.nix_info_logs = status.logs_by_level.get(3)
                             db_session.commit()
                         case models_task.TaskCompletedUpdate():
                             task.state = "completed"

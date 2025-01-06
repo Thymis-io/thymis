@@ -10,56 +10,11 @@
 
 	$: task = data.task;
 
-	// 	export type TaskState = 'pending' | 'running' | 'completed' | 'failed';
-
-	// export type Task = {
-	// 	id: string;
-	// 	start_time: string;
-	// 	end_time?: string;
-	// 	state: TaskState;
-	// 	exception?: string;
-	// 	task_type: string;
-	// 	task_submission_data: Record<string, unknown>;
-
-	// 	parent_task_id?: string;
-	// 	children?: string[];
-
-	// 	process_program?: string;
-	// 	process_args?: string[];
-	// 	process_env?: Record<string, string>;
-	// 	process_stdout?: string;
-	// 	process_stderr?: string;
-
-	// 	nix_status?: {
-	// 		done: number;
-	// 		expected: number;
-	// 		running: number;
-	// 		failed: number;
-	// 		errors: unknown[];
-	// 		logs_by_level: Record<number, string[]>;
-	// 	};
-	// 	nix_files_linked?: number;
-	// 	nix_bytes_linked?: number;
-	// 	nix_corrupted_paths?: number;
-	// 	nix_untrusted_paths?: number;
-	// 	nix_errors?: Record<string, unknown>;
-	// 	nix_warnings?: Record<string, unknown>;
-	// 	nix_notices?: Record<string, unknown>;
-	// 	nix_infos?: Record<string, unknown>;
-	// };
-
 	// if task is undefined, go to 404
 	const cleanStdOut = (stdoutorerr: string) => {
 		const toRemove = '\r\u001b[K';
 		return stdoutorerr.replaceAll(toRemove, '');
 	};
-
-	// <!-- logs_by_level={
-	// 	0: self.error_logs,
-	// 	1: self.warnings,
-	// 	2: self.notices,
-	// 	3: self.infos, -->
-	$: log_level_names = [$t('error'), $t('warning'), $t('notice'), $t('info')];
 
 	const escapeForDoubleQuotes = (str: string) => {
 		// quote ", `, \ and $
@@ -142,29 +97,29 @@
 			<p>No process information</p>
 		{/if}
 
-		{#if task.nix_status?.errors && task.nix_status.errors.length > 0}
-			<p>Nix errors:</p>
-			<MonospaceText code={task.nix_status.errors.map((error) => error.msg).join('\n')} />
-		{/if}
-
 		{#if task.nix_errors && task.nix_errors.length > 0}
 			<p>Nix errors:</p>
-			<MonospaceText code={task.nix_errors.join('\n')} />
+			<MonospaceText code={task.nix_errors.map((error) => error.msg).join('\n')} />
 		{/if}
 
-		{#if task.nix_warnings && task.nix_warnings.length > 0}
+		{#if task.nix_error_logs && task.nix_error_logs.length > 0}
+			<p>Nix errors:</p>
+			<MonospaceText code={task.nix_error_logs.join('\n')} />
+		{/if}
+
+		{#if task.nix_warning_logs && task.nix_warning_logs.length > 0}
 			<p>Nix warnings:</p>
-			<MonospaceText code={task.nix_warnings.join('\n')} />
+			<MonospaceText code={task.nix_warning_logs.join('\n')} />
 		{/if}
 
-		{#if task.nix_notices && task.nix_notices.length > 0}
+		{#if task.nix_notice_logs && task.nix_notice_logs.length > 0}
 			<p>Nix notices:</p>
-			<MonospaceText code={task.nix_notices.join('\n')} />
+			<MonospaceText code={task.nix_notice_logs.join('\n')} />
 		{/if}
 
-		{#if task.nix_infos && task.nix_infos.length > 0}
+		{#if task.nix_info_logs && task.nix_info_logs.length > 0}
 			<p>Nix infos:</p>
-			<MonospaceText code={task.nix_infos.join('\n')} />
+			<MonospaceText code={task.nix_info_logs.join('\n')} />
 		{/if}
 
 		{#if task.process_stdout}

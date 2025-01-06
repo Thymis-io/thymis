@@ -123,6 +123,15 @@ class ParsedNixLineModel(BaseModel):
     ]
 
 
+class ParsedNixProcess(BaseModel):
+    done: int
+    expected: int
+    running: int
+    failed: int
+    errors: list[ErrorInfoNixLine] = []
+    logs_by_level: dict[int, list[str]] = {}
+
+
 def parse_nix_line(line: bytes) -> ParsedNixLineModel:
     line = line[len(b"@nix ") :]
     parsed = json.loads(line)
@@ -150,11 +159,6 @@ class NixActivityResult:
 
 @dataclasses.dataclass
 class ActivitiesDoneExpectedFailed:
-    # def __init__(self):
-    #     self.activity_info_by_id = {}
-    #     self.done = 0
-    #     self.expected = 0
-    #     self.failed = 0
     activity_info_by_id: dict[int, "ActivityInfo"] = dataclasses.field(
         default_factory=dict
     )
@@ -335,7 +339,7 @@ class NixParser:
             global_failed += failed
         return global_done, global_expected, global_running, global_failed
 
-    def get_model(self) -> models.NixProcessStatus:
+    def get_model(self) -> ParsedNixProcess:
         (
             global_done,
             global_expected,
@@ -343,7 +347,7 @@ class NixParser:
             global_failed,
         ) = self.calc_activities_done_expected_failed()
 
-        return models.NixProcessStatus(
+        return ParsedNixProcess(
             done=global_done,
             expected=global_expected,
             running=global_running,
