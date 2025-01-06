@@ -1,3 +1,4 @@
+import traceback
 import uuid
 
 from fastapi import APIRouter, Response, WebSocket
@@ -33,6 +34,7 @@ async def get_task(
     try:
         return task_controller.get_task(task_id, db_session)
     except ValueError:
+        traceback.print_exc()
         return Response(
             content=f"Task with id {task_id} not found",
             status_code=404,

@@ -38,12 +38,12 @@ class Task(Base):
 
     # Nix-Specific Extensions
     nix_status = Column(JSON, nullable=True)
+    nix_errors = Column(JSON, nullable=True)
     nix_files_linked = Column(Integer, nullable=True)
     nix_bytes_linked = Column(BigInteger, nullable=True)
     nix_corrupted_paths = Column(Integer, nullable=True)
     nix_untrusted_paths = Column(Integer, nullable=True)
-    nix_errors = Column(JSON, nullable=True)
-
-    nix_warnings = Column(JSON, nullable=True)
-    nix_notices = Column(JSON, nullable=True)
-    nix_infos = Column(JSON, nullable=True)
+    nix_error_logs = Column(JSON, nullable=True)
+    nix_warning_logs = Column(JSON, nullable=True)
+    nix_notice_logs = Column(JSON, nullable=True)
+    nix_info_logs = Column(JSON, nullable=True)

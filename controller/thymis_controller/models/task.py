@@ -1,8 +1,9 @@
 import datetime
 import uuid
-from typing import Any, Literal, Optional, Union
+from typing import Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, JsonValue
+from thymis_controller.nix.log_parse import ParsedNixProcess
 
 type TaskState = Literal["pending", "running", "completed", "failed"]
 
@@ -14,8 +15,6 @@ class NixProcessStatus(BaseModel):
     expected: int
     running: int
     failed: int
-    errors: list[Any] = []
-    logs_by_level: dict[int, list[str]] = {}
 
 
 class Task(BaseModel):
@@ -39,14 +38,15 @@ class Task(BaseModel):
     process_stderr: Optional[str]
 
     nix_status: Optional[NixProcessStatus]
+    nix_errors: Optional[JsonValue]
     nix_files_linked: Optional[int]
     nix_bytes_linked: Optional[int]
     nix_corrupted_paths: Optional[int]
     nix_untrusted_paths: Optional[int]
-    nix_errors: Optional[JsonValue]
-    nix_warnings: Optional[JsonValue]
-    nix_notices: Optional[JsonValue]
-    nix_infos: Optional[JsonValue]
+    nix_error_logs: Optional[JsonValue]
+    nix_warning_logs: Optional[JsonValue]
+    nix_notice_logs: Optional[JsonValue]
+    nix_info_logs: Optional[JsonValue]
 
 
 class TaskShort(BaseModel):
@@ -187,7 +187,7 @@ class TaskStdOutErrUpdate(BaseModel):
 
 class TaskNixStatusUpdate(BaseModel):
     type: Literal["task_nix_status"] = "task_nix_status"
-    status: NixProcessStatus
+    status: ParsedNixProcess
 
 
 class TaskCompletedUpdate(BaseModel):

@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import { derived, writable, type Readable } from 'svelte/store';
+import { writable } from 'svelte/store';
 import { invalidate } from '$app/navigation';
 import { fetchWithNotify } from './fetchWithNotify';
 
@@ -28,17 +28,25 @@ export type Task = {
 		expected: number;
 		running: number;
 		failed: number;
-		errors: unknown[];
-		logs_by_level: Record<number, string[]>;
 	};
+
+	nix_errors?: {
+		msg: string;
+		raw_msg: string;
+		line?: number;
+		column?: number;
+		file?: string;
+	}[];
+
 	nix_files_linked?: number;
 	nix_bytes_linked?: number;
 	nix_corrupted_paths?: number;
 	nix_untrusted_paths?: number;
-	nix_errors?: string[];
-	nix_warnings?: string[];
-	nix_notices?: string[];
-	nix_infos?: string[];
+
+	nix_error_logs?: string[];
+	nix_warning_logs?: string[];
+	nix_notice_logs?: string[];
+	nix_info_logs?: string[];
 };
 
 export type TaskShort = {
@@ -55,7 +63,6 @@ export type TaskShort = {
 		expected: number;
 		running: number;
 		failed: number;
-		errors: unknown[];
 	};
 };
 
