@@ -1,7 +1,8 @@
 import { browser } from '$app/environment';
-import { writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import { invalidate } from '$app/navigation';
 import { fetchWithNotify } from './fetchWithNotify';
+import { page } from '$app/stores';
 
 export type TaskState = 'pending' | 'running' | 'completed' | 'failed';
 
@@ -68,6 +69,11 @@ export type TaskShort = {
 
 export type TasksShort = Record<string, TaskShort>;
 
+type TaskStatus = {
+	type: 'new_task' | 'task_update';
+	task: TaskShort;
+};
+
 let socket: WebSocket | undefined;
 
 export const taskStatus = writable<Record<string, TaskShort>>({});
@@ -132,14 +138,17 @@ const startSocket = () => {
 	const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 	socket = new WebSocket(`${scheme}://${window.location.host}/api/task_status`);
 	socket.onmessage = async (event) => {
-		console.log('task_status message', event.data);
-		const data = JSON.parse(event.data) as TaskShort;
+		const data = JSON.parse(event.data) as TaskStatus;
 		taskStatus.update((ts) => {
-			ts[data.id] = data;
-			console.log('task_status update', ts);
+			if (
+				data.task.id in ts ||
+				(data.type === 'new_task' && get(page).url.searchParams.get('task-page') === '1')
+			) {
+				ts[data.task.id] = data.task;
+			}
 			return ts;
 		});
-		await invalidate((url) => url.pathname.startsWith(`/api/tasks/${data.id}`));
+		await invalidate((url) => url.pathname.startsWith(`/api/tasks/${data.task.id}`));
 	};
 	socket.onclose = () => {
 		console.log('task_status socket closed');

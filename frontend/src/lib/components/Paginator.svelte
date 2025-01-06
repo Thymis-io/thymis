@@ -24,7 +24,7 @@
 
 <div class="flex items-center paginate">
 	<button on:click={() => handlePageChange(page - 1)} class="page-button">
-		<ChevronLeft></ChevronLeft>
+		<ChevronLeft class="h-6" />
 	</button>
 	{#each visiblePages as i}
 		<button
@@ -36,7 +36,7 @@
 		</button>
 	{/each}
 	<button on:click={() => handlePageChange(page + 1)} class="page-button">
-		<ChevronRight></ChevronRight>
+		<ChevronRight class="h-6" />
 	</button>
 </div>
 
@@ -45,6 +45,11 @@
 		border: 1px solid rgb(128, 128, 128);
 		padding: 0.1rem;
 		min-width: 1.5rem;
+		height: 1.6rem;
+		width: 1.6rem;
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
 	.paginate :first-child {
 		border-radius: 0.3rem 0 0 0.3rem;

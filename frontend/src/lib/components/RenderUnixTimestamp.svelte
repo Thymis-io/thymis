@@ -9,7 +9,7 @@
 {#if timestamp && date}
 	<p title={date.toISOString()}>
 		<time datetime={date.toISOString()}>
-			{date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
+			{date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'long' })}
 		</time>
 	</p>
 {/if}
