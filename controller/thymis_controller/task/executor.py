@@ -2,6 +2,7 @@ import base64
 import concurrent.futures
 import logging
 import threading
+import uuid
 from concurrent.futures import Future, ProcessPoolExecutor
 from datetime import datetime
 from multiprocessing.connection import Connection, Pipe
@@ -46,7 +47,7 @@ class TaskWorkerPoolManager:
         self.futures[task_submission.id] = (future, worker_side, executor_side)
         self.future_to_id[future] = task_submission.id
         thread = threading.Thread(
-            target=self.listen_child_messages, args=(executor_side,)
+            target=self.listen_child_messages, args=(executor_side, task_submission.id)
         )
         thread.start()
         self.listen_threads[task_submission.id] = thread
@@ -83,8 +84,12 @@ class TaskWorkerPoolManager:
         self.pool.shutdown(wait=True)
         logger.info("TaskWorkerPoolManager stopped")
 
-    def listen_child_messages(self, conn: Connection):
+    def listen_child_messages(self, conn: Connection, task_id: uuid.UUID):
         try:
+            with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
+                task = crud_task.get_task_by_id(db_session, task_id)
+                self.ui_subscription_manager.notify_new_task(task)
+
             while True:
                 message = conn.recv()
                 if not isinstance(message, models_task.RunnerToControllerTaskUpdate):
