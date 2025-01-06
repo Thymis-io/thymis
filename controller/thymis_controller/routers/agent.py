@@ -18,7 +18,7 @@ def register(
     db_session: SessionAD,
     project: ProjectAD,
 ):
-    # TODO verify authenticity of device in general (only permitted devices)
+    # TODO verify authenticity of device in general (only permitted devices) tag libguestfs
 
     # TODO verify authenticity of device of its key pair
 
