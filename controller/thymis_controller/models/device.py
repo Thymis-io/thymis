@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 class DeviceNotifyRequest(BaseModel):
     commit_hash: str | None
     config_id: str
-    hardware_ids: Dict[str, str]
+    hardware_ids: Dict[str, str | None]
     public_key: str
     ip_addresses: List[str]
 
