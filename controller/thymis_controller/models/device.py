@@ -1,11 +1,13 @@
+from typing import Dict
+
 from git import List
 from pydantic import BaseModel, Field
 
 
-class RegisterDeviceRequest(BaseModel):
-    commit_hash: str
+class DeviceNotifyRequest(BaseModel):
+    commit_hash: str | None
     config_id: str
-    hardware_id: str
+    hardware_ids: Dict[str, str]
     public_key: str
     ip_addresses: List[str]
 
@@ -27,7 +29,7 @@ class CreateHostkeyRequest(BaseModel):
 
 
 __all__ = [
-    "RegisterDeviceRequest",
+    "DeviceNotifyRequest",
     "Hostkey",
     "DeviceHeartbeatRequest",
     "CreateHostkeyRequest",

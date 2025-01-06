@@ -13,7 +13,7 @@ class DeploymentInfo(Base):
     __tablename__ = "deployment_info"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        Uuid(as_uuid=True), primary_key=True, index=True
+        Uuid(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4
     )
 
     ssh_public_key: Mapped[str] = mapped_column(nullable=False, unique=True)
