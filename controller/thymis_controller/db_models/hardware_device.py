@@ -13,7 +13,7 @@ class HardwareDevice(Base):
     __tablename__ = "hardware_devices"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        Uuid(as_uuid=True), primary_key=True, index=True
+        Uuid(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4
     )
 
     hardware_id: Mapped[str]
