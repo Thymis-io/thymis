@@ -133,12 +133,13 @@
 	{/if}
 	{#if removeModule}
 		<button
+			id="add-module"
 			class="p-2 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700"
 			on:click={() => (addModuleModalOpen = true)}
 		>
 			<Plus />
 		</button>
-		<Tooltip type="auto">
+		<Tooltip type="auto" triggeredBy="#add-module">
 			<P size="sm">{$t('config.add_module')}</P>
 		</Tooltip>
 		<Modal title={$t('config.add_module')} bind:open={addModuleModalOpen} autoclose outsideclose>
