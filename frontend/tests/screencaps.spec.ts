@@ -1,4 +1,5 @@
-import { test, expect, type Locator, type Page } from '../playwright/fixtures';
+import { test, expect } from '../playwright/fixtures';
+import { clearState, expectPageToHaveScreenshotWithHighlight } from './utils';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -88,6 +89,102 @@ colorSchemes.forEach((colorScheme) => {
 				.locator('visible=true')
 				.first();
 			await externalReposNav.click();
+			await expect(page).toHaveScreenshot();
+		});
+
+		test('create whoami tag', async ({ page, request }) => {
+			await clearState(page, request);
+
+			// Navigate to the Tags page and create a new tag
+			await page.goto('/tags');
+
+			const addTagButton = page.locator('button').filter({ hasText: 'Create Tag' });
+			await expectPageToHaveScreenshotWithHighlight(page, addTagButton);
+			await addTagButton.click();
+
+			await expect(page).toHaveScreenshot();
+
+			const tagNameInput = page.locator('#display-name').first();
+			await tagNameInput.fill('Who Am I');
+
+			await expect(page).toHaveScreenshot();
+
+			const saveButton = page.locator('button').filter({ hasText: 'Add tag' });
+			await saveButton.click();
+
+			// Configure the tag
+			const configureTagButton = page
+				.locator('a', { hasText: 'Configure Tag' })
+				.locator('visible=true')
+				.first();
+			await expectPageToHaveScreenshotWithHighlight(page, configureTagButton);
+			await configureTagButton.click();
+
+			const addModuleButton = page.locator('#add-module').first();
+			await expectPageToHaveScreenshotWithHighlight(page, addModuleButton.locator('svg').first());
+			await addModuleButton.click();
+
+			const addContainerModuleButton = page.locator('button').filter({ hasText: 'OCI Containers' });
+			await expectPageToHaveScreenshotWithHighlight(page, addContainerModuleButton);
+			await addContainerModuleButton.click();
+
+			const containerModuleButton = page.locator('a').filter({ hasText: 'OCI Containers' });
+			await containerModuleButton.click();
+
+			await expect(page).toHaveScreenshot();
+
+			const addContainerButton = page.locator('button').filter({ hasText: 'Add Container' });
+			await expectPageToHaveScreenshotWithHighlight(page, addContainerButton);
+			await addContainerButton.click();
+
+			await expect(page).toHaveScreenshot();
+
+			await page
+				.locator('p', { hasText: 'Container Name' })
+				.locator('..')
+				.locator('input')
+				.first()
+				.fill('Whoami');
+			await page
+				.locator('p', { hasText: 'Image' })
+				.locator('..')
+				.locator('input')
+				.first()
+				.fill('traefik/whoami');
+			const portButton = page.locator('button').filter({ hasText: 'Add Port' });
+			await portButton.click();
+			const ports = page.locator('p', { hasText: 'Port' }).locator('..').locator('div');
+			await ports.locator('input').nth(0).fill('80');
+			await ports.locator('input').nth(1).fill('80');
+			await ports.locator('input').nth(1).blur();
+
+			await expect(page).toHaveScreenshot();
+
+			// Assign the tag
+			await page.goto('/devices');
+
+			await page.locator('button').filter({ hasText: 'Create New Device' }).click();
+			await page.locator('#display-name').first().fill('Whoami Device');
+			await page.locator('#device-type').first().selectOption({ label: 'Raspberry Pi 4' });
+			await page.locator('button').filter({ hasText: 'Create device' }).click();
+
+			const editTagButton = page
+				.locator('tr')
+				.filter({ hasText: 'Whoami Device' })
+				.locator('button')
+				.nth(1);
+			await expectPageToHaveScreenshotWithHighlight(page, editTagButton);
+			await editTagButton.click();
+
+			await expect(page).toHaveScreenshot();
+
+			await page.getByLabel('Device tags').click();
+			await page.getByRole('option', { name: 'Who Am I' }).click();
+
+			await expect(page).toHaveScreenshot();
+
+			await page.getByRole('button', { name: 'Save' }).click();
+
 			await expect(page).toHaveScreenshot();
 		});
 	});

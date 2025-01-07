@@ -36,9 +36,9 @@
 	bodyClass="p-4 md:p-5 space-y-4 flex-1"
 >
 	<form class="flex flex-col space-y-4">
-		<Label for="displayName">
+		<Label for="display-name">
 			{$t('create-device.display-name-tag')}
-			<Input id="displayName" bind:value={displayName} />
+			<Input id="display-name" bind:value={displayName} />
 			{#if nameValidation(displayName, 'tag')}
 				<Helper color="red">{nameValidation(displayName, 'tag')}</Helper>
 			{:else}
