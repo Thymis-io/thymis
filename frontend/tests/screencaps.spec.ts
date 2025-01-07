@@ -9,7 +9,9 @@ colorSchemes.forEach((colorScheme) => {
 	test.describe(`Color scheme: ${colorScheme}`, () => {
 		test.use({ colorScheme: colorScheme });
 
-		test('overview page shows overview', async ({ page }) => {
+		test('overview page shows overview', async ({ page, request }) => {
+			await clearState(page, request);
+
 			await page.goto('/login');
 
 			await page.fill('input[name="username"]', 'admin');
