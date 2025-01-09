@@ -140,10 +140,8 @@ const startSocket = () => {
 	socket.onmessage = async (event) => {
 		const data = JSON.parse(event.data) as TaskStatus;
 		taskStatus.update((ts) => {
-			if (
-				data.task.id in ts ||
-				(data.type === 'new_task' && get(page).url.searchParams.get('task-page') === '1')
-			) {
+			const taskPage = get(page).url.searchParams.get('task-page') ?? '1';
+			if (data.task.id in ts || (data.type === 'new_task' && taskPage === '1')) {
 				ts[data.task.id] = data.task;
 			}
 			return ts;
