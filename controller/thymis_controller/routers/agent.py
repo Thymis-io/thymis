@@ -18,6 +18,10 @@ def device_notify(
     db_session: SessionAD,
     project: ProjectAD,
 ):
+    logger.debug(
+        f"Device with public key {device_notify_request.public_key} notifies controller with commit hash {device_notify_request.commit_hash} and config id {device_notify_request.config_id}"
+    )
+
     # TODO verify authenticity of device in general (only permitted devices) tag libguestfs
 
     # TODO verify authenticity of device of its key pair

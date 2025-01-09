@@ -7,6 +7,7 @@ from typing import Dict
 
 import psutil
 import requests
+from git import Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -38,13 +39,25 @@ class AgentScheduler(sched.scheduler):
 
 class Agent:
     controller_host: str
-    config_id: str
-    commit_hash: str
 
-    def __init__(self, path: pathlib.Path, controller_host, config_id, commit_hash):
+    def __init__(self, path: pathlib.Path, controller_host):
         self.controller_host = controller_host
-        self.config_id = config_id
-        self.commit_hash = commit_hash
+
+    def detect_system_config(self) -> Tuple[str, str]:
+        config_id = None
+        commit_hash = None
+        with open("/etc/os-release", "r") as f:
+            for line in f:
+                if line.startswith("IMAGE_ID="):
+                    config_id = line.split("=")[1].strip().replace('"', "")
+                    if config_id == "":
+                        config_id = None
+                if line.startswith("IMAGE_VERSION="):
+                    commit_hash = line.split("=")[1].strip().replace('"', "")
+                    if commit_hash == "":
+                        commit_hash = None
+
+        return config_id, commit_hash
 
     def detect_hostname(self):
         return socket.gethostname()
@@ -103,14 +116,16 @@ class Agent:
             logger.error("Controller host not set")
             raise ValueError("Controller host not set")
 
+        config_id, commit_hash = self.detect_system_config()
+
         json_data = {
-            "commit_hash": self.commit_hash,
-            "config_id": self.config_id,
+            "commit_hash": commit_hash,
+            "config_id": config_id,
             "hardware_ids": self.detect_hardware_id(),
             "public_key": self.detect_public_key(),
             "ip_addresses": self.detect_ip_addresses(),
         }
-        print(json_data)
+        logger.info("Sending notify request: %s", json_data)
         response = requests.post(f"{self.controller_host}/agent/notify", json=json_data)
 
         if response.status_code != 200:
@@ -130,15 +145,13 @@ def main():
     logging.basicConfig(level=logging.DEBUG)
 
     controller_host = os.getenv("CONTROLLER_HOST")
-    config_id = os.getenv("CONFIG_ID", None)
-    commit_hash = os.getenv("COMMIT_HASH", None)
 
     if not controller_host:
         raise ValueError("CONTROLLER_HOST environment variable is required")
 
     path = pathlib.Path("/var") / "lib" / "thymis" / "agent.json"
 
-    agent = Agent(path, controller_host, config_id, commit_hash)
+    agent = Agent(path, controller_host)
     scheduler = AgentScheduler()
 
     scheduler.retry_if_fails(10, agent.notify)
