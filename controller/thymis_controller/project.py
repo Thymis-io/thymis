@@ -283,10 +283,11 @@ class Project:
                 tempfile.NamedTemporaryFile(delete=False).name
             )
 
-        hostkeys = crud.hostkey.get_all(db_session)
+        deployment_infos = crud.deployment_info.get_all(db_session)
         with open(self.known_hosts_path, "w", encoding="utf-8") as f:
-            for hostkey in hostkeys:
-                f.write(f"{hostkey.device_host} {hostkey.public_key}\n")
+            for di in deployment_infos:
+                if di.reachable_deployed_host and di.ssh_public_key:
+                    f.write(f"{di.reachable_deployed_host} {di.ssh_public_key}\n")
 
         logger.debug("Updated known_hosts file at %s", self.known_hosts_path)
 

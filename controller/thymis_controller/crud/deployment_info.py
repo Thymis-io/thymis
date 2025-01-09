@@ -36,3 +36,26 @@ def check_if_ssh_public_key_exists(session: Session, ssh_public_key: str) -> boo
         .first()
         is not None
     )
+
+
+def get_all(session: Session):
+    return session.query(db_models.DeploymentInfo).all()
+
+
+def get_device_host_by_config_id(session: Session, config_id: str) -> str | None:
+    di = (
+        session.query(db_models.DeploymentInfo)
+        .filter(db_models.DeploymentInfo.deployed_config_id == config_id)
+        .first()
+    )
+    return di.reachable_deployed_host if di else None
+
+
+def get_by_config_id(
+    session: Session, config_id: str
+) -> db_models.DeploymentInfo | None:
+    return (
+        session.query(db_models.DeploymentInfo)
+        .filter(db_models.DeploymentInfo.deployed_config_id == config_id)
+        .first()
+    )
