@@ -75,10 +75,8 @@ async def deploy(
     project.commit(summary)
 
     registered_devices = []
-    for device in crud.hostkey.get_all(session):
-        registered_devices.append(
-            models.Hostkey.model_validate(device, from_attributes=True)
-        )
+    for device in crud.deployment_info.get_all(session):
+        registered_devices.append(models.Hostkey.from_deployment_info(device))
 
     # runs a nix command to deploy the flake
     await project.create_deploy_project_task(registered_devices)
@@ -111,8 +109,6 @@ async def device_and_build_download_image_for_clone(
         x += 1
 
     new_identifier = device_name(x)
-    if crud.hostkey.has_device(db_session, identifier):
-        crud.hostkey.rename_device(db_session, identifier, new_identifier)
     project.clone_state_device(identifier, new_identifier, lambda n: f"{n}-{x}")
     await project.create_build_device_image_task(new_identifier, db_session)
 
@@ -125,7 +121,9 @@ async def restart_device(
     state: State = Depends(dependencies.get_state),
 ):
     device = next(device for device in state.devices if device.identifier == identifier)
-    target_host = crud.hostkey.get_device_host(db_session, identifier)
+    target_host = crud.deployment_info.get_device_host_by_config_id(
+        db_session, identifier
+    )
     await project.create_restart_device_task(device, target_host)
 
 
@@ -209,7 +207,9 @@ async def vnc_websocket(
     state: State = Depends(dependencies.get_state),
 ):
     device = next(device for device in state.devices if device.identifier == identifier)
-    target_host = crud.hostkey.get_device_host(db_session, identifier)
+    target_host = crud.deployment_info.get_device_host_by_config_id(
+        db_session, identifier
+    )
 
     if device is None or target_host is None:
         await websocket.close()
@@ -231,45 +231,6 @@ async def vnc_websocket(
     finally:
         tcp_to_ws_task.cancel()
         ws_to_tcp_task.cancel()
-
-
-@router.get("/hostkey/{identifier}", response_model=models.Hostkey)
-def get_hostkey(db_session: SessionAD, identifier: str):
-    """
-    Get the hostkey for a device
-    """
-    hostkey = crud.hostkey.get_by_identifier(db_session, identifier)
-    if not hostkey:
-        raise HTTPException(status_code=404, detail="Hostkey not found")
-    return hostkey
-
-
-@router.put("/hostkey/{identifier}", response_model=models.Hostkey)
-def create_hostkey(
-    identifier: str,
-    hostkey: models.CreateHostkeyRequest,
-    db_session: SessionAD,
-    project: ProjectAD,
-):
-    """
-    Create a hostkey for a device
-    """
-    if crud.hostkey.get_by_identifier(db_session, identifier):
-        crud.hostkey.delete(db_session, identifier)
-
-    return crud.hostkey.create(
-        db_session, identifier, None, hostkey.public_key, hostkey.device_host, project
-    )
-
-
-@router.delete("/hostkey/{identifier}")
-def delete_hostkey(db_session: SessionAD, identifier: str):
-    """
-    Delete the hostkey for a device
-    """
-    if not crud.hostkey.get_by_identifier(db_session, identifier):
-        raise HTTPException(status_code=404, detail="Hostkey not found")
-    crud.hostkey.delete(db_session, identifier)
 
 
 HOST_PATTERN = r"^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$"
@@ -307,7 +268,9 @@ async def terminal_websocket(
     state: State = Depends(dependencies.get_state),
 ):
     device = next(device for device in state.devices if device.identifier == identifier)
-    target_host = crud.hostkey.get_device_host(db_session, identifier)
+    target_host = crud.deployment_info.get_device_host_by_config_id(
+        db_session, identifier
+    )
 
     if device is None or target_host is None:
         await websocket.close()

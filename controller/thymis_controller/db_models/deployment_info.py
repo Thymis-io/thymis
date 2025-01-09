@@ -17,8 +17,8 @@ class DeploymentInfo(Base):
     )
 
     ssh_public_key: Mapped[str] = mapped_column(nullable=False, unique=True)
-    deployed_config_commit: Mapped[str]
-    deployed_config_id: Mapped[str]
+    deployed_config_commit: Mapped[str] = mapped_column(nullable=True)
+    deployed_config_id: Mapped[str] = mapped_column(nullable=True)
 
     reachable_deployed_host: Mapped[str | None]
 

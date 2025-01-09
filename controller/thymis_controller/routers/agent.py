@@ -71,34 +71,3 @@ def device_notify(
 
     # check if device is registered in hardware_device table
     crud.hardware_device.create_or_update(db_session, hardware_id, deployment_info.id)
-
-
-@router.post("/heartbeat")
-def heartbeat(
-    heartbeat: models.DeviceHeartbeatRequest,
-    db_session: SessionAD,
-    request: Request,
-):
-    # check if device is registered
-    device = crud.hostkey.get_by_public_key(db_session, heartbeat.public_key)
-    if not device:
-        logging.info(f"Device with public key {heartbeat.public_key} is not registered")
-        raise HTTPException(status_code=404, detail="Your device is not registered")
-
-    logging.debug(f"Device with identifier {device.identifier} sends heartbeat")
-    # check for reachable device
-    device_host = determine_first_host_with_key(
-        hosts=[request.client.host, *heartbeat.ip_addresses],
-        public_key=heartbeat.public_key,
-    )
-
-    if not device_host:
-        logging.error(f"Device with identifier {device.identifier} is not reachable")
-        raise HTTPException(status_code=400, detail="Your device is not reachable")
-
-    if device.device_host != device_host:
-        logging.info(
-            f"Device with identifier {device.identifier} has new host {device_host}"
-        )
-        device.device_host = device_host
-        db_session.commit()
