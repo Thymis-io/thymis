@@ -13,7 +13,6 @@ from thymis_controller.dependencies import (
     ProjectAD,
     SessionAD,
     TaskControllerAD,
-    get_project,
     require_valid_user_session,
 )
 from thymis_controller.models.state import State
@@ -74,12 +73,28 @@ async def deploy(
 ):
     project.commit(summary)
 
-    registered_devices = []
-    for device in crud.deployment_info.get_all(session):
-        registered_devices.append(models.Hostkey.from_deployment_info(device))
+    devices: list[models.DeployDeviceInformation] = []
 
-    # runs a nix command to deploy the flake
-    await project.create_deploy_project_task(registered_devices)
+    for device in crud.deployment_info.get_all(session):
+        hostkey = models.Hostkey.from_deployment_info(device)
+        devices.append(
+            models.DeployDeviceInformation(
+                identifier=hostkey.identifier,
+                host=hostkey.device_host,
+                port=22,
+                username="root",
+            )
+        )
+
+    task_controller.submit(
+        models.DeployDevicesTaskSubmission(
+            devices=devices,
+            project_path=str(project.path),
+            ssh_key_path=str(global_settings.SSH_KEY_PATH),
+            known_hosts_path=str(project.known_hosts_path),
+        ),
+        db_session=session,
+    )
 
     return {"message": "nix deploy started"}
 

@@ -110,6 +110,7 @@ class DeployDeviceInformation(BaseModel):
 class DeployDevicesTaskSubmission(BaseModel):
     type: Literal["deploy_devices_task"] = "deploy_devices_task"
     devices: list[DeployDeviceInformation]
+    project_path: str
     ssh_key_path: str
     known_hosts_path: str
 
@@ -117,6 +118,7 @@ class DeployDevicesTaskSubmission(BaseModel):
 class DeployDeviceTaskSubmission(BaseModel):
     type: Literal["deploy_device_task"] = "deploy_device_task"
     device: DeployDeviceInformation
+    project_path: str
     ssh_key_path: str
     known_hosts_path: str
     parent_task_id: Optional[uuid.UUID] = None
@@ -207,6 +209,7 @@ __all__ = [
     "TaskSubmission",
     "TaskSubmissionData",
     "DeployDeviceInformation",
+    "DeployDeviceTaskSubmission",
     "DeployDevicesTaskSubmission",
     "ProjectFlakeUpdateTaskSubmission",
     "BuildProjectTaskSubmission",
