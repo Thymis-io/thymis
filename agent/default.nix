@@ -1,6 +1,6 @@
 { poetry2nix
 , writeShellApplication
-, python312
+, python313
 ,
 }:
 let
@@ -9,7 +9,7 @@ let
     projectDir = ./.;
     preferWheels = true;
     checkGroups = [ "test" ];
-    python = python312;
+    python = python313;
   }).dependencyEnv;
 in
 writeShellApplication {
