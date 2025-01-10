@@ -41,13 +41,14 @@ class TaskWorkerPoolManager:
         return self._ui_subscription_manager
 
     def submit(self, task_submission: models_task.TaskSubmission):
-        worker_side, executor_side = Pipe()
-        future = self.pool.submit(worker_run_task, task_submission, (worker_side))
+        executor_side, worker_side = Pipe()
+        future = self.pool.submit(worker_run_task, task_submission, worker_side)
         future.add_done_callback(self.finish_task)
-        self.futures[task_submission.id] = (future, worker_side, executor_side)
+        self.futures[task_submission.id] = (future, executor_side)
         self.future_to_id[future] = task_submission.id
         thread = threading.Thread(
-            target=self.listen_child_messages, args=(executor_side, task_submission.id)
+            target=self.listen_child_messages,
+            args=(executor_side, task_submission.id),
         )
         thread.start()
         self.listen_threads[task_submission.id] = thread
@@ -72,10 +73,10 @@ class TaskWorkerPoolManager:
     def stop(self):
         logger.info("Stopping TaskWorkerPoolManager")
         # join all pending futures
-        concurrent.futures.wait([future for future, _, _ in self.futures.values()])
+        concurrent.futures.wait([future for future, _ in self.futures.values()])
         logger.info("All worker futures finished")
         # close all worker connections
-        for _, child_in, child_out in self.futures.values():
+        for _, child_out in self.futures.values():
             child_out.close()
         logger.info("All worker connections closed")
         for thread in self.listen_threads.values():
@@ -85,12 +86,24 @@ class TaskWorkerPoolManager:
         logger.info("TaskWorkerPoolManager stopped")
 
     def listen_child_messages(self, conn: Connection, task_id: uuid.UUID):
+        message = None
         try:
             with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
                 task = crud_task.get_task_by_id(db_session, task_id)
                 self.ui_subscription_manager.notify_new_task(task)
 
             while True:
+                message_avail = conn.poll(0.5)
+                if not message_avail:
+                    if not task_id in self.futures:
+                        logger.info("Task %s no longer in futures", task_id)
+                        break
+                    if not self.futures[task_id][0].running():
+                        logger.error(
+                            "Task %s future is not running, no message available, but future is not popped",
+                            task_id,
+                        )
+                    continue
                 message = conn.recv()
                 if not isinstance(message, models_task.RunnerToControllerTaskUpdate):
                     logger.error("Received invalid message from worker: %s", message)
@@ -157,10 +170,11 @@ class TaskWorkerPoolManager:
         with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
             task = crud_task.get_task_by_id(db_session, message.id)
             self.ui_subscription_manager.notify_task_update(task)
+        conn.close()
 
     def finish_task(self, future: Future):
         task_id = self.future_to_id[future]
-        future, child_in, child_out = self.futures.pop(task_id)
+        future, child_out = self.futures.pop(task_id)
         # join listen thread
         logger.info("Task %s worker finished, joining listen thread", task_id)
         self.listen_threads[task_id].join()
