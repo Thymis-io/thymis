@@ -49,7 +49,7 @@ class TaskController:
             start_time=datetime.now(),
             state="pending",
             task_type=task.type,
-            task_submission_data=task.model_dump(),
+            task_submission_data=task.model_dump(mode="json"),
             parent_task_id=(
                 task.parent_task_id if hasattr(task, "parent_task_id") else None
             ),
@@ -62,12 +62,13 @@ class TaskController:
             for device in task.devices:
                 submission_data = DeployDeviceTaskSubmission(
                     device=device,
+                    project_path=task.project_path,
                     known_hosts_path=task.known_hosts_path,
                     ssh_key_path=task.ssh_key_path,
                     parent_task_id=task_db.id,
                 )
                 subtask = self.submit(submission_data, db_session)
-                children_uids.append(subtask.id)
+                children_uids.append(str(subtask.id))
             task_db.children = children_uids
             db_session.commit()
 

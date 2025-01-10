@@ -1,4 +1,5 @@
 import base64
+import os
 import pathlib
 import subprocess
 import threading
@@ -84,6 +85,40 @@ def build_project_task(task: models_task.TaskSubmission, conn: Connection):
         report_task_finished(task, conn, False, "Build failed")
 
 
+def deploy_device_task(task: models_task.TaskSubmission, conn: Connection):
+    task_data = task.data
+    assert task_data.type == "deploy_device_task"
+    project_path = pathlib.Path(task_data.project_path).resolve()
+
+    returncode = run_command(
+        task,
+        conn,
+        [
+            "nixos-rebuild",
+            "switch",
+            "--flake",
+            f"{project_path}#{task_data.device.identifier}",
+            "--target-host",
+            f"{task_data.device.username}@{task_data.device.host}",
+        ],
+        {
+            "NIX_SSHOPTS": f"-i {task_data.ssh_key_path} -p {task_data.device.port} -o UserKnownHostsFile={task_data.known_hosts_path} -o StrictHostKeyChecking=yes -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ConnectTimeout=10",
+            "PATH": os.getenv("PATH"),
+        },
+        cwd=project_path,
+    )
+
+    if returncode == 0:
+        report_task_finished(task, conn)
+    else:
+        report_task_finished(task, conn, False, "Deploy failed")
+
+
+def deploy_devices_task(task: models_task.TaskSubmission, conn: Connection):
+    task_data = task.data
+    assert task_data.type == "deploy_devices_task"
+
+
 def test_task(task: models_task.TaskSubmission, conn: Connection):
     print("Running test task")
     run_command(
@@ -108,6 +143,8 @@ def test_task(task: models_task.TaskSubmission, conn: Connection):
 SUPPORTED_TASK_TYPES = {
     "project_flake_update_task": project_flake_update_task,
     "build_project_task": build_project_task,
+    "deploy_devices_task": deploy_devices_task,
+    "deploy_device_task": deploy_device_task,
     "test_task": test_task,
 }
 
