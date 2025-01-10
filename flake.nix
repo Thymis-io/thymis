@@ -117,7 +117,7 @@
           default = pkgs.mkShell {
             packages = [
               pkgs.poetry
-              pkgs.python312
+              pkgs.python313
               pkgs.nodejs_22
               pkgs.pre-commit
               pkgs.playwright-driver.browsers

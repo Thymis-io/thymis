@@ -4,7 +4,7 @@
 , nix
 , writeShellApplication
 , thymis-frontend
-, python312
+, python313
 ,
 }:
 let
@@ -13,11 +13,11 @@ let
     projectDir = ./.;
     preferWheels = true;
     overrides = poetry2nix.overrides.withDefaults (self: super: {
-      fastapi-cli = python312.pkgs.fastapi-cli;
-      bcrypt = python312.pkgs.bcrypt;
+      fastapi-cli = python313.pkgs.fastapi-cli;
+      bcrypt = python313.pkgs.bcrypt;
     });
     checkGroups = [ "test" ];
-    python = python312;
+    python = python313;
   }).dependencyEnv;
 in
 writeShellApplication {
