@@ -5,7 +5,7 @@ from datetime import datetime
 import sqlalchemy
 from fastapi import WebSocket
 from sqlalchemy.orm import Session
-from thymis_controller import crud, models
+from thymis_controller import crud, db_models, models
 from thymis_controller.crud.task import create as task_create
 from thymis_controller.crud.task import get_tasks_short
 from thymis_controller.models.task import (
@@ -55,7 +55,7 @@ class TaskController:
             ),
         )
 
-        self.executor.submit(TaskSubmission(id=task_db.id, data=task))
+        subtasks: list[db_models.Task] = []
 
         if task.type == "deploy_devices_task":
             children_uids = []
@@ -67,10 +67,25 @@ class TaskController:
                     ssh_key_path=task.ssh_key_path,
                     parent_task_id=task_db.id,
                 )
-                subtask = self.submit(submission_data, db_session)
+                subtask = task_create(
+                    db_session,
+                    start_time=datetime.now(),
+                    state="pending",
+                    task_type="deploy_device_task",
+                    task_submission_data=submission_data.model_dump(mode="json"),
+                    parent_task_id=task_db.id,
+                )
                 children_uids.append(str(subtask.id))
+                subtasks.append(subtask)
             task_db.children = children_uids
             db_session.commit()
+
+        self.executor.submit(TaskSubmission(id=task_db.id, data=task))
+
+        for subtask in subtasks:
+            self.executor.submit(
+                TaskSubmission(id=subtask.id, data=subtask.task_submission_data)
+            )
 
         return task_db
 
