@@ -120,33 +120,11 @@ def deploy_devices_task(task: models_task.TaskSubmission, conn: Connection):
     assert task_data.type == "deploy_devices_task"
 
 
-def test_task(task: models_task.TaskSubmission, conn: Connection):
-    print("Running test task")
-    run_command(
-        task,
-        conn,
-        ["echo", "Hello, world!"],
-    )
-    for i in range(10):
-        run_command(
-            task,
-            conn,
-            ["sleep", "1"],
-        )
-        run_command(
-            task,
-            conn,
-            ["echo", "Hello, world!", str(i)],
-        )
-    report_task_finished(task, conn)
-
-
 SUPPORTED_TASK_TYPES = {
     "project_flake_update_task": project_flake_update_task,
     "build_project_task": build_project_task,
     "deploy_devices_task": deploy_devices_task,
     "deploy_device_task": deploy_device_task,
-    "test_task": test_task,
 }
 
 
