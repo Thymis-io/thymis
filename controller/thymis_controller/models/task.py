@@ -96,7 +96,6 @@ TaskSubmissionData = Union[
     "BuildProjectTaskSubmission",
     "BuildDeviceImageTaskSubmission",
     "SSHCommandTaskSubmission",
-    "TestTaskSubmission",
 ]
 
 
@@ -148,10 +147,6 @@ class SSHCommandTaskSubmission(BaseModel):
     command: str
     ssh_key_path: str
     ssh_known_hosts_path: str
-
-
-class TestTaskSubmission(BaseModel):
-    type: Literal["test_task"] = "test_task"
 
 
 # sent from task runner to controller
@@ -215,7 +210,6 @@ __all__ = [
     "BuildProjectTaskSubmission",
     "BuildDeviceImageTaskSubmission",
     "SSHCommandTaskSubmission",
-    "TestTaskSubmission",
     "RunnerToControllerTaskUpdate",
     "TaskUpdate",
     "TaskPickedUpdate",
