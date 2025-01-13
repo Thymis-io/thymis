@@ -162,7 +162,6 @@
 		"status": "Status",
 		"actions": "Actions",
 		"cancel": "Cancel",
-		"run-immediately": "Run Immediately",
 		"retry": "Retry",
 		"details": "View",
 		"task-types": {
