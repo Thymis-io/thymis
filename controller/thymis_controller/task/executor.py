@@ -167,10 +167,41 @@ class TaskWorkerPoolManager:
                     self.ui_subscription_manager.notify_task_update(task)
         except EOFError:
             logger.info("Worker connection closed")
-        with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
-            task = crud_task.get_task_by_id(db_session, message.id)
-            self.ui_subscription_manager.notify_task_update(task)
+        except OSError as e:
+            logger.info("Worker connection closed: %s", e)
+        if message:
+            with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
+                task = crud_task.get_task_by_id(db_session, message.id)
+                self.ui_subscription_manager.notify_task_update(task)
         conn.close()
+
+    def update_composite_task(self, task_id: uuid.UUID):
+        with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
+            task = crud_task.get_task_by_id(db_session, task_id)
+
+            if not task.children:
+                return
+
+            child_states = crud_task.child_task_states(
+                db_session, [uuid.UUID(child) for child in task.children]
+            )
+
+            if "failed" in child_states and task.state != "failed":
+                task.state = "failed"
+                db_session.commit()
+                self.ui_subscription_manager.notify_task_update(task)
+
+            if "pending" in child_states or "running" in child_states:
+                return
+
+            if set(["completed"]) == child_states:
+                task.state = "completed"
+
+            if not task.end_time:
+                task.end_time = datetime.now()
+
+            db_session.commit()
+            self.ui_subscription_manager.notify_task_update(task)
 
     def finish_task(self, future: Future):
         task_id = self.future_to_id[future]
@@ -182,12 +213,38 @@ class TaskWorkerPoolManager:
         # if task is still running in the database, mark it as failed due to worker finishing before signalling success
         with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
             task = crud_task.get_task_by_id(db_session, task_id)
-            if task.state == "running" or task.state == "pending":
+
+            if task.children:
+                self.update_composite_task(task_id)
+            elif task.state == "running" or task.state == "pending":
                 task.state = "failed"
                 task.exception = "Worker finished before signalling success"
                 db_session.commit()
                 self.ui_subscription_manager.notify_task_update(task)
                 logger.info("Task %s marked as failed", task_id)
+
+            if task.parent_task_id:
+                self.update_composite_task(task.parent_task_id)
+
+                if task.state == "failed":
+                    parent_task = crud_task.get_task_by_id(
+                        db_session, task.parent_task_id
+                    )
+
+                    if not parent_task.exception:
+                        parent_task.exception = "Child Task failed"
+
+                    # TODO: Remove direct writing to stderr and show child progress in UI
+                    if parent_task.process_stderr is None:
+                        parent_task.process_stderr = b""
+
+                    parent_task.process_stderr += (
+                        f"Child Task {task_id} failed\n".encode("utf-8")
+                    )
+
+                    db_session.commit()
+                    self.ui_subscription_manager.notify_task_update(parent_task)
+
         logger.info("Task %s finished", task_id)
 
     def subscribe_ui(self, ui_subscription_manager: "TaskUISubscriptionManager"):
