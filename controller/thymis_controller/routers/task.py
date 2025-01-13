@@ -48,8 +48,10 @@ async def cancel_task(task_controller: TaskControllerAD, task_id: uuid.UUID):
 
 
 @router.post("/tasks/{task_id}/retry")
-async def retry_task(task_id: uuid.UUID):
-    await global_task_controller.retry_task(task_id)
+async def retry_task(
+    task_controller: TaskControllerAD, db_session: SessionAD, task_id: uuid.UUID
+):
+    task_controller.retry_task(task_id, db_session)
     return {"message": "Task retried"}
 
 
