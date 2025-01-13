@@ -80,3 +80,8 @@ def fail_running_tasks(db_session):
         task.exception = "Task was running when controller was shut down"
     db_session.commit()
     return len(running_tasks)
+
+
+def child_task_states(db_session, tasks: list[uuid.UUID]) -> set[str]:
+    tasks = db_session.query(db_models.Task).filter(db_models.Task.id.in_(tasks)).all()
+    return set(task.state for task in tasks)

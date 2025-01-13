@@ -14,6 +14,7 @@ from thymis_controller.nix.log_parse import NixParser
 def worker_run_task(task: models_task.TaskSubmission, conn: Connection):
     if task.data.type not in SUPPORTED_TASK_TYPES:
         reject_task(f"Task type {task.data.type} not supported", task, conn)
+        conn.close()
         return
     pick_task(task, conn)
     try:
