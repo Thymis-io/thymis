@@ -47,3 +47,9 @@ class Task(Base):
     nix_warning_logs = Column(JSON, nullable=True)
     nix_notice_logs = Column(JSON, nullable=True)
     nix_info_logs = Column(JSON, nullable=True)
+
+    def add_exception(self, exception: str):
+        if self.exception is None:
+            self.exception = exception
+        else:
+            self.exception += "\n" + exception

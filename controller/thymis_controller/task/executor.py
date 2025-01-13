@@ -85,6 +85,15 @@ class TaskWorkerPoolManager:
         self.pool.shutdown(wait=True)
         logger.info("TaskWorkerPoolManager stopped")
 
+    def cancel_task(self, task_id: uuid.UUID):
+        with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
+            task = crud_task.get_task_by_id(db_session, task_id)
+            task.add_exception("Task was cancelled")
+            db_session.commit()
+            self.ui_subscription_manager.notify_task_update(task)
+        if task_id in self.futures:
+            self.futures[task_id][1].send(models_task.CancelTask(id=task_id))
+
     def listen_child_messages(self, conn: Connection, task_id: uuid.UUID):
         message = None
         try:
@@ -120,7 +129,7 @@ class TaskWorkerPoolManager:
                             db_session.commit()
                         case models_task.TaskRejectedUpdate(reason=reason):
                             task.state = "failed"
-                            task.exception = f"Task rejected: {reason}"
+                            task.add_exception(f"Task rejected: {reason}")
                             task.end_time = datetime.now()
                             db_session.commit()
                         case models_task.TaskStdOutErrUpdate(
@@ -155,7 +164,7 @@ class TaskWorkerPoolManager:
                             break
                         case models_task.TaskFailedUpdate(reason=reason):
                             task.state = "failed"
-                            task.exception = reason
+                            task.add_exception(reason)
                             task.end_time = datetime.now()
                             db_session.commit()
                             conn.close()
@@ -218,7 +227,7 @@ class TaskWorkerPoolManager:
                 self.update_composite_task(task_id)
             elif task.state == "running" or task.state == "pending":
                 task.state = "failed"
-                task.exception = "Worker finished before signalling success"
+                task.add_exception("Worker finished before signalling success")
                 db_session.commit()
                 self.ui_subscription_manager.notify_task_update(task)
                 logger.info("Task %s marked as failed", task_id)
@@ -231,8 +240,7 @@ class TaskWorkerPoolManager:
                         db_session, task.parent_task_id
                     )
 
-                    if not parent_task.exception:
-                        parent_task.exception = "Child Task failed"
+                    parent_task.add_exception(f"Child Task {task_id} failed")
 
                     # TODO: Remove direct writing to stderr and show child progress in UI
                     if parent_task.process_stderr is None:
