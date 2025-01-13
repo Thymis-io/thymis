@@ -11,17 +11,65 @@ import thymis_controller.models.task as models_task
 from thymis_controller.nix.log_parse import NixParser
 
 
+class ProcessList:
+    def __init__(self):
+        self.processes: list[subprocess.Popen[bytes]] = []
+        self.terminated = False
+        self._lock = threading.Lock()
+
+    def add(self, process: subprocess.Popen[bytes]):
+        with self._lock:
+            self.processes.append(process)
+        if self.terminated:
+            process.terminate()
+
+    def terminate_all(self):
+        self.terminated = True
+        with self._lock:
+            for process in self.processes:
+                if process.poll() is None:
+                    process.terminate()
+
+    def kill_all(self):
+        with self._lock:
+            for process in self.processes:
+                if process.poll() is None:
+                    process.kill()
+
+
+def listen_for_executor(conn: Connection, process_list: ProcessList):
+    while not conn.closed:
+        try:
+            message = conn.recv()
+            if isinstance(message, models_task.CancelTask):
+                process_list.terminate_all()
+                time.sleep(1)
+                process_list.kill_all()
+        except EOFError:
+            break
+        except OSError:
+            break
+
+
 def worker_run_task(task: models_task.TaskSubmission, conn: Connection):
+    process_list = ProcessList()
+    executor_thread = threading.Thread(
+        target=listen_for_executor, args=(conn, process_list)
+    )
+    executor_thread.start()
+
     if task.data.type not in SUPPORTED_TASK_TYPES:
         reject_task(f"Task type {task.data.type} not supported", task, conn)
         conn.close()
         return
     pick_task(task, conn)
     try:
-        SUPPORTED_TASK_TYPES[task.data.type](task, conn)
+        SUPPORTED_TASK_TYPES[task.data.type](task, conn, process_list)
     except Exception as e:
         report_task_finished(task, conn, False, f"Exception: {e}")
+
     conn.close()
+    executor_thread.join()
 
 
 def pick_task(task: models_task.TaskSubmission, conn: Connection):
@@ -42,7 +90,9 @@ def reject_task(reason: str, task: models_task.TaskSubmission, conn: Connection)
     )
 
 
-def project_flake_update_task(task: models_task.TaskSubmission, conn: Connection):
+def project_flake_update_task(
+    task: models_task.TaskSubmission, conn: Connection, process_list: ProcessList
+):
     task_data = task.data
     assert task_data.type == "project_flake_update_task"
     project_path = pathlib.Path(task_data.project_path).resolve()
@@ -51,6 +101,7 @@ def project_flake_update_task(task: models_task.TaskSubmission, conn: Connection
     returncode = run_command(
         task,
         conn,
+        process_list,
         ["nix", "flake", "update"],
         cwd=project_path,
     )
@@ -60,7 +111,9 @@ def project_flake_update_task(task: models_task.TaskSubmission, conn: Connection
         report_task_finished(task, conn, False, "Flake update failed")
 
 
-def build_project_task(task: models_task.TaskSubmission, conn: Connection):
+def build_project_task(
+    task: models_task.TaskSubmission, conn: Connection, process_list: ProcessList
+):
     task_data = task.data
     assert task_data.type == "build_project_task"
     project_path = pathlib.Path(task_data.project_path).resolve()
@@ -69,6 +122,7 @@ def build_project_task(task: models_task.TaskSubmission, conn: Connection):
     returncode = run_command(
         task,
         conn,
+        process_list,
         [
             "nix",
             "build",
@@ -86,7 +140,9 @@ def build_project_task(task: models_task.TaskSubmission, conn: Connection):
         report_task_finished(task, conn, False, "Build failed")
 
 
-def deploy_device_task(task: models_task.TaskSubmission, conn: Connection):
+def deploy_device_task(
+    task: models_task.TaskSubmission, conn: Connection, process_list: ProcessList
+):
     task_data = task.data
     assert task_data.type == "deploy_device_task"
     project_path = pathlib.Path(task_data.project_path).resolve()
@@ -94,6 +150,7 @@ def deploy_device_task(task: models_task.TaskSubmission, conn: Connection):
     returncode = run_command(
         task,
         conn,
+        process_list,
         [
             "nixos-rebuild",
             "switch",
@@ -115,7 +172,9 @@ def deploy_device_task(task: models_task.TaskSubmission, conn: Connection):
         report_task_finished(task, conn, False, "Deploy failed")
 
 
-def deploy_devices_task(task: models_task.TaskSubmission, conn: Connection):
+def deploy_devices_task(
+    task: models_task.TaskSubmission, conn: Connection, process_list: ProcessList
+):
     task_data = task.data
     assert task_data.type == "deploy_devices_task"
 
@@ -131,11 +190,15 @@ SUPPORTED_TASK_TYPES = {
 def run_command(
     task: models_task.TaskSubmission,
     conn: Connection,
+    process_list: ProcessList,
     args: List[str],
     env: dict = None,
     cwd: str = None,
     input: AnyStr = None,
 ):
+    if process_list.terminated:
+        return -1
+
     proc = subprocess.Popen(
         args,
         env=env,
@@ -144,6 +207,8 @@ def run_command(
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
+
+    process_list.add(proc)
 
     buffer_lock = threading.Lock()
     stdout_buffer = bytearray()

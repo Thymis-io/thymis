@@ -42,8 +42,8 @@ async def get_task(
 
 
 @router.post("/tasks/{task_id}/cancel")
-async def cancel_task(task_id: uuid.UUID):
-    await global_task_controller.cancel_task(task_id)
+async def cancel_task(task_controller: TaskControllerAD, task_id: uuid.UUID):
+    task_controller.cancel_task(task_id)
     return {"message": "Task cancelled"}
 
 

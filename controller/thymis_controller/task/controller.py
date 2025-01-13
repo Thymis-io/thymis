@@ -94,3 +94,6 @@ class TaskController:
             crud.task.get_task_by_id(db_session, task_id),
             from_attributes=True,
         )
+
+    def cancel_task(self, task_id: str):
+        self.executor.cancel_task(task_id)

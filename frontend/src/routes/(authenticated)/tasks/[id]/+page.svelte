@@ -38,7 +38,8 @@
 	{/if}
 
 	{#if task.exception}
-		<p>Exception: {task.exception}</p>
+		<p>Exception:</p>
+		<MonospaceText code={task.exception} />
 	{/if}
 
 	<div>

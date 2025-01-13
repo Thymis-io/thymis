@@ -77,7 +77,7 @@ def fail_running_tasks(db_session):
     )
     for task in running_tasks:
         task.state = "failed"
-        task.exception = "Task was running when controller was shut down"
+        task.add_exception("Task was running when controller was shut down")
     db_session.commit()
     return len(running_tasks)
 

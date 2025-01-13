@@ -196,6 +196,10 @@ class TaskFailedUpdate(BaseModel):
     reason: str
 
 
+class CancelTask(BaseModel):
+    id: uuid.UUID
+
+
 __all__ = [
     "TaskState",
     "Task",
@@ -218,4 +222,5 @@ __all__ = [
     "TaskNixStatusUpdate",
     "TaskCompletedUpdate",
     "TaskFailedUpdate",
+    "CancelTask",
 ]
