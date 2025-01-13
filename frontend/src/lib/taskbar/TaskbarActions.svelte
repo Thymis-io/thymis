@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { type TaskShort, cancelTask, retryTask, runImmediately } from '$lib/taskstatus';
+	import { type TaskShort, cancelTask, retryTask } from '$lib/taskstatus';
 	import { page } from '$app/stores';
 	import { Button } from 'flowbite-svelte';
 	export let task: TaskShort;
@@ -13,12 +13,6 @@
 			on:click={() => cancelTask(task.id)}
 		>
 			{$t('taskbar.cancel')}
-		</Button>
-		<Button
-			class="btn btn-sm btn-primary px-4 py-2 whitespace-nowrap"
-			on:click={() => runImmediately(task.id)}
-		>
-			{$t('taskbar.run-immediately')}
 		</Button>
 	{:else if task.state === 'running'}
 		<Button

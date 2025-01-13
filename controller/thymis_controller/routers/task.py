@@ -3,11 +3,8 @@ import uuid
 
 from fastapi import APIRouter, Response, WebSocket
 from thymis_controller.dependencies import SessionAD, TaskControllerAD
-from thymis_controller.task.controller import TaskController
 
 router = APIRouter()
-
-global_task_controller = None
 
 
 @router.websocket("/task_status")
@@ -53,9 +50,3 @@ async def retry_task(
 ):
     task_controller.retry_task(task_id, db_session)
     return {"message": "Task retried"}
-
-
-@router.post("/tasks/{task_id}/run_immediately")
-async def run_immediately(task_id: uuid.UUID):
-    await global_task_controller.run_immediately(task_id)
-    return {"message": "Task run immediately"}

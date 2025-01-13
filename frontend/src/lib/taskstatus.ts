@@ -120,18 +120,6 @@ export const retryTask = async (taskId: string, fetch: typeof window.fetch = win
 	return response;
 };
 
-export const runImmediately = async (taskId: string, fetch: typeof window.fetch = window.fetch) => {
-	const response = await fetchWithNotify(
-		`/api/tasks/${taskId}/run_immediately`,
-		{
-			method: 'POST'
-		},
-		{},
-		fetch
-	);
-	return response;
-};
-
 const startSocket = () => {
 	console.log('starting task_status socket');
 	// get schemed from current location

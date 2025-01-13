@@ -210,7 +210,6 @@
 		"status": "Status",
 		"actions": "Aktionen",
 		"cancel": "Abbrechen",
-		"run-immediately": "Sofort Ausführen",
 		"retry": "Erneut Versuchen",
 		"details": "Anzeigen",
 		"task-types": {
