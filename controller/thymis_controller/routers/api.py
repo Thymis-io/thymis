@@ -1,6 +1,7 @@
 import asyncio
 import os
 import re
+import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket
@@ -9,12 +10,14 @@ from fastapi.responses import FileResponse, RedirectResponse
 from paramiko import PKey, SSHClient
 from thymis_controller import crud, dependencies, models, modules, utils
 from thymis_controller.config import global_settings
+from thymis_controller.db_models.deployment_info import DeploymentInfo
 from thymis_controller.dependencies import (
     ProjectAD,
     SessionAD,
     TaskControllerAD,
     require_valid_user_session,
 )
+from thymis_controller.models import device
 from thymis_controller.models.state import State
 from thymis_controller.routers import task
 from thymis_controller.tcp_to_ws import (
@@ -132,8 +135,13 @@ async def restart_device(
     task_controller: TaskControllerAD,
     project: ProjectAD,
 ):
-    target_host = crud.deployment_info.get_device_host_by_config_id(
-        db_session, identifier
+    device = next(
+        device
+        for device in project.read_state().devices
+        if device.identifier == identifier
+    )
+    target_host = crud.deployment_info.get_first_device_host_by_config_id(
+        db_session, device.identifier
     )
     task_controller.submit(
         models.SSHCommandTaskSubmission(
@@ -215,7 +223,7 @@ async def vnc_websocket(
     state: State = Depends(dependencies.get_state),
 ):
     device = next(device for device in state.devices if device.identifier == identifier)
-    target_host = crud.deployment_info.get_device_host_by_config_id(
+    target_host = crud.deployment_info.get_first_device_host_by_config_id(
         db_session, identifier
     )
 
@@ -227,7 +235,12 @@ async def vnc_websocket(
 
     tcp_ip = target_host
     tcp_port = 5900
-    tcp_reader, tcp_writer = await asyncio.open_connection(tcp_ip, tcp_port)
+    try:
+        tcp_reader, tcp_writer = await asyncio.open_connection(tcp_ip, tcp_port)
+    except Exception as e:
+        await websocket.send_text(str(e))
+        await websocket.close()
+        return
 
     tcp_to_ws_task = asyncio.create_task(tcp_to_websocket(tcp_reader, websocket))
     ws_to_tcp_task = asyncio.create_task(websocket_to_tcp(tcp_writer, websocket))
@@ -239,6 +252,98 @@ async def vnc_websocket(
     finally:
         tcp_to_ws_task.cancel()
         ws_to_tcp_task.cancel()
+
+
+@router.get(
+    "/deployment_infos_by_config_id/{deployed_config_id}",
+    response_model=list[device.DeploymentInfo],
+)
+def get_deployment_infos_by_config_id(db_session: SessionAD, deployed_config_id: str):
+    """
+    Gets the deployment infos for all devices with the given deployed_config_id
+    """
+    return map(
+        lambda x: x.to_dict(),
+        crud.deployment_info.get_by_config_id(db_session, deployed_config_id),
+    )
+
+
+@router.get("/deployment_info/{id}", response_model=models.DeploymentInfo)
+def get_deployment_info(db_session: SessionAD, id: uuid.UUID):
+    """
+    Get a specific deployment_info by id
+    """
+    deployment_info = crud.deployment_info.get_by_id(db_session, id)
+    if not deployment_info:
+        raise HTTPException(status_code=404, detail="Deployment info not found")
+    return deployment_info
+
+
+@router.get("/deployment_info", response_model=list[models.DeploymentInfo])
+def get_all_deployment_infos(db_session: SessionAD):
+    """
+    Get all deployment_infos
+    """
+    return map(lambda x: x.to_dict(), crud.deployment_info.get_all(db_session))
+
+
+@router.patch("/deployment_info/{id}", response_model=models.DeploymentInfo)
+def update_deployment_info(
+    db_session: SessionAD,
+    id: uuid.UUID,
+    deployment_info: models.CreateDeploymentInfoLegacyHostkeyRequest,
+    project: ProjectAD,
+):
+    """
+    Update a deployment_info
+    """
+    deployment_info = crud.deployment_info.update(
+        db_session,
+        id,
+        ssh_public_key=deployment_info.ssh_public_key,
+        deployed_config_id=deployment_info.deployed_config_id,
+        reachable_deployed_host=deployment_info.reachable_deployed_host,
+    )
+    if not deployment_info:
+        raise HTTPException(status_code=404, detail="Deployment info not found")
+    project.update_known_hosts()
+    return deployment_info
+
+
+@router.post("/create_deployment_info", response_model=models.DeploymentInfo)
+def create_deployment_info(
+    db_session: SessionAD,
+    deployment_info: models.CreateDeploymentInfoLegacyHostkeyRequest,
+    project: ProjectAD,
+):
+    """
+    Create a deployment_info
+    """
+    result = crud.deployment_info.create(
+        db_session,
+        ssh_public_key=deployment_info.ssh_public_key,
+        deployed_config_id=deployment_info.deployed_config_id,
+        reachable_deployed_host=deployment_info.reachable_deployed_host,
+    ).to_dict()
+    project.update_known_hosts()
+    return result
+
+
+@router.post("/rename_config_id_legacy")
+def rename_config_id_legacy(
+    db_session: SessionAD,
+    old_config_id: str,
+    new_config_id: str,
+    project: ProjectAD,
+):
+    """
+    Rename a config_id in the database
+    """
+    crud.deployment_info.rename_config_id_for_deployment_without_commit(
+        db_session, old_config_id, new_config_id
+    )
+    project.update_known_hosts()
+    return {"message": "config_id renamed"}
 
 
 HOST_PATTERN = r"^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$"
@@ -267,26 +372,22 @@ def scan_public_key(
         raise HTTPException(status_code=400, detail="No valid public key found")
 
 
-@router.websocket("/terminal/{identifier}")
+@router.websocket("/terminal/{deployment_info_id}")
 async def terminal_websocket(
-    identifier: str,
+    deployment_info_id: uuid.UUID,
     db_session: SessionAD,
     websocket: WebSocket,
     project: ProjectAD,
-    state: State = Depends(dependencies.get_state),
 ):
-    device = next(device for device in state.devices if device.identifier == identifier)
-    target_host = crud.deployment_info.get_device_host_by_config_id(
-        db_session, identifier
-    )
+    deployment_info = crud.deployment_info.get_by_id(db_session, deployment_info_id)
 
-    if device is None or target_host is None:
+    if deployment_info is None or deployment_info.reachable_deployed_host is None:
         await websocket.close()
         return
 
     await websocket.accept()
 
-    tcp_ip = target_host
+    tcp_ip = deployment_info.reachable_deployed_host
     tcp_port = 22
 
     client = SSHClient()

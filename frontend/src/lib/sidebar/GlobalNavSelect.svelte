@@ -6,7 +6,7 @@
 	import ChevronDownOutline from 'flowbite-svelte-icons/ChevronDownOutline.svelte';
 	import { page } from '$app/stores';
 	import {
-		globalNavSelectedDevice,
+		globalNavSelectedConfig,
 		globalNavSelectedTag,
 		globalNavSelectedTargetType,
 		state
@@ -36,13 +36,13 @@
 		>
 			{$globalNavSelectedTag?.displayName}
 		</span>
-	{:else if $globalNavSelectedDevice}
+	{:else if $globalNavSelectedConfig}
 		<HardDrive size={'1rem'} class="min-w-4 text-primary-600 dark:text-primary-400" />
 		<span
 			class="font-semibold text-primary-600 dark:text-primary-400 truncate"
-			title={$globalNavSelectedDevice?.displayName}
+			title={$globalNavSelectedConfig?.displayName}
 		>
-			{$globalNavSelectedDevice?.displayName}
+			{$globalNavSelectedConfig?.displayName}
 		</span>
 	{:else}
 		<span class="font-semibold truncate" title={$t('common.no-tag-or-device-selected')}>
@@ -65,11 +65,11 @@
 			$globalNavSelectedTargetType === 'tag' &&
 			$globalNavSelectedTag?.identifier === tag.identifier}
 		{@const subpage = [
-			'/config',
-			targetShouldShowVNC(tag, $state) ? '/device-vnc' : undefined
+			'/configuration/edit',
+			targetShouldShowVNC(tag, $state) ? '/configuration/vnc' : undefined
 		].includes($page.url.pathname)
 			? $page.url.pathname
-			: '/config'}
+			: '/configuration/edit'}
 		{#if isSearched(search, tag.displayName)}
 			<DropdownItem
 				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.identifier)}`}
@@ -83,19 +83,19 @@
 	{/each}
 	{#each $state.devices as device}
 		{@const active =
-			$globalNavSelectedTargetType === 'device' &&
-			$globalNavSelectedDevice?.identifier === device.identifier}
+			$globalNavSelectedTargetType === 'config' &&
+			$globalNavSelectedConfig?.identifier === device.identifier}
 		{@const subpage = [
-			'/device-details',
-			'/config',
-			targetShouldShowVNC(device, $state) ? '/device-vnc' : undefined,
-			'/terminal'
+			'/configuration/configuration-details',
+			'/configuration/edit',
+			targetShouldShowVNC(device, $state) ? '/configuration/vnc' : undefined,
+			'/configuration/terminal'
 		].includes($page.url.pathname)
 			? $page.url.pathname
-			: '/device-details'}
+			: '/configuration/configuration-details'}
 		{#if isSearched(search, device.displayName)}
 			<DropdownItem
-				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'device', device.identifier)}`}
+				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'config', device.identifier)}`}
 				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-600 dark:text-primary-400' : ''}`}
 				on:click={() => (open = false)}
 			>

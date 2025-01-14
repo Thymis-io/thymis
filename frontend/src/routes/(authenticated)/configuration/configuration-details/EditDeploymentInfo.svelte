@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Button, Helper, Input, Label, Modal, Spinner, Tooltip } from 'flowbite-svelte';
-	import type { Hostkey } from '$lib/hostkey';
+	import type { DeploymentInfo } from '$lib/deploymentInfo';
 	import type { Device } from '$lib/state';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
+	import { invalidate } from '$app/navigation';
 
 	export let open = false;
 
-	export let hostkey: Hostkey | undefined;
+	export let deploymentInfo: DeploymentInfo | undefined;
 	export let device: Device;
 	let deviceHost: string = '';
 	let publicKey: string = '';
@@ -30,32 +31,55 @@
 
 	const submitData = async () => {
 		if (!device) return;
-		const response = await fetchWithNotify(`/api/hostkey/${device.identifier}`, {
-			method: 'PUT',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				device_host: deviceHost,
-				public_key: publicKey
-			})
-		});
-		if (response.ok) {
-			hostkey = await response.json();
-			open = false;
+		if (deploymentInfo) {
+			const response = await fetchWithNotify(`/api/deployment_info/${deploymentInfo.id}`, {
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					id: deploymentInfo.id,
+					reachable_deployed_host: deviceHost,
+					ssh_public_key: publicKey,
+					deployed_config_id: device.identifier
+				})
+			});
+		} else {
+			const response = await fetchWithNotify(`/api/create_deployment_info`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					deployed_config_id: device.identifier,
+					reachable_deployed_host: deviceHost,
+					ssh_public_key: publicKey
+				})
+			});
+			if (response.ok) {
+				deploymentInfo = await response.json();
+			}
 		}
+		await invalidate((url: URL) => url.pathname.search('deployment_info') !== -1);
+		open = false;
 	};
 
 	const scanPublicKey = async () => {
 		scanningPublicKeyError = '';
 		isScanningPublicKey = true;
 
-		const response = await fetchWithNotify(`/api/scan-public-key?host=${deviceHost}`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
+		const response = await fetchWithNotify(
+			`/api/scan-public-key?host=${deviceHost}`,
+			{
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			},
+			{},
+			fetch,
+			[200, 400]
+		);
 
 		isScanningPublicKey = false;
 
@@ -64,7 +88,10 @@
 			publicKey = data;
 		} else {
 			const data = await response.json();
-			scanningPublicKeyError = data.detail;
+			if (response.status === 400 && 'detail' in data) {
+				scanningPublicKeyError = data.detail;
+				return;
+			}
 			console.error('Unrecognized Error. Failed to scan public key');
 		}
 	};
@@ -76,8 +103,8 @@
 	outsideclose
 	size="lg"
 	on:open={() => {
-		deviceHost = hostkey ? hostkey.device_host : '';
-		publicKey = hostkey ? hostkey.public_key : '';
+		deviceHost = deploymentInfo?.reachable_deployed_host ?? '';
+		publicKey = deploymentInfo?.ssh_public_key ?? '';
 	}}
 	on:open={() => {
 		setTimeout(() => {
@@ -127,7 +154,7 @@
 				disabled={!!(hostValidation(deviceHost) || publicKey.length === 0)}
 				on:click={submitData}
 			>
-				{hostkey ? $t('edit-hostkey.update') : $t('edit-hostkey.create')}
+				{deploymentInfo ? $t('edit-hostkey.update') : $t('edit-hostkey.create')}
 			</Button>
 		</div>
 	</form>

@@ -8,6 +8,7 @@
 	import type { FitAddon as FitAddonType } from '@xterm/addon-fit';
 	import type { WebglAddon as WebglAddonType } from '@xterm/addon-webgl';
 	import { browser } from '$app/environment';
+	import type { DeploymentInfo } from '$lib/deploymentInfo';
 
 	let Terminal: typeof TerminalType;
 	let AttachAddon: typeof AttachAddonType;
@@ -22,7 +23,7 @@
 		terminal.open(divElement);
 	});
 
-	export let device: Device | undefined;
+	export let deploymentInfo: DeploymentInfo;
 
 	let terminal: TerminalType;
 	let divElement: HTMLDivElement;
@@ -33,9 +34,9 @@
 		letterSpacing: 0
 	};
 
-	const initTerminal = async (device: Device, terminal: TerminalType) => {
+	const initTerminal = async (deployment_info: DeploymentInfo, terminal: TerminalType) => {
 		const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
-		const url = `${scheme}://${window.location.host}/api/terminal/${device.identifier}`;
+		const url = `${scheme}://${window.location.host}/api/terminal/${deployment_info.id}`;
 		ws = new WebSocket(url);
 
 		const fitAddon = new FitAddon();
@@ -54,7 +55,7 @@
 		const webglAddon = new WebglAddon();
 		terminal.loadAddon(webglAddon);
 
-		terminal.writeln(`Connecting to ${device.displayName}...`);
+		terminal.writeln(`Connecting to ${deployment_info.reachable_deployed_host}...`);
 		const attachAddon = new AttachAddon(ws);
 		terminal.loadAddon(attachAddon);
 	};
@@ -71,8 +72,8 @@
 	$: {
 		resetConnection();
 
-		if (browser && device && terminal) {
-			initTerminal(device, terminal);
+		if (browser && deploymentInfo && terminal) {
+			initTerminal(deploymentInfo, terminal);
 		}
 	}
 </script>

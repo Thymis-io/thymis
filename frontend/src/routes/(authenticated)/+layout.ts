@@ -46,7 +46,7 @@ export const load = (async ({ fetch, url, data }) => {
 	);
 
 	if (stateResponse.status === 401) {
-		redirect(307, '/login?redirect=' + encodeURIComponent(url.pathname));
+		redirect(307, '/login?redirect=' + encodeURIComponent(url.pathname + url.search));
 	}
 	const state = (await stateResponse.json()) as State;
 	if (!state) {

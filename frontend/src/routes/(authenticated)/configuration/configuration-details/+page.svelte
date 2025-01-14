@@ -3,7 +3,7 @@
 	import type { PageData } from './$types';
 	import { Badge, Card } from 'flowbite-svelte';
 	import {
-		globalNavSelectedDevice,
+		globalNavSelectedConfig,
 		globalNavSelectedTag,
 		globalNavSelectedTargetType,
 		state
@@ -12,7 +12,7 @@
 	import SectionConfiguration from './SectionConfiguration.svelte';
 	import SectionActions from './SectionActions.svelte';
 	import SectionDanger from './SectionDanger.svelte';
-	import SectionHostkey from './SectionHostkey.svelte';
+	import SectionDeploymentInfo from './SectionDeploymentInfo.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import VncView from '$lib/vnc/VncView.svelte';
 	import Section from './Section.svelte';
@@ -21,23 +21,16 @@
 
 	export let data: PageData;
 
-	$: currentDevice = $globalNavSelectedDevice;
+	$: currentDevice = $globalNavSelectedConfig;
 </script>
 
-{#if $globalNavSelectedTargetType === 'device' && currentDevice}
-	<div class="flex justify-between mb-4">
-		<div class="flex flex-wrap gap-4">
-			<h1 class="text-3xl font-bold dark:text-white">{currentDevice.displayName}</h1>
-			<!-- <Badge large class="p-2 py-0.5 gap-1 self-center">
-				<Circle size={15} color="lightgreen" />
-				<span class="text-nowrap"> Online </span>
-			</Badge> -->
-		</div>
-		<DeployActions />
-	</div>
-	<Tabbar />
+{#if $globalNavSelectedTargetType === 'config' && currentDevice}
 	<div class="grid grid-cols-4 grid-flow-row gap-x-2 gap-y-6">
-		<SectionHostkey class="col-span-3" hostkey={data.hostkey} device={currentDevice} />
+		<SectionDeploymentInfo
+			class="col-span-3"
+			deploymentInfos={data.deploymentInfos}
+			device={currentDevice}
+		/>
 		<SectionActions class="col-span-1" device={currentDevice} />
 		<SectionConfiguration
 			class="col-span-3"
@@ -46,15 +39,22 @@
 		/>
 		<SectionDanger class="col-span-1" device={currentDevice} />
 		{#if targetShouldShowVNC(currentDevice, $state)}
-			<Section class="col-span-2" title={$t('nav.device-vnc')}>
-				<VncView device={currentDevice} />
-			</Section>
+			{#each data.deploymentInfos as deploymentInfo}
+				<Section
+					class="col-span-2"
+					title="{$t('nav.device-vnc')} {deploymentInfo.reachable_deployed_host}"
+				>
+					<VncView device={currentDevice} {deploymentInfo} />
+				</Section>
+			{/each}
 		{/if}
-		<Section class="col-span-2" title={$t('nav.terminal')}>
-			<Card class="w-full max-w-none" padding="sm">
-				<Terminal device={currentDevice} />
-			</Card>
-		</Section>
+		{#each data.deploymentInfos as deploymentInfo}
+			<Section class="col-span-2" title={$t('nav.terminal')}>
+				<Card class="w-full max-w-none" padding="sm">
+					<Terminal {deploymentInfo} />
+				</Card>
+			</Section>
+		{/each}
 	</div>
 {:else if $globalNavSelectedTargetType === 'tag' && $globalNavSelectedTag}
 	<div class="grid grid-cols-3 gap-4">

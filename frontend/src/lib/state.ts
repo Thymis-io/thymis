@@ -117,7 +117,7 @@ export const getTagByIdentifier = (state: State, identifier: string) => {
 };
 
 export const getDeviceByIdentifier = (state: State, identifier: string) => {
-	return state.devices.find((device) => device.identifier === identifier);
+	return state.devices.find((config) => config.identifier === identifier);
 };
 
 export const globalNavSelectedTag = derived(
@@ -129,19 +129,19 @@ export const globalNavSelectedTag = derived(
 	}
 );
 
-export const globalNavSelectedDevice = derived(
+export const globalNavSelectedConfig = derived(
 	[state, queryParam('global-nav-target-type'), queryParam('global-nav-target')],
 	([$state, $context, $identifier]) => {
-		if ($context === 'device') {
+		if ($context === 'config') {
 			return getDeviceByIdentifier($state, $identifier);
 		}
 	}
 );
 
 export const globalNavSelectedTarget = derived(
-	[globalNavSelectedDevice, globalNavSelectedTag],
-	([$globalNavSelectedDevice, $globalNavSelectedTag]) =>
-		$globalNavSelectedDevice || $globalNavSelectedTag
+	[globalNavSelectedConfig, globalNavSelectedTag],
+	([$globalNavSelectedConfig, $globalNavSelectedTag]) =>
+		$globalNavSelectedConfig || $globalNavSelectedTag
 );
 
 export const globalNavSelectedTargetType = queryParam('global-nav-target-type');

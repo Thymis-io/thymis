@@ -8,7 +8,7 @@
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import ListCollapse from 'lucide-svelte/icons/list-collapse';
 	import {
-		globalNavSelectedDevice,
+		globalNavSelectedConfig,
 		globalNavSelectedTag,
 		globalNavSelectedTarget,
 		state
@@ -31,32 +31,32 @@
 		{
 			name: $t(`nav.device-details`),
 			icon: ListCollapse,
-			href: '/device-details',
-			hidden: !$globalNavSelectedDevice
+			href: '/configuration/configuration-details',
+			hidden: !$globalNavSelectedConfig
 		},
 		{
 			name: $t(`nav.config-device`),
 			icon: SlidersSolid,
-			href: '/config',
-			hidden: !$globalNavSelectedDevice
+			href: '/configuration/edit',
+			hidden: !$globalNavSelectedConfig
 		},
 		{
 			name: $t(`nav.config-tag`),
 			icon: SlidersSolid,
-			href: '/config',
+			href: '/configuration/edit',
 			hidden: !$globalNavSelectedTag
 		},
 		{
 			name: $t('nav.device-vnc'),
 			icon: ScreenShare,
-			href: '/device-vnc',
+			href: '/configuration/vnc',
 			hidden: !selectedTargetHasAnyVNCModule
 		},
 		{
 			name: $t('nav.terminal'),
 			icon: TerminalSolid,
-			href: '/terminal',
-			hidden: !$globalNavSelectedDevice
+			href: '/configuration/terminal',
+			hidden: !$globalNavSelectedConfig
 		}
 	];
 </script>

@@ -81,7 +81,7 @@ class Frontend:
                 },
             )
 
-        elif is_running_in_playwright() and is_in_local_devshell():
+        elif not frontend_binary_path():
             frontend_path = (
                 pathlib.Path(__file__).parent.parent.parent.parent / "frontend"
             )
@@ -139,13 +139,23 @@ class Frontend:
                             self.started.set()
                             break
                     else:
-                        # wait for fastify
                         if re.search(
                             r"Listening on http(s)?://\d+\.\d+\.\d+\.\d+:\d+",
                             line.decode("utf-8"),
                         ):
                             self.started.set()
                             break
+                        elif re.search(
+                            r"WebSocket server error: Port already in use",
+                            line.decode("utf-8"),
+                        ):
+                            logger.error("frontend process: Port already in use")
+                            return_code = await self.process.wait()
+                            self.stopped = True
+                            self.started.set()
+                            logger.error(
+                                "frontend process terminated with code %s", return_code
+                            )
             return await read_stream(stream)
 
         # start threads
@@ -154,14 +164,15 @@ class Frontend:
 
         await self.started.wait()
 
+        if self.stopped:
+            raise Exception("frontend process stopped unexpectedly")
+
     async def raise_if_terminated(self):
         return_code = await self.process.wait()
+        self.stopped = True
         self.started.set()
-        if not self.stopped:
-            self.stopped = True
-            logger.error("frontend process terminated with code %s", return_code)
-            await asyncio.sleep(0.1)
-            # os.kill(os.getpid(), signal.SIGINT)
+        logger.error("frontend process terminated with code %s", return_code)
+        await asyncio.sleep(0.1)
 
     async def stop(self):
         if self.stopped:
@@ -213,6 +224,10 @@ async def _reverse_proxy(request: fastapi.Request):
         )
     except starlette.requests.ClientDisconnect as e:
         logger.debug("Client disconnected: %s", e)
+    except httpx.RemoteProtocolError as e:
+        logger.error("Frontend request failed: %s", e)
+    except httpx.ConnectError as e:
+        logger.error("Failed to connect to frontend: %s", e)
     except Exception as e:
         logger.error("Failed to proxy request: %s", e)
         raise e
