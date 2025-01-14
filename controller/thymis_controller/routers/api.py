@@ -303,7 +303,7 @@ def update_deployment_info(
     )
     if not deployment_info:
         raise HTTPException(status_code=404, detail="Deployment info not found")
-    project.update_known_hosts()
+    project.update_known_hosts(db_session)
     return deployment_info
 
 
@@ -322,7 +322,7 @@ def create_deployment_info(
         deployed_config_id=deployment_info.deployed_config_id,
         reachable_deployed_host=deployment_info.reachable_deployed_host,
     ).to_dict()
-    project.update_known_hosts()
+    project.update_known_hosts(db_session)
     return result
 
 
@@ -339,7 +339,7 @@ def rename_config_id_legacy(
     crud.deployment_info.rename_config_id_for_deployment_without_commit(
         db_session, old_config_id, new_config_id
     )
-    project.update_known_hosts()
+    project.update_known_hosts(db_session)
     return {"message": "config_id renamed"}
 
 
