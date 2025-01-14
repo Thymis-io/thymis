@@ -215,25 +215,22 @@ async def update(
     return {"message": "update started"}
 
 
-@router.websocket("/vnc/{identifier}")
+@router.websocket("/vnc/{deployment_info_id}")
 async def vnc_websocket(
-    identifier: str,
+    deployment_info_id: uuid.UUID,
     db_session: SessionAD,
     websocket: WebSocket,
     state: State = Depends(dependencies.get_state),
 ):
-    device = next(device for device in state.devices if device.identifier == identifier)
-    target_host = crud.deployment_info.get_first_device_host_by_config_id(
-        db_session, identifier
-    )
+    deployment_info = crud.deployment_info.get_by_id(db_session, deployment_info_id)
 
-    if device is None or target_host is None:
+    if device is None or deployment_info.reachable_deployed_host is None:
         await websocket.close()
         return
 
     await websocket.accept()
 
-    tcp_ip = target_host
+    tcp_ip = deployment_info.reachable_deployed_host
     tcp_port = 5900
     try:
         tcp_reader, tcp_writer = await asyncio.open_connection(tcp_ip, tcp_port)
