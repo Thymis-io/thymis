@@ -27,8 +27,8 @@ class TaskController:
 
     @contextlib.asynccontextmanager
     async def start(self, db_engine: sqlalchemy.Engine):
-        await self.executor.start(db_engine)
         await self.ui_subscription_manager.start()
+        await self.executor.start(db_engine)
         yield self
         self.executor.stop()
         self.ui_subscription_manager.stop()
