@@ -71,3 +71,19 @@ def device_notify(
 
     # check if device is registered in hardware_device table
     crud.hardware_device.create_or_update(db_session, hardware_id, deployment_info.id)
+
+
+@router.post("/register")
+def device_register(request: Request):
+    logger.warning(f"{request.client.host} calls deprecated /agent/register endpoint")
+    raise HTTPException(
+        status_code=404, detail="The /agent/register endpoint is deprecated"
+    )
+
+
+@router.post("/heartbeat")
+def device_heartbeat(request: Request):
+    logger.warning(f"{request.client.host} calls deprecated /agent/heartbeat endpoint")
+    raise HTTPException(
+        status_code=404, detail="The /agent/heartbeat endpoint is deprecated"
+    )
