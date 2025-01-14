@@ -3,11 +3,10 @@ import os
 import pathlib
 import sched
 import socket
-from typing import Dict
+from typing import Dict, Tuple
 
 import psutil
 import requests
-from git import Tuple
 
 logger = logging.getLogger(__name__)
 
