@@ -130,8 +130,6 @@ def build_project_task(
             ".#thymis",
             "--out-link",
             "/tmp/thymis",
-            "--log-format",
-            "internal-json",
         ],
         cwd=project_path,
     )
@@ -198,8 +196,6 @@ def build_device_image_task(
             f'.#nixosConfigurations."{task_data.device_identifier}".config.system.build.thymis-image',
             "--out-link",
             f"/tmp/thymis-devices.{task_data.device_identifier}",
-            "--log-format",
-            "internal-json",
         ],
         cwd=project_path,
     )

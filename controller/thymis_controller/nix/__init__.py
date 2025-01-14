@@ -302,4 +302,6 @@ NIX_CMD = [
     "--option",
     "extra-trusted-public-keys",
     "cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=",
+    "--log-format",
+    "internal-json",
 ]
