@@ -40,12 +40,10 @@
 		"actions": {
 			"edit": "Module Bearbeiten",
 			"download": "Ersetzungs Image Herunterladen",
-			"download-image-for-clone": "Clone Image Herunterladen",
 			"restart": "Neustarten",
 			"delete": "Löschen",
 			"view-details": "Details anzeigen",
-			"download-image-for-clone-tooltip": "Lade ein neues Geräte-Image herunter, um einen Klon des aktuellen Geräts zu erstellen.\nDadurch wird ein neues Gerät mit der gleichen Konfiguration erstellt und registriert",
-			"download-image-tooltip": "Lade ein neues Geräte-Image herunter, um das aktuelle Gerät zu ersetzen",
+			"download-image-tooltip": "Lade das Geräte-Image herunter",
 			"restart-tooltip": "Starte das Gerät neu"
 		},
 		"status": {
@@ -217,6 +215,7 @@
 			"build_project": "Projekt Bauen",
 			"deploy_devices": "Geräte Ausrollen",
 			"deploy_device": "Gerät Ausrollen: {device}",
+			"build_device_image": "Geräte-Image Bauen: {device}",
 			"ssh_command": "SSH Befehl Ausführen"
 		}
 	},

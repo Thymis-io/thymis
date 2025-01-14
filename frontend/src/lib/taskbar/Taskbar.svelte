@@ -22,14 +22,20 @@
 		project_flake_update_task: () => $t('taskbar.task-types.project_flake_update'),
 		build_project_task: () => $t('taskbar.task-types.build_project'),
 		deploy_devices_task: () => $t('taskbar.task-types.deploy_devices'),
-		deploy_device_task: ({ device }) =>
-			$t('taskbar.task-types.deploy_device', { values: { device: device.identifier } }),
+		deploy_device_task: ({ task_submission_data }) =>
+			$t('taskbar.task-types.deploy_device', {
+				values: { device: task_submission_data.device.identifier }
+			}),
+		build_device_image_task: ({ task_submission_data }) =>
+			$t('taskbar.task-types.build_device_image', {
+				values: { device: task_submission_data.device_identifier }
+			}),
 		ssh_command_task: () => $t('taskbar.task-types.ssh_command')
 	} as Record<string, (args: any) => string>;
 
 	const taskName = (task: TaskShort) => {
 		if (task.task_type in localizeTaskType) {
-			return localizeTaskType[task.task_type]({ device: task.task_submission_data?.device });
+			return localizeTaskType[task.task_type](task);
 		}
 		return task.task_type;
 	};

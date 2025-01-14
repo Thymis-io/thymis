@@ -11,7 +11,6 @@ import tempfile
 import threading
 import traceback
 from pathlib import Path
-from typing import List
 
 import git
 import sqlalchemy
@@ -299,43 +298,8 @@ class Project:
         self.repo.index.commit(f"Revert to {sha1}: {commit_to_revert.message}")
         logger.info(f"Reverted commit: {commit_to_revert}")
 
-    def clone_state_device(
-        self, device_identifier, new_device_identifier, new_device_display_name=None
-    ):
-        state = self.read_state()
-        device = next(
-            device for device in state.devices if device.identifier == device_identifier
-        )
-        new_device = device.model_copy()
-        new_device.identifier = new_device_identifier
-        if new_device_display_name:
-            new_device.displayName = new_device_display_name(device.displayName)
-        state.devices.append(new_device)
-        self.write_state_and_reload(state)
-
     def get_remotes(self):
         return [history.Remote(name=r.name, url=r.url) for r in self.repo.remotes]
-
-    def create_deploy_device_task(self, device_identifier: str, target_host: str):
-        device = next(
-            device
-            for device in self.read_state().devices
-            if device.identifier == device_identifier
-        )
-        return task.global_task_controller.add_task(
-            task.DeployDeviceTask(
-                self.path,
-                device,
-                global_settings.SSH_KEY_PATH,
-                self.known_hosts_path,
-                target_host,
-            )
-        )
-
-    def create_deploy_project_task(self, devices: List[models.Hostkey]):
-        return task.global_task_controller.add_task(
-            task.DeployProjectTask(self, devices, global_settings.SSH_KEY_PATH)
-        )
 
     def create_update_task(
         self, task_controller: "task.TaskController", db_session: sqlalchemy.orm.Session
@@ -345,30 +309,4 @@ class Project:
                 project_path=str(self.path),
             ),
             db_session,
-        )
-
-    def create_build_device_image_task(
-        self, device_identifier: str, db_session: sqlalchemy.orm.Session
-    ):
-        self.commit(f"Build image for {device_identifier}")
-        device_state = next(
-            device
-            for device in self.read_state().devices
-            if device.identifier == device_identifier
-        )
-        return task.global_task_controller.add_task(
-            task.BuildDeviceImageTask(
-                self.path,
-                device_identifier,
-                db_session,
-                device_state.model_dump(),
-                self.repo.head.object.hexsha,
-            )
-        )
-
-    def create_restart_device_task(self, device: models.Device, target_host: str):
-        return task.global_task_controller.add_task(
-            task.RestartDeviceTask(
-                device, global_settings.SSH_KEY_PATH, self.known_hosts_path, target_host
-            )
         )

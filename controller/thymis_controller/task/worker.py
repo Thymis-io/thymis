@@ -179,6 +179,35 @@ def deploy_devices_task(
     assert task_data.type == "deploy_devices_task"
 
 
+def build_device_image_task(
+    task: models_task.TaskSubmission, conn: Connection, process_list: ProcessList
+):
+    task_data = task.data
+    assert task_data.type == "build_device_image_task"
+    project_path = pathlib.Path(task_data.project_path).resolve()
+
+    returncode = run_command(
+        task,
+        conn,
+        process_list,
+        [
+            "nix",
+            "build",
+            f'.#nixosConfigurations."{task_data.device_identifier}".config.system.build.thymis-image',
+            "--out-link",
+            f"/tmp/thymis-devices.{task_data.device_identifier}",
+            "--log-format",
+            "internal-json",
+        ],
+        cwd=project_path,
+    )
+
+    if returncode == 0:
+        report_task_finished(task, conn)
+    else:
+        report_task_finished(task, conn, False, "Build failed")
+
+
 def ssh_command_task(
     task: models_task.TaskSubmission, conn: Connection, process_list: ProcessList
 ):
@@ -212,6 +241,7 @@ SUPPORTED_TASK_TYPES = {
     "build_project_task": build_project_task,
     "deploy_devices_task": deploy_devices_task,
     "deploy_device_task": deploy_device_task,
+    "build_device_image_task": build_device_image_task,
     "ssh_command_task": ssh_command_task,
 }
 

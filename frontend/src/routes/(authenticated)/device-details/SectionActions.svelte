@@ -21,18 +21,6 @@
 		});
 	};
 
-	const buildAndDownloadImageForClone = async (device: Device) => {
-		const response = await fetchWithNotify(
-			`/api/action/build-download-image-for-clone?identifier=${device.identifier}`,
-			{
-				method: 'POST'
-			}
-		);
-		if (response.ok) {
-			// TODO update state
-		}
-	};
-
 	let className = '';
 	export { className as class };
 </script>
@@ -47,15 +35,6 @@
 		{$t('devices.actions.download')}
 	</Button>
 	<Tooltip class="whitespace-pre">{$t('devices.actions.download-image-tooltip')}</Tooltip>
-	<Button
-		class="px-2 py-1.5 gap-2 flex justify-start"
-		color="alternative"
-		on:click={() => buildAndDownloadImageForClone(device)}
-	>
-		<Download size={'1rem'} class="min-w-4" />
-		{$t('devices.actions.download-image-for-clone')}
-	</Button>
-	<Tooltip class="whitespace-pre">{$t('devices.actions.download-image-for-clone-tooltip')}</Tooltip>
 	<Button
 		class="px-2 py-1.5 gap-2 justify-start"
 		color="alternative"
