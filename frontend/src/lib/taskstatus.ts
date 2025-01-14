@@ -58,6 +58,7 @@ export type TaskShort = {
 	end_time?: string;
 	exception?: string;
 	data: Record<string, unknown>;
+	task_submission_data: Record<string, unknown>;
 
 	nix_status?: {
 		done: number;

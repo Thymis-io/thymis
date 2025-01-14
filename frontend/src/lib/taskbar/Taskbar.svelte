@@ -19,8 +19,19 @@
 	];
 
 	const localizeTaskType = {
-		build_project_task: $t('taskbar.task-types.build_project'),
-		project_flake_update_task: $t('taskbar.task-types.project_flake_update')
+		project_flake_update_task: () => $t('taskbar.task-types.project_flake_update'),
+		build_project_task: () => $t('taskbar.task-types.build_project'),
+		deploy_devices_task: () => $t('taskbar.task-types.deploy_devices'),
+		deploy_device_task: ({ device }) =>
+			$t('taskbar.task-types.deploy_device', { values: { device: device.identifier } }),
+		ssh_command_task: () => $t('taskbar.task-types.ssh_command')
+	} as Record<string, (args: any) => string>;
+
+	const taskName = (task: TaskShort) => {
+		if (task.task_type in localizeTaskType) {
+			return localizeTaskType[task.task_type]({ device: task.task_submission_data?.device });
+		}
+		return task.task_type;
 	};
 </script>
 
@@ -47,7 +58,7 @@
 					<RenderUnixTimestamp timestamp={task.end_time} />
 				</td>
 				<td class="border border-gray-300 dark:border-gray-700">
-					{task.task_type in localizeTaskType ? localizeTaskType[task.task_type] : task.task_type}
+					{taskName(task)}
 				</td>
 				<td class="border border-gray-300 dark:border-gray-700">
 					<TaskbarStatus {task} />

@@ -165,8 +165,11 @@
 		"retry": "Retry",
 		"details": "View",
 		"task-types": {
+			"project_flake_update": "Update Nix Flake",
 			"build_project": "Build Project",
-			"project_flake_update": "Update Nix Flake"
+			"deploy_devices": "Deploy Devices",
+			"deploy_device": "Deploy Device {device}",
+			"ssh_command": "Run SSH Command"
 		}
 	},
 	"config": {

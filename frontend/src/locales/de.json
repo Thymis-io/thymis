@@ -213,8 +213,11 @@
 		"retry": "Erneut Versuchen",
 		"details": "Anzeigen",
 		"task-types": {
+			"project_flake_update": "Nix Flake Updaten",
 			"build_project": "Projekt Bauen",
-			"project_flake_update": "Nix Flake Updaten"
+			"deploy_devices": "Geräte Ausrollen",
+			"deploy_device": "Gerät Ausrollen: {device}",
+			"ssh_command": "SSH Befehl Ausführen"
 		}
 	},
 	"tags": {

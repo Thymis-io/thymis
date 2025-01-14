@@ -179,11 +179,40 @@ def deploy_devices_task(
     assert task_data.type == "deploy_devices_task"
 
 
+def ssh_command_task(
+    task: models_task.TaskSubmission, conn: Connection, process_list: ProcessList
+):
+    task_data = task.data
+    assert task_data.type == "ssh_command_task"
+
+    returncode = run_command(
+        task,
+        conn,
+        process_list,
+        [
+            "ssh",
+            f"-o UserKnownHostsFile={task_data.ssh_known_hosts_path}",
+            "-o StrictHostKeyChecking=yes",
+            "-o ConnectTimeout=10",
+            f"-i {task_data.ssh_key_path}",
+            f"-p {task_data.target_port}",
+            f"{task_data.target_user}@{task_data.target_host}",
+            task_data.command,
+        ],
+    )
+
+    if returncode == 0:
+        report_task_finished(task, conn)
+    else:
+        report_task_finished(task, conn, False, "SSH command failed")
+
+
 SUPPORTED_TASK_TYPES = {
     "project_flake_update_task": project_flake_update_task,
     "build_project_task": build_project_task,
     "deploy_devices_task": deploy_devices_task,
     "deploy_device_task": deploy_device_task,
+    "ssh_command_task": ssh_command_task,
 }
 
 

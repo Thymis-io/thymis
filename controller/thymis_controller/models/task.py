@@ -143,7 +143,9 @@ class BuildDeviceImageTaskSubmission(BaseModel):
 
 class SSHCommandTaskSubmission(BaseModel):
     type: Literal["ssh_command_task"] = "ssh_command_task"
+    target_user: str
     target_host: str
+    target_port: int
     command: str
     ssh_key_path: str
     ssh_known_hosts_path: str
