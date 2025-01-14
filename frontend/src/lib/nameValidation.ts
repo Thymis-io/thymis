@@ -22,7 +22,7 @@ export const nameValidation = (displayName: string, targetType: string): string 
 
 	const identifier = nameToIdentifier(displayName);
 
-	if (targetType === 'device') {
+	if (targetType === 'config') {
 		if (get(state).devices.find((device) => device.displayName === displayName)) {
 			return get(t)('create-device.device-with-display-name-name-exists', {
 				values: { displayName }

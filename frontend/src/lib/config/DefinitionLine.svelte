@@ -11,7 +11,7 @@
 <div class="flex flex gap-2">
 	{#if origin.originContext === 'tag'}
 		<TagIcon class="w-5 h-5" />
-	{:else if origin.originContext === 'device'}
+	{:else if origin.originContext === 'config'}
 		<HardDrive class="w-5 h-5" />
 	{/if}
 	<P size="sm">{origin.originName}:</P>

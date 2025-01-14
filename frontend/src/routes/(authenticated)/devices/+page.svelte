@@ -19,7 +19,7 @@
 	import GripVertical from 'lucide-svelte/icons/grip-vertical';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import CreateDeviceModal from './CreateDeviceModal.svelte';
-	import EditTagModal from './EditTagModal.svelte';
+	import EditTagModal from '$lib/EditTagModal.svelte';
 	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
 	import type { PageData } from './$types';
 	import { dndzone, SOURCES, TRIGGERS, type DndEvent } from 'svelte-dnd-action';
@@ -84,24 +84,26 @@
 			const success = await saveState();
 
 			if (success) {
-				const oldHostkeyRequest = await fetchWithNotify(
-					`/api/hostkey/${oldIdentifier}`,
-					undefined,
-					{ 404: null }
-				);
+				const renameRequest = await fetchWithNotify(`/api/rename_config_id_legacy`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({
+						old_config_id: oldIdentifier,
+						new_config_id: identifier
+					})
+				});
 
-				if (oldHostkeyRequest.ok) {
-					const oldHostkey = await oldHostkeyRequest.json();
-					await fetchWithNotify(`/api/hostkey/${identifier}`, {
-						method: 'PUT',
-						headers: {
-							'Content-Type': 'application/json'
-						},
-						body: JSON.stringify(oldHostkey)
-					});
-					await fetchWithNotify(`/api/hostkey/${oldIdentifier}`, { method: 'DELETE' });
+				if (renameRequest.ok) {
+					return true;
 				}
-				return true;
+
+				device.displayName = device.displayName;
+				device.identifier = oldIdentifier;
+				await saveState();
+
+				return false;
 			}
 		}
 
@@ -193,9 +195,9 @@
 					}}
 				>
 					<svelte:fragment slot="bottom" let:value={newDisplayName}>
-						{#if nameValidation(newDisplayName, 'device')}
+						{#if nameValidation(newDisplayName, 'config')}
 							{#if newDisplayName !== device.data.displayName}
-								<Helper color="red">{nameValidation(newDisplayName, 'device')}</Helper>
+								<Helper color="red">{nameValidation(newDisplayName, 'config')}</Helper>
 							{/if}
 						{:else}
 							<Helper color="green">
@@ -214,7 +216,7 @@
 								<Button
 									size="sm"
 									class="p-2 py-0.5 gap-1"
-									href={`/config?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
+									href={`/configuration/configuration-details?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
 								>
 									<TagIcon size={'0.75rem'} class="min-w-3" />
 									<span class="text-nowrap">
@@ -233,9 +235,9 @@
 						<Button
 							class="px-3 py-1.5 gap-2"
 							color="alternative"
-							href={`/device-details?${buildGlobalNavSearchParam(
+							href={`/configuration/configuration-details?${buildGlobalNavSearchParam(
 								$page.url.search,
-								'device',
+								'config',
 								device.data.identifier
 							)}`}
 						>

@@ -10,7 +10,7 @@
 	import { Button } from 'flowbite-svelte';
 	import Pen from 'lucide-svelte/icons/pen';
 	import TagIcon from 'lucide-svelte/icons/tag';
-	import EditTagModal from '../devices/EditTagModal.svelte';
+	import EditTagModal from '$lib/EditTagModal.svelte';
 
 	export let device: Device;
 	export let availableModules: Module[];
@@ -37,11 +37,11 @@
 	<div class="flex gap-2 items-center flex-wrap">
 		{#each getOwnModules(device, availableModules) as module}
 			<a
-				href={`/config?${buildConfigSelectModuleSearchParam(
+				href={`/configuration/configuration-details?${buildConfigSelectModuleSearchParam(
 					$page.url.search,
-					'device',
+					'config',
 					device.identifier,
-					'device',
+					'config',
 					device.identifier,
 					module
 				)}`}
@@ -62,7 +62,7 @@
 					pill
 					size="sm"
 					class="p-2 py-1 gap-2"
-					href={`/config?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
+					href={`/configuration/configuration-details?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
 				>
 					<TagIcon size="16" />
 					<span class="text-nowrap">

@@ -6,10 +6,11 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { deviceVNCPassword, targetShouldShowVNC } from '$lib/vnc/vnc';
 	import { page } from '$app/stores';
-	import { getHostkey } from '$lib/hostkey';
+	import { getDeploymentInfoByConfigId } from '$lib/deploymentInfo';
 	import { browser } from '$app/environment';
 
 	export let device: Device;
+	export let deploymentInfo: DeploymentInfo;
 	let deviceHost: string;
 	let rfb: any;
 	let connected = false;
@@ -17,17 +18,17 @@
 
 	let controlDevice = false;
 
-	$: hasVNC = device && targetShouldShowVNC(device, $state);
+	$: hasVNC = deploymentInfo && device && targetShouldShowVNC(device, $state);
 
-	const initVNC = async (device: Device) => {
+	const initVNC = async (deploymentInfo: DeploymentInfo) => {
 		// @ts-ignore
 		let RFB = await import('@novnc/novnc/lib/rfb.js');
 
 		const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
-		const url = `${scheme}://${window.location.host}/api/vnc/${device.identifier}`;
+		const url = `${scheme}://${window.location.host}/api/vnc/${deploymentInfo.id}`;
 
 		const password = deviceVNCPassword(device, $state, $page.data.availableModules as Module[]);
-		const canvas = document.getElementById(`vnc-canvas-${device.identifier}`);
+		const canvas = document.getElementById(`vnc-canvas-${deploymentInfo.id}`);
 
 		if (rfb) {
 			rfb.disconnect();
@@ -66,20 +67,12 @@
 			rfb = null;
 		}
 	});
-
-	$: {
-		if (browser) {
-			getHostkey(fetch, device.identifier).then((hostkey) => {
-				deviceHost = hostkey.device_host;
-			});
-		}
-	}
 </script>
 
 {#if hasVNC}
 	<Card class="w-full max-w-none" padding="sm">
 		<div class="flex flex-wrap justify-between h-12 content-start gap-2">
-			<pre class="text-base">vncviewer {deviceHost}:5900</pre>
+			<pre class="text-base">vncviewer {deploymentInfo?.reachable_deployed_host}:5900</pre>
 			<div class="flex items-center gap-2">
 				<P>{$t('vnc.control-device')}</P>
 				<Toggle
@@ -90,7 +83,7 @@
 				/>
 			</div>
 		</div>
-		<div id={`vnc-canvas-${device.identifier}`} class="relative w-full aspect-video mt-4">
+		<div id={`vnc-canvas-${deploymentInfo.id}`} class="relative w-full aspect-video mt-4">
 			{#if connectionFailed}
 				<p
 					class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-red-500"

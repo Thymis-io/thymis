@@ -28,7 +28,6 @@ def upgrade():
         sa.Column("deployed_config_id", sa.String(), nullable=True),
         sa.Column("reachable_deployed_host", sa.String(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("ssh_public_key"),
     )
     op.create_index(
         op.f("ix_deployment_info_id"), "deployment_info", ["id"], unique=False

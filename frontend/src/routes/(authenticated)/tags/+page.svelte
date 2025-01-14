@@ -209,7 +209,7 @@
 						size="sm"
 						color="alternative"
 						class="p-3 py-1.5 gap-2"
-						href={`/config?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.data.identifier)}`}
+						href={`/configuration/configuration-details?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.data.identifier)}`}
 					>
 						<Pen size={18} />
 						{$t('tags.actions.edit')}

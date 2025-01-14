@@ -18,7 +18,7 @@
 		globalNavSelectedTarget,
 		state,
 		globalNavSelectedTag,
-		globalNavSelectedDevice
+		globalNavSelectedConfig
 	} from '$lib/state';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import type { PageData } from './$types';
@@ -49,7 +49,7 @@
 		([$contextType, $contextIdentifier, s]) => {
 			if ($contextType === 'tag') {
 				return getTagByIdentifier(s, $contextIdentifier);
-			} else if ($contextType === 'device') {
+			} else if ($contextType === 'config') {
 				return getDeviceByIdentifier(s, $contextIdentifier);
 			}
 		}
@@ -58,7 +58,7 @@
 	const getOrigin = (target: Tag | Device): Origin => {
 		return {
 			originId: target.identifier,
-			originContext: 'tags' in target ? 'device' : 'tag',
+			originContext: 'tags' in target ? 'config' : 'tag',
 			originName: target.displayName
 		};
 	};
@@ -145,30 +145,6 @@
 	};
 </script>
 
-<div class="flex justify-between mb-4">
-	<!-- <h1 class="text-xl sm:text-3xl font-bold dark:text-white">
-		{#if $globalNavSelectedTag}
-			{$t('config.header.tag-module', {
-				values: {
-					module: $configSelectedModule?.displayName,
-					tag: $globalNavSelectedTag.displayName
-				}
-			})}
-		{:else if $globalNavSelectedDevice}
-			{$t('config.header.device-module', {
-				values: {
-					module: $configSelectedModule?.displayName,
-					device: $globalNavSelectedDevice.displayName
-				}
-			})}
-		{:else}
-			{$t('config.header.module', { values: { module: $configSelectedModule?.displayName } })}
-		{/if}
-	</h1> -->
-	<h1 class="text-3xl font-bold dark:text-white">{$globalNavSelectedTarget?.displayName}</h1>
-	<DeployActions />
-</div>
-<Tabbar />
 <div class="grid grid-flow-row grid-cols-1 md:grid-cols-[250px_auto] gap-4">
 	<Card class="max-w-none" padding={'sm'}>
 		<ModuleList
@@ -184,12 +160,12 @@
 			<slot slot="icon">
 				{#if $globalNavSelectedTag}
 					<TagIcon size="20" />
-				{:else if $globalNavSelectedDevice}
+				{:else if $globalNavSelectedConfig}
 					<HardDrive size="20" />
 				{/if}
 			</slot>
 		</ModuleList>
-		{#each $globalNavSelectedDevice?.tags ?? [] as tagIdentifier}
+		{#each $globalNavSelectedConfig?.tags ?? [] as tagIdentifier}
 			{@const usedTag = getTagByIdentifier($state, tagIdentifier)}
 			<div class="mt-6">
 				<ModuleList
@@ -214,7 +190,7 @@
 			otherSettings={getOtherSettings($globalNavSelectedTarget, $configSelectedModule)}
 			setSetting={(module, key, value) =>
 				setSetting($configSelectedModuleContext, module, key, value)}
-			showRouting={$globalNavSelectedTargetType === 'device'}
+			showRouting={$globalNavSelectedTargetType === 'config'}
 			canEdit={$globalNavSelectedTarget === $configSelectedModuleContext}
 		/>
 	{/if}

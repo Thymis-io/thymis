@@ -67,7 +67,7 @@
 	</div>
 	{#if $globalNavSelectedTarget?.identifier !== context?.identifier}
 		<ToolbarButton
-			href="/config?{buildConfigSelectModuleSearchParam(
+			href="/configuration/configuration-details?{buildConfigSelectModuleSearchParam(
 				$page.url.search,
 				contextType,
 				context?.identifier,
@@ -99,7 +99,7 @@
 				}`}
 			>
 				<a
-					href="/config?{buildConfigSelectModuleSearchParam(
+					href="/configuration/configuration-details?{buildConfigSelectModuleSearchParam(
 						$page.url.search,
 						$globalNavSelectedTargetType,
 						$globalNavSelectedTarget?.identifier,
@@ -117,7 +117,7 @@
 					/>
 					<P>{module.displayName}</P>
 				</a>
-				{#if removeModule && ($globalNavSelectedTargetType !== 'device' || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}
+				{#if removeModule && ($globalNavSelectedTargetType !== 'config' || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}
 					<button
 						class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
 						on:click={() => (moduleToRemove = module)}

@@ -1,3 +1,5 @@
+import uuid
+
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
 
@@ -5,8 +7,8 @@ from thymis_controller import db_models
 def create(
     session: Session,
     ssh_public_key: str,
-    deployed_config_commit: str,
-    deployed_config_id: str,
+    deployed_config_commit: str | None = None,
+    deployed_config_id: str | None = None,
     reachable_deployed_host: str | None = None,
 ) -> db_models.DeploymentInfo:
     new_deployment_info = db_models.DeploymentInfo(
@@ -19,6 +21,32 @@ def create(
     session.commit()
     session.refresh(new_deployment_info)
     return new_deployment_info
+
+
+def update(
+    session: Session,
+    id: uuid.UUID,
+    ssh_public_key: str,
+    deployed_config_commit: str | None = None,
+    deployed_config_id: str | None = None,
+    reachable_deployed_host: str | None = None,
+) -> db_models.DeploymentInfo:
+    deployment_info = (
+        session.query(db_models.DeploymentInfo)
+        .filter(db_models.DeploymentInfo.id == id)
+        .first()
+    )
+    if ssh_public_key is not None:
+        deployment_info.ssh_public_key = ssh_public_key
+    if deployed_config_commit is not None:
+        deployment_info.deployed_config_commit = deployed_config_commit
+    if deployed_config_id is not None:
+        deployment_info.deployed_config_id = deployed_config_id
+    if reachable_deployed_host is not None:
+        deployment_info.reachable_deployed_host = reachable_deployed_host
+    session.commit()
+    session.refresh(deployment_info)
+    return deployment_info
 
 
 def get_by_id(session: Session, id: str) -> db_models.DeploymentInfo | None:
@@ -42,7 +70,7 @@ def get_all(session: Session):
     return session.query(db_models.DeploymentInfo).all()
 
 
-def get_device_host_by_config_id(session: Session, config_id: str) -> str | None:
+def get_first_device_host_by_config_id(session: Session, config_id: str) -> str | None:
     di = (
         session.query(db_models.DeploymentInfo)
         .filter(db_models.DeploymentInfo.deployed_config_id == config_id)
@@ -51,7 +79,7 @@ def get_device_host_by_config_id(session: Session, config_id: str) -> str | None
     return di.reachable_deployed_host if di else None
 
 
-def get_by_config_id(
+def get_first_by_config_id(
     session: Session, config_id: str
 ) -> db_models.DeploymentInfo | None:
     return (
@@ -59,3 +87,25 @@ def get_by_config_id(
         .filter(db_models.DeploymentInfo.deployed_config_id == config_id)
         .first()
     )
+
+
+def get_by_config_id(
+    session: Session, config_id: str
+) -> db_models.DeploymentInfo | None:
+    return (
+        session.query(db_models.DeploymentInfo)
+        .filter(db_models.DeploymentInfo.deployed_config_id == config_id)
+        .all()
+    )
+
+
+def rename_config_id_for_deployment_without_commit(
+    session: Session, old_config_id: str, new_config_id: str
+) -> None:
+    # we only execute this rename for deployment_infos where commit is None
+    # this is because we don't want to rename the config_id for deployments that have a commit
+    session.query(db_models.DeploymentInfo).filter(
+        db_models.DeploymentInfo.deployed_config_id == old_config_id,
+        db_models.DeploymentInfo.deployed_config_commit == None,
+    ).update({db_models.DeploymentInfo.deployed_config_id: new_config_id})
+    session.commit()
