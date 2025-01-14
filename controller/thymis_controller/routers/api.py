@@ -132,14 +132,23 @@ async def device_and_build_download_image_for_clone(
 async def restart_device(
     identifier: str,
     db_session: SessionAD,
+    task_controller: TaskControllerAD,
     project: ProjectAD,
-    state: State = Depends(dependencies.get_state),
 ):
-    device = next(device for device in state.devices if device.identifier == identifier)
     target_host = crud.deployment_info.get_device_host_by_config_id(
         db_session, identifier
     )
-    await project.create_restart_device_task(device, target_host)
+    task_controller.submit(
+        models.SSHCommandTaskSubmission(
+            target_host=target_host,
+            target_user="root",
+            target_port=22,
+            command="reboot",
+            ssh_key_path=str(global_settings.SSH_KEY_PATH),
+            ssh_known_hosts_path=str(project.known_hosts_path),
+        ),
+        db_session=db_session,
+    )
 
 
 @router.get("/download-image")
