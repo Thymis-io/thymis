@@ -37,7 +37,7 @@
 	<div class="flex gap-2 items-center flex-wrap">
 		{#each getOwnModules(device, availableModules) as module}
 			<a
-				href={`/configuration/configuration-details?${buildConfigSelectModuleSearchParam(
+				href={`/configuration/edit?${buildConfigSelectModuleSearchParam(
 					$page.url.search,
 					'config',
 					device.identifier,
@@ -62,7 +62,7 @@
 					pill
 					size="sm"
 					class="p-2 py-1 gap-2"
-					href={`/configuration/configuration-details?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
+					href={`/configuration/edit?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
 				>
 					<TagIcon size="16" />
 					<span class="text-nowrap">
