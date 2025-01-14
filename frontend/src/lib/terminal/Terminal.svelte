@@ -2,14 +2,29 @@
 	import '@xterm/xterm/css/xterm.css';
 	import { type Device } from '$lib/state';
 	import { onDestroy, onMount } from 'svelte';
-	import { Terminal, type ITerminalInitOnlyOptions, type ITerminalOptions } from '@xterm/xterm';
-	import { AttachAddon } from '@xterm/addon-attach';
-	import { FitAddon } from '@xterm/addon-fit';
-	import { WebglAddon } from '@xterm/addon-webgl';
+	import type { ITerminalInitOnlyOptions, ITerminalOptions } from '@xterm/xterm';
+	import type { Terminal as TerminalType } from '@xterm/xterm';
+	import type { AttachAddon as AttachAddonType } from '@xterm/addon-attach';
+	import type { FitAddon as FitAddonType } from '@xterm/addon-fit';
+	import type { WebglAddon as WebglAddonType } from '@xterm/addon-webgl';
+	import { browser } from '$app/environment';
+
+	let Terminal: typeof TerminalType;
+	let AttachAddon: typeof AttachAddonType;
+	let FitAddon: typeof FitAddonType;
+	let WebglAddon: typeof WebglAddonType;
+	onMount(async () => {
+		Terminal = (await import('@xterm/xterm')).Terminal;
+		AttachAddon = (await import('@xterm/addon-attach')).AttachAddon;
+		FitAddon = (await import('@xterm/addon-fit')).FitAddon;
+		WebglAddon = (await import('@xterm/addon-webgl')).WebglAddon;
+		terminal = new Terminal(options);
+		terminal.open(divElement);
+	});
 
 	export let device: Device | undefined;
 
-	let terminal: Terminal;
+	let terminal: TerminalType;
 	let divElement: HTMLDivElement;
 	let ws: WebSocket;
 
@@ -18,12 +33,7 @@
 		letterSpacing: 0
 	};
 
-	onMount(() => {
-		terminal = new Terminal(options);
-		terminal.open(divElement);
-	});
-
-	const initTerminal = async (device: Device, terminal: Terminal) => {
+	const initTerminal = async (device: Device, terminal: TerminalType) => {
 		const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 		const url = `${scheme}://${window.location.host}/api/terminal/${device.identifier}`;
 		ws = new WebSocket(url);
@@ -35,7 +45,9 @@
 		const observer = new ResizeObserver(() => {
 			fitAddon?.fit();
 			const dims = fitAddon.proposeDimensions();
-			ws.send(`\x04${JSON.stringify(dims)}`);
+			if (ws.readyState === ws.OPEN) {
+				ws.send(`\x04${JSON.stringify(dims)}`);
+			}
 		});
 		if (terminal.element) observer.observe(terminal.element);
 
@@ -59,7 +71,7 @@
 	$: {
 		resetConnection();
 
-		if (device && terminal) {
+		if (browser && device && terminal) {
 			initTerminal(device, terminal);
 		}
 	}
