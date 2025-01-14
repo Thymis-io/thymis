@@ -8,7 +8,7 @@
 	export let page: number;
 	export let onChange: (page: number) => void;
 
-	$: pageCount = Math.ceil(totalCount / pageSize);
+	$: pageCount = Math.max(Math.ceil(totalCount / pageSize), 1);
 	$: visiblePagesCount = limit * 2 + 1;
 	$: visiblePagesStart = Math.max(Math.min(page - limit - 1, pageCount - visiblePagesCount), 0);
 	$: visiblePages = Array.from({ length: pageCount }, (_, i) => i).slice(
