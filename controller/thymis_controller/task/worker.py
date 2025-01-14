@@ -8,6 +8,7 @@ from multiprocessing.connection import Connection
 from typing import IO, AnyStr, List
 
 import thymis_controller.models.task as models_task
+from thymis_controller.nix import NIX_CMD
 from thymis_controller.nix.log_parse import NixParser
 
 
@@ -102,7 +103,7 @@ def project_flake_update_task(
         task,
         conn,
         process_list,
-        ["nix", "flake", "update"],
+        [*NIX_CMD, "flake", "update"],
         cwd=project_path,
     )
     if returncode == 0:
@@ -124,7 +125,7 @@ def build_project_task(
         conn,
         process_list,
         [
-            "nix",
+            *NIX_CMD,
             "build",
             ".#thymis",
             "--out-link",
@@ -153,6 +154,7 @@ def deploy_device_task(
         process_list,
         [
             "nixos-rebuild",
+            *NIX_CMD[1:],
             "switch",
             "--flake",
             f"{project_path}#{task_data.device.identifier}",
@@ -191,7 +193,7 @@ def build_device_image_task(
         conn,
         process_list,
         [
-            "nix",
+            *NIX_CMD,
             "build",
             f'.#nixosConfigurations."{task_data.device_identifier}".config.system.build.thymis-image',
             "--out-link",
