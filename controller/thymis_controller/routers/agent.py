@@ -72,6 +72,8 @@ def device_notify(
     # check if device is registered in hardware_device table
     crud.hardware_device.create_or_update(db_session, hardware_id, deployment_info.id)
 
+    project.update_known_hosts(db_session)
+
 
 @router.post("/register")
 def device_register(request: Request):
