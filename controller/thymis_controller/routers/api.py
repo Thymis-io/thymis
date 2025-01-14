@@ -103,29 +103,26 @@ async def deploy(
 async def build_download_image(
     identifier: str,
     db_session: SessionAD,
+    task_controller: TaskControllerAD,
     project: ProjectAD,
 ):
-    await project.create_build_device_image_task(identifier, db_session)
+    project.commit(f"Build image for {identifier}")
 
-
-@router.post("/action/build-download-image-for-clone")
-async def device_and_build_download_image_for_clone(
-    identifier: str,
-    db_session: SessionAD,
-    project: ProjectAD,
-):
-    state = project.read_state()
-    x = 1
-    device_name = lambda x: f"{identifier}-{x}"
-    check_name = lambda x: any(
-        device.identifier == device_name(x) for device in state.devices
+    device = next(
+        device
+        for device in project.read_state().devices
+        if device.identifier == identifier
     )
-    while check_name(x):
-        x += 1
 
-    new_identifier = device_name(x)
-    project.clone_state_device(identifier, new_identifier, lambda n: f"{n}-{x}")
-    await project.create_build_device_image_task(new_identifier, db_session)
+    task_controller.submit(
+        models.BuildDeviceImageTaskSubmission(
+            project_path=str(project.path),
+            device_identifier=identifier,
+            device_state=device.model_dump(mode="json"),
+            commit=project.repo.head.object.hexsha,
+        ),
+        db_session=db_session,
+    )
 
 
 @router.post("/action/restart-device")

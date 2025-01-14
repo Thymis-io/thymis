@@ -57,7 +57,6 @@ export type TaskShort = {
 	start_time: string;
 	end_time?: string;
 	exception?: string;
-	data: Record<string, unknown>;
 	task_submission_data: Record<string, unknown>;
 
 	nix_status?: {
@@ -149,29 +148,23 @@ taskStatus.subscribe((tasks) => {
 	// tasks have a uuid now at .id
 	// tasks.forEach((task) => {
 	Object.values(tasks).forEach((task) => {
-		if (task.task_type !== 'nixcommandtask') return;
+		if (task.task_type !== 'build_device_image_task') return;
 		if (task.state !== 'completed') return;
-		if (!('program' in task.data)) return;
-		if (task.data.program !== 'nix') return;
-		if (!('args' in task.data)) return;
-		if (!(task.data.args instanceof Array)) return;
-		// if (task.data.args[0] !== 'build') return;
-		if (task.data.args.indexOf('build') === -1) return;
-		if (!('identifier' in task.data)) return;
+		if (!('device_identifier' in task.task_submission_data)) return;
 		// check: this task was previously in the list, but not completed
 		const otherTask = lastTaskStatus[task.id];
 		if (!otherTask) return;
 		if (otherTask.state === 'completed') return;
 		// download the image
 		const a = document.createElement('a');
-		a.href = `/api/download-image?identifier=${task.data.identifier}`;
-		a.download = `thymis-image-${task.data.identifier}.img`;
+		a.href = `/api/download-image?identifier=${task.task_submission_data.device_identifier}`;
+		a.download = `thymis-image-${task.task_submission_data.device_identifier}.img`;
 		document.body.appendChild(a);
 		a.click();
 		document.body.removeChild(a);
 	});
 
-	lastTaskStatus = tasks;
+	lastTaskStatus = structuredClone(tasks);
 });
 
 if (browser) {
