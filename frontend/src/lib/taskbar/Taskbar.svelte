@@ -46,7 +46,7 @@
 		<tr class="sticky top-0 bg-gray-100 dark:bg-gray-800">
 			{#each headers as header}
 				<th
-					class="border border-l-2 border-r-2 border-gray-300 dark:border-gray-600"
+					class="border border-l-2 border-r-2 border-gray-300 dark:border-gray-600 text-base"
 					style={header.additionalStyle}
 				>
 					{header.name}
