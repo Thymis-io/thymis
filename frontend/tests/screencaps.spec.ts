@@ -23,7 +23,8 @@ colorSchemes.forEach((colorScheme) => {
 			await expect(page).toHaveScreenshot();
 		});
 
-		test('shows devices', async ({ page }) => {
+		test('shows devices', async ({ page, request }) => {
+			await clearState(page, request);
 			const resp = await page.goto('/devices');
 
 			// 200 OK is expected
@@ -44,6 +45,7 @@ colorSchemes.forEach((colorScheme) => {
 			await deviceTypeSelect.selectOption({ label: 'Raspberry Pi 4' });
 
 			const saveButton = page.locator('button').filter({ hasText: 'Create device' });
+			console.log(`Is save button disabled? ${await saveButton.isDisabled()}`);
 			await saveButton.click();
 
 			await expect(page).toHaveScreenshot();
@@ -70,7 +72,9 @@ colorSchemes.forEach((colorScheme) => {
 			await expect(page).toHaveScreenshot();
 		});
 
-		test('explores more pages', async ({ page }) => {
+		test('explores more pages', async ({ page, request }) => {
+			await clearState(page, request);
+
 			// Navigate to the Devices page
 			await page.goto('/devices');
 			await expect(page).toHaveScreenshot();
