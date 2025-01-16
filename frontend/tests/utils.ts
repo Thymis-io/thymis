@@ -24,7 +24,7 @@ export const highlightLocator = async (page: Page, locator: Locator) => {
 
 export const unhighlightAll = async (page: Page) => {
 	// remove all elements with class 'playwright-highlight'
-	page.evaluate(`
+	await page.evaluate(`
 		const elements = document.querySelectorAll('.playwright-highlight');
 		for (const element of elements) {
 			element.remove();
