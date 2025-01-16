@@ -216,7 +216,7 @@
 								<Button
 									size="sm"
 									class="p-2 py-0.5 gap-1"
-									href={`/configuration/configuration-details?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
+									href={`/configuration/edit?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
 								>
 									<TagIcon size={'0.75rem'} class="min-w-3" />
 									<span class="text-nowrap">

@@ -67,7 +67,7 @@
 	</div>
 	{#if $globalNavSelectedTarget?.identifier !== context?.identifier}
 		<ToolbarButton
-			href="/configuration/configuration-details?{buildConfigSelectModuleSearchParam(
+			href="/configuration/edit?{buildConfigSelectModuleSearchParam(
 				$page.url.search,
 				contextType,
 				context?.identifier,
@@ -99,7 +99,7 @@
 				}`}
 			>
 				<a
-					href="/configuration/configuration-details?{buildConfigSelectModuleSearchParam(
+					href="/configuration/edit?{buildConfigSelectModuleSearchParam(
 						$page.url.search,
 						$globalNavSelectedTargetType,
 						$globalNavSelectedTarget?.identifier,
