@@ -49,11 +49,51 @@ def update(
     return deployment_info
 
 
+def create_or_update_by_public_key(
+    session: Session,
+    ssh_public_key: str,
+    deployed_config_commit: str | None = None,
+    deployed_config_id: str | None = None,
+    reachable_deployed_host: str | None = None,
+) -> db_models.DeploymentInfo:
+    deployment_info = (
+        session.query(db_models.DeploymentInfo)
+        .filter(db_models.DeploymentInfo.ssh_public_key == ssh_public_key)
+        .first()
+    )
+    if deployment_info:
+        return update(
+            session,
+            deployment_info.id,
+            ssh_public_key,
+            deployed_config_commit,
+            deployed_config_id,
+            reachable_deployed_host,
+        )
+    return create(
+        session,
+        ssh_public_key,
+        deployed_config_commit,
+        deployed_config_id,
+        reachable_deployed_host,
+    )
+
+
 def get_by_id(session: Session, id: str) -> db_models.DeploymentInfo | None:
     return (
         session.query(db_models.DeploymentInfo)
         .filter(db_models.DeploymentInfo.id == id)
         .first()
+    )
+
+
+def get_by_ssh_public_key(
+    session: Session, ssh_public_key: str
+) -> list[db_models.DeploymentInfo]:
+    return (
+        session.query(db_models.DeploymentInfo)
+        .filter(db_models.DeploymentInfo.ssh_public_key == ssh_public_key)
+        .all()
     )
 
 
