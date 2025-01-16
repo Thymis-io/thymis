@@ -5,6 +5,7 @@
 	import { Button } from 'flowbite-svelte';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import Trash from 'lucide-svelte/icons/trash-2';
+	import { goto } from '$app/navigation';
 
 	export let device: Device;
 
@@ -13,6 +14,7 @@
 	const deleteDevice = async (device: Device) => {
 		$state.devices = $state.devices.filter((d) => d.identifier !== device.identifier);
 		await saveState();
+		await goto('/devices');
 	};
 
 	let className = '';
