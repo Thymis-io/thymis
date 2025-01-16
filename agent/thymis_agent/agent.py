@@ -134,10 +134,44 @@ class Agent:
             )
             raise Exception("Failed to notify device to controller")
 
-        logger.info("Device notifyed successfully")
+        response_json = response.json()
+
+        if response_json.get("force_pubkey_update"):
+            logger.info("Controller requested public key update")
+            # refresh public key and notify again
+            self.update_public_key()
+            return self.notify()
+
+        if not response_json.get("success"):
+            logger.error(
+                "Failed to notify device to controller. Controller returned %s",
+                response_json,
+            )
+            raise Exception("Failed to notify device to controller")
+
+        logger.info("Device notified successfully")
 
     def report(self):
         logging.info("Reporting state to controller, currently not implemented")
+
+    def update_public_key(self):
+        logging.info("Updating public host key")
+        paths = ["/etc/ssh/ssh_host_rsa_key", "/etc/ssh/ssh_host_ed25519_key"]
+        # rename the old keys to .old.N where N is a number such that the file does not exist
+        # generate new keys by restarting the sshd service
+
+        # find N
+        n = 0
+        while any(os.path.exists(f"{path}.old.{n}") for path in paths):
+            n += 1
+
+        for path in paths:
+            os.rename(path, f"{path}.old.{n}")
+
+        # restart sshd
+        os.system("systemctl restart sshd")
+
+        logging.info("Public host key updated")
 
 
 def main():

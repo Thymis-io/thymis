@@ -1,7 +1,7 @@
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Column, ForeignKey, String, Uuid
+from sqlalchemy import JSON, Column, ForeignKey, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from thymis_controller.database.base import Base
 
@@ -16,7 +16,7 @@ class HardwareDevice(Base):
         Uuid(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4
     )
 
-    hardware_id: Mapped[str]
+    hardware_ids: Mapped[dict[str, str]] = mapped_column(JSON, nullable=False)
 
     deployment_info_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("deployment_info.id")

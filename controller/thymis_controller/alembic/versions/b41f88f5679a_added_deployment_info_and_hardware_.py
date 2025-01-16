@@ -35,7 +35,7 @@ def upgrade():
     op.create_table(
         "hardware_devices",
         sa.Column("id", sa.Uuid(), nullable=False),
-        sa.Column("hardware_id", sa.String(), nullable=False),
+        sa.Column("hardware_ids", sa.JSON(), nullable=False),
         sa.Column("deployment_info_id", sa.Uuid(), nullable=False),
         sa.ForeignKeyConstraint(
             ["deployment_info_id"],

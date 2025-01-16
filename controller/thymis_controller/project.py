@@ -13,6 +13,7 @@ import traceback
 from pathlib import Path
 
 import git
+import paramiko
 import sqlalchemy
 import sqlalchemy.orm
 from thymis_controller import crud, migration, models, task
@@ -310,3 +311,46 @@ class Project:
             ),
             db_session,
         )
+
+    def verify_ssh_host_key_and_creds(
+        self,
+        host: str,
+        public_key: str,
+        port: int = 22,
+        username: str = "root",
+        pkey: paramiko.PKey = None,
+    ):
+        class ExpectedHostKeyNotFound(Exception):
+            pass
+
+        class CheckForExpectedHostKey(paramiko.MissingHostKeyPolicy):
+            def __init__(self, expected_key):
+                self.expected_key = expected_key
+
+            def missing_host_key(self, client, hostname, key: paramiko.PKey):
+                if key.get_base64() != self.expected_key:
+                    raise ExpectedHostKeyNotFound()
+
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(CheckForExpectedHostKey(public_key))
+        try:
+            client.connect(
+                hostname=host,
+                username=username,
+                pkey=pkey,
+            )
+        except ExpectedHostKeyNotFound:
+            logger.error("Host key mismatch for %s", host)
+            return False
+        except paramiko.AuthenticationException:
+            logger.error("Authentication failed for %s", host)
+            return False
+
+        # run a command to verify the connection
+        etc_os_release = client.exec_command("cat /etc/os-release")[1].read()
+        logger.debug("Remote /etc/os-release: %s", etc_os_release)
+
+        client.close()
+        logger.debug("Verified host key for %s", host)
+
+        return True
