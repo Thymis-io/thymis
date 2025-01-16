@@ -42,8 +42,10 @@
 			deviceTypeValidation(selectedDeviceType) ||
 			!thymisDeviceModule?.type ||
 			!selectedDeviceType
-		)
+		) {
+			console.error('Invalid data when creating device');
 			return;
+		}
 		const identifier = nameToIdentifier(displayName);
 		const thymisDeviceModuleSettings = {
 			device_type: selectedDeviceType,
