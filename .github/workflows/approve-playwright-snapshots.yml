@@ -50,6 +50,14 @@ jobs:
         run: |
           npm run test:integration -- --update-snapshots
         working-directory: frontend
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        id: artifact-upload
+        if: always()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 30
       - name: Commit and push updated snapshots
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
