@@ -34,7 +34,7 @@
 </script>
 
 <div class="flex justify-between mb-4">
-	<h1 class="text-3xl font-bold dark:text-white">{$globalNavSelectedTarget?.displayName}</h1>
+	<h1 class="text-3xl font-bold dark:text-white">{$globalNavSelectedTarget?.displayName ?? ''}</h1>
 	<DeployActions />
 </div>
 <Tabbar />
