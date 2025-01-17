@@ -198,6 +198,16 @@ class NixParser:
         self.corrupted_paths = 0
         self.untrusted_paths = 0
 
+    def get_log_by_level(self, level):
+        if level < 4:
+            return {
+                0: self.error_logs,
+                1: self.warnings,
+                2: self.notices,
+                3: self.infos,
+            }[level]
+        return self.other_messages
+
     @classmethod
     def take_complete_lines(cls, buffer: bytearray):
         output = bytearray()
@@ -239,6 +249,10 @@ class NixParser:
             ].activity_info_by_id[parsed.nix_line.id] = self.activity_info_by_id[
                 parsed.nix_line.id
             ]
+            if parsed.nix_line.text:
+                self.get_log_by_level(min(parsed.nix_line.level, 3)).append(
+                    f"{parsed.nix_line.text}..."
+                )
         elif isinstance(parsed.nix_line, StopActivityNixLine):
             activity_info = self.activity_info_by_id[parsed.nix_line.id]
             activity_by_type = self.activities_done_expect_failed_by_type[
