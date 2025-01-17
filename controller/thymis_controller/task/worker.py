@@ -1,6 +1,7 @@
 import base64
 import os
 import pathlib
+import signal
 import subprocess
 import threading
 import time
@@ -29,12 +30,14 @@ class ProcessList:
         with self._lock:
             for process in self.processes:
                 if process.poll() is None:
+                    os.killpg(os.getpgid(process.pid), signal.SIGTERM)
                     process.terminate()
 
     def kill_all(self):
         with self._lock:
             for process in self.processes:
                 if process.poll() is None:
+                    os.killpg(os.getpgid(process.pid), signal.SIGKILL)
                     process.kill()
 
 
@@ -263,6 +266,7 @@ def run_command(
         stdin=(subprocess.PIPE if input else None),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        process_group=0,
     )
 
     process_list.add(proc)
