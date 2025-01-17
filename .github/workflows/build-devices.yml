@@ -11,9 +11,6 @@ jobs:
     runs-on: ubuntu-22.04-arm
     steps:
       - uses: actions/checkout@v4
-      - uses: dbhi/qus/action@main
-        with:
-          targets: aarch64
       - name: Install Nix
         uses: cachix/install-nix-action@v27
         with:
@@ -31,9 +28,6 @@ jobs:
     runs-on: ubuntu-22.04-arm
     steps:
       - uses: actions/checkout@v4
-      - uses: dbhi/qus/action@main
-        with:
-          targets: aarch64
       - name: Install Nix
         uses: cachix/install-nix-action@v27
         with:
@@ -51,9 +45,6 @@ jobs:
     runs-on: ubuntu-22.04-arm
     steps:
       - uses: actions/checkout@v4
-      - uses: dbhi/qus/action@main
-        with:
-          targets: aarch64
       - name: Install Nix
         uses: cachix/install-nix-action@v27
         with:
