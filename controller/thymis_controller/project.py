@@ -328,7 +328,8 @@ class Project:
                 self.expected_key = expected_key
 
             def missing_host_key(self, client, hostname, key: paramiko.PKey):
-                if key.get_base64() != self.expected_key:
+                actual_key = f"{key.get_name()} {key.get_base64()}"
+                if actual_key != self.expected_key:
                     raise ExpectedHostKeyNotFound()
 
         client = paramiko.SSHClient()
@@ -336,6 +337,7 @@ class Project:
         try:
             client.connect(
                 hostname=host,
+                port=port,
                 username=username,
                 pkey=pkey,
             )
@@ -344,6 +346,9 @@ class Project:
             return False
         except paramiko.AuthenticationException:
             logger.error("Authentication failed for %s", host)
+            return False
+        except paramiko.SSHException as e:
+            logger.error("SSH error for %s: %s", host, e)
             return False
 
         # run a command to verify the connection

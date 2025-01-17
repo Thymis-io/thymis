@@ -1,7 +1,5 @@
 import subprocess
-from typing import List
-
-from git import Tuple
+from typing import List, Tuple
 
 
 def ssh_keyscan_host(host: str, port: int = 22) -> List[Tuple[str, str, str]]:
