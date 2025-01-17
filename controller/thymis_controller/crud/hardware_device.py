@@ -5,7 +5,9 @@ from sqlalchemy.orm import Session
 from thymis_controller import db_models
 
 
-def find_overlapping_hardware_ids(db_session: Session, hardware_ids: dict) -> list:
+def find_overlapping_hardware_ids(
+    db_session: Session, hardware_ids: dict
+) -> list[db_models.HardwareDevice]:
     # make a sqlalchemy json query
     return (
         db_session.query(db_models.HardwareDevice)
@@ -14,12 +16,10 @@ def find_overlapping_hardware_ids(db_session: Session, hardware_ids: dict) -> li
                 operator.or_,
                 (
                     (
-                        db_models.HardwareDevice.hardware_ids[hardware_id_key]
-                        == hardware_id_value
-                        for hardware_id_key, hardware_id_value in hardware_ids.items()
+                        db_models.HardwareDevice.hardware_ids.contains({key: value})
+                        for key, value in hardware_ids.items()
                     )
                 ),
-                False,
             )
         )
         .all()
@@ -31,9 +31,9 @@ def find_overlapping_hardware_ids(db_session: Session, hardware_ids: dict) -> li
 
 
 def create(
-    db_session: Session, hardware_id: str, deployment_info_id
+    db_session: Session, hardware_ids: dict, deployment_info_id
 ) -> db_models.HardwareDevice:
-    new_device = db_models.HardwareDevice(hardware_id=hardware_id)
+    new_device = db_models.HardwareDevice(hardware_ids=hardware_ids)
     if deployment_info_id:
         new_device.deployment_info_id = deployment_info_id
     db_session.add(new_device)
