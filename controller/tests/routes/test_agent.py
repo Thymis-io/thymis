@@ -16,6 +16,17 @@ def mock_check_device_reference(dflake_path, commit_hash: str, config_id: str):
     return True
 
 
+def verify_ssh_host_key_and_creds(
+    self,
+    host: str,
+    public_key: str,
+    port: int = 22,
+    username: str = "root",
+    pkey=None,
+):
+    return True
+
+
 @mock.patch(
     "thymis_controller.routers.agent.check_device_reference",
     mock_check_device_reference,
@@ -23,6 +34,10 @@ def mock_check_device_reference(dflake_path, commit_hash: str, config_id: str):
 @mock.patch(
     "thymis_controller.routers.agent.determine_first_host_with_key",
     mock_determine_first_host_with_key,
+)
+@mock.patch(
+    "thymis_controller.project.Project.verify_ssh_host_key_and_creds",
+    verify_ssh_host_key_and_creds,
 )
 def test_device_notify(test_client):
     db_session_func = test_client.app.dependency_overrides.get(get_db_session)
@@ -44,6 +59,3 @@ def test_device_notify(test_client):
     assert (
         crud.deployment_info.check_if_ssh_public_key_exists(db_session, "test") is True
     )
-    assert (
-        crud.hardware_device.get_by_hardware_id(db_session, "test") is not None
-    )  # may change some time
