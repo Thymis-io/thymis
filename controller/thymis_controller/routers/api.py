@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import os
 import re
 import uuid
@@ -388,7 +389,13 @@ async def terminal_websocket(
     tcp_port = 22
 
     client = SSHClient()
-    client.load_host_keys(project.known_hosts_path)
+    keytype, key = deployment_info.ssh_public_key.split(" ", 1)
+    client.get_host_keys().add(
+        deployment_info.reachable_deployed_host,
+        keytype,
+        PKey.from_type_string(keytype, base64.b64decode(key)),
+    )
+
     pkey: PKey = PKey.from_path(global_settings.SSH_KEY_PATH)
 
     try:
