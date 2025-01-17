@@ -1,5 +1,4 @@
-import operator
-from functools import reduce
+import json
 
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
@@ -8,26 +7,17 @@ from thymis_controller import db_models
 def find_overlapping_hardware_ids(
     db_session: Session, hardware_ids: dict
 ) -> list[db_models.HardwareDevice]:
-    # make a sqlalchemy json query
-    return (
-        db_session.query(db_models.HardwareDevice)
-        .filter(
-            reduce(
-                operator.or_,
-                (
-                    (
-                        db_models.HardwareDevice.hardware_ids.contains({key: value})
-                        for key, value in hardware_ids.items()
-                    )
-                ),
-            )
+    query = None
+    for key, value in hardware_ids.items():
+        query_key = db_session.query(db_models.HardwareDevice).filter(
+            db_models.HardwareDevice.hardware_ids[key] == json.dumps(value)
         )
-        .all()
-    )
 
-    # for each hardware_id_key, hardware_id_value in hardware_ids.items():
-    # WHERE hardware_ids[hardware_id_key] == hardware_id_value
-    # CONNECTED WITH OR
+        if query is None:
+            query = query_key
+        else:
+            query = query.union(query_key)
+    return query.all()
 
 
 def create(

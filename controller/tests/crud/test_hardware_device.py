@@ -65,3 +65,33 @@ def test_hardware_id_twice_in_table(db_session):
     result = find_overlapping_hardware_ids(db_session, hardware_ids)
     assert len(result) == 2
     assert all(device.hardware_ids["pi-serial-number"] == "id1" for device in result)
+
+
+def test_hardware_id_twice_in_table_but_different(db_session):
+    create_hardware_device(
+        db_session, {"pi-serial-number": "id8", "pi-serial-number2": "id2"}, "test_key1"
+    )
+    create_hardware_device(
+        db_session, {"pi-serial-number": "id1", "pi-serial-number2": "id3"}, "test_key2"
+    )
+
+    hardware_ids = {"pi-serial-number": "id8", "pi-serial-number2": "id3"}
+    result = find_overlapping_hardware_ids(db_session, hardware_ids)
+    assert len(result) == 2
+    assert any(device.hardware_ids["pi-serial-number"] == "id8" for device in result)
+    assert any(device.hardware_ids["pi-serial-number2"] == "id3" for device in result)
+
+
+def test_hardware_id_twice_in_table_but_different1(db_session):
+    create_hardware_device(
+        db_session, {"pi-serial-number": "id1", "pi-serial-number2": "id2"}, "test_key1"
+    )
+    create_hardware_device(
+        db_session, {"pi-serial-number": "id1", "pi-serial-number2": "id3"}, "test_key2"
+    )
+
+    hardware_ids = {"pi-serial-number": "id1", "pi-serial-number2": "id3"}
+    result = find_overlapping_hardware_ids(db_session, hardware_ids)
+    assert len(result) == 2
+    assert any(device.hardware_ids["pi-serial-number"] == "id1" for device in result)
+    assert any(device.hardware_ids["pi-serial-number2"] == "id3" for device in result)
