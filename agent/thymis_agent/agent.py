@@ -89,10 +89,11 @@ class Agent:
                 logger.error("Failed to read file: %s", e)
                 return None
 
-        return {
+        hardware_ids = {
             key: extract_file_content(path)
             for key, path in HARDWARE_ID_FILE_PATHS.items()
         }
+        return {key: value for key, value in hardware_ids.items() if value}
 
     def detect_ip_addresses(self):
         def get_ip_addresses(family):

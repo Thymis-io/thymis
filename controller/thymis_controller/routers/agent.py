@@ -76,9 +76,12 @@ def device_notify(
         )
         raise HTTPException(status_code=400)
 
+    hardware_ids = {
+        key: value for key, value in device_notify_request.hardware_ids.items() if value
+    }
     # check: does any of my hardware ids overlap with any in the db
     overlapping_devices = crud.hardware_device.find_overlapping_hardware_ids(
-        db_session, device_notify_request.hardware_ids
+        db_session, hardware_ids
     )
 
     # count the number of overlapping devices
@@ -88,7 +91,7 @@ def device_notify(
         logger.error(
             "Device with public key %s notifies controller with hardware ids %s which overlap with %d devices",
             device_notify_request.public_key,
-            device_notify_request.hardware_ids,
+            hardware_ids,
             overlapping_devices_count,
         )
         logger.error(
@@ -124,6 +127,7 @@ def device_notify(
     force_pubkey_update = len(same_public_key) == 1 and not overlapping_devices
 
     if force_pubkey_update:
+        logger.info("Force public key update for device %s", reachable_deployed_host)
         return {"force_pubkey_update": True}
 
     # create or update deployment_info
@@ -136,7 +140,7 @@ def device_notify(
     )
     hardware_device = crud.hardware_device.create_or_update(
         db_session,
-        device_notify_request.hardware_ids,
+        hardware_ids,
         deployment_info.id,
     )
 
