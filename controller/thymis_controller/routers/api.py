@@ -136,25 +136,18 @@ async def restart_device(
     task_controller: TaskControllerAD,
     project: ProjectAD,
 ):
-    device = next(
-        device
-        for device in project.read_state().devices
-        if device.identifier == identifier
-    )
-    target_host = crud.deployment_info.get_first_device_host_by_config_id(
-        db_session, device.identifier
-    )
-    task_controller.submit(
-        models.SSHCommandTaskSubmission(
-            target_host=target_host,
-            target_user="root",
-            target_port=22,
-            command="reboot",
-            ssh_key_path=str(global_settings.SSH_KEY_PATH),
-            ssh_known_hosts_path=str(project.known_hosts_path),
-        ),
-        db_session=db_session,
-    )
+    for target_host in crud.deployment_info.get_by_config_id(db_session, identifier):
+        task_controller.submit(
+            models.SSHCommandTaskSubmission(
+                target_host=target_host.reachable_deployed_host,
+                target_user="root",
+                target_port=22,
+                command="reboot",
+                ssh_key_path=str(global_settings.SSH_KEY_PATH),
+                ssh_known_hosts_path=str(project.known_hosts_path),
+            ),
+            db_session=db_session,
+        )
 
 
 @router.get("/download-image")
