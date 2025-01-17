@@ -154,6 +154,7 @@ class Kiosk(modules.Module):
                 isNormalUser = true;
                 createHome = true;
             }};
+            services.pipewire.enable = false;
             hardware.pulseaudio.enable = true;
             hardware.pulseaudio.support32Bit = true;
             services.xserver.windowManager.i3.enable = lib.mkOverride {priority} true;
