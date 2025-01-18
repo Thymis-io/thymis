@@ -7,6 +7,9 @@
 	import TaskbarActions from './TaskbarActions.svelte';
 	import TaskbarStatus from './TaskbarStatus.svelte';
 	import RenderUnixTimestamp from '$lib/components/RenderUnixTimestamp.svelte';
+	import TaskbarMinimize from './TaskbarMinimize.svelte';
+
+	export let taskbarMinimized: boolean;
 
 	$: taskList = Object.values($taskStatus).sort((a, b) => (a.start_time < b.start_time ? 1 : -1));
 
@@ -44,11 +47,14 @@
 <table class="w-full border-collapse" use:ResizableColumns>
 	<thead>
 		<tr class="sticky top-0 bg-gray-100 dark:bg-gray-800">
-			{#each headers as header}
+			{#each headers.entries() as [i, header]}
 				<th
-					class="border border-l-2 border-r-2 border-gray-300 dark:border-gray-600 text-base"
+					class="border border-l-2 border-r-2 border-t-0 border-gray-300 dark:border-gray-600 text-base"
 					style={header.additionalStyle}
 				>
+					{#if i === headers.length - 1}
+						<TaskbarMinimize bind:taskbarMinimized />
+					{/if}
 					{header.name}
 				</th>
 			{/each}
@@ -69,10 +75,21 @@
 				<td class="border border-gray-300 dark:border-gray-700">
 					<TaskbarStatus {task} />
 				</td>
-				<td class="border border-gray-300 dark:border-gray-700 flex justify-center">
+				<td class="border border-gray-300 dark:border-gray-700">
 					<TaskbarActions {task} />
 				</td>
 			</tr>
 		{/each}
 	</tbody>
 </table>
+
+<style>
+	th:first-child,
+	td:first-child {
+		border-left: none;
+	}
+	th:last-child,
+	td:last-child {
+		border-right: none;
+	}
+</style>

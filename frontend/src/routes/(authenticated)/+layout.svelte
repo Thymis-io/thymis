@@ -84,7 +84,7 @@
 				<div class="w-full relative dark:border-gray-600 bg-gray-50 dark:bg-gray-900 mb-[40px]">
 					<MainWindow bind:drawerHidden><slot /></MainWindow>
 					<div class="relative h-[40px]">
-						<TaskbarMinimize bind:taskBarMinimized={taskbarMinimized} class="mt-2" />
+						<TaskbarMinimize bind:taskbarMinimized class="mt-2" />
 						<TaskbarSmall />
 					</div>
 				</div>
@@ -97,12 +97,11 @@
 						class="w-full relative border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900"
 						slot="b"
 					>
-						<div class="max-h-full overflow-scroll h-[calc(100%-40px)]">
-							<TaskbarMinimize bind:taskBarMinimized={taskbarMinimized} />
-							<Taskbar />
+						<div class="max-h-full overflow-x-hidden overflow-y-auto h-[calc(100%-40px)]">
+							<Taskbar bind:taskbarMinimized />
 						</div>
 						<div class="w-full h-[40px]">
-							<TaskbarMinimize bind:taskBarMinimized={taskbarMinimized} class="mt-2" />
+							<TaskbarMinimize bind:taskbarMinimized class="mt-2" />
 							<TaskbarSmall />
 						</div>
 					</div>
@@ -123,7 +122,7 @@
 
 <style lang="postcss">
 	:root {
-		--navbar-height: 4rem;
+		--navbar-height: 50px;
 	}
 	:global(div.multiselect) {
 		@apply !p-2;

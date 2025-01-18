@@ -16,7 +16,7 @@
 	dividerClass="!hidden lg:!block"
 >
 	<Sidebar slot="a" bind:drawerHidden />
-	<div class="p-4 bg-gray-50 dark:bg-gray-900 !overflow-y-scroll" slot="b">
+	<div class="p-4 bg-gray-50 dark:bg-gray-900 !overflow-y-auto" slot="b">
 		<slot />
 	</div>
 </SplitPane>

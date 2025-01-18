@@ -83,6 +83,6 @@
 
 <style lang="postcss">
 	:root {
-		--navbar-height: 4rem;
+		--navbar-height: 50px;
 	}
 </style>
