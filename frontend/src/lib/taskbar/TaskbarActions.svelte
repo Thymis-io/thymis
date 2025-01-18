@@ -6,38 +6,26 @@
 	export let task: TaskShort;
 </script>
 
-<div class="flex flex-row items-center space-x-2">
+<div class="flex flex-row items-center justify-center space-x-2">
 	{#if task.state === 'pending'}
-		<Button
-			class="btn btn-sm btn-danger px-4 py-2 whitespace-nowrap"
-			on:click={() => cancelTask(task.id)}
-		>
+		<Button class="px-4 py-2 whitespace-nowrap" on:click={() => cancelTask(task.id)}>
 			{$t('taskbar.cancel')}
 		</Button>
 	{:else if task.state === 'running'}
-		<Button
-			class="btn btn-sm btn-danger px-4 py-2 whitespace-nowrap"
-			on:click={() => cancelTask(task.id)}
-		>
+		<Button class="px-4 py-2 whitespace-nowrap" on:click={() => cancelTask(task.id)}>
 			{$t('taskbar.cancel')}
 		</Button>
 	{:else if task.state === 'completed'}
-		<Button
-			class="btn btn-sm btn-primary px-4 py-2 whitespace-nowrap"
-			on:click={() => retryTask(task.id)}
-		>
+		<Button class="px-4 py-2 whitespace-nowrap" on:click={() => retryTask(task.id)}>
 			{$t('taskbar.retry')}
 		</Button>
 	{:else if task.state === 'failed'}
-		<Button
-			class="btn btn-sm btn-primary px-4 py-2 whitespace-nowrap"
-			on:click={() => retryTask(task.id)}
-		>
+		<Button class="px-4 py-2 whitespace-nowrap" on:click={() => retryTask(task.id)}>
 			{$t('taskbar.retry')}
 		</Button>
 	{/if}
 	<a data-sveltekit-preload-data="tap" href="/tasks/{task.id}{$page.url.search}">
-		<Button class="btn btn-sm btn-primary px-4 py-2 whitespace-nowrap">
+		<Button class="px-4 py-2 whitespace-nowrap">
 			{$t('taskbar.details')}
 		</Button>
 	</a>
