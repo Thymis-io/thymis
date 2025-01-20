@@ -97,7 +97,11 @@ class TaskWorkerPoolManager:
     def cancel_all_tasks(self):
         future_tasks = list(self.futures.keys())
         for task_id in future_tasks:
-            if task_id in self.futures and self.futures[task_id][0].running():
+            if (
+                task_id in self.futures
+                and self.futures[task_id][0].running()
+                and not self.futures[task_id][1].closed
+            ):
                 self.cancel_task(task_id)
 
     def listen_child_messages(self, conn: Connection, task_id: uuid.UUID):
