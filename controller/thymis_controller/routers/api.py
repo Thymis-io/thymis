@@ -90,6 +90,8 @@ async def deploy(
             )
         )
 
+    project.update_known_hosts(session)
+
     task_controller.submit(
         models.DeployDevicesTaskSubmission(
             devices=devices,

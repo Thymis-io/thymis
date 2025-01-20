@@ -20,6 +20,8 @@
 
 	$: hasVNC = deploymentInfo && device && targetShouldShowVNC(device, $state);
 
+	let div: HTMLCanvasElement;
+
 	const initVNC = async (deploymentInfo: DeploymentInfo) => {
 		// @ts-ignore
 		let RFB = await import('@novnc/novnc/lib/rfb.js');
@@ -37,7 +39,7 @@
 		connected = false;
 		connectionFailed = false;
 
-		rfb = new RFB.default(canvas, url, { credentials: { password: password } });
+		rfb = new RFB.default(div, url, { credentials: { password: password } });
 		rfb.addEventListener('connect', () => (connected = true));
 		rfb.addEventListener('disconnect', () => (connectionFailed = true));
 		rfb.addEventListener('securityfailure', () => (connectionFailed = true));
@@ -57,7 +59,7 @@
 
 	onMount(() => {
 		if (hasVNC) {
-			initVNC(device);
+			initVNC(deploymentInfo);
 		}
 	});
 
@@ -83,7 +85,11 @@
 				/>
 			</div>
 		</div>
-		<div id={`vnc-canvas-${deploymentInfo.id}`} class="relative w-full aspect-video mt-4">
+		<div
+			bind:this={div}
+			id={`vnc-canvas-${deploymentInfo.id}`}
+			class="relative w-full aspect-video mt-4"
+		>
 			{#if connectionFailed}
 				<p
 					class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-red-500"

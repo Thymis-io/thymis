@@ -156,6 +156,7 @@ def deploy_device_task(
         [
             "nixos-rebuild",
             *NIX_CMD[1:],
+            "--no-ssh-tty",
             "switch",
             "--flake",
             f"{project_path}#{task_data.device.identifier}",
@@ -163,7 +164,7 @@ def deploy_device_task(
             f"{task_data.device.username}@{task_data.device.host}",
         ],
         {
-            "NIX_SSHOPTS": f"-i {task_data.ssh_key_path} -p {task_data.device.port} -o UserKnownHostsFile={task_data.known_hosts_path} -o StrictHostKeyChecking=yes -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ConnectTimeout=10",
+            "NIX_SSHOPTS": f"-i {task_data.ssh_key_path} -p {task_data.device.port} -o UserKnownHostsFile={task_data.known_hosts_path} -o StrictHostKeyChecking=yes -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ConnectTimeout=10 -o BatchMode=yes",
             "PATH": os.getenv("PATH"),
         },
         cwd=project_path,
@@ -259,6 +260,13 @@ def run_command(
     if process_list.terminated:
         return -1
 
+    conn.send(
+        models_task.RunnerToControllerTaskUpdate(
+            id=task.id,
+            update=models_task.CommandRunUpdate(args=args, env=env, cwd=str(cwd)),
+        )
+    )
+
     proc = subprocess.Popen(
         args,
         env=env,
@@ -293,7 +301,11 @@ def run_command(
             with buffer_lock:
                 stdout = stdout_buffer.copy()
                 stdout_buffer.clear()
-                stderr = nix_parser.take_complete_lines(stderr_buffer)
+                if proc.poll() is None:
+                    stderr = nix_parser.take_complete_lines(stderr_buffer)
+                else:
+                    stderr = stderr_buffer.copy()
+                    stderr_buffer.clear()
 
             has_processed_nix_lines = nix_parser.process_buffer(stderr)
             if has_processed_nix_lines:
@@ -305,16 +317,16 @@ def run_command(
                         ),
                     )
                 )
-
-            conn.send(
-                models_task.RunnerToControllerTaskUpdate(
-                    id=task.id,
-                    update=models_task.TaskStdOutErrUpdate(
-                        stdoutb64=base64.b64encode(stdout).decode("utf-8"),
-                        stderrb64=base64.b64encode(stderr).decode("utf-8"),
-                    ),
+            if stdout or stderr:
+                conn.send(
+                    models_task.RunnerToControllerTaskUpdate(
+                        id=task.id,
+                        update=models_task.TaskStdOutErrUpdate(
+                            stdoutb64=base64.b64encode(stdout).decode("utf-8"),
+                            stderrb64=base64.b64encode(stderr).decode("utf-8"),
+                        ),
+                    )
                 )
-            )
 
     def send_update():
         while stdout_buffer or stderr_buffer or (proc.poll() is None):

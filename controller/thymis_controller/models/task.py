@@ -166,6 +166,7 @@ TaskUpdate = Union[
     "TaskNixStatusUpdate",
     "TaskCompletedUpdate",
     "TaskFailedUpdate",
+    "CommandRunUpdate",
 ]
 
 
@@ -198,6 +199,13 @@ class TaskFailedUpdate(BaseModel):
     reason: str
 
 
+class CommandRunUpdate(BaseModel):
+    type: Literal["command_run"] = "command_run"
+    args: list[str]
+    env: Optional[dict[str, str]] = None
+    cwd: Optional[str] = None
+
+
 class CancelTask(BaseModel):
     id: uuid.UUID
 
@@ -224,5 +232,6 @@ __all__ = [
     "TaskNixStatusUpdate",
     "TaskCompletedUpdate",
     "TaskFailedUpdate",
+    "CommandRunUpdate",
     "CancelTask",
 ]
