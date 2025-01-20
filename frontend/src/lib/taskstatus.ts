@@ -156,12 +156,14 @@ taskStatus.subscribe((tasks) => {
 		if (!otherTask) return;
 		if (otherTask.state === 'completed') return;
 		// download the image
-		const a = document.createElement('a');
-		a.href = `/api/download-image?identifier=${task.task_submission_data.device_identifier}`;
-		a.download = `thymis-image-${task.task_submission_data.device_identifier}.img`;
-		document.body.appendChild(a);
-		a.click();
-		document.body.removeChild(a);
+		if (browser) {
+			const a = document.createElement('a');
+			a.href = `/api/download-image?identifier=${task.task_submission_data.device_identifier}`;
+			a.download = `thymis-image-${task.task_submission_data.device_identifier}.img`;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+		}
 	});
 
 	lastTaskStatus = structuredClone(tasks);

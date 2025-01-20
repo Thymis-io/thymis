@@ -16,6 +16,7 @@ let
         imports = [
           inputs.raspberry-pi-nix.nixosModules.raspberry-pi
         ];
+        raspberry-pi-nix.libcamera-overlay.enable = false;
         raspberry-pi-nix.board = "bcm2711";
         hardware.raspberry-pi.config = {
           all = {
@@ -42,6 +43,7 @@ let
         imports = [
           inputs.raspberry-pi-nix.nixosModules.raspberry-pi
         ];
+        raspberry-pi-nix.libcamera-overlay.enable = false;
         raspberry-pi-nix.board = "bcm2711";
         boot.kernelParams = [ "snd_bcm2835.enable_headphones=1" "snd_bcm2835.enable_hdmi=1" ];
         hardware.raspberry-pi.config = {
