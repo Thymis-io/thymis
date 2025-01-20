@@ -20,6 +20,10 @@
 		// quote ", `, \ and $
 		return str.replaceAll(/["`\\$]/g, '\\$&');
 	};
+
+	const needsDoubleQuotes = (str: string) => {
+		return str !== escapeForDoubleQuotes(str) || str.includes(' ');
+	};
 </script>
 
 {#if task}
@@ -89,9 +93,7 @@
 					task.process_program +
 					' ' +
 					task.process_args
-						.map((arg) =>
-							`"${escapeForDoubleQuotes(arg)}"` ? escapeForDoubleQuotes(arg) !== arg : arg
-						)
+						.map((arg) => (needsDoubleQuotes(arg) ? `"${escapeForDoubleQuotes(arg)}"` : arg))
 						.join(' ')}
 			/>
 		{:else}

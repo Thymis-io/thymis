@@ -169,6 +169,11 @@ class TaskWorkerPoolManager:
                             db_session.commit()
                             conn.close()
                             break
+                        case models_task.CommandRunUpdate():
+                            task.process_program = message.update.args[0]
+                            task.process_args = message.update.args[1:]
+                            task.process_env = message.update.env
+                            db_session.commit()
                         case _:
                             assert_never(message.update)
 

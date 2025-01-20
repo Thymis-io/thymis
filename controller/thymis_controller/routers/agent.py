@@ -144,6 +144,8 @@ def device_notify(
         deployment_info.id,
     )
 
+    project.update_known_hosts(db_session)
+
     return {"success": True}
 
 
