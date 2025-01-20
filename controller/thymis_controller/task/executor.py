@@ -95,8 +95,10 @@ class TaskWorkerPoolManager:
             self.futures[task_id][1].send(models_task.CancelTask(id=task_id))
 
     def cancel_all_tasks(self):
-        for task_id in self.futures:
-            self.cancel_task(task_id)
+        future_tasks = list(self.futures.keys())
+        for task_id in future_tasks:
+            if task_id in self.futures and self.futures[task_id][0].running():
+                self.cancel_task(task_id)
 
     def listen_child_messages(self, conn: Connection, task_id: uuid.UUID):
         message = None
