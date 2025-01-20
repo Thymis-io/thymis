@@ -94,16 +94,13 @@ jobs:
             View the [Playwright report](${{ steps.artifact-upload.outputs.artifact-url }}) to review the visual differences.
             **To approve the snapshot changes and update the snapshots, please comment:** /approve-snapshots
   test-pre-commit:
-    strategy:
-      matrix:
-        python-version: ["3.13"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.13
       - name: Install pre-commit
         run: |
           python -m pip install pre-commit
