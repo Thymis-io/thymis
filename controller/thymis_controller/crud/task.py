@@ -1,3 +1,4 @@
+import os
 import uuid
 
 from sqlalchemy import select
@@ -85,3 +86,9 @@ def fail_running_tasks(db_session):
 def child_task_states(db_session, tasks: list[uuid.UUID]) -> set[str]:
     tasks = db_session.query(db_models.Task).filter(db_models.Task.id.in_(tasks)).all()
     return set(task.state for task in tasks)
+
+
+def delete_all_tasks(db_session: Session):
+    if "RUNNING_IN_PLAYWRIGHT" in os.environ:
+        db_session.query(db_models.Task).delete()
+        db_session.commit()

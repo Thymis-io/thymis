@@ -1,5 +1,5 @@
 import { test, expect } from '../playwright/fixtures';
-import { clearState, expectPageToHaveScreenshotWithHighlight } from './utils';
+import { clearState, deleteAllTasks, expectPageToHaveScreenshotWithHighlight } from './utils';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -11,6 +11,7 @@ colorSchemes.forEach((colorScheme) => {
 
 		test('overview page shows overview', async ({ page, request }) => {
 			await clearState(page, request);
+			await deleteAllTasks(page, request);
 
 			await page.goto('/login');
 
@@ -25,6 +26,7 @@ colorSchemes.forEach((colorScheme) => {
 
 		test('shows devices', async ({ page, request }) => {
 			await clearState(page, request);
+			await deleteAllTasks(page, request);
 			const resp = await page.goto('/devices');
 
 			// 200 OK is expected
@@ -74,6 +76,7 @@ colorSchemes.forEach((colorScheme) => {
 
 		test('explores more pages', async ({ page, request }) => {
 			await clearState(page, request);
+			await deleteAllTasks(page, request);
 
 			// Navigate to the Devices page
 			await page.goto('/devices');
@@ -100,6 +103,7 @@ colorSchemes.forEach((colorScheme) => {
 
 		test('create whoami tag', async ({ page, request }) => {
 			await clearState(page, request);
+			await deleteAllTasks(page, request);
 
 			// Navigate to the Tags page and create a new tag
 			await page.goto('/tags');
@@ -192,6 +196,23 @@ colorSchemes.forEach((colorScheme) => {
 			await page.getByRole('button', { name: 'Save' }).click();
 
 			await expect(page).toHaveScreenshot();
+		});
+
+		test('Create update tasks', async ({ page, request }) => {
+			await clearState(page, request);
+			await deleteAllTasks(page, request);
+
+			// Go to devices page
+			await page.goto('/devices');
+
+			// Click on "Update" button
+			const updateButton = page.locator('button').filter({ hasText: 'Update' });
+			await updateButton.click();
+
+			// Expect a task to be created
+			await expect(page).toHaveScreenshot({
+				mask: [page.locator('.playwright-snapshot-unstable')]
+			});
 		});
 	});
 });
