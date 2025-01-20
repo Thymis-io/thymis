@@ -1,5 +1,6 @@
 import contextlib
 import logging
+import os
 from datetime import datetime
 
 import sqlalchemy
@@ -102,3 +103,12 @@ class TaskController:
         task = crud.task.get_task_by_id(db_session, task_id)
         task_data = TaskSubmission.from_orm_task(task).data
         self.submit(task_data, db_session)
+
+    def delete_all_tasks(self, db_session: Session):
+        if "RUNNING_IN_PLAYWRIGHT" in os.environ:
+            for task in crud.task.get_pending_tasks(db_session):
+                task.state = "failed"
+                task.add_exception("Task was running when controller was shut down")
+            self.executor.cancel_all_tasks()
+            db_session.commit()
+            crud.task.delete_all_tasks(db_session)

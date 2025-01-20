@@ -45,3 +45,9 @@ export const clearState = async (page: Page, request: APIRequestContext) => {
 	state['devices'] = [];
 	await request.patch('/api/state', { data: state });
 };
+
+export const deleteAllTasks = async (page: Page, request: APIRequestContext) => {
+	const tasksRequest = await request.post('/api/tasks/delete_all');
+	await tasksRequest.json();
+	await page.reload();
+};
