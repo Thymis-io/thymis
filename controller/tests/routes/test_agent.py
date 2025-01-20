@@ -41,7 +41,7 @@ def verify_ssh_host_key_and_creds(
 )
 @mock.patch(
     "paramiko.PKey.from_path",
-    lambda: None,
+    lambda a: None,
 )
 def test_device_notify(test_client):
     db_session_func = test_client.app.dependency_overrides.get(get_db_session)
