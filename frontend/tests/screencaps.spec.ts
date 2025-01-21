@@ -1,9 +1,51 @@
-import { test, expect } from '../playwright/fixtures';
+import { test, expect, type Page } from '../playwright/fixtures';
 import { clearState, deleteAllTasks, expectToHaveScreenshotWithHighlight } from './utils';
 
 test.describe.configure({ mode: 'serial' });
 
 const colorSchemes = ['light', 'dark'] as const;
+
+const createConfiguration = async (
+	page: Page,
+	name: string,
+	deviceType: string,
+	tags: string[]
+) => {
+	await page.goto('/devices');
+
+	const addConfigurationButton = page.locator('button').filter({ hasText: 'Create New Device' });
+	await addConfigurationButton.click();
+
+	const displayNameInput = page.locator('#display-name').first();
+	await displayNameInput.fill(name);
+
+	const deviceTypeSelect = page.locator('#device-type').first();
+	await deviceTypeSelect.selectOption({ label: deviceType });
+
+	const tagsMultiSelect = page.locator('input[autocomplete]');
+	await tagsMultiSelect.click();
+
+	// for each tag, input and enter
+	for (const tag of tags) {
+		await page.getByRole('option', { name: tag }).click();
+	}
+
+	const saveButton = page.locator('button').filter({ hasText: 'Create device' });
+	await saveButton.click();
+};
+
+const createTag = async (page: Page, name: string) => {
+	await page.goto('/tags');
+
+	const addTagButton = page.locator('button').filter({ hasText: 'Create Tag' });
+	await addTagButton.click();
+
+	const tagNameInput = page.locator('#display-name').first();
+	await tagNameInput.fill(name);
+
+	const saveButton = page.locator('button').filter({ hasText: 'Add tag' });
+	await saveButton.click();
+};
 
 colorSchemes.forEach((colorScheme) => {
 	test.describe(`Color scheme: ${colorScheme}`, () => {
@@ -212,6 +254,49 @@ colorSchemes.forEach((colorScheme) => {
 			// Expect a task to be created
 			await expect(page).toHaveScreenshot({
 				mask: [page.locator('.playwright-snapshot-unstable')]
+			});
+		});
+
+		test('Create moneyshot', async ({ page, request }) => {
+			await clearState(page, request);
+			await deleteAllTasks(page, request);
+
+			// Create tags
+			const tags = ['Display', 'Core'];
+			for (const tag of tags) {
+				await createTag(page, tag);
+			}
+
+			// Create devices
+			const devices = [
+				{ name: 'device01', tags: ['Display', 'Core'] },
+				{ name: 'device02', tags: ['Core'] },
+				{ name: 'device03', tags: ['Display', 'Core'] }
+			];
+			for (const device of devices) {
+				await createConfiguration(page, device.name, 'Raspberry Pi 4', device.tags);
+			}
+
+			// Go to devices page
+			await page.goto('/devices');
+
+			// Create a update task as well as a project build task
+			await page.locator('button').filter({ hasText: 'Update' }).click();
+
+			await page.locator('button').filter({ hasText: 'Build' }).click();
+
+			// Take a screenshot
+
+			// wait until: 2x on screen "completed"
+			test.setTimeout(120000);
+			await page.locator('td', { hasText: 'completed' }).nth(1).waitFor({ timeout: 120000 });
+
+			await expect(page).toHaveScreenshot({
+				mask: [page.locator('.playwright-snapshot-unstable')]
+			});
+
+			await expect(page).toHaveScreenshot({
+				maxDiffPixels: 1000
 			});
 		});
 	});
