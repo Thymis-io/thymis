@@ -1,6 +1,6 @@
 import { expect, type APIRequestContext, type Locator, type Page } from '../playwright/fixtures';
 
-export const highlightLocator = async (page: Page, locator: Locator) => {
+export const highlightLocator = async (screenshotTarget: Page | Locator, locator: Locator) => {
 	const boundingBox = await locator.boundingBox();
 	if (!boundingBox) {
 		console.warn(`Bounding box not found for locator: ${locator}`);
@@ -8,6 +8,7 @@ export const highlightLocator = async (page: Page, locator: Locator) => {
 	}
 	// add element with marginally bigger size
 	const margin = 8;
+	const page = 'page' in screenshotTarget ? screenshotTarget.page() : screenshotTarget;
 	page.evaluate(`
 		const div = document.createElement('div');
 		div.className = 'playwright-highlight';
@@ -22,8 +23,9 @@ export const highlightLocator = async (page: Page, locator: Locator) => {
 	`);
 };
 
-export const unhighlightAll = async (page: Page) => {
+export const unhighlightAll = async (screenshotTarget: Page | Locator) => {
 	// remove all elements with class 'playwright-highlight'
+	const page = 'page' in screenshotTarget ? screenshotTarget.page() : screenshotTarget;
 	await page.evaluate(`
 		const elements = document.querySelectorAll('.playwright-highlight');
 		for (const element of elements) {
@@ -32,10 +34,13 @@ export const unhighlightAll = async (page: Page) => {
 	`);
 };
 
-export const expectPageToHaveScreenshotWithHighlight = async (page: Page, locator: Locator) => {
-	await highlightLocator(page, locator);
-	await expect(page).toHaveScreenshot();
-	await unhighlightAll(page);
+export const expectToHaveScreenshotWithHighlight = async (
+	screenshotTarget: Page | Locator,
+	highlightedElement: Locator
+) => {
+	await highlightLocator(screenshotTarget, highlightedElement);
+	await expect(screenshotTarget).toHaveScreenshot();
+	await unhighlightAll(screenshotTarget);
 };
 
 export const clearState = async (page: Page, request: APIRequestContext) => {
