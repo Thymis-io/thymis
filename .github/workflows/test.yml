@@ -72,6 +72,7 @@ jobs:
           if grep -q -e "Error: A snapshot doesn't exist at" -e "Screenshot comparison failed" output.log; then
             echo "Playwright tests failed due to a snapshot issue"
             echo "SNAPSHOT_DIFFERENCES=true" >> $GITHUB_ENV
+          fi
           if grep -q "failed" output.log; then
             echo "Playwright tests failed"
             exit 1
