@@ -14,6 +14,33 @@ colorSchemes.forEach((colorScheme) => {
 			expect(resp?.url()).toBe('http://localhost:8000/login');
 		});
 
+		test('toolbar links work', async ({ page }) => {
+			await page.goto('/');
+
+			await expect(page.url()).toBe('http://localhost:8000/login');
+
+			const rootLink = page.locator('a').filter({ hasText: 'Thymis' });
+			await rootLink.click();
+
+			await expect(page.url()).toBe('http://localhost:8000/login');
+
+			const homepageLink = page.locator('a').filter({ hasText: 'Homepage' });
+			await homepageLink.click();
+
+			await expect(page.url()).toBe('https://thymis.io');
+
+			await page.goBack();
+			await expect(page.url()).toBe('http://localhost:8000/login');
+
+			const docsLink = page.locator('a').filter({ hasText: 'Documentation' });
+			await docsLink.click();
+
+			await expect(page.url()).toBe('https://thymis.io/docs');
+
+			await page.goBack();
+			await expect(page.url()).toBe('http://localhost:8000/login');
+		});
+
 		test('login page shows login form', async ({ page }) => {
 			const resp = await page.goto('/login');
 			expect(resp?.status()).toBe(200);

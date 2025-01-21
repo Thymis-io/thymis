@@ -2,6 +2,8 @@
 	import { t } from 'svelte-i18n';
 	import { DarkMode, NavBrand, NavHamburger, Search, ToolbarButton } from 'flowbite-svelte';
 	import GithubSolid from 'flowbite-svelte-icons/GithubSolid.svelte';
+	import BookOpenOutline from 'flowbite-svelte-icons/BookOpenOutline.svelte';
+	import Globe from 'lucide-svelte/icons/globe';
 	import UserMenu from './UserMenu.svelte';
 
 	export let authenticated = true;
@@ -16,7 +18,7 @@
 		{#if authenticated}
 			<NavHamburger onClick={() => (drawerHidden = !drawerHidden)} class="m-0 md:block lg:hidden" />
 		{/if}
-		<NavBrand href="https://thymis.io">
+		<NavBrand href="/" aria-label="Thymis Home">
 			<img src="/favicon.png" class="w-6 min-w-6 sm:w-6 sm:min-w-6" alt="Thymis Logo" />
 			<span class="ml-2 text-xl sm:text-2xl font-semibold dark:text-white hidden sm:block">
 				Thymis
@@ -29,15 +31,33 @@
 		{/if}
 	</div>
 	<div class="flex items-center sm:gap-2 p-1">
-		<a
-			class="github-button"
-			href="https://github.com/thymis-io/thymis"
-			aria-label="Star thymis-io/thymis on GitHub"
+		<ToolbarButton
+			size="lg"
+			class="flex items-center gap-1"
+			href="https://thymis.io/"
+			ariaLabel="Thymis Website"
 		>
-			<ToolbarButton size="lg">
-				<GithubSolid />
-			</ToolbarButton>
-		</a>
+			<Globe size="1.2em" />
+			{$t('common.website')}
+		</ToolbarButton>
+		<ToolbarButton
+			size="lg"
+			class="flex items-center gap-1"
+			href="https://docs.thymis.io/"
+			ariaLabel="Thymis Documentation"
+		>
+			<BookOpenOutline />
+			{$t('common.documentation')}
+		</ToolbarButton>
+		<ToolbarButton
+			size="lg"
+			class="flex items-center gap-1"
+			href="https://github.com/thymis-io/thymis"
+			ariaLabel="Star Thymis on GitHub"
+		>
+			<GithubSolid />
+			{$t('common.github')}
+		</ToolbarButton>
 		<DarkMode />
 		{#if authenticated}
 			<UserMenu />

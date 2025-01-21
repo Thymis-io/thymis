@@ -22,7 +22,10 @@
 		"save": "Speichern",
 		"cancel": "Abbrechen",
 		"no-tag-or-device-selected": "Kein Tag oder Gerät ausgewählt",
-		"logout": "Abmelden"
+		"logout": "Abmelden",
+		"documentation": "Dokumentation",
+		"github": "GitHub",
+		"website": "Homepage"
 	},
 	"vnc": {
 		"connection-failed": "Verbindungsfehler",
@@ -250,7 +253,8 @@
 		"add-hostkey": "Hostkey Setzen",
 		"delete-hostkey": "Hostkey Löschen",
 		"edit-hostkey": "Hostkey Bearbeiten",
-		"refresh-hostkey": "Hostkey Aktualisieren"
+		"refresh-hostkey": "Hostkey Aktualisieren",
+		"edit-tags": "Tags bearbeiten"
 	},
 	"edit-hostkey": {
 		"create": "Erstellen",
