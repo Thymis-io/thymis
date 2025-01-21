@@ -1,5 +1,5 @@
 import { test, expect } from '../playwright/fixtures';
-import { expectPageToHaveScreenshotWithHighlight } from './utils';
+import { expectToHaveScreenshotWithHighlight } from './utils';
 // Reset storage state for this file to avoid being authenticated
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -20,13 +20,13 @@ colorSchemes.forEach((colorScheme) => {
 			await expect(page.url()).toBe('http://localhost:8000/login');
 
 			const rootLink = page.locator('a').filter({ hasText: 'Thymis' });
-			await expectPageToHaveScreenshotWithHighlight(page, rootLink);
+			await expectToHaveScreenshotWithHighlight(page, rootLink);
 			await rootLink.click();
 
 			await expect(page.url()).toBe('http://localhost:8000/login');
 
 			const homepageLink = page.locator('a').filter({ hasText: 'Homepage' });
-			await expectPageToHaveScreenshotWithHighlight(page, homepageLink);
+			await expectToHaveScreenshotWithHighlight(page, homepageLink);
 			await homepageLink.click();
 
 			await expect(page.url()).toBe('https://thymis.io/en');
@@ -35,7 +35,7 @@ colorSchemes.forEach((colorScheme) => {
 			await expect(page.url()).toBe('http://localhost:8000/login');
 
 			const docsLink = page.locator('a').filter({ hasText: 'Documentation' });
-			await expectPageToHaveScreenshotWithHighlight(page, docsLink);
+			await expectToHaveScreenshotWithHighlight(page, docsLink);
 			await docsLink.click();
 
 			await expect(page.url()).toBe('https://docs.thymis.io/');
@@ -79,7 +79,7 @@ colorSchemes.forEach((colorScheme) => {
 
 			const loginButton = page.locator('button[type="submit"]');
 			await expect(loginButton).toBeVisible();
-			await expectPageToHaveScreenshotWithHighlight(page, loginButton);
+			await expectToHaveScreenshotWithHighlight(page, loginButton);
 		});
 	});
 });

@@ -1,5 +1,5 @@
 import { test, expect } from '../playwright/fixtures';
-import { clearState, deleteAllTasks, expectPageToHaveScreenshotWithHighlight } from './utils';
+import { clearState, deleteAllTasks, expectToHaveScreenshotWithHighlight } from './utils';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -109,7 +109,7 @@ colorSchemes.forEach((colorScheme) => {
 			await page.goto('/tags');
 
 			const addTagButton = page.locator('button').filter({ hasText: 'Create Tag' });
-			await expectPageToHaveScreenshotWithHighlight(page, addTagButton);
+			await expectToHaveScreenshotWithHighlight(page, addTagButton);
 			await addTagButton.click();
 
 			await expect(page).toHaveScreenshot();
@@ -127,15 +127,15 @@ colorSchemes.forEach((colorScheme) => {
 				.locator('a', { hasText: 'Configure Tag' })
 				.locator('visible=true')
 				.first();
-			await expectPageToHaveScreenshotWithHighlight(page, configureTagButton);
+			await expectToHaveScreenshotWithHighlight(page, configureTagButton);
 			await configureTagButton.click();
 
 			const addModuleButton = page.locator('#add-module').first();
-			await expectPageToHaveScreenshotWithHighlight(page, addModuleButton.locator('svg').first());
+			await expectToHaveScreenshotWithHighlight(page, addModuleButton.locator('svg').first());
 			await addModuleButton.click();
 
 			const addContainerModuleButton = page.locator('button').filter({ hasText: 'OCI Containers' });
-			await expectPageToHaveScreenshotWithHighlight(page, addContainerModuleButton);
+			await expectToHaveScreenshotWithHighlight(page, addContainerModuleButton);
 			await addContainerModuleButton.click();
 
 			const containerModuleButton = page.locator('a').filter({ hasText: 'OCI Containers' });
@@ -144,7 +144,7 @@ colorSchemes.forEach((colorScheme) => {
 			await expect(page).toHaveScreenshot();
 
 			const addContainerButton = page.locator('button').filter({ hasText: 'Add Container' });
-			await expectPageToHaveScreenshotWithHighlight(page, addContainerButton);
+			await expectToHaveScreenshotWithHighlight(page, addContainerButton);
 			await addContainerButton.click();
 
 			await expect(page).toHaveScreenshot();
@@ -183,7 +183,7 @@ colorSchemes.forEach((colorScheme) => {
 				.filter({ hasText: 'Whoami Device' })
 				.locator('button')
 				.nth(1);
-			await expectPageToHaveScreenshotWithHighlight(page, editTagButton);
+			await expectToHaveScreenshotWithHighlight(page, editTagButton);
 			await editTagButton.click();
 
 			await expect(page).toHaveScreenshot();
