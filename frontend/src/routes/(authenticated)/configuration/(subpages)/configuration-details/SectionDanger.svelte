@@ -29,13 +29,13 @@
 	}}
 	on:cancel={() => (deviceToDelete = undefined)}
 />
-<Section class={className} title={$t('device-details.danger')}>
+<Section class={className} title={$t('configuration-details.danger')}>
 	<Button
 		class="px-2 py-1.5 gap-2 justify-start"
 		color="alternative"
 		on:click={() => (deviceToDelete = device)}
 	>
 		<Trash size="16" />
-		{$t('devices.actions.delete')}
+		{$t('configurations.actions.delete')}
 	</Button>
 </Section>

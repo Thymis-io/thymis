@@ -135,9 +135,9 @@
 <Table shadow>
 	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2 w-12" />
-		<TableHeadCell padding="p-2">{$t('devices.table.name')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('tags.devices')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('devices.table.actions')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('tags.table.name')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('tags.table.devices')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('tags.table.actions')}</TableHeadCell>
 	</TableHead>
 	<tbody
 		use:dndzone={{ items: tags, dragDisabled, flipDurationMs }}
@@ -184,7 +184,7 @@
 							{/if}
 						{:else}
 							<Helper color="green">
-								{$t('create-device.name-helper-tag', {
+								{$t('create-configuration.name-helper-tag', {
 									values: { identifier: nameToIdentifier(newTagDisplayName) }
 								})}
 							</Helper>

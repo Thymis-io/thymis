@@ -6,8 +6,9 @@
 	},
 	"nav": {
 		"overview": "Übersicht",
-		"config-device": "Gerät Konfigurieren",
+		"configure": "Konfigurieren",
 		"config-tag": "Tag Konfigurieren",
+		"configurations": "Konfigurationen",
 		"devices": "Geräte",
 		"history": "Versionen",
 		"terminal": "Terminal",
@@ -31,8 +32,9 @@
 		"connection-failed": "Verbindungsfehler",
 		"control-device": "Gerät Steuern"
 	},
-	"devices": {
-		"create-new": "Neues Gerät Erstellen ({deviceCount}/{deviceLimit})",
+	"configurations": {
+		"title": "Gerätekonfigurationen",
+		"create-new": "Neue Konfiguration Erstellen ({deviceCount}/{deviceLimit})",
 		"table": {
 			"name": "Name",
 			"target-host": "Ziel Host",
@@ -60,8 +62,9 @@
 		"unknown-target": "Unbekanntes Ziel",
 		"limit-explain": "Sie können bis zu {deviceLimit} Geräte verwalten.\nFür größere Projekte bieten wir auf thymis.io/ skalierbare Pläne an, die Ihren Anforderungen entsprechen"
 	},
-	"create-device": {
-		"title": "Neues Gerät Erstellen",
+	"create-configuration": {
+		"title": "Neue Gerätekonfiguration Erstellen",
+		"details-title": "Konfiguration",
 		"next": "Weiter →",
 		"back": "← Zurück",
 		"step-1": {
@@ -112,15 +115,15 @@
 				"step-3": "3. Überschreiben Sie den Datenträger mit dem Systemabbild mit Thymis. Der Datenträger wird dabei komplett überschrieben."
 			}
 		},
-		"create": "Gerät erstellen",
+		"create": "Gerätekonfiguration erstellen",
 		"device-type": "Gerätetyp – Um welche Art von Hardwaregerät handelt es sich? \n- Erforderlich",
 		"device-type-cannot-be-empty": "Der Gerätetyp darf nicht leer sein.",
 		"device-with-display-name-name-exists": "Das Gerät mit dem Anzeigenamen „{displayName}“ ist bereits im Projekt vorhanden.",
 		"tag-with-display-name-name-exists": "Der Tag mit dem Anzeigenamen „{displayName}“ ist bereits im Projekt vorhanden.",
-		"display-name": "Anzeigename – Wie das Gerät in der Benutzeroberfläche angezeigt wird – Erforderlich",
+		"display-name": "Anzeigename – Wie die Gerätekonfiguration in der Benutzeroberfläche angezeigt wird – Erforderlich",
 		"display-name-cannot-be-empty": "Der Anzeigename darf nicht leer sein.",
 		"identifier-exists": "Bezeichner existiert bereits.",
-		"name-helper": "Das Gerät wird intern {identifier} genannt.",
+		"name-helper": "Die Gerätekonfiguration wird intern {identifier} genannt.",
 		"name-helper-tag": "Der Tag wird intern {identifier} genannt.",
 		"no-tags": "Ihr Projekt hat noch keine Tags, daher können Sie diesem Gerät keine zuweisen.",
 		"tags": "Geräte-Tags – Welche Tags sollten diesem Gerät zugewiesen werden?",
@@ -229,7 +232,13 @@
 			"add": "Tag Hinzufügen",
 			"create": "Tag erstellen"
 		},
-		"devices": "Geräte"
+		"table": {
+			"name": "Name",
+			"devices": "Geräte",
+			"actions": "Aktionen"
+		},
+		"devices": "Geräte",
+		"details-title": "Tag"
 	},
 	"deleteConfirm": {
 		"title": "{target} löschen",
@@ -240,7 +249,7 @@
 	"tag": {
 		"device": "Gerät"
 	},
-	"device-details": {
+	"configuration-details": {
 		"actions": "Aktionen",
 		"config": "Konfiguration",
 		"danger": "Gefährlich",
@@ -254,7 +263,7 @@
 		"delete-hostkey": "Hostkey Löschen",
 		"edit-hostkey": "Hostkey Bearbeiten",
 		"refresh-hostkey": "Hostkey Aktualisieren",
-		"edit-tags": "Tags bearbeiten"
+		"edit-tags": "Tags Bearbeiten"
 	},
 	"edit-hostkey": {
 		"create": "Erstellen",

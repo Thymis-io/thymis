@@ -32,8 +32,8 @@
 </script>
 
 <EditTagModal bind:currentlyEditingDevice />
-<Section class={className} title={$t('device-details.config')}>
-	<p class="text-base">{$t('device-details.modules')}</p>
+<Section class={className} title={$t('configuration-details.config')}>
+	<p class="text-base">{$t('configuration-details.modules')}</p>
 	<div class="flex gap-2 items-center flex-wrap">
 		{#each getOwnModules(device, availableModules) as module}
 			<a
@@ -54,7 +54,7 @@
 			</a>
 		{/each}
 	</div>
-	<p class="text-base">{$t('device-details.tags')}</p>
+	<p class="text-base">{$t('configuration-details.tags')}</p>
 	<div class="flex gap-2 items-center">
 		<div class="flex gap-2 flex-wrap">
 			{#each device.tags as tag, i}
@@ -78,7 +78,7 @@
 			on:click={() => (currentlyEditingDevice = device)}
 		>
 			<Pen size="16" />
-			<span class="text-sm">{$t('device-details.edit-tags')}</span>
+			<span class="text-sm">{$t('configuration-details.edit-tags')}</span>
 		</Button>
 	</div>
 </Section>

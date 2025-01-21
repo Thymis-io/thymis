@@ -68,7 +68,7 @@
 </script>
 
 <Modal
-	title={$t('create-device.title')}
+	title={$t('create-configuration.title')}
 	bind:open
 	outsideclose
 	size="lg"
@@ -88,13 +88,13 @@
 	<form>
 		<div class="mb-4">
 			<Label for="display-name"
-				>{$t('create-device.display-name')}
+				>{$t('create-configuration.display-name')}
 				<Input id="display-name" bind:value={displayName} />
 				{#if nameValidation(displayName, 'config')}
 					<Helper color="red">{nameValidation(displayName, 'config')}</Helper>
 				{:else}
 					<Helper color="green"
-						>{$t('create-device.name-helper', {
+						>{$t('create-configuration.name-helper', {
 							values: { identifier: nameToIdentifier(displayName) }
 						})}</Helper
 					>
@@ -103,7 +103,7 @@
 		</div>
 		<div class="mb-4">
 			<Label for="device-type"
-				>{$t('create-device.device-type')}
+				>{$t('create-configuration.device-type')}
 				<Select id="device-type" items={deviceTypesSelect} bind:value={selectedDeviceType} />
 				{#if deviceTypeValidation(selectedDeviceType)}
 					<Helper color="red">{deviceTypeValidation(selectedDeviceType)}</Helper>
@@ -113,7 +113,7 @@
 		<div class="mb-4">
 			{#if tags.length > 0}
 				<Label for="tags">
-					{$t('create-device.tags')}
+					{$t('create-configuration.tags')}
 					<MultiSelect
 						id="tags"
 						options={tagsSelect}
@@ -122,7 +122,7 @@
 					/>
 				</Label>
 			{:else}
-				<P>{$t('create-device.no-tags')}</P>
+				<P>{$t('create-configuration.no-tags')}</P>
 			{/if}
 		</div>
 		<div class="flex justify-end">
@@ -134,7 +134,7 @@
 				)}
 				on:click={submitData}
 			>
-				{$t('create-device.create')}
+				{$t('create-configuration.create')}
 			</Button>
 		</div>
 	</form>

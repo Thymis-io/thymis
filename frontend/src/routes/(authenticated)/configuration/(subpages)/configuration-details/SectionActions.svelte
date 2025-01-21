@@ -25,23 +25,23 @@
 	export { className as class };
 </script>
 
-<Section class={className} title={$t('device-details.actions')}>
+<Section class={className} title={$t('configuration-details.actions')}>
 	<Button
 		class="px-2 py-1.5 gap-2 flex justify-start"
 		color="alternative"
 		on:click={() => buildAndDownloadImage(device)}
 	>
 		<Download size={'1rem'} class="min-w-4" />
-		{$t('devices.actions.download')}
+		{$t('configurations.actions.download')}
 	</Button>
-	<Tooltip class="whitespace-pre">{$t('devices.actions.download-image-tooltip')}</Tooltip>
+	<Tooltip class="whitespace-pre">{$t('configurations.actions.download-image-tooltip')}</Tooltip>
 	<Button
 		class="px-2 py-1.5 gap-2 justify-start"
 		color="alternative"
 		on:click={() => restartDevice(device)}
 	>
 		<RotateCcw size={'1rem'} class="min-w-4" />
-		{$t('devices.actions.restart')}
+		{$t('configurations.actions.restart')}
 	</Button>
-	<Tooltip>{$t('devices.actions.restart-tooltip')}</Tooltip>
+	<Tooltip>{$t('configurations.actions.restart-tooltip')}</Tooltip>
 </Section>

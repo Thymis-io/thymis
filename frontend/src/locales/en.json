@@ -6,8 +6,9 @@
 	},
 	"nav": {
 		"overview": "Overview",
-		"config-device": "Configure Device",
+		"configure": "Configure",
 		"config-tag": "Configure Tag",
+		"configurations": "Configurations",
 		"devices": "Devices",
 		"history": "History",
 		"terminal": "Terminal",
@@ -31,8 +32,10 @@
 		"connection-failed": "Connection failed",
 		"control-device": "Control Device"
 	},
-	"devices": {
-		"create-new": "Create New Device ({deviceCount}/{deviceLimit})",
+	"configurations": {
+		"title": "Device Configurations",
+		"details-title": "Configuration",
+		"create-new": "Create New Configuration ({deviceCount}/{deviceLimit})",
 		"table": {
 			"name": "Name",
 			"target-host": "Target Host",
@@ -58,10 +61,10 @@
 		"edit-tags-title": "Edit Tags",
 		"new-tag-placeholder": "New Tag...",
 		"unknown-target": "Unknown Target",
-		"limit-explain": "You can manage up to {deviceLimit} devices.\nFor larger projects, we offer scalable plans to meet your needs at thymis.io/"
+		"limit-explain": "You can manage up to {deviceLimit} configurations.\nFor larger projects, we offer scalable plans to meet your needs at thymis.io/"
 	},
-	"create-device": {
-		"title": "Create a new device",
+	"create-configuration": {
+		"title": "Create a new device configuration",
 		"next": "Next →",
 		"back": "← Back",
 		"step-1": {
@@ -112,18 +115,18 @@
 				"step-3": "3. overwrite the data carrier with the system image using Thymis. The data carrier will be completely overwritten."
 			}
 		},
+		"create": "Create device configuration",
 		"name-helper": "Device will be called {identifier} internally.",
 		"name-helper-tag": "Tag will be called {identifier} internally.",
-		"display-name": "Display name - How the device will be displayed in the UI - Required",
+		"display-name": "Display name - How the device configuration will be displayed in the UI - Required",
 		"display-name-cannot-be-empty": "Display name cannot be empty.",
 		"display-name-tag": "Display name - How the tag will be displayed in the UI",
 		"identifier-exists": "Identifier already exists.",
 		"device-type": "Device type - What type of hardware device is this? - Required",
 		"tags": "Device tags - What tags should be assigned to this device?",
-		"no-tags": "Your project has no tags yet, so you can't assign any to this device.",
-		"create": "Create device",
+		"no-tags": "Your project has no tags yet, so you can't assign any to this device configuration.",
 		"device-type-cannot-be-empty": "Device type cannot be empty.",
-		"device-with-display-name-name-exists": "Device with display name \"{displayName}\" already exists in project.",
+		"device-with-display-name-name-exists": "Device configuration with display name \"{displayName}\" already exists in project.",
 		"tag-with-display-name-name-exists": "Tag with display name \"{displayName}\" already exists in project."
 	},
 	"history": {
@@ -229,7 +232,13 @@
 			"add": "Add Tag",
 			"create": "Create Tag"
 		},
-		"devices": "Devices"
+		"table": {
+			"name": "Name",
+			"devices": "Devices",
+			"actions": "Actions"
+		},
+		"devices": "Devices",
+		"details-title": "Tag"
 	},
 	"deleteConfirm": {
 		"title": "Delete {target}",
@@ -240,7 +249,7 @@
 	"tag": {
 		"device": "Device"
 	},
-	"device-details": {
+	"configuration-details": {
 		"network": "Network",
 		"targetHost": "Target Host",
 		"tags": "Tags",

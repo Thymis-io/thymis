@@ -35,7 +35,7 @@
 			hidden: !$globalNavSelectedConfig
 		},
 		{
-			name: $t(`nav.config-device`),
+			name: $t(`nav.configure`),
 			icon: SlidersSolid,
 			href: '/configuration/edit',
 			hidden: !$globalNavSelectedConfig
