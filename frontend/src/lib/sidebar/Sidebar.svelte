@@ -75,7 +75,7 @@
 		{
 			name: $t('nav.devices'),
 			icon: ServerSolid,
-			href: '/devices'
+			href: '/configuration/list'
 		},
 		{
 			name: $t('nav.tags'),

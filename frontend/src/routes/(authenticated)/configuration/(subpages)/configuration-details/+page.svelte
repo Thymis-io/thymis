@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { PageData } from './$types';
+	import type { PageData } from '../../$types';
 	import { Badge, Card } from 'flowbite-svelte';
 	import {
 		globalNavSelectedConfig,

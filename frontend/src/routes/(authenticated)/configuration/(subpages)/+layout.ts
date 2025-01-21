@@ -1,4 +1,4 @@
-import type { LayoutLoad } from './$types';
+import type { LayoutLoad } from '../$types';
 import { getDeploymentInfosByConfigId, type DeploymentInfo } from '$lib/deploymentInfo';
 import { redirect } from '@sveltejs/kit';
 
