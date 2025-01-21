@@ -8,15 +8,15 @@ Provisioning a new device with Thymis involves creating a fully-configured disk 
 
 ![Thymis Login-Screen](thymis-login-screen.png)
 
-## Step 2: Create a New Device Profile!
-1. Click on the **Devices** tab in the sidebar.
-2. Select **Create New Device**.
+## Step 2: Create a New Device Configuration!
+1. Click on the **Configurations** tab in the sidebar.
+2. Select **Create New Configuration**.
 3. Fill in the required details, such as the device name, hardware model, as well as tags to associate with the device.
 
 ![Thymis create device screen](thymis-create-device.png)
 
 ## Step 3: Configure the Device Settings
-1. In the **Devices** tab, select **View Details** for the device you just created.
+1. In the **Configurations** tab, select **View Details** for the device configuration you just created.
 2. Click on **Core Device Configuration** to access the device configuration interface.
 3. Use the graphical interface to set up the NixOS modules and services you want to include in your device's image.
 4. Save the configuration when done.
