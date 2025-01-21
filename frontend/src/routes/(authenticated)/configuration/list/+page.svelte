@@ -120,7 +120,7 @@
 
 <div class="flex justify-between mb-4">
 	<div class="flex gap-4">
-		<h1 class="text-3xl font-bold dark:text-white">{$t('nav.devices')}</h1>
+		<h1 class="text-3xl font-bold dark:text-white">{$t('configurations.title')}</h1>
 		<Button
 			color="alternative"
 			class="whitespace-nowrap gap-2 px-2 py-1 m-1"
@@ -128,7 +128,7 @@
 			disabled={devices.length >= 5}
 		>
 			<Plus size={20} />
-			{$t('devices.create-new', {
+			{$t('configurations.create-new', {
 				values: {
 					deviceCount: devices.length,
 					deviceLimit: 5
@@ -138,7 +138,7 @@
 	</div>
 	{#if devices.length >= 5}
 		<Tooltip class="z-50 whitespace-pre">
-			{$t('devices.limit-explain', {
+			{$t('configurations.limit-explain', {
 				values: {
 					deviceLimit: 5
 				}
@@ -152,10 +152,9 @@
 <Table shadow>
 	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2 w-12" />
-		<TableHeadCell padding="p-2">{$t('devices.table.name')}</TableHeadCell>
-		<!-- <TableHeadCell padding="p-2">{$t('devices.table.target-host')}</TableHeadCell> -->
-		<TableHeadCell padding="p-2">{$t('devices.table.tags')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('devices.table.actions')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('configurations.table.name')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('configurations.table.tags')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('configurations.table.actions')}</TableHeadCell>
 	</TableHead>
 	<tbody
 		use:dndzone={{ items: devices, dragDisabled, flipDurationMs }}
@@ -201,14 +200,13 @@
 							{/if}
 						{:else}
 							<Helper color="green">
-								{$t('create-device.name-helper', {
+								{$t('create-configuration.name-helper', {
 									values: { identifier: nameToIdentifier(newDisplayName) }
 								})}
 							</Helper>
 						{/if}
 					</svelte:fragment>
 				</TableBodyEditCell>
-				<!-- <TableBodyCell>{$t('devices.unknown-target')}</TableBodyCell> -->
 				<TableBodyCell tdClass="p-2 px-2 md:px-4">
 					<div class="flex justify-between">
 						<div class="flex gap-2">
@@ -242,7 +240,7 @@
 							)}`}
 						>
 							<Search size={18} class="min-w-3" />
-							{$t('devices.actions.view-details')}
+							{$t('configurations.actions.view-details')}
 						</Button>
 					</div>
 				</TableBodyCell>

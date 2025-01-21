@@ -22,7 +22,7 @@
 </script>
 
 <Modal
-	title={$t('devices.edit-tags-title')}
+	title={$t('configurations.edit-tags-title')}
 	open={!!currentlyEditingDevice}
 	on:close={() => (currentlyEditingDevice = undefined)}
 	outsideclose
@@ -31,7 +31,7 @@
 	<div class="w-full">
 		{#if projectTags.length > 0}
 			<Label for="tags">
-				{$t('create-device.tags')}
+				{$t('create-configuration.tags')}
 				<MultiSelect
 					id="tags"
 					options={tagsSelect}
@@ -40,7 +40,7 @@
 				/>
 			</Label>
 		{:else}
-			<P>{$t('create-device.no-tags')}</P>
+			<P>{$t('create-configuration.no-tags')}</P>
 		{/if}
 	</div>
 	<div class="flex justify-end gap-2">

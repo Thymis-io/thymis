@@ -17,32 +17,34 @@ export const nameToIdentifier = (displayName: string): string => {
 
 export const nameValidation = (displayName: string, targetType: string): string | undefined => {
 	if (displayName.length === 0) {
-		return get(t)('create-device.display-name-cannot-be-empty');
+		return get(t)('create-configuration.display-name-cannot-be-empty');
 	}
 
 	const identifier = nameToIdentifier(displayName);
 
 	if (targetType === 'config') {
 		if (get(state).devices.find((device) => device.displayName === displayName)) {
-			return get(t)('create-device.device-with-display-name-name-exists', {
+			return get(t)('create-configuration.device-with-display-name-name-exists', {
 				values: { displayName }
 			});
 		}
 
 		if (get(state).devices.find((device) => device.identifier === identifier)) {
-			return get(t)('create-device.identifier-exists');
+			return get(t)('create-configuration.identifier-exists');
 		}
 	} else if (targetType === 'tag') {
 		if (get(state).tags.find((tag) => tag.displayName === displayName)) {
-			return get(t)('create-device.tag-with-display-name-name-exists', { values: { displayName } });
+			return get(t)('create-configuration.tag-with-display-name-name-exists', {
+				values: { displayName }
+			});
 		}
 
 		if (get(state).tags.find((tag) => tag.identifier === identifier)) {
-			return get(t)('create-device.identifier-exists');
+			return get(t)('create-configuration.identifier-exists');
 		}
 	}
 };
 
 export const deviceTypeValidation = (deviceType: string | undefined): string | undefined => {
-	if (!deviceType) return get(t)('create-device.device-type-cannot-be-empty');
+	if (!deviceType) return get(t)('create-configuration.device-type-cannot-be-empty');
 };

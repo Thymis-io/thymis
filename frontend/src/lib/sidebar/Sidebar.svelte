@@ -73,9 +73,14 @@
 			href: '/overview'
 		},
 		{
-			name: $t('nav.devices'),
+			name: $t('nav.configurations'),
 			icon: ServerSolid,
 			href: '/configuration/list'
+		},
+		{
+			name: $t('nav.devices'),
+			icon: ServerSolid,
+			href: '/devices'
 		},
 		{
 			name: $t('nav.tags'),

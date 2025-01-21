@@ -37,13 +37,13 @@
 >
 	<form class="flex flex-col space-y-4">
 		<Label for="display-name">
-			{$t('create-device.display-name-tag')}
+			{$t('create-configuration.display-name-tag')}
 			<Input id="display-name" bind:value={displayName} />
 			{#if nameValidation(displayName, 'tag')}
 				<Helper color="red">{nameValidation(displayName, 'tag')}</Helper>
 			{:else}
 				<Helper color="green">
-					{$t('create-device.name-helper-tag', {
+					{$t('create-configuration.name-helper-tag', {
 						values: { identifier: nameToIdentifier(displayName) }
 					})}
 				</Helper>
