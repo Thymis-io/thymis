@@ -131,6 +131,13 @@
               alias run-dev="cd controller && UVICORN_PORT=8080 THYMIS_BASE_URL=http://127.0.0.1:8080 poetry run uvicorn thymis_controller.main:app --reload --host 0.0.0.0 --port 8080; cd .."
             '';
           };
+          onlyPlaywrightBrowsers = pkgs.mkShell {
+            packages = [ pkgs.playwright-driver.browsers ];
+            shellHook = ''
+              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+              export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+            '';
+          };
         });
 
 
