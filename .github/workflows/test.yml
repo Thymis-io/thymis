@@ -39,10 +39,13 @@ jobs:
           nix develop --command poetry run python -m pytest -sxv
         working-directory: controller
 
-  test-frontend:
+  test-frontend-integration:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: dbhi/qus/action@main
+        with:
+          targets: aarch64
       - name: Install Nix
         uses: cachix/install-nix-action@v27
         with:
@@ -50,6 +53,7 @@ jobs:
             system-features = kvm
             extra-trusted-public-keys = cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=
             extra-substituters = https://cache.thymis.io
+            extra-platforms = aarch64-linux
       - uses: DeterminateSystems/magic-nix-cache-action@v2
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -113,6 +117,6 @@ jobs:
           pre-commit run --all-files
   test:
     runs-on: ubuntu-latest
-    needs: [test-controller, test-frontend, test-pre-commit]
+    needs: [test-controller, test-frontend-integration, test-pre-commit]
     steps:
       - run: echo "Build successful"
