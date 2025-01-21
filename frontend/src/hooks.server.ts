@@ -1,4 +1,5 @@
 import type { Handle, HandleFetch } from '@sveltejs/kit';
+import '$lib/i18n';
 import { locale } from 'svelte-i18n';
 import { controllerHost } from '$lib/api';
 
