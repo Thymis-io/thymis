@@ -278,7 +278,7 @@ class TaskWorkerPoolManager:
                     db_session.commit()
                     self.ui_subscription_manager.notify_task_update(parent_task)
 
-        logger.info("Task %s finished", task_id)
+            logger.info("Task %s finished with state %s", task_id, task.state)
 
     def subscribe_ui(self, ui_subscription_manager: "TaskUISubscriptionManager"):
         self._ui_subscription_manager = ui_subscription_manager

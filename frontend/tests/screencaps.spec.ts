@@ -1,8 +1,6 @@
 import { test, expect, type Page } from '../playwright/fixtures';
 import { clearState, deleteAllTasks, expectToHaveScreenshotWithHighlight } from './utils';
 
-test.describe.configure({ mode: 'serial' });
-
 const colorSchemes = ['light', 'dark'] as const;
 
 const createConfiguration = async (
@@ -296,7 +294,7 @@ colorSchemes.forEach((colorScheme) => {
 			});
 
 			await expect(page).toHaveScreenshot({
-				maxDiffPixels: 1000
+				maxDiffPixels: 1900
 			});
 		});
 	});

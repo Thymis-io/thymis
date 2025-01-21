@@ -44,6 +44,7 @@ const commandFrame = (cmd) =>
 	);
 
 const config: PlaywrightTestConfig = {
+	workers: 1, // serial execution, but not with interdependent tests, but only one application instance
 	retries: 3,
 	webServer: {
 		command: commandFrame(command),
