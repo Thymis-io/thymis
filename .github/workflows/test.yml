@@ -73,7 +73,7 @@ jobs:
             echo "Playwright tests failed due to a snapshot issue"
             echo "SNAPSHOT_DIFFERENCES=true" >> $GITHUB_ENV
           fi
-          if grep -q "failed" output.log; then
+          if grep -q -e "\d+ failed" output.log; then
             echo "Playwright tests failed"
             exit 1
           fi
