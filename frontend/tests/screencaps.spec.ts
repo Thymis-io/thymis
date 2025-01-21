@@ -64,10 +64,10 @@ colorSchemes.forEach((colorScheme) => {
 			await expect(page).toHaveScreenshot();
 		});
 
-		test('shows devices', async ({ page, request }) => {
+		test('shows configuration', async ({ page, request }) => {
 			await clearState(page, request);
 			await deleteAllTasks(page, request);
-			const resp = await page.goto('/devices');
+			const resp = await page.goto('/configuration/list');
 
 			// 200 OK is expected
 			expect(resp?.status()).toBe(200);
@@ -123,7 +123,7 @@ colorSchemes.forEach((colorScheme) => {
 			await deleteAllTasks(page, request);
 
 			// Navigate to the Devices page
-			await page.goto('/devices');
+			await page.goto('/configuration/list');
 			await expect(page).toHaveScreenshot();
 
 			// Navigate to the Tags page
@@ -215,7 +215,7 @@ colorSchemes.forEach((colorScheme) => {
 			await expect(page).toHaveScreenshot();
 
 			// Assign the tag
-			await page.goto('/devices');
+			await page.goto('/configuration/list');
 
 			await page.locator('button').filter({ hasText: 'Create New Device' }).click();
 			await page.locator('#display-name').first().fill('Whoami Device');
@@ -247,7 +247,7 @@ colorSchemes.forEach((colorScheme) => {
 			await deleteAllTasks(page, request);
 
 			// Go to devices page
-			await page.goto('/devices');
+			await page.goto('/configuration/list');
 
 			// Click on "Update" button
 			const updateButton = page.locator('button').filter({ hasText: 'Update' });

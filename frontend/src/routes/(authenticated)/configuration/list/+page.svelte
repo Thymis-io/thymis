@@ -21,7 +21,7 @@
 	import CreateDeviceModal from './CreateDeviceModal.svelte';
 	import EditTagModal from '$lib/EditTagModal.svelte';
 	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
-	import type { PageData } from './$types';
+	import type { PageData } from '../../devices/$types';
 	import { dndzone, SOURCES, TRIGGERS, type DndEvent } from 'svelte-dnd-action';
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
