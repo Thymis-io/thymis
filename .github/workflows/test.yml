@@ -87,7 +87,7 @@ jobs:
           retention-days: 30
       - name: Comment on PR with report link
         uses: thollander/actions-comment-pull-request@v3
-        if: ${{ env.SNAPSHOT_DIFFERENCES == 'true' }}
+        if: ${{ always() && env.SNAPSHOT_DIFFERENCES == 'true' }}
         with:
           message: |
             ### Playwright visual snapshot differences were detected.
