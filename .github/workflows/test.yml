@@ -70,11 +70,10 @@ jobs:
         run: |
           npm run test 2>&1 | tee output.log
           if grep -q -e "Error: A snapshot doesn't exist at" -e "Screenshot comparison failed" output.log; then
-            echo "Playwright tests failed due to a snapshot issue."
+            echo "Playwright tests failed due to a snapshot issue"
             echo "SNAPSHOT_DIFFERENCES=true" >> $GITHUB_ENV
-            exit 1
-          elif grep -q "failed" output.log; then
-            echo "Playwright tests failed due to a non-snapshot issue."
+          if grep -q "failed" output.log; then
+            echo "Playwright tests failed"
             exit 1
           fi
         working-directory: frontend
@@ -87,7 +86,7 @@ jobs:
           retention-days: 30
       - name: Comment on PR with report link
         uses: thollander/actions-comment-pull-request@v3
-        if: ${{ failure() && env.SNAPSHOT_DIFFERENCES == 'true' }}
+        if: ${{ env.SNAPSHOT_DIFFERENCES == 'true' }}
         with:
           message: |
             ### Playwright visual snapshot differences were detected.

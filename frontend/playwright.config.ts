@@ -60,7 +60,8 @@ const config: PlaywrightTestConfig = {
 		launchOptions: {
 			args: ['--disable-lcd-text']
 		},
-		video: 'on-first-retry'
+		video: 'retain-on-failure',
+		trace: 'retain-on-failure'
 	},
 	reporter: [['list'], ['html']],
 	expect: {
