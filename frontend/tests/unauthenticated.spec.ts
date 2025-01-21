@@ -29,7 +29,7 @@ colorSchemes.forEach((colorScheme) => {
 			await expectPageToHaveScreenshotWithHighlight(page, homepageLink);
 			await homepageLink.click();
 
-			await expect(page.url()).toBe('https://thymis.io');
+			await expect(page.url()).toBe('https://thymis.io/en');
 
 			await page.goBack();
 			await expect(page.url()).toBe('http://localhost:8000/login');
@@ -38,7 +38,7 @@ colorSchemes.forEach((colorScheme) => {
 			await expectPageToHaveScreenshotWithHighlight(page, docsLink);
 			await docsLink.click();
 
-			await expect(page.url()).toBe('https://thymis.io/docs');
+			await expect(page.url()).toBe('https://docs.thymis.io/');
 
 			await page.goBack();
 			await expect(page.url()).toBe('http://localhost:8000/login');
