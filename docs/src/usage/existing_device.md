@@ -23,8 +23,8 @@ To add an existing NixOS device to Thymis, follow these steps:
 
 ### Step 2: Add a New Device
 
-1. Click on the **Devices** tab in the sidebar.
-2. Select **Create New Device**.
+1. Click on the **Configurations** tab in the sidebar.
+2. Select **Create New Configuration**.
 3. Fill in the required details, such as the device name, hardware model, as well as tags to associate with the device.
 
 ![Thymis create device screen](thymis-create-device.png)

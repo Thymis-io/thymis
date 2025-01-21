@@ -9,9 +9,11 @@ const createConfiguration = async (
 	deviceType: string,
 	tags: string[]
 ) => {
-	await page.goto('/devices');
+	await page.goto('/configuration/list');
 
-	const addConfigurationButton = page.locator('button').filter({ hasText: 'Create New Device' });
+	const addConfigurationButton = page
+		.locator('button')
+		.filter({ hasText: 'Create New Configuration' });
 	await addConfigurationButton.click();
 
 	const displayNameInput = page.locator('#display-name').first();
@@ -28,7 +30,7 @@ const createConfiguration = async (
 		await page.getByRole('option', { name: tag }).click();
 	}
 
-	const saveButton = page.locator('button').filter({ hasText: 'Create device' });
+	const saveButton = page.locator('button').filter({ hasText: 'Create device configuration' });
 	await saveButton.click();
 };
 
@@ -73,9 +75,11 @@ colorSchemes.forEach((colorScheme) => {
 			expect(resp?.status()).toBe(200);
 			await expect(page).toHaveScreenshot();
 
-			// We can add Devices
-			const addDeviceButton = page.locator('button').filter({ hasText: 'Create New Device' });
-			await addDeviceButton.click();
+			// We can add Configurations
+			const addConfigurationButton = page
+				.locator('button')
+				.filter({ hasText: 'Create New Configuration' });
+			await addConfigurationButton.click();
 
 			await expect(page).toHaveScreenshot();
 
@@ -86,7 +90,7 @@ colorSchemes.forEach((colorScheme) => {
 			const deviceTypeSelect = page.locator('#device-type').first();
 			await deviceTypeSelect.selectOption({ label: 'Raspberry Pi 4' });
 
-			const saveButton = page.locator('button').filter({ hasText: 'Create device' });
+			const saveButton = page.locator('button').filter({ hasText: 'Create device configuration' });
 			console.log(`Is save button disabled? ${await saveButton.isDisabled()}`);
 			await saveButton.click();
 
@@ -217,10 +221,10 @@ colorSchemes.forEach((colorScheme) => {
 			// Assign the tag
 			await page.goto('/configuration/list');
 
-			await page.locator('button').filter({ hasText: 'Create New Device' }).click();
+			await page.locator('button').filter({ hasText: 'Create New Configuration' }).click();
 			await page.locator('#display-name').first().fill('Whoami Device');
 			await page.locator('#device-type').first().selectOption({ label: 'Raspberry Pi 4' });
-			await page.locator('button').filter({ hasText: 'Create device' }).click();
+			await page.locator('button').filter({ hasText: 'Create device configuration' }).click();
 
 			const editTagButton = page
 				.locator('tr')
@@ -279,8 +283,8 @@ colorSchemes.forEach((colorScheme) => {
 				await createConfiguration(page, device.name, 'Raspberry Pi 4', device.tags);
 			}
 
-			// Go to devices page
-			await page.goto('/devices');
+			// Go to configuration list
+			await page.goto('/configuration/list');
 
 			// Create a update task as well as a project build task
 			await page.locator('button').filter({ hasText: 'Update' }).click();
