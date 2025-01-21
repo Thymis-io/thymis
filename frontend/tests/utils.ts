@@ -1,4 +1,10 @@
-import { expect, type APIRequestContext, type Locator, type Page } from '../playwright/fixtures';
+import {
+	expect,
+	type APIRequestContext,
+	type Locator,
+	type Page,
+	type PageAssertionsToHaveScreenshotOptions
+} from '../playwright/fixtures';
 
 export const highlightLocator = async (screenshotTarget: Page | Locator, locator: Locator) => {
 	const boundingBox = await locator.boundingBox();
@@ -36,10 +42,11 @@ export const unhighlightAll = async (screenshotTarget: Page | Locator) => {
 
 export const expectToHaveScreenshotWithHighlight = async (
 	screenshotTarget: Page | Locator,
-	highlightedElement: Locator
+	highlightedElement: Locator,
+	options?: PageAssertionsToHaveScreenshotOptions
 ) => {
 	await highlightLocator(screenshotTarget, highlightedElement);
-	await expect(screenshotTarget).toHaveScreenshot();
+	await expect(screenshotTarget).toHaveScreenshot(options);
 	await unhighlightAll(screenshotTarget);
 };
 
