@@ -90,13 +90,13 @@ colorSchemes.forEach((colorScheme) => {
 			console.log(`Is save button disabled? ${await saveButton.isDisabled()}`);
 			await saveButton.click();
 
-			const viewDetailsButton = page.locator('a', { hasText: 'View Details' }).first();
+			const viewDetailsButton = page.getByRole('button', { name: 'View Details' }).first();
 			await viewDetailsButton.waitFor();
 
 			await expect(page).toHaveScreenshot();
 
 			// go to device details page, delete device
-			await viewDetailsButton.click();
+			await page.getByRole('button', { name: 'View Details' }).first().click();
 
 			await page.waitForURL('http://localhost:8000/configuration/configuration-details*');
 
