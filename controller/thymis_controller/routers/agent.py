@@ -33,7 +33,7 @@ def device_notify(
     if (
         device_notify_request.commit_hash and device_notify_request.config_id
     ) and not check_device_reference(
-        project.path,
+        project.repo_dir,
         device_notify_request.commit_hash,
         device_notify_request.config_id,
     ):
@@ -43,7 +43,7 @@ def device_notify(
             device_notify_request.public_key,
             device_notify_request.commit_hash,
             device_notify_request.config_id,
-            project.path,
+            project.repo_dir,
         )
         raise HTTPException(
             status_code=400
