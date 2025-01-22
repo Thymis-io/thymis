@@ -2,7 +2,7 @@ import uuid
 from typing import Dict
 
 from git import List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from thymis_controller import db_models
 
 
@@ -65,6 +65,8 @@ class CreateHostkeyRequest(BaseModel):
 
 
 class HardwareDevice(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     hardware_ids: Dict[str, str]
     deployment_info: DeploymentInfo

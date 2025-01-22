@@ -24,46 +24,20 @@
 	bind:open={editDeploymentInfoModalOpen}
 	configIdentifier={device.identifier}
 />
-<Section class={className} title={$t('configuration-details.hostkey')}>
+<Section class={className} title={$t('configuration-details.deployment-info')}>
 	<div class="flex flex-col gap-2">
 		{#each deploymentInfos as deploymentInfo}
 			{#if deploymentInfo}
-				<div class="grid grid-cols-[max-content_1fr] gap-x-2">
-					<p class="break-all text-base">{$t('configuration-details.targetHost')}:</p>
-					<p class="break-all text-base">{deploymentInfo.reachable_deployed_host}</p>
-					<p class="break-all text-base">{$t('configuration-details.publicKey')}:</p>
-					<p class="break-all text-base">{deploymentInfo.ssh_public_key}</p>
+				<div class="grid grid-cols-[max-content_max-content_max-content_1fr] gap-x-2">
+					<p class="break-all text-base">{$t('configuration-details.deployed-at')}:</p>
+					<p class="break-all text-base">
+						{deploymentInfo.reachable_deployed_host},
+						{deploymentInfo.deployed_config_commit.slice(0, 8)}
+					</p>
 				</div>
 			{/if}
-			<div class="flex flex-row gap-2">
-				<Button
-					size="sm"
-					class="gap-2 p-2 py-1.5"
-					color="alternative"
-					on:click={() => {
-						editDeploymentInfoModalOpen = true;
-						currentDeploymentInfo = deploymentInfo;
-					}}
-				>
-					<Pencil size={16} />
-					<span class="text.-base">{$t('configuration-details.edit-hostkey')}</span>
-				</Button>
-			</div>
 		{:else}
-			<div class="flex flex-row gap-2">
-				<Button
-					size="sm"
-					class="gap-2"
-					color="alternative"
-					on:click={() => {
-						editDeploymentInfoModalOpen = true;
-						currentDeploymentInfo = undefined;
-					}}
-				>
-					<CirclePlus size={'1rem'} class="min-w-4" />
-					<span>{$t('configuration-details.add-hostkey')}</span>
-				</Button>
-			</div>
+			<p class="text-base">{$t('configuration-details.no-deployment-info')}</p>
 		{/each}
 	</div>
 </Section>
