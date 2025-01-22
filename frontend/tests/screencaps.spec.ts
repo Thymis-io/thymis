@@ -90,10 +90,12 @@ colorSchemes.forEach((colorScheme) => {
 			console.log(`Is save button disabled? ${await saveButton.isDisabled()}`);
 			await saveButton.click();
 
+			const viewDetailsButton = page.locator('a', { hasText: 'View Details' }).first();
+			await viewDetailsButton.waitFor();
+
 			await expect(page).toHaveScreenshot();
 
 			// go to device details page, delete device
-			const viewDetailsButton = page.locator('a', { hasText: 'View Details' }).first();
 			await viewDetailsButton.click();
 
 			await expect(page).toHaveScreenshot();
