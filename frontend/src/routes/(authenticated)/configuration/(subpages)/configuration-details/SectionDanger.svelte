@@ -14,7 +14,8 @@
 	const deleteDevice = async (device: Device) => {
 		$state.devices = $state.devices.filter((d) => d.identifier !== device.identifier);
 		await saveState();
-		await goto('/configuration/list');
+		// await goto('/devices');
+		setTimeout(async () => await goto('/configuration/list'), 200);
 	};
 
 	let className = '';
