@@ -10,6 +10,7 @@ from multiprocessing.connection import Connection, Pipe
 from typing import assert_never
 
 import sqlalchemy.orm
+import thymis_controller.crud as crud
 import thymis_controller.crud.task as crud_task
 import thymis_controller.models.task as models_task
 from thymis_controller.task.subscribe_ui import TaskUISubscriptionManager
@@ -194,6 +195,13 @@ class TaskWorkerPoolManager:
                             task.process_args = message.update.args[1:]
                             task.process_env = message.update.env
                             db_session.commit()
+                        case models_task.ImageBuiltUpdate():
+                            crud.agent_token.create(
+                                db_session,
+                                config_commit=message.update.configuration_commit,
+                                config_id=message.update.configuration_id,
+                                token=message.update.token,
+                            )
                         case _:
                             assert_never(message.update)
 
