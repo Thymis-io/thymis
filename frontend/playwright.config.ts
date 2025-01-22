@@ -70,8 +70,7 @@ const config: PlaywrightTestConfig = {
 			maxDiffPixels: 15,
 			threshold: 0.1
 		}
-	},
-	workers: 1
+	}
 };
 
 export default config;
