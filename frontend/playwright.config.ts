@@ -30,6 +30,7 @@ const commandFrame = (cmd) =>
 				withEnv(
 					{
 						THYMIS_PROJECT_PATH: '$TMPDIR',
+						THYMIS_AUTH_BASIC_PASSWORD_FILE: '$TMPDIR/auth-basic-password',
 						RUNNING_IN_PLAYWRIGHT: 'true'
 					},
 					withContentInFile('testadminpassword', '$THYMIS_AUTH_BASIC_PASSWORD_FILE', cmd)
