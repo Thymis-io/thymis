@@ -114,8 +114,3 @@ jobs:
       - name: Run pre-commit
         run: |
           pre-commit run --all-files
-  test:
-    runs-on: ubuntu-latest
-    needs: [test-controller, test-frontend-integration, test-pre-commit]
-    steps:
-      - run: echo "Build successful"
