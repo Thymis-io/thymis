@@ -18,6 +18,7 @@
 	import GearSolid from 'svelte-awesome-icons/GearSolid.svelte';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import TagIcon from 'lucide-svelte/icons/tag';
+	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import { state } from '$lib/state';
 	import GlobalNavSelect from '$lib/sidebar/GlobalNavSelect.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
@@ -74,7 +75,7 @@
 		},
 		{
 			name: $t('nav.configurations'),
-			icon: ServerSolid,
+			icon: FileCode,
 			href: '/configuration/list'
 		},
 		{

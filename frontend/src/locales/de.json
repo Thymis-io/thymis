@@ -70,7 +70,8 @@
 			"hardware-ids": "Hardware-IDs",
 			"reachable-deployed-host": "Ziel Host",
 			"device-type": "Gerätetyp",
-			"ssh-public-key": "Öffentlicher SSH-Schlüssel"
+			"ssh-public-key": "Öffentlicher SSH-Schlüssel",
+			"deployed-config-commit": "Konfigurations-Commit"
 		},
 		"hardware-keys": {
 			"pi-serial-number": "Pi Seriennummer"
@@ -270,13 +271,16 @@
 		"network": "Netzwerk",
 		"tags": "Tags",
 		"targetHost": "Ziel Host",
+		"deployed-at": "Deployed",
 		"hostkey": "Hostkey",
+		"deployment-info": "Deploy-Informationen",
 		"publicKey": "Public Key",
 		"add-hostkey": "Hostkey Setzen",
 		"delete-hostkey": "Hostkey Löschen",
 		"edit-hostkey": "Hostkey Bearbeiten",
 		"refresh-hostkey": "Hostkey Aktualisieren",
-		"edit-tags": "Tags Bearbeiten"
+		"edit-tags": "Tags Bearbeiten",
+		"no-deployment-info": "Auf keinen Geräten deployt"
 	},
 	"edit-hostkey": {
 		"create": "Erstellen",

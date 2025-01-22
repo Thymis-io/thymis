@@ -70,7 +70,8 @@
 			"hardware-ids": "Hardware IDs",
 			"reachable-deployed-host": "Target Host",
 			"device-type": "Device Type",
-			"ssh-public-key": "Public SSH Key"
+			"ssh-public-key": "Public SSH Key",
+			"deployed-config-commit": "Config Commit"
 		},
 		"hardware-keys": {
 			"pi-serial-number": "Pi Serial Number"
@@ -265,18 +266,21 @@
 	"configuration-details": {
 		"network": "Network",
 		"targetHost": "Target Host",
+		"deployed-at": "Deployed",
 		"tags": "Tags",
 		"config": "Configuration",
 		"actions": "Actions",
 		"danger": "Danger",
 		"modules": "Modules",
 		"hostkey": "Hostkey",
+		"deployment-info": "Deployment Info",
 		"publicKey": "Public Key",
 		"edit-hostkey": "Edit Hostkey",
 		"add-hostkey": "Set Hostkey",
 		"refresh-hostkey": "Refresh Hostkey",
 		"delete-hostkey": "Delete Hostkey",
-		"edit-tags": "Edit Tags"
+		"edit-tags": "Edit Tags",
+		"no-deployment-info": "Not deployed on any devices"
 	},
 	"edit-hostkey": {
 		"title": "Edit Hostkey",

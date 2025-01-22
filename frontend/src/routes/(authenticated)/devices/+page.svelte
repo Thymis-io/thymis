@@ -9,6 +9,7 @@
 	import { flip } from 'svelte/animate';
 	import GripVertical from 'lucide-svelte/icons/grip-vertical';
 	import Pen from 'lucide-svelte/icons/pen';
+	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import { getDeviceTypesMap, getDeviceType } from '$lib/config/configUtils';
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import { page } from '$app/stores';
@@ -94,6 +95,9 @@
 			{$t('hardware-devices.table.reachable-deployed-host')}
 		</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.configuration-name')}</TableHeadCell>
+		<TableHeadCell padding="p-2">
+			{$t('hardware-devices.table.deployed-config-commit')}
+		</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.device-type')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.hardware-ids')}</TableHeadCell>
 	</TableHead>
@@ -112,20 +116,22 @@
 				animate:flip={{ duration: flipDurationMs }}
 			>
 				<TableBodyCell tdClass="p-2">
-					<div class="flex items-center justify-center">
-						<div
-							tabindex={dragDisabled ? 0 : -1}
-							aria-label="drag-handle"
-							role="button"
-							class="handle"
-							style={dragDisabled ? 'cursor: grab' : 'cursor: grabbing'}
-							on:mousedown={startDrag}
-							on:touchstart={startDrag}
-							on:keydown={handleKeyDown}
-						>
-							<GripVertical size={'1rem'} class="min-w-4" />
+					{#if false}
+						<div class="flex items-center justify-center">
+							<div
+								tabindex={dragDisabled ? 0 : -1}
+								aria-label="drag-handle"
+								role="button"
+								class="handle"
+								style={dragDisabled ? 'cursor: grab' : 'cursor: grabbing'}
+								on:mousedown={startDrag}
+								on:touchstart={startDrag}
+								on:keydown={handleKeyDown}
+							>
+								<GripVertical size={'1rem'} class="min-w-4" />
+							</div>
 						</div>
-					</div>
+					{/if}
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					<div class="flex gap-2">
@@ -144,10 +150,14 @@
 				<TableBodyCell tdClass="p-2">
 					<a
 						href={`/configuration/configuration-details?${buildGlobalNavSearchParam($page.url.search, 'config', deployedConfig?.identifier)}`}
-						class="underline"
+						class="underline flex items-center gap-2"
 					>
+						<FileCode size={18} />
 						{deployedConfig?.displayName}
 					</a>
+				</TableBodyCell>
+				<TableBodyCell tdClass="p-2">
+					{hardwareDevice.deployment_info?.deployed_config_commit.slice(0, 8)}
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					{deviceType && deviceType in deviceTypes ? deviceTypes[deviceType] : deviceType}
