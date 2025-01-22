@@ -98,6 +98,8 @@ colorSchemes.forEach((colorScheme) => {
 			// go to device details page, delete device
 			await viewDetailsButton.click();
 
+			await page.waitForURL('http://localhost:8000/configuration/configuration-details*');
+
 			await expect(page).toHaveScreenshot();
 
 			const deleteButton = page.locator('button').filter({ hasText: 'Delete' });
