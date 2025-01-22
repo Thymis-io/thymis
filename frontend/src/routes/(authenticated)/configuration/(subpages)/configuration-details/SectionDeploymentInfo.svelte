@@ -6,7 +6,7 @@
 	import Pencil from 'lucide-svelte/icons/pencil';
 	import CirclePlus from 'lucide-svelte/icons/circle-plus';
 	import type { Device } from '$lib/state';
-	import EditDeploymentInfo from './EditDeploymentInfo.svelte';
+	import EditDeploymentInfo from '$lib/EditDeploymentInfo.svelte';
 
 	export let deploymentInfos: DeploymentInfo[] = [];
 	export let device: Device;
@@ -22,7 +22,7 @@
 <EditDeploymentInfo
 	bind:deploymentInfo={currentDeploymentInfo}
 	bind:open={editDeploymentInfoModalOpen}
-	{device}
+	configIdentifier={device.identifier}
 />
 <Section class={className} title={$t('configuration-details.hostkey')}>
 	<div class="flex flex-col gap-2">

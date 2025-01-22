@@ -10,7 +10,7 @@
 </script>
 
 <TableBodyCell tdClass="p-2 px-2 md:px-4">
-	<div class="flex justify-between gap-2 p-0" use:clickOutside={() => (isEditing = false)}>
+	<div class="flex gap-4 p-0" use:clickOutside={() => (isEditing = false)}>
 		{#if isEditing}
 			<Input
 				class="w-full min-w-32"
@@ -25,9 +25,9 @@
 				}}
 			/>
 		{:else}
-			<span class="w-full p-0">{value}</span>
+			<span class="p-0">{value}</span>
 		{/if}
-		<button class="btn ml-2" on:click={() => (isEditing = !isEditing)}>
+		<button on:click={() => (isEditing = !isEditing)}>
 			<Pen size={'1rem'} class="min-w-4" />
 		</button>
 	</div>

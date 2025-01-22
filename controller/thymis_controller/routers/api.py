@@ -327,6 +327,14 @@ def create_deployment_info(
     return result
 
 
+@router.get("/hardware_device", response_model=list[models.HardwareDevice])
+def get_hardware_devices(db_session: SessionAD):
+    """
+    Get all hardware devices
+    """
+    return crud.hardware_device.get_all(db_session)
+
+
 @router.post("/rename_config_id_legacy")
 def rename_config_id_legacy(
     db_session: SessionAD,

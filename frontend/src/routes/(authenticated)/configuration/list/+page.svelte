@@ -208,7 +208,7 @@
 					</svelte:fragment>
 				</TableBodyEditCell>
 				<TableBodyCell tdClass="p-2 px-2 md:px-4">
-					<div class="flex justify-between">
+					<div class="flex gap-4">
 						<div class="flex gap-2">
 							{#each device.data.tags as tag, i}
 								<Button
@@ -223,7 +223,7 @@
 								</Button>
 							{/each}
 						</div>
-						<button class="btn ml-2 p-0" on:click={() => (currentlyEditingDevice = device.data)}>
+						<button class="p-0" on:click={() => (currentlyEditingDevice = device.data)}>
 							<Pen size={'1rem'} class="min-w-4" />
 						</button>
 					</div>
