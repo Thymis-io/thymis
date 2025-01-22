@@ -76,7 +76,7 @@ jobs:
             echo "Playwright tests failed due to a snapshot issue"
             echo "SNAPSHOT_DIFFERENCES=true" >> $GITHUB_ENV
           fi
-          if grep -q -E -e "[[:digit:]]+ failed" output.log; then
+          if grep -q -E -e "[[:digit:]]+ failed" -e "was not able to start" output.log; then
             echo "Playwright tests failed"
             exit 1
           fi
