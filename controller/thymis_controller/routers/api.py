@@ -96,7 +96,7 @@ async def deploy(
         models.DeployDevicesTaskSubmission(
             devices=devices,
             project_path=str(project.path),
-            ssh_key_path=str(global_settings.SSH_KEY_PATH),
+            ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
             known_hosts_path=str(project.known_hosts_path),
         ),
         db_session=session,
@@ -145,7 +145,7 @@ async def restart_device(
                 target_user="root",
                 target_port=22,
                 command="reboot",
-                ssh_key_path=str(global_settings.SSH_KEY_PATH),
+                ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
                 ssh_known_hosts_path=str(project.known_hosts_path),
             ),
             db_session=db_session,
@@ -391,7 +391,7 @@ async def terminal_websocket(
         PKey.from_type_string(keytype, base64.b64decode(key)),
     )
 
-    pkey: PKey = PKey.from_path(global_settings.SSH_KEY_PATH)
+    pkey: PKey = PKey.from_path(global_settings.PROJECT_PATH / "id_thymis")
 
     try:
         channel = await run_in_threadpool(

@@ -10,7 +10,6 @@ import sys
 import tempfile
 import threading
 import traceback
-from pathlib import Path
 
 import git
 import paramiko
@@ -136,16 +135,24 @@ class Project:
         self.path = pathlib.Path(path)
         # create the path if not exists
         self.path.mkdir(exist_ok=True, parents=True)
+        self.repo_dir = self.path / "repository"
         # create a git repo if not exists
         if not (self.path / ".git").exists():
             print("Initializing git repo")
-            self.repo = git.Repo.init(self.path)
+            self.repo = git.Repo.init(self.repo_dir)
         else:
-            self.repo = git.Repo(self.path)
+            self.repo = git.Repo(self.repo_dir)
 
         # get public key of controller instance
         public_key_process = subprocess.run(
-            ["ssh-keygen", "-y", "-f", global_settings.SSH_KEY_PATH, "-P", ""],
+            [
+                "ssh-keygen",
+                "-y",
+                "-f",
+                global_settings.PROJECT_PATH / "id_thymis",
+                "-P",
+                "",
+            ],
             capture_output=True,
             text=True,
         )
@@ -157,7 +164,7 @@ class Project:
             self.public_key = public_key_process.stdout.strip()
 
         # create a state, if not exists
-        state_path = self.path / "state.json"
+        state_path = self.repo_dir / "state.json"
         if not state_path.exists():
             self.write_state_and_reload(State())
         # migrate the state and write it back now
@@ -175,33 +182,33 @@ class Project:
         self.update_known_hosts(db_session)
 
     def read_state(self):
-        with open(Path(self.path) / "state.json", "r", encoding="utf-8") as f:
+        with open(self.repo_dir / "state.json", "r", encoding="utf-8") as f:
             state_json = f.read()
         state = State.model_validate_json(state_json)
         return state
 
     def write_state_and_reload(self, state: State):
-        with open(self.path / "state.json", "w", encoding="utf-8") as f:
+        with open(self.repo_dir / "state.json", "w", encoding="utf-8") as f:
             f.write(state.model_dump_json(indent=2))
         # write a flake.nix
         repositories = BUILTIN_REPOSITORIES | state.repositories
-        with open(self.path / "flake.nix", "w+", encoding="utf-8") as f:
+        with open(self.repo_dir / "flake.nix", "w+", encoding="utf-8") as f:
             f.write(render_flake_nix(repositories))
         self.repo.git.add(".")
         # write missing flake.lock entries using nix flake lock
         subprocess.run(
-            ["nix", *NIX_CMD[1:], "flake", "lock"], cwd=self.path, check=True
+            ["nix", *NIX_CMD[1:], "flake", "lock"], cwd=self.repo_dir, check=True
         )
-        self.set_repositories_in_python_path(self.path, state)
+        self.set_repositories_in_python_path(self.repo_dir, state)
         # create modules folder if not exists
-        modules_path = self.path / "modules"
+        modules_path = self.repo_dir / "modules"
         del_path(modules_path)
         modules_path.mkdir(exist_ok=True)
         # create and empty hosts, tags folder
-        del_path(self.path / "hosts")
-        del_path(self.path / "tags")
-        (self.path / "hosts").mkdir(exist_ok=True)
-        (self.path / "tags").mkdir(exist_ok=True)
+        del_path(self.repo_dir / "hosts")
+        del_path(self.repo_dir / "tags")
+        (self.repo_dir / "hosts").mkdir(exist_ok=True)
+        (self.repo_dir / "tags").mkdir(exist_ok=True)
         # for each host create its own folder
         for device in state.devices:
             # assert device.identifier, "identifier cannot be empty"
@@ -223,7 +230,7 @@ class Project:
     def create_folder_and_write_modules(
         self, base_path: str, identifier: str, modules, priority
     ):
-        path = self.path / base_path / identifier
+        path = self.repo_dir / base_path / identifier
         path.mkdir(exist_ok=True)
         os.mknod(path / ".gitkeep")
         for module_settings in modules:
