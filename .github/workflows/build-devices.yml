@@ -18,7 +18,7 @@ jobs:
             system-features = kvm
             extra-trusted-public-keys = cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=
             extra-substituters = https://cache.thymis.io
-      - uses: DeterminateSystems/magic-nix-cache-action@v2
+      - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: build thymis-controller-pi-3-sd-image
         run: nix build .#thymis-controller-pi-3-sd-image --print-build-logs
 
@@ -33,7 +33,7 @@ jobs:
             system-features = kvm
             extra-trusted-public-keys = cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=
             extra-substituters = https://cache.thymis.io
-      - uses: DeterminateSystems/magic-nix-cache-action@v2
+      - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: build thymis-controller-pi-4-sd-image
         run: nix build .#thymis-controller-pi-4-sd-image --print-build-logs
 
@@ -49,6 +49,6 @@ jobs:
             extra-trusted-public-keys = cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=
             extra-substituters = https://cache.thymis.io
             extra-platforms = aarch64-linux
-      - uses: DeterminateSystems/magic-nix-cache-action@v2
+      - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: build thymis-controller-pi-5-sd-image
         run: nix build .#thymis-controller-pi-5-sd-image --print-build-logs
