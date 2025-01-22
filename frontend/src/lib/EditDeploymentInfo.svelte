@@ -2,14 +2,13 @@
 	import { t } from 'svelte-i18n';
 	import { Button, Helper, Input, Label, Modal, Spinner, Tooltip } from 'flowbite-svelte';
 	import type { DeploymentInfo } from '$lib/deploymentInfo';
-	import type { Device } from '$lib/state';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import { invalidate } from '$app/navigation';
 
 	export let open = false;
 
 	export let deploymentInfo: DeploymentInfo | undefined;
-	export let device: Device;
+	export let configIdentifier: string | undefined;
 	let deviceHost: string = '';
 	let publicKey: string = '';
 	let isScanningPublicKey = false;
@@ -30,7 +29,7 @@
 	};
 
 	const submitData = async () => {
-		if (!device) return;
+		if (!configIdentifier) return;
 		if (deploymentInfo) {
 			const response = await fetchWithNotify(`/api/deployment_info/${deploymentInfo.id}`, {
 				method: 'PATCH',
@@ -41,7 +40,7 @@
 					id: deploymentInfo.id,
 					reachable_deployed_host: deviceHost,
 					ssh_public_key: publicKey,
-					deployed_config_id: device.identifier
+					deployed_config_id: configIdentifier
 				})
 			});
 		} else {
@@ -51,7 +50,7 @@
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					deployed_config_id: device.identifier,
+					deployed_config_id: configIdentifier,
 					reachable_deployed_host: deviceHost,
 					ssh_public_key: publicKey
 				})
@@ -61,6 +60,7 @@
 			}
 		}
 		await invalidate((url: URL) => url.pathname.search('deployment_info') !== -1);
+		await invalidate((url: URL) => url.pathname.search('hardware_device') !== -1);
 		open = false;
 	};
 

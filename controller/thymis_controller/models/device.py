@@ -64,6 +64,12 @@ class CreateHostkeyRequest(BaseModel):
     device_host: str
 
 
+class HardwareDevice(BaseModel):
+    id: uuid.UUID
+    hardware_ids: Dict[str, str]
+    deployment_info: DeploymentInfo
+
+
 __all__ = [
     "DeviceNotifyRequest",
     "Hostkey",
@@ -71,4 +77,5 @@ __all__ = [
     "CreateHostkeyRequest",
     "DeploymentInfo",
     "CreateDeploymentInfoLegacyHostkeyRequest",
+    "HardwareDevice",
 ]

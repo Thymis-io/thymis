@@ -10,6 +10,7 @@
 		"config-tag": "Configure Tag",
 		"configurations": "Configurations",
 		"devices": "Devices",
+		"hardware-devices": "Hardware Devices",
 		"history": "History",
 		"terminal": "Terminal",
 		"global-vnc": "VNC All Devices",
@@ -62,6 +63,18 @@
 		"new-tag-placeholder": "New Tag...",
 		"unknown-target": "Unknown Target",
 		"limit-explain": "You can manage up to {deviceLimit} configurations.\nFor larger projects, we offer scalable plans to meet your needs at thymis.io/"
+	},
+	"hardware-devices": {
+		"table": {
+			"configuration-name": "Deployed Configuration",
+			"hardware-ids": "Hardware IDs",
+			"reachable-deployed-host": "Target Host",
+			"device-type": "Device Type",
+			"ssh-public-key": "Public SSH Key"
+		},
+		"hardware-keys": {
+			"pi-serial-number": "Pi Serial Number"
+		}
 	},
 	"create-configuration": {
 		"title": "Create a new device configuration",

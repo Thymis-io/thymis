@@ -10,6 +10,7 @@
 		"config-tag": "Tag Konfigurieren",
 		"configurations": "Konfigurationen",
 		"devices": "Geräte",
+		"hardware-devices": "Hardware Geräte",
 		"history": "Versionen",
 		"terminal": "Terminal",
 		"global-vnc": "VNC Alle Geräte",
@@ -34,6 +35,7 @@
 	},
 	"configurations": {
 		"title": "Gerätekonfigurationen",
+		"details-title": "Konfiguration",
 		"create-new": "Neue Konfiguration Erstellen ({deviceCount}/{deviceLimit})",
 		"table": {
 			"name": "Name",
@@ -62,9 +64,20 @@
 		"unknown-target": "Unbekanntes Ziel",
 		"limit-explain": "Sie können bis zu {deviceLimit} Geräte verwalten.\nFür größere Projekte bieten wir auf thymis.io/ skalierbare Pläne an, die Ihren Anforderungen entsprechen"
 	},
+	"hardware-devices": {
+		"table": {
+			"configuration-name": "Genutzte Konfiguration",
+			"hardware-ids": "Hardware-IDs",
+			"reachable-deployed-host": "Ziel Host",
+			"device-type": "Gerätetyp",
+			"ssh-public-key": "Öffentlicher SSH-Schlüssel"
+		},
+		"hardware-keys": {
+			"pi-serial-number": "Pi Seriennummer"
+		}
+	},
 	"create-configuration": {
 		"title": "Neue Gerätekonfiguration Erstellen",
-		"details-title": "Konfiguration",
 		"next": "Weiter →",
 		"back": "← Zurück",
 		"step-1": {

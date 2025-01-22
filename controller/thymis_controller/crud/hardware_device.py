@@ -45,3 +45,7 @@ def create_or_update(
         db_session.refresh(overlapping_device)
         return overlapping_device
     return create(db_session, hardware_ids, deployment_info_id)
+
+
+def get_all(db_session: Session) -> list[db_models.HardwareDevice]:
+    return db_session.query(db_models.HardwareDevice).all()

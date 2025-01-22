@@ -1,34 +1,21 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Button, Helper, Input, Label, Modal, P, Select } from 'flowbite-svelte';
-	import {
-		type Device,
-		type Module,
-		saveState,
-		type SelectOneSettingType,
-		type SettingType,
-		state
-	} from '$lib/state';
+	import { type Device, type Module, saveState, state } from '$lib/state';
 	import { page } from '$app/stores';
 	import { nameToIdentifier, nameValidation, deviceTypeValidation } from '$lib/nameValidation';
 	import MultiSelect from 'svelte-multiselect';
+	import { getThymisDeviceModule, getDeviceTypesMap } from '$lib/config/configUtils';
 
 	export let open = false;
 
 	let displayName = '';
 
 	$: availableModules = $page.data.availableModules as Module[];
-	$: thymisDeviceModule = availableModules.find(
-		(module) => module.type === 'thymis_controller.modules.thymis.ThymisDevice'
-	);
-	const isASelectOneSetting = (type: SettingType | undefined): type is SelectOneSettingType =>
-		!!type && typeof type === 'object' && 'select-one' in type && Array.isArray(type['select-one']);
-	$: deviceTypes = isASelectOneSetting(thymisDeviceModule?.settings['device_type'].type)
-		? thymisDeviceModule?.settings['device_type'].type['select-one']
-		: [];
-	$: deviceTypesSelect = deviceTypes?.map((deviceType) => ({
-		name: deviceType[0],
-		value: deviceType[1]
+	$: thymisDeviceModule = getThymisDeviceModule(availableModules);
+	$: deviceTypesSelect = Object.entries(getDeviceTypesMap(availableModules)).map(([key, name]) => ({
+		name: name,
+		value: key
 	}));
 	let selectedDeviceType: string | undefined = undefined;
 
