@@ -167,6 +167,7 @@ TaskUpdate = Union[
     "TaskCompletedUpdate",
     "TaskFailedUpdate",
     "CommandRunUpdate",
+    "ImageBuiltUpdate",
 ]
 
 
@@ -206,6 +207,13 @@ class CommandRunUpdate(BaseModel):
     cwd: Optional[str] = None
 
 
+class ImageBuiltUpdate(BaseModel):
+    type: Literal["image_built"] = "image_built"
+    configuration_id: str
+    configuration_commit: str
+    token: str
+
+
 class CancelTask(BaseModel):
     id: uuid.UUID
 
@@ -233,5 +241,6 @@ __all__ = [
     "TaskCompletedUpdate",
     "TaskFailedUpdate",
     "CommandRunUpdate",
+    "ImageBuiltUpdate",
     "CancelTask",
 ]

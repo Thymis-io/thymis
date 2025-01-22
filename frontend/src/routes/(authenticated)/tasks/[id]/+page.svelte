@@ -84,17 +84,19 @@
 
 	<div>
 		<h2>Process</h2>
-		{#if task.process_program && task.process_args && task.process_env}
+		{#if task.process_program && task.process_args}
 			<MonospaceText
-				code={Object.entries(task.process_env)
-					.map(([key, value]) => `${key}="${escapeForDoubleQuotes(value)}"`)
-					.join(' ') +
-					' ' +
-					task.process_program +
-					' ' +
-					task.process_args
-						.map((arg) => (needsDoubleQuotes(arg) ? `"${escapeForDoubleQuotes(arg)}"` : arg))
-						.join(' ')}
+				code={task.process_env
+					? Object.entries(task.process_env)
+							.map(([key, value]) => `${key}="${escapeForDoubleQuotes(value)}"`)
+							.join(' ')
+					: '' +
+						' ' +
+						task.process_program +
+						' ' +
+						task.process_args
+							.map((arg) => (needsDoubleQuotes(arg) ? `"${escapeForDoubleQuotes(arg)}"` : arg))
+							.join(' ')}
 			/>
 		{:else}
 			<p>No process information</p>

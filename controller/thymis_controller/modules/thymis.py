@@ -204,13 +204,13 @@ class ThymisDevice(modules.Module):
             select_one=[
                 ("SD-Card Image", "sd-card-image"),
                 ("Virtual Disk Image (qcow)", "qcow"),
-                ("NixOS VM", "nixos-vm"),
+                # ("NixOS VM", "nixos-vm"),
             ],
             extra_data={
                 "restrict_values_on_other_key": {
                     "device_type": {
-                        "generic-x86_64": ["nixos-vm", "qcow"],
-                        "generic-aarch64": ["nixos-vm", "qcow"],
+                        "generic-x86_64": ["qcow"],
+                        "generic-aarch64": ["qcow"],
                         "raspberry-pi-3": ["sd-card-image"],
                         "raspberry-pi-4": ["sd-card-image"],
                         "raspberry-pi-5": ["sd-card-image"],

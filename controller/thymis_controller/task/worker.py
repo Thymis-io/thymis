@@ -1,8 +1,11 @@
 import base64
 import os
 import pathlib
+import platform
+import random
 import signal
 import subprocess
+import tempfile
 import threading
 import time
 from multiprocessing.connection import Connection
@@ -188,7 +191,26 @@ def build_device_image_task(
 ):
     task_data = task.data
     assert task_data.type == "build_device_image_task"
+    project_path = pathlib.Path(task_data.project_path).resolve()
     repo_path = (pathlib.Path(task_data.project_path) / "repository").resolve()
+
+    secrets_builder_dest = f"{task_data.project_path}/image-builders/{task_data.device_identifier}.secrets-builder"
+    final_image_dest = (
+        f"{task_data.project_path}/images/{task_data.device_identifier}.img"
+    )
+    # create dirs
+    os.makedirs(project_path / "image-builders", exist_ok=True)
+    os.makedirs(project_path / "images", exist_ok=True)
+
+    architectures = ["x86_64", "aarch64"]
+    architecture = None
+    for arch in architectures:
+        if arch in platform.machine():
+            architecture = arch
+            break
+    if architecture is None:
+        report_task_finished(task, conn, False, "Unsupported build host architecture")
+        return
 
     returncode = run_command(
         task,
@@ -197,17 +219,48 @@ def build_device_image_task(
         [
             *NIX_CMD,
             "build",
-            f'.#nixosConfigurations."{task_data.device_identifier}".config.system.build.thymis-image',
+            f'git+file:.?rev={task_data.commit}#nixosConfigurations."{task_data.device_identifier}".config.system.build.thymis-image-with-secrets-builder-{architecture}',
             "--out-link",
-            f"/tmp/thymis-devices.{task_data.device_identifier}",
+            secrets_builder_dest,
         ],
         cwd=repo_path,
     )
 
-    if returncode == 0:
-        report_task_finished(task, conn)
-    else:
+    if returncode != 0:
         report_task_finished(task, conn, False, "Build failed")
+        return
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        token = random.randbytes(64).hex()
+        with open(f"{tmpdir}/thymis-token.txt", "w", encoding="utf-8") as f:
+            f.write(token)
+        returncode = run_command(
+            task,
+            conn,
+            process_list,
+            [secrets_builder_dest, tmpdir, final_image_dest],
+            cwd=repo_path,
+        )
+        if returncode != 0:
+            report_task_finished(task, conn, False, "Image secrets builder failed")
+            return
+        conn.send(
+            models_task.RunnerToControllerTaskUpdate(
+                id=task.id,
+                update=models_task.ImageBuiltUpdate(
+                    configuration_id=task_data.device_identifier,
+                    configuration_commit=task_data.commit,
+                    token=token,
+                ),
+            )
+        )
+
+    if not os.path.exists(final_image_dest):
+        report_task_finished(
+            task, conn, False, "Image build failed, no image found at destination"
+        )
+
+    report_task_finished(task, conn)
 
 
 def ssh_command_task(

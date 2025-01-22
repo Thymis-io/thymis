@@ -10,25 +10,15 @@ in
         default = pkgs.stdenv.targetPlatform.system == "x86_64";
       };
       system-binfmt-x86_64-enable = lib.mkEnableOption "whether to enable the system binfmt for x86_64";
-      repo-path = lib.mkOption {
+      project-path = lib.mkOption {
         type = lib.types.str;
-        default = "/var/lib/thymis/repository";
-        description = "Directory where the controller will store the repository holding the project";
-      };
-      database-url = lib.mkOption {
-        type = lib.types.str;
-        default = "sqlite:////var/lib/thymis/thymis.sqlite";
-        description = "URL of the database";
+        default = "/var/lib/thymis";
+        description = "Directory where the controller will store its data";
       };
       base-url = lib.mkOption {
         type = lib.types.str;
         default = "http://localhost:8000";
         description = "Base URL of the controller, how it will be accessed from the outside";
-      };
-      ssh-key-path = lib.mkOption {
-        type = lib.types.path;
-        default = "/var/lib/thymis/id_thymis";
-        description = "Path to the SSH key used for deploying to devices";
       };
       auth-basic = lib.mkOption {
         type = lib.types.bool;
@@ -76,10 +66,8 @@ in
         pkgs.nixpkgs-fmt
       ];
       environment = {
-        THYMIS_REPO_PATH = cfg.repo-path;
-        THYMIS_DATABASE_URL = cfg.database-url;
+        THYMIS_PROJECT_PATH = cfg.project-path;
         THYMIS_BASE_URL = cfg.base-url;
-        THYMIS_SSH_KEY_PATH = cfg.ssh-key-path;
         THYMIS_AUTH_BASIC = lib.boolToString cfg.auth-basic;
         THYMIS_AUTH_BASIC_USERNAME = cfg.auth-basic-username;
         THYMIS_AUTH_BASIC_PASSWORD_FILE = cfg.auth-basic-password-file;

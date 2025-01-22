@@ -247,14 +247,14 @@ class Project:
         repositories = BUILTIN_REPOSITORIES | state.repositories
         load_repositories(path, repositories)
 
-    def commit(self, summary: str):
+    def commit(self, message: str):
         self.repo.git.add(".")
         try:
             if self.repo.index.diff("HEAD"):
-                self.repo.index.commit(summary)
-                logger.info("Committed changes: %s", summary)
+                self.repo.index.commit(message)
+                logger.info("Committed changes: %s", message)
         except git.BadName:
-            self.repo.index.commit(summary)
+            self.repo.index.commit(message)
 
     def get_history(self):
         try:
