@@ -1,6 +1,5 @@
 import asyncio
 import base64
-import os
 import re
 import uuid
 from typing import Annotated
@@ -164,20 +163,16 @@ async def download_image(
     if device is None:
         return RedirectResponse("/")
 
-    file_endings = ["img", "qcow2", "iso"]
+    # files should be in project_path/images/identifier.img
+    image_path = global_settings.PROJECT_PATH / "images" / f"{identifier}.img"
+    if not image_path.exists():
+        raise HTTPException(status_code=404, detail="Image not found")
 
-    # search for file in /tmp/thymis-devices.{identifier}/*
-    for root, dirs, files in os.walk(f"/tmp/thymis-devices.{device.identifier}"):
-        for file in files:
-            if file.endswith(tuple(file_endings)):
-                file_path = os.path.join(root, file)
-                return FileResponse(
-                    file_path,
-                    headers={"content-encoding": "none"},
-                    filename=f"thymis-image-{device.identifier}.img",
-                )
-
-    raise HTTPException(status_code=404, detail="Image not found")
+    return FileResponse(
+        image_path,
+        headers={"content-encoding": "none"},
+        filename=f"thymis-image-{device.identifier}.img",
+    )
 
 
 @router.websocket("/notification")

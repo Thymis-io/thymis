@@ -130,6 +130,7 @@ class Project:
     known_hosts_path: pathlib.Path
     public_key: str
     history_lock = threading.Lock()
+    repo_dir: pathlib.Path
 
     def __init__(self, path, db_session: sqlalchemy.orm.Session):
         self.path = pathlib.Path(path)
