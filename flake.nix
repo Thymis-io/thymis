@@ -54,7 +54,7 @@
         specialArgs = {
           inherit inputs;
         };
-      };
+      }.config.system.build.thymis-image-with-secrets-builder-aarch64;
 
       thymis-controller-pi-4-sd-image = (nixpkgs.lib.nixosSystem {
         modules = [
@@ -70,7 +70,7 @@
         specialArgs = {
           inherit inputs;
         };
-      }).config.system.build.thymis-image;
+      }).config.system.build.thymis-image-with-secrets-builder-aarch64;
 
       thymis-controller-pi-5-sd-image = (nixpkgs.lib.nixosSystem {
         modules = [
@@ -86,7 +86,7 @@
         specialArgs = {
           inherit inputs;
         };
-      }).config.system.build.thymis-image;
+      }).config.system.build.thymis-image-with-secrets-builder-aarch64;
 
       thymis-controller-generic-x86_64-image = (nixpkgs.lib.nixosSystem {
         modules = [
@@ -102,7 +102,7 @@
         specialArgs = {
           inherit inputs;
         };
-      }).config.system.build.thymis-image;
+      }).config.system.build.thymis-image-with-secrets-builder-x86_64;
 
       removeRecurseForDerivations = nixpkgs.lib.filterAttrsRecursive (k: v: k != "recurseForDerivations");
     in
@@ -167,15 +167,9 @@
       nixosConfigurations = {
         thymis-controller-pi-3 = thymis-controller-pi-3;
       };
-      thymis-controller-pi-3-sd-image = thymis-controller-pi-3.config.system.build.thymis-image;
+      thymis-controller-pi-3-sd-image = thymis-controller-pi-3-sd-image;
       thymis-controller-pi-4-sd-image = thymis-controller-pi-4-sd-image;
       thymis-controller-pi-5-sd-image = thymis-controller-pi-5-sd-image;
       thymis-controller-generic-x86_64-image = thymis-controller-generic-x86_64-image;
-      hydraJobs = {
-        thymis-controller-pi-3-sd-image = thymis-controller-pi-3.config.system.build.thymis-image;
-        thymis-controller-pi-4-sd-image = thymis-controller-pi-4-sd-image;
-        thymis-controller-pi-5-sd-image = thymis-controller-pi-5-sd-image;
-        thymis-controller-generic-x86_64-image = thymis-controller-generic-x86_64-image;
-      };
     };
 }
