@@ -23,6 +23,8 @@ jobs:
         with:
           message: |
             ### Updating snapshots. Click [here](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) to see the status.
+          comment-tag: playwright-snapshots-update
+          mode: recreate
       - name: Install Nix
         uses: cachix/install-nix-action@v27
         with:
@@ -67,3 +69,5 @@ jobs:
         with:
           message: |
             ### 🎉 Successfully updated and committed Playwright snapshots! 🎉
+          comment-tag: playwright-snapshots-update-success
+          mode: recreate
