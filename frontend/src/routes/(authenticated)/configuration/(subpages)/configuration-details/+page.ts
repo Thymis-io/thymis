@@ -10,7 +10,7 @@ export const load: PageLoad = async ({ fetch, url, parent }) => {
 		const parentData: PageParentData = await parent();
 		// if config is not in parentData state, redirect to '/devices'
 		if (!parentData.state.devices.find((device) => device.identifier === identifier)) {
-			redirect(303, '/devices');
+			redirect(303, '/configuration/list');
 		}
 		return { deploymentInfos: deploymentInfos };
 	} else {

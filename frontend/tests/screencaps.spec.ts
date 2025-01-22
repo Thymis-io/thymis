@@ -114,11 +114,7 @@ colorSchemes.forEach((colorScheme) => {
 			const confirmButton = page.locator('button').filter({ hasText: 'Delete' }).nth(0);
 			await confirmButton.click();
 
-			await expect(page).toHaveScreenshot();
-
-			const devicesNav = page.locator('a', { hasText: 'Devices' }).locator('visible=true').first();
-			await devicesNav.click();
-
+			await page.locator('button').filter({ hasText: 'Create New Configuration' }).waitFor();
 			await expect(page).toHaveScreenshot();
 		});
 
