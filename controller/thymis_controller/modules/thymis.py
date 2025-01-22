@@ -11,35 +11,20 @@ from thymis_controller.project import Project
 class ThymisController(modules.Module):
     display_name: str = "Thymis Controller"
 
-    repo_dir = modules.Setting(
+    project_dir = modules.Setting(
         display_name=modules.LocalizedString(
-            en="Repository Path",
-            de="Repository Pfad",
+            en="Project Directory",
+            de="Projektverzeichnis",
         ),
         type="string",
         default=None,
         description=modules.LocalizedString(
-            en="The path to the repository.",
-            de="Der Pfad zum Repository.",
+            en="The path to the project directory.",
+            de="Der Pfad zum Projektverzeichnis.",
         ),
-        nix_attr_name="services.thymis-controller.repo-path",
-        example="/var/lib/thymis/repository",
+        nix_attr_name="services.thymis-controller.project-path",
+        example="/var/lib/thymis",
         order=10,
-    )
-    database_url = modules.Setting(
-        display_name=modules.LocalizedString(
-            en="Database URL",
-            de="Datenbank URL",
-        ),
-        nix_attr_name="services.thymis-controller.database-url",
-        type="string",
-        default=None,
-        description=modules.LocalizedString(
-            en="The URL to the database.",
-            de="Die URL zur Datenbank.",
-        ),
-        example="sqlite:////var/lib/thymis/thymis.sqlite",
-        order=20,
     )
     base_url = modules.Setting(
         display_name=modules.LocalizedString(
@@ -55,21 +40,6 @@ class ThymisController(modules.Module):
         ),
         example="http://localhost:8000",
         order=30,
-    )
-    ssh_key_path = modules.Setting(
-        display_name=modules.LocalizedString(
-            en="SSH Key Path",
-            de="SSH-Key Pfad",
-        ),
-        nix_attr_name="services.thymis-controller.ssh-key-path",
-        type="string",
-        default=None,
-        description=modules.LocalizedString(
-            en="The path to the SSH key for deploying to devices.",
-            de="Der Pfad zum SSH-Key, um auf Geräte auszurollen.",
-        ),
-        example="/var/lib/thymis/id_thymis",
-        order=35,
     )
     auth_basic = modules.Setting(
         display_name=modules.LocalizedString(
@@ -234,13 +204,12 @@ class ThymisDevice(modules.Module):
             select_one=[
                 ("SD-Card Image", "sd-card-image"),
                 ("Virtual Disk Image (qcow)", "qcow"),
-                ("Installation ISO", "install-iso"),
                 ("NixOS VM", "nixos-vm"),
             ],
             extra_data={
                 "restrict_values_on_other_key": {
                     "device_type": {
-                        "generic-x86_64": ["nixos-vm", "qcow", "install-iso"],
+                        "generic-x86_64": ["nixos-vm", "qcow"],
                         "generic-aarch64": ["nixos-vm", "qcow"],
                         "raspberry-pi-3": ["sd-card-image"],
                         "raspberry-pi-4": ["sd-card-image"],

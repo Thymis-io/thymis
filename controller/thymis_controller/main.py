@@ -2,9 +2,7 @@ import importlib
 import logging
 import pathlib
 import secrets
-import shutil
 import subprocess
-import tempfile
 from contextlib import asynccontextmanager
 
 import sqlalchemy.orm
@@ -39,35 +37,6 @@ def peform_db_upgrade():
         logger.info("Database upgrade complete")
 
 
-def check_and_move_old_repo():
-    assert (
-        global_settings.REPO_PATH != "/var/lib/thymis"
-    ), "REPO_PATH should not be /var/lib/thymis"
-    # check if old repo path exists
-    old_path = pathlib.Path("/var/lib/thymis")
-    old_git_path = old_path / ".git"
-    if old_git_path.exists():
-        logger.warning(
-            f"Old git repository found at {old_git_path}, moving to {global_settings.REPO_PATH}"
-        )
-        # move the /var/lib/thymis directory to temp
-        with tempfile.TemporaryDirectory() as tempdir:
-            tempdir_path = pathlib.Path(tempdir)
-            # copy /var/lib/thymis to temp
-            shutil.copytree(old_path, tempdir_path / "thymis")
-            # remove all files in /var/lib/thymis without removing the directory
-            for file in old_path.iterdir():
-                if file.is_dir():
-                    shutil.rmtree(file)
-                else:
-                    file.unlink()
-            # move the old directory to the new one
-            shutil.move(tempdir_path / "thymis", global_settings.REPO_PATH)
-            # remove the temp directory
-            shutil.rmtree(tempdir_path)
-        logger.info(f"Moved old git repository to {global_settings.REPO_PATH}")
-
-
 def init_password_file():
     if not global_settings.AUTH_BASIC:
         return
@@ -91,10 +60,10 @@ def init_password_file():
 
 
 def init_ssh_key():
-    if not global_settings.SSH_KEY_PATH.exists():
+    if not (global_settings.PROJECT_PATH / "id_thymis").exists():
         logger.warning(
             "SSH key not found at %s, generating a new one",
-            global_settings.SSH_KEY_PATH,
+            global_settings.PROJECT_PATH / "id_thymis",
         )
 
         # generate a new ssh key with subprocess
@@ -104,7 +73,7 @@ def init_ssh_key():
                 "-t",
                 "ed25519",
                 "-f",
-                global_settings.SSH_KEY_PATH,
+                global_settings.PROJECT_PATH / "id_thymis",
                 "-N",
                 "",
                 "-C",
@@ -116,14 +85,23 @@ def init_ssh_key():
         if keygen_process.returncode != 0:
             logger.error(f"Failed to generate SSH key: {keygen_process.stderr}")
             return
-        logger.info("SSH key generated at %s", global_settings.SSH_KEY_PATH)
+        logger.info(
+            "SSH key generated at %s", global_settings.PROJECT_PATH / "id_thymis"
+        )
         return
 
     # ssh key exists
-    logger.info("SSH key found at %s", global_settings.SSH_KEY_PATH)
+    logger.info("SSH key found at %s", global_settings.PROJECT_PATH / "id_thymis")
 
     check_process = subprocess.run(
-        ["ssh-keygen", "-y", "-f", global_settings.SSH_KEY_PATH, "-P", ""],
+        [
+            "ssh-keygen",
+            "-y",
+            "-f",
+            global_settings.PROJECT_PATH / "id_thymis",
+            "-P",
+            "",
+        ],
         capture_output=True,
         text=True,
     )
@@ -136,7 +114,6 @@ def init_ssh_key():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up...")
-    check_and_move_old_repo()
     peform_db_upgrade()
     init_password_file()
     init_ssh_key()
@@ -145,7 +122,7 @@ async def lifespan(app: FastAPI):
     task_controller = TaskController()
     db_engine = create_sqlalchemy_engine()
     with sqlalchemy.orm.Session(db_engine) as db_session:
-        project = Project(global_settings.REPO_PATH.resolve(), db_session)
+        project = Project(global_settings.PROJECT_PATH.resolve(), db_session)
     async with task_controller.start(db_engine):
         logger.debug("starting frontend")
         await frontend.frontend.run()

@@ -99,7 +99,7 @@ def project_flake_update_task(
 ):
     task_data = task.data
     assert task_data.type == "project_flake_update_task"
-    project_path = pathlib.Path(task_data.project_path).resolve()
+    repo_path = (pathlib.Path(task_data.project_path) / "repository").resolve()
 
     # runs `nix flake update` in the project directory
     returncode = run_command(
@@ -107,7 +107,7 @@ def project_flake_update_task(
         conn,
         process_list,
         [*NIX_CMD, "flake", "update"],
-        cwd=project_path,
+        cwd=repo_path,
     )
     if returncode == 0:
         report_task_finished(task, conn)
@@ -120,7 +120,7 @@ def build_project_task(
 ):
     task_data = task.data
     assert task_data.type == "build_project_task"
-    project_path = pathlib.Path(task_data.project_path).resolve()
+    repo_path = (pathlib.Path(task_data.project_path) / "repository").resolve()
 
     # runs `nix build` in the project directory
     returncode = run_command(
@@ -134,7 +134,7 @@ def build_project_task(
             "--out-link",
             "/tmp/thymis",
         ],
-        cwd=project_path,
+        cwd=repo_path,
     )
     if returncode == 0:
         report_task_finished(task, conn)
@@ -147,7 +147,7 @@ def deploy_device_task(
 ):
     task_data = task.data
     assert task_data.type == "deploy_device_task"
-    project_path = pathlib.Path(task_data.project_path).resolve()
+    repo_path = (pathlib.Path(task_data.project_path) / "repository").resolve()
 
     returncode = run_command(
         task,
@@ -159,7 +159,7 @@ def deploy_device_task(
             "--no-ssh-tty",
             "switch",
             "--flake",
-            f"{project_path}#{task_data.device.identifier}",
+            f"{repo_path}#{task_data.device.identifier}",
             "--target-host",
             f"{task_data.device.username}@{task_data.device.host}",
         ],
@@ -167,7 +167,7 @@ def deploy_device_task(
             "NIX_SSHOPTS": f"-i {task_data.ssh_key_path} -p {task_data.device.port} -o UserKnownHostsFile={task_data.known_hosts_path} -o StrictHostKeyChecking=yes -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ConnectTimeout=10 -o BatchMode=yes",
             "PATH": os.getenv("PATH"),
         },
-        cwd=project_path,
+        cwd=repo_path,
     )
 
     if returncode == 0:
@@ -188,7 +188,7 @@ def build_device_image_task(
 ):
     task_data = task.data
     assert task_data.type == "build_device_image_task"
-    project_path = pathlib.Path(task_data.project_path).resolve()
+    repo_path = (pathlib.Path(task_data.project_path) / "repository").resolve()
 
     returncode = run_command(
         task,
@@ -201,7 +201,7 @@ def build_device_image_task(
             "--out-link",
             f"/tmp/thymis-devices.{task_data.device_identifier}",
         ],
-        cwd=project_path,
+        cwd=repo_path,
     )
 
     if returncode == 0:

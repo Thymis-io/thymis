@@ -27,8 +27,10 @@ target_metadata = Base.metadata
 # ... etc.
 
 
-def get_url():
-    return str(global_settings.DATABASE_URL)
+def get_db_url():
+    return str(
+        f"sqlite:///{str((global_settings.PROJECT_PATH / 'thymis.sqlite').resolve())}"
+    )
 
 
 def run_migrations_offline():
@@ -43,7 +45,7 @@ def run_migrations_offline():
     script output.
 
     """
-    url = get_url()
+    url = get_db_url()
     context.configure(
         url=url, target_metadata=target_metadata, literal_binds=True, compare_type=True
     )
@@ -60,7 +62,7 @@ def run_migrations_online():
 
     """
     configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = get_url()
+    configuration["sqlalchemy.url"] = get_db_url()
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",

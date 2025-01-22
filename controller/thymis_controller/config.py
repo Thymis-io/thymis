@@ -5,19 +5,10 @@ from pydantic_settings import BaseSettings
 
 
 class GlobalSettings(BaseSettings):
-    # TODO replace attributes with Fields according to the pydantic documentation
-
-    REPO_PATH: pathlib.Path = pathlib.Path("/var/lib/thymis/repository")
-
-    # TODO better input check
-    DATABASE_URL: str = (
-        f"sqlite:///{pathlib.Path('/var/lib/thymis/thymis.sqlite').as_posix()}"
-    )
+    PROJECT_PATH: pathlib.Path = pathlib.Path("/var/lib/thymis")
     ALEMBIC_INI_PATH: str = f"{pathlib.Path(__file__).parent.parent}/alembic.ini"
 
     BASE_URL: str = "http://localhost:8000"
-
-    SSH_KEY_PATH: pathlib.Path = pathlib.Path("/var/lib/thymis/id_thymis")
 
     FRONTEND_BINARY_PATH: str | None = None
     AUTH_BASIC: bool = True

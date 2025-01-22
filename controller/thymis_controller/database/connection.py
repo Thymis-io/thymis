@@ -6,8 +6,14 @@ from sqlalchemy import create_engine
 from thymis_controller.config import global_settings
 
 
+def get_db_url():
+    return str(
+        f"sqlite:///{str((global_settings.PROJECT_PATH / 'thymis.sqlite').resolve())}"
+    )
+
+
 def create_sqlalchemy_engine():
-    parsed_url = urlparse(global_settings.DATABASE_URL)
+    parsed_url = urlparse(get_db_url())
     if parsed_url.scheme == "sqlite":
         path = pathlib.Path(parsed_url.path)
         if not path.is_absolute():
@@ -17,4 +23,4 @@ def create_sqlalchemy_engine():
         parent = path.parent
         if not parent.exists():
             os.makedirs(parent)
-    return create_engine(global_settings.DATABASE_URL)
+    return create_engine(get_db_url())

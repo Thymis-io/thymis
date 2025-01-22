@@ -9,8 +9,6 @@ if (process.env.THYMIS_DEV_SHELL) {
 	command = `cd ../controller && poetry run uvicorn thymis_controller.main:app --reload`;
 }
 
-// set THYMIS_REPO_PATH, THYMIS_DATABASE_URL, THYMIS_AUTH_BASIC_PASSWORD_FILE
-
 const runInShell = (cmd) => `sh -c '${cmd}'`;
 
 const withErrorHandling = (cmd) => `set -e; ( ${cmd} )`;
@@ -31,10 +29,7 @@ const commandFrame = (cmd) =>
 			withTempPathVar(
 				withEnv(
 					{
-						THYMIS_REPO_PATH: '$TMPDIR/repository',
-						THYMIS_DATABASE_URL: 'sqlite:///$TMPDIR/thymis.sqlite',
-						THYMIS_AUTH_BASIC_PASSWORD_FILE: '$TMPDIR/auth-basic-password',
-						THYMIS_SSH_KEY_PATH: '$TMPDIR/id_thymis',
+						THYMIS_PROJECT_PATH: '$TMPDIR',
 						RUNNING_IN_PLAYWRIGHT: 'true'
 					},
 					withContentInFile('testadminpassword', '$THYMIS_AUTH_BASIC_PASSWORD_FILE', cmd)

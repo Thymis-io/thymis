@@ -61,7 +61,7 @@ def device_notify(
         device_notify_request.public_key,
         port=22,
         username="root",
-        pkey=paramiko.PKey.from_path(global_settings.SSH_KEY_PATH),
+        pkey=paramiko.PKey.from_path(global_settings.PROJECT_PATH / "id_thymis"),
     )
 
     if not verified_ssh:
