@@ -104,6 +104,7 @@ def init_ssh_key():
         ],
         capture_output=True,
         text=True,
+        check=False,
     )
 
     if check_process.returncode != 0:
