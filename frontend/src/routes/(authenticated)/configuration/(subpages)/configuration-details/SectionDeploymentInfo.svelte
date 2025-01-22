@@ -3,8 +3,8 @@
 	import Section from './Section.svelte';
 	import type { DeploymentInfo } from '$lib/deploymentInfo';
 	import { Button } from 'flowbite-svelte';
-	import { Pencil } from 'lucide-svelte/icons';
-	import { Trash2, RefreshCw, PlusCircle } from 'lucide-svelte/icons';
+	import Pencil from 'lucide-svelte/icons/pencil';
+	import CirclePlus from 'lucide-svelte/icons/circle-plus';
 	import type { Device } from '$lib/state';
 	import EditDeploymentInfo from './EditDeploymentInfo.svelte';
 
@@ -60,7 +60,7 @@
 						currentDeploymentInfo = undefined;
 					}}
 				>
-					<PlusCircle size={'1rem'} class="min-w-4" />
+					<CirclePlus size={'1rem'} class="min-w-4" />
 					<span>{$t('configuration-details.add-hostkey')}</span>
 				</Button>
 			</div>
