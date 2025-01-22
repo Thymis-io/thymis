@@ -14,7 +14,7 @@
 	import Tabbar from '$lib/components/Tabbar.svelte';
 	import { getDeploymentInfosByConfigId } from '$lib/deploymentInfo';
 
-	import type { PageData } from '../../$types';
+	import type { PageData } from './$types';
 	export let data: PageData;
 
 	const getConfigFromIdentifier = (identifier: string) => {

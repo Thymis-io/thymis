@@ -3,7 +3,7 @@
 	import Terminal from '$lib/terminal/Terminal.svelte';
 	import { globalNavSelectedConfig, globalNavSelectedTarget } from '$lib/state';
 	import Tabbar from '$lib/components/Tabbar.svelte';
-	import type { PageData } from '../../$types';
+	import type { PageData } from './$types';
 	export let data: PageData;
 </script>
 
