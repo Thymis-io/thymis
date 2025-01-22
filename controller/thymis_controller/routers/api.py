@@ -153,7 +153,7 @@ async def restart_device(
 
 
 @router.get("/download-image")
-def download_image(
+async def download_image(
     identifier: str,
     state: State = Depends(dependencies.get_state),
 ):
@@ -170,7 +170,12 @@ def download_image(
     for root, dirs, files in os.walk(f"/tmp/thymis-devices.{device.identifier}"):
         for file in files:
             if file.endswith(tuple(file_endings)):
-                return FileResponse(os.path.join(root, file))
+                file_path = os.path.join(root, file)
+                return FileResponse(
+                    file_path,
+                    headers={"content-encoding": "none"},
+                    filename=f"thymis-image-{device.identifier}.img",
+                )
 
     raise HTTPException(status_code=404, detail="Image not found")
 
