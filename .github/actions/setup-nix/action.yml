@@ -1,0 +1,34 @@
+name: "Setup Nix"
+description: "Installs Nix with extra configuration."
+inputs:
+  attic_token:
+    description: "The token to use for authenticating with the Attic cache."
+    required: false
+    default: ""
+runs:
+  using: "composite"
+  # env:
+  #   ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
+  steps:
+    - name: Install Nix
+      uses: cachix/install-nix-action@v27
+      with:
+        extra_nix_config: |
+          system-features = kvm
+          extra-trusted-public-keys = cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=
+          extra-substituters = https://cache.thymis.io https://cache2.thymis.io/public-cache
+    - if: ${{ env.ATTIC_TOKEN != '' }}
+      name: Install Attic
+      shell: bash
+      run: |
+        nix profile install nixpkgs#attic-client
+        attic login thymis-cache https://cache2.thymis.io $attic_token --set-default
+    - if: ${{ env.ATTIC_TOKEN == '' }}
+      name: Print Attic Token Warning
+      shell: bash
+      run: echo "ATTIC_TOKEN not set, skipping Attic installation."
+# use this magic invocation to push generated and used paths to the cache
+# attic watch-store "thymis-cache:public-cache" &
+# ATTIC_PID=$!
+# trap 'kill $ATTIC_PID' EXIT
+# YOUR_NIX_STORE_PATHS_GENERATING_COMMAND_HERE

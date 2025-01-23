@@ -1,81 +1,116 @@
 name: "Build"
 on:
   pull_request:
+  pull_request_target:
   merge_group:
   push:
     branches:
       - master
 
 jobs:
-  build-image:
+  build-agent:
+    if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Nix
-        uses: cachix/install-nix-action@v27
+      # - if: ${{ github.event_name != 'pull_request_target' }}
+      #   uses: actions/checkout@v4
+      # - if: ${{ github.event_name == 'pull_request_target' }}
+      #   uses: actions/checkout@v4
+      #   with:
+      #     ref: ${{ github.event.pull_request.merge_commit_sha }}
+      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
+      - uses: ./.github/actions/setup-nix
         with:
-          extra_nix_config: |
-            system-features = kvm
-            extra-trusted-public-keys = cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=
-            extra-substituters = https://cache.thymis.io
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+      - uses: DeterminateSystems/magic-nix-cache-action@v9
+      - name: build thymis-agent
+        uses: ./.github/actions/run-command-with-nix-cache-upload
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          script: |
+            nix build .#thymis-agent --print-build-logs
+
+  build-thymis-controller:
+    if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
+      - uses: ./.github/actions/setup-nix
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+      - uses: DeterminateSystems/magic-nix-cache-action@v9
+      - name: build thymis-controller
+        uses: ./.github/actions/run-command-with-nix-cache-upload
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          script: |
+            nix build .#thymis-controller --print-build-logs
+
+  build-thymis-controller-pi-3-sd-image:
+    if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
+      - uses: ./.github/actions/setup-nix
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+      - uses: DeterminateSystems/magic-nix-cache-action@v9
+      - name: run command with nix cache upload
+        uses: ./.github/actions/run-command-with-nix-cache-upload
+        with:
+            script: |
+              nix build .#thymis-controller-pi-3-sd-image --print-build-logs
+      - uses: ./.github/actions/assemble-image-and-assert-existence
+
+  build-thymis-controller-pi-4-sd-image:
+    if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
+      - uses: ./.github/actions/setup-nix
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+      - uses: DeterminateSystems/magic-nix-cache-action@v9
+      - name: build thymis-controller-pi-4-sd-image
+        uses: ./.github/actions/run-command-with-nix-cache-upload
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          script: |
+            nix build .#thymis-controller-pi-4-sd-image --print-build-logs
+      - uses: ./.github/actions/assemble-image-and-assert-existence
+
+  build-thymis-controller-pi-5-sd-image:
+    if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
+      - uses: ./.github/actions/setup-nix
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+      - uses: DeterminateSystems/magic-nix-cache-action@v9
+      - name: build thymis-controller-pi-5-sd-image
+        uses: ./.github/actions/run-command-with-nix-cache-upload
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          script: |
+            nix build .#thymis-controller-pi-5-sd-image --print-build-logs
+      - uses: ./.github/actions/assemble-image-and-assert-existence
+
+  build-generic-x86_64-image:
+    if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
+      - uses: ./.github/actions/setup-nix
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
       - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: pin nixpkgs
         run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-24.11
       - name: build thymis-controller-generic-x86_64-image
-        run: nix build .#thymis-controller-generic-x86_64-image --print-build-logs
-      - name: assemble image with a empty secrets dir
-        run: |
-          mkdir -p workdir/secrets
-          echo "abcdefgh" > workdir/secrets/whatever.txt
-          ./result workdir/secrets workdir/final
-      - name: assert something exists at workdir/final*
-        run: |
-          if test -n "$(find ./workdir -maxdepth 1 -name 'final*' -print -quit)"
-          then
-            echo "found something at workdir/final*"
-          else
-            echo "nothing found at workdir/final*"
-            exit 1
-          fi
-  build-agent:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Nix
-        uses: cachix/install-nix-action@v27
+        uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
-          extra_nix_config: |
-            system-features = kvm
-            extra-trusted-public-keys = cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=
-            extra-substituters = https://cache.thymis.io
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
-      - name: pin nixpkgs
-        run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-24.11
-      - name: build thymis-agent
-        run: nix build .#thymis-agent --print-build-logs
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Nix
-        uses: cachix/install-nix-action@v27
-        with:
-          extra_nix_config: |
-            system-features = kvm
-            extra-trusted-public-keys = cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=
-            extra-substituters = https://cache.thymis.io
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
-      - name: build controller
-        run: nix build .#thymis-controller-container --print-build-logs
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{github.actor}}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Push controller image
-        run: |
-          docker load < result
-          docker tag $(docker images --format "{{.Repository}}:{{.Tag}}" | grep thymis-controller) ghcr.io/thymis-io/thymis-controller:${{ github.sha }}
-          docker push ghcr.io/thymis-io/thymis-controller:${{ github.sha }}
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          script: |
+            nix build .#thymis-controller-generic-x86_64-image --print-build-logs
+      - uses: ./.github/actions/assemble-image-and-assert-existence

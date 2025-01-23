@@ -1,0 +1,33 @@
+name: "Run command with Nix cache upload"
+inputs:
+  # The script to run
+  script:
+    description: "The script to run"
+    required: true
+  working-directory:
+    description: "The working directory to run the script in"
+    required: false
+    default: "."
+  attic_token:
+    description: "The token to use for authenticating with the Attic cache."
+    required: false
+    default: ""
+runs:
+  using: "composite"
+  # env:
+  #   ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
+  steps:
+    - if: ${{ env.ATTIC_TOKEN != '' }}
+      name: Run script
+      shell: bash
+      run: |
+        attic watch-store "thymis-cache:public-cache" &
+        ATTIC_PID=$!
+        trap 'kill $ATTIC_PID' EXIT
+        ${{ inputs.script }}
+      working-directory: ${{ inputs.working-directory }}
+    - if: ${{ env.ATTIC_TOKEN == '' }}
+      name: Run script
+      shell: bash
+      run: ${{ inputs.script }}
+      working-directory: ${{ inputs.working-directory }}
