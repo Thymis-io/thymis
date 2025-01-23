@@ -91,7 +91,7 @@
 							<X size="20" />
 						</button>
 						<Tooltip type="auto"><P size="sm">{$t('config.clear')}</P></Tooltip>
-					{:else if canEdit}
+					{:else if canReallyEditSetting(setting)}
 						<button
 							class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 							on:click={() =>
