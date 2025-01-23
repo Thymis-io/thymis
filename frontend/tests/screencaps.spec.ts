@@ -30,6 +30,8 @@ const createConfiguration = async (
 		await page.getByRole('option', { name: tag }).click();
 	}
 
+	await page.getByRole('heading', { name: 'Create a new device' }).click();
+
 	const saveButton = page.locator('button').filter({ hasText: 'Create device configuration' });
 	await saveButton.click();
 };
@@ -268,16 +270,18 @@ colorSchemes.forEach((colorScheme) => {
 			await deleteAllTasks(page, request);
 
 			// Create tags
-			const tags = ['Display', 'Core'];
+			const tags = ['Display', 'Core', 'Location A', 'Location B'];
 			for (const tag of tags) {
 				await createTag(page, tag);
 			}
 
 			// Create devices
 			const devices = [
-				{ name: 'device01', tags: ['Display', 'Core'] },
-				{ name: 'device02', tags: ['Core'] },
-				{ name: 'device03', tags: ['Display', 'Core'] }
+				{ name: 'device01', tags: ['Display', 'Core', 'Location A'] },
+				{ name: 'device02', tags: ['Display', 'Core', 'Location A'] },
+				{ name: 'device03', tags: ['Display', 'Core', 'Location B'] },
+				{ name: 'device04', tags: ['Core', 'Location B'] },
+				{ name: 'device05', tags: ['Core', 'Location B'] }
 			];
 			for (const device of devices) {
 				await createConfiguration(page, device.name, 'Raspberry Pi 4', device.tags);
