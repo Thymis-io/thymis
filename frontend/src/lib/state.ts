@@ -144,4 +144,6 @@ export const globalNavSelectedTarget = derived(
 		$globalNavSelectedConfig || $globalNavSelectedTag
 );
 
-export const globalNavSelectedTargetType = queryParam('global-nav-target-type');
+export const globalNavSelectedTargetType = queryParam<ContextType>('global-nav-target-type');
+
+export type ContextType = 'tag' | 'config';

@@ -1,8 +1,10 @@
 import base64
+import glob
 import os
 import pathlib
 import platform
 import random
+import shutil
 import signal
 import subprocess
 import tempfile
@@ -195,8 +197,8 @@ def build_device_image_task(
     repo_path = (pathlib.Path(task_data.project_path) / "repository").resolve()
 
     secrets_builder_dest = f"{task_data.project_path}/image-builders/{task_data.device_identifier}.secrets-builder"
-    final_image_dest = (
-        f"{task_data.project_path}/images/{task_data.device_identifier}.img"
+    final_image_dest_base = (
+        f"{task_data.project_path}/images/{task_data.device_identifier}"
     )
     # create dirs
     os.makedirs(project_path / "image-builders", exist_ok=True)
@@ -219,7 +221,7 @@ def build_device_image_task(
         [
             *NIX_CMD,
             "build",
-            f'git+file:.?rev={task_data.commit}#nixosConfigurations."{task_data.device_identifier}".config.system.build.thymis-image-with-secrets-builder-{architecture}',
+            f'git+file:{repo_path}?rev={task_data.commit}#nixosConfigurations."{task_data.device_identifier}".config.system.build.thymis-image-with-secrets-builder-{architecture}',
             "--out-link",
             secrets_builder_dest,
         ],
@@ -231,14 +233,20 @@ def build_device_image_task(
         return
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        token = random.randbytes(64).hex()
+        token = f"thymis-{random.randbytes(64).hex()}"  # see agent/thymis_agent/agent.py `AGENT_TOKEN_EXPECTED_FORMAT =`
         with open(f"{tmpdir}/thymis-token.txt", "w", encoding="utf-8") as f:
             f.write(token)
+        # delete all old files in final_image_dest_base*
+        for file in glob.glob(f"{final_image_dest_base}*"):
+            if os.path.isdir(file):
+                shutil.rmtree(file)
+            else:
+                os.remove(file)
         returncode = run_command(
             task,
             conn,
             process_list,
-            [secrets_builder_dest, tmpdir, final_image_dest],
+            [secrets_builder_dest, tmpdir, final_image_dest_base],
             cwd=repo_path,
         )
         if returncode != 0:
@@ -255,7 +263,7 @@ def build_device_image_task(
             )
         )
 
-    if not os.path.exists(final_image_dest):
+    if not glob.glob(f"{final_image_dest_base}*"):
         report_task_finished(
             task, conn, False, "Image build failed, no image found at destination"
         )

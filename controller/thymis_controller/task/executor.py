@@ -135,78 +135,87 @@ class TaskWorkerPoolManager:
                         )
                     continue
                 message = conn.recv()
-                if not isinstance(message, models_task.RunnerToControllerTaskUpdate):
-                    logger.error("Received invalid message from worker: %s", message)
-                    continue
-                with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
-                    task = crud_task.get_task_by_id(db_session, message.id)
-                    if task is None:
-                        logger.error("Received message for unknown task: %s", message)
+                try:
+                    if not isinstance(
+                        message, models_task.RunnerToControllerTaskUpdate
+                    ):
+                        logger.error(
+                            "Received invalid message from worker: %s", message
+                        )
                         continue
-                    # logger.info("Received message from worker: %s", message)
-                    match message.update:
-                        case models_task.TaskPickedUpdate():
-                            task.state = "running"
-                            db_session.commit()
-                        case models_task.TaskRejectedUpdate(reason=reason):
-                            task.state = "failed"
-                            task.add_exception(f"Task rejected: {reason}")
-                            task.end_time = datetime.now()
-                            db_session.commit()
-                        case models_task.TaskStdOutErrUpdate(
-                            stdoutb64=stdoutb64, stderrb64=stderrb64
-                        ):
-                            # initialize stdout and stderr if not already set
-                            if task.process_stdout is None:
-                                task.process_stdout = b""
-                            if task.process_stderr is None:
-                                task.process_stderr = b""
-                            # append new data to stdout and stderr
-                            task.process_stdout += base64.b64decode(stdoutb64)
-                            task.process_stderr += base64.b64decode(stderrb64)
-                            db_session.commit()
-                        case models_task.TaskNixStatusUpdate(status=status):
-                            task.nix_status = status.model_dump(
-                                include=("done", "expected", "running", "failed")
+                    with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
+                        task = crud_task.get_task_by_id(db_session, message.id)
+                        if task is None:
+                            logger.error(
+                                "Received message for unknown task: %s", message
                             )
-                            task.nix_errors = status.model_dump(include=("errors"))[
-                                "errors"
-                            ]
-                            task.nix_error_logs = status.logs_by_level.get(0)
-                            task.nix_warning_logs = status.logs_by_level.get(1)
-                            task.nix_notice_logs = status.logs_by_level.get(2)
-                            task.nix_info_logs = status.logs_by_level.get(3)
-                            db_session.commit()
-                        case models_task.TaskCompletedUpdate():
-                            task.state = "completed"
-                            task.end_time = datetime.now()
-                            db_session.commit()
-                            conn.close()
-                            break
-                        case models_task.TaskFailedUpdate(reason=reason):
-                            task.state = "failed"
-                            task.add_exception(reason)
-                            task.end_time = datetime.now()
-                            db_session.commit()
-                            conn.close()
-                            break
-                        case models_task.CommandRunUpdate():
-                            task.process_program = message.update.args[0]
-                            task.process_args = message.update.args[1:]
-                            task.process_env = message.update.env
-                            db_session.commit()
-                        case models_task.ImageBuiltUpdate():
-                            crud.agent_token.create(
-                                db_session,
-                                config_commit=message.update.configuration_commit,
-                                config_id=message.update.configuration_id,
-                                token=message.update.token,
-                            )
-                        case _:
-                            assert_never(message.update)
+                            continue
+                        # logger.info("Received message from worker: %s", message)
+                        match message.update:
+                            case models_task.TaskPickedUpdate():
+                                task.state = "running"
+                                db_session.commit()
+                            case models_task.TaskRejectedUpdate(reason=reason):
+                                task.state = "failed"
+                                task.add_exception(f"Task rejected: {reason}")
+                                task.end_time = datetime.now()
+                                db_session.commit()
+                            case models_task.TaskStdOutErrUpdate(
+                                stdoutb64=stdoutb64, stderrb64=stderrb64
+                            ):
+                                # initialize stdout and stderr if not already set
+                                if task.process_stdout is None:
+                                    task.process_stdout = b""
+                                if task.process_stderr is None:
+                                    task.process_stderr = b""
+                                # append new data to stdout and stderr
+                                task.process_stdout += base64.b64decode(stdoutb64)
+                                task.process_stderr += base64.b64decode(stderrb64)
+                                db_session.commit()
+                            case models_task.TaskNixStatusUpdate(status=status):
+                                task.nix_status = status.model_dump(
+                                    include=("done", "expected", "running", "failed")
+                                )
+                                task.nix_errors = status.model_dump(include=("errors"))[
+                                    "errors"
+                                ]
+                                task.nix_error_logs = status.logs_by_level.get(0)
+                                task.nix_warning_logs = status.logs_by_level.get(1)
+                                task.nix_notice_logs = status.logs_by_level.get(2)
+                                task.nix_info_logs = status.logs_by_level.get(3)
+                                db_session.commit()
+                            case models_task.TaskCompletedUpdate():
+                                task.state = "completed"
+                                task.end_time = datetime.now()
+                                db_session.commit()
+                                conn.close()
+                                break
+                            case models_task.TaskFailedUpdate(reason=reason):
+                                task.state = "failed"
+                                task.add_exception(reason)
+                                task.end_time = datetime.now()
+                                db_session.commit()
+                                conn.close()
+                                break
+                            case models_task.CommandRunUpdate():
+                                task.process_program = message.update.args[0]
+                                task.process_args = message.update.args[1:]
+                                task.process_env = message.update.env
+                                db_session.commit()
+                            case models_task.ImageBuiltUpdate():
+                                crud.agent_token.create(
+                                    db_session,
+                                    original_disk_config_commit=message.update.configuration_commit,
+                                    original_disk_config_id=message.update.configuration_id,
+                                    token=message.update.token,
+                                )
+                            case _:
+                                assert_never(message.update)
 
-                    # notify UI
-                    self.ui_subscription_manager.notify_task_update(task)
+                        # notify UI
+                        self.ui_subscription_manager.notify_task_update(task)
+                except Exception as e:
+                    logger.error("Error processing message from worker: %s", e)
         except EOFError:
             logger.info("Worker connection closed")
         except OSError as e:
@@ -260,6 +269,7 @@ class TaskWorkerPoolManager:
                 self.update_composite_task(task_id)
             elif task.state == "running" or task.state == "pending":
                 task.state = "failed"
+                task.end_time = datetime.now()
                 task.add_exception("Worker finished before signalling success")
                 db_session.commit()
                 self.ui_subscription_manager.notify_task_update(task)

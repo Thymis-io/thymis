@@ -4,7 +4,15 @@ import re
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    WebSocket,
+)
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, RedirectResponse
 from paramiko import PKey, SSHClient
@@ -161,12 +169,22 @@ async def download_image(
     device = next(device for device in state.devices if device.identifier == identifier)
 
     if device is None:
-        return RedirectResponse("/")
+        return Response(status_code=404)
 
-    # files should be in project_path/images/identifier.img
-    image_path = global_settings.PROJECT_PATH / "images" / f"{identifier}.img"
-    if not image_path.exists():
-        raise HTTPException(status_code=404, detail="Image not found")
+    # files should be in project_path/images/identifier.ENDING
+    expected_endings = ["img", "qcow2", "nixos-vm"]
+    non_file_endings = ["nixos-vm"]
+    image_dir = global_settings.PROJECT_PATH / "images"
+    relevant_paths = []
+    for ending in expected_endings:
+        image_path = image_dir / f"{identifier}.{ending}"
+        if image_path.exists():
+            relevant_paths.append((ending, image_path))
+    else:
+        return Response(status_code=404)
+
+    if ending in non_file_endings:
+        return RedirectResponse(url=f"/images/{identifier}.{ending}")
 
     return FileResponse(
         image_path,

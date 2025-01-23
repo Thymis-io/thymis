@@ -225,7 +225,7 @@
 		"noOtherDefinitions": "No other definitions",
 		"overwrittenBy": "Overwritten by:",
 		"priority": "Priority {priority}",
-		"editDisabled": "Reference only, edit the tag to change values globally",
+		"editDisabled": "Editing disabled",
 		"no-settings": "No settings found for this module"
 	},
 	"settings": {

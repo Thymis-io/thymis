@@ -7,6 +7,7 @@ from thymis_controller import db_models
 
 
 class DeviceNotifyRequest(BaseModel):
+    token: str | None = None
     commit_hash: str | None
     config_id: str | None
     hardware_ids: Dict[str, str | None]

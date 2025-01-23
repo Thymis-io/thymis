@@ -16,6 +16,33 @@ HARDWARE_ID_FILE_PATHS = {
     "dmi-product-uuid": "/sys/class/dmi/id/product_uuid",
 }
 
+AGENT_TOKEN_FILENAME = "thymis-token.txt"
+AGENT_TOKEN_PATHS = map(
+    pathlib.Path,
+    [
+        "/boot/firmware",  # raspberry-pi-nix generated sd-cards
+        "/boot",  # boot.loader.efi.efiSysMountPoint
+    ],
+)
+
+AGENT_TOKEN_EXPECTED_FORMAT = (
+    "thymis-[0-9a-f]{128}"  # see controller/thymis_controller/task/worker.py `token =`
+)
+
+
+def find_agent_token():
+    for path in AGENT_TOKEN_PATHS:
+        token_path = path / AGENT_TOKEN_FILENAME
+        if os.path.exists(token_path):
+            with open(token_path, "r", encoding="utf-8") as f:
+                return f.read().strip()
+    return None
+
+
+agent_token = find_agent_token()
+if not agent_token:
+    logging.error("Agent token not found, continuing without token")
+
 
 class AgentScheduler(sched.scheduler):
     def __init__(self, *args, **kwargs):
@@ -119,6 +146,7 @@ class Agent:
         config_id, commit_hash = self.detect_system_config()
 
         json_data = {
+            **({"token": agent_token} if agent_token else {}),
             "commit_hash": commit_hash,
             "config_id": config_id,
             "hardware_ids": self.detect_hardware_id(),

@@ -7,7 +7,8 @@
 		type Module,
 		type ModuleSettings,
 		type Tag,
-		globalNavSelectedTargetType
+		globalNavSelectedTargetType,
+		type ContextType
 	} from '$lib/state';
 	import { Modal, P, ToolbarButton, Tooltip } from 'flowbite-svelte';
 	import { page } from '$app/stores';
@@ -23,7 +24,7 @@
 	export let selfModules: Module[];
 	export let availableModules: Module[] = [];
 	export let configSelectedModule: Module | undefined;
-	export let configSelectedModuleContextType: string | null;
+	export let configSelectedModuleContextType: ContextType;
 	export let configSelectedModuleContext: Tag | Device | undefined;
 
 	let moduleToRemove: Module | undefined;

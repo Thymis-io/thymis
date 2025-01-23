@@ -1,20 +1,21 @@
 args@{ ... }:
 let
   inherit (args) inputs lib;
-  image-with-secrets-builder = { pkgs, image-path }: pkgs.callPackage
+  image-with-secrets-builder = { pkgs, image-path, start-vm ? "" }: pkgs.callPackage
     ({}: pkgs.writeShellScript "fill-image-with-secrets" ''
       #! ${pkgs.runtimeShell}
       set -euo pipefail
       set -x
 
       if [ -z "''${2:-}" ]; then
-        echo "Usage: $0 <secret_dir> <final_image_destination>"
+        echo "Usage: $0 <secret_dir> <final_image_destination_base>"
         exit 1
       fi
 
       image_dir=${image-path}
+      start_vm=${start-vm}
       secret_dir="$1"
-      final_image_destination="$2"
+      final_image_destination_base="$2"
 
       if [ ! -d "$secret_dir" ]; then
         echo "Secret directory does not exist: $secret_dir"
@@ -26,11 +27,12 @@ let
         exit 1
       fi
 
-      IMAGE_ENDINGS="qcow2 img"
+      IMAGE_ENDINGS="qcow2 img -vm"
       for ENDING in $IMAGE_ENDINGS; do
-        IMAGE_WITH_ENDING=$(find "$image_dir" -name "*.$ENDING" -type f | head -n 1)
+        IMAGE_WITH_ENDING=$(find "$image_dir" -name "*$ENDING" -mindepth 1 | head -n 1)
         if ! [ -z "$IMAGE_WITH_ENDING" ]; then
           IMAGE="$IMAGE_WITH_ENDING"
+          EXTENSION="$ENDING"
         fi
       done
 
@@ -39,33 +41,46 @@ let
         exit 1
       fi
 
-      if ! file "$IMAGE" | grep -q -e "DOS/MBR boot sector"; then
-        file "$IMAGE"
-        echo "Image is not a bootable image"
-        exit 1
-      fi
-
-      echo "Image: $IMAGE"
-
-      cp $IMAGE $final_image_destination --no-preserve=mode,ownership
-
-      echo "Final image: $final_image_destination"
-      PARTED_OUTPUT=$(${pkgs.parted}/bin/parted --json -s "$final_image_destination" "print")
-      echo "Parted output: $PARTED_OUTPUT"
-      FIRST_FAT_PARTITION_IDX=$(echo "$PARTED_OUTPUT" | ${pkgs.jq}/bin/jq -r '.disk.partitions[] | select(.filesystem == "fat16") | .number' | head -n 1)
-      echo "First FAT partition index: $FIRST_FAT_PARTITION_IDX"
-      eval "$(${pkgs.util-linux}/bin/partx "$final_image_destination" -o START,SECTORS --nr "$FIRST_FAT_PARTITION_IDX" --pairs)"
-      echo "First FAT partition starts at $START and has $SECTORS sectors"
-      FIRST_FAT_PARTITION_START=$START
-      FIRST_FAT_PARTITION_SECTORS=$SECTORS
+      FINAL_IMAGE_DESTINATION=$final_image_destination_base.$EXTENSION
 
       TMPDIR=$(mktemp -d)
       trap 'rm -rf "$TMPDIR"' EXIT
 
+      if ! file "$IMAGE" | grep -q -e "DOS/MBR boot sector"; then
+        if ! file "$IMAGE" | grep -q -e "QEMU QCOW Image"; then
+          file "$IMAGE"
+          echo "Image is not a bootable image"
+          exit 1
+        fi
+        # If it's a qcow2 image, convert it to a raw image, and convert it back to qcow2 later
+        RAW_IMAGE="$TMPDIR/image.raw"
+        ${pkgs.qemu}/bin/qemu-img convert -f qcow2 -O raw "$IMAGE" "$RAW_IMAGE"
+        QCOW_ORIGINAL_IMAGE="$IMAGE"
+        IMAGE="$RAW_IMAGE"
+        QCOW_ORIGINAL_FINAL_DESTINATION="$FINAL_IMAGE_DESTINATION"
+        TMP_RAW_FINAL_IMAGE_DESTINATION="$TMPDIR/image.raw.final_tmp"
+        FINAL_IMAGE_DESTINATION="$TMP_RAW_FINAL_IMAGE_DESTINATION"
+      fi
+
+      echo "Image: $IMAGE"
+
+      cp --no-preserve=mode,ownership "$IMAGE" "$FINAL_IMAGE_DESTINATION"
+
+      echo "Final image: $FINAL_IMAGE_DESTINATION"
+      PARTED_OUTPUT=$(${pkgs.parted}/bin/parted --json -s "$FINAL_IMAGE_DESTINATION" print)
+      echo "Parted output: $PARTED_OUTPUT"
+      FIRST_FAT_PARTITION_IDX=$(echo "$PARTED_OUTPUT" | ${pkgs.jq}/bin/jq -r '.disk.partitions[] | select(.filesystem == "fat16") | .number' | head -n 1)
+      echo "First FAT partition index: $FIRST_FAT_PARTITION_IDX"
+      eval "$(${pkgs.util-linux}/bin/partx "$FINAL_IMAGE_DESTINATION" -o START,SECTORS --nr "$FIRST_FAT_PARTITION_IDX" --pairs)"
+      echo "First FAT partition starts at $START and has $SECTORS sectors"
+      FIRST_FAT_PARTITION_START=$START
+      FIRST_FAT_PARTITION_SECTORS=$SECTORS
+
+
       echo "Extracting first FAT partition to $TMPDIR/image_first_fat_partition"
 
       # dd if="$1" of="$2" conv=notrunc skip="$FIRST_FAT_PARTITION_START" count="$FIRST_FAT_PARTITION_SECTORS"
-      dd if="$final_image_destination" of="$TMPDIR/image_first_fat_partition" conv=notrunc skip="$FIRST_FAT_PARTITION_START" count="$FIRST_FAT_PARTITION_SECTORS"
+      dd if="$FINAL_IMAGE_DESTINATION" of="$TMPDIR/image_first_fat_partition" conv=notrunc skip="$FIRST_FAT_PARTITION_START" count="$FIRST_FAT_PARTITION_SECTORS"
 
       echo "Extracted first FAT partition to $TMPDIR/image_first_fat_partition"
 
@@ -81,9 +96,29 @@ let
 
       echo "Copying secrets to FAT partition done"
 
-      dd if="$TMPDIR/image_first_fat_partition" of="$final_image_destination" conv=notrunc seek="$FIRST_FAT_PARTITION_START" count="$FIRST_FAT_PARTITION_SECTORS" status=progress
+      dd if="$TMPDIR/image_first_fat_partition" of="$FINAL_IMAGE_DESTINATION" conv=notrunc seek="$FIRST_FAT_PARTITION_START" count="$FIRST_FAT_PARTITION_SECTORS" status=progress
 
+      if [ -n "$QCOW_ORIGINAL_IMAGE" ]; then
+        echo "Converting back to qcow2"
+        ${pkgs.qemu}/bin/qemu-img convert -f raw -O qcow2 "$FINAL_IMAGE_DESTINATION" "$QCOW_ORIGINAL_FINAL_DESTINATION"
+        rm -f "$FINAL_IMAGE_DESTINATION"
+        FINAL_IMAGE_DESTINATION="$QCOW_ORIGINAL_FINAL_DESTINATION"
+      fi
 
+      if [ -n "$start_vm" ]; then
+        START_VM_SCRIPT="$TMPDIR/start-vm"
+
+        # insert "-b $FINAL_IMAGE_DESTINATION" to replace previous "-b whatever/nixos.qcow2"
+        sed -e "s@-b .*nixos.qcow2@-b \"$FINAL_IMAGE_DESTINATION\"@" "$start_vm" > "$START_VM_SCRIPT"
+
+        cp "$START_VM_SCRIPT" "$final_image_destination_base.start-vm"
+
+        chmod +x "$final_image_destination_base.start-vm"
+        echo "Start VM script: $START_VM_SCRIPT"
+      fi
+
+      echo "Done"
+      exit 0
     '')
     { };
   imageFormats =
@@ -206,13 +241,64 @@ let
           };
           key = "github:thymis-io/thymis/image-formats.nix:sd-card-image";
         };
-      # nixos-vm = { config, modulesPath, ... }: {
-      #   imports = [
-      #     "${modulesPath}/virtualisation/qemu-vm.nix"
-      #   ];
-      #   # system.build.thymis-image = config.system.build.vm;
-      #   key = "github:thymis-io/thymis/image-formats.nix:nixos-vm";
-      # };
+      nixos-vm = { config, inputs, pkgs, modulesPath, extendModules, ... }:
+        let
+          cfg = config.virtualisation;
+          regInfo = pkgs: pkgs.closureInfo { rootPaths = config.virtualisation.additionalPaths; };
+          rootFilesystemLabel = "nixos";
+          selectPartitionTableLayout =
+            { useEFIBoot, useDefaultFilesystems }:
+            if useDefaultFilesystems then if useEFIBoot then "efi" else "legacy" else "none";
+          systemImage = hostPkgs: import "${inputs.nixpkgs}/nixos/lib/make-disk-image.nix" {
+            inherit pkgs config lib;
+            additionalPaths = [ (regInfo hostPkgs) ];
+            format = "qcow2";
+            onlyNixStore = false;
+            label = rootFilesystemLabel;
+            partitionTableType = selectPartitionTableLayout { inherit (cfg) useDefaultFilesystems useEFIBoot; };
+            installBootLoader = cfg.installBootLoader;
+            touchEFIVars = cfg.useEFIBoot;
+            diskSize = "auto";
+            additionalSpace = "0M";
+            copyChannel = false;
+            OVMF = cfg.efi.OVMF;
+          };
+        in
+        {
+          imports = [
+            "${modulesPath}/virtualisation/qemu-vm.nix"
+          ];
+          # system.build.thymis-image = config.system.build.vm;
+          virtualisation.useBootLoader = true;
+          virtualisation.useEFIBoot = true;
+          boot.loader.systemd-boot.enable = true;
+          system.build.thymis-image-with-secrets-builder-aarch64 =
+            let
+              hostPkgs = inputs.nixpkgs.legacyPackages.aarch64-linux;
+              variant = extendModules {
+                modules = [{ virtualisation.host.pkgs = hostPkgs; }];
+              };
+            in
+            image-with-secrets-builder {
+              pkgs = hostPkgs;
+              image-path = systemImage hostPkgs;
+              start-vm = "${variant.config.system.build.vm}/bin/run-${config.system.name}-vm";
+            };
+          system.build.thymis-image-with-secrets-builder-x86_64 =
+            let
+              hostPkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
+              variant = extendModules {
+                modules = [{ virtualisation.host.pkgs = hostPkgs; }];
+              };
+            in
+            image-with-secrets-builder {
+              pkgs = hostPkgs;
+              image-path = systemImage hostPkgs;
+              start-vm = "${variant.config.system.build.vm}/bin/run-${config.system.name}-vm";
+            };
+          key = "github:thymis-io/thymis/image-formats.nix:nixos-vm";
+          _file = ./image-formats.nix;
+        };
     };
 in
 imageFormats

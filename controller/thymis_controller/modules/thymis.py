@@ -184,6 +184,9 @@ class ThymisDevice(modules.Module):
                 ("Raspberry Pi 5", "raspberry-pi-5"),
                 ("Generic AArch64", "generic-aarch64"),
             ],
+            extra_data={
+                "only_editable_on_target_type": ["config"],
+            },
         ),
         default="",
         description=modules.LocalizedString(
@@ -204,18 +207,19 @@ class ThymisDevice(modules.Module):
             select_one=[
                 ("SD-Card Image", "sd-card-image"),
                 ("Virtual Disk Image (qcow)", "qcow"),
-                # ("NixOS VM", "nixos-vm"),
+                ("NixOS VM", "nixos-vm"),
             ],
             extra_data={
                 "restrict_values_on_other_key": {
                     "device_type": {
-                        "generic-x86_64": ["qcow"],
-                        "generic-aarch64": ["qcow"],
+                        "generic-x86_64": ["nixos-vm"],
+                        "generic-aarch64": ["nixos-vm"],
                         "raspberry-pi-3": ["sd-card-image"],
                         "raspberry-pi-4": ["sd-card-image"],
                         "raspberry-pi-5": ["sd-card-image"],
                     }
                 },
+                "only_editable_on_target_type": ["config"],
             },
         ),
         default="",
@@ -639,14 +643,14 @@ class ThymisDevice(modules.Module):
 
         f.write("  imports = [\n")
 
-        if device_type:
-            f.write(f"    inputs.thymis.nixosModules.thymis-device-{device_type}\n")
-
-        if image_format:
-            f.write(f"    inputs.thymis.nixosModules.thymis-image-{image_format}\n")
-        elif device_type:
-            first_format = self.find_image_format_by_device_type(device_type)
-            f.write(f"    inputs.thymis.nixosModules.thymis-image-{first_format}\n")
+        if write_target_type == "hosts":
+            if device_type:
+                f.write(f"    inputs.thymis.nixosModules.thymis-device-{device_type}\n")
+            if image_format:
+                f.write(f"    inputs.thymis.nixosModules.thymis-image-{image_format}\n")
+            elif device_type:
+                first_format = self.find_image_format_by_device_type(device_type)
+                f.write(f"    inputs.thymis.nixosModules.thymis-image-{first_format}\n")
 
         f.write("  ];\n")
 
