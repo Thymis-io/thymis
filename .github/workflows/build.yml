@@ -1,6 +1,7 @@
 name: "Build"
 on:
   pull_request:
+  pull_request_target:
   merge_group:
   push:
     branches:
@@ -8,9 +9,16 @@ on:
 
 jobs:
   build-agent:
+    if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # - if: ${{ github.event_name != 'pull_request_target' }}
+      #   uses: actions/checkout@v4
+      # - if: ${{ github.event_name == 'pull_request_target' }}
+      #   uses: actions/checkout@v4
+      #   with:
+      #     ref: ${{ github.event.pull_request.merge_commit_sha }}
+      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -23,9 +31,10 @@ jobs:
             nix build .#thymis-agent --print-build-logs
 
   build-thymis-controller:
+    if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -38,9 +47,10 @@ jobs:
             nix build .#thymis-controller --print-build-logs
 
   build-thymis-controller-pi-3-sd-image:
+    if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v4
+      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -53,9 +63,10 @@ jobs:
       - uses: ./.github/actions/assemble-image-and-assert-existence
 
   build-thymis-controller-pi-4-sd-image:
+    if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v4
+      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -69,9 +80,10 @@ jobs:
       - uses: ./.github/actions/assemble-image-and-assert-existence
 
   build-thymis-controller-pi-5-sd-image:
+    if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v4
+      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -85,9 +97,10 @@ jobs:
       - uses: ./.github/actions/assemble-image-and-assert-existence
 
   build-generic-x86_64-image:
+    if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}

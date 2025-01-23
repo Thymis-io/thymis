@@ -1,0 +1,10 @@
+name: 'Checkout with target only use when checked'
+runs:
+  using: "composite"
+  steps:
+    - if: ${{ github.event_name != 'pull_request_target' }}
+      uses: actions/checkout@v4
+    - if: ${{ github.event_name == 'pull_request_target' }}
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.merge_commit_sha }}
