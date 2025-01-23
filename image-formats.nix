@@ -46,6 +46,7 @@ let
       TMPDIR=$(mktemp -d)
       trap 'rm -rf "$TMPDIR"' EXIT
 
+      IS_QCOW2=0
       if ! file "$IMAGE" | grep -q -e "DOS/MBR boot sector"; then
         if ! file "$IMAGE" | grep -q -e "QEMU QCOW Image"; then
           file "$IMAGE"
@@ -60,6 +61,7 @@ let
         QCOW_ORIGINAL_FINAL_DESTINATION="$FINAL_IMAGE_DESTINATION"
         TMP_RAW_FINAL_IMAGE_DESTINATION="$TMPDIR/image.raw.final_tmp"
         FINAL_IMAGE_DESTINATION="$TMP_RAW_FINAL_IMAGE_DESTINATION"
+        IS_QCOW2=1
       fi
 
       echo "Image: $IMAGE"
@@ -98,12 +100,14 @@ let
 
       dd if="$TMPDIR/image_first_fat_partition" of="$FINAL_IMAGE_DESTINATION" conv=notrunc seek="$FIRST_FAT_PARTITION_START" count="$FIRST_FAT_PARTITION_SECTORS" status=progress
 
-      if [ -n "$QCOW_ORIGINAL_IMAGE" ]; then
+      if [ $IS_QCOW2 -eq 1 ]; then
         echo "Converting back to qcow2"
         ${pkgs.qemu}/bin/qemu-img convert -f raw -O qcow2 "$FINAL_IMAGE_DESTINATION" "$QCOW_ORIGINAL_FINAL_DESTINATION"
         rm -f "$FINAL_IMAGE_DESTINATION"
         FINAL_IMAGE_DESTINATION="$QCOW_ORIGINAL_FINAL_DESTINATION"
       fi
+
+      echo "Final image: $FINAL_IMAGE_DESTINATION"
 
       if [ -n "$start_vm" ]; then
         START_VM_SCRIPT="$TMPDIR/start-vm"
