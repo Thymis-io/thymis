@@ -1,6 +1,13 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { Module, ModuleSettings, ModuleSettingsWithOrigin, Origin } from '$lib/state';
+	import type {
+		ContextType,
+		Module,
+		ModuleSettings,
+		ModuleSettingsWithOrigin,
+		Origin,
+		Setting
+	} from '$lib/state';
 	import { Card, P, Tooltip } from 'flowbite-svelte';
 	import Route from 'lucide-svelte/icons/route';
 	import RouteOff from 'lucide-svelte/icons/route-off';
@@ -11,6 +18,7 @@
 
 	export let module: Module;
 	export let settings: ModuleSettingsWithOrigin | undefined;
+	export let configSelectedModuleContextType: ContextType;
 	export let otherSettings: ModuleSettingsWithOrigin[] | undefined;
 	export let showRouting: boolean;
 	export let canEdit: boolean;
@@ -28,6 +36,24 @@
 	};
 
 	$: settingEntries = Object.entries(module.settings).sort((a, b) => a[1].order - b[1].order);
+
+	const canReallyEditSetting: (setting: Setting) => boolean = (setting) =>
+		canEdit &&
+		!(
+			setting &&
+			typeof setting.type === 'object' &&
+			'extra_data' in setting.type &&
+			typeof setting.type.extra_data === 'object' &&
+			setting.type.extra_data &&
+			'only_editable_on_target_type' in setting.type.extra_data &&
+			Array.isArray(setting.type.extra_data.only_editable_on_target_type) &&
+			!setting.type.extra_data.only_editable_on_target_type.includes(
+				configSelectedModuleContextType
+			)
+		);
+
+	const canClearSetting: (setting: Setting) => boolean = (setting) =>
+		canEdit && !canReallyEditSetting(setting);
 </script>
 
 <Card
@@ -52,11 +78,11 @@
 					{setting}
 					moduleSettings={settings}
 					value={settings?.settings[key]}
-					disabled={!canEdit}
+					disabled={!canReallyEditSetting(setting)}
 					onChange={(value) => setSetting(module, key, value)}
 				/>
 				<div class="ml-auto" />
-				{#if canEdit}
+				{#if canEdit || canClearSetting(setting)}
 					{#if settings?.settings[key] !== undefined}
 						<button
 							class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
@@ -65,7 +91,7 @@
 							<X size="20" />
 						</button>
 						<Tooltip type="auto"><P size="sm">{$t('config.clear')}</P></Tooltip>
-					{:else}
+					{:else if canEdit}
 						<button
 							class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 							on:click={() =>

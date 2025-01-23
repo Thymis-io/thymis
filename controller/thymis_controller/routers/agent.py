@@ -20,9 +20,31 @@ def device_notify(
     db_session: SessionAD,
     project: ProjectAD,
 ):
+    logger.info("Device notify request: %s", device_notify_request)
     request_source = (
         request.client
     )  # see --forwarded-allow-ips for uvicorn configuration
+    # check for token using db
+    if device_notify_request.token:
+        if not crud.agent_token.check_token_validity(
+            db_session, device_notify_request.token
+        ):
+            logger.error(
+                "Device with public key %s notifies controller with invalid token %s",
+                device_notify_request.public_key,
+                device_notify_request.token,
+            )
+            raise HTTPException(
+                status_code=400
+            )  # do not reveal information to misbehaving devices
+    else:
+        # no token is actually semi-fine, we log everything but we do not create any database entries
+        logger.warning(
+            "Device with public key %s notifies controller without token "
+            "possibly due to an outdated agent version, an attacker or a misconfiguration "
+            "you will still see all checks logged, however no database entries are created",
+            device_notify_request.public_key,
+        )
     logger.debug(
         "Device with public key %s notifies controller with commit hash %s and config id %s from %s",
         device_notify_request.public_key,
@@ -54,6 +76,17 @@ def device_notify(
         hosts=[request.client.host, *device_notify_request.ip_addresses],
         public_key=device_notify_request.public_key,
     )
+
+    if not reachable_deployed_host:
+        logger.error(
+            "Device with public key %s notifies controller with commit hash %s and "
+            "config id %s from %s with unreachable host",
+            device_notify_request.public_key,
+            device_notify_request.commit_hash,
+            device_notify_request.config_id,
+            request_source.host,
+        )
+        raise HTTPException(status_code=400)
 
     # verify ssh key
     verified_ssh = project.verify_ssh_host_key_and_creds(
@@ -128,21 +161,23 @@ def device_notify(
 
     if force_pubkey_update:
         logger.info("Force public key update for device %s", reachable_deployed_host)
+        # this branch means: if your underlying hardware has changed, you need to update your public key
         return {"force_pubkey_update": True}
 
     # create or update deployment_info
-    deployment_info = crud.deployment_info.create_or_update_by_public_key(
-        db_session,
-        device_notify_request.public_key,
-        device_notify_request.commit_hash,
-        device_notify_request.config_id,
-        reachable_deployed_host,
-    )
-    hardware_device = crud.hardware_device.create_or_update(
-        db_session,
-        hardware_ids,
-        deployment_info.id,
-    )
+    if device_notify_request.token:
+        deployment_info = crud.deployment_info.create_or_update_by_public_key(
+            db_session,
+            device_notify_request.public_key,
+            device_notify_request.commit_hash,
+            device_notify_request.config_id,
+            reachable_deployed_host,
+        )
+        hardware_device = crud.hardware_device.create_or_update(
+            db_session,
+            hardware_ids,
+            deployment_info.id,
+        )
 
     project.update_known_hosts(db_session)
 

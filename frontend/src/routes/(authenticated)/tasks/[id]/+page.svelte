@@ -89,9 +89,8 @@
 				code={task.process_env
 					? Object.entries(task.process_env)
 							.map(([key, value]) => `${key}="${escapeForDoubleQuotes(value)}"`)
-							.join(' ')
+							.join(' ') + ' '
 					: '' +
-						' ' +
 						task.process_program +
 						' ' +
 						task.process_args

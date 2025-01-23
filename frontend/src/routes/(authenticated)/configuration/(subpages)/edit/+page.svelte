@@ -6,7 +6,8 @@
 		getDeviceByIdentifier,
 		getTagByIdentifier,
 		globalNavSelectedTargetType,
-		saveState
+		saveState,
+		type ContextType
 	} from '$lib/state';
 	import {
 		type ModuleSettings,
@@ -22,7 +23,7 @@
 	} from '$lib/state';
 	import DeployActions from '$lib/components/DeployActions.svelte';
 	import type { PageData } from './$types';
-	import ConfigModuleCard from '$lib/config/ModuleCard.svelte';
+	import ModuleCard from '$lib/config/ModuleCard.svelte';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import { queryParam } from 'sveltekit-search-params';
@@ -39,7 +40,9 @@
 			return availableModules.find((module) => module.type === m);
 		}
 	);
-	const configSelectedModuleContextType = queryParam('config-selected-module-context-type');
+	const configSelectedModuleContextType = queryParam<ContextType>(
+		'config-selected-module-context-type'
+	);
 	const configSelectedModuleContext = derived(
 		[
 			configSelectedModuleContextType,
@@ -182,8 +185,9 @@
 		{/each}
 	</Card>
 	{#if $configSelectedModule && $configSelectedModuleContext?.modules.find((m) => m.type === $configSelectedModule.type)}
-		<ConfigModuleCard
+		<ModuleCard
 			module={$configSelectedModule}
+			configSelectedModuleContextType={$configSelectedModuleContextType}
 			settings={getOwnModuleSettings($configSelectedModuleContext).find(
 				(s) => s.type === $configSelectedModule?.type
 			)}
