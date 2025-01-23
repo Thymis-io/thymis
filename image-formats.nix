@@ -271,6 +271,7 @@ let
           # system.build.thymis-image = config.system.build.vm;
           virtualisation.useBootLoader = true;
           virtualisation.useEFIBoot = true;
+          boot.growPartition = true;
           boot.loader.systemd-boot.enable = true;
           system.build.thymis-image-with-secrets-builder-aarch64 =
             let
