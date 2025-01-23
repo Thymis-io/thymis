@@ -21,6 +21,20 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: build thymis-controller-pi-3-sd-image
         run: nix build .#thymis-controller-pi-3-sd-image --print-build-logs
+      - name: assemble image with a empty secrets dir
+        run: |
+          mkdir -p workdir/secrets
+          echo "abcdefgh" > workdir/secrets/whatever.txt
+          ./result workdir/secrets workdir/final
+      - name: assert something exists at workdir/final*
+        run: |
+          if test -n "$(find . -maxdepth 1 -name 'workdir/final*' -print -quit)"
+          then
+            echo "found something at workdir/final*"
+          else
+            echo "nothing found at workdir/final*"
+            exit 1
+          fi
 
   build-thymis-controller-pi-4-sd-image:
     runs-on: ubuntu-24.04-arm
@@ -36,6 +50,20 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: build thymis-controller-pi-4-sd-image
         run: nix build .#thymis-controller-pi-4-sd-image --print-build-logs
+      - name: assemble image with a empty secrets dir
+        run: |
+          mkdir -p workdir/secrets
+          echo "abcdefgh" > workdir/secrets/whatever.txt
+          ./result workdir/secrets workdir/final
+      - name: assert something exists at workdir/final*
+        run: |
+          if test -n "$(find . -maxdepth 1 -name 'workdir/final*' -print -quit)"
+          then
+            echo "found something at workdir/final*"
+          else
+            echo "nothing found at workdir/final*"
+            exit 1
+          fi
 
   build-thymis-controller-pi-5-sd-image:
     runs-on: ubuntu-24.04-arm
@@ -52,3 +80,17 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: build thymis-controller-pi-5-sd-image
         run: nix build .#thymis-controller-pi-5-sd-image --print-build-logs
+      - name: assemble image with a empty secrets dir
+        run: |
+          mkdir -p workdir/secrets
+          echo "abcdefgh" > workdir/secrets/whatever.txt
+          ./result workdir/secrets workdir/final
+      - name: assert something exists at workdir/final*
+        run: |
+          if test -n "$(find . -maxdepth 1 -name 'workdir/final*' -print -quit)"
+          then
+            echo "found something at workdir/final*"
+          else
+            echo "nothing found at workdir/final*"
+            exit 1
+          fi
