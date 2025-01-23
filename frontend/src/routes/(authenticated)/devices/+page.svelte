@@ -1,13 +1,8 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
-	import { Table, TableBody, TableBodyCell, TableHead, TableHeadCell } from 'flowbite-svelte';
-	import { type HardwareDevice } from '$lib/hardwareDevices';
+	import { Table, TableBodyCell, TableHead, TableHeadCell } from 'flowbite-svelte';
 	import DeployActions from '$lib/components/DeployActions.svelte';
-	import { dndzone, SOURCES, TRIGGERS, type DndEvent } from 'svelte-dnd-action';
-	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
-	import { flip } from 'svelte/animate';
-	import GripVertical from 'lucide-svelte/icons/grip-vertical';
 	import Pen from 'lucide-svelte/icons/pen';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import { getDeviceTypesMap, getDeviceType } from '$lib/config/configUtils';
@@ -27,50 +22,6 @@
 
 	let editDeploymentInfoModalOpen = false;
 	let currentDeploymentInfo: DeploymentInfo | undefined = undefined;
-
-	const flipDurationMs = 200;
-	let dragDisabled = true;
-
-	const handleConsider = (
-		e: CustomEvent<DndEvent<{ id: string; hardwareDevice: HardwareDevice }>>
-	) => {
-		const {
-			items: newItems,
-			info: { source, trigger }
-		} = e.detail;
-		hardwareDevices = newItems;
-		// Ensure dragging is stopped on drag finish via keyboard
-		if (source === SOURCES.KEYBOARD && trigger === TRIGGERS.DRAG_STOPPED) {
-			dragDisabled = true;
-		}
-	};
-
-	const handleFinalize = (
-		e: CustomEvent<DndEvent<{ id: string; hardwareDevice: HardwareDevice }>>
-	) => {
-		const {
-			items: newItems,
-			info: { source }
-		} = e.detail;
-		hardwareDevices = newItems;
-		// TODO also send new device order to backend and reload
-		let devicesState = hardwareDevices.map((d) => d.hardwareDevice);
-		data.hardwareDevices = devicesState;
-
-		if (source === SOURCES.POINTER) {
-			dragDisabled = true;
-		}
-	};
-
-	const startDrag = ((e) => {
-		// preventing default to prevent lag on touch devices (because of the browser checking for screen scrolling)
-		e.preventDefault();
-		dragDisabled = false;
-	}) satisfies TouchEventHandler<HTMLDivElement> & MouseEventHandler<HTMLDivElement>;
-
-	const handleKeyDown = ((e) => {
-		if ((e.key === 'Enter' || e.key === ' ') && dragDisabled) dragDisabled = false;
-	}) satisfies KeyboardEventHandler<HTMLDivElement>;
 
 	const hardwareKeyToDisplayName = {
 		'pi-serial-number': () => $t('hardware-devices.hardware-keys.pi-serial-number')
@@ -101,11 +52,7 @@
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.device-type')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.hardware-ids')}</TableHeadCell>
 	</TableHead>
-	<tbody
-		use:dndzone={{ items: hardwareDevices, dragDisabled, flipDurationMs }}
-		on:consider={handleConsider}
-		on:finalize={handleFinalize}
-	>
+	<tbody>
 		{#each hardwareDevices as { id, hardwareDevice }, i (id)}
 			{@const deployedConfig = data.state.devices.find(
 				(d) => d.identifier === hardwareDevice.deployment_info?.deployed_config_id
@@ -113,26 +60,8 @@
 			{@const deviceType = getDeviceType(deployedConfig)}
 			<tr
 				class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
-				animate:flip={{ duration: flipDurationMs }}
 			>
-				<TableBodyCell tdClass="p-2">
-					{#if false}
-						<div class="flex items-center justify-center">
-							<div
-								tabindex={dragDisabled ? 0 : -1}
-								aria-label="drag-handle"
-								role="button"
-								class="handle"
-								style={dragDisabled ? 'cursor: grab' : 'cursor: grabbing'}
-								on:mousedown={startDrag}
-								on:touchstart={startDrag}
-								on:keydown={handleKeyDown}
-							>
-								<GripVertical size={'1rem'} class="min-w-4" />
-							</div>
-						</div>
-					{/if}
-				</TableBodyCell>
+				<TableBodyCell tdClass="p-2"></TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					<div class="flex gap-2">
 						{hardwareDevice.deployment_info?.reachable_deployed_host}
