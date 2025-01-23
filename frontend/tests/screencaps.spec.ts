@@ -126,6 +126,10 @@ colorSchemes.forEach((colorScheme) => {
 			await page.goto('/configuration/list');
 			await expect(page).toHaveScreenshot();
 
+			// Naviagte to hardware devices page
+			await page.goto('/devices');
+			await expect(page).toHaveScreenshot();
+
 			// Navigate to the Tags page
 			const tagsNav = page.locator('a', { hasText: 'Tags' }).locator('visible=true').first();
 			await tagsNav.click();
