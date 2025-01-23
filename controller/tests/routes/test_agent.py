@@ -46,8 +46,9 @@ def verify_ssh_host_key_and_creds(
 def test_device_notify(test_client):
     db_session_func = test_client.app.dependency_overrides.get(get_db_session)
     db_session = next(db_session_func())
-
+    crud.agent_token.create(db_session, "a", "b", "c")
     json_data = {
+        "token": "c",
         "config_id": "test",
         "commit_hash": "test",
         "hardware_ids": {"pi-serial-number": "test"},
