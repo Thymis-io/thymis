@@ -18,7 +18,9 @@ jobs:
       #   uses: actions/checkout@v4
       #   with:
       #     ref: ${{ github.event.pull_request.merge_commit_sha }}
-      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.merge_commit_sha) || '' }}
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -34,7 +36,9 @@ jobs:
     if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.merge_commit_sha) || '' }}
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -50,7 +54,9 @@ jobs:
     if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.merge_commit_sha) || '' }}
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -66,7 +72,9 @@ jobs:
     if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.merge_commit_sha) || '' }}
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -83,7 +91,9 @@ jobs:
     if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.merge_commit_sha) || '' }}
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -100,7 +110,9 @@ jobs:
     if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/actions/checkout-with-target-only-use-when-checked
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.merge_commit_sha) || '' }}
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
