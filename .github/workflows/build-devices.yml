@@ -28,7 +28,7 @@ jobs:
           ./result workdir/secrets workdir/final
       - name: assert something exists at workdir/final*
         run: |
-          if test -n "$(find . -maxdepth 1 -name 'workdir/final*' -print -quit)"
+          if test -n "$(find ./workdir -maxdepth 1 -name 'final*' -print -quit)"
           then
             echo "found something at workdir/final*"
           else
@@ -57,7 +57,7 @@ jobs:
           ./result workdir/secrets workdir/final
       - name: assert something exists at workdir/final*
         run: |
-          if test -n "$(find . -maxdepth 1 -name 'workdir/final*' -print -quit)"
+          if test -n "$(find ./workdir -maxdepth 1 -name 'final*' -print -quit)"
           then
             echo "found something at workdir/final*"
           else
@@ -87,7 +87,7 @@ jobs:
           ./result workdir/secrets workdir/final
       - name: assert something exists at workdir/final*
         run: |
-          if test -n "$(find . -maxdepth 1 -name 'workdir/final*' -print -quit)"
+          if test -n "$(find ./workdir -maxdepth 1 -name 'final*' -print -quit)"
           then
             echo "found something at workdir/final*"
           else
