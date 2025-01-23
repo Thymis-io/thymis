@@ -25,6 +25,7 @@ runs:
         attic login thymis-cache https://cache2.thymis.io $attic_token --set-default
     - if: ${{ env.ATTIC_TOKEN == '' }}
       name: Print Attic Token Warning
+      shell: bash
       run: echo "ATTIC_TOKEN not set, skipping Attic installation."
 # use this magic invocation to push generated and used paths to the cache
 # attic watch-store "thymis-cache:public-cache" &
