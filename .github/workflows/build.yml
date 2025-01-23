@@ -23,6 +23,20 @@ jobs:
         run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-24.11
       - name: build thymis-controller-generic-x86_64-image
         run: nix build .#thymis-controller-generic-x86_64-image --print-build-logs
+      - name: assemble image with a empty secrets dir
+        run: |
+          mkdir -p workdir/secrets
+          echo "abcdefgh" > workdir/secrets/whatever.txt
+          ./result workdir/secrets workdir/final
+      - name: assert something exists at workdir/final*
+        run: |
+          if test -n "$(find . -maxdepth 1 -name 'workdir/final*' -print -quit)"
+          then
+            echo "found something at workdir/final*"
+          else
+            echo "nothing found at workdir/final*"
+            exit 1
+          fi
   build-agent:
     runs-on: ubuntu-latest
     steps:
