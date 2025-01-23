@@ -12,13 +12,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Install Nix
-        uses: cachix/install-nix-action@v27
+      - uses: ./.github/actions/setup-nix
         with:
-          extra_nix_config: |
-            system-features = kvm
-            extra-trusted-public-keys = cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=
-            extra-substituters = https://cache.thymis.io
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+      - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: Configure poetry
         run: |
           nix develop --command poetry config virtualenvs.in-project true
@@ -28,6 +25,13 @@ jobs:
         with:
           path: ./controller/.venv
           key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Cache dev env
+        uses: ./.github/actions/run-command-with-nix-cache-upload
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          script: |
+            nix develop --command echo "Cache dev env"
 
       - name: Install dependencies
         run: |
@@ -43,16 +47,9 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
-      # - uses: dbhi/qus/action@main
-      #   with:
-      #     targets: aarch64
-      - name: Install Nix
-        uses: cachix/install-nix-action@v27
+      - uses: ./.github/actions/setup-nix
         with:
-          extra_nix_config: |
-            system-features = kvm
-            extra-trusted-public-keys = cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=
-            extra-substituters = https://cache.thymis.io
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
       - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -63,24 +60,30 @@ jobs:
           npm ci
         working-directory: frontend
       - name: Build application
-        run: |
-          nix build .#thymis-controller
+        uses: ./.github/actions/run-command-with-nix-cache-upload
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          script: |
+            nix build .#thymis-controller --print-build-logs
       - name: Install Playwright Browser
         run: |
           npx playwright install --with-deps
         working-directory: frontend
       - name: Run tests
-        run: |
-          npm run test 2>&1 | tee output.log
-          if grep -q -e "Error: A snapshot doesn't exist at" -e "Screenshot comparison failed" output.log; then
-            echo "Playwright tests failed due to a snapshot issue"
-            echo "SNAPSHOT_DIFFERENCES=true" >> $GITHUB_ENV
-          fi
-          if grep -q -E -e "[[:digit:]]+ failed" -e "was not able to start" output.log; then
-            echo "Playwright tests failed"
-            exit 1
-          fi
-        working-directory: frontend
+        uses: ./.github/actions/run-command-with-nix-cache-upload
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          script: |
+            npm run test 2>&1 | tee output.log
+            if grep -q -e "Error: A snapshot doesn't exist at" -e "Screenshot comparison failed" output.log; then
+              echo "Playwright tests failed due to a snapshot issue"
+              echo "SNAPSHOT_DIFFERENCES=true" >> $GITHUB_ENV
+            fi
+            if grep -q -E -e "[[:digit:]]+ failed" -e "was not able to start" output.log; then
+              echo "Playwright tests failed"
+              exit 1
+            fi
+          working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload
         if: always()

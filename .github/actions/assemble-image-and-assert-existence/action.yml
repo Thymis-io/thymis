@@ -1,0 +1,20 @@
+name: "Assemble image and assert existence"
+runs:
+  using: "composite"
+  steps:
+    - name: assemble image with a empty secrets dir
+      run: |
+        mkdir -p workdir/secrets
+        echo "abcdefgh" > workdir/secrets/whatever.txt
+        ./result workdir/secrets workdir/final
+    - name: assert something exists at workdir/final*
+      run: |
+        if test -n "$(find ./workdir -maxdepth 1 -name 'final*' -print -quit)"
+        then
+          echo "found something at workdir/final*"
+        else
+          echo "nothing found at workdir/final*"
+          exit 1
+        fi
+
+# YOUR_NIX_STORE_PATHS_GENERATING_COMMAND_HERE
