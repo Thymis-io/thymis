@@ -3,11 +3,13 @@ runs:
   using: "composite"
   steps:
     - name: assemble image with a empty secrets dir
+      shell: bash
       run: |
         mkdir -p workdir/secrets
         echo "abcdefgh" > workdir/secrets/whatever.txt
         ./result workdir/secrets workdir/final
     - name: assert something exists at workdir/final*
+      shell: bash
       run: |
         if test -n "$(find ./workdir -maxdepth 1 -name 'final*' -print -quit)"
         then

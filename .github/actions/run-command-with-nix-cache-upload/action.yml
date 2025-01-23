@@ -19,6 +19,7 @@ runs:
   steps:
     - if: ${{ env.ATTIC_TOKEN != '' }}
       name: Run script
+      shell: bash
       run: |
         attic watch-store "thymis-cache:public-cache" &
         ATTIC_PID=$!
@@ -27,5 +28,6 @@ runs:
       working-directory: ${{ inputs.working-directory }}
     - if: ${{ env.ATTIC_TOKEN == '' }}
       name: Run script
+      shell: bash
       run: ${{ inputs.script }}
       working-directory: ${{ inputs.working-directory }}

@@ -19,6 +19,7 @@ runs:
           extra-substituters = https://cache.thymis.io https://cache2.thymis.io/public-cache
     - if: ${{ env.ATTIC_TOKEN != '' }}
       name: Install Attic
+      shell: bash
       run: |
         nix profile install nixpkgs#attic-client
         attic login thymis-cache https://cache2.thymis.io $attic_token --set-default
