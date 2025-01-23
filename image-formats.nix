@@ -114,7 +114,7 @@ let
         cp "$START_VM_SCRIPT" "$final_image_destination_base.start-vm"
 
         chmod +x "$final_image_destination_base.start-vm"
-        echo "Start VM script: $START_VM_SCRIPT"
+        echo "Start VM script: $final_image_destination_base.start-vm"
       fi
 
       echo "Done"
