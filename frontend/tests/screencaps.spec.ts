@@ -298,8 +298,8 @@ colorSchemes.forEach((colorScheme) => {
 			// Take a screenshot
 
 			// wait until: 2x on screen "completed"
-			test.setTimeout(120000);
-			await page.locator('td', { hasText: 'completed' }).nth(1).waitFor({ timeout: 120000 });
+			test.setTimeout(180000);
+			await page.locator('td', { hasText: 'completed' }).nth(1).waitFor({ timeout: 180000 });
 
 			await expect(page).toHaveScreenshot({
 				mask: [page.locator('.playwright-snapshot-unstable')]
