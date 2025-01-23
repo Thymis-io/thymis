@@ -5,7 +5,7 @@ let
     ({}: pkgs.writeShellScript "fill-image-with-secrets" ''
       #! ${pkgs.runtimeShell}
       set -euo pipefail
-      set -x
+      # set -x
 
       if [ -z "''${2:-}" ]; then
         echo "Usage: $0 <secret_dir> <final_image_destination_base>"
