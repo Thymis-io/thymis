@@ -24,7 +24,7 @@ runs:
         ATTIC_PUSH_PID=
         attic watch-store "thymis-cache:public-cache" &
         ATTIC_PID=$!
-        trap 'kill $ATTIC_PID; if [ -n "$ATTIC_PUSH_PID" ]; then kill $ATTIC_PUSH_PID; fi; true' EXIT
+        trap 'kill $ATTIC_PID || true; if [ -n "$ATTIC_PUSH_PID" ]; then kill $ATTIC_PUSH_PID || true; fi; true' EXIT
         ${{ inputs.script }}
         EXIT_CODE=$?
         if [ -e result ]; then
