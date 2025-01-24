@@ -22,7 +22,7 @@ runs:
       shell: bash
       run: |
         nix profile install nixpkgs#attic-client
-        attic login thymis-cache https://cache2.thymis.io $attic_token --set-default
+        attic login thymis-cache https://cache2.thymis.io ${{ inputs.ATTIC_TOKEN }} --set-default
     - if: ${{ inputs.ATTIC_TOKEN == '' }}
       name: Print Attic Token Warning
       shell: bash
