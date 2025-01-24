@@ -135,6 +135,7 @@ async def build_download_image(
             device_identifier=identifier,
             device_state=device.model_dump(mode="json"),
             commit=project.repo.head.object.hexsha,
+            controller_ssh_pubkey=project.public_key,
         ),
         db_session=db_session,
     )
