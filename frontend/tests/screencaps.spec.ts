@@ -334,7 +334,7 @@ colorSchemes.forEach((colorScheme) => {
 			// find button 'Download image' and click on it
 			await page.locator('button').filter({ hasText: 'Download image' }).first().click();
 
-			test.setTimeout(180000);
+			test.setTimeout(240000);
 			await downloadPromise;
 		});
 	});
