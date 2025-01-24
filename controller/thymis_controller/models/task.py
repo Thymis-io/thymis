@@ -141,6 +141,7 @@ class BuildDeviceImageTaskSubmission(BaseModel):
     device_identifier: str
     device_state: dict
     commit: str
+    controller_ssh_pubkey: str
 
 
 class SSHCommandTaskSubmission(BaseModel):
