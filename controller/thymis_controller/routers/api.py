@@ -161,6 +161,7 @@ async def restart_device(
         )
 
 
+@router.head("/download-image")
 @router.get("/download-image")
 async def download_image(
     identifier: str,

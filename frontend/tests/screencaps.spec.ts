@@ -329,11 +329,13 @@ colorSchemes.forEach((colorScheme) => {
 				.first()
 				.click();
 
+			const downloadPromise = page.waitForEvent('download');
+
 			// find button 'Download image' and click on it
 			await page.locator('button').filter({ hasText: 'Download image' }).first().click();
 
 			test.setTimeout(180000);
-			await page.waitForEvent('download');
+			await downloadPromise;
 		});
 	});
 });

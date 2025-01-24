@@ -157,12 +157,11 @@ taskStatus.subscribe((tasks) => {
 		if (otherTask.state === 'completed') return;
 		// download the image
 		if (browser) {
-			const response = await fetchWithNotify(
-				`/api/download-image?identifier=${task.task_submission_data.device_identifier}`
-			);
+			const downloadUrl = `/api/download-image?identifier=${task.task_submission_data.device_identifier}`;
+			const response = await fetchWithNotify(downloadUrl, { method: 'HEAD' });
 			if (response.ok) {
 				const a = document.createElement('a');
-				a.href = URL.createObjectURL(await response.blob());
+				a.href = downloadUrl;
 				a.download = `thymis-image-${task.task_submission_data.device_identifier}.img`;
 				document.body.appendChild(a);
 				a.click();
