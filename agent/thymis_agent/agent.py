@@ -18,12 +18,14 @@ HARDWARE_ID_FILE_PATHS = {
 }
 
 AGENT_TOKEN_FILENAME = "thymis-token.txt"
-AGENT_DATA_PATHS = map(
-    pathlib.Path,
-    [
-        "/boot/firmware",  # raspberry-pi-nix generated sd-cards
-        "/boot",  # boot.loader.efi.efiSysMountPoint
-    ],
+AGENT_DATA_PATHS = list(
+    map(
+        pathlib.Path,
+        [
+            "/boot/firmware",  # raspberry-pi-nix generated sd-cards
+            "/boot",  # boot.loader.efi.efiSysMountPoint
+        ],
+    )
 )
 
 AGENT_TOKEN_EXPECTED_FORMAT = (
@@ -43,12 +45,20 @@ def find_agent_token():
 
 
 def find_agent_metadata():
+    val = None
+    logger.debug("Looking for agent metadata in %s", AGENT_DATA_PATHS)
     for path in AGENT_DATA_PATHS:
         metadata_path = path / AGENT_METADATA_FILENAME
+        logger.debug("Checking for agent metadata at %s", metadata_path)
         if os.path.exists(metadata_path):
             with open(metadata_path, "r", encoding="utf-8") as f:
                 val = json.load(f)
                 break
+        else:
+            logger.error("Agent metadata not found at %s", metadata_path)
+    else:
+        logger.error("Agent metadata not found")
+        return None
     # default populate missing keys
     # first, make sure it's a dict
     if not isinstance(val, dict):
@@ -163,6 +173,7 @@ class Agent:
             **({"token": agent_token} if agent_token else {}),
             "hardware_ids": self.detect_hardware_id(),
             "public_key": self.detect_public_key(),
+            "deployed_config_id": self.detect_system_config()[0],
             "ip_addresses": self.detect_ip_addresses(),
         }
         logger.info("Sending notify request: %s", json_data)
