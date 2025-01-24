@@ -246,6 +246,10 @@ def build_device_image_task(
                     }
                 )
             )
+        with open(
+            f"{tmpdir}/thymis-controller-ssh-pubkey.txt", "w", encoding="utf-8"
+        ) as f:
+            f.write(task_data.controller_ssh_pubkey)
 
         # delete all old files in final_image_dest_base*
         for file in glob.glob(f"{final_image_dest_base}*"):

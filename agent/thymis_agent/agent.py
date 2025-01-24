@@ -33,6 +33,7 @@ AGENT_TOKEN_EXPECTED_FORMAT = (
 )
 
 AGENT_METADATA_FILENAME = "thymis-metadata.json"
+CONTROLLER_PUBLIC_KEY_FILENAME = "thymis-controller.-ssh-pubkey.txt"
 
 
 def find_agent_token():
@@ -69,6 +70,19 @@ def find_agent_metadata():
         val.setdefault(key, None)
 
     return val
+
+
+def load_controller_public_key_into_root_authorized_keys():
+    # only if not already there at /root/.ssh/authorized_keys
+    with open(CONTROLLER_PUBLIC_KEY_FILENAME, "r", encoding="utf-8") as f:
+        controller_public_key = f.read()
+    if os.path.exists("/root/.ssh/authorized_keys"):
+        with open("/root/.ssh/authorized_keys", "r", encoding="utf-8") as f:
+            contents = f.read()
+        if controller_public_key in contents:
+            return
+    with open("/root/.ssh/authorized_keys", "a", encoding="utf-8") as f:
+        f.write(f"{controller_public_key}\n")
 
 
 agent_token = find_agent_token()
@@ -235,6 +249,8 @@ def main():
         raise ValueError("CONTROLLER_HOST environment variable is required")
 
     path = pathlib.Path("/var") / "lib" / "thymis" / "agent.json"
+
+    load_controller_public_key_into_root_authorized_keys()
 
     agent = Agent(path, controller_host)
     scheduler = AgentScheduler()

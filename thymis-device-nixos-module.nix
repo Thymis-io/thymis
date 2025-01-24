@@ -93,7 +93,7 @@ in
     networking.firewall = {
       allowedTCPPorts = [ 22 ];
     };
-    thymis.config.agent.enable = lib.mkDefault false;
+    thymis.config.agent.enable = lib.mkDefault true;
     systemd.services.thymis-agent = lib.mkIf cfg.agent.enable {
       description = "Thymis agent";
       after = [ "network.target" "sshd.service" ];

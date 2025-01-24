@@ -344,22 +344,6 @@ class ThymisDevice(modules.Module):
         order=60,
     )
 
-    agent_enabled = modules.Setting(
-        display_name=modules.LocalizedString(
-            en="Agent Enabled",
-            de="Agent aktiviert",
-        ),
-        nix_attr_name="thymis.config.agent.enable",
-        type="bool",
-        default=False,
-        description=modules.LocalizedString(
-            en="Enable the agent, necessary for auto discover.",
-            de="Aktiviert den Agent, notwendig für Auto-Discover.",
-        ),
-        example="",
-        order=70,
-    )
-
     agent_controller_url = modules.Setting(
         display_name=modules.LocalizedString(
             en="Thymis Controller URL",
@@ -660,9 +644,6 @@ class ThymisDevice(modules.Module):
             )
         else:
             keys = []
-
-        if project.public_key:
-            keys.append(project.public_key)
 
         if len(keys) > 0:
             key_list_nix = convert_python_value_to_nix(keys, ident=1)
