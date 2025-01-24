@@ -22,12 +22,14 @@ const createConfiguration = async (
 	const deviceTypeSelect = page.locator('#device-type').first();
 	await deviceTypeSelect.selectOption({ label: deviceType });
 
-	const tagsMultiSelect = page.locator('input[autocomplete]');
-	await tagsMultiSelect.click();
+	if (tags.length > 0) {
+		const tagsMultiSelect = page.locator('input[autocomplete]');
+		await tagsMultiSelect.click();
 
-	// for each tag, input and enter
-	for (const tag of tags) {
-		await page.getByRole('option', { name: tag }).click();
+		// for each tag, input and enter
+		for (const tag of tags) {
+			await page.getByRole('option', { name: tag }).click();
+		}
 	}
 
 	await page.getByRole('heading', { name: 'Create a new device' }).click();
@@ -308,6 +310,30 @@ colorSchemes.forEach((colorScheme) => {
 			await expect(page).toHaveScreenshot({
 				maxDiffPixels: 2500
 			});
+		});
+
+		test('Download Raspberry Pi 4 image', async ({ page, request }) => {
+			await clearState(page, request);
+			await deleteAllTasks(page, request);
+
+			// Create a configuration
+			await createConfiguration(page, 'My Device 1', 'Raspberry Pi 4', []);
+
+			await page.goto('/configuration/list');
+
+			// find row with 'My Device 1' and click on button 'View Details'
+			await page
+				.locator('tr')
+				.filter({ hasText: 'My Device 1' })
+				.getByRole('button', { name: 'View Details' })
+				.first()
+				.click();
+
+			// find button 'Download image' and click on it
+			await page.locator('button').filter({ hasText: 'Download image' }).first().click();
+
+			test.setTimeout(180000);
+			await page.waitForEvent('download');
 		});
 	});
 });
