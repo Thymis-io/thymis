@@ -21,7 +21,7 @@ runs:
       name: Run script
       shell: bash
       run: |
-        RUST_BACKTRACE=1 attic watch-store "thymis-cache:public-cache" &
+        attic watch-store "thymis-cache:public-cache" &
         ATTIC_PID=$!
         trap 'kill $ATTIC_PID || true' EXIT
         ${{ inputs.script }}
