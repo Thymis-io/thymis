@@ -597,7 +597,7 @@ class ThymisDevice(modules.Module):
     ):
         # get last 2 components of the path
         write_target_type = path.parts[-2]
-        write_target_name = path.parts[-1]
+        path.parts[-1]
 
         device_type = (
             module_settings.settings["device_type"]
@@ -653,13 +653,6 @@ class ThymisDevice(modules.Module):
                 f.write(f"    inputs.thymis.nixosModules.thymis-image-{first_format}\n")
 
         f.write("  ];\n")
-
-        if write_target_type == "hosts":
-            f.write(f'  system.name = "thymis-{write_target_name}";\n')
-            f.write(f'  system.image.id = "{write_target_name}";\n')
-            f.write(
-                f"  system.image.version = lib.mkIf (inputs.self ? rev) inputs.self.rev;\n"
-            )
 
         if authorized_keys:
             keys = list(

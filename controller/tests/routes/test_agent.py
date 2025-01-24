@@ -12,10 +12,6 @@ def mock_determine_first_host_with_key(hosts, public_key):
     return hosts[0]
 
 
-def mock_check_device_reference(dflake_path, commit_hash: str, config_id: str):
-    return True
-
-
 def verify_ssh_host_key_and_creds(
     self,
     host: str,
@@ -27,10 +23,6 @@ def verify_ssh_host_key_and_creds(
     return True
 
 
-@mock.patch(
-    "thymis_controller.routers.agent.check_device_reference",
-    mock_check_device_reference,
-)
 @mock.patch(
     "thymis_controller.routers.agent.determine_first_host_with_key",
     mock_determine_first_host_with_key,
@@ -49,8 +41,6 @@ def test_device_notify(test_client):
     crud.agent_token.create(db_session, "a", "b", "c")
     json_data = {
         "token": "c",
-        "config_id": "test",
-        "commit_hash": "test",
         "hardware_ids": {"pi-serial-number": "test"},
         "public_key": "test",
         "ip_addresses": ["127.0.0.1"],

@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import pathlib
@@ -17,7 +18,7 @@ HARDWARE_ID_FILE_PATHS = {
 }
 
 AGENT_TOKEN_FILENAME = "thymis-token.txt"
-AGENT_TOKEN_PATHS = map(
+AGENT_DATA_PATHS = map(
     pathlib.Path,
     [
         "/boot/firmware",  # raspberry-pi-nix generated sd-cards
@@ -29,9 +30,11 @@ AGENT_TOKEN_EXPECTED_FORMAT = (
     "thymis-[0-9a-f]{128}"  # see controller/thymis_controller/task/worker.py `token =`
 )
 
+AGENT_METADATA_FILENAME = "thymis-metadata.json"
+
 
 def find_agent_token():
-    for path in AGENT_TOKEN_PATHS:
+    for path in AGENT_DATA_PATHS:
         token_path = path / AGENT_TOKEN_FILENAME
         if os.path.exists(token_path):
             with open(token_path, "r", encoding="utf-8") as f:
@@ -39,9 +42,32 @@ def find_agent_token():
     return None
 
 
+def find_agent_metadata():
+    for path in AGENT_DATA_PATHS:
+        metadata_path = path / AGENT_METADATA_FILENAME
+        if os.path.exists(metadata_path):
+            with open(metadata_path, "r", encoding="utf-8") as f:
+                val = json.load(f)
+                break
+    # default populate missing keys
+    # first, make sure it's a dict
+    if not isinstance(val, dict):
+        logger.error("Agent metadata is not a dict")
+        val = {}
+    # then, populate missing keys
+    for key in ["configuration_id", "configuration_commit"]:
+        val.setdefault(key, None)
+
+    return val
+
+
 agent_token = find_agent_token()
+agent_metadata = find_agent_metadata()
+
 if not agent_token:
     logging.error("Agent token not found, continuing without token")
+if not agent_metadata:
+    logging.error("Agent metadata not found, continuing without metadata")
 
 
 class AgentScheduler(sched.scheduler):
@@ -70,20 +96,10 @@ class Agent:
         self.controller_host = controller_host
 
     def detect_system_config(self) -> Tuple[str, str]:
-        config_id = None
-        commit_hash = None
-        with open("/etc/os-release", "r") as f:
-            for line in f:
-                if line.startswith("IMAGE_ID="):
-                    config_id = line.split("=")[1].strip().replace('"', "")
-                    if config_id == "":
-                        config_id = None
-                if line.startswith("IMAGE_VERSION="):
-                    commit_hash = line.split("=")[1].strip().replace('"', "")
-                    if commit_hash == "":
-                        commit_hash = None
-
-        return config_id, commit_hash
+        return (
+            agent_metadata["configuration_id"],
+            agent_metadata["configuration_commit"],
+        )
 
     def detect_hostname(self):
         return socket.gethostname()
@@ -143,12 +159,8 @@ class Agent:
             logger.error("Controller host not set")
             raise ValueError("Controller host not set")
 
-        config_id, commit_hash = self.detect_system_config()
-
         json_data = {
             **({"token": agent_token} if agent_token else {}),
-            "commit_hash": commit_hash,
-            "config_id": config_id,
             "hardware_ids": self.detect_hardware_id(),
             "public_key": self.detect_public_key(),
             "ip_addresses": self.detect_ip_addresses(),
