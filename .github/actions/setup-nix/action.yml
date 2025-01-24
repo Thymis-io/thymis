@@ -11,7 +11,7 @@ runs:
   #   ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
   steps:
     - name: Install Nix
-      uses: cachix/install-nix-action@30
+      uses: cachix/install-nix-action@v30
       with:
         extra_nix_config: |
           system-features = kvm
