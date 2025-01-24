@@ -24,7 +24,7 @@ from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
 logger = logging.getLogger(__name__)
 
 BUILTIN_REPOSITORIES = {
-    "thymis": models.Repo(url="github:thymis-io/thymis/v0.2"),
+    "thymis": models.Repo(url="github:thymis-io/thymis/v0.3"),
     "nixpkgs": models.Repo(follows="thymis/nixpkgs"),
 }
 

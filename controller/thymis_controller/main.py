@@ -150,7 +150,7 @@ app = FastAPI(
     title="Thymis Controller API",
     description=description,
     summary="Controller backend for gathering and changing information of a device",
-    version="0.2.0",
+    version="0.3.0",
     contact={
         "name": "Thymis",
         "url": "https://thymis.io",
