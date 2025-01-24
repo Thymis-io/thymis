@@ -5,14 +5,17 @@ inputs:
     description: "The token to use for authenticating with the Attic cache."
     required: false
     default: ""
+  github_token:
+    description: "The GitHub token to use for authenticating with the GitHub API."
+    required: false
+    default: ""
 runs:
   using: "composite"
-  # env:
-  #   ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
   steps:
     - name: Install Nix
       uses: cachix/install-nix-action@v30
       with:
+        github_access_token: ${{ inputs.GITHUB_TOKEN }}
         extra_nix_config: |
           system-features = kvm
           extra-trusted-public-keys = cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=
