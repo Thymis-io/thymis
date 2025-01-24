@@ -183,7 +183,7 @@ async def download_image(
         if image_path.exists():
             relevant_paths.append(image_path)
             if ending in non_file_endings:
-                return RedirectResponse(url=f"/images/{identifier}.{ending}")
+                return RedirectResponse(url=f"/images/{device.identifier}.{ending}")
 
     if not relevant_paths:
         return Response(status_code=404)
