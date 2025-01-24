@@ -46,30 +46,28 @@ def device_notify(
             device_notify_request.public_key,
         )
     logger.debug(
-        "Device with public key %s notifies controller with commit hash %s and config id %s from %s",
+        "Device with public key %s notifies controller from %s",
         device_notify_request.public_key,
-        device_notify_request.commit_hash,
-        device_notify_request.config_id,
         request_source.host,
     )
-    if (
-        device_notify_request.commit_hash and device_notify_request.config_id
-    ) and not check_device_reference(
-        project.repo_dir,
-        device_notify_request.commit_hash,
-        device_notify_request.config_id,
-    ):
-        logger.error(
-            "Device with public key %s notifies controller with commit hash %s and "
-            "config id %s which is not a valid reference to the project at %s",
-            device_notify_request.public_key,
-            device_notify_request.commit_hash,
-            device_notify_request.config_id,
-            project.repo_dir,
-        )
-        raise HTTPException(
-            status_code=400
-        )  # do not reveal information to misbehaving devices
+    # if (
+    #     device_notify_request.commit_hash and device_notify_request.config_id
+    # ) and not check_device_reference(
+    #     project.repo_dir,
+    #     device_notify_request.commit_hash,
+    #     device_notify_request.config_id,
+    # ):
+    #     logger.error(
+    #         "Device with public key %s notifies controller with commit hash %s and "
+    #         "config id %s which is not a valid reference to the project at %s",
+    #         device_notify_request.public_key,
+    #         device_notify_request.commit_hash,
+    #         device_notify_request.config_id,
+    #         project.repo_dir,
+    #     )
+    #     raise HTTPException(
+    #         status_code=400
+    #     )  # do not reveal information to misbehaving devices
 
     # check if device is reachable using device supplied public key
     reachable_deployed_host: str | None = determine_first_host_with_key(
@@ -78,12 +76,17 @@ def device_notify(
     )
 
     if not reachable_deployed_host:
+        # logger.error(
+        #     "Device with public key %s notifies controller with commit hash %s and "
+        #     "config id %s from %s with unreachable host",
+        #     device_notify_request.public_key,
+        #     device_notify_request.commit_hash,
+        #     device_notify_request.config_id,
+        #     request_source.host,
+        # )
         logger.error(
-            "Device with public key %s notifies controller with commit hash %s and "
-            "config id %s from %s with unreachable host",
+            "Device with public key %s notifies controller from %s with unreachable host",
             device_notify_request.public_key,
-            device_notify_request.commit_hash,
-            device_notify_request.config_id,
             request_source.host,
         )
         raise HTTPException(status_code=400)
@@ -98,15 +101,22 @@ def device_notify(
     )
 
     if not verified_ssh:
+        # logger.error(
+        #     "Device with public key %s notifies controller with commit hash %s and "
+        #     "config id %s from %s with unreachable host %s",
+        #     device_notify_request.public_key,
+        #     device_notify_request.commit_hash,
+        #     device_notify_request.config_id,
+        #     request_source.host,
+        #     reachable_deployed_host,
+        # )
         logger.error(
-            "Device with public key %s notifies controller with commit hash %s and "
-            "config id %s from %s with unreachable host %s",
+            "Device with public key %s notifies controller from %s with unreachable host %s",
             device_notify_request.public_key,
-            device_notify_request.commit_hash,
-            device_notify_request.config_id,
             request_source.host,
             reachable_deployed_host,
         )
+
         raise HTTPException(status_code=400)
 
     hardware_ids = {
@@ -145,13 +155,20 @@ def device_notify(
 
     # if more than 2 devices have the same public key, fail
     if len(same_public_key) >= 2:
+        # logger.error(
+        #     "Device with public key %s notifies controller with commit hash %s and "
+        #     "config id %s from %s with public key that is already in use by %d devices"
+        #     "we do not handle this case yet",
+        #     device_notify_request.public_key,
+        #     device_notify_request.commit_hash,
+        #     device_notify_request.config_id,
+        #     request_source.host,
+        #     len(same_public_key),
+        # )
         logger.error(
-            "Device with public key %s notifies controller with commit hash %s and "
-            "config id %s from %s with public key that is already in use by %d devices"
+            "Device with public key %s notifies controller from %s with public key that is already in use by %d devices"
             "we do not handle this case yet",
             device_notify_request.public_key,
-            device_notify_request.commit_hash,
-            device_notify_request.config_id,
             request_source.host,
             len(same_public_key),
         )
@@ -169,8 +186,6 @@ def device_notify(
         deployment_info = crud.deployment_info.create_or_update_by_public_key(
             db_session,
             device_notify_request.public_key,
-            device_notify_request.commit_hash,
-            device_notify_request.config_id,
             reachable_deployed_host,
         )
         hardware_device = crud.hardware_device.create_or_update(

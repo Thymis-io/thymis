@@ -1,5 +1,6 @@
 import base64
 import glob
+import json
 import os
 import pathlib
 import platform
@@ -236,6 +237,16 @@ def build_device_image_task(
         token = f"thymis-{random.randbytes(64).hex()}"  # see agent/thymis_agent/agent.py `AGENT_TOKEN_EXPECTED_FORMAT =`
         with open(f"{tmpdir}/thymis-token.txt", "w", encoding="utf-8") as f:
             f.write(token)
+        with open(f"{tmpdir}/thymis-metadata.json", "w", encoding="utf-8") as f:
+            f.write(
+                json.dumps(
+                    {
+                        "configuration_id": task_data.device_identifier,
+                        "configuration_commit": task_data.commit,
+                    }
+                )
+            )
+
         # delete all old files in final_image_dest_base*
         for file in glob.glob(f"{final_image_dest_base}*"):
             if os.path.isdir(file):
