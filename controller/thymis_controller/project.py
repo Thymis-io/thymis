@@ -300,7 +300,8 @@ class Project:
     def clear_history(self):
         if "RUNNING_IN_PLAYWRIGHT" in os.environ:
             # reinits the git repo
-            shutil.rmtree(self.repo_dir / ".git")
+            if (self.repo_dir / ".git").exists():
+                shutil.rmtree(self.repo_dir / ".git")
             self.repo = git.Repo.init(self.repo_dir)
             self.write_state_and_reload(State())
             self.update_known_hosts()
