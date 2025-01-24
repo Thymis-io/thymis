@@ -154,7 +154,9 @@
       packages = eachSystem (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          thymis-frontend = pkgs.callPackage ./frontend { };
+          thymis-frontend = pkgs.callPackage ./frontend {
+            git-rev = inputs.self.rev or inputs.self.dirtyRev or null;
+          };
           thymis-controller = pkgs.callPackage ./controller {
             poetry2nix = (
               (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; })
