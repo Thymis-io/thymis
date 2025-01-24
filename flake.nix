@@ -168,6 +168,7 @@
           };
         in
         {
+          thymis-frontend = thymis-frontend;
           thymis-controller = thymis-controller;
           thymis-controller-container = import ./docker.nix { inherit pkgs thymis-controller; };
           thymis-agent = thymis-agent;
