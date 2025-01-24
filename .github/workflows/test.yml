@@ -14,6 +14,7 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Configure poetry
         run: |
           nix develop .#ci --command poetry config virtualenvs.in-project true
@@ -28,6 +29,7 @@ jobs:
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix develop .#ci --command echo "Cache dev env"
 
@@ -48,6 +50,7 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
@@ -60,12 +63,14 @@ jobs:
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix build .#thymis-controller --print-build-logs
       - name: Run tests
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             export THYMIS_FLAKE_ROOT='..'
             nix develop .#onlyPlaywrightBrowsers --command npm run test 2>&1 | tee output.log
@@ -103,6 +108,7 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
@@ -115,12 +121,14 @@ jobs:
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix build .#thymis-controller --print-build-logs
       - name: Run tests
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix develop .#onlyPlaywrightBrowsers --command npm run test 2>&1 | tee output.log
             if grep -q -e "Error: A snapshot doesn't exist at" -e "Screenshot comparison failed" output.log; then

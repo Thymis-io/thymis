@@ -14,10 +14,12 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: build thymis-agent
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix build .#thymis-agent --print-build-logs
 
@@ -28,10 +30,12 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: build thymis-controller
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix build .#thymis-controller --print-build-logs
 
@@ -42,6 +46,7 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: run command with nix cache upload
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
@@ -56,10 +61,12 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: build thymis-controller-pi-4-sd-image
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix build .#thymis-controller-pi-4-sd-image --print-build-logs
       - uses: ./.github/actions/assemble-image-and-assert-existence
@@ -71,10 +78,12 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: build thymis-controller-pi-5-sd-image
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix build .#thymis-controller-pi-5-sd-image --print-build-logs
       - uses: ./.github/actions/assemble-image-and-assert-existence
@@ -86,12 +95,14 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: pin nixpkgs
         run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-24.11
       - name: build thymis-controller-generic-x86_64-image
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix build .#thymis-controller-generic-x86_64-image --print-build-logs
       - uses: ./.github/actions/assemble-image-and-assert-existence
