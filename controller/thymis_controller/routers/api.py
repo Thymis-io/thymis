@@ -181,15 +181,18 @@ async def download_image(
     for ending in expected_endings:
         image_path = image_dir / f"{identifier}.{ending}"
         if image_path.exists():
-            relevant_paths.append((ending, image_path))
-    else:
+            relevant_paths.append(image_path)
+            if ending in non_file_endings:
+                return RedirectResponse(url=f"/images/{identifier}.{ending}")
+
+    if not relevant_paths:
         return Response(status_code=404)
 
-    if ending in non_file_endings:
-        return RedirectResponse(url=f"/images/{identifier}.{ending}")
+    if len(relevant_paths) > 1:
+        raise ValueError("Multiple images found")
 
     return FileResponse(
-        image_path,
+        relevant_paths[0],
         headers={"content-encoding": "none"},
         filename=f"thymis-image-{device.identifier}.img",
     )

@@ -147,7 +147,7 @@ taskStatus.subscribe((tasks) => {
 	// if a task.type is commandtask, and the task just finished, download the image
 	// tasks have a uuid now at .id
 	// tasks.forEach((task) => {
-	Object.values(tasks).forEach((task) => {
+	Object.values(tasks).forEach(async (task) => {
 		if (task.task_type !== 'build_device_image_task') return;
 		if (task.state !== 'completed') return;
 		if (!('device_identifier' in task.task_submission_data)) return;
@@ -157,12 +157,17 @@ taskStatus.subscribe((tasks) => {
 		if (otherTask.state === 'completed') return;
 		// download the image
 		if (browser) {
-			const a = document.createElement('a');
-			a.href = `/api/download-image?identifier=${task.task_submission_data.device_identifier}`;
-			a.download = `thymis-image-${task.task_submission_data.device_identifier}.img`;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
+			const response = await fetchWithNotify(
+				`/api/download-image?identifier=${task.task_submission_data.device_identifier}`
+			);
+			if (response.ok) {
+				const a = document.createElement('a');
+				a.href = URL.createObjectURL(await response.blob());
+				a.download = `thymis-image-${task.task_submission_data.device_identifier}.img`;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+			}
 		}
 	});
 
