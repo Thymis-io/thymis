@@ -297,6 +297,23 @@ class TaskWorkerPoolManager:
                     self.ui_subscription_manager.notify_task_update(parent_task)
 
             logger.info("Task %s finished with state %s", task_id, task.state)
+            if "RUNNING_IN_PLAYWRIGHT" in os.environ and task.state == "failed":
+                # print all
+                print(f"STDOUT for task {task_id}:")
+                print(task.process_stdout.decode("utf-8"))
+                print(f"STDERR for task {task_id}:")
+                print(task.process_stderr.decode("utf-8"))
+                print(f"Nix status for task {task_id}:")
+                print(task.nix_status)
+                # nix logs too
+                print(f"Nix error logs for task {task_id}:")
+                print(task.nix_error_logs)
+                print(f"Nix warning logs for task {task_id}:")
+                print(task.nix_warning_logs)
+                print(f"Nix notice logs for task {task_id}:")
+                print(task.nix_notice_logs)
+                print(f"Nix info logs for task {task_id}:")
+                print(task.nix_info_logs)
 
     def subscribe_ui(self, ui_subscription_manager: "TaskUISubscriptionManager"):
         self._ui_subscription_manager = ui_subscription_manager
