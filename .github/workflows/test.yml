@@ -136,7 +136,7 @@ jobs:
         id: artifact-upload
         if: always()
         with:
-          name: playwright-report
+          name: playwright-report-stable-input
           path: frontend/playwright-report/
           retention-days: 30
       - name: Comment on PR with report link
