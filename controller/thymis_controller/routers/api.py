@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import re
+import traceback
 import uuid
 from typing import Annotated
 
@@ -234,7 +235,6 @@ async def vnc_websocket(
     deployment_info_id: uuid.UUID,
     db_session: SessionAD,
     websocket: WebSocket,
-    state: State = Depends(dependencies.get_state),
 ):
     deployment_info = crud.deployment_info.get_by_id(db_session, deployment_info_id)
 
@@ -248,8 +248,7 @@ async def vnc_websocket(
     tcp_port = 5900
     try:
         tcp_reader, tcp_writer = await asyncio.open_connection(tcp_ip, tcp_port)
-    except Exception as e:
-        await websocket.send_text(str(e))
+    except Exception:
         await websocket.close()
         return
 
@@ -258,8 +257,8 @@ async def vnc_websocket(
 
     try:
         await asyncio.gather(tcp_to_ws_task, ws_to_tcp_task)
-    except Exception as e:
-        print(f"Error: {e}")
+    except Exception:
+        traceback.print_exc()
     finally:
         tcp_to_ws_task.cancel()
         ws_to_tcp_task.cancel()
