@@ -21,13 +21,16 @@ runs:
       name: Run script
       shell: bash
       run: |
+        ATTIC_PUSH_PID=
         attic watch-store "thymis-cache:public-cache" &
         ATTIC_PID=$!
-        trap 'kill $ATTIC_PID || true' EXIT
+        trap 'kill $ATTIC_PID; if [ -n "$ATTIC_PUSH_PID" ]; then kill $ATTIC_PUSH_PID; fi; true' EXIT
         ${{ inputs.script }}
         EXIT_CODE=$?
         if [ -e result ]; then
-          attic push thymis-cache:public-cache result
+          attic push thymis-cache:public-cache result &
+          ATTIC_PUSH_PID=$!
+          sleep 5
         fi
         exit $EXIT_CODE
       working-directory: ${{ inputs.working-directory }}
