@@ -49,8 +49,8 @@
 				if (currentlyEditingDevice) {
 					currentlyEditingDevice.tags = selectedTags.map((tag) => tag.value);
 				}
-				currentlyEditingDevice = undefined;
 				await saveState();
+				currentlyEditingDevice = undefined;
 			}}
 		>
 			{$t('common.save')}
