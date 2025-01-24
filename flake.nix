@@ -128,13 +128,14 @@
               export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
               export THYMIS_DEV_SHELL=true
-              export THYMIS_FLAKE_ROOT=${self}
+              export THYMIS_FLAKE_ROOT=$(git rev-parse --show-toplevel)
               alias run-dev="cd controller && UVICORN_PORT=8080 THYMIS_BASE_URL=http://127.0.0.1:8080 poetry run uvicorn thymis_controller.main:app --reload --host 0.0.0.0 --port 8080; cd .."
             '';
           };
           ci = pkgs.mkShell {
             packages = [
               pkgs.poetry
+              pkgs.python313
             ];
           };
           onlyPlaywrightBrowsers = pkgs.mkShell {
