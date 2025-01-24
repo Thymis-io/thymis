@@ -47,13 +47,13 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: build thymis-controller-arm
+      - name: build thymis-controller
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            nix build .#thymis-controller-arm --print-build-logs
+            nix build .#thymis-controller --print-build-logs
 
   build-thymis-controller-pi-3-sd-image:
     runs-on: ubuntu-22.04-arm
