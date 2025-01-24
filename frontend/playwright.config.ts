@@ -44,7 +44,8 @@ const config: PlaywrightTestConfig = {
 	retries: 5,
 	webServer: {
 		command: commandFrame(command),
-		port: 8000
+		port: 8000,
+		stdout: 'pipe'
 	},
 	testDir: 'tests',
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/,
