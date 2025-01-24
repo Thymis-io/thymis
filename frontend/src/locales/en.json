@@ -280,7 +280,8 @@
 		"refresh-hostkey": "Refresh Hostkey",
 		"delete-hostkey": "Delete Hostkey",
 		"edit-tags": "Edit Tags",
-		"no-deployment-info": "Not deployed on any devices"
+		"no-deployment-info": "Not deployed on any devices",
+		"no-commit": "No commit info"
 	},
 	"edit-hostkey": {
 		"title": "Edit Hostkey",
