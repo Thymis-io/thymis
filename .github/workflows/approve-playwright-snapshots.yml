@@ -28,7 +28,6 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:

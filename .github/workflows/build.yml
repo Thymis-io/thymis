@@ -24,7 +24,6 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: build thymis-agent
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
@@ -42,7 +41,6 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: build thymis-controller
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
@@ -60,7 +58,6 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: run command with nix cache upload
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
@@ -78,7 +75,6 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: build thymis-controller-pi-4-sd-image
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
@@ -97,7 +93,6 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: build thymis-controller-pi-5-sd-image
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
@@ -116,7 +111,6 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: pin nixpkgs
         run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-24.11
       - name: build thymis-controller-generic-x86_64-image
