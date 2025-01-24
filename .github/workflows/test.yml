@@ -16,7 +16,7 @@ jobs:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
       - name: Configure poetry
         run: |
-          nix develop --command poetry config virtualenvs.in-project true
+          nix develop .#ci --command poetry config virtualenvs.in-project true
 
       - name: Cache the virtualenv
         uses: actions/cache@v4
@@ -29,16 +29,16 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           script: |
-            nix develop --command echo "Cache dev env"
+            nix develop .#ci --command echo "Cache dev env"
 
       - name: Install dependencies
         run: |
-          nix develop --command poetry install
+          nix develop .#ci --command poetry install
         working-directory: controller
 
       - name: Run tests
         run: |
-          nix develop --command poetry run python -m pytest -sxv
+          nix develop .#ci --command poetry run python -m pytest -sxv
         working-directory: controller
 
   test-frontend-integration:
@@ -62,17 +62,13 @@ jobs:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           script: |
             nix build .#thymis-controller --print-build-logs
-      - name: Install Playwright Browser
-        run: |
-          npx playwright install --with-deps
-        working-directory: frontend
       - name: Run tests
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           script: |
             export THYMIS_FLAKE_ROOT='..'
-            npm run test 2>&1 | tee output.log
+            nix develop .#onlyPlaywrightBrowsers --command npm run test 2>&1 | tee output.log
             if grep -q -e "Error: A snapshot doesn't exist at" -e "Screenshot comparison failed" output.log; then
               echo "Playwright tests failed due to a snapshot issue"
               echo "SNAPSHOT_DIFFERENCES=true" >> $GITHUB_ENV
@@ -121,16 +117,12 @@ jobs:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           script: |
             nix build .#thymis-controller --print-build-logs
-      - name: Install Playwright Browser
-        run: |
-          npx playwright install --with-deps
-        working-directory: frontend
       - name: Run tests
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           script: |
-            npm run test 2>&1 | tee output.log
+            nix develop .#onlyPlaywrightBrowsers --command npm run test 2>&1 | tee output.log
             if grep -q -e "Error: A snapshot doesn't exist at" -e "Screenshot comparison failed" output.log; then
               echo "Playwright tests failed due to a snapshot issue"
               echo "SNAPSHOT_DIFFERENCES=true" >> $GITHUB_ENV

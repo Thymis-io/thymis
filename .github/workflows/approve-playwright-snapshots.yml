@@ -39,13 +39,9 @@ jobs:
       - name: Build application
         run: |
           nix build .#thymis-controller
-      - name: Install Playwright Browser
-        run: |
-          npx playwright install --with-deps
-        working-directory: frontend
       - name: Run tests
         run: |
-          npm run test:integration -- --update-snapshots
+          nix develop .#onlyPlaywrightBrowsers --command npm run test:integration -- --update-snapshots
         working-directory: frontend
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
