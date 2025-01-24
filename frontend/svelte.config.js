@@ -2,11 +2,20 @@ import adapter from '@sveltejs/adapter-node';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { execSync } from 'child_process';
 
-// get current head rev
-const headRev = execSync('git rev-parse HEAD').toString().trim();
-// if dirty, append "dirty-Date.now().toString()"
-const dirty = execSync('git status --porcelain').toString().trim();
+const headRev = process.env.GIT_REV || execSync('git rev-parse HEAD').toString().trim();
+let dirty = false;
+try {
+	dirty =
+		(process.env.GIT_REV || '').search('dirty') != -1 ||
+		(!((process.env.GIT_REV || '').search('dirty') != -1) &&
+			execSync('git status --porcelain').toString().trim());
+} catch (e) {
+	/* empty */
+}
+
 const version = dirty ? `${headRev}-dirty-${Date.now().toString()}` : headRev;
+
+console.log(`SvelteKit reloading version: ${version}`);
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -16,7 +25,9 @@ const config = {
 
 	kit: {
 		adapter: adapter(),
-		version: version
+		version: {
+			name: version
+		}
 	}
 };
 

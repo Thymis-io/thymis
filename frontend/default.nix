@@ -1,9 +1,11 @@
 { buildNpmPackage
 , runtimeShell
 , nodejs_22
+, git-rev
 , lib
 }:
 buildNpmPackage {
+  GIT_REV = git-rev;
   pname = "thymis-frontend";
   version = "0.0.1";
   src = ./.;
