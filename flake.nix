@@ -136,6 +136,7 @@
             packages = [
               pkgs.poetry
               pkgs.python313
+              pkgs.nixpkgs-fmt
             ];
           };
           onlyPlaywrightBrowsers = pkgs.mkShell {
