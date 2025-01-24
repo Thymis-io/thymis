@@ -1,6 +1,7 @@
 name: "Test"
 on:
   pull_request:
+  pull_request_target:
   merge_group:
   push:
     branches:
@@ -8,8 +9,8 @@ on:
 
 jobs:
   test-controller:
+    if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
@@ -44,6 +45,7 @@ jobs:
         working-directory: controller
 
   test-frontend-integration:
+    if: ${{ (( ! (github.event_name == 'pull_request_target') ) || (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) ) && (( ! (github.event_name == 'pull_request') ) || ( ! (github.event.pull_request.author_association == 'MEMBER' || contains(github.event.pull_request.labels.*.name, 'trust')) )) }}
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
@@ -102,6 +104,7 @@ jobs:
           comment-tag: playwright-snapshots
           mode: recreate
   test-pre-commit:
+    if: ${{ github.event_name != 'pull_request_target' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
