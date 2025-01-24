@@ -31,7 +31,7 @@
 <EditDeploymentInfo
 	bind:deploymentInfo={currentDeploymentInfo}
 	bind:open={editDeploymentInfoModalOpen}
-	configIdentifier={currentDeploymentInfo?.deployed_config_id}
+	configIdentifier={currentDeploymentInfo?.deployed_config_id ?? undefined}
 />
 <div class="flex justify-between mb-4">
 	<div class="flex gap-4">
@@ -86,7 +86,8 @@
 					</a>
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
-					{hardwareDevice.deployment_info?.deployed_config_commit.slice(0, 8)}
+					{hardwareDevice.deployment_info?.deployed_config_commit?.slice(0, 8) ??
+						$t('configuration-details.no-commit')}
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					{deviceType && deviceType in deviceTypes ? deviceTypes[deviceType] : deviceType}

@@ -6,10 +6,9 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { deviceVNCPassword, targetShouldShowVNC } from '$lib/vnc/vnc';
 	import { page } from '$app/stores';
-	import { getDeploymentInfoByConfigId } from '$lib/deploymentInfo';
-	import { browser } from '$app/environment';
+	import { type DeploymentInfo } from '$lib/deploymentInfo';
 
-	export let device: Device;
+	export let device: Device | undefined;
 	export let deploymentInfo: DeploymentInfo;
 	let deviceHost: string;
 	let rfb: any;
@@ -23,6 +22,10 @@
 	let div: HTMLCanvasElement;
 
 	const initVNC = async (deploymentInfo: DeploymentInfo) => {
+		if (!deploymentInfo || !device) {
+			return;
+		}
+
 		// @ts-ignore
 		let RFB = await import('@novnc/novnc/lib/rfb.js');
 

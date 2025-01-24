@@ -1,23 +1,19 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { P } from 'flowbite-svelte';
 	import {
 		globalNavSelectedConfig,
 		globalNavSelectedTag,
-		globalNavSelectedTarget,
 		globalNavSelectedTargetType,
 		state
 	} from '$lib/state';
 	import VncView from '$lib/vnc/VncView.svelte';
-	import DeployActions from '$lib/components/DeployActions.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
-	import Tabbar from '$lib/components/Tabbar.svelte';
-	import { getDeploymentInfosByConfigId } from '$lib/deploymentInfo';
 
 	import type { PageData } from './$types';
 	export let data: PageData;
 
-	const getConfigFromIdentifier = (identifier: string) => {
+	const getConfigFromIdentifier = (identifier: string | null) => {
+		if (!identifier) return undefined;
 		return data.state.devices.find((device) => device.identifier === identifier);
 	};
 </script>

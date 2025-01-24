@@ -3,8 +3,8 @@ import { fetchWithNotify } from './fetchWithNotify';
 export type DeploymentInfo = {
 	id: string;
 	ssh_public_key: string;
-	deployed_config_commit: string;
-	deployed_config_id: string;
+	deployed_config_commit: string | null;
+	deployed_config_id: string | null;
 	reachable_deployed_host: string | null;
 };
 
@@ -60,6 +60,9 @@ export const getAllDeploymentInfosAsMapFromConfigId = async (fetch: typeof windo
 	const deploymentInfosMap = new Map<string, DeploymentInfo[]>();
 	for (const deploymentInfo of deploymentInfos) {
 		const configId = deploymentInfo.deployed_config_id;
+		if (!configId) {
+			continue;
+		}
 		if (deploymentInfosMap.has(configId)) {
 			deploymentInfosMap.get(configId)?.push(deploymentInfo);
 		} else {

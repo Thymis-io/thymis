@@ -32,7 +32,8 @@
 					<p class="break-all text-base">{$t('configuration-details.deployed-at')}:</p>
 					<p class="break-all text-base">
 						{deploymentInfo.reachable_deployed_host},
-						{deploymentInfo.deployed_config_commit.slice(0, 8)}
+						{deploymentInfo.deployed_config_commit?.slice(0, 8) ??
+							$t('configuration-details.no-commit')}
 					</p>
 				</div>
 			{/if}

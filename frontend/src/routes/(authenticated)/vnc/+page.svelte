@@ -5,7 +5,6 @@
 	import { state } from '$lib/state';
 	import VncView from '$lib/vnc/VncView.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
-	import { getDeploymentInfosByConfigId } from '$lib/deploymentInfo';
 	import { browser } from '$app/environment';
 	import type { PageData } from './$types';
 	export let data: PageData;
