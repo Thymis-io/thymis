@@ -2,7 +2,7 @@ import traceback
 import uuid
 
 from fastapi import APIRouter, Response, WebSocket
-from thymis_controller.dependencies import SessionAD, TaskControllerAD
+from thymis_controller.dependencies import ProjectAD, SessionAD, TaskControllerAD
 from thymis_controller.routers.frontend import is_running_in_playwright
 
 router = APIRouter()
@@ -54,9 +54,12 @@ async def retry_task(
 
 
 @router.post("/tasks/delete_all")
-async def delete_all_tasks(task_controller: TaskControllerAD, db_session: SessionAD):
+async def delete_all_tasks(
+    task_controller: TaskControllerAD, db_session: SessionAD, project: ProjectAD
+):
     if is_running_in_playwright():
         task_controller.delete_all_tasks(db_session)
+        project.clear_history()
         return {"message": "All tasks deleted"}
     else:
         return Response(status_code=403)
