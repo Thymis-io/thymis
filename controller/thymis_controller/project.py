@@ -297,14 +297,14 @@ class Project:
             traceback.print_exc()
             return []
 
-    def clear_history(self):
+    def clear_history(self, db_session: sqlalchemy.orm.Session):
         if "RUNNING_IN_PLAYWRIGHT" in os.environ:
             # reinits the git repo
             if (self.repo_dir / ".git").exists():
                 shutil.rmtree(self.repo_dir / ".git")
             self.repo = git.Repo.init(self.repo_dir)
             self.write_state_and_reload(State())
-            self.update_known_hosts()
+            self.update_known_hosts(db_session)
 
     def update_known_hosts(self, db_session: sqlalchemy.orm.Session):
         if not self.known_hosts_path or not self.known_hosts_path.exists():
