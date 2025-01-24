@@ -6,7 +6,7 @@ let command = `nix run .#thymis-controller`;
 
 if (process.env.THYMIS_DEV_SHELL) {
 	console.log('Using poetry run uvicorn reload');
-	command = `cd ../controller && poetry run uvicorn thymis_controller.main:app --reload`;
+	command = `poetry run uvicorn thymis_controller.main:app --reload`;
 }
 
 const runInShell = (cmd) => `sh -c '${cmd}'`;
@@ -44,6 +44,7 @@ const config: PlaywrightTestConfig = {
 	retries: 5,
 	webServer: {
 		command: commandFrame(command),
+		cwd: `../controller`,
 		port: 8000,
 		stdout: 'pipe'
 	},
