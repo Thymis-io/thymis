@@ -24,7 +24,6 @@ colorSchemes.forEach((colorScheme) => {
 			await rootLink.click();
 
 			await expect(page.url()).toBe('http://localhost:8000/login');
-			await rootLink.blur();
 
 			const homepageLink = page.locator('a').filter({ hasText: 'Homepage' });
 			await expectToHaveScreenshotWithHighlight(page, homepageLink);
@@ -33,7 +32,7 @@ colorSchemes.forEach((colorScheme) => {
 			await expect(page.url()).toBe('https://thymis.io/en');
 
 			await page.goBack();
-			await homepageLink.blur();
+			await page.reload();
 			await expect(page.url()).toBe('http://localhost:8000/login');
 
 			const docsLink = page.locator('a').filter({ hasText: 'Documentation' });
