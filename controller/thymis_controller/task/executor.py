@@ -298,22 +298,41 @@ class TaskWorkerPoolManager:
 
             logger.info("Task %s finished with state %s", task_id, task.state)
             if "RUNNING_IN_PLAYWRIGHT" in os.environ and task.state == "failed":
-                # print all
                 print(f"STDOUT for task {task_id}:")
-                print(task.process_stdout.decode("utf-8"))
+                if task.process_stdout:
+                    print(task.process_stdout.decode("utf-8"))
+                else:
+                    print("No stdout")
                 print(f"STDERR for task {task_id}:")
-                print(task.process_stderr.decode("utf-8"))
+                if task.process_stderr:
+                    print(task.process_stderr.decode("utf-8"))
+                else:
+                    print("No stderr")
                 print(f"Nix status for task {task_id}:")
-                print(task.nix_status)
-                # nix logs too
+                if task.nix_status:
+                    print(task.nix_status)
+                else:
+                    print("No nix status")
                 print(f"Nix error logs for task {task_id}:")
-                print(task.nix_error_logs)
+                if task.nix_error_logs:
+                    print(task.nix_error_logs)
+                else:
+                    print("No nix error logs")
                 print(f"Nix warning logs for task {task_id}:")
-                print(task.nix_warning_logs)
+                if task.nix_warning_logs:
+                    print(task.nix_warning_logs)
+                else:
+                    print("No nix warning logs")
                 print(f"Nix notice logs for task {task_id}:")
-                print(task.nix_notice_logs)
+                if task.nix_notice_logs:
+                    print(task.nix_notice_logs)
+                else:
+                    print("No nix notice logs")
                 print(f"Nix info logs for task {task_id}:")
-                print(task.nix_info_logs)
+                if task.nix_info_logs:
+                    print(task.nix_info_logs)
+                else:
+                    print("No nix info logs")
 
     def subscribe_ui(self, ui_subscription_manager: "TaskUISubscriptionManager"):
         self._ui_subscription_manager = ui_subscription_manager
