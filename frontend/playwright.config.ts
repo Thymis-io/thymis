@@ -50,6 +50,7 @@ const config: PlaywrightTestConfig = {
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/,
 	use: {
 		...devices['Desktop Chrome'],
+		acceptDownloads: true,
 		viewport: {
 			width: 1920,
 			height: 1080
