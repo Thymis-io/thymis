@@ -140,7 +140,7 @@ let
         system.build.thymis-image-with-secrets-builder-x86_64 = config.system.build.thymis-image-with-secrets-builder;
         key = "github:thymis-io/thymis/image-formats.nix:qcow";
       };
-      sd-card-image = { config, pkgs, modulesPath, ... }:
+      sd-card-image = { config, pkgs, modulesPath, extendModules, ... }:
         let
           rootfsImage = hostPkgs: hostPkgs.callPackage "${modulesPath}/../lib/make-ext4-fs.nix" ({
             inherit (config.sdImage) storePaths;
@@ -150,7 +150,7 @@ let
           } // lib.optionalAttrs (config.sdImage.rootPartitionUUID != null) {
             uuid = config.sdImage.rootPartitionUUID;
           });
-          sdImage = hostPkgs: hostPkgs.callPackage
+          sdImage = config: hostPkgs: hostPkgs.callPackage
             ({ stdenv, dosfstools, e2fsprogs, mtools, libfaketime, util-linux, zstd }:
               stdenv.mkDerivation {
                 name = config.sdImage.imageName;
@@ -234,14 +234,27 @@ let
             "${inputs.raspberry-pi-nix}/sd-image/default.nix"
           ];
           sdImage.compressImage = false;
-          # system.build.thymis-image = config.system.build.sdImage;
           system.build.thymis-image-with-secrets-builder-aarch64 = image-with-secrets-builder {
             pkgs = inputs.nixpkgs.legacyPackages.aarch64-linux;
-            image-path = sdImage inputs.nixpkgs.legacyPackages.aarch64-linux;
+            image-path = (extendModules {
+              modules = [
+                ({ config, ... }: {
+                  users.users.root.openssh.authorizedKeys.keys = lib.mkForce [ ];
+                  system.build.sdImage = lib.mkForce (sdImage config inputs.nixpkgs.legacyPackages.aarch64-linux);
+                })
+              ];
+            }).config.system.build.sdImage;
           };
           system.build.thymis-image-with-secrets-builder-x86_64 = image-with-secrets-builder {
             pkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
-            image-path = sdImage inputs.nixpkgs.legacyPackages.x86_64-linux;
+            image-path = (extendModules {
+              modules = [
+                ({ config, ... }: {
+                  users.users.root.openssh.authorizedKeys.keys = lib.mkForce [ ];
+                  system.build.sdImage = lib.mkForce (sdImage config inputs.nixpkgs.legacyPackages.x86_64-linux);
+                })
+              ];
+            }).config.system.build.sdImage;
           };
           key = "github:thymis-io/thymis/image-formats.nix:sd-card-image";
         };
