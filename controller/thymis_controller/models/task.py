@@ -112,6 +112,7 @@ class DeployDevicesTaskSubmission(BaseModel):
     project_path: str
     ssh_key_path: str
     known_hosts_path: str
+    controller_ssh_pubkey: str
 
 
 class DeployDeviceTaskSubmission(BaseModel):
@@ -120,6 +121,7 @@ class DeployDeviceTaskSubmission(BaseModel):
     project_path: str
     ssh_key_path: str
     known_hosts_path: str
+    controller_ssh_pubkey: str
     parent_task_id: Optional[uuid.UUID] = None
 
 

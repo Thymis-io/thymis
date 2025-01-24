@@ -66,6 +66,7 @@ class TaskController:
                     project_path=task.project_path,
                     known_hosts_path=task.known_hosts_path,
                     ssh_key_path=task.ssh_key_path,
+                    controller_ssh_pubkey=task.controller_ssh_pubkey,
                     parent_task_id=task_db.id,
                 )
                 subtask = task_create(
