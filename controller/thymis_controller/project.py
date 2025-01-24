@@ -23,8 +23,16 @@ from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
 
 logger = logging.getLogger(__name__)
 
+if "THYMIS_FLAKE_ROOT" in os.environ:
+    thymis_repo = models.Repo(
+        url=f"git+file://{pathlib.Path(os.environ['THYMIS_FLAKE_ROOT']).resolve()}"
+    )
+else:
+    thymis_repo = models.Repo(url="github:thymis-io/thymis/v0.3")
+
+
 BUILTIN_REPOSITORIES = {
-    "thymis": models.Repo(url="github:thymis-io/thymis/v0.3"),
+    "thymis": thymis_repo,
     "nixpkgs": models.Repo(follows="thymis/nixpkgs"),
 }
 
