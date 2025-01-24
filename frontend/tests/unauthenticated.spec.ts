@@ -32,7 +32,7 @@ colorSchemes.forEach((colorScheme) => {
 			await expect(page.url()).toBe('https://thymis.io/en');
 
 			await page.goBack();
-			await page.reload();
+			await page.mouse.click(0, 0);
 			await expect(page.url()).toBe('http://localhost:8000/login');
 
 			const docsLink = page.locator('a').filter({ hasText: 'Documentation' });

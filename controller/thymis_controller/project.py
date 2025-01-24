@@ -60,8 +60,12 @@ def load_repositories(flake_path: os.PathLike, repositories: dict[str, models.Re
     global lockfile
     # lockfile sits at path/flake.lock
     lockfile_path = os.path.join(flake_path, "flake.lock")
-    with open(lockfile_path, "r", encoding="utf-8") as f:
-        new_lockfile = f.read()
+    try:
+        with open(lockfile_path, "r", encoding="utf-8") as f:
+            new_lockfile = f.read()
+    except FileNotFoundError:
+        logger.error("No flake.lock found at %s", lockfile_path)
+        new_lockfile = None
     if new_lockfile == lockfile:
         return
     lockfile = new_lockfile
