@@ -42,6 +42,7 @@ def test_device_notify(test_client):
     json_data = {
         "token": "c",
         "hardware_ids": {"pi-serial-number": "test"},
+        "deployed_config_id": "test",
         "public_key": "test",
         "ip_addresses": ["127.0.0.1"],
     }

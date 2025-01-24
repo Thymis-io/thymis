@@ -141,6 +141,7 @@ def device_notify(
         deployment_info = crud.deployment_info.create_or_update_by_public_key(
             db_session,
             device_notify_request.public_key,
+            device_notify_request.deployed_config_id,
             reachable_deployed_host,
         )
         hardware_device = crud.hardware_device.create_or_update(

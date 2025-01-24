@@ -52,6 +52,7 @@ def update(
 def create_or_update_by_public_key(
     session: Session,
     ssh_public_key: str,
+    deployed_config_id: str,
     reachable_deployed_host: str | None = None,
 ) -> db_models.DeploymentInfo:
     deployment_info = (
@@ -65,14 +66,14 @@ def create_or_update_by_public_key(
             deployment_info.id,
             ssh_public_key,
             deployed_config_commit=None,
-            deployed_config_id=None,
+            deployed_config_id=deployed_config_id,
             reachable_deployed_host=reachable_deployed_host,
         )
     return create(
         session,
         ssh_public_key,
         deployed_config_commit=None,
-        deployed_config_id=None,
+        deployed_config_id=deployed_config_id,
         reachable_deployed_host=reachable_deployed_host,
     )
 
