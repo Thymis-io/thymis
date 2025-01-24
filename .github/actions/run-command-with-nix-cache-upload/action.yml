@@ -25,6 +25,11 @@ runs:
         ATTIC_PID=$!
         trap 'kill $ATTIC_PID || true' EXIT
         ${{ inputs.script }}
+        EXIT_CODE=$?
+        if [ -e result ]; then
+          attic push thymis-cache:public-cache result
+        fi
+        exit $EXIT_CODE
       working-directory: ${{ inputs.working-directory }}
     - if: ${{ inputs.ATTIC_TOKEN == '' }}
       name: Run script
