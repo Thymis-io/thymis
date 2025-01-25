@@ -92,3 +92,17 @@ def delete_all_tasks(db_session: Session):
     if "RUNNING_IN_PLAYWRIGHT" in os.environ:
         db_session.query(db_models.Task).delete()
         db_session.commit()
+
+
+def get_all_tasks(db_session: Session):
+    return db_session.query(db_models.Task).all()
+
+
+def get_all_alive_tasks(db_session: Session):
+    # means that the task is not in any of the final states
+    # final states are: failed, completed
+    return (
+        db_session.query(db_models.Task)
+        .filter(db_models.Task.state.not_in(["failed", "completed"]))
+        .all()
+    )

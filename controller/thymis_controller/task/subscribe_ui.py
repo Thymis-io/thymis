@@ -3,7 +3,7 @@ import asyncio.queues
 import logging
 import threading
 
-from fastapi import WebSocket
+from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.websockets import WebSocketState
 from thymis_controller import crud, db_models
 
@@ -48,9 +48,15 @@ class TaskUISubscriptionManager:
                 task = await self.task_queue.get()
 
                 with self.subscribers_lock:
-                    for subscriber in self.subscribers:
-                        if subscriber.application_state == WebSocketState.CONNECTED:
+                    subscribers = self.subscribers.copy()
+
+                for subscriber in subscribers:
+                    if subscriber.application_state == WebSocketState.CONNECTED:
+                        try:
                             await subscriber.send_json(task)
+                        except WebSocketDisconnect:
+                            with self.subscribers_lock:
+                                self.subscribers.remove(subscriber)
             except asyncio.QueueShutDown:
                 break
 

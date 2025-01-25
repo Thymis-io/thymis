@@ -96,25 +96,6 @@ class TaskWorkerPoolManager:
         if task_id in self.futures:
             self.futures[task_id][1].send(models_task.CancelTask(id=task_id))
 
-    def cancel_all_tasks(self):
-        if "RUNNING_IN_PLAYWRIGHT" in os.environ:
-            future_tasks = list(self.futures.keys())
-            for task_id in future_tasks:
-                if (
-                    task_id in self.futures
-                    and self.futures[task_id][0].running()
-                    and not self.futures[task_id][1].closed
-                ):
-                    try:
-                        self.cancel_task(task_id)
-                    except Exception as e:
-                        logger.error("Error cancelling task %s: %s", task_id, e)
-                        self.futures[task_id][1].send(
-                            models_task.CancelTask(id=task_id)
-                        )
-        else:
-            raise ValueError("cancel_all_tasks can only be called from playwright")
-
     def listen_child_messages(self, conn: Connection, task_id: uuid.UUID):
         message = None
         try:
