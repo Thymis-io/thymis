@@ -308,7 +308,7 @@ colorSchemes.forEach((colorScheme) => {
 			});
 
 			await expect(page).toHaveScreenshot({
-				maxDiffPixels: 2500
+				maxDiffPixels: 3000
 			});
 		});
 

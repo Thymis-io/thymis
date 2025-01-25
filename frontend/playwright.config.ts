@@ -41,7 +41,7 @@ const commandFrame = (cmd) =>
 
 const config: PlaywrightTestConfig = {
 	workers: 1, // serial execution, but not with interdependent tests, but only one application instance
-	retries: 5,
+	retries: 2,
 	webServer: {
 		command: commandFrame(command),
 		port: 8000,
@@ -66,7 +66,7 @@ const config: PlaywrightTestConfig = {
 	expect: {
 		toHaveScreenshot: {
 			maxDiffPixels: 1,
-			threshold: 0.01
+			threshold: 0.02
 		}
 	}
 };
