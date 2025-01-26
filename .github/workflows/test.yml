@@ -88,8 +88,10 @@ jobs:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            set +e  # revert the default `set -e`
             export THYMIS_FLAKE_ROOT='..'
-            nix develop .#onlyPlaywrightBrowsers --command npm run test 2>&1 | tee output.log || true
+            nix develop .#onlyPlaywrightBrowsers --command npm run test 2>&1 | tee output.log
+            PLAYWRIGHT_EXIT_CODE=$?
             if grep -q -e "Error: A snapshot doesn't exist at" -e "Screenshot comparison failed" output.log; then
               echo "Playwright tests failed due to a snapshot issue"
               echo "SNAPSHOT_DIFFERENCES=true" >> $GITHUB_ENV
@@ -102,6 +104,7 @@ jobs:
               echo "Playwright tests failed"
               exit 1
             fi
+            exit $PLAYWRIGHT_EXIT_CODE
           working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload
