@@ -27,17 +27,89 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-nix
+        with:
+          path: thymis
+      - uses: ./thymis/.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: build thymis-controller
-        uses: ./.github/actions/run-command-with-nix-cache-upload
+        uses: ./thymis/.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            nix build .#thymis-controller --print-build-logs
+            cd thymis
+            nix build .#thymis-controller --print-build-logs 2>&1 | tee build.log
+            sleep 1
+      - name: Get Thymis App Token
+        id: generate-token
+        if: always()
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.THYMIS_APP_ID }}
+          private-key: ${{ secrets.THYMIS_APP_PRIVATE_KEY }}
+      - uses: actions/checkout@v4
+        if: always()
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          path: thymis-2
+      - name: check if failed because of frontend hash failure, in that case, commit the new hash
+        if: always()
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+        run: |
+          if grep -q "npmDepsHash is out of date" thymis/build.log; then
+            cd thymis-2
+            echo "frontendHashFailure detected, committing new hash"
+            # git config --global user.name github-actions[bot]
+            # git config --global user.email 41898282+github-actions[bot]@users.noreply.github.com
+            USER_NAME=${{ steps.generate-token.outputs.app-slug }}[bot]
+            USER_ID=$(gh api "/users/${USER_NAME}" --jq '.id')
+            USER_EMAIL="${USER_ID}+${{ steps.generate-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+            git config user.email $USER_EMAIL
+            git config user.name $USER_NAME
+            # > To fix the issue:
+            # > 1. Use `lib.fakeHash` as the npmDepsHash value
+            # > 2. Build the derivation and wait for it to fail with a hash mismatch
+            # > 3. Copy the 'got: sha256-' value back into the npmDepsHash field
+            # okay
+            # first use sed
+            # file is in ./frontend/default.nix
+            # line loops like
+            # npmDepsHash = "sha256-<hash>";
+            # we want to replace the hash to lib.fakeHash at first
+            sed -i 's/npmDepsHash = "sha256-.*";/npmDepsHash = lib.fakeHash;/' ./frontend/default.nix
+            # and then build the derivation again
+            nix build .#thymis-controller --print-build-logs 2>&1 | tee build.log
+            # now checkout the head_ref branch
+            git fetch --all
+            git checkout $BRANCH_NAME
+            # look for line "got:    sha256-<hash>"
+            # and replace the hash in the file
+            newHash=$(grep -oP 'got:    sha256-\K[0-9a-zA-Z/=]+' build.log)
+            sed -i "s@npmDepsHash = lib.fakeHash;@npmDepsHash = \"sha256-$newHash\";@" ./frontend/default.nix
+            git add ./frontend/default.nix
+
+            # if this is a renovate PR (identify by the branch name, "renovate/" prefix)
+            # then amend the commit instead of creating a new one, so that renovate does not panic
+            # we need to force push in this case
+            # additional condition: only if the last commits author is "renovate[bot]"
+            lastCommitAuthor=$(git log -1 --pretty=format:'%an')
+            # only push if no changes were made to the branch since this added
+            if [[ ${{ github.event.pull_request.head.sha || github.sha }} == $(git rev-parse HEAD) ]]; then
+              if [[ $BRANCH_NAME == renovate/* ]] && [[ $lastCommitAuthor == renovate[bot] ]]; then
+                git commit --amend --no-edit
+                git push --force
+              else
+                git commit -m "Update npmDepsHash in ./frontend/default.nix"
+                git push
+              fi
+            else
+              echo "Changes were made to the branch since the last commit, not pushing"
+            fi
+          fi
 
   build-thymis-controller-pi-3-sd-image:
     runs-on: ubuntu-22.04-arm
