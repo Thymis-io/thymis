@@ -88,7 +88,7 @@ jobs:
             git checkout $BRANCH_NAME
             # look for line "got:    sha256-<hash>"
             # and replace the hash in the file
-            newHash=$(grep -oP 'got:    sha256-\K[0-9a-zA-Z/=]+' build.log)
+            newHash=$(grep -oP 'got:    sha256-\K[0-9a-zA-Z/+=]+' build.log)
             sed -i "s@npmDepsHash = lib.fakeHash;@npmDepsHash = \"sha256-$newHash\";@" ./frontend/default.nix
             git add ./frontend/default.nix
 
