@@ -115,13 +115,8 @@ jobs:
             echo "last commit author: '$lastCommitAuthor'"
             # only push if no changes were made to the branch since this added
             if [[ ${{ github.event.pull_request.head.sha || github.sha }} == $(git rev-parse HEAD) ]]; then
-              if [[ $BRANCH_NAME == renovate/* ]] && [[ $lastCommitAuthor == "renovate[bot]" ]]; then
-                git commit --amend --no-edit
-                git push --force
-              else
-                git commit -m "Update npmDepsHash in ./frontend/default.nix"
-                git push
-              fi
+              git commit -m "Update npmDepsHash in ./frontend/default.nix"
+              git push
             else
               echo "Changes were made to the branch since the last commit, not pushing"
             fi
