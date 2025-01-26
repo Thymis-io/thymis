@@ -135,6 +135,7 @@ jobs:
         with:
           token: ${{ steps.generate-token.outputs.token }}
           path: thymis-2
+          ref: ${{ github.head_ref || github.ref_name }}
       - name: check if failed because of playwright hash failure, in that case, commit the new hash
         if: ${{ failure() && env.MISSING_BROWSERS == 'true' }}
         env:
