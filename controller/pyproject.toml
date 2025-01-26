@@ -23,7 +23,7 @@ psutil = "^6.1.0"
 pydantic-settings = "^2.6.0"
 alembic = "^1.13.2"
 sqlalchemy = "^2.0.36"
-python-multipart = "^0.0.18"
+python-multipart = "^0.0.20"
 paramiko = "^3.5.0"
 
 [tool.poetry.group.enterprise]
