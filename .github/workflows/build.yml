@@ -97,6 +97,7 @@ jobs:
             # we need to force push in this case
             # additional condition: only if the last commits author is "renovate[bot]"
             lastCommitAuthor=$(git log -1 --pretty=format:'%an')
+            echo "last commit author: '$lastCommitAuthor'"
             # only push if no changes were made to the branch since this added
             if [[ ${{ github.event.pull_request.head.sha || github.sha }} == $(git rev-parse HEAD) ]]; then
               if [[ $BRANCH_NAME == renovate/* ]] && [[ $lastCommitAuthor == renovate[bot] ]]; then
