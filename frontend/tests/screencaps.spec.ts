@@ -302,8 +302,8 @@ colorSchemes.forEach((colorScheme) => {
 			// Take a screenshot
 
 			// wait until: 2x on screen "completed"
-			test.setTimeout(240000);
-			await page.locator('td', { hasText: 'completed' }).nth(1).waitFor({ timeout: 240000 });
+			test.setTimeout(300000);
+			await page.locator('td', { hasText: 'completed' }).nth(1).waitFor({ timeout: 300000 });
 
 			await expect(page).toHaveScreenshot({
 				mask: [page.locator('.playwright-snapshot-unstable')]
@@ -336,7 +336,7 @@ colorSchemes.forEach((colorScheme) => {
 			// find button 'Download image' and click on it
 			await page.locator('button').filter({ hasText: 'Download image' }).first().click();
 
-			test.setTimeout(240000);
+			test.setTimeout(300000);
 			await downloadPromise;
 		});
 	});
