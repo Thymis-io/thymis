@@ -1,8 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended"
-  ],
+  "extends": ["config:recommended"],
   "nix": {
     "enabled": true
   },
@@ -11,8 +9,22 @@
   },
   "automerge": true,
   "rebaseWhen": "auto",
-  "gitIgnoredAuthors": [
-    "185514190+thymis-app[bot]@users.noreply.github.com"
-  ],
-  "prConcurrentLimit": 3
+  "gitIgnoredAuthors": ["185514190+thymis-app[bot]@users.noreply.github.com"],
+  "prConcurrentLimit": 3,
+  "packageRules": [
+    {
+      "description": "Group npm non-major updates together",
+      "groupName": "npm non-major updates",
+      "groupSlug": "npm-non-major-updates",
+      "matchDatasources": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "description": "Group poetry non-major updates together",
+      "groupName": "poetry non-major updates",
+      "groupSlug": "poetry-non-major-updates",
+      "matchDatasources": ["poetry"],
+      "matchUpdateTypes": ["minor", "patch"]
+    }
+  ]
 }
