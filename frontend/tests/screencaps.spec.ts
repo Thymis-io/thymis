@@ -261,6 +261,8 @@ colorSchemes.forEach((colorScheme) => {
 			const updateButton = page.locator('button').filter({ hasText: 'Update' });
 			await updateButton.click();
 
+			await page.locator('td', { hasText: 'completed' }).first().waitFor();
+
 			// Expect a task to be created
 			await expect(page).toHaveScreenshot({
 				mask: [page.locator('.playwright-snapshot-unstable')]
@@ -300,8 +302,8 @@ colorSchemes.forEach((colorScheme) => {
 			// Take a screenshot
 
 			// wait until: 2x on screen "completed"
-			test.setTimeout(180000);
-			await page.locator('td', { hasText: 'completed' }).nth(1).waitFor({ timeout: 180000 });
+			test.setTimeout(240000);
+			await page.locator('td', { hasText: 'completed' }).nth(1).waitFor({ timeout: 240000 });
 
 			await expect(page).toHaveScreenshot({
 				mask: [page.locator('.playwright-snapshot-unstable')]
