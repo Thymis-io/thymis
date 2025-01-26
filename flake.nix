@@ -142,6 +142,7 @@
             packages = [
               pkgs.poetry
               pkgs.python313
+              pkgs.nodejs_22
               pkgs.nixpkgs-fmt
             ];
           };
