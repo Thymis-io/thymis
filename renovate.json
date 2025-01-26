@@ -9,5 +9,9 @@
   "lockFileMaintenance": {
     "enabled": true
   },
-  "automerge": true
+  "automerge": true,
+  "rebaseWhen": "conflicted",
+  "gitIgnoredAuthors": [
+    "185514190+thymis-app[bot]@users.noreply.github.com"
+  ]
 }
