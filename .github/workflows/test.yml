@@ -45,6 +45,7 @@ jobs:
 
   test-frontend-integration:
     runs-on: ubuntu-22.04-arm
+    if: ${{ ! (github.actor == 'renovate[bot]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
@@ -103,6 +104,7 @@ jobs:
 
   test-frontend-integration-stable-input:
     runs-on: ubuntu-22.04-arm
+    if: ${{ ! (github.actor == 'renovate[bot]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
