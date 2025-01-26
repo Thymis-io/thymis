@@ -27,35 +27,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: thymis
-      - uses: ./thymis/.github/actions/setup-nix
+      - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: build thymis-controller
-        uses: ./thymis/.github/actions/run-command-with-nix-cache-upload
+      - name: Build thymis-frontend
+        uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            cd thymis
-            nix build .#thymis-controller --print-build-logs 2>&1 | tee build.log
+            nix build .#thymis-frontend --print-build-logs 2>&1 | tee build.log
             sleep 1
       - name: Get Thymis App Token
         id: generate-token
-        if: always()
+        if: failure()
         uses: actions/create-github-app-token@v1
         with:
           app-id: ${{ vars.THYMIS_APP_ID }}
           private-key: ${{ secrets.THYMIS_APP_PRIVATE_KEY }}
       - uses: actions/checkout@v4
-        if: always()
+        if: failure()
         with:
           token: ${{ steps.generate-token.outputs.token }}
           path: thymis-2
       - name: check if failed because of frontend hash failure, in that case, commit the new hash
-        if: always()
+        if: failure()
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
@@ -82,7 +79,7 @@ jobs:
             # we want to replace the hash to lib.fakeHash at first
             sed -i 's/npmDepsHash = "sha256-.*";/npmDepsHash = lib.fakeHash;/' ./frontend/default.nix
             # and then build the derivation again
-            nix build .#thymis-controller --print-build-logs 2>&1 | tee build.log
+            nix build .#thymis-frontend --print-build-logs 2>&1 | tee build.log
             # now checkout the head_ref branch
             git fetch --all
             git checkout $BRANCH_NAME
@@ -111,9 +108,19 @@ jobs:
               echo "Changes were made to the branch since the last commit, not pushing"
             fi
           fi
+      - name: build thymis-controller
+        uses: ./thymis/.github/actions/run-command-with-nix-cache-upload
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            cd thymis
+            nix build .#thymis-controller --print-build-logs
+
 
   build-thymis-controller-pi-3-sd-image:
     runs-on: ubuntu-22.04-arm
+    if: ${{ ! (github.actor == 'renovate[bot]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
@@ -129,6 +136,7 @@ jobs:
 
   build-thymis-controller-pi-4-sd-image:
     runs-on: ubuntu-22.04-arm
+    if: ${{ ! (github.actor == 'renovate[bot]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
@@ -146,6 +154,7 @@ jobs:
 
   build-thymis-controller-pi-5-sd-image:
     runs-on: ubuntu-22.04-arm
+    if: ${{ ! (github.actor == 'renovate[bot]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
@@ -163,6 +172,7 @@ jobs:
 
   build-generic-x86_64-image:
     runs-on: ubuntu-latest
+    if: ${{ ! (github.actor == 'renovate[bot]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
