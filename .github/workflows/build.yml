@@ -7,6 +7,21 @@ on:
       - master
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      package-lock-json: ${{ steps.filter.outputs.package-lock-json }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            package-lock-json:
+              - 'frontend/package-lock.json'
+
   build-agent:
     runs-on: ubuntu-latest
     steps:
@@ -120,7 +135,8 @@ jobs:
 
   build-thymis-controller-pi-3-sd-image:
     runs-on: ubuntu-22.04-arm
-    if: ${{ ! (github.actor == 'renovate[bot]') }}
+    needs: changes
+    if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
@@ -136,7 +152,8 @@ jobs:
 
   build-thymis-controller-pi-4-sd-image:
     runs-on: ubuntu-22.04-arm
-    if: ${{ ! (github.actor == 'renovate[bot]') }}
+    needs: changes
+    if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
@@ -154,7 +171,8 @@ jobs:
 
   build-thymis-controller-pi-5-sd-image:
     runs-on: ubuntu-22.04-arm
-    if: ${{ ! (github.actor == 'renovate[bot]') }}
+    needs: changes
+    if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
@@ -172,7 +190,8 @@ jobs:
 
   build-generic-x86_64-image:
     runs-on: ubuntu-latest
-    if: ${{ ! (github.actor == 'renovate[bot]') }}
+    needs: changes
+    if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
