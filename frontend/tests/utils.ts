@@ -52,11 +52,11 @@ export const expectToHaveScreenshotWithHighlight = async (
 
 export const clearState = async (page: Page, request: APIRequestContext) => {
 	await page.goto('http://localhost:8000/overview');
-	const stateRequest = await request.get('/api/state');
+	const stateRequest = await page.request.get('/api/state');
 	const state = await stateRequest.json();
 	state['tags'] = [];
 	state['devices'] = [];
-	await request.patch('/api/state', { data: state });
+	await page.request.patch('/api/state', { data: state });
 };
 
 export const deleteAllTasks = async (page: Page, request: APIRequestContext) => {
