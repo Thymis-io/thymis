@@ -10,7 +10,7 @@
     "enabled": true
   },
   "automerge": true,
-  "rebaseWhen": "conflicted",
+  "rebaseWhen": "auto",
   "gitIgnoredAuthors": [
     "185514190+thymis-app[bot]@users.noreply.github.com"
   ]
