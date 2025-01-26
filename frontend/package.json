@@ -37,7 +37,7 @@
 		"eslint-plugin-unused-imports": "^4.1.4",
 		"flowbite": "^2.5.2",
 		"flowbite-svelte": "^0.47.1",
-		"flowbite-svelte-icons": "^1.6.2",
+		"flowbite-svelte-icons": "^2.0.0",
 		"lucide-svelte": "^0.453.0",
 		"postcss": "^8.4.47",
 		"postcss-load-config": "^6.0.1",
