@@ -43,7 +43,7 @@
 		"postcss-load-config": "^6.0.1",
 		"prettier": "^3.3.3",
 		"prettier-plugin-svelte": "^3.2.7",
-		"svelte": "^4.2.19",
+		"svelte": "^5.0.0",
 		"svelte-awesome-icons": "^1.2.1",
 		"svelte-check": "^4.0.5",
 		"svelte-dnd-action": "^0.9.52",
