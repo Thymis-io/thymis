@@ -13,5 +13,6 @@
   "rebaseWhen": "auto",
   "gitIgnoredAuthors": [
     "185514190+thymis-app[bot]@users.noreply.github.com"
-  ]
+  ],
+  "prConcurrentLimit": 3
 }
