@@ -25,6 +25,11 @@
       "groupSlug": "poetry-non-major-updates",
       "matchDatasources": ["poetry"],
       "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "matchPackageNames": ["/@playwright\/test/"],
+      "matchManagers": ["npm"],
+      "enabled": false
     }
   ]
 }
