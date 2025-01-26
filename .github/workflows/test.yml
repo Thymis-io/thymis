@@ -7,6 +7,20 @@ on:
       - master
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      package-lock-json: ${{ steps.filter.outputs.package-lock-json }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            package-lock-json:
+              - 'frontend/package-lock.json'
   test-controller:
     runs-on: ubuntu-latest
     steps:
@@ -45,7 +59,8 @@ jobs:
 
   test-frontend-integration:
     runs-on: ubuntu-22.04-arm
-    if: ${{ ! (github.actor == 'renovate[bot]') }}
+    needs: changes
+    if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
@@ -104,7 +119,8 @@ jobs:
 
   test-frontend-integration-stable-input:
     runs-on: ubuntu-22.04-arm
-    if: ${{ ! (github.actor == 'renovate[bot]') }}
+    needs: changes
+    if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]') }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
