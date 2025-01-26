@@ -44,12 +44,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: thymis
-      - uses: ./.github/actions/setup-nix
+      - uses: ./thymis/.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build thymis-frontend
-        uses: ./.github/actions/run-command-with-nix-cache-upload
+        uses: ./thymis/.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -57,7 +57,6 @@ jobs:
             cd thymis
             nix build .#thymis-frontend --print-build-logs 2>&1 | tee build.log
             sleep 1
-
       - name: Get Thymis App Token
         id: generate-token
         if: failure()
