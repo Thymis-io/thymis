@@ -95,7 +95,7 @@ jobs:
             # line loops like
             # npmDepsHash = "sha256-<hash>";
             # we want to replace the hash to lib.fakeHash at first
-            (cd frontend && nix develop .#ci --command "npm install")
+            (cd frontend && nix develop .#ci --command npm install)
             git add ./frontend/package-lock.json
             sed -i 's/npmDepsHash = "sha256-.*";/npmDepsHash = lib.fakeHash;/' ./frontend/default.nix
             # and then build the derivation again
