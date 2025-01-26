@@ -42,6 +42,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: thymis
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -52,8 +54,10 @@ jobs:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            cd thymis
             nix build .#thymis-frontend --print-build-logs 2>&1 | tee build.log
             sleep 1
+
       - name: Get Thymis App Token
         id: generate-token
         if: failure()
