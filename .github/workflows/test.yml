@@ -94,6 +94,10 @@ jobs:
               echo "Playwright tests failed due to a snapshot issue"
               echo "SNAPSHOT_DIFFERENCES=true" >> $GITHUB_ENV
             fi
+            if grep -q -E -e "npx playwright install" -e "error: attribute '\"[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+\"' missing" output.log; then
+              echo "Playwright tests failed due to missing browsers"
+              echo "MISSING_BROWSERS=true" >> $GITHUB_ENV
+            fi
             if grep -q -E -e "[[:digit:]]+ failed" -e "was not able to start" output.log; then
               echo "Playwright tests failed"
               exit 1
@@ -116,6 +120,50 @@ jobs:
             **To approve the snapshot changes and update the snapshots, please comment:** /approve-snapshots
           comment-tag: playwright-snapshots
           mode: recreate
+      - name: Get Thymis App Token
+        id: generate-token
+        if: ${{ failure() && env.MISSING_BROWSERS == 'true' }}
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.THYMIS_APP_ID }}
+          private-key: ${{ secrets.THYMIS_APP_PRIVATE_KEY }}
+      - uses: actions/checkout@v4
+        if: ${{ failure() && env.MISSING_BROWSERS == 'true' }}
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          path: thymis-2
+      - name: check if failed because of playwright hash failure, in that case, commit the new hash
+        if: ${{ failure() && env.MISSING_BROWSERS == 'true' }}
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+        run: |
+          cd thymis-2
+          USER_NAME=${{ steps.generate-token.outputs.app-slug }}[bot]
+          USER_ID=$(gh api "/users/${USER_NAME}" --jq '.id')
+          USER_EMAIL="${USER_ID}+${{ steps.generate-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+          git config user.email $USER_EMAIL
+          git config user.name $USER_NAME
+
+          # get version of playwright using jq (./frontend/package-lock.json)
+          playwrightVersion=$(jq -r '.packages["node_modules/playwright-core"].version' ../frontend/package-lock.json)
+
+          # call ./nix/playwright-by-version/add-version.sh with the playwright version
+          ./nix/playwright-by-version/add-version.sh $playwrightVersion
+
+          # if this is a renovate PR (identify by the branch name, "renovate/" prefix)
+          # then amend the commit instead of creating a new one, so that renovate does not panic
+          # we need to force push in this case
+          # additional condition: only if the last commits author is "renovate[bot]"
+          lastCommitAuthor=$(git log -1 --pretty=format:'%an')
+          echo "last commit author: '$lastCommitAuthor'"
+          # only push if no changes were made to the branch since this added
+          if [[ ${{ github.event.pull_request.head.sha || github.sha }} == $(git rev-parse HEAD) ]]; then
+            git commit -m "Update npmDepsHash in ./frontend/default.nix"
+            git push
+          else
+            echo "Changes were made to the branch since the last commit, not pushing"
+          fi
 
   test-frontend-integration-stable-input:
     runs-on: ubuntu-22.04-arm

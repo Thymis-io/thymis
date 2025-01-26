@@ -104,6 +104,8 @@
         };
       }).config.system.build.thymis-image-with-secrets-builder-x86_64;
 
+      frontendPlaywrightVersion = (nixpkgs.lib.importJSON ./frontend/package-lock.json).packages."node_modules/playwright-core".version;
+
       removeRecurseForDerivations = nixpkgs.lib.filterAttrsRecursive (k: v: k != "recurseForDerivations");
     in
     {
@@ -112,6 +114,10 @@
       devShells = eachSystem (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+          pkgsWithOverlays = import nixpkgs {
+            inherit system;
+            overlays = self.overlays;
+          };
         in
         {
           default = pkgs.mkShell {
@@ -120,12 +126,12 @@
               pkgs.python313
               pkgs.nodejs_22
               pkgs.pre-commit
-              pkgs.playwright-driver.browsers
+              pkgsWithOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers
               pkgs.mdbook
               pkgs.nixpkgs-fmt
             ];
             shellHook = ''
-              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+              export PLAYWRIGHT_BROWSERS_PATH=${pkgsWithOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
               export THYMIS_DEV_SHELL=true
               export THYMIS_FLAKE_ROOT=$(git rev-parse --show-toplevel)
@@ -140,20 +146,26 @@
             ];
           };
           onlyPlaywrightBrowsers = pkgs.mkShell {
-            packages = [ pkgs.playwright-driver.browsers ];
+            packages = [ pkgsWithOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers ];
             shellHook = ''
-              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+              export PLAYWRIGHT_BROWSERS_PATH=${pkgsWithOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
             '';
-            PLAYWRIGHT_BROWSERS_PATH = pkgs.playwright-driver.browsers;
+            PLAYWRIGHT_BROWSERS_PATH = pkgsWithOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers;
             PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = "true";
           };
         });
 
-
+      overlays = [
+        (import ./nix/playwright-by-version/playwright-driver-overlay.nix nixpkgs)
+      ];
       packages = eachSystem (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+          pkgsWithOverlays = import nixpkgs {
+            inherit system;
+            overlays = self.overlays;
+          };
           thymis-frontend = pkgs.callPackage ./frontend {
             git-rev = inputs.self.rev or inputs.self.dirtyRev or null;
           };
@@ -174,6 +186,12 @@
           thymis-controller = thymis-controller;
           thymis-controller-container = import ./docker.nix { inherit pkgs thymis-controller; };
           thymis-agent = thymis-agent;
+          playwright-driver-all = pkgs.writeText "playwright-driver-all.json"
+            (builtins.toJSON (
+              builtins.mapAttrs
+                (name: driver: [ driver driver.browsers ])
+                pkgsWithOverlays.playwright-driver-by-version
+            ));
         }
       );
       nixosModules = nixosModules;
