@@ -12,7 +12,7 @@
     raspberry-pi-nix.url = "github:nix-community/raspberry-pi-nix";
     flake-utils.url = "github:numtide/flake-utils";
     poetry2nix = {
-      url = "github:nix-community/poetry2nix";
+      url = "github:thymis-io/poetry2nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "flake-utils";
     };

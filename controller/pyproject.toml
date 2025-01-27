@@ -9,7 +9,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.13"
+python = "^3.13"
 fastapi = "^0.115.3"
 pydantic = "^2.8.2"
 uvicorn = "^0.34.0"
@@ -25,6 +25,7 @@ alembic = "^1.13.2"
 sqlalchemy = "^2.0.36"
 python-multipart = "^0.0.20"
 paramiko = "^3.5.0"
+http-network-relay = {git = "https://git@github.com/Thymis-io/http-network-relay.git"}
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.2"

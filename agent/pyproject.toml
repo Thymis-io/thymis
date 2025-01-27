@@ -10,10 +10,10 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 requests = "^2.32.3"
 psutil = "^6.0.0"
-
+http-network-relay = {git = "https://git@github.com/Thymis-io/http-network-relay.git"}
 
 [build-system]
 requires = ["poetry-core"]
