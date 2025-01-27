@@ -1,7 +1,6 @@
 { poetry2nix
 , writeShellApplication
 , python313
-, http-network-relay
 ,
 }:
 let
