@@ -1,4 +1,3 @@
-import importlib
 import logging
 import pathlib
 import secrets
@@ -190,9 +189,3 @@ app.include_router(auth.router, prefix="/auth")
 app.include_router(api.router, prefix="/api")
 app.include_router(agent.router, prefix="/agent")
 app.include_router(frontend.router)
-
-
-if importlib.util.find_spec("thymis_enterprise"):
-    import thymis_enterprise  # pylint: disable=import-error # type: ignore
-
-    thymis_enterprise.thymis_enterprise_hello_world()

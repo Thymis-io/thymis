@@ -60,9 +60,6 @@
 		"vitest": "^3.0.0"
 	},
 	"type": "module",
-	"optionalDependencies": {
-		"thymis-enterprise": "file:../../thymis-enterprise/js/dist"
-	},
 	"overrides": {
 		"svelte-multiselect": {
 			"svelte": "$svelte"
