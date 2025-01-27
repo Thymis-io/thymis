@@ -26,12 +26,6 @@ sqlalchemy = "^2.0.36"
 python-multipart = "^0.0.20"
 paramiko = "^3.5.0"
 
-[tool.poetry.group.enterprise]
-optional = true
-
-[tool.poetry.group.enterprise.dependencies]
-thymis-enterprise = { path = "../../thymis-enterprise/py" }
-
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.2"
 pytest-cov = "^6.0.0"
