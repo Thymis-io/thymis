@@ -19,13 +19,13 @@ runs:
         extra_nix_config: |
           system-features = kvm
           extra-trusted-public-keys = cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=
-          extra-substituters = https://cache2.thymis.io/public-cache https://cache.thymis.io
+          extra-substituters = https://cache2.thymis.io/public-cache?priority=60 https://cache.thymis.io
     - if: ${{ inputs.ATTIC_TOKEN != '' }}
       name: Install Attic
       shell: bash
       run: |
         nix profile install nixpkgs#attic-client
-        attic login thymis-cache https://cache2.thymis.io ${{ inputs.ATTIC_TOKEN }} --set-default
+        attic login thymis-cache https://attic-cache.thymis.io ${{ inputs.ATTIC_TOKEN }} --set-default
     - if: ${{ inputs.ATTIC_TOKEN == '' }}
       name: Print Attic Token Warning
       shell: bash
