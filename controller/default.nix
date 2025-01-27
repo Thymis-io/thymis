@@ -13,9 +13,12 @@ let
     name = "thymis-controller";
     projectDir = ./.;
     preferWheels = true;
-    overrides = poetry2nix.overrides.withDefaults (self: super: {
+    overrides = poetry2nix.overrides.withDefaults (final: prev: {
       fastapi-cli = python313.pkgs.fastapi-cli;
       bcrypt = python313.pkgs.bcrypt;
+      http-network-relay = prev.http-network-relay.overridePythonAttrs (oldAttrs: {
+        buildInputs = (oldAttrs.buildInputs or [ ]) ++ [ prev.poetry-core ];
+      });
     });
     checkGroups = [ "test" ];
     python = python313;

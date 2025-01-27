@@ -1,6 +1,7 @@
 { poetry2nix
 , writeShellApplication
 , python313
+, http-network-relay
 ,
 }:
 let
@@ -10,6 +11,11 @@ let
     preferWheels = true;
     checkGroups = [ "test" ];
     python = python313;
+    overrides = poetry2nix.overrides.withDefaults (final: prev: {
+      http-network-relay = prev.http-network-relay.overridePythonAttrs (oldAttrs: {
+        buildInputs = (oldAttrs.buildInputs or [ ]) ++ [ prev.poetry-core ];
+      });
+    });
   }).dependencyEnv;
 in
 writeShellApplication {
