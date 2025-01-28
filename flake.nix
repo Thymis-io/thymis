@@ -115,7 +115,7 @@
       devShells = eachSystem (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          pkgsWithPlayWrightOverlays = import nixpkgs {
+          pkgsWithPlayWrightOverlays = import inputs.nixpkgs-for-playwright-browsers {
             inherit system;
             overlays = self.overlays;
           };
@@ -159,7 +159,7 @@
         });
 
       overlays = [
-        (import ./nix/playwright-by-version/playwright-driver-overlay.nix nixpkgs)
+        (import ./nix/playwright-by-version/playwright-driver-overlay.nix inputs.nixpkgs-for-playwright-browsers)
       ];
       packages = eachSystem (system:
         let
