@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs-for-playwright-browsers.url = "github:NixOS/nixpkgs/e24b4c09e963677b1beea49d411cd315a024ad3a";
     home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nixos-generators.url = "github:nix-community/nixos-generators";
@@ -114,7 +115,7 @@
       devShells = eachSystem (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          pkgsWithOverlays = import nixpkgs {
+          pkgsWithPlayWrightOverlays = import nixpkgs {
             inherit system;
             overlays = self.overlays;
           };
@@ -126,12 +127,12 @@
               pkgs.python313
               pkgs.nodejs_22
               pkgs.pre-commit
-              pkgsWithOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers
+              pkgsWithPlayWrightOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers
               pkgs.mdbook
               pkgs.nixpkgs-fmt
             ];
             shellHook = ''
-              export PLAYWRIGHT_BROWSERS_PATH=${pkgsWithOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers}
+              export PLAYWRIGHT_BROWSERS_PATH=${pkgsWithPlayWrightOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
               export THYMIS_DEV_SHELL=true
               export THYMIS_FLAKE_ROOT=$(git rev-parse --show-toplevel)
@@ -147,12 +148,12 @@
             ];
           };
           onlyPlaywrightBrowsers = pkgs.mkShell {
-            packages = [ pkgsWithOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers ];
+            packages = [ pkgsWithPlayWrightOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers ];
             shellHook = ''
-              export PLAYWRIGHT_BROWSERS_PATH=${pkgsWithOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers}
+              export PLAYWRIGHT_BROWSERS_PATH=${pkgsWithPlayWrightOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
             '';
-            PLAYWRIGHT_BROWSERS_PATH = pkgsWithOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers;
+            PLAYWRIGHT_BROWSERS_PATH = pkgsWithPlayWrightOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers;
             PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = "true";
           };
         });
@@ -163,7 +164,7 @@
       packages = eachSystem (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          pkgsWithOverlays = import nixpkgs {
+          pkgsWithPlayWrightOverlays = import inputs.nixpkgs-for-playwright-browsers {
             inherit system;
             overlays = self.overlays;
           };
@@ -191,7 +192,7 @@
             (builtins.toJSON (
               builtins.mapAttrs
                 (name: driver: [ driver driver.browsers ])
-                pkgsWithOverlays.playwright-driver-by-version
+                pkgsWithPlayWrightOverlays.playwright-driver-by-version
             ));
         }
       );
