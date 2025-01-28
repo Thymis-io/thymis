@@ -685,7 +685,7 @@ websockets = "^14.1"
 type = "git"
 url = "https://git@github.com/Thymis-io/http-network-relay.git"
 reference = "HEAD"
-resolved_reference = "b121895dfec63f8f5f1e6ede6976e14782f5a821"
+resolved_reference = "83bf7f90e6e2f81293f3b2589e614d36edf30612"
 
 [[package]]
 name = "httpcore"
