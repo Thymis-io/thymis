@@ -13,6 +13,7 @@ packages = [
 python = "^3.11"
 requests = "^2.32.3"
 psutil = "^6.0.0"
+pydantic = "^2.8.2"
 http-network-relay = {git = "https://git@github.com/Thymis-io/http-network-relay.git"}
 
 [build-system]

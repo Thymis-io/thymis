@@ -99,11 +99,33 @@ TaskSubmissionData = Union[
 ]
 
 
+class TaskSubmissionDataWrapper(BaseModel):
+    inner: TaskSubmissionData = Field(discriminator="type")
+
+
 class DeployDeviceInformation(BaseModel):
     identifier: str
     host: str
     port: int
     username: str
+
+
+# def warn_if_called_and_return_none():
+#     import logging
+#     logger = logging.getLogger(__name__)
+#     logger.warning("Field default_factory for some key of SSHCommandTaskSubmission called, returning None")
+#     return None
+def warn_if_called_and_return_none(class_name: str, field_name: str):
+    def inner():
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.warning(
+            f"Field default_factory for {class_name}.{field_name} called, returning None"
+        )
+        return None
+
+    return inner
 
 
 class DeployDevicesTaskSubmission(BaseModel):
@@ -112,7 +134,11 @@ class DeployDevicesTaskSubmission(BaseModel):
     project_path: str
     ssh_key_path: str
     known_hosts_path: str
-    controller_ssh_pubkey: str
+    controller_ssh_pubkey: str | None = Field(
+        default_factory=warn_if_called_and_return_none(
+            "DeployDevicesTaskSubmission", "controller_ssh_pubkey"
+        )
+    )
 
 
 class DeployDeviceTaskSubmission(BaseModel):
@@ -121,7 +147,11 @@ class DeployDeviceTaskSubmission(BaseModel):
     project_path: str
     ssh_key_path: str
     known_hosts_path: str
-    controller_ssh_pubkey: str
+    controller_ssh_pubkey: str | None = Field(
+        default_factory=warn_if_called_and_return_none(
+            "DeployDeviceTaskSubmission", "controller_ssh_pubkey"
+        )
+    )
     parent_task_id: Optional[uuid.UUID] = None
 
 
@@ -141,7 +171,11 @@ class BuildDeviceImageTaskSubmission(BaseModel):
     device_identifier: str
     device_state: dict
     commit: str
-    controller_ssh_pubkey: str
+    controller_ssh_pubkey: str | None = Field(
+        default_factory=warn_if_called_and_return_none(
+            "BuildDeviceImageTaskSubmission", "controller_ssh_pubkey"
+        )
+    )
 
 
 class SSHCommandTaskSubmission(BaseModel):
@@ -150,8 +184,16 @@ class SSHCommandTaskSubmission(BaseModel):
     target_host: str
     target_port: int
     command: str
-    ssh_key_path: str
-    ssh_known_hosts_path: str
+    ssh_key_path: str | None = Field(
+        default_factory=warn_if_called_and_return_none(
+            "SSHCommandTaskSubmission", "ssh_key_path"
+        )
+    )
+    ssh_known_hosts_path: str | None = Field(
+        default_factory=warn_if_called_and_return_none(
+            "SSHCommandTaskSubmission", "ssh_known_hosts_path"
+        )
+    )
 
 
 # sent from task runner to controller

@@ -17,6 +17,8 @@ def find_overlapping_hardware_ids(
             query = query_key
         else:
             query = query.union(query_key)
+    if query is None:
+        return []
     return query.all()
 
 

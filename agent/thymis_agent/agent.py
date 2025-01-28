@@ -1,13 +1,17 @@
+import asyncio
 import json
 import logging
 import os
 import pathlib
-import sched
 import socket
-from typing import Dict, Tuple
+from typing import Dict, List, Literal, Tuple, Union
 
+import http_network_relay.edge_agent
+import http_network_relay.edge_agent as ea
+import http_network_relay.pydantic_models as pm
 import psutil
 import requests
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
@@ -95,44 +99,65 @@ def load_controller_public_key_into_root_authorized_keys():
         f.write(f"{controller_public_key}\n")
 
 
-agent_token = find_agent_token()
-agent_metadata = find_agent_metadata()
-
-if not agent_token:
-    logging.error("Agent token not found, continuing without token")
-if not agent_metadata:
-    logging.error("Agent metadata not found, continuing without metadata")
+class AgentToRelayMessage(BaseModel):
+    # This is a custom message that the agent sends to the relay
+    pass
 
 
-class AgentScheduler(sched.scheduler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def periodic(self, interval, action, actionargs=()):
-        try:
-            action(*actionargs)
-        except Exception as e:
-            logger.error("Action failed: %s", e)
-        self.enter(interval, 1, self.periodic, (interval, action, actionargs))
-
-    def retry_if_fails(self, interval, action, actionargs=()):
-        try:
-            action(*actionargs)
-        except Exception as e:
-            self.enter(interval, 1, self.retry_if_fails, (interval, action, actionargs))
-            logger.error("Action failed, trying again: %s", e)
+class RelayToAgentMessage(BaseModel):
+    # This is a custom message that the relay sends to the agent
+    inner: Union["RtEUpdatePublicKeyMessage",] = Field(discriminator="kind")
 
 
-class Agent:
+class RtEUpdatePublicKeyMessage(BaseModel):
+    kind: Literal["update_public_key"] = "update_public_key"
+
+
+class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
+    token: str
+    hardware_ids: Dict[str, str]
+    public_key: str
+    deployed_config_id: str
+    ip_addresses: List[str]
+
+
+def replace_url_protocol_with_ws(url: str) -> str:
+    return url.replace("http://", "ws://").replace("https://", "wss://")
+
+
+class Agent(ea.EdgeAgent):
+    CustomRelayToAgentMessage = RelayToAgentMessage
+
     controller_host: str
 
-    def __init__(self, path: pathlib.Path, controller_host):
+    def __init__(self, controller_host, token, agent_metadata):
+        super().__init__(
+            f"{replace_url_protocol_with_ws(controller_host)}/agent/relay",
+        )
         self.controller_host = controller_host
+        self.token = token
+        self.agent_metadata = agent_metadata
+
+    async def handle_custom_relay_message(self, message: RelayToAgentMessage):
+        match message.inner:
+            case RtEUpdatePublicKeyMessage():
+                self.update_public_key()
+            case _:
+                logger.error("Unknown message: %s", message)
+
+    async def create_start_message(self):
+        return EdgeAgentToRelayStartMessage(
+            token=self.token,
+            hardware_ids=self.detect_hardware_id(),
+            public_key=self.detect_public_key(),
+            deployed_config_id=self.detect_system_config()[0],
+            ip_addresses=self.detect_ip_addresses(),
+        )
 
     def detect_system_config(self) -> Tuple[str, str]:
         return (
-            agent_metadata["configuration_id"],
-            agent_metadata["configuration_commit"],
+            self.agent_metadata["configuration_id"],
+            self.agent_metadata["configuration_commit"],
         )
 
     def detect_hostname(self):
@@ -186,50 +211,6 @@ class Agent:
 
         return [*ipv4s, *ipv6s]
 
-    def notify(self) -> bool:
-        logger.info("Attempting to notify device")
-
-        if not self.controller_host:
-            logger.error("Controller host not set")
-            raise ValueError("Controller host not set")
-
-        json_data = {
-            **({"token": agent_token} if agent_token else {}),
-            "hardware_ids": self.detect_hardware_id(),
-            "public_key": self.detect_public_key(),
-            "deployed_config_id": self.detect_system_config()[0],
-            "ip_addresses": self.detect_ip_addresses(),
-        }
-        logger.info("Sending notify request: %s", json_data)
-        response = requests.post(f"{self.controller_host}/agent/notify", json=json_data)
-
-        if response.status_code != 200:
-            logger.error(
-                "Failed to notify device to controller. Controller returned %s",
-                response.status_code,
-            )
-            raise Exception("Failed to notify device to controller")
-
-        response_json = response.json()
-
-        if response_json.get("force_pubkey_update"):
-            logger.info("Controller requested public key update")
-            # refresh public key and notify again
-            self.update_public_key()
-            return self.notify()
-
-        if not response_json.get("success"):
-            logger.error(
-                "Failed to notify device to controller. Controller returned %s",
-                response_json,
-            )
-            raise Exception("Failed to notify device to controller")
-
-        logger.info("Device notified successfully")
-
-    def report(self):
-        logging.info("Reporting state to controller, currently not implemented")
-
     def update_public_key(self):
         logging.info("Updating public host key")
         paths = ["/etc/ssh/ssh_host_rsa_key", "/etc/ssh/ssh_host_ed25519_key"]
@@ -251,6 +232,11 @@ class Agent:
 
 
 def main():
+    agent_metadata = find_agent_metadata()
+
+    if not agent_metadata:
+        logging.error("Agent metadata not found, continuing without metadata")
+
     logging.basicConfig(level=logging.DEBUG)
 
     controller_host = os.getenv("CONTROLLER_HOST")
@@ -258,16 +244,10 @@ def main():
     if not controller_host:
         raise ValueError("CONTROLLER_HOST environment variable is required")
 
-    path = pathlib.Path("/var") / "lib" / "thymis" / "agent.json"
-
     load_controller_public_key_into_root_authorized_keys()
-
-    agent = Agent(path, controller_host)
-    scheduler = AgentScheduler()
-
-    scheduler.retry_if_fails(10, agent.notify)
-
-    scheduler.run()
+    agent_token = find_agent_token()
+    agent = Agent(controller_host, agent_token, agent_metadata)
+    asyncio.run(agent.async_main())
 
 
 if __name__ == "__main__":

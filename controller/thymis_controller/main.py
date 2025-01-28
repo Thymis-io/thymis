@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from thymis_controller.config import global_settings
 from thymis_controller.database.connection import create_sqlalchemy_engine
+from thymis_controller.network_relay import NetworkRelay
 from thymis_controller.notifications import NotificationManager
 from thymis_controller.project import Project
 from thymis_controller.routers import agent, api, auth, frontend
@@ -121,6 +122,7 @@ async def lifespan(app: FastAPI):
     notification_manager.start()
     task_controller = TaskController()
     db_engine = create_sqlalchemy_engine()
+    network_relay = NetworkRelay(db_engine)
     with sqlalchemy.orm.Session(db_engine) as db_session:
         project = Project(global_settings.PROJECT_PATH.resolve(), db_session)
     async with task_controller.start(db_engine):
@@ -133,6 +135,7 @@ async def lifespan(app: FastAPI):
             "task_controller": task_controller,
             "project": project,
             "engine": db_engine,
+            "network_relay": network_relay,
         }
     notification_manager.stop()
     logger.info("stopping frontend")

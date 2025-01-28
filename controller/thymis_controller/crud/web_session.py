@@ -1,8 +1,10 @@
 import datetime
 import uuid
 
+import thymis_controller.db_models as db_models
 from sqlalchemy.orm import Session
-from thymis_controller import db_models, dependencies
+
+SESSION_LIFETIME = datetime.timedelta(days=1)
 
 
 def create(db_session: Session) -> db_models.WebSession:
@@ -28,8 +30,7 @@ def validate(db_session: Session, session_id: uuid.UUID):
 
     # TODO delete expired sessions
     return (
-        web_session.created_at.astimezone(datetime.timezone.utc)
-        + dependencies.SESSION_LIFETIME
+        web_session.created_at.astimezone(datetime.timezone.utc) + SESSION_LIFETIME
     ) > datetime.datetime.now(datetime.timezone.utc)
 
 

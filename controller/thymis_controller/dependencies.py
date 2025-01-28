@@ -1,35 +1,41 @@
 import datetime
 import logging
 import uuid
-from typing import TYPE_CHECKING, Annotated, Generator, Optional, Union
+from typing import Annotated, Generator, Optional, Union
 
 from fastapi import Cookie, Depends, HTTPException, Request, Response, WebSocket, status
 from fastapi.requests import HTTPConnection
 from sqlalchemy.orm import Session
 from thymis_controller.config import global_settings
 from thymis_controller.crud import web_session
+from thymis_controller.network_relay import NetworkRelay
+from thymis_controller.project import Project
 from thymis_controller.task.controller import TaskController
-
-if TYPE_CHECKING:
-    from thymis_controller.project import Project
 
 logger = logging.getLogger(__name__)
 
-SESSION_LIFETIME = datetime.timedelta(days=1)
 
-
-def get_project(connection: HTTPConnection) -> "Project":
+def get_project(connection: HTTPConnection) -> Project:
     return connection.state.project
 
 
-ProjectAD = Annotated["Project", Depends(get_project)]
+ProjectAD = Annotated[Project, Depends(get_project)]
 
 
-def get_state(project: "Project" = Depends(get_project)):
+def get_network_relay(connection: HTTPConnection) -> NetworkRelay:
+    logger.info("get_network_relay called")
+    return connection.state.network_relay
+
+
+NetworkRelayAD = Annotated[NetworkRelay, Depends(get_network_relay)]
+
+
+def get_state(project: Project = Depends(get_project)):
     return project.read_state()
 
 
 def get_db_session(connection: HTTPConnection) -> Generator[Session, None, None]:
+    logger.info("get_db_session called")
     with Session(connection.state.engine) as session:
         yield session
 
@@ -75,7 +81,9 @@ def invalidate_user_session(
 
 def apply_user_session(db_session: SessionAD, response: Response):
     user_session = web_session.create(db_session)
-    exp = user_session.created_at.astimezone(datetime.UTC) + SESSION_LIFETIME
+    exp = (
+        user_session.created_at.astimezone(datetime.UTC) + web_session.SESSION_LIFETIME
+    )
     response.set_cookie(
         key="session",
         value=str(user_session.session_id),

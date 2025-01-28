@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import logging
 import re
 import traceback
 import uuid
@@ -15,12 +16,15 @@ from fastapi import (
     WebSocket,
 )
 from fastapi.concurrency import run_in_threadpool
+from fastapi.requests import HTTPConnection
 from fastapi.responses import FileResponse, RedirectResponse
 from paramiko import PKey, SSHClient
+from sqlalchemy.orm import Session
 from thymis_controller import crud, dependencies, models, modules, utils
 from thymis_controller.config import global_settings
 from thymis_controller.db_models.deployment_info import DeploymentInfo
 from thymis_controller.dependencies import (
+    NetworkRelayAD,
     ProjectAD,
     SessionAD,
     TaskControllerAD,
@@ -35,6 +39,8 @@ from thymis_controller.tcp_to_ws import (
     websocket_to_channel,
     websocket_to_tcp,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     dependencies=[Depends(require_valid_user_session)],
@@ -408,34 +414,46 @@ def scan_public_key(
 @router.websocket("/terminal/{deployment_info_id}")
 async def terminal_websocket(
     deployment_info_id: uuid.UUID,
-    db_session: SessionAD,
     websocket: WebSocket,
-    project: ProjectAD,
+    db_session: SessionAD,
+    network_relay: NetworkRelayAD,
 ):
     deployment_info = crud.deployment_info.get_by_id(db_session, deployment_info_id)
 
-    if deployment_info is None or deployment_info.reachable_deployed_host is None:
+    if deployment_info is None:
         await websocket.close()
         return
 
     await websocket.accept()
 
-    tcp_ip = deployment_info.reachable_deployed_host
-    tcp_port = 22
-
     client = SSHClient()
     keytype, key = deployment_info.ssh_public_key.split(" ", 1)
     client.get_host_keys().add(
-        deployment_info.reachable_deployed_host,
+        "[localhost]:None",
         keytype,
         PKey.from_type_string(keytype, base64.b64decode(key)),
     )
 
     pkey: PKey = PKey.from_path(global_settings.PROJECT_PATH / "id_thymis")
 
+    agent_connection_id = network_relay.public_key_to_connection_id.get(
+        deployment_info.ssh_public_key
+    )
+
+    if agent_connection_id is None:
+        await websocket.close()
+        return
+
     try:
         channel = await run_in_threadpool(
-            connect_to_ssh_shell, client, tcp_ip, tcp_port, pkey
+            connect_to_ssh_shell,
+            client,
+            None,
+            None,
+            await network_relay.create_connection(
+                agent_connection_id, "localhost", 22, "tcp"
+            ),
+            pkey,
         )
     except Exception as e:
         await websocket.send_bytes(str(e).encode())
@@ -456,8 +474,17 @@ async def terminal_websocket(
         client.close()
 
 
-def connect_to_ssh_shell(client: SSHClient, tcp_ip: str, tcp_port: int, pkey: PKey):
-    client.connect(tcp_ip, tcp_port, "root", pkey=pkey, timeout=30)
+def connect_to_ssh_shell(
+    client: SSHClient, tcp_ip: str | None, tcp_port: int | None, sock, pkey: PKey
+):
+    client.connect(
+        hostname=tcp_ip or "localhost",
+        port=tcp_port,
+        sock=sock,
+        username="root",
+        pkey=pkey,
+        timeout=30,
+    )
     return client.invoke_shell()
 
 
