@@ -33,30 +33,33 @@ AGENT_TOKEN_EXPECTED_FORMAT = (
 )
 
 AGENT_METADATA_FILENAME = "thymis-metadata.json"
-CONTROLLER_PUBLIC_KEY_FILENAME = "thymis-controller.-ssh-pubkey.txt"
+CONTROLLER_PUBLIC_KEY_FILENAME = "thymis-controller-ssh-pubkey.txt"
+
+
+def find_file(paths, filename):
+    for path in paths:
+        file_path = path / filename
+        if os.path.exists(file_path):
+            return file_path
+    return None
 
 
 def find_agent_token():
-    for path in AGENT_DATA_PATHS:
-        token_path = path / AGENT_TOKEN_FILENAME
-        if os.path.exists(token_path):
-            with open(token_path, "r", encoding="utf-8") as f:
-                return f.read().strip()
+    token_path = find_file(AGENT_DATA_PATHS, AGENT_TOKEN_FILENAME)
+    if token_path:
+        with open(token_path, "r", encoding="utf-8") as f:
+            return f.read().strip()
     return None
 
 
 def find_agent_metadata():
     val = None
     logger.debug("Looking for agent metadata in %s", AGENT_DATA_PATHS)
-    for path in AGENT_DATA_PATHS:
-        metadata_path = path / AGENT_METADATA_FILENAME
-        logger.debug("Checking for agent metadata at %s", metadata_path)
-        if os.path.exists(metadata_path):
-            with open(metadata_path, "r", encoding="utf-8") as f:
-                val = json.load(f)
-                break
-        else:
-            logger.error("Agent metadata not found at %s", metadata_path)
+    metadata_path = find_file(AGENT_DATA_PATHS, AGENT_METADATA_FILENAME)
+    if metadata_path:
+        logger.debug("Found agent metadata at %s", metadata_path)
+        with open(metadata_path, "r", encoding="utf-8") as f:
+            val = json.load(f)
     else:
         logger.error("Agent metadata not found")
         return None
@@ -74,14 +77,21 @@ def find_agent_metadata():
 
 def load_controller_public_key_into_root_authorized_keys():
     # only if not already there at /root/.ssh/authorized_keys
-    with open(CONTROLLER_PUBLIC_KEY_FILENAME, "r", encoding="utf-8") as f:
+    controller_public_key_path = find_file(
+        AGENT_DATA_PATHS, CONTROLLER_PUBLIC_KEY_FILENAME
+    )
+    if not controller_public_key_path:
+        logger.error("Controller public key file not found")
+        return
+    with open(controller_public_key_path, "r", encoding="utf-8") as f:
         controller_public_key = f.read()
     if os.path.exists("/root/.ssh/authorized_keys"):
         with open("/root/.ssh/authorized_keys", "r", encoding="utf-8") as f:
             contents = f.read()
         if controller_public_key in contents:
             return
-    with open("/root/.ssh/authorized_keys", "a", encoding="utf-8") as f:
+    os.makedirs("/root/.ssh", exist_ok=True, mode=0o700)
+    with open("/root/.ssh/authorized_keys", "a+", encoding="utf-8") as f:
         f.write(f"{controller_public_key}\n")
 
 
