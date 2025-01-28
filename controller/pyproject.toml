@@ -34,7 +34,7 @@ pytest-cov = "^6.0.0"
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.6.1"
 pylint = "^3.3.2"
-isort = "^5.13.2"
+isort = "^6.0.0"
 
 [build-system]
 requires = ["poetry-core"]
