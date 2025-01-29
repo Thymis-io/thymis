@@ -147,8 +147,11 @@
               pkgs.nixpkgs-fmt
             ];
           };
-          onlyPlaywrightBrowsers = pkgs.mkShell {
-            packages = [ pkgsWithPlayWrightOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers ];
+          forNpmTesting = pkgs.mkShell {
+            packages = [
+              pkgsWithPlayWrightOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers
+              pkgs.nodejs_22
+            ];
             shellHook = ''
               export PLAYWRIGHT_BROWSERS_PATH=${pkgsWithPlayWrightOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
