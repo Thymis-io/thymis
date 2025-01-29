@@ -47,9 +47,9 @@ let
       trap 'rm -rf "$TMPDIR"' EXIT
 
       IS_QCOW2=0
-      if ! file "$IMAGE" | grep -q -e "DOS/MBR boot sector"; then
-        if ! file "$IMAGE" | grep -q -e "QEMU QCOW Image"; then
-          file "$IMAGE"
+      if ! ${pkgs.file}/bin/file "$IMAGE" | grep -q -e "DOS/MBR boot sector"; then
+        if ! ${pkgs.file}/bin/file "$IMAGE" | grep -q -e "QEMU QCOW Image"; then
+          ${pkgs.file}/bin/file "$IMAGE"
           echo "Image is not a bootable image"
           exit 1
         fi
