@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
-	import DeployActions from '$lib/components/DeployActions.svelte';
 	import { saveState, state, type Tag } from '$lib/state';
 	import {
 		Button,
@@ -24,6 +23,7 @@
 	import { nameToIdentifier, nameValidation } from '$lib/nameValidation';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import CreateTagModal from './CreateTagModal.svelte';
+	import PageHead from '$lib/components/PageHead.svelte';
 
 	$: tags = $state.tags.map((t) => ({ id: t.identifier, data: t }));
 	$: projectTags = $state.tags;
@@ -106,21 +106,16 @@
 	}) satisfies KeyboardEventHandler<HTMLDivElement>;
 </script>
 
-<div class="flex justify-between mb-4">
-	<div class="flex gap-4">
-		<h1 class="text-3xl font-bold dark:text-white">{$t('nav.tags')}</h1>
-		<Button
-			color="alternative"
-			class="whitespace-nowrap gap-2 px-2 py-1 m-1"
-			on:click={() => (createTagModalOpen = true)}
-		>
-			<Plus size={20} />
-			{$t('tags.actions.create')}
-		</Button>
-	</div>
-	<DeployActions />
-</div>
-
+<PageHead title={$t('nav.tags')}>
+	<Button
+		color="alternative"
+		class="whitespace-nowrap gap-2 px-2 py-1 m-1"
+		on:click={() => (createTagModalOpen = true)}
+	>
+		<Plus size={20} />
+		{$t('tags.actions.create')}
+	</Button>
+</PageHead>
 <DeleteConfirm
 	target={deleteTag?.displayName}
 	on:confirm={() => {

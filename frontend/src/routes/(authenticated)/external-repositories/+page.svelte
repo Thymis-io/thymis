@@ -11,7 +11,7 @@
 		TableBodyRow,
 		TableBodyCell
 	} from 'flowbite-svelte';
-	import DeployActions from '$lib/components/DeployActions.svelte';
+	import PageHead from '$lib/components/PageHead.svelte';
 
 	const generateUniqueKey = () => {
 		let num = 1;
@@ -58,10 +58,7 @@
 	};
 </script>
 
-<div class="flex justify-between mb-4">
-	<h1 class="text-3xl font-bold dark:text-white">{$t('nav.external-repositories')}</h1>
-	<DeployActions />
-</div>
+<PageHead title={$t('nav.external-repositories')} />
 <Table shadow>
 	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2">{$t('settings.repo.name')}</TableHeadCell>

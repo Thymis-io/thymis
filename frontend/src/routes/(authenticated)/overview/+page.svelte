@@ -3,14 +3,12 @@
 	import type { PageData } from './$types';
 	import { Card, P } from 'flowbite-svelte';
 	import { state } from '$lib/state';
+	import PageHead from '$lib/components/PageHead.svelte';
 
 	export let data: PageData;
 </script>
 
-<div class="flex justify-between mb-4">
-	<h1 class="text-3xl font-bold dark:text-white">{$t('nav.overview')}</h1>
-</div>
-
+<PageHead title={$t('nav.overview')} />
 <!-- container for a bunch of cards -->
 <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
 	<Card class="card p-4 bg-white rounded-lg shadow-md w-full">

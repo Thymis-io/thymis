@@ -2,7 +2,6 @@
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
 	import { Table, TableBodyCell, TableHead, TableHeadCell } from 'flowbite-svelte';
-	import DeployActions from '$lib/components/DeployActions.svelte';
 	import Pen from 'lucide-svelte/icons/pen';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import { getDeviceTypesMap, getDeviceType } from '$lib/config/configUtils';
@@ -10,6 +9,7 @@
 	import { page } from '$app/stores';
 	import EditDeploymentInfo from '$lib/EditDeploymentInfo.svelte';
 	import { type DeploymentInfo } from '$lib/deploymentInfo';
+	import PageHead from '$lib/components/PageHead.svelte';
 
 	export let data: PageData;
 
@@ -28,17 +28,12 @@
 	} as Record<string, () => string>;
 </script>
 
+<PageHead title={$t('nav.hardware-devices')} />
 <EditDeploymentInfo
 	bind:deploymentInfo={currentDeploymentInfo}
 	bind:open={editDeploymentInfoModalOpen}
 	configIdentifier={currentDeploymentInfo?.deployed_config_id ?? undefined}
 />
-<div class="flex justify-between mb-4">
-	<div class="flex gap-4">
-		<h1 class="text-3xl font-bold dark:text-white">{$t('nav.hardware-devices')}</h1>
-	</div>
-	<DeployActions />
-</div>
 <Table shadow>
 	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2 w-12" />
