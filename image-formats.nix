@@ -90,7 +90,7 @@ let
 
       echo "Checking FAT partition"
 
-      setsid ${pkgs.dosfstools}/bin/fsck.vfat -vn "$TMPDIR/image_first_fat_partition"
+      ${pkgs.util-linux}/bin/setsid ${pkgs.dosfstools}/bin/fsck.vfat -vn "$TMPDIR/image_first_fat_partition"
 
       echo "Copying secrets to FAT partition"
 
