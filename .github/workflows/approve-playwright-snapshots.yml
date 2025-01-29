@@ -42,7 +42,7 @@ jobs:
           nix build .#thymis-controller
       - name: Run tests
         run: |
-          nix develop .#onlyPlaywrightBrowsers --command npm run test:integration -- --update-snapshots
+          nix develop .#forNpmTesting --command npm run test:integration -- --update-snapshots
         working-directory: frontend
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
