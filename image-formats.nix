@@ -94,7 +94,7 @@ let
 
       echo "Copying secrets to FAT partition"
 
-      (cd "$secrets_dir_abs" && (setsid ${pkgs.mtools}/bin/mcopy -psvm -i "$TMPDIR/image_first_fat_partition" ./* ::) </dev/null) || (echo "mcopy failed, most probably due to file name conflicts"; exit 1)
+      (cd "$secrets_dir_abs" && (${pkgs.util-linux}/bin/setsid ${pkgs.mtools}/bin/mcopy -psvm -i "$TMPDIR/image_first_fat_partition" ./* ::) </dev/null) || (echo "mcopy failed, most probably due to file name conflicts"; exit 1)
 
       echo "Copying secrets to FAT partition done"
 
