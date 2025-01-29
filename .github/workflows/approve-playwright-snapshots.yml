@@ -5,7 +5,7 @@ on:
 jobs:
   update-snapshots:
     name: Update Snapshots
-    if: github.event.issue.pull_request && contains(github.event.comment.body, '/approve-snapshots')
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/approve-snapshots') && github.event.comment.author_association == 'MEMBER'
     runs-on: ubuntu-22.04-arm
     permissions:
       contents: write
@@ -14,9 +14,15 @@ jobs:
       - name: Get branch of PR
         uses: xt0rted/pull-request-comment-branch@v3
         id: comment-branch
-      - name: Checkout PR branch
-        uses: actions/checkout@v4
+      - name: Get Thymis App Token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
         with:
+          app-id: ${{ vars.THYMIS_APP_ID }}
+          private-key: ${{ secrets.THYMIS_APP_PRIVATE_KEY }}
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
           ref: ${{ steps.comment-branch.outputs.head_ref }}
       - name: Comment action started
         uses: thollander/actions-comment-pull-request@v3
@@ -25,6 +31,7 @@ jobs:
             ### Updating snapshots. Click [here](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) to see the status.
           comment-tag: playwright-snapshots-update
           mode: recreate
+          github-token: ${{ steps.generate-token.outputs.token }}
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -52,14 +59,25 @@ jobs:
           name: playwright-report
           path: frontend/playwright-report/
           retention-days: 30
-      - name: Commit and push updated snapshots
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'Update e2e snapshots'
+      - name: commit and push
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          BRANCH_NAME: ${{ steps.comment-branch.outputs.head_ref }}
+        run: |
+          USER_NAME=${{ steps.generate-token.outputs.app-slug }}[bot]
+          USER_ID=$(gh api "/users/${USER_NAME}" --jq '.id')
+          USER_EMAIL="${USER_ID}+${{ steps.generate-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+          git config user.email $USER_EMAIL
+          git config user.name $USER_NAME
+
+          git add .
+          git commit -m "Update e2e snapshots"
+          git push
       - name: Comment success
         uses: thollander/actions-comment-pull-request@v3
         with:
           message: |
             ### 🎉 Successfully updated and committed Playwright snapshots! 🎉
-          comment-tag: playwright-snapshots-update-success
+            comment-tag: playwright-snapshots-update-success
           mode: recreate
+          github-token: ${{ steps.generate-token.outputs.token }}
