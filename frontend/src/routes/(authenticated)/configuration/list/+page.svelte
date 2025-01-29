@@ -17,7 +17,6 @@
 	import Plus from 'lucide-svelte/icons/plus';
 	import Search from 'lucide-svelte/icons/search';
 	import GripVertical from 'lucide-svelte/icons/grip-vertical';
-	import DeployActions from '$lib/components/DeployActions.svelte';
 	import CreateDeviceModal from './CreateDeviceModal.svelte';
 	import EditTagModal from '$lib/EditTagModal.svelte';
 	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
@@ -28,6 +27,7 @@
 	import { flip } from 'svelte/animate';
 	import { nameToIdentifier, nameValidation } from '$lib/nameValidation';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
+	import PageHead from '$lib/components/PageHead.svelte';
 
 	const flipDurationMs = 200;
 	let dragDisabled = true;
@@ -118,24 +118,21 @@
 	let currentlyEditingDevice: Device | undefined = undefined;
 </script>
 
-<div class="flex justify-between mb-4">
-	<div class="flex gap-4">
-		<h1 class="text-3xl font-bold dark:text-white">{$t('configurations.title')}</h1>
-		<Button
-			color="alternative"
-			class="whitespace-nowrap gap-2 px-2 py-1 m-1"
-			on:click={() => (deviceModalOpen = true)}
-			disabled={devices.length >= 5}
-		>
-			<Plus size={20} />
-			{$t('configurations.create-new', {
-				values: {
-					deviceCount: devices.length,
-					deviceLimit: 5
-				}
-			})}
-		</Button>
-	</div>
+<PageHead title={$t('configurations.title')}>
+	<Button
+		color="alternative"
+		class="whitespace-nowrap gap-2 px-2 py-1 m-1"
+		on:click={() => (deviceModalOpen = true)}
+		disabled={devices.length >= 5}
+	>
+		<Plus size={20} />
+		{$t('configurations.create-new', {
+			values: {
+				deviceCount: devices.length,
+				deviceLimit: 5
+			}
+		})}
+	</Button>
 	{#if devices.length >= 5}
 		<Tooltip class="z-50 whitespace-pre">
 			{$t('configurations.limit-explain', {
@@ -145,8 +142,7 @@
 			})}
 		</Tooltip>
 	{/if}
-	<DeployActions />
-</div>
+</PageHead>
 <CreateDeviceModal bind:open={deviceModalOpen} />
 <EditTagModal bind:currentlyEditingDevice />
 <Table shadow>

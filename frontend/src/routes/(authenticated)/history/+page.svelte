@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Button, AccordionItem, Accordion, Tooltip, P } from 'flowbite-svelte';
+	import { AccordionItem, Accordion, Tooltip, P } from 'flowbite-svelte';
 	import type { PageData } from './$types';
-	import DeployActions from '$lib/components/DeployActions.svelte';
-	import Undo from 'lucide-svelte/icons/undo-2';
 	import RollbackModal from './RollbackModal.svelte';
 	import type { Commit } from '$lib/history';
+	import PageHead from '$lib/components/PageHead.svelte';
 
 	export let data: PageData;
 
@@ -23,11 +22,8 @@
 	};
 </script>
 
+<PageHead title={$t('nav.history')} />
 <RollbackModal bind:commit={revertCommit} />
-<div class="flex justify-between mb-4">
-	<h1 class="text-3xl font-bold dark:text-white">History</h1>
-	<DeployActions />
-</div>
 {#await data.history}
 	<p>Loading...</p>
 {:then historyList}
