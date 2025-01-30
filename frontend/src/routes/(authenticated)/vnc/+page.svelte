@@ -13,16 +13,15 @@
 
 <PageHead title={$t('nav.global-vnc')} />
 <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">
-	{#each $state.devices as device}
-		{#if targetShouldShowVNC(device, $state)}
-			<div>
-				<P class="mb-2 text-center">{device.displayName}</P>
-				{#if browser}
-					{#each data.allDeploymentInfos.get(device.identifier) ?? [] as deploymentInfo}
-						<VncView {device} {deploymentInfo} />
-					{/each}
-				{/if}
-			</div>
+	{#each data.allDeploymentInfos as [configId, deploymentInfos]}
+		{@const device = data.state.devices.find((d) => d.identifier === configId)}
+		{#if device && targetShouldShowVNC(device, $state)}
+			{#each deploymentInfos as deploymentInfo}
+				<div class="">
+					<p class=" mb-2 text-center text-gray-900 dark:text-white">{configId}</p>
+					<VncView {device} {deploymentInfo} />
+				</div>
+			{/each}
 		{/if}
 	{/each}
 </div>

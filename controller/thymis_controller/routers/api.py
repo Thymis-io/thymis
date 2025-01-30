@@ -295,6 +295,15 @@ def get_deployment_info(db_session: SessionAD, id: uuid.UUID):
     return deployment_info
 
 
+@router.delete("/deployment_info/{id}", status_code=204)
+def delete_deployment_info(db_session: SessionAD, id: uuid.UUID, project: ProjectAD):
+    """
+    Delete a deployment_info
+    """
+    crud.deployment_info.delete(db_session, id)
+    project.update_known_hosts(db_session)
+
+
 @router.get("/deployment_info", response_model=list[models.DeploymentInfo])
 def get_all_deployment_infos(db_session: SessionAD):
     """
