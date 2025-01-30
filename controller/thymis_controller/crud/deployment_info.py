@@ -86,6 +86,13 @@ def get_by_id(session: Session, id: str) -> db_models.DeploymentInfo | None:
     )
 
 
+def delete(session: Session, id: str) -> None:
+    session.query(db_models.DeploymentInfo).filter(
+        db_models.DeploymentInfo.id == id
+    ).delete()
+    session.commit()
+
+
 def get_by_ssh_public_key(
     session: Session, ssh_public_key: str
 ) -> list[db_models.DeploymentInfo]:

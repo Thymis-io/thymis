@@ -51,6 +51,33 @@ const createTag = async (page: Page, name: string) => {
 	await saveButton.click();
 };
 
+const createDeploymentInfo = async (
+	page: Page,
+	configId: string,
+	sshPublicKey: string,
+	host: string
+) => {
+	await page.request.post('/api/create_deployment_info', {
+		data: {
+			deployed_config_id: configId,
+			ssh_public_key: sshPublicKey,
+			reachable_deployed_host: host
+		}
+	});
+};
+
+const deleteDeploymentInfos = async (page: Page, configIds: string[]) => {
+	for (const configId of configIds) {
+		const deploymentInfos = await page.request.get(
+			`/api/deployment_infos_by_config_id/${configId}`
+		);
+
+		for (const deploymentInfo of await deploymentInfos.json()) {
+			await page.request.delete(`/api/deployment_info/${deploymentInfo.id}`);
+		}
+	}
+};
+
 colorSchemes.forEach((colorScheme) => {
 	test.describe(`Color scheme: ${colorScheme}`, () => {
 		test.use({ colorScheme: colorScheme });
@@ -338,6 +365,57 @@ colorSchemes.forEach((colorScheme) => {
 
 			test.setTimeout(300000);
 			await downloadPromise;
+		});
+
+		test('VNC All View', async ({ page, request }) => {
+			await clearState(page, request);
+			await deleteAllTasks(page, request);
+			await deleteDeploymentInfos(page, [
+				'my-device-1',
+				'my-device-2',
+				'my-device-3',
+				'my-device-4'
+			]);
+
+			await createTag(page, 'Display');
+			await createConfiguration(page, 'My Device 1', 'Raspberry Pi 4', ['Display']);
+			await createConfiguration(page, 'My Device 2', 'Raspberry Pi 4', ['Display']);
+			await createConfiguration(page, 'My Device 3', 'Raspberry Pi 4', ['Display']);
+			await createConfiguration(page, 'My Device 4', 'Raspberry Pi 4', ['Display']);
+
+			await createDeploymentInfo(page, 'my-device-2', '', '127.0.0.2');
+			await createDeploymentInfo(page, 'my-device-2', '', '127.0.0.3');
+			await createDeploymentInfo(page, 'my-device-3', '', '127.0.0.4');
+			await createDeploymentInfo(page, 'my-device-4', '', '127.0.0.5');
+
+			await page.goto('/tags');
+
+			// add Kiosk module with VNC server to tag
+			const configureTagButton = page
+				.locator('a', { hasText: 'Configure Tag' })
+				.locator('visible=true')
+				.first();
+			await configureTagButton.click();
+
+			const addModuleButton = page.locator('#add-module').first();
+			await addModuleButton.click();
+
+			const addKioskModuleButton = page.locator('button').filter({ hasText: 'Kiosk' });
+			await addKioskModuleButton.click();
+
+			const kioskModuleButton = page.locator('a').filter({ hasText: 'Kiosk' });
+			await kioskModuleButton.click();
+
+			const enableVNCButton = page
+				.locator('p', { hasText: 'Enable VNC server' })
+				.first()
+				.locator('..')
+				.locator('input')
+				.locator('..');
+			await enableVNCButton.click();
+
+			await page.goto('/vnc');
+			await expect(page).toHaveScreenshot();
 		});
 	});
 });
