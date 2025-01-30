@@ -10,7 +10,13 @@
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
 	import type { PageData } from './$types';
+	import { queryParam } from 'sveltekit-search-params';
+	import Slider from '$lib/components/Slider.svelte';
+	import DynamicGrid from '$lib/components/DynamicGrid.svelte';
 	export let data: PageData;
+
+	$: columnsParam = queryParam('vnc-config-columns');
+	$: columns = parseInt($columnsParam ?? '2');
 
 	const getConfigFromIdentifier = (identifier: string | null) => {
 		if (!identifier) return undefined;
@@ -18,18 +24,24 @@
 	};
 </script>
 
-{#if $globalNavSelectedTargetType === 'config' && $globalNavSelectedConfig}
-	<!-- <VncView device={$globalNavSelectedConfig} /> -->
-	{#if data.deploymentInfos}
-		{#each data.deploymentInfos as deploymentInfo}
-			<VncView
-				device={getConfigFromIdentifier(deploymentInfo.deployed_config_id)}
-				{deploymentInfo}
-			/>
-		{/each}
-	{/if}
-{:else if $globalNavSelectedTargetType === 'tag' && $globalNavSelectedTag}
-	<div class="grid grid-cols-3 gap-4">
+<Slider
+	min={1}
+	max={6}
+	step={1}
+	value={columns}
+	onChange={(value) => ($columnsParam = value.toString())}
+/>
+<DynamicGrid class={columns === 2 ? 'gap-4' : 'gap-2'} {columns}>
+	{#if $globalNavSelectedTargetType === 'config' && $globalNavSelectedConfig}
+		{#if data.deploymentInfos}
+			{#each data.deploymentInfos as deploymentInfo}
+				<VncView
+					device={getConfigFromIdentifier(deploymentInfo.deployed_config_id)}
+					{deploymentInfo}
+				/>
+			{/each}
+		{/if}
+	{:else if $globalNavSelectedTargetType === 'tag' && $globalNavSelectedTag}
 		{#each data.state.devices.filter( (device) => device.tags.includes($globalNavSelectedTag.identifier) ) as device}
 			{#if targetShouldShowVNC(device, $state)}
 				{#each data.allDeploymentInfos.get(device.identifier) ?? [] as deploymentInfo}
@@ -37,5 +49,5 @@
 				{/each}
 			{/if}
 		{/each}
-	</div>
-{/if}
+	{/if}
+</DynamicGrid>
