@@ -1,5 +1,5 @@
 import type { LayoutLoad } from './$types';
-import { getDeploymentInfosByConfigId, type DeploymentInfo } from '$lib/deploymentInfo';
+import { getConnectedDeploymendInfosByConfigId, type DeploymentInfo } from '$lib/deploymentInfo';
 import { redirect } from '@sveltejs/kit';
 
 export const load: LayoutLoad = async ({ fetch, url }) => {
@@ -7,7 +7,7 @@ export const load: LayoutLoad = async ({ fetch, url }) => {
 	const identifier = url.searchParams.get('global-nav-target');
 	const identifierType = url.searchParams.get('global-nav-target-type');
 	if (identifier && identifierType && identifierType === 'config') {
-		deploymentInfos = await getDeploymentInfosByConfigId(fetch, identifier);
+		deploymentInfos = await getConnectedDeploymendInfosByConfigId(fetch, identifier);
 		return { deploymentInfos: deploymentInfos };
 	} else if (identifier && identifierType && identifierType === 'tag') {
 		return;

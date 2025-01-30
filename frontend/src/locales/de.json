@@ -287,7 +287,7 @@
 		"edit-hostkey": "Hostkey Bearbeiten",
 		"refresh-hostkey": "Hostkey Aktualisieren",
 		"edit-tags": "Tags Bearbeiten",
-		"no-deployment-info": "Auf keinen Geräten deployt",
+		"no-deployment-info": "Kein Gerät verbunden",
 		"no-commit": "Keine Commit Info"
 	},
 	"edit-hostkey": {

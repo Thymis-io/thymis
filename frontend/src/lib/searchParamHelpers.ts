@@ -1,6 +1,6 @@
 import { queryParam } from 'sveltekit-search-params';
 import {
-	getDeviceByIdentifier,
+	getConfigByIdentifier,
 	getTagByIdentifier,
 	state,
 	type ContextType,
@@ -62,7 +62,7 @@ export const configSelectedModuleContext = derived(
 		if ($contextType === 'tag') {
 			return getTagByIdentifier(s, $contextIdentifier);
 		} else if ($contextType === 'config') {
-			return getDeviceByIdentifier(s, $contextIdentifier);
+			return getConfigByIdentifier(s, $contextIdentifier);
 		}
 	}
 );

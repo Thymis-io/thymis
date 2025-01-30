@@ -34,3 +34,9 @@ export const getDeviceType = (device: Device | undefined) => {
 		(module) => module.type === 'thymis_controller.modules.thymis.ThymisDevice'
 	)?.settings['device_type'] as string | undefined;
 };
+
+export const getConfigImageFormat = (device: Device | undefined) => {
+	return device?.modules.find(
+		(module) => module.type === 'thymis_controller.modules.thymis.ThymisDevice'
+	)?.settings['image_format'] as string | undefined;
+};

@@ -138,7 +138,7 @@ async def build_download_image(
     task_controller.submit(
         models.BuildDeviceImageTaskSubmission(
             project_path=str(project.path),
-            device_identifier=identifier,
+            configuration_id=identifier,
             device_state=device.model_dump(mode="json"),
             commit=project.repo.head.object.hexsha,
             controller_ssh_pubkey=project.public_key,
@@ -202,7 +202,7 @@ async def download_image(
     return FileResponse(
         relevant_paths[0],
         headers={"content-encoding": "none"},
-        filename=f"thymis-image-{device.identifier}.img",
+        filename=f"thymis-image-{device.identifier}.{ending}",
     )
 
 
@@ -287,6 +287,31 @@ def get_deployment_infos_by_config_id(db_session: SessionAD, deployed_config_id:
     return map(
         lambda x: x.to_dict(),
         crud.deployment_info.get_by_config_id(db_session, deployed_config_id),
+    )
+
+
+@router.get(
+    "/connected_deployment_infos_by_config_id/{deployed_config_id}",
+    response_model=list[device.DeploymentInfo],
+)
+def get_connected_deployment_infos_by_config_id(
+    db_session: SessionAD, deployed_config_id: str, network_relay: NetworkRelayAD
+):
+    """
+    Gets the deployment infos for all connected devices with the given deployed_config_id
+    """
+    all_deployment_infos = crud.deployment_info.get_by_config_id(
+        db_session, deployed_config_id
+    )
+    connected_deployment_infos = []
+    for deployment_info in all_deployment_infos:
+        if network_relay.public_key_to_connection_id.get(
+            deployment_info.ssh_public_key
+        ):
+            connected_deployment_infos.append(deployment_info)
+    return map(
+        lambda x: x.to_dict(),
+        connected_deployment_infos,
     )
 
 

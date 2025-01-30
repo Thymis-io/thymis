@@ -23,9 +23,8 @@ logger = logging.getLogger(__name__)
 
 class TaskController:
     def __init__(self):
-        self.executor = TaskWorkerPoolManager()
-        self.ui_subscription_manager = TaskUISubscriptionManager()
-        self.executor.subscribe_ui(self.ui_subscription_manager)
+        self.executor = TaskWorkerPoolManager(self)
+        self.ui_subscription_manager = TaskUISubscriptionManager(self)
 
     @contextlib.asynccontextmanager
     async def start(self, db_engine: sqlalchemy.Engine):

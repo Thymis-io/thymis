@@ -5,7 +5,9 @@
 	import { Button, Input, Tooltip } from 'flowbite-svelte';
 	import Download from 'lucide-svelte/icons/download';
 	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
+	import Play from 'lucide-svelte/icons/play';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
+	import { getConfigImageFormat } from '$lib/config/configUtils';
 
 	export let device: Device;
 
@@ -23,6 +25,8 @@
 
 	let className = '';
 	export { className as class };
+
+	$: image_format = getConfigImageFormat(device);
 </script>
 
 <Section class={className} title={$t('configuration-details.actions')}>
@@ -31,10 +35,14 @@
 		color="alternative"
 		on:click={() => buildAndDownloadImage(device)}
 	>
-		<Download size={'1rem'} class="min-w-4" />
-		{$t('configurations.actions.download')}
+		{#if image_format == 'nixos-vm'}
+			<Play size={'1rem'} class="min-w-4" />
+			{$t('configurations.actions.build_vm_and_start')}
+		{:else}
+			<Download size={'1rem'} class="min-w-4" />
+			{$t('configurations.actions.download')}
+		{/if}
 	</Button>
-	<Tooltip class="whitespace-pre">{$t('configurations.actions.download-image-tooltip')}</Tooltip>
 	<Button
 		class="px-2 py-1.5 gap-2 justify-start"
 		color="alternative"
@@ -43,5 +51,4 @@
 		<RotateCcw size={'1rem'} class="min-w-4" />
 		{$t('configurations.actions.restart')}
 	</Button>
-	<Tooltip>{$t('configurations.actions.restart-tooltip')}</Tooltip>
 </Section>

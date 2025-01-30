@@ -96,6 +96,7 @@ TaskSubmissionData = Union[
     "BuildProjectTaskSubmission",
     "BuildDeviceImageTaskSubmission",
     "SSHCommandTaskSubmission",
+    "RunNixOSVMTaskSubmission",
 ]
 
 
@@ -168,7 +169,16 @@ class BuildProjectTaskSubmission(BaseModel):
 class BuildDeviceImageTaskSubmission(BaseModel):
     type: Literal["build_device_image_task"] = "build_device_image_task"
     project_path: str
-    device_identifier: str
+    device_identifier: str | None = Field(
+        default_factory=warn_if_called_and_return_none(
+            "BuildDeviceImageTaskSubmission", "device_identifier"
+        )
+    )
+    configuration_id: str | None = Field(
+        default_factory=warn_if_called_and_return_none(
+            "BuildDeviceImageTaskSubmission", "configuration_id"
+        )
+    )
     device_state: dict
     commit: str
     controller_ssh_pubkey: str | None = Field(
@@ -194,6 +204,13 @@ class SSHCommandTaskSubmission(BaseModel):
             "SSHCommandTaskSubmission", "ssh_known_hosts_path"
         )
     )
+
+
+class RunNixOSVMTaskSubmission(BaseModel):
+    type: Literal["run_nixos_vm_task"] = "run_nixos_vm_task"
+    configuration_id: str
+    project_path: str
+    parent_task_id: Optional[uuid.UUID] = None
 
 
 # sent from task runner to controller
@@ -254,6 +271,7 @@ class CommandRunUpdate(BaseModel):
 
 class ImageBuiltUpdate(BaseModel):
     type: Literal["image_built"] = "image_built"
+    image_format: str
     configuration_id: str
     configuration_commit: str
     token: str

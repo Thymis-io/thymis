@@ -47,6 +47,22 @@ export const getDeploymentInfosByConfigId = async (
 	return [];
 };
 
+export const getConnectedDeploymendInfosByConfigId = async (
+	fetch: typeof window.fetch,
+	deployedConfigId: string
+) => {
+	const response = await fetchWithNotify(
+		`/api/connected_deployment_infos_by_config_id/${deployedConfigId}`,
+		undefined,
+		{ 404: `Deployment info not found for config id ${deployedConfigId}` },
+		fetch
+	);
+	if (response.ok) {
+		return (await response.json()) as DeploymentInfo[];
+	}
+	return [];
+};
+
 export const getAllDeploymentInfos = async (fetch: typeof window.fetch) => {
 	const response = await fetchWithNotify('/api/deployment_info', undefined, {}, fetch);
 	if (response.ok) {

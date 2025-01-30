@@ -89,7 +89,7 @@ export type State = {
 
 export const state = writable<State>();
 
-let currentState: State;
+export let currentState: State;
 
 state.subscribe((value) => {
 	currentState = value;
@@ -116,7 +116,7 @@ export const getTagByIdentifier = (state: State, identifier: string) => {
 	return state.tags.find((tag) => tag.identifier === identifier);
 };
 
-export const getDeviceByIdentifier = (state: State, identifier: string) => {
+export const getConfigByIdentifier = (state: State, identifier: string) => {
 	return state.devices.find((config) => config.identifier === identifier);
 };
 
@@ -133,7 +133,7 @@ export const globalNavSelectedConfig = derived(
 	[state, queryParam('global-nav-target-type'), queryParam('global-nav-target')],
 	([$state, $context, $identifier]) => {
 		if ($context === 'config') {
-			return getDeviceByIdentifier($state, $identifier);
+			return getConfigByIdentifier($state, $identifier);
 		}
 	}
 );

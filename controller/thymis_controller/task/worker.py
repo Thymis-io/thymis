@@ -197,9 +197,25 @@ def build_device_image_task(
     project_path = pathlib.Path(task_data.project_path).resolve()
     repo_path = (pathlib.Path(task_data.project_path) / "repository").resolve()
 
-    secrets_builder_dest = f"{task_data.project_path}/image-builders/{task_data.device_identifier}.secrets-builder"
+    device_module = next(
+        (
+            module
+            for module in task_data.device_state.get("modules", [])
+            if module.get("type") == "thymis_controller.modules.thymis.ThymisDevice"
+        ),
+        None,
+    )
+    if device_module is None:
+        report_task_finished(task, conn, False, "Device module not found")
+        return
+    image_format = device_module.get("settings", {}).get("image_format")
+    if image_format is None:
+        report_task_finished(task, conn, False, "Image format not found")
+        return
+
+    secrets_builder_dest = f"{task_data.project_path}/image-builders/{task_data.configuration_id}.secrets-builder"
     final_image_dest_base = (
-        f"{task_data.project_path}/images/{task_data.device_identifier}"
+        f"{task_data.project_path}/images/{task_data.configuration_id}"
     )
     # create dirs
     os.makedirs(project_path / "image-builders", exist_ok=True)
@@ -222,7 +238,7 @@ def build_device_image_task(
         [
             *NIX_CMD,
             "build",
-            f'git+file:{repo_path}?rev={task_data.commit}#nixosConfigurations."{task_data.device_identifier}".config.system.build.thymis-image-with-secrets-builder-{architecture}',
+            f'git+file:{repo_path}?rev={task_data.commit}#nixosConfigurations."{task_data.configuration_id}".config.system.build.thymis-image-with-secrets-builder-{architecture}',
             "--out-link",
             secrets_builder_dest,
         ],
@@ -241,7 +257,7 @@ def build_device_image_task(
             f.write(
                 json.dumps(
                     {
-                        "configuration_id": task_data.device_identifier,
+                        "configuration_id": task_data.configuration_id,
                         "configuration_commit": task_data.commit,
                     }
                 )
@@ -267,12 +283,14 @@ def build_device_image_task(
         if returncode != 0:
             report_task_finished(task, conn, False, "Image secrets builder failed")
             return
+
         conn.send(
             models_task.RunnerToControllerTaskUpdate(
                 id=task.id,
                 update=models_task.ImageBuiltUpdate(
-                    configuration_id=task_data.device_identifier,
+                    configuration_id=task_data.configuration_id,
                     configuration_commit=task_data.commit,
+                    image_format=image_format,
                     token=token,
                 ),
             )
@@ -284,6 +302,34 @@ def build_device_image_task(
         )
 
     report_task_finished(task, conn)
+
+
+def run_nixos_vm_task(
+    task: models_task.TaskSubmission, conn: Connection, process_list: ProcessList
+):
+    task_data = task.data
+    assert task_data.type == "run_nixos_vm_task"
+    project_path = pathlib.Path(task_data.project_path).resolve()
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        returncode = run_command(
+            task,
+            conn,
+            process_list,
+            [
+                f"{project_path}/images/{task_data.configuration_id}.start-vm",
+                "-display",
+                "none",
+                "-vnc",
+                "localhost:0,to=99",
+            ],
+            cwd=tmpdir,
+        )
+
+    if returncode == 0:
+        report_task_finished(task, conn)
+    else:
+        report_task_finished(task, conn, False, "VM run failed")
 
 
 def ssh_command_task(
@@ -321,6 +367,7 @@ SUPPORTED_TASK_TYPES = {
     "deploy_device_task": deploy_device_task,
     "build_device_image_task": build_device_image_task,
     "ssh_command_task": ssh_command_task,
+    "run_nixos_vm_task": run_nixos_vm_task,
 }
 
 

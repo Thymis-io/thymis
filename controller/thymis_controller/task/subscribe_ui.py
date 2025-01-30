@@ -12,11 +12,12 @@ logger = logging.getLogger(__name__)
 
 class TaskUISubscriptionManager:
     # manages websocket subscriptions
-    def __init__(self):
+    def __init__(self, controller):
         self.subscribers: set[WebSocket] = set()
         self.subscribers_lock = threading.Lock()
         self.task_queue = asyncio.Queue()
         self.send_thread: threading.Thread | None = None
+        self.controller = controller
         self.loop = None
 
     async def connect(self, websocket: WebSocket):

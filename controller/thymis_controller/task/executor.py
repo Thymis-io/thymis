@@ -7,7 +7,7 @@ import uuid
 from concurrent.futures import Future, ProcessPoolExecutor
 from datetime import datetime
 from multiprocessing.connection import Connection, Pipe
-from typing import assert_never
+from typing import TYPE_CHECKING, assert_never
 
 import sqlalchemy.orm
 import thymis_controller.crud as crud
@@ -16,17 +16,20 @@ import thymis_controller.models.task as models_task
 from thymis_controller.task.subscribe_ui import TaskUISubscriptionManager
 from thymis_controller.task.worker import worker_run_task
 
+if TYPE_CHECKING:
+    from thymis_controller.task.controller import TaskController
+
 logger = logging.getLogger(__name__)
 
 
 class TaskWorkerPoolManager:
-    def __init__(self):
+    def __init__(self, controller: "TaskController"):
         self.pool = ProcessPoolExecutor()
         self.futures = {}
         self.future_to_id = {}
         self.listen_threads = {}
+        self.controller = controller
         self._db_engine = None
-        self._ui_subscription_manager = None
 
     @property
     def db_engine(self):
@@ -36,11 +39,11 @@ class TaskWorkerPoolManager:
 
     @property
     def ui_subscription_manager(self) -> "TaskUISubscriptionManager":
-        if self._ui_subscription_manager is None:
+        if self.controller.ui_subscription_manager is None:
             raise ValueError(
-                "TaskWorkerPoolManager does not have a UI subscription manager"
+                "TaskWorkerPoolManager's controller does not have a UI subscription manager"
             )
-        return self._ui_subscription_manager
+        return self.controller.ui_subscription_manager
 
     def submit(self, task_submission: models_task.TaskSubmission):
         executor_side, worker_side = Pipe()
@@ -190,6 +193,29 @@ class TaskWorkerPoolManager:
                                     original_disk_config_id=message.update.configuration_id,
                                     token=message.update.token,
                                 )
+                                if message.update.image_format == "nixos-vm":
+                                    # start a new task to start the VM
+                                    if task.task_submission_data is None:
+                                        raise ValueError("Task submission data is None")
+                                    if "project_path" not in task.task_submission_data:
+                                        raise ValueError(
+                                            "project_path not in task submission data"
+                                        )
+
+                                    new_task_submission = models_task.RunNixOSVMTaskSubmission(
+                                        configuration_id=message.update.configuration_id,
+                                        parent_task_id=task_id,
+                                        project_path=task.task_submission_data[
+                                            "project_path"
+                                        ],
+                                    )
+                                    new_task = self.controller.submit(
+                                        new_task_submission, db_session
+                                    )
+                                    if task.children is None:
+                                        task.children = []
+                                    task.children.append(new_task.id)
+                                    db_session.commit()
                             case _:
                                 assert_never(message.update)
 
@@ -314,6 +340,3 @@ class TaskWorkerPoolManager:
                     print(task.nix_info_logs)
                 else:
                     print("No nix info logs")
-
-    def subscribe_ui(self, ui_subscription_manager: "TaskUISubscriptionManager"):
-        self._ui_subscription_manager = ui_subscription_manager
