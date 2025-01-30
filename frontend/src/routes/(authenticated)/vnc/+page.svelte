@@ -6,31 +6,24 @@
 	import type { PageData } from './$types';
 	import PageHead from '$lib/components/PageHead.svelte';
 	import { queryParam } from 'sveltekit-search-params';
+	import Slider from '$lib/components/Slider.svelte';
+	import DynamicGrid from '$lib/components/DynamicGrid.svelte';
 
 	export let data: PageData;
 
-	const defaultColumns = '3';
-	$: columns = queryParam('vnc-columns');
-
-	const setColumns = (e: Event) => {
-		$columns = (e.target as HTMLInputElement).value;
-	};
+	$: columnsParam = queryParam('vnc-columns');
+	$: columns = parseInt($columnsParam ?? '3');
 </script>
 
 <PageHead title={$t('nav.global-vnc')} />
-<input
-	type="range"
+<Slider
 	min={1}
 	max={6}
 	step={1}
-	value={parseInt($columns ?? defaultColumns)}
-	on:change={(e) => setColumns(e)}
-	class="range my-4 w-full"
+	value={columns}
+	onChange={(value) => ($columnsParam = value.toString())}
 />
-<div
-	class="grid"
-	style={`grid-template-columns: repeat(${$columns ?? defaultColumns}, minmax(0, 1fr)); gap: ${$columns === '2' ? '1em' : '0.5em'};`}
->
+<DynamicGrid class={columns === 2 ? 'gap-4' : 'gap-2'} {columns}>
 	{#each data.allDeploymentInfos as [configId, deploymentInfos]}
 		{@const device = data.state.devices.find((d) => d.identifier === configId)}
 		{#if device && targetShouldShowVNC(device, $state)}
@@ -42,10 +35,4 @@
 			{/each}
 		{/if}
 	{/each}
-</div>
-
-<style>
-	.range {
-		background: transparent !important;
-	}
-</style>
+</DynamicGrid>
