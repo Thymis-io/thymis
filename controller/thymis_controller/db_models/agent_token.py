@@ -1,3 +1,4 @@
+import datetime
 import uuid
 
 from sqlalchemy import Uuid
@@ -12,6 +13,9 @@ class AgentToken(Base):
         Uuid(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4
     )
 
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        default=datetime.datetime.now(datetime.timezone.utc)
+    )
     original_disk_config_commit: Mapped[str] = mapped_column(nullable=False)
     original_disk_config_id: Mapped[str] = mapped_column(nullable=False)
     token: Mapped[str] = mapped_column(nullable=False, unique=True, index=True)
