@@ -3,25 +3,26 @@
 	import { Card } from 'flowbite-svelte';
 	import ModuleList from '$lib/config/ModuleList.svelte';
 	import {
-		getDeviceByIdentifier,
 		getTagByIdentifier,
 		globalNavSelectedTargetType,
 		saveState,
-		type ContextType
-	} from '$lib/state';
-	import {
-		type ModuleSettings,
-		type ModuleSettingsWithOrigin,
-		type Tag,
-		type Device,
-		type Module,
-		type Origin,
 		globalNavSelectedTarget,
 		state,
 		globalNavSelectedTag,
 		globalNavSelectedConfig
 	} from '$lib/state';
-	import DeployActions from '$lib/components/DeployActions.svelte';
+	import type {
+		ModuleSettings,
+		ModuleSettingsWithOrigin,
+		Tag,
+		Device,
+		Module,
+		Origin
+	} from '$lib/state';
+	import {
+		configSelectedModuleContext,
+		configSelectedModuleContextType
+	} from '$lib/searchParamHelpers';
 	import type { PageData } from './$types';
 	import ModuleCard from '$lib/config/ModuleCard.svelte';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
@@ -29,7 +30,6 @@
 	import { queryParam } from 'sveltekit-search-params';
 	import { derived } from 'svelte/store';
 	import { page } from '$app/stores';
-	import Tabbar from '$lib/components/Tabbar.svelte';
 
 	export let data: PageData;
 
@@ -38,23 +38,6 @@
 		([$page, m]) => {
 			let availableModules = $page.data.availableModules as Module[];
 			return availableModules.find((module) => module.type === m);
-		}
-	);
-	const configSelectedModuleContextType = queryParam<ContextType>(
-		'config-selected-module-context-type'
-	);
-	const configSelectedModuleContext = derived(
-		[
-			configSelectedModuleContextType,
-			queryParam('config-selected-module-context-identifier'),
-			state
-		],
-		([$contextType, $contextIdentifier, s]) => {
-			if ($contextType === 'tag') {
-				return getTagByIdentifier(s, $contextIdentifier);
-			} else if ($contextType === 'config') {
-				return getDeviceByIdentifier(s, $contextIdentifier);
-			}
 		}
 	);
 
@@ -104,48 +87,6 @@
 		}
 		saveState();
 	};
-
-	const getSettings = (
-		module: ModuleSettings | Module,
-		settingKey: string,
-		target: Tag | Device | undefined
-	) => {
-		let settings = getModuleSettings(target);
-		return settings?.filter(
-			(s) => s.type === module.type && Object.keys(s.settings).includes(settingKey)
-		);
-	};
-
-	const getSetting = (
-		module: ModuleSettings | Module,
-		settingKey: string,
-		target: Tag | Device | undefined
-	) => {
-		let settings = getSettings(module, settingKey, target);
-
-		if (settings && settings.length >= 1) {
-			return settings[0].settings[settingKey];
-		}
-	};
-
-	const setSetting = (
-		target: Tag | Device | undefined,
-		module: ModuleSettings | Module,
-		settingKey: string,
-		value: any
-	) => {
-		let targetModule = target?.modules.find((m) => m.type === module.type);
-
-		if (target && targetModule) {
-			if (value !== undefined && value !== null) {
-				targetModule.settings[settingKey] = value;
-			} else {
-				delete targetModule.settings[settingKey];
-			}
-		}
-
-		saveState();
-	};
 </script>
 
 <div class="grid grid-flow-row grid-cols-1 md:grid-cols-[250px_auto] gap-4">
@@ -156,8 +97,6 @@
 			selfModules={getSelfModules($globalNavSelectedTarget)}
 			availableModules={data.availableModules}
 			configSelectedModule={$configSelectedModule}
-			configSelectedModuleContext={$configSelectedModuleContext}
-			configSelectedModuleContextType={$configSelectedModuleContextType}
 			{removeModule}
 		>
 			<slot slot="icon">
@@ -176,8 +115,6 @@
 					context={usedTag}
 					selfModules={getSelfModules(usedTag)}
 					configSelectedModule={$configSelectedModule}
-					configSelectedModuleContext={$configSelectedModuleContext}
-					configSelectedModuleContextType={$configSelectedModuleContextType}
 				>
 					<TagIcon slot="icon" size="20" />
 				</ModuleList>
@@ -192,8 +129,6 @@
 				(s) => s.type === $configSelectedModule?.type
 			)}
 			otherSettings={getOtherSettings($globalNavSelectedTarget, $configSelectedModule)}
-			setSetting={(module, key, value) =>
-				setSetting($configSelectedModuleContext, module, key, value)}
 			showRouting={$globalNavSelectedTargetType === 'config'}
 			canEdit={$globalNavSelectedTarget === $configSelectedModuleContext}
 		/>

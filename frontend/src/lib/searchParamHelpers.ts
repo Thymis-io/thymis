@@ -1,4 +1,12 @@
-import { type Module } from './state';
+import { queryParam } from 'sveltekit-search-params';
+import {
+	getDeviceByIdentifier,
+	getTagByIdentifier,
+	state,
+	type ContextType,
+	type Module
+} from './state';
+import { derived } from 'svelte/store';
 
 const setParam = (params: URLSearchParams, key: string, value: string | null | undefined) => {
 	if (value) {
@@ -43,3 +51,18 @@ export const buildConfigSelectModuleSearchParam = (
 	setParam(params, 'config-selected-module', module?.type);
 	return params.toString();
 };
+
+export const configSelectedModuleContextType = queryParam<ContextType>(
+	'config-selected-module-context-type'
+);
+
+export const configSelectedModuleContext = derived(
+	[configSelectedModuleContextType, queryParam('config-selected-module-context-identifier'), state],
+	([$contextType, $contextIdentifier, s]) => {
+		if ($contextType === 'tag') {
+			return getTagByIdentifier(s, $contextIdentifier);
+		} else if ($contextType === 'config') {
+			return getDeviceByIdentifier(s, $contextIdentifier);
+		}
+	}
+);

@@ -1,20 +1,24 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
+	import { saveState } from '$lib/state';
 	import type {
 		ContextType,
 		Module,
-		ModuleSettings,
 		ModuleSettingsWithOrigin,
 		Origin,
-		Setting
+		Setting,
+		SettingType
 	} from '$lib/state';
 	import { Card, P, Tooltip } from 'flowbite-svelte';
 	import Route from 'lucide-svelte/icons/route';
 	import RouteOff from 'lucide-svelte/icons/route-off';
 	import X from 'lucide-svelte/icons/x';
 	import Pen from 'lucide-svelte/icons/pen';
+	import Copy from 'lucide-svelte/icons/copy';
+	import Paste from 'lucide-svelte/icons/clipboard-copy';
 	import DefinitionLine from './DefinitionLine.svelte';
 	import ConfigRenderer from './ConfigRenderer.svelte';
+	import { configSelectedModuleContext } from '$lib/searchParamHelpers';
 
 	export let module: Module;
 	export let settings: ModuleSettingsWithOrigin | undefined;
@@ -23,7 +27,17 @@
 	export let showRouting: boolean;
 	export let canEdit: boolean;
 
-	export let setSetting: (module: ModuleSettings | Module, settingKey: string, value: any) => void;
+	const setSetting = async (setting: Setting<SettingType>, settingKey: string, value: any) => {
+		if ($configSelectedModuleContext && settings) {
+			if (value !== undefined && value !== null) {
+				settings.settings[settingKey] = value;
+			} else {
+				delete settings.settings[settingKey];
+			}
+		}
+
+		await saveState();
+	};
 
 	const sameOrigin = (a: Origin | undefined, b: Origin | undefined) => {
 		return a?.originId === b?.originId && a?.originContext === b?.originContext;
@@ -54,6 +68,15 @@
 
 	const canClearSetting: (setting: Setting) => boolean = (setting) =>
 		canEdit && !canReallyEditSetting(setting);
+
+	const canPaste = (clipboardText: string, setting: Setting<SettingType>) => {
+		if (clipboardText === undefined) return;
+		const parsed = JSON.parse(clipboardText);
+		return (
+			setting.type === typeof parsed.value ||
+			JSON.stringify(parsed.type) === JSON.stringify(setting.type)
+		);
+	};
 </script>
 
 <Card
@@ -79,14 +102,39 @@
 					moduleSettings={settings}
 					value={settings?.settings[key]}
 					disabled={!canReallyEditSetting(setting)}
-					onChange={(value) => setSetting(module, key, value)}
+					onChange={(value) => setSetting(setting, key, value)}
 				/>
 				<div class="ml-auto" />
+				<button
+					class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+					on:click={async (e) =>
+						await navigator.clipboard.writeText(
+							JSON.stringify({ type: setting.type, value: settings?.settings[key] })
+						)}
+					disabled={!settings?.settings[key]}
+				>
+					<Copy size="20" />
+				</button>
+				<Tooltip type="auto"><p>{$t('config.copy')}</p></Tooltip>
+				{#if canEdit}
+					<button
+						class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+						on:click={async () => {
+							const clipboardText = await navigator.clipboard.readText();
+							if (canPaste(clipboardText, setting)) {
+								setSetting(setting, key, JSON.parse(clipboardText).value);
+							}
+						}}
+					>
+						<Paste size="20" />
+					</button>
+					<Tooltip type="auto"><p>{$t('config.paste')}</p></Tooltip>
+				{/if}
 				{#if canEdit || canClearSetting(setting)}
 					{#if settings?.settings[key] !== undefined}
 						<button
 							class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-							on:click={() => setSetting(module, key, null)}
+							on:click={() => setSetting(setting, key, null)}
 						>
 							<X size="20" />
 						</button>
@@ -96,7 +144,7 @@
 							class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 							on:click={() =>
 								setSetting(
-									module,
+									setting,
 									key,
 									typeof setting.type === 'object' && setting.type.hasOwnProperty('list-of')
 										? []

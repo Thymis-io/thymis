@@ -215,6 +215,8 @@
 		"edit_tag_modules": "Edit Tag Modules",
 		"clear": "Clear",
 		"edit": "Edit",
+		"copy": "Copy",
+		"paste": "Paste",
 		"install": "Install",
 		"uninstall": "Uninstall",
 		"configure": "Configure",
