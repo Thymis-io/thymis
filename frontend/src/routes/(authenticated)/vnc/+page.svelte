@@ -6,8 +6,8 @@
 	import type { PageData } from './$types';
 	import PageHead from '$lib/components/PageHead.svelte';
 	import { queryParam } from 'sveltekit-search-params';
-	import Slider from '$lib/components/Slider.svelte';
 	import DynamicGrid from '$lib/components/DynamicGrid.svelte';
+	import Dropdown from '$lib/components/Dropdown.svelte';
 
 	export let data: PageData;
 
@@ -16,13 +16,16 @@
 </script>
 
 <PageHead title={$t('nav.global-vnc')} />
-<Slider
-	min={1}
-	max={6}
-	step={1}
-	value={columns}
-	onChange={(value) => ($columnsParam = value.toString())}
-/>
+<div class="flex items-center mb-2">
+	{$t('vnc.column-count')}
+	<Dropdown
+		values={[1, 2, 3, 4, 5, 6]}
+		showBox={false}
+		selected={columns}
+		onSelected={(value) => ($columnsParam = value.toString())}
+		class="min-w-10"
+	/>
+</div>
 <DynamicGrid class={columns === 2 ? 'gap-4' : 'gap-2'} {columns}>
 	{#each data.allDeploymentInfos as [configId, deploymentInfos]}
 		{@const device = data.state.devices.find((d) => d.identifier === configId)}

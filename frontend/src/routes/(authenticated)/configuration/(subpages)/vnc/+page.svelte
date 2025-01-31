@@ -8,11 +8,11 @@
 	} from '$lib/state';
 	import VncView from '$lib/vnc/VncView.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
-
 	import type { PageData } from './$types';
 	import { queryParam } from 'sveltekit-search-params';
-	import Slider from '$lib/components/Slider.svelte';
 	import DynamicGrid from '$lib/components/DynamicGrid.svelte';
+	import Dropdown from '$lib/components/Dropdown.svelte';
+
 	export let data: PageData;
 
 	$: columnsParam = queryParam('vnc-config-columns');
@@ -24,13 +24,16 @@
 	};
 </script>
 
-<Slider
-	min={1}
-	max={6}
-	step={1}
-	value={columns}
-	onChange={(value) => ($columnsParam = value.toString())}
-/>
+<div class="flex items-center mb-2">
+	{$t('vnc.column-count')}
+	<Dropdown
+		values={[1, 2, 3, 4, 5, 6]}
+		showBox={false}
+		selected={columns}
+		onSelected={(value) => ($columnsParam = value.toString())}
+		class="min-w-10"
+	/>
+</div>
 <DynamicGrid class={columns === 2 ? 'gap-4' : 'gap-2'} {columns}>
 	{#if $globalNavSelectedTargetType === 'config' && $globalNavSelectedConfig}
 		{#if data.deploymentInfos}

@@ -31,7 +31,8 @@
 	},
 	"vnc": {
 		"connection-failed": "Connection failed",
-		"control-device": "Control Device"
+		"control-device": "Control Device",
+		"column-count": "Displays per Row:"
 	},
 	"configurations": {
 		"title": "Device Configurations",
