@@ -96,6 +96,7 @@ in
     thymis.config.agent.enable = lib.mkDefault true;
     systemd.services.thymis-agent = lib.mkIf cfg.agent.enable {
       description = "Thymis agent";
+      restartIfChanged = false;
       after = [ "network.target" "sshd.service" ];
       wantedBy = [ "multi-user.target" ];
       script = "${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent";

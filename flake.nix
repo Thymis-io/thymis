@@ -4,6 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     nixpkgs-for-playwright-browsers.url = "github:NixOS/nixpkgs/e24b4c09e963677b1beea49d411cd315a024ad3a";
+    nix.url = "github:NixOS/nix/2.26.1";
     home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nixos-generators.url = "github:nix-community/nixos-generators";
@@ -16,6 +17,15 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "flake-utils";
     };
+  };
+
+  nixConfig = {
+    extra-substituters = [
+      "https://cache.thymis.io"
+    ];
+    extra-trusted-public-keys = [
+      "cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M="
+    ];
   };
 
   outputs = inputss@{ self, nixpkgs, home-manager, poetry2nix, flake-utils, ... }:
@@ -130,12 +140,14 @@
               pkgsWithPlayWrightOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers
               pkgs.mdbook
               pkgs.nixpkgs-fmt
+              (inputs.nix.packages."${system}".nix)
             ];
             shellHook = ''
               export PLAYWRIGHT_BROWSERS_PATH=${pkgsWithPlayWrightOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
               export THYMIS_DEV_SHELL=true
               export THYMIS_FLAKE_ROOT=$(git rev-parse --show-toplevel)
+              export PATH=${inputs.nix.packages."${system}".nix}/bin:$PATH
               alias run-dev="cd controller && UVICORN_PORT=8080 THYMIS_BASE_URL=http://127.0.0.1:8080 poetry run uvicorn thymis_controller.main:app --reload --host 0.0.0.0 --port 8080; cd .."
             '';
           };
@@ -179,6 +191,7 @@
               (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; })
             );
             thymis-frontend = thymis-frontend;
+            nix = inputs.nix.packages."${system}".nix;
           };
           thymis-agent = pkgs.callPackage ./agent {
             poetry2nix = (

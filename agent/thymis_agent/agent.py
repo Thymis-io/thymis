@@ -4,7 +4,9 @@ import logging
 import os
 import pathlib
 import socket
-from typing import Dict, List, Literal, Tuple, Union
+import subprocess
+import uuid
+from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import http_network_relay.edge_agent
 import http_network_relay.edge_agent as ea
@@ -101,16 +103,32 @@ def load_controller_public_key_into_root_authorized_keys():
 
 class AgentToRelayMessage(BaseModel):
     # This is a custom message that the agent sends to the relay
-    pass
+    inner: Union["EtRSwitchToNewConfigResultMessage",] = Field(discriminator="kind")
+
+
+class EtRSwitchToNewConfigResultMessage(BaseModel):
+    kind: Literal["switch_to_new_config_result"] = "switch_to_new_config_result"
+    task_id: uuid.UUID
+    success: bool
+    error: Optional[str]
 
 
 class RelayToAgentMessage(BaseModel):
     # This is a custom message that the relay sends to the agent
-    inner: Union["RtEUpdatePublicKeyMessage",] = Field(discriminator="kind")
+    inner: Union[
+        "RtEUpdatePublicKeyMessage",
+        "RtESwitchToNewConfigMessage",
+    ] = Field(discriminator="kind")
 
 
 class RtEUpdatePublicKeyMessage(BaseModel):
     kind: Literal["update_public_key"] = "update_public_key"
+
+
+class RtESwitchToNewConfigMessage(BaseModel):
+    kind: Literal["switch_to_new_config"] = "switch_to_new_config"
+    new_path_to_config: str
+    task_id: uuid.UUID
 
 
 class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
@@ -139,9 +157,88 @@ class Agent(ea.EdgeAgent):
         self.agent_metadata = agent_metadata
 
     async def handle_custom_relay_message(self, message: RelayToAgentMessage):
+        logger.info("Received custom relay message: %s", message)
         match message.inner:
             case RtEUpdatePublicKeyMessage():
                 self.update_public_key()
+            case RtESwitchToNewConfigMessage():
+                new_path_to_config = message.inner.new_path_to_config
+                logger.info("Switching to new configuration: %s", new_path_to_config)
+                try:
+                    args = [
+                        "nix-env",
+                        "-p",
+                        "/nix/var/nix/profiles/system",
+                        "--set",
+                        new_path_to_config,
+                    ]
+                    proc = await asyncio.create_subprocess_exec(
+                        args[0],
+                        *args[1:],
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE,
+                    )
+                    stdout, stderr = await proc.communicate()
+                    if proc.returncode != 0:
+                        raise subprocess.CalledProcessError(
+                            proc.returncode, args, stdout, stderr
+                        )
+                    args = [
+                        "systemd-run",
+                        "-E",
+                        "LOCALE_ARCHIVE",
+                        "-E",
+                        "NIXOS_INSTALL_BOOTLOADER=1",
+                        "--collect",
+                        "--no-ask-password",
+                        "--pipe",
+                        "--quiet",
+                        "--service-type=exec",
+                        "--unit=thymis-nixos-rebuild-switch-to-configuration",
+                        "--wait",
+                        f"{new_path_to_config}/bin/switch-to-configuration",
+                        "switch",
+                    ]
+                    proc = await asyncio.create_subprocess_exec(
+                        args[0],
+                        *args[1:],
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE,
+                    )
+                    stdout, stderr = await proc.communicate()
+                    if proc.returncode != 0:
+                        raise subprocess.CalledProcessError(
+                            proc.returncode, args, stdout, stderr
+                        )
+                except subprocess.CalledProcessError as e:
+                    logger.error(
+                        "Failed to switch to new configuration: %s",
+                        str(e) + "\n" + e.stdout.decode() + "\n" + e.stderr.decode(),
+                    )
+                    await self.websocket.send(
+                        AgentToRelayMessage(
+                            inner=EtRSwitchToNewConfigResultMessage(
+                                task_id=message.inner.task_id,
+                                success=False,
+                                error=str(e)
+                                + "\n"
+                                + e.stdout.decode()
+                                + "\n"
+                                + e.stderr.decode(),
+                            )
+                        ).model_dump_json()
+                    )
+                else:
+                    await self.websocket.send(
+                        AgentToRelayMessage(
+                            inner=EtRSwitchToNewConfigResultMessage(
+                                task_id=message.inner.task_id,
+                                success=True,
+                                error=None,
+                            )
+                        ).model_dump_json()
+                    )
+
             case _:
                 logger.error("Unknown message: %s", message)
 
@@ -237,12 +334,12 @@ def main():
     if not agent_metadata:
         logging.error("Agent metadata not found, continuing without metadata")
 
-    logging.basicConfig(level=logging.DEBUG)
-
     controller_host = os.getenv("CONTROLLER_HOST")
 
     if not controller_host:
         raise ValueError("CONTROLLER_HOST environment variable is required")
+
+    logger.setLevel(logging.INFO)
 
     load_controller_public_key_into_root_authorized_keys()
     agent_token = find_agent_token()

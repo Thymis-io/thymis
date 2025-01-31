@@ -42,7 +42,7 @@ def device_notify(request: Request):
 
 
 @router.websocket("/relay")
-async def websocket_endpoint(
+async def relay(
     websocket: WebSocket,
     network_relay: NetworkRelayAD,
     project: ProjectAD,
@@ -59,3 +59,14 @@ async def websocket_endpoint(
         f"Agent connection from {websocket.client.host} established with connection id {connection_id}"
     )
     await msg_loop
+
+
+@router.websocket("/relay_for_clients")
+async def relay_for_clients(
+    websocket: WebSocket,
+    network_relay: NetworkRelayAD,
+    project: ProjectAD,
+    db_session: SessionAD,
+):
+    logger.info(f"Agent connection from {websocket.client.host}")
+    await network_relay.ws_for_access_clients(websocket)

@@ -33,13 +33,13 @@ class TaskUISubscriptionManager:
         logger.info("Websocket disconnected")
 
     async def start(self):
+        self.loop = asyncio.get_event_loop()
         asyncio.create_task(self.send_loop())
 
     def stop(self):
         self.loop.call_soon_threadsafe(self.task_queue.shutdown)
 
     async def send_loop(self):
-        self.loop = asyncio.get_event_loop()
         while True:
             try:
                 task = await self.task_queue.get()

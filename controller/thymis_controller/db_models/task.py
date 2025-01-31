@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING, List
+
 from sqlalchemy import (
     JSON,
     UUID,
@@ -11,7 +13,11 @@ from sqlalchemy import (
     Text,
     Uuid,
 )
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from thymis_controller.database.base import Base
+
+if TYPE_CHECKING:
+    from thymis_controller.db_models.agent_token import AccessClientToken
 
 
 class Task(Base):
@@ -47,6 +53,10 @@ class Task(Base):
     nix_warning_logs = Column(JSON, nullable=True)
     nix_notice_logs = Column(JSON, nullable=True)
     nix_info_logs = Column(JSON, nullable=True)
+
+    access_client_tokens: Mapped[List["AccessClientToken"]] = relationship(
+        back_populates="deploy_device_task"
+    )
 
     def add_exception(self, exception: str):
         if self.exception is None:

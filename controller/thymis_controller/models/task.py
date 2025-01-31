@@ -100,22 +100,6 @@ TaskSubmissionData = Union[
 ]
 
 
-class TaskSubmissionDataWrapper(BaseModel):
-    inner: TaskSubmissionData = Field(discriminator="type")
-
-
-class DeployDeviceInformation(BaseModel):
-    identifier: str
-    host: str
-    port: int
-    username: str
-
-
-# def warn_if_called_and_return_none():
-#     import logging
-#     logger = logging.getLogger(__name__)
-#     logger.warning("Field default_factory for some key of SSHCommandTaskSubmission called, returning None")
-#     return None
 def warn_if_called_and_return_none(class_name: str, field_name: str):
     def inner():
         import logging
@@ -127,6 +111,39 @@ def warn_if_called_and_return_none(class_name: str, field_name: str):
         return None
 
     return inner
+
+
+class TaskSubmissionDataWrapper(BaseModel):
+    inner: TaskSubmissionData = Field(discriminator="type")
+
+
+class DeployDeviceInformation(BaseModel):
+    identifier: str
+    host: str | None = Field(
+        default_factory=warn_if_called_and_return_none(
+            "DeployDeviceInformation", "host"
+        )
+    )
+    port: int | None = Field(
+        default_factory=warn_if_called_and_return_none(
+            "DeployDeviceInformation", "port"
+        )
+    )
+    username: str | None = Field(
+        default_factory=warn_if_called_and_return_none(
+            "DeployDeviceInformation", "username"
+        )
+    )
+    deployment_info_id: uuid.UUID | None = Field(
+        default_factory=warn_if_called_and_return_none(
+            "DeployDeviceInformation", "deployment_info_id"
+        )
+    )
+    deployment_public_key: str | None = Field(
+        default_factory=warn_if_called_and_return_none(
+            "DeployDeviceInformation", "deployment_public_key"
+        )
+    )
 
 
 class DeployDevicesTaskSubmission(BaseModel):
@@ -147,10 +164,24 @@ class DeployDeviceTaskSubmission(BaseModel):
     device: DeployDeviceInformation
     project_path: str
     ssh_key_path: str
-    known_hosts_path: str
+    known_hosts_path: str | None = Field(
+        default_factory=warn_if_called_and_return_none(
+            "DeployDeviceTaskSubmission", "known_hosts_path"
+        )
+    )
     controller_ssh_pubkey: str | None = Field(
         default_factory=warn_if_called_and_return_none(
             "DeployDeviceTaskSubmission", "controller_ssh_pubkey"
+        )
+    )
+    controller_access_client_endpoint: str | None = Field(
+        default_factory=warn_if_called_and_return_none(
+            "DeployDeviceTaskSubmission", "controller_access_client_endpoint"
+        )
+    )
+    access_client_token: str | None = Field(
+        default_factory=warn_if_called_and_return_none(
+            "DeployDeviceTaskSubmission", "access_client_token"
         )
     )
     parent_task_id: Optional[uuid.UUID] = None
@@ -230,6 +261,7 @@ TaskUpdate = Union[
     "TaskFailedUpdate",
     "CommandRunUpdate",
     "ImageBuiltUpdate",
+    "AgentShouldSwitchToNewConfigurationUpdate",
 ]
 
 
@@ -277,8 +309,32 @@ class ImageBuiltUpdate(BaseModel):
     token: str
 
 
+class AgentShouldSwitchToNewConfigurationUpdate(BaseModel):
+    type: Literal[
+        "agent_should_switch_to_new_configuration"
+    ] = "agent_should_switch_to_new_configuration"
+    path_to_configuration: str
+    deployment_info_id: uuid.UUID
+
+
+# sent from controller to task runner
+class ControllerToRunnerTaskUpdate(BaseModel):
+    inner: Union["CancelTask", "AgentSwitchToNewConfigurationResult"] = Field(
+        discriminator="kind"
+    )
+
+
 class CancelTask(BaseModel):
+    kind: Literal["cancel_task"] = "cancel_task"
     id: uuid.UUID
+
+
+class AgentSwitchToNewConfigurationResult(BaseModel):
+    kind: Literal[
+        "agent_switch_to_new_configuration_result"
+    ] = "agent_switch_to_new_configuration_result"
+    success: bool
+    reason: Optional[str]
 
 
 __all__ = [
@@ -305,5 +361,8 @@ __all__ = [
     "TaskFailedUpdate",
     "CommandRunUpdate",
     "ImageBuiltUpdate",
+    "AgentShouldSwitchToNewConfigurationUpdate",
+    "ControllerToRunnerTaskUpdate",
     "CancelTask",
+    "AgentSwitchToNewConfigurationResult",
 ]

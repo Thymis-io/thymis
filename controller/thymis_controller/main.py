@@ -1,7 +1,9 @@
 import logging
+import os
 import pathlib
 import secrets
 import subprocess
+import sys
 from contextlib import asynccontextmanager
 
 import sqlalchemy.orm
@@ -25,6 +27,37 @@ logger = logging.getLogger(__name__)
 # run database migrations
 alembic_config = Config(global_settings.ALEMBIC_INI_PATH)
 script = ScriptDirectory.from_config(alembic_config)
+
+
+def detect_host_port():
+    # we use uvicorn but cannot access any of their objects
+    # we know that the port and host are configured using
+    # UVICORN_HOST and UVICORN_PORT environment variables
+    # with flags --host and --port taking precedence
+    # we can use this to detect the host and port
+    listen_to_ip_translation = {
+        "0.0.0.0": "127.0.0.1",
+        "::": "::1",
+    }
+    host_env = os.getenv("UVICORN_HOST")
+    host_arg = (
+        sys.argv[sys.argv.index("--host") + 1]
+        if "--host" in sys.argv and len(sys.argv) > sys.argv.index("--host") + 1
+        else None
+    )
+    port_env = os.getenv("UVICORN_PORT")
+    port_arg = (
+        sys.argv[sys.argv.index("--port") + 1]
+        if "--port" in sys.argv and len(sys.argv) > sys.argv.index("--port") + 1
+        else None
+    )
+    uvicorn_default_host = "127.0.0.1"
+    uvicorn_default_port = 8000
+    host = host_arg if host_arg else host_env if host_env else uvicorn_default_host
+    port = port_arg if port_arg else port_env if port_env else uvicorn_default_port
+    host = listen_to_ip_translation.get(host, host)
+    port = int(port)
+    return host, port
 
 
 def peform_db_upgrade():
@@ -120,9 +153,12 @@ async def lifespan(app: FastAPI):
     init_ssh_key()
     notification_manager = NotificationManager()
     notification_manager.start()
-    task_controller = TaskController()
+    host, port = detect_host_port()
     db_engine = create_sqlalchemy_engine()
     network_relay = NetworkRelay(db_engine)
+    task_controller = TaskController(
+        f"ws://{host}:{port}/agent/relay_for_clients", network_relay
+    )
     with sqlalchemy.orm.Session(db_engine) as db_session:
         project = Project(global_settings.PROJECT_PATH.resolve(), db_session)
     async with task_controller.start(db_engine):
@@ -136,6 +172,8 @@ async def lifespan(app: FastAPI):
             "project": project,
             "engine": db_engine,
             "network_relay": network_relay,
+            "host": host,
+            "port": port,
         }
     notification_manager.stop()
     logger.info("stopping frontend")

@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import Any
+from typing import TYPE_CHECKING, Any, Optional, assert_never
 
 import http_network_relay.network_relay as nr
 import paramiko
@@ -9,10 +9,14 @@ import thymis_agent.agent as agent
 import thymis_controller.crud.agent_token as crud_agent_token
 import thymis_controller.crud.deployment_info as crud_deployment_info
 import thymis_controller.crud.hardware_device as crud_hardware_device
+import thymis_controller.models.task as models_task
 from fastapi import WebSocket
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from thymis_controller.config import global_settings
+
+if TYPE_CHECKING:
+    from thymis_controller.task.controller import TaskController
 
 logger = logging.getLogger(__name__)
 
@@ -79,11 +83,23 @@ class NetworkRelay(nr.NetworkRelay):
         self.connection_id_to_start_message: dict[
             str, agent.EdgeAgentToRelayStartMessage
         ] = {}
+        self.task_controller: Optional["TaskController"] = None
 
     async def handle_custom_agent_message(self, message: agent.AgentToRelayMessage):
-        raise NotImplementedError()
+        match message.inner:
+            case agent.EtRSwitchToNewConfigResultMessage():
+                self.task_controller.executor.send_message_to_task(
+                    message.inner.task_id,
+                    models_task.ControllerToRunnerTaskUpdate(
+                        inner=models_task.AgentSwitchToNewConfigurationResult(
+                            success=message.inner.success, reason=message.inner.error
+                        )
+                    ),
+                )
+            case _:
+                assert_never(message.inner)
 
-    async def get_msg_loop_permission_and_create_connection_id(
+    async def get_agent_msg_loop_permission_and_create_connection_id(
         self, start_message: BaseModel, edge_agent_connection: WebSocket
     ) -> str | None:
         if not isinstance(start_message, agent.EdgeAgentToRelayStartMessage):
@@ -266,3 +282,32 @@ class NetworkRelay(nr.NetworkRelay):
                 del self.connection_id_to_start_message[connection_id]
 
         return msg_loop_but_close_connection_at_end(), connection_id
+
+    async def get_access_client_permission(
+        self, start_message: nr.AtRStartMessage, access_client_connection
+    ):
+        with sqlalchemy.orm.Session(self.db_engine) as db_session:
+            if not crud_agent_token.check_access_client_token_validity(
+                db_session, start_message.secret, start_message.connection_target
+            ):
+                logging.error(
+                    "Access client with start message %s has invalid token %s",
+                    start_message,
+                    start_message.secret,
+                )
+                return False
+        return True
+
+    async def get_agent_connection_id_for_access_client(self, connection_target):
+        with sqlalchemy.orm.Session(self.db_engine) as db_session:
+            deployment_info = crud_deployment_info.get_by_id(
+                db_session, uuid.UUID(connection_target)
+            )
+            if not deployment_info:
+                raise ValueError("No deployment info found for connection target")
+            public_key = deployment_info.ssh_public_key
+            if not public_key:
+                raise ValueError("No public key found for deployment info")
+            if public_key not in self.public_key_to_connection_id:
+                raise ValueError("No connection found for public key")
+            return self.public_key_to_connection_id[public_key]

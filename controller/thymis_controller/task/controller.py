@@ -1,13 +1,16 @@
 import contextlib
 import logging
 import os
+import random
 import time
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 import sqlalchemy
 from fastapi import WebSocket
 from sqlalchemy.orm import Session
 from thymis_controller import crud, db_models, models
+from thymis_controller.crud.agent_token import create_access_client_token
 from thymis_controller.crud.task import create as task_create
 from thymis_controller.crud.task import get_tasks_short
 from thymis_controller.models.task import (
@@ -18,13 +21,19 @@ from thymis_controller.models.task import (
 from thymis_controller.task.executor import TaskWorkerPoolManager
 from thymis_controller.task.subscribe_ui import TaskUISubscriptionManager
 
+if TYPE_CHECKING:
+    from thymis_controller.network_relay import NetworkRelay
+
 logger = logging.getLogger(__name__)
 
 
 class TaskController:
-    def __init__(self):
+    def __init__(self, access_client_endpoint: str, network_relay: "NetworkRelay"):
         self.executor = TaskWorkerPoolManager(self)
         self.ui_subscription_manager = TaskUISubscriptionManager(self)
+        self.access_client_endpoint = access_client_endpoint
+        self.network_relay = network_relay
+        network_relay.task_controller = self
 
     @contextlib.asynccontextmanager
     async def start(self, db_engine: sqlalchemy.Engine):
@@ -61,13 +70,16 @@ class TaskController:
         if task.type == "deploy_devices_task":
             children_uids = []
             for device in task.devices:
+                access_client_token = random.randbytes(32).hex()
                 submission_data = DeployDeviceTaskSubmission(
                     device=device,
                     project_path=task.project_path,
                     known_hosts_path=task.known_hosts_path,
                     ssh_key_path=task.ssh_key_path,
+                    controller_access_client_endpoint=self.access_client_endpoint,
                     controller_ssh_pubkey=task.controller_ssh_pubkey,
                     parent_task_id=task_db.id,
+                    access_client_token=access_client_token,
                 )
                 subtask = task_create(
                     db_session,
@@ -76,6 +88,12 @@ class TaskController:
                     task_type="deploy_device_task",
                     task_submission_data=submission_data.model_dump(mode="json"),
                     parent_task_id=task_db.id,
+                )
+                access_client_token_db = create_access_client_token(
+                    db_session,
+                    deployment_info_id=device.deployment_info_id,
+                    token=access_client_token,
+                    deploy_device_task_id=subtask.id,
                 )
                 children_uids.append(str(subtask.id))
                 subtasks.append(subtask)

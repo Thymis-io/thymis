@@ -25,7 +25,7 @@ let
 in
 writeShellApplication {
   name = "thymis-controller";
-  runtimeInputs = [ git nixpkgs-fmt nix openssh ];
+  runtimeInputs = [ git nixpkgs-fmt nix openssh pythonEnv ];
   text = ''
     export UVICORN_HOST="''${UVICORN_HOST:=127.0.0.1}"
     export UVICORN_PORT="''${UVICORN_PORT:=8000}"

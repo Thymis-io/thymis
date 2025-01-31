@@ -88,21 +88,23 @@ async def deploy(
     session: SessionAD,
     project: ProjectAD,
     task_controller: TaskControllerAD,
+    network_relay: NetworkRelayAD,
 ):
     project.commit(summary)
 
     devices: list[models.DeployDeviceInformation] = []
 
-    for device in crud.deployment_info.get_all(session):
-        hostkey = models.Hostkey.from_deployment_info(device)
-        devices.append(
-            models.DeployDeviceInformation(
-                identifier=hostkey.identifier,
-                host=hostkey.device_host,
-                port=22,
-                username="root",
+    for deployment_info in crud.deployment_info.get_all(session):
+        if network_relay.public_key_to_connection_id.get(
+            deployment_info.ssh_public_key
+        ):
+            devices.append(
+                models.DeployDeviceInformation(
+                    identifier=deployment_info.deployed_config_id,
+                    deployment_info_id=deployment_info.id,
+                    deployment_public_key=deployment_info.ssh_public_key,
+                )
             )
-        )
 
     project.update_known_hosts(session)
 

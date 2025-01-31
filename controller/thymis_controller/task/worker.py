@@ -4,6 +4,7 @@ import json
 import os
 import pathlib
 import platform
+import queue
 import random
 import shutil
 import signal
@@ -12,7 +13,7 @@ import tempfile
 import threading
 import time
 from multiprocessing.connection import Connection
-from typing import IO, AnyStr, List
+from typing import IO, AnyStr, List, assert_never
 
 import thymis_controller.models.task as models_task
 from thymis_controller.nix import NIX_CMD
@@ -24,6 +25,7 @@ class ProcessList:
         self.processes: list[subprocess.Popen[bytes]] = []
         self.terminated = False
         self._lock = threading.Lock()
+        self.msg_queue = queue.Queue()
 
     def add(self, process: subprocess.Popen[bytes]):
         with self._lock:
@@ -51,10 +53,19 @@ def listen_for_executor(conn: Connection, process_list: ProcessList):
     while not conn.closed:
         try:
             message = conn.recv()
-            if isinstance(message, models_task.CancelTask):
-                process_list.terminate_all()
-                time.sleep(1)
-                process_list.kill_all()
+            if not isinstance(message, models_task.ControllerToRunnerTaskUpdate):
+                print("Received unexpected message type %s", type(message))
+                continue
+            match message.inner:
+                case models_task.CancelTask():
+                    process_list.terminate_all()
+                    time.sleep(1)
+                    process_list.kill_all()
+                case models_task.AgentSwitchToNewConfigurationResult():
+                    process_list.msg_queue.put(message)
+                case _:
+                    print("Received unexpected message %s", message)
+                    assert_never(message)
         except EOFError:
             break
         except OSError:
@@ -155,31 +166,113 @@ def deploy_device_task(
     assert task_data.type == "deploy_device_task"
     repo_path = (pathlib.Path(task_data.project_path) / "repository").resolve()
 
-    returncode = run_command(
-        task,
-        conn,
-        process_list,
-        [
-            "nixos-rebuild",
-            *NIX_CMD[1:],
-            "--no-ssh-tty",
-            "switch",
-            "--flake",
-            f"{repo_path}#{task_data.device.identifier}",
-            "--target-host",
-            f"{task_data.device.username}@{task_data.device.host}",
-        ],
-        {
-            "NIX_SSHOPTS": f"-i {task_data.ssh_key_path} -p {task_data.device.port} -o UserKnownHostsFile={task_data.known_hosts_path} -o StrictHostKeyChecking=yes -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ConnectTimeout=10 -o BatchMode=yes",
-            "PATH": os.getenv("PATH"),
-        },
-        cwd=repo_path,
-    )
+    # first print verison of `nix` and `nix-copy-closure`
 
-    if returncode == 0:
-        report_task_finished(task, conn)
-    else:
-        report_task_finished(task, conn, False, "Deploy failed")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # write deployment_public_key to tmpfile
+        hostfile_path = f"{tmpdir}/known_hosts"
+        with open(hostfile_path, "w", encoding="utf-8") as hostfile:
+            hostfile.write(f"localhost {task_data.device.deployment_public_key}\n")
+            hostfile.flush()
+        env = {
+            "NIX_SSHOPTS": f"-i {task_data.ssh_key_path} "
+            f"-o UserKnownHostsFile={hostfile.name} "
+            f"-o StrictHostKeyChecking=yes "
+            f"-o PasswordAuthentication=no "
+            f"-o KbdInteractiveAuthentication=no "
+            f"-o ConnectTimeout=10 "
+            f"-o BatchMode=yes "
+            f"-o 'ProxyCommand python -m thymis_controller.access_client {task_data.controller_access_client_endpoint} {task_data.device.deployment_info_id}' "
+            "-T",
+            "PATH": os.getenv("PATH"),
+            "HTTP_NETWORK_RELAY_SECRET": task_data.access_client_token,
+            "DBUS_SESSION_BUS_ADDRESS": os.getenv("DBUS_SESSION_BUS_ADDRESS"),
+        }
+        toplevel_path = f"{tmpdir}/toplevel"
+        returncode = run_command(
+            task,
+            conn,
+            process_list,
+            [
+                *NIX_CMD,
+                "build",
+                f'{repo_path}#nixosConfigurations."{task_data.device.identifier}".config.system.build.toplevel',
+                "--out-link",
+                toplevel_path,
+            ],
+            env,
+            cwd=tmpdir,
+        )
+
+        if returncode != 0:
+            report_task_finished(task, conn, False, "Build failed")
+            return
+
+        # resolve the toplevel path
+        config_path = str(pathlib.Path(toplevel_path).resolve())
+
+        returncode = run_command(
+            task,
+            conn,
+            process_list,
+            [
+                "systemd-run",
+                "-E",
+                "NIX_SSHOPTS",
+                "-E",
+                "HTTP_NETWORK_RELAY_SECRET",
+                "-E",
+                "PATH",
+                "--user",
+                "--collect",
+                "--no-ask-password",
+                "--pipe",
+                "--quiet",
+                "--service-type=exec",
+                "--unit=thymis-nix-copy-closure",
+                "--wait",
+                "nix-copy-closure",
+                *NIX_CMD[1:],
+                "--to",
+                "root@localhost",
+                config_path,
+            ],
+            env,
+            cwd=tmpdir,
+        )
+
+        if returncode != 0:
+            report_task_finished(task, conn, False, "Copy closure failed")
+            return
+
+        # send message to agent on device that it should switch to the new configuration
+        conn.send(
+            models_task.RunnerToControllerTaskUpdate(
+                id=task.id,
+                update=models_task.AgentShouldSwitchToNewConfigurationUpdate(
+                    deployment_info_id=task_data.device.deployment_info_id,
+                    path_to_configuration=config_path,
+                ),
+            )
+        )
+
+        # wait for agent to switch to new configuration
+        try:
+            message = process_list.msg_queue.get(timeout=300)
+            if not isinstance(
+                message.inner, models_task.AgentSwitchToNewConfigurationResult
+            ):
+                report_task_finished(task, conn, False, "Unexpected message from agent")
+                return
+        except queue.Empty:
+            report_task_finished(task, conn, False, "Timeout waiting for agent")
+        except Exception as e:
+            report_task_finished(task, conn, False, f"Exception: {e}")
+        else:
+            if message.inner.success:
+                report_task_finished(task, conn)
+            else:
+                report_task_finished(task, conn, False, "Agent failed to switch")
 
 
 def deploy_devices_task(
@@ -465,6 +558,14 @@ def run_command(
     if input:
         proc.stdin.write(input)
         proc.stdin.close()
+
+    open_fds = [proc.stdout, proc.stderr]
+    while open_fds:
+        copy_fds = open_fds.copy()
+        for fd in copy_fds:
+            if fd.closed:
+                open_fds.remove(fd)
+        time.sleep(0.5)
 
     proc.wait()
     stdout_thread.join(0.5)

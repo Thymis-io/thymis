@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import concurrent.futures
 import logging
@@ -10,6 +11,7 @@ from multiprocessing.connection import Connection, Pipe
 from typing import TYPE_CHECKING, assert_never
 
 import sqlalchemy.orm
+import thymis_agent.agent as agent
 import thymis_controller.crud as crud
 import thymis_controller.crud.task as crud_task
 import thymis_controller.models.task as models_task
@@ -96,8 +98,18 @@ class TaskWorkerPoolManager:
             task.add_exception("Task was cancelled")
             db_session.commit()
             self.ui_subscription_manager.notify_task_update(task)
+        self.send_message_to_task(
+            task_id,
+            models_task.ControllerToRunnerTaskUpdate(
+                inner=models_task.CancelTask(id=task_id)
+            ),
+        )
+
+    def send_message_to_task(
+        self, task_id: uuid.UUID, message: models_task.ControllerToRunnerTaskUpdate
+    ):
         if task_id in self.futures:
-            self.futures[task_id][1].send(models_task.CancelTask(id=task_id))
+            self.futures[task_id][1].send(message)
 
     def listen_child_messages(self, conn: Connection, task_id: uuid.UUID):
         message = None
@@ -216,12 +228,42 @@ class TaskWorkerPoolManager:
                                         task.children = []
                                     task.children.append(new_task.id)
                                     db_session.commit()
+                            case (
+                                models_task.AgentShouldSwitchToNewConfigurationUpdate()
+                            ):
+                                deployment_info = crud.deployment_info.get_by_id(
+                                    db_session, message.update.deployment_info_id
+                                )
+                                relay_con_id = self.controller.network_relay.public_key_to_connection_id[
+                                    deployment_info.ssh_public_key
+                                ]
+                                relay_con = self.controller.network_relay.registered_agent_connections[
+                                    relay_con_id
+                                ]
+                                logger.info(
+                                    "Switching agent to new configuration: %s",
+                                    message.update.path_to_configuration,
+                                )
+                                asyncio.run_coroutine_threadsafe(
+                                    relay_con.send_text(
+                                        agent.RelayToAgentMessage(
+                                            inner=agent.RtESwitchToNewConfigMessage(
+                                                new_path_to_config=message.update.path_to_configuration,
+                                                task_id=task_id,
+                                            )
+                                        ).model_dump_json()
+                                    ),
+                                    self.controller.network_relay.loop,
+                                )
                             case _:
                                 assert_never(message.update)
 
                         # notify UI
                         self.ui_subscription_manager.notify_task_update(task)
                 except Exception as e:
+                    import traceback
+
+                    traceback.print_exc()
                     logger.error("Error processing message from worker: %s", e)
         except EOFError:
             logger.info("Worker connection closed")

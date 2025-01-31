@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from thymis_controller.database.base import Base
 
 if TYPE_CHECKING:
+    from thymis_controller.db_models.agent_token import AccessClientToken
     from thymis_controller.db_models.hardware_device import HardwareDevice
 
 
@@ -24,6 +25,10 @@ class DeploymentInfo(Base):
 
     hardware_devices: Mapped[List["HardwareDevice"]] = relationship(
         back_populates="deployment_info"
+    )
+
+    access_client_tokens: Mapped[List["AccessClientToken"]] = relationship(
+        back_populates="for_deployment_info"
     )
 
     def to_dict(self):
