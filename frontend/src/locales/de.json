@@ -190,6 +190,8 @@
 		"edit_tag_modules": "Tag Module bearbeiten",
 		"clear": "Löschen",
 		"edit": "Bearbeiten",
+		"copy": "Kopieren",
+		"paste": "Einfügen",
 		"install": "Installieren",
 		"uninstall": "Deinstallieren",
 		"configure": "Bearbeiten",

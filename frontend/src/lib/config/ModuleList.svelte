@@ -15,7 +15,11 @@
 	import Pen from 'lucide-svelte/icons/pen';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Trash from 'lucide-svelte/icons/trash';
-	import { buildConfigSelectModuleSearchParam } from '$lib/searchParamHelpers';
+	import {
+		buildConfigSelectModuleSearchParam,
+		configSelectedModuleContext,
+		configSelectedModuleContextType
+	} from '$lib/searchParamHelpers';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 
 	export let contextType: string | null;
@@ -24,8 +28,6 @@
 	export let selfModules: Module[];
 	export let availableModules: Module[] = [];
 	export let configSelectedModule: Module | undefined;
-	export let configSelectedModuleContextType: ContextType;
-	export let configSelectedModuleContext: Tag | Device | undefined;
 
 	let moduleToRemove: Module | undefined;
 
@@ -52,8 +54,6 @@
 		module.type === selectedConfigModule?.type &&
 		contextType === selectedConfigContext &&
 		context?.identifier === selectedConfigTarget?.identifier;
-
-	$: console.log(context?.displayName, contextType);
 </script>
 
 <DeleteConfirm
@@ -92,8 +92,8 @@
 					isSelected(
 						module,
 						configSelectedModule,
-						configSelectedModuleContextType,
-						configSelectedModuleContext
+						$configSelectedModuleContextType,
+						$configSelectedModuleContext
 					)
 						? 'bg-gray-300 dark:bg-gray-600'
 						: 'hover:bg-gray-200 dark:hover:bg-gray-700'
