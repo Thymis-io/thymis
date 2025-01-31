@@ -65,6 +65,10 @@
 		"unknown-target": "Unknown Target",
 		"limit-explain": "You can manage up to {deviceLimit} configurations.\nFor larger projects, we offer scalable plans to meet your needs at thymis.io/"
 	},
+	"codeblock": {
+		"copy": "Copy",
+		"copied": "Copied!"
+	},
 	"hardware-devices": {
 		"table": {
 			"configuration-name": "Deployed Configuration",
