@@ -76,7 +76,7 @@ jobs:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
         run: |
-          if grep -q "npmDepsHash is out of date" thymis/build.log; then
+          if grep -q "hash mismatch in fixed-output derivation" thymis/build.log; then
             cd thymis-2
             echo "frontendHashFailure detected, committing new hash"
             # git config --global user.name github-actions[bot]
