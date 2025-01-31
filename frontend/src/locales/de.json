@@ -31,7 +31,8 @@
 	},
 	"vnc": {
 		"connection-failed": "Verbindungsfehler",
-		"control-device": "Gerät Steuern"
+		"control-device": "Gerät Steuern",
+		"column-count": "Ansichten pro Zeile:"
 	},
 	"configurations": {
 		"title": "Gerätekonfigurationen",
