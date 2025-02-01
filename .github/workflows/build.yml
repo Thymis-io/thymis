@@ -38,6 +38,22 @@ jobs:
           script: |
             nix build .#thymis-agent --print-build-logs
 
+  build-agent-aarch64:
+    runs-on: ubuntu-22.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-nix
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: build thymis-agent-aarch64
+        uses: ./.github/actions/run-command-with-nix-cache-upload
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            nix build .#thymis-agent --print-build-logs
+
   build-thymis-controller:
     runs-on: ubuntu-latest
     steps:
