@@ -35,7 +35,6 @@ def get_state(project: Project = Depends(get_project)):
 
 
 def get_db_session(connection: HTTPConnection) -> Generator[Session, None, None]:
-    logger.info("get_db_session called")
     with Session(connection.state.engine) as session:
         yield session
 
