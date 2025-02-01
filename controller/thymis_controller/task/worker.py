@@ -285,6 +285,8 @@ def deploy_devices_task(
     task_data = task.data
     assert task_data.type == "deploy_devices_task"
 
+    report_task_finished(task, conn, True, "Waiting for child tasks to finish")
+
 
 def build_device_image_task(
     task: models_task.TaskSubmission, conn: Connection, process_list: ProcessList

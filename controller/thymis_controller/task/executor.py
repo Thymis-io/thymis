@@ -181,8 +181,10 @@ class TaskWorkerPoolManager:
                                 task.nix_info_logs = status.logs_by_level.get(3)
                                 db_session.commit()
                             case models_task.TaskCompletedUpdate():
-                                task.state = "completed"
-                                task.end_time = datetime.now()
+                                # task.state = "completed"
+                                if not task.children:
+                                    task.state = "completed"
+                                    task.end_time = datetime.now()
                                 db_session.commit()
                                 conn.close()
                                 break
