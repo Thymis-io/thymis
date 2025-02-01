@@ -225,16 +225,8 @@ class SSHCommandTaskSubmission(BaseModel):
     target_host: str
     target_port: int
     command: str
-    ssh_key_path: str | None = Field(
-        default_factory=warn_if_called_and_return_none(
-            "SSHCommandTaskSubmission", "ssh_key_path"
-        )
-    )
-    ssh_known_hosts_path: str | None = Field(
-        default_factory=warn_if_called_and_return_none(
-            "SSHCommandTaskSubmission", "ssh_known_hosts_path"
-        )
-    )
+    ssh_key_path: str
+    ssh_known_hosts_path: str
 
 
 class RunNixOSVMTaskSubmission(BaseModel):
