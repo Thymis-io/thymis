@@ -182,7 +182,7 @@ def deploy_device_task(
             f"-o KbdInteractiveAuthentication=no "
             f"-o ConnectTimeout=10 "
             f"-o BatchMode=yes "
-            f"-o 'ProxyCommand python -m thymis_controller.access_client {task_data.controller_access_client_endpoint} {task_data.device.deployment_info_id}' "
+            f"-o 'ProxyCommand {(os.getenv('PYTHONENV')+'/bin/python') if ('PYTHONENV' in os.environ) else 'python' } -m thymis_controller.access_client {task_data.controller_access_client_endpoint} {task_data.device.deployment_info_id}' "
             "-T",
             "PATH": os.getenv("PATH"),
             "HTTP_NETWORK_RELAY_SECRET": task_data.access_client_token,

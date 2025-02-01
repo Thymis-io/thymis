@@ -29,6 +29,7 @@ writeShellApplication {
   text = ''
     export UVICORN_HOST="''${UVICORN_HOST:=127.0.0.1}"
     export UVICORN_PORT="''${UVICORN_PORT:=8000}"
+    export PYTHONENV=${pythonEnv}
     export THYMIS_FRONTEND_BINARY_PATH=${thymis-frontend}/bin/thymis-frontend
     export THYMIS_ALEMBIC_INI_PATH="''${THYMIS_ALEMBIC_INI_PATH:=${./alembic.ini}}"
     ${pythonEnv}/bin/uvicorn thymis_controller.main:app "$@"
