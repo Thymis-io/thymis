@@ -5,7 +5,11 @@
 	import { page } from '$app/stores';
 	import { nameToIdentifier, nameValidation, deviceTypeValidation } from '$lib/nameValidation';
 	import MultiSelect from 'svelte-multiselect';
-	import { getThymisDeviceModule, getDeviceTypesMap } from '$lib/config/configUtils';
+	import {
+		getThymisDeviceModule,
+		getDeviceTypesMap,
+		getAllowedImageFormatsForDeviceType
+	} from '$lib/config/configUtils';
 
 	export let open = false;
 
@@ -36,6 +40,9 @@
 		const identifier = nameToIdentifier(displayName);
 		const thymisDeviceModuleSettings = {
 			device_type: selectedDeviceType,
+			image_format:
+				getAllowedImageFormatsForDeviceType(selectedDeviceType, availableModules)?.[0] ||
+				'sd-card-image',
 			device_name: identifier,
 			nix_state_version: '24.11',
 			agent_controller_url: `${window.location.protocol}//${window.location.host}`,

@@ -29,6 +29,18 @@ export const getDeviceTypesMap = (availableModules: Module[]) => {
 	return {};
 };
 
+export const getAllowedImageFormatsForDeviceType = (
+	deviceType: string,
+	availableModules: Module[]
+) => {
+	const thymisDeviceModule = getThymisDeviceModule(availableModules);
+	if (isASelectOneSetting(thymisDeviceModule?.settings['image_format'].type)) {
+		return thymisDeviceModule?.settings['image_format'].type['extra_data']
+			?.restrict_values_on_other_key['device_type'][deviceType] as string[] | undefined;
+	}
+	return [];
+};
+
 export const getDeviceType = (device: Device | undefined) => {
 	return device?.modules.find(
 		(module) => module.type === 'thymis_controller.modules.thymis.ThymisDevice'
