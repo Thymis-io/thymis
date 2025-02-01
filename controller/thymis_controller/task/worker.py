@@ -186,7 +186,11 @@ def deploy_device_task(
             "-T",
             "PATH": os.getenv("PATH"),
             "HTTP_NETWORK_RELAY_SECRET": task_data.access_client_token,
-            "DBUS_SESSION_BUS_ADDRESS": os.getenv("DBUS_SESSION_BUS_ADDRESS"),
+            **(
+                {"DBUS_SESSION_BUS_ADDRESS": os.getenv("DBUS_SESSION_BUS_ADDRESS")}
+                if "DBUS_SESSION_BUS_ADDRESS" in os.environ
+                else {}
+            ),
         }
         toplevel_path = f"{tmpdir}/toplevel"
         returncode = run_command(
