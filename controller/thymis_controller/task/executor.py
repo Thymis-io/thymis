@@ -347,6 +347,8 @@ class TaskWorkerPoolManager:
 
             logger.info("Task %s finished with state %s", task_id, task.state)
             if "RUNNING_IN_PLAYWRIGHT" in os.environ and task.state == "failed":
+                print(f"Task error for task {task_id}:")
+                print(task.exception)
                 print(f"STDOUT for task {task_id}:")
                 if task.process_stdout:
                     print(task.process_stdout.decode("utf-8"))
