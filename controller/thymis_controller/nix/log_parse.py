@@ -250,9 +250,12 @@ class NixParser:
                 parsed.nix_line.id
             ]
             if parsed.nix_line.text:
-                self.get_log_by_level(min(parsed.nix_line.level, 3)).append(
-                    f"{parsed.nix_line.text}..."
-                )
+                if parsed.nix_line.level < 4:
+                    self.get_log_by_level(parsed.nix_line.level).append(
+                        f"{parsed.nix_line.text}..."
+                    )
+                else:
+                    self.other_messages.append(f"{parsed.nix_line.text}...")
         elif isinstance(parsed.nix_line, StopActivityNixLine):
             activity_info = self.activity_info_by_id[parsed.nix_line.id]
             activity_by_type = self.activities_done_expect_failed_by_type[
