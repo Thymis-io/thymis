@@ -1,4 +1,4 @@
-{ config, lib, pkgs, inputs, modulesPath, ... }:
+{ config, lib, pkgs, inputs, modulesPath, options, ... }:
 let
   cfg = config.thymis.config;
   use-wifi = cfg.wifi-ssid != "" && cfg.wifi-password != "";
@@ -93,6 +93,7 @@ in
     networking.firewall = {
       allowedTCPPorts = [ 22 ];
     };
+    networking.timeServers = options.networking.timeServers.default ++ [ "time.uni-paderborn.de" ];
     thymis.config.agent.enable = lib.mkDefault true;
     systemd.services.thymis-agent = lib.mkIf cfg.agent.enable {
       description = "Thymis agent";
