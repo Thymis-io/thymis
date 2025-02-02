@@ -1,3 +1,6 @@
+import hashlib
+import json
+
 import thymis_controller.modules.modules as modules
 from thymis_controller import models
 from thymis_controller.project import Project
@@ -142,7 +145,9 @@ class Kiosk(modules.Module):
             else self.audio_sink_fuzzy.default
         )
 
-        nonce = hash(str(module_settings.__dict__))
+        nonce = hashlib.sha256(
+            json.dumps(module_settings.__dict__, sort_keys=True).encode()
+        ).hexdigest()
 
         f.write(
             f"""
@@ -177,6 +182,17 @@ class Kiosk(modules.Module):
             '');
             systemd.services.display-manager.restartIfChanged = lib.mkOverride {priority} true;
             systemd.services.display-manager.environment.NONCE = lib.mkOverride {priority} "{nonce}";
-            networking.firewall.allowedTCPPorts = [ 5900 ];
+            # networking.firewall.allowedTCPPorts = [ 5900 ];
+            system.activationScripts.restart-display-manager-thymis = {{
+                supportsDryActivation = true;
+                text = ''
+                    if [ "$NIXOS_ACTION" != dry-activate ]; then
+                        touch /activation-was-run
+                        echo display-manager.service > /run/nixos/activation-restart-list
+                    else
+                        echo display-manager.service > /run/nixos/dry-activation-restart-list
+                    fi
+                '';
+            }};
             """.strip()
         )
