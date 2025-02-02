@@ -349,9 +349,9 @@ class ThymisDevice(modules.Module):
             en="Thymis Controller URL",
             de="Thymis Controller-URL",
         ),
-        nix_attr_name="thymis.config.agent.controller-url",
+        # nix_attr_name="thymis.config.agent.controller-url",
         type="string",
-        default="",
+        default=global_settings.AGENT_ACCESS_URL or global_settings.BASE_URL or "",
         description=modules.LocalizedString(
             en="URL of this Thymis Controller instance",
             de="URL dieser Thymis Controller-Instanz",
@@ -625,6 +625,12 @@ class ThymisDevice(modules.Module):
             else self.timezone.default
         )
 
+        agent_controller_url = (
+            module_settings.settings["agent_controller_url"]
+            if "agent_controller_url" in module_settings.settings
+            else self.agent_controller_url.default
+        )
+
         f.write("  imports = [\n")
 
         if write_target_type == "hosts":
@@ -638,6 +644,11 @@ class ThymisDevice(modules.Module):
 
         f.write("  ];\n")
 
+        if agent_controller_url:
+            f.write(
+                f"  thymis.config.agent.controller-url = lib.mkOverride {priority} {convert_python_value_to_nix(agent_controller_url)};\n"
+            )
+
         if authorized_keys:
             keys = list(
                 map(lambda x: x["key"] if "key" in x else None, authorized_keys)
@@ -645,8 +656,8 @@ class ThymisDevice(modules.Module):
         else:
             keys = []
 
-        if project.public_key:
-            keys.append(project.public_key)
+        # if project.public_key:
+        #     keys.append(project.public_key)
 
         if len(keys) > 0:
             key_list_nix = convert_python_value_to_nix(keys, ident=1)

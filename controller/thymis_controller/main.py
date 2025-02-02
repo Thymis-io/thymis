@@ -155,7 +155,7 @@ async def lifespan(app: FastAPI):
     notification_manager.start()
     host, port = detect_host_port()
     db_engine = create_sqlalchemy_engine()
-    network_relay = NetworkRelay(db_engine)
+    network_relay = NetworkRelay(db_engine, notification_manager)
     task_controller = TaskController(
         f"ws://{host}:{port}/agent/relay_for_clients", network_relay
     )

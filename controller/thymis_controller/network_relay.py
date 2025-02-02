@@ -16,6 +16,7 @@ from pydantic import BaseModel
 from thymis_controller.config import global_settings
 
 if TYPE_CHECKING:
+    from thymis_controller.notifications import NotificationManager
     from thymis_controller.task.controller import TaskController
 
 logger = logging.getLogger(__name__)
@@ -75,7 +76,7 @@ class NetworkRelay(nr.NetworkRelay):
     CustomAgentToRelayMessage = agent.AgentToRelayMessage
     CustomAgentToRelayStartMessage = agent.EdgeAgentToRelayStartMessage
 
-    def __init__(self, db_engine):
+    def __init__(self, db_engine, notification_manager):
         super().__init__()
         self.db_engine = db_engine
         self.public_key_to_connection_id = {}
@@ -84,6 +85,7 @@ class NetworkRelay(nr.NetworkRelay):
             str, agent.EdgeAgentToRelayStartMessage
         ] = {}
         self.task_controller: Optional["TaskController"] = None
+        self.notification_manager: "NotificationManager" = notification_manager
 
     async def handle_custom_agent_message(self, message: agent.AgentToRelayMessage):
         match message.inner:
@@ -173,12 +175,12 @@ class NetworkRelay(nr.NetworkRelay):
         self,
         edge_agent_connection: WebSocket,
     ):
-        (
-            msg_loop,
-            connection_id,
-        ) = await super().accept_ws_and_start_msg_loop_for_edge_agents(
+        res = await super().accept_ws_and_start_msg_loop_for_edge_agents(
             edge_agent_connection
         )
+        if res is None:
+            return
+        msg_loop, connection_id = res
         # we can establish ssh connections here
         # check that the public key is valid
 
@@ -280,6 +282,10 @@ class NetworkRelay(nr.NetworkRelay):
                 del self.public_key_to_connection_id[public_key]
                 del self.connection_id_to_public_key[connection_id]
                 del self.connection_id_to_start_message[connection_id]
+
+        self.notification_manager.broadcast_invalidate_notification(
+            ["/api/connected_deployment_infos_by_config_id"]
+        )
 
         return msg_loop_but_close_connection_at_end(), connection_id
 

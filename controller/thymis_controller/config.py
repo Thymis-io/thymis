@@ -9,6 +9,7 @@ class GlobalSettings(BaseSettings):
     ALEMBIC_INI_PATH: str = f"{pathlib.Path(__file__).parent.parent}/alembic.ini"
 
     BASE_URL: str = "http://localhost:8000"
+    AGENT_ACCESS_URL: str | None = None
 
     FRONTEND_BINARY_PATH: str | None = None
     AUTH_BASIC: bool = True

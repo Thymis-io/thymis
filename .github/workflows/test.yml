@@ -90,28 +90,7 @@ jobs:
           script: |
             set +e  # revert the default `set -e`
             export THYMIS_FLAKE_ROOT='..'
-            cd frontend
-            OUR_NIX=$(readlink -f $(which nix))
-            OUR_NIX_PARENT=$(dirname $OUR_NIX)
-            TEE=$(which tee)
-            OLD_PATH=$PATH
-            export PATH=$OUR_NIX_PARENT
-            $OUR_NIX develop .#forNpmTesting --command npm run test 2>&1 | $TEE output.log
-            export PATH=$OLD_PATH
-            PLAYWRIGHT_EXIT_CODE=$?
-            if grep -q -e "Error: A snapshot doesn't exist at" -e "Screenshot comparison failed" output.log; then
-              echo "Playwright tests failed due to a snapshot issue"
-              echo "SNAPSHOT_DIFFERENCES=true" >> $GITHUB_ENV
-            fi
-            if grep -q -E -e "npx playwright install" -e "error: attribute '\"[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+\"' missing" output.log; then
-              echo "Playwright tests failed due to missing browsers"
-              echo "MISSING_BROWSERS=true" >> $GITHUB_ENV
-            fi
-            if grep -q -E -e "[[:digit:]]+ failed" -e "was not able to start" output.log; then
-              echo "Playwright tests failed"
-              exit 1
-            fi
-            exit $PLAYWRIGHT_EXIT_CODE
+            ../.github/npm_test_integration.sh
           working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload
@@ -209,28 +188,113 @@ jobs:
           script: |
             set +e  # revert the default `set -e`
             # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
-            cd frontend
-            OUR_NIX=$(readlink -f $(which nix))
-            OUR_NIX_PARENT=$(dirname $OUR_NIX)
-            TEE=$(which tee)
-            OLD_PATH=$PATH
-            export PATH=$OUR_NIX_PARENT
-            $OUR_NIX develop .#forNpmTesting --command npm run test 2>&1 | $TEE output.log
-            export PATH=$OLD_PATH
-            PLAYWRIGHT_EXIT_CODE=$?
-            if grep -q -e "Error: A snapshot doesn't exist at" -e "Screenshot comparison failed" output.log; then
-              echo "Playwright tests failed due to a snapshot issue"
-              echo "SNAPSHOT_DIFFERENCES=true" >> $GITHUB_ENV
-            fi
-            if grep -q -E -e "npx playwright install" -e "error: attribute '\"[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+\"' missing" output.log; then
-              echo "Playwright tests failed due to missing browsers"
-              echo "MISSING_BROWSERS=true" >> $GITHUB_ENV
-            fi
-            if grep -q -E -e "[[:digit:]]+ failed" -e "was not able to start" output.log; then
-              echo "Playwright tests failed"
-              exit 1
-            fi
-            exit $PLAYWRIGHT_EXIT_CODE
+            ../.github/npm_test_integration.sh
+          working-directory: frontend
+      - uses: actions/upload-artifact@v4
+        id: artifact-upload
+        if: always()
+        with:
+          name: playwright-report-stable-input
+          path: frontend/playwright-report/
+          retention-days: 30
+      - name: Comment on PR with report link
+        uses: thollander/actions-comment-pull-request@v3
+        if: ${{ always() && github.event_name == 'pull_request' && env.SNAPSHOT_DIFFERENCES == 'true' }}
+        with:
+          message: |
+            ### Playwright visual snapshot differences were detected.
+            View the [Playwright report](${{ steps.artifact-upload.outputs.artifact-url }}) to review the visual differences.
+            **To approve the snapshot changes and update the snapshots, please comment:** /approve-snapshots
+          comment-tag: playwright-snapshots
+          mode: recreate
+
+  test-frontend-integration-x64:
+    runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-nix
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: |
+          npm ci
+        working-directory: frontend
+      - name: Build application
+        uses: ./.github/actions/run-command-with-nix-cache-upload
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            nix build .#thymis-controller --print-build-logs
+      - name: Run tests
+        uses: ./.github/actions/run-command-with-nix-cache-upload
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            set +e  # revert the default `set -e`
+            export THYMIS_FLAKE_ROOT='..'
+            ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
+          working-directory: frontend
+      - uses: actions/upload-artifact@v4
+        id: artifact-upload
+        if: always()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 30
+      - name: Comment on PR with report link
+        uses: thollander/actions-comment-pull-request@v3
+        if: ${{ always() && github.event_name == 'pull_request' && env.SNAPSHOT_DIFFERENCES == 'true' }}
+        with:
+          message: |
+            ### Playwright visual snapshot differences were detected.
+            View the [Playwright report](${{ steps.artifact-upload.outputs.artifact-url }}) to review the visual differences.
+            **To approve the snapshot changes and update the snapshots, please comment:** /approve-snapshots
+          comment-tag: playwright-snapshots
+          mode: recreate
+
+  test-frontend-integration-stable-input-x64:
+    runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-nix
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: |
+          npm ci
+        working-directory: frontend
+      - name: Build application
+        uses: ./.github/actions/run-command-with-nix-cache-upload
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            nix build .#thymis-controller --print-build-logs
+      - name: Run tests
+        uses: ./.github/actions/run-command-with-nix-cache-upload
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            set +e  # revert the default `set -e`
+            # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
+            ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
           working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload

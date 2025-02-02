@@ -226,9 +226,6 @@ class TaskWorkerPoolManager:
                                     new_task = self.controller.submit(
                                         new_task_submission, db_session
                                     )
-                                    if task.children is None:
-                                        task.children = []
-                                    task.children.append(new_task.id)
                                     db_session.commit()
                             case (
                                 models_task.AgentShouldSwitchToNewConfigurationUpdate()

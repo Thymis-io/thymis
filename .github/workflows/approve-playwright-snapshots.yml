@@ -78,7 +78,7 @@ jobs:
         with:
           message: |
             ### 🎉 Successfully updated and committed Playwright snapshots! 🎉
-            comment-tag: playwright-snapshots-update-success
+          comment-tag: playwright-snapshots-update-success
           mode: recreate
           github-token: ${{ steps.generate-token.outputs.token }}
 

@@ -3,19 +3,23 @@ import datetime
 import threading
 import traceback
 from queue import Queue
+from typing import Literal, Union
 
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.websockets import WebSocketState
+from pydantic import BaseModel, Field
+
+NotificationDataInner = Union["ShouldInvalidate", "FrontendToast"]
 
 
 class Notification:
-    message: str
+    data: "NotificationData"
     creation_time: datetime.datetime
     last_try: datetime.datetime
     send_to: list[WebSocket]
 
-    def __init__(self, message: str):
-        self.message = message
+    def __init__(self, message: NotificationDataInner):
+        self.data = NotificationData(inner=message)
         self.creation_time = datetime.datetime.now()
         self.last_try = datetime.datetime.max
         self.send_to = []
@@ -27,6 +31,20 @@ class Notification:
     def can_retry(self):
         now = datetime.datetime.now()
         return now - self.creation_time < datetime.timedelta(seconds=5)
+
+
+class NotificationData(BaseModel):
+    inner: NotificationDataInner = Field(discriminator="kind")
+
+
+class ShouldInvalidate(BaseModel):
+    kind: Literal["should_invalidate"] = "should_invalidate"
+    should_invalidate_paths: list[str]
+
+
+class FrontendToast(BaseModel):
+    kind: Literal["frontend_toast"] = "frontend_toast"
+    message: str
 
 
 class NotificationManager:
@@ -95,8 +113,8 @@ class NotificationManager:
             websocket.client_state,
         )
 
-    def broadcast(self, message: str):
-        self.queue.put(Notification(message))
+    def broadcast_toast_notification(self, message: str):
+        self.queue.put(Notification(FrontendToast(message=message)))
 
     async def _broadcast(self, message: Notification):
         for connection in self.active_connections:
@@ -105,8 +123,11 @@ class NotificationManager:
             if not self.is_connection_healthy(connection):
                 continue
             try:
-                await connection.send_json({"message": message.message})
+                await connection.send_text(message.data.model_dump_json())
                 message.send_to.append(connection)
             except Exception:
                 self.disconnect(connection)
                 traceback.print_exc()
+
+    def broadcast_invalidate_notification(self, paths: list[str]):
+        self.queue.put(Notification(ShouldInvalidate(should_invalidate_paths=paths)))
