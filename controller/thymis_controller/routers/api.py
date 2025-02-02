@@ -188,10 +188,12 @@ async def download_image(
     non_file_endings = ["nixos-vm"]
     image_dir = global_settings.PROJECT_PATH / "images"
     relevant_paths = []
+    our_ending = None
     for ending in expected_endings:
         image_path = image_dir / f"{identifier}.{ending}"
         if image_path.exists():
             relevant_paths.append(image_path)
+            our_ending = ending
             if ending in non_file_endings:
                 return RedirectResponse(url=f"/images/{device.identifier}.{ending}")
 
@@ -204,7 +206,7 @@ async def download_image(
     return FileResponse(
         relevant_paths[0],
         headers={"content-encoding": "none"},
-        filename=f"thymis-image-{device.identifier}.{ending}",
+        filename=f"thymis-image-{device.identifier}.{our_ending}",
     )
 
 
