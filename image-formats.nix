@@ -98,6 +98,10 @@ let
 
       echo "Copying secrets to FAT partition done"
 
+      ${pkgs.util-linux}/bin/setsid ${pkgs.dosfstools}/bin/fsck.vfat -vn "$TMPDIR/image_first_fat_partition"
+
+      echo "Copying back first FAT partition to $FINAL_IMAGE_DESTINATION"
+
       dd if="$TMPDIR/image_first_fat_partition" of="$FINAL_IMAGE_DESTINATION" conv=notrunc seek="$FIRST_FAT_PARTITION_START" count="$FIRST_FAT_PARTITION_SECTORS" status=progress
 
       if [ $IS_QCOW2 -eq 1 ]; then
