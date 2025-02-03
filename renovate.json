@@ -9,7 +9,7 @@
   },
   "automerge": true,
   "rebaseWhen": "auto",
-  "gitIgnoredAuthors": ["185514190+thymis-app[bot]@users.noreply.github.com"],
+  "gitIgnoredAuthors": ["185514190+thymis-github-app[bot]@users.noreply.github.com"],
   "prConcurrentLimit": 3,
   "packageRules": [
     {
