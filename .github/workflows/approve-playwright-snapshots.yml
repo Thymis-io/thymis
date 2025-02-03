@@ -11,6 +11,9 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - uses: dbhi/qus/action@main
+        with:
+          targets: aarch64
       - name: Get branch of PR
         uses: xt0rted/pull-request-comment-branch@v3
         id: comment-branch
@@ -36,6 +39,8 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          extra_nix_config: |
+            extra-platforms = aarch64-linux
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
