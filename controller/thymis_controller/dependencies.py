@@ -23,7 +23,6 @@ ProjectAD = Annotated[Project, Depends(get_project)]
 
 
 def get_network_relay(connection: HTTPConnection) -> NetworkRelay:
-    logger.info("get_network_relay called")
     return connection.state.network_relay
 
 
