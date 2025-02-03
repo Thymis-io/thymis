@@ -297,10 +297,10 @@ jobs:
             ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
           working-directory: frontend
       - uses: actions/upload-artifact@v4
-        id: artifact-upload-x64-stable-input
+        id: artifact-upload
         if: always()
         with:
-          name: playwright-report-stable-input
+          name: playwright-report-stable-input-x64
           path: frontend/playwright-report/
           retention-days: 30
       - name: Comment on PR with report link
