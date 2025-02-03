@@ -98,12 +98,15 @@ class TaskWorkerPoolManager:
             task.add_exception("Task was cancelled")
             db_session.commit()
             self.ui_subscription_manager.notify_task_update(task)
-        self.send_message_to_task(
-            task_id,
-            models_task.ControllerToRunnerTaskUpdate(
-                inner=models_task.CancelTask(id=task_id)
-            ),
-        )
+        try:
+            self.send_message_to_task(
+                task_id,
+                models_task.ControllerToRunnerTaskUpdate(
+                    inner=models_task.CancelTask(id=task_id)
+                ),
+            )
+        except OSError as e:
+            logger.error("Failed to send message to task %s: %s", task_id, e)
 
     def send_message_to_task(
         self, task_id: uuid.UUID, message: models_task.ControllerToRunnerTaskUpdate
