@@ -251,25 +251,34 @@ async def vnc_websocket(
     deployment_info_id: uuid.UUID,
     db_session: SessionAD,
     websocket: WebSocket,
+    network_relay: NetworkRelayAD,
 ):
     deployment_info = crud.deployment_info.get_by_id(db_session, deployment_info_id)
 
-    if device is None or deployment_info.reachable_deployed_host is None:
+    if deployment_info is None:
         await websocket.close()
         return
 
     await websocket.accept()
 
-    tcp_ip = deployment_info.reachable_deployed_host
-    tcp_port = 5900
+    agent_connection_id = network_relay.public_key_to_connection_id.get(
+        deployment_info.ssh_public_key
+    )
+
+    if agent_connection_id is None:
+        await websocket.close()
+        return
+
     try:
-        tcp_reader, tcp_writer = await asyncio.open_connection(tcp_ip, tcp_port)
+        connection = await network_relay.create_connection_async(
+            agent_connection_id, "localhost", 5900, "tcp"
+        )
     except Exception:
         await websocket.close()
         return
 
-    tcp_to_ws_task = asyncio.create_task(tcp_to_websocket(tcp_reader, websocket))
-    ws_to_tcp_task = asyncio.create_task(websocket_to_tcp(tcp_writer, websocket))
+    tcp_to_ws_task = asyncio.create_task(tcp_to_websocket(connection, websocket))
+    ws_to_tcp_task = asyncio.create_task(websocket_to_tcp(connection, websocket))
 
     try:
         await asyncio.gather(tcp_to_ws_task, ws_to_tcp_task)

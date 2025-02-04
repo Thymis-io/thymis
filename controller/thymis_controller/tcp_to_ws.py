@@ -1,39 +1,40 @@
 import asyncio
 import json
+import traceback
 
 from fastapi import WebSocket, WebSocketDisconnect
+from http_network_relay.network_relay import TcpConnectionAsync
 from paramiko import Channel
 
 
-async def tcp_to_websocket(tcp_reader, websocket):
+async def tcp_to_websocket(connection: TcpConnectionAsync, websocket: WebSocket):
     try:
         while True:
-            data = await tcp_reader.read(1024)
+            data = await connection.read(1024)
             if not data:
                 break
             await websocket.send_bytes(data)
     except asyncio.CancelledError:
         pass
-    except Exception as e:
-        print(f"Error in tcp_to_websocket: {e}")
+    except Exception:
+        traceback.print_exc()
     finally:
         await websocket.close()
 
 
-async def websocket_to_tcp(tcp_writer, websocket):
+async def websocket_to_tcp(connection: TcpConnectionAsync, websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_bytes()
-            tcp_writer.write(data)
-            await tcp_writer.drain()
+            await connection.send(data)
     except WebSocketDisconnect:
         pass
     except asyncio.CancelledError:
         pass
-    except Exception as e:
-        print(f"Error in websocket_to_tcp: {e}")
+    except Exception:
+        traceback.print_exc()
     finally:
-        tcp_writer.close()
+        await connection.close()
 
 
 async def channel_to_websocket(channel: Channel, websocket: WebSocket):
@@ -50,8 +51,8 @@ async def channel_to_websocket(channel: Channel, websocket: WebSocket):
             await websocket.send_bytes(data)
     except asyncio.CancelledError:
         pass
-    except Exception as e:
-        print(f"Error in channel_to_websocket: {e}")
+    except Exception:
+        traceback.print_exc()
     finally:
         await websocket.close()
 
@@ -72,7 +73,7 @@ async def websocket_to_channel(channel: Channel, websocket: WebSocket):
         pass
     except asyncio.CancelledError:
         pass
-    except Exception as e:
-        print(f"Error in websocket_to_channel: {e}")
+    except Exception:
+        traceback.print_exc()
     finally:
         channel.close()
