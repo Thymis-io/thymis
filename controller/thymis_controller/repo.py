@@ -14,7 +14,6 @@ class Commit(BaseModel):
     message: str
     date: datetime.datetime
     author: str
-    state_diff: list[str] = []
 
 
 class Repo:
@@ -66,3 +65,15 @@ class Repo:
             for line in result.stdout.splitlines()
             for sha, sha1, message, date, author in [line.split("\x00")]
         ]
+
+    def diff(self, refA: str, refB: str) -> list[str]:
+        refA = refA or "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+        refB = refB or "HEAD"
+
+        result = subprocess.run(
+            ["git", "diff", refA, refB, "state.json"],
+            cwd=self.path,
+            capture_output=True,
+            text=True,
+        )
+        return result.stdout

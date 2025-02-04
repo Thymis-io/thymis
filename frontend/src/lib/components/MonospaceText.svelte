@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import Copy from 'lucide-svelte/icons/copy';
-	import { HighlightAuto, LineNumbers } from 'svelte-highlight';
+	import { HighlightAuto, LineNumbers, Highlight } from 'svelte-highlight';
+	import type { LanguageType } from 'svelte-highlight/languages';
 	import ashes from 'svelte-highlight/styles/ashes';
 
 	export let code;
+	export let language: LanguageType<string> | undefined;
 
 	let copied = false;
 
@@ -22,9 +24,15 @@
 </svelte:head>
 
 <div class="relative">
-	<HighlightAuto {code} let:highlighted>
-		<LineNumbers {highlighted} />
-	</HighlightAuto>
+	{#if language}
+		<Highlight {code} {language} let:highlighted>
+			<LineNumbers {highlighted} />
+		</Highlight>
+	{:else}
+		<HighlightAuto {code} let:highlighted>
+			<LineNumbers {highlighted} />
+		</HighlightAuto>
+	{/if}
 	<div class="absolute top-2 right-2">
 		<button
 			class="absolute right-0 flex items-center gap-2 z-20 text-white hover:bg-gray-700 rounded-md p-1 w-max h-max opacity-30 hover:opacity-100"

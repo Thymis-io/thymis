@@ -4,7 +4,6 @@ export type Commit = {
 	date: string;
 	SHA: string;
 	SHA1: string;
-	state_diff: string[] | undefined;
 };
 
 export type Remote = {

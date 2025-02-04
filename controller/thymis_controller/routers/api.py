@@ -3,7 +3,7 @@ import logging
 import re
 import traceback
 import uuid
-from typing import Annotated
+from typing import Annotated, Optional
 
 import paramiko
 from fastapi import (
@@ -233,6 +233,15 @@ def revert_commit(
 @router.get("/history/remotes", tags=["history"])
 def get_remotes(project: ProjectAD):
     raise NotImplementedError
+
+
+@router.get("/history/diff", tags=["history"])
+def get_diff(
+    project: ProjectAD,
+    refA: Optional[str] = "",
+    refB: Optional[str] = "",
+):
+    return project.repo.diff(refA, refB)
 
 
 @router.post("/action/update")

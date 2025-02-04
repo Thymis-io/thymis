@@ -16,7 +16,6 @@ import sqlalchemy
 import sqlalchemy.orm
 from thymis_controller import crud, migration, models, task
 from thymis_controller.config import global_settings
-from thymis_controller.models import history
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
 from thymis_controller.repo import Repo
@@ -142,7 +141,6 @@ class Project:
     known_hosts_path: pathlib.Path
     public_key: str
     state_lock = threading.Lock()
-    history_lock = threading.Lock()
     repo_dir: pathlib.Path
 
     def __init__(self, path, db_session: sqlalchemy.orm.Session):

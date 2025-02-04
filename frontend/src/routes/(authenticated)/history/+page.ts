@@ -3,7 +3,7 @@ import type { Commit } from '$lib/history';
 import type { PageLoad } from './$types';
 
 export const load = (async ({ fetch }) => {
-	const history_response = fetchWithNotify(
+	const history_response = await fetchWithNotify(
 		`/api/history`,
 		{
 			method: 'GET',
@@ -13,14 +13,8 @@ export const load = (async ({ fetch }) => {
 		},
 		{},
 		fetch
-	).then((res) => {
-		if (res.ok) {
-			return res.json() as Promise<Commit[]>;
-		} else {
-			return [];
-		}
-	});
+	);
 	return {
-		history: history_response
+		history: (await history_response.json()) as Commit[]
 	};
 }) satisfies PageLoad;
