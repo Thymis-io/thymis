@@ -273,6 +273,8 @@ colorSchemes.forEach((colorScheme) => {
 			await expect(page).toHaveScreenshot();
 
 			await page.getByRole('button', { name: 'Save' }).click();
+			// wait for the modal to disappear
+			await page.locator('tr').filter({ hasText: 'Who Am I' }).waitFor();
 
 			await expect(page).toHaveScreenshot();
 		});
