@@ -351,7 +351,7 @@ class ThymisDevice(modules.Module):
         ),
         # nix_attr_name="thymis.config.agent.controller-url",
         type="string",
-        default=global_settings.AGENT_ACCESS_URL or global_settings.BASE_URL or "",
+        default="",
         description=modules.LocalizedString(
             en="URL of this Thymis Controller instance",
             de="URL dieser Thymis Controller-Instanz",
@@ -647,6 +647,13 @@ class ThymisDevice(modules.Module):
         if agent_controller_url:
             f.write(
                 f"  thymis.config.agent.controller-url = lib.mkOverride {priority} {convert_python_value_to_nix(agent_controller_url)};\n"
+            )
+        else:
+            default_agent_controller_url = (
+                global_settings.AGENT_ACCESS_URL or global_settings.BASE_URL or ""
+            )
+            f.write(
+                f"  thymis.config.agent.controller-url = lib.mkOverride 100 {convert_python_value_to_nix(default_agent_controller_url)};\n"
             )
 
         if authorized_keys:
