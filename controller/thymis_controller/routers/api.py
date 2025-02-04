@@ -90,7 +90,8 @@ async def deploy(
     task_controller: TaskControllerAD,
     network_relay: NetworkRelayAD,
 ):
-    project.commit(summary)
+    project.repo.add(".")
+    project.repo.commit(summary)
 
     devices: list[models.DeployDeviceInformation] = []
 
@@ -129,7 +130,8 @@ async def build_download_image(
     task_controller: TaskControllerAD,
     project: ProjectAD,
 ):
-    project.commit(f"Build image for {identifier}")
+    project.repo.add(".")
+    project.repo.commit(f"Build image for {identifier}")
 
     device = next(
         device
@@ -217,7 +219,7 @@ async def notification_websocket(websocket: WebSocket):
 
 @router.get("/history", tags=["history"])
 def get_history(project: ProjectAD):
-    return project.get_history()
+    return project.repo.history()
 
 
 @router.post("/history/revert-commit", tags=["history"])
@@ -225,13 +227,12 @@ def revert_commit(
     commit_sha: str,
     project: ProjectAD,
 ):
-    project.revert_commit(commit_sha)
-    return {"message": "reverted commit"}
+    raise NotImplementedError
 
 
 @router.get("/history/remotes", tags=["history"])
 def get_remotes(project: ProjectAD):
-    return project.get_remotes()
+    raise NotImplementedError
 
 
 @router.post("/action/update")

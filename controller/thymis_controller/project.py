@@ -11,7 +11,6 @@ import tempfile
 import threading
 import traceback
 
-import git
 import paramiko
 import sqlalchemy
 import sqlalchemy.orm
@@ -20,6 +19,7 @@ from thymis_controller.config import global_settings
 from thymis_controller.models import history
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
+from thymis_controller.repo import Repo
 
 logger = logging.getLogger(__name__)
 
@@ -138,7 +138,7 @@ def get_module_class_instance_by_type(module_type: str):
 
 class Project:
     path: pathlib.Path
-    repo: git.Repo
+    repo: Repo
     known_hosts_path: pathlib.Path
     public_key: str
     state_lock = threading.Lock()
@@ -150,12 +150,7 @@ class Project:
         # create the path if not exists
         self.path.mkdir(exist_ok=True, parents=True)
         self.repo_dir = self.path / "repository"
-        # create a git repo if not exists
-        if not (self.path / ".git").exists():
-            print("Initializing git repo")
-            self.repo = git.Repo.init(self.repo_dir)
-        else:
-            self.repo = git.Repo(self.repo_dir)
+        self.repo = Repo(self.repo_dir)
 
         # get public key of controller instance
         public_key_process = subprocess.run(
@@ -210,10 +205,12 @@ class Project:
         repositories = BUILTIN_REPOSITORIES | state.repositories
         with open(self.repo_dir / "flake.nix", "w+", encoding="utf-8") as f:
             f.write(render_flake_nix(repositories))
-        self.repo.git.add(".")
+        self.repo.add(".")
         # write missing flake.lock entries using nix flake lock
         subprocess.run(
-            ["nix", *NIX_CMD[1:], "flake", "lock"], cwd=self.repo_dir, check=True
+            ["nix", *NIX_CMD[1:], "flake", "lock", "--allow-dirty-locks"],
+            cwd=self.repo_dir,
+            check=True,
         )
         self.set_repositories_in_python_path(self.repo_dir, state)
         # create modules folder if not exists
@@ -238,7 +235,7 @@ class Project:
             self.create_folder_and_write_modules(
                 "tags", tag.identifier, tag.modules, tag.priority
             )
-        self.repo.git.add(".")
+        self.repo.add(".")
 
     def reload_from_disk(self):
         self.write_state_and_reload(self.read_state())
@@ -263,49 +260,12 @@ class Project:
         repositories = BUILTIN_REPOSITORIES | state.repositories
         load_repositories(path, repositories)
 
-    def commit(self, message: str):
-        self.repo.git.add(".")
-        try:
-            if self.repo.index.diff("HEAD"):
-                self.repo.index.commit(message)
-                logger.info("Committed changes: %s", message)
-        except git.BadName:
-            self.repo.index.commit(message)
-
-    def get_history(self):
-        try:
-            with self.history_lock:
-                return [
-                    history.Commit(
-                        message=commit.message,
-                        author=commit.author.name,
-                        date=commit.authored_datetime,
-                        SHA=commit.hexsha,
-                        SHA1=self.repo.git.rev_parse(commit.hexsha, short=True),
-                        state_diff=self.repo.git.diff(
-                            commit.hexsha,
-                            (
-                                commit.parents[0].hexsha
-                                if len(commit.parents) > 0
-                                else None
-                            ),
-                            "-R",
-                            "state.json",
-                            unified=5,
-                        ).split("\n")[4:],
-                    )
-                    for commit in self.repo.iter_commits()
-                ]
-        except Exception:
-            traceback.print_exc()
-            return []
-
     def clear_history(self, db_session: sqlalchemy.orm.Session):
         if "RUNNING_IN_PLAYWRIGHT" in os.environ:
             # reinits the git repo
             if (self.repo_dir / ".git").exists():
                 shutil.rmtree(self.repo_dir / ".git")
-            self.repo = git.Repo.init(self.repo_dir)
+            self.repo = Repo(self.repo_dir)
             self.write_state_and_reload(State())
             self.update_known_hosts(db_session)
 
@@ -322,17 +282,6 @@ class Project:
                     f.write(f"{di.reachable_deployed_host} {di.ssh_public_key}\n")
 
         logger.debug("Updated known_hosts file at %s", self.known_hosts_path)
-
-    def revert_commit(self, commit: str):
-        commit_to_revert = self.repo.commit(commit)
-        sha1 = self.repo.git.rev_parse(commit_to_revert.hexsha, short=True)
-        self.repo.git.rm("-r", ".")
-        self.repo.git.checkout(commit_to_revert.hexsha, ".")
-        self.repo.index.commit(f"Revert to {sha1}: {commit_to_revert.message}")
-        logger.info(f"Reverted commit: {commit_to_revert}")
-
-    def get_remotes(self):
-        return [history.Remote(name=r.name, url=r.url) for r in self.repo.remotes]
 
     def create_update_task(
         self, task_controller: "task.TaskController", db_session: sqlalchemy.orm.Session

@@ -60,7 +60,7 @@
 					</div>
 				</div>
 			</li>
-			{#if history.state_diff.length > 0}
+			{#if history.state_diff && history.state_diff.length > 0}
 				<Accordion flush class="mr-4 mb-8">
 					<AccordionItem tag="span" paddingFlush="py-2">
 						<span slot="header">{$t('history.open-diff')}</span>
