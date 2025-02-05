@@ -6,7 +6,7 @@ jobs:
   update-snapshots-aarch64:
     name: Update Snapshots aarch64
     if: github.event.issue.pull_request && contains(github.event.comment.body, '/approve-snapshots') && github.event.comment.author_association == 'MEMBER'
-    runs-on: ubuntu-aarch64
+    runs-on: ubuntu-22.04-arm
     permissions:
       contents: write
       pull-requests: write
