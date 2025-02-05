@@ -3,17 +3,14 @@ on:
   issue_comment:
     types: [created]
 jobs:
-  update-snapshots:
-    name: Update Snapshots
+  update-snapshots-aarch64:
+    name: Update Snapshots aarch64
     if: github.event.issue.pull_request && contains(github.event.comment.body, '/approve-snapshots') && github.event.comment.author_association == 'MEMBER'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-aarch64
     permissions:
       contents: write
       pull-requests: write
     steps:
-      - uses: dbhi/qus/action@main
-        with:
-          targets: aarch64
       - name: Get branch of PR
         uses: xt0rted/pull-request-comment-branch@v3
         id: comment-branch
@@ -39,8 +36,6 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          extra_nix_config: |
-            extra-platforms = aarch64-linux
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
@@ -86,3 +81,55 @@ jobs:
             comment-tag: playwright-snapshots-update-success
           mode: recreate
           github-token: ${{ steps.generate-token.outputs.token }}
+
+  update-snapshots-x86_64:
+    name: Update Snapshots x86_64
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/approve-snapshots') && github.event.comment.author_association == 'MEMBER'
+    runs-on: ubuntu-latest
+    needs: update-snapshots-aarch64
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Get branch of PR
+        uses: xt0rted/pull-request-comment-branch@v3
+        id: comment-branch
+      - name: Get Thymis App Token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.THYMIS_APP_ID }}
+          private-key: ${{ secrets.THYMIS_APP_PRIVATE_KEY }}
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
+      - name: Comment action started
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          message: |
+            ### Updating snapshots. Click [here](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) to see the status.
+          comment-tag: playwright-snapshots-update
+          mode: recreate
+          github-token: ${{ steps.generate-token.outputs.token }}
+      - uses: ./.github/actions/setup-nix
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: |
+          npm ci
+        working-directory: frontend
+      - name: Build application
+        run: |
+          nix build .#thymis-controller
+      - name: Run tests
+        run: |
+          if [ -f "tests/x86_vm.spec.ts" ]; then
+            nix develop .#forNpmTesting --command npm run test:integration -- --update-snapshots "tests/x86_vm.spec.ts"
+          fi
+        working-directory: frontend
