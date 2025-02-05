@@ -1,11 +1,11 @@
 import asyncio
-import base64
 import logging
 import re
 import traceback
 import uuid
 from typing import Annotated
 
+import paramiko
 from fastapi import (
     APIRouter,
     Depends,
@@ -464,12 +464,21 @@ async def terminal_websocket(
 
     await websocket.accept()
 
-    client = SSHClient()
-    keytype, key = deployment_info.ssh_public_key.split(" ", 1)
-    client.get_host_keys().add(
-        "[localhost]:None",
-        keytype,
-        PKey.from_type_string(keytype, base64.b64decode(key)),
+    class ExpectedHostKeyNotFound(Exception):
+        pass
+
+    class CheckForExpectedHostKey(paramiko.MissingHostKeyPolicy):
+        def __init__(self, expected_key):
+            self.expected_key = expected_key
+
+        def missing_host_key(self, client, hostname, key: paramiko.PKey):
+            actual_key = f"{key.get_name()} {key.get_base64()}"
+            if actual_key != self.expected_key:
+                raise ExpectedHostKeyNotFound()
+
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(
+        CheckForExpectedHostKey(deployment_info.ssh_public_key)
     )
 
     pkey: PKey = PKey.from_path(global_settings.PROJECT_PATH / "id_thymis")
@@ -493,6 +502,11 @@ async def terminal_websocket(
             ),
             pkey,
         )
+    except ExpectedHostKeyNotFound:
+        await websocket.send_bytes(b"Host key mismatch")
+        await websocket.close()
+        client.close()
+        return
     except Exception as e:
         await websocket.send_bytes(str(e).encode())
         await websocket.close()

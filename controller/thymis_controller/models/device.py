@@ -1,7 +1,6 @@
 import uuid
-from typing import Dict
+from typing import Dict, List
 
-from git import List
 from pydantic import BaseModel, ConfigDict, Field
 from thymis_controller import db_models
 

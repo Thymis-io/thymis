@@ -194,8 +194,10 @@ class NetworkRelay(nr.NetworkRelay):
 
         if not public_key_valid:
             logger.error(
-                "Cannot access agent %s with public key %s via ssh over websocket",
+                "Cannot access agent with public key %s via ssh over websocket",
+                self.connection_id_to_public_key[connection_id],
             )
+            await edge_agent_connection.close()
             return
 
         # the agent should also rekey if the public key has a deployment_info with a different hardware_device
