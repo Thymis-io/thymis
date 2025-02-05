@@ -110,9 +110,8 @@ class TaskController:
         return task_db
 
     def get_task(self, task_id: str, db_session: Session) -> models.Task:
-        return models.task.Task.model_validate(
+        return models.task.Task.from_orm_task(
             crud.task.get_task_by_id(db_session, task_id),
-            from_attributes=True,
         )
 
     def cancel_task(self, task_id: str):

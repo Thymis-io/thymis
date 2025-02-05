@@ -15,7 +15,8 @@ export type Task = {
 	state: TaskState;
 	exception?: string;
 	task_type: string;
-	task_submission_data: Record<string, unknown>;
+	task_submission_data: Record<string, unknown> | null;
+	task_submission_data_raw: Record<string, unknown> | null;
 
 	parent_task_id?: string;
 	children?: string[];
@@ -152,6 +153,7 @@ taskStatus.subscribe((tasks) => {
 	Object.values(tasks).forEach(async (task) => {
 		if (task.task_type !== 'build_device_image_task') return;
 		if (task.state !== 'completed') return;
+		if (!task.task_submission_data) return;
 		if (!('configuration_id' in task.task_submission_data)) return;
 		// check: this task was previously in the list, but not completed
 		const otherTask = lastTaskStatus[task.id];

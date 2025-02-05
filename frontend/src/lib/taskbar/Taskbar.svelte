@@ -27,11 +27,11 @@
 		deploy_devices_task: () => $t('taskbar.task-types.deploy_devices'),
 		deploy_device_task: ({ task_submission_data }) =>
 			$t('taskbar.task-types.deploy_device', {
-				values: { device: task_submission_data.device.identifier }
+				values: { device: task_submission_data?.device?.identifier }
 			}),
 		build_device_image_task: ({ task_submission_data }) =>
 			$t('taskbar.task-types.build_device_image', {
-				values: { device: task_submission_data.configuration_id }
+				values: { device: task_submission_data?.configuration_id }
 			}),
 		ssh_command_task: () => $t('taskbar.task-types.ssh_command')
 	} as Record<string, (args: any) => string>;

@@ -17,8 +17,13 @@ in
       };
       base-url = lib.mkOption {
         type = lib.types.str;
-        default = "http://localhost:8000";
         description = "Base URL of the controller, how it will be accessed from the outside";
+        example = "https://thymis.example.com";
+      };
+      agent-access-url = lib.mkOption {
+        type = lib.types.str;
+        description = "URL of the controller to which the agent will connect";
+        example = "https://thymis.example.com";
       };
       auth-basic = lib.mkOption {
         type = lib.types.bool;
@@ -68,6 +73,7 @@ in
       environment = {
         THYMIS_PROJECT_PATH = cfg.project-path;
         THYMIS_BASE_URL = cfg.base-url;
+        THYMIS_AGENT_ACCESS_URL = cfg.agent-access-url;
         THYMIS_AUTH_BASIC = lib.boolToString cfg.auth-basic;
         THYMIS_AUTH_BASIC_USERNAME = cfg.auth-basic-username;
         THYMIS_AUTH_BASIC_PASSWORD_FILE = cfg.auth-basic-password-file;

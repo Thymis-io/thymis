@@ -60,7 +60,9 @@
 
 	<div>
 		<h2>Task submission data</h2>
-		<MonospaceText code={JSON.stringify(task.task_submission_data, null, 2)} />
+		<MonospaceText
+			code={JSON.stringify(task.task_submission_data || task.task_submission_data_raw, null, 2)}
+		/>
 	</div>
 
 	<hr />

@@ -1,11 +1,14 @@
 import datetime
 import uuid
-from typing import Literal, Optional, Union
+from typing import TYPE_CHECKING, Literal, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, ValidationError
 from thymis_controller.nix.log_parse import ParsedNixProcess
 
 type TaskState = Literal["pending", "running", "completed", "failed"]
+
+if TYPE_CHECKING:
+    import thymis_controller.db_models as db_models
 
 # sent from controller to frontend
 
@@ -26,7 +29,8 @@ class Task(BaseModel):
     state: TaskState
     exception: Optional[str]
     task_type: str
-    task_submission_data: "TaskSubmissionData"
+    task_submission_data: Optional["TaskSubmissionData"] = None
+    task_submission_data_raw: Optional[JsonValue]
 
     parent_task_id: Optional[uuid.UUID] = None
     children: Optional[list[uuid.UUID]] = None
@@ -48,6 +52,45 @@ class Task(BaseModel):
     nix_notice_logs: Optional[JsonValue]
     nix_info_logs: Optional[JsonValue]
 
+    @classmethod
+    def from_orm_task(cls, task: "db_models.Task") -> "Task":
+        try:
+            # first check wether TaskSubmissionData is still parseable, if not, return None for task_submission_data
+            submission_data = TaskSubmissionDataWrapper(
+                inner=task.task_submission_data
+            ).inner
+            submission_data_raw = None
+        except ValidationError:
+            submission_data = None
+            submission_data_raw = task.task_submission_data
+        return cls(
+            id=task.id,
+            start_time=task.start_time,
+            end_time=task.end_time,
+            state=task.state,
+            exception=task.exception,
+            task_type=task.task_type,
+            task_submission_data=submission_data,
+            task_submission_data_raw=submission_data_raw,
+            parent_task_id=task.parent_task_id,
+            children=task.children,
+            process_program=task.process_program,
+            process_args=task.process_args,
+            process_env=task.process_env,
+            process_stdout=task.process_stdout,
+            process_stderr=task.process_stderr,
+            nix_status=task.nix_status,
+            nix_errors=task.nix_errors,
+            nix_files_linked=task.nix_files_linked,
+            nix_bytes_linked=task.nix_bytes_linked,
+            nix_corrupted_paths=task.nix_corrupted_paths,
+            nix_untrusted_paths=task.nix_untrusted_paths,
+            nix_error_logs=task.nix_error_logs,
+            nix_warning_logs=task.nix_warning_logs,
+            nix_notice_logs=task.nix_notice_logs,
+            nix_info_logs=task.nix_info_logs,
+        )
+
 
 class TaskShort(BaseModel):
     id: uuid.UUID  # uuid
@@ -56,11 +99,18 @@ class TaskShort(BaseModel):
     start_time: datetime.datetime
     end_time: Optional[datetime.datetime]
     exception: Optional[str]
-    task_submission_data: "TaskSubmissionData"
+    task_submission_data: Optional["TaskSubmissionData"]
     nix_status: Optional[NixProcessStatus]
 
     @classmethod
-    def from_orm_task(cls, task: Task) -> "TaskShort":
+    def from_orm_task(cls, task: "db_models.Task") -> "TaskShort":
+        try:
+            # first check wether TaskSubmissionData is still parseable, if not, return None for task_submission_data
+            submission_data = TaskSubmissionDataWrapper(
+                inner=task.task_submission_data
+            ).inner
+        except ValidationError:
+            submission_data = None
         return cls(
             id=task.id,
             task_type=task.task_type,
@@ -68,7 +118,7 @@ class TaskShort(BaseModel):
             start_time=task.start_time,
             end_time=task.end_time,
             exception=task.exception,
-            task_submission_data=task.task_submission_data,
+            task_submission_data=submission_data,
             nix_status=task.nix_status,
         )
 
@@ -100,50 +150,14 @@ TaskSubmissionData = Union[
 ]
 
 
-def warn_if_called_and_return_none(class_name: str, field_name: str):
-    def inner():
-        import logging
-
-        logger = logging.getLogger(__name__)
-        logger.warning(
-            f"Field default_factory for {class_name}.{field_name} called, returning None"
-        )
-        return None
-
-    return inner
-
-
 class TaskSubmissionDataWrapper(BaseModel):
     inner: TaskSubmissionData = Field(discriminator="type")
 
 
 class DeployDeviceInformation(BaseModel):
     identifier: str
-    host: str | None = Field(
-        default_factory=warn_if_called_and_return_none(
-            "DeployDeviceInformation", "host"
-        )
-    )
-    port: int | None = Field(
-        default_factory=warn_if_called_and_return_none(
-            "DeployDeviceInformation", "port"
-        )
-    )
-    username: str | None = Field(
-        default_factory=warn_if_called_and_return_none(
-            "DeployDeviceInformation", "username"
-        )
-    )
-    deployment_info_id: uuid.UUID | None = Field(
-        default_factory=warn_if_called_and_return_none(
-            "DeployDeviceInformation", "deployment_info_id"
-        )
-    )
-    deployment_public_key: str | None = Field(
-        default_factory=warn_if_called_and_return_none(
-            "DeployDeviceInformation", "deployment_public_key"
-        )
-    )
+    deployment_info_id: uuid.UUID
+    deployment_public_key: str
 
 
 class DeployDevicesTaskSubmission(BaseModel):
@@ -152,11 +166,7 @@ class DeployDevicesTaskSubmission(BaseModel):
     project_path: str
     ssh_key_path: str
     known_hosts_path: str
-    controller_ssh_pubkey: str | None = Field(
-        default_factory=warn_if_called_and_return_none(
-            "DeployDevicesTaskSubmission", "controller_ssh_pubkey"
-        )
-    )
+    controller_ssh_pubkey: str
 
 
 class DeployDeviceTaskSubmission(BaseModel):
@@ -164,26 +174,10 @@ class DeployDeviceTaskSubmission(BaseModel):
     device: DeployDeviceInformation
     project_path: str
     ssh_key_path: str
-    known_hosts_path: str | None = Field(
-        default_factory=warn_if_called_and_return_none(
-            "DeployDeviceTaskSubmission", "known_hosts_path"
-        )
-    )
-    controller_ssh_pubkey: str | None = Field(
-        default_factory=warn_if_called_and_return_none(
-            "DeployDeviceTaskSubmission", "controller_ssh_pubkey"
-        )
-    )
-    controller_access_client_endpoint: str | None = Field(
-        default_factory=warn_if_called_and_return_none(
-            "DeployDeviceTaskSubmission", "controller_access_client_endpoint"
-        )
-    )
-    access_client_token: str | None = Field(
-        default_factory=warn_if_called_and_return_none(
-            "DeployDeviceTaskSubmission", "access_client_token"
-        )
-    )
+    known_hosts_path: str
+    controller_ssh_pubkey: str
+    controller_access_client_endpoint: str
+    access_client_token: str
     parent_task_id: Optional[uuid.UUID] = None
 
 
@@ -200,23 +194,10 @@ class BuildProjectTaskSubmission(BaseModel):
 class BuildDeviceImageTaskSubmission(BaseModel):
     type: Literal["build_device_image_task"] = "build_device_image_task"
     project_path: str
-    device_identifier: str | None = Field(
-        default_factory=warn_if_called_and_return_none(
-            "BuildDeviceImageTaskSubmission", "device_identifier"
-        )
-    )
-    configuration_id: str | None = Field(
-        default_factory=warn_if_called_and_return_none(
-            "BuildDeviceImageTaskSubmission", "configuration_id"
-        )
-    )
+    configuration_id: str
     device_state: dict
     commit: str
-    controller_ssh_pubkey: str | None = Field(
-        default_factory=warn_if_called_and_return_none(
-            "BuildDeviceImageTaskSubmission", "controller_ssh_pubkey"
-        )
-    )
+    controller_ssh_pubkey: str
 
 
 class SSHCommandTaskSubmission(BaseModel):
