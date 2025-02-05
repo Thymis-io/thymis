@@ -49,6 +49,7 @@ Add NixOS module `thymis.nixosModules.thymis-controller` to the configuration (f
     repo-path = "/var/lib/thymis/repository"; # directory where the controller will store the repository holding the project
     database-url = "sqlite:////var/lib/thymis/thymis.sqlite"; # URL of the database
     base-url = "https://my-thymis-controller/"; # base URL of the controller, how it will be accessed from the outside
+    agent-access-url = "https://my-thymis-controller/"; # URL of the controller to be used by the agents
     auth-basic = true; # whether to enable authentication using a basic username/password
     auth-basic-username = "admin"; # username for basic authentication
     auth-basic-password-file = "/var/lib/thymis/auth-basic-password"; # file containing the password for basic authentication

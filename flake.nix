@@ -51,16 +51,20 @@
         (import ./image-formats.nix { inherit inputs; lib = nixpkgs.lib; })
       );
 
+      activate-thymis-controller-module = {
+        services.thymis-controller.enable = true;
+        services.thymis-controller.base-url = "https://thymis.example.com";
+        services.thymis-controller.agent-access-url = "https://thymis.example.com";
+        system.stateVersion = "24.11";
+      };
+
       thymis-controller-pi-3-sd-image = (nixpkgs.lib.nixosSystem {
         modules = [
           nixosModules.thymis-device
           nixosModules."thymis-device-raspberry-pi-3"
           nixosModules."thymis-image-sd-card-image"
           nixosModules.thymis-controller
-          {
-            services.thymis-controller.enable = true;
-            system.stateVersion = "24.11";
-          }
+          activate-thymis-controller-module
         ];
         specialArgs = {
           inherit inputs;
@@ -73,10 +77,7 @@
           nixosModules."thymis-device-raspberry-pi-4"
           nixosModules."thymis-image-sd-card-image"
           nixosModules.thymis-controller
-          {
-            services.thymis-controller.enable = true;
-            system.stateVersion = "24.11";
-          }
+          activate-thymis-controller-module
         ];
         specialArgs = {
           inherit inputs;
@@ -89,10 +90,7 @@
           nixosModules."thymis-device-raspberry-pi-5"
           nixosModules."thymis-image-sd-card-image"
           nixosModules.thymis-controller
-          {
-            services.thymis-controller.enable = true;
-            system.stateVersion = "24.11";
-          }
+          activate-thymis-controller-module
         ];
         specialArgs = {
           inherit inputs;
@@ -105,10 +103,7 @@
           nixosModules."thymis-device-generic-x86_64"
           nixosModules."thymis-image-qcow"
           nixosModules.thymis-controller
-          {
-            services.thymis-controller.enable = true;
-            system.stateVersion = "24.11";
-          }
+          activate-thymis-controller-module
         ];
         specialArgs = {
           inherit inputs;
