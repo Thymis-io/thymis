@@ -47,7 +47,7 @@
 		},
 		"actions": {
 			"edit": "Module Bearbeiten",
-			"download": "Ersetzungs Image Herunterladen",
+			"download": "Image Herunterladen",
 			"restart": "Neustarten",
 			"delete": "Löschen",
 			"view-details": "Details anzeigen",
