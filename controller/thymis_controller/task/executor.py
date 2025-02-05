@@ -4,6 +4,7 @@ import concurrent.futures
 import logging
 import os
 import threading
+import traceback
 import uuid
 from concurrent.futures import Future, ProcessPoolExecutor
 from datetime import datetime
@@ -263,8 +264,6 @@ class TaskWorkerPoolManager:
                         # notify UI
                         self.ui_subscription_manager.notify_task_update(task)
                 except Exception as e:
-                    import traceback
-
                     traceback.print_exc()
                     logger.error("Error processing message from worker: %s", e)
         except EOFError:

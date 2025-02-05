@@ -47,7 +47,7 @@ export const getDeploymentInfosByConfigId = async (
 	return [];
 };
 
-export const getConnectedDeploymendInfosByConfigId = async (
+export const getConnectedDeploymentInfosByConfigId = async (
 	fetch: typeof window.fetch,
 	deployedConfigId: string
 ) => {
