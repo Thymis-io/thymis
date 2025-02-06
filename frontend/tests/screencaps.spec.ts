@@ -425,5 +425,29 @@ colorSchemes.forEach((colorScheme) => {
 
 			await expect(page).toHaveScreenshot();
 		});
+
+		test('Create History Entry', async ({ page, request }) => {
+			await clearState(page, request);
+			await deleteAllTasks(page, request);
+
+			await createConfiguration(page, 'My Device 1', 'Raspberry Pi 4', []);
+
+			await page.goto('/history');
+
+			await expect(page).toHaveScreenshot();
+
+			const deployButtonAction = page.locator('button').filter({ hasText: 'Deploy' });
+			await deployButtonAction.click();
+
+			const messageInput = page.getByPlaceholder('Summary');
+			await messageInput.fill((await messageInput.inputValue()) + 'Deploying device');
+
+			const deployButton = page.locator('button').filter({ hasText: 'Deploy' }).nth(1);
+			await deployButton.click();
+
+			await page.locator('td', { hasText: 'completed' }).first().waitFor();
+
+			await expect(page).toHaveScreenshot();
+		});
 	});
 });
