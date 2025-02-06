@@ -447,7 +447,9 @@ colorSchemes.forEach((colorScheme) => {
 
 			await page.locator('td', { hasText: 'completed' }).first().waitFor();
 
-			await expect(page).toHaveScreenshot();
+			await expect(page).toHaveScreenshot({
+				mask: [page.locator('.playwright-snapshot-unstable')]
+			});
 		});
 	});
 });
