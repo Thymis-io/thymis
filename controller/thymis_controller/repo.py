@@ -21,34 +21,42 @@ class Repo:
         self.path = path
         self.init()
 
+    def run_command(self, *args: str) -> str:
+        return subprocess.run(
+            args, capture_output=True, text=True, cwd=self.path
+        ).stdout.strip()
+
     def init(self):
         self.path.mkdir(exist_ok=True, parents=True)
 
         if not (self.path / ".git").exists():
             logger.info(f"Initializing git repository at {self.path}")
-            subprocess.run(["git", "init", "-b", "master"], cwd=self.path)
+            self.run_command("git", "init", "-b", "master")
+
+        if not self.run_command("git", "config", "--get", "user.name"):
+            logger.info("Setting local git user name and email to Thymis Controller")
+            self.run_command("git", "config", "user.name", "Thymis Controller")
+            self.run_command("git", "config", "user.email", "controller@thymis.io")
 
     def add(self, *files: pathlib.Path):
         logger.info(f"Adding files to git: {', '.join(files)}")
-        subprocess.run(["git", "add", *files], cwd=self.path)
+        self.run_command("git", "add", *files)
 
     def commit(self, message: str):
         logger.info(f"Committing changes to git: {message}")
-        subprocess.run(["git", "commit", "-m", message], cwd=self.path)
+        self.run_command("git", "commit", "-m", message)
+
+    def head_commit(self) -> str:
+        return self.run_command("git", "rev-parse", "HEAD")
 
     def history(self) -> Commit:
         try:
-            result = subprocess.run(
-                [
-                    "git",
-                    "rev-list",
-                    "HEAD",
-                    "--format='%H%x00%h%x00%s%x00%ci%x00%an'",
-                    "--no-commit-header",
-                ],
-                cwd=self.path,
-                capture_output=True,
-                text=True,
+            result = self.run_command(
+                "git",
+                "rev-list",
+                "HEAD",
+                "--format='%H%x00%h%x00%s%x00%ci%x00%an'",
+                "--no-commit-header",
             )
         except subprocess.CalledProcessError:
             logger.exception("Error getting git history")
@@ -62,18 +70,12 @@ class Repo:
                 date=datetime.datetime.fromisoformat(date),
                 author=author,
             )
-            for line in result.stdout.splitlines()
+            for line in result.splitlines()
             for sha, sha1, message, date, author in [line.split("\x00")]
         ]
 
-    def diff(self, refA: str, refB: str) -> list[str]:
+    def diff(self, refA: str, refB: str) -> str:
         refA = refA or "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
         refB = refB or "HEAD"
 
-        result = subprocess.run(
-            ["git", "diff", refA, refB, "state.json"],
-            cwd=self.path,
-            capture_output=True,
-            text=True,
-        )
-        return result.stdout
+        return self.run_command("git", "diff", refA, refB, "state.json")
