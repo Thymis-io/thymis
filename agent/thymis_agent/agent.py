@@ -140,7 +140,7 @@ class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
 
 
 def replace_url_protocol_with_ws(url: str) -> str:
-    return url.replace("http://", "ws://").replace("https://", "wss://")
+    return url.replace("http://", "ws://").replace("https://", "wss://").rstrip("/")
 
 
 class Agent(ea.EdgeAgent):
