@@ -141,6 +141,7 @@ class Project:
     repo: git.Repo
     known_hosts_path: pathlib.Path
     public_key: str
+    state_lock = threading.Lock()
     history_lock = threading.Lock()
     repo_dir: pathlib.Path
 
@@ -195,14 +196,16 @@ class Project:
         self.update_known_hosts(db_session)
 
     def read_state(self):
-        with open(self.repo_dir / "state.json", "r", encoding="utf-8") as f:
-            state_json = f.read()
-        state = State.model_validate_json(state_json)
-        return state
+        with self.state_lock:
+            with open(self.repo_dir / "state.json", "r", encoding="utf-8") as f:
+                state_json = f.read()
+            state = State.model_validate_json(state_json)
+            return state
 
     def write_state_and_reload(self, state: State):
-        with open(self.repo_dir / "state.json", "w", encoding="utf-8") as f:
-            f.write(state.model_dump_json(indent=2))
+        with self.state_lock:
+            with open(self.repo_dir / "state.json", "w", encoding="utf-8") as f:
+                f.write(state.model_dump_json(indent=2))
         # write a flake.nix
         repositories = BUILTIN_REPOSITORIES | state.repositories
         with open(self.repo_dir / "flake.nix", "w+", encoding="utf-8") as f:
