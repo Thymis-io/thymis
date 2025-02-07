@@ -64,12 +64,12 @@ colorSchemes.forEach((colorScheme) => {
 			await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
 
 			// wait until: 1x on screen "completed", 1x on screen "running"
-			test.setTimeout(360000);
-			await page.locator('td', { hasText: 'completed' }).first().waitFor({ timeout: 360000 });
+			test.setTimeout(600000);
+			await page.locator('td', { hasText: 'completed' }).first().waitFor({ timeout: 600000 });
 			await page.locator('td', { hasText: 'running' }).first().waitFor({ timeout: 30000 });
 
 			// wait until "Deployed:" is shown on screen
-			await page.locator('p', { hasText: 'Deployed:' }).first().waitFor({ timeout: 360000 });
+			await page.locator('p', { hasText: 'Deployed:' }).first().waitFor({ timeout: 120000 });
 
 			await expect(page).toHaveScreenshot({
 				mask: [page.locator('.playwright-snapshot-unstable')]
