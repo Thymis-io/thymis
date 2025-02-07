@@ -137,6 +137,7 @@ class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
     public_key: str
     deployed_config_id: str
     ip_addresses: List[str]
+    last_error: Optional[str] = None
 
 
 def replace_url_protocol_with_ws(url: str) -> str:
@@ -242,13 +243,14 @@ class Agent(ea.EdgeAgent):
             case _:
                 logger.error("Unknown message: %s", message)
 
-    async def create_start_message(self):
+    async def create_start_message(self, last_error: Optional[str] = None):
         return EdgeAgentToRelayStartMessage(
             token=self.token,
             hardware_ids=self.detect_hardware_id(),
             public_key=self.detect_public_key(),
             deployed_config_id=self.detect_system_config()[0],
             ip_addresses=self.detect_ip_addresses(),
+            last_error=last_error,
         )
 
     def detect_system_config(self) -> Tuple[str, str]:
