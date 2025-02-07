@@ -30,9 +30,9 @@
 					<br />
 					<span>by {history.author}</span>
 					<span>on</span>
-					<span class="playwright-snapshot-unstable">{history.date}</span>
+					<span class="playwright-snapshot-unstable inline-block w-56">{history.date}</span>
 					<span>with hash</span>
-					<span class="playwright-snapshot-unstable">{history.SHA1}</span>
+					<span class="playwright-snapshot-unstable inline-block w-20">{history.SHA1}</span>
 				</div>
 				<div class="shrink">
 					<!-- <Button
