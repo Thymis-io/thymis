@@ -124,7 +124,7 @@ def project_flake_update_task(
         task,
         conn,
         process_list,
-        [*NIX_CMD, "flake", "update"],
+        [*NIX_CMD, "flake", "update", "--allow-dirty-locks"],
         cwd=repo_path,
     )
     if returncode == 0:
