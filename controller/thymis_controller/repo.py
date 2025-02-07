@@ -36,7 +36,9 @@ class Repo:
         if not self.run_command("git", "config", "--get", "user.name"):
             logger.info("Setting local git user name and email to Thymis Controller")
             self.run_command("git", "config", "user.name", "Thymis Controller")
-            self.run_command("git", "config", "user.email", "controller@thymis.io")
+            self.run_command(
+                "git", "config", "user.email", "controller@noreply.thymis.io"
+            )
 
     def add(self, *files: pathlib.Path):
         logger.info(f"Adding files to git: {', '.join(files)}")
@@ -55,7 +57,7 @@ class Repo:
                 "git",
                 "rev-list",
                 "HEAD",
-                "--format='%H%x00%h%x00%s%x00%ci%x00%an'",
+                "--format=%H%x00%h%x00%s%x00%ci%x00%an",
                 "--no-commit-header",
             )
         except subprocess.CalledProcessError:

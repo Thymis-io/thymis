@@ -25,12 +25,14 @@
 	{#each data.history as history, index}
 		<li class="mb-2 text-gray-600">
 			<div class="flex justify-between">
-				<div>
+				<div class="text-gray-400 dark:text-gray-600">
 					<span class="text-gray-600 dark:text-gray-400">{history.message}</span>
 					<br />
-					<span class="text-gray-400 dark:text-gray-600"> by {history.author}</span>
-					<span class="text-gray-400 dark:text-gray-600"> on {history.date}</span>
-					<span class="text-gray-400 dark:text-gray-600"> with hash {history.SHA1}</span>
+					<span>by {history.author}</span>
+					<span>on</span>
+					<span class="playwright-snapshot-unstable">{history.date}</span>
+					<span>with hash</span>
+					<span class="playwright-snapshot-unstable">{history.SHA1}</span>
 				</div>
 				<div class="shrink">
 					<!-- <Button

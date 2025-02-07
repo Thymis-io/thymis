@@ -440,7 +440,7 @@ colorSchemes.forEach((colorScheme) => {
 			await deployButtonAction.click();
 
 			const messageInput = page.getByPlaceholder('Summary');
-			await messageInput.fill((await messageInput.inputValue()) + 'Deploying device');
+			await messageInput.fill('Deploying device');
 
 			const deployButton = page.locator('button').filter({ hasText: 'Deploy' }).nth(1);
 			await deployButton.click();
@@ -449,6 +449,14 @@ colorSchemes.forEach((colorScheme) => {
 
 			await expect(page).toHaveScreenshot({
 				mask: [page.locator('.playwright-snapshot-unstable')]
+			});
+
+			const showChangesButton = page.locator('button').filter({ hasText: 'Show Changes' });
+			await showChangesButton.click();
+
+			await expect(page).toHaveScreenshot({
+				mask: [page.locator('.playwright-snapshot-unstable')],
+				maxDiffPixels: 1000 // commit hashes in the diff may change
 			});
 		});
 	});
