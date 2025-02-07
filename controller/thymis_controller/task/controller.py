@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 import logging
 import os
@@ -34,9 +35,11 @@ class TaskController:
         self.access_client_endpoint = access_client_endpoint
         self.network_relay = network_relay
         network_relay.task_controller = self
+        self.loop = None
 
     @contextlib.asynccontextmanager
     async def start(self, db_engine: sqlalchemy.Engine):
+        self.loop = asyncio.get_event_loop()
         await self.ui_subscription_manager.start()
         await self.executor.start(db_engine)
         yield self
@@ -142,5 +145,5 @@ class TaskController:
             self.executor.stop()
             db_engine = self.executor._db_engine
             self.executor = TaskWorkerPoolManager(self)
-            self.executor.start(db_engine)
+            asyncio.run_coroutine_threadsafe(self.executor.start(db_engine), self.loop)
             crud.task.delete_all_tasks(db_session)
