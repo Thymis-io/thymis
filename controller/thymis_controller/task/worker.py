@@ -1,4 +1,5 @@
 import base64
+import datetime
 import glob
 import json
 import os
@@ -358,6 +359,7 @@ def build_device_image_task(
                     {
                         "configuration_id": task_data.configuration_id,
                         "configuration_commit": task_data.commit,
+                        "datetime": str(datetime.datetime.now()),
                     }
                 )
             )

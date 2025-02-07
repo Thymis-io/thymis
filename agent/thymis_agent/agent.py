@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import json
 import logging
 import os
@@ -75,7 +76,7 @@ def find_agent_metadata():
         logger.error("Agent metadata is not a dict")
         val = {}
     # then, populate missing keys
-    for key in ["configuration_id", "configuration_commit"]:
+    for key in ["configuration_id", "configuration_commit", "datetime"]:
         val.setdefault(key, None)
 
     return val
@@ -330,6 +331,13 @@ class Agent(ea.EdgeAgent):
         logging.info("Public host key updated")
 
 
+def set_minimum_time(datetime_str: str):
+    time = datetime.datetime.now()
+    metadata_time = datetime.datetime.fromisoformat(datetime_str)
+    if time < metadata_time:
+        subprocess.run(["date", "-s", datetime_str])
+
+
 def main():
     agent_metadata = find_agent_metadata()
 
@@ -342,6 +350,8 @@ def main():
         raise ValueError("CONTROLLER_HOST environment variable is required")
 
     logger.setLevel(logging.INFO)
+
+    set_minimum_time(agent_metadata["datetime"])
 
     load_controller_public_key_into_root_authorized_keys()
     agent_token = find_agent_token()
