@@ -38,7 +38,7 @@
 		"flowbite": "^3.0.0",
 		"flowbite-svelte": "^0.47.1",
 		"flowbite-svelte-icons": "^1.6.2",
-		"lucide-svelte": "^0.474.0",
+		"lucide-svelte": "^0.475.0",
 		"postcss": "^8.4.47",
 		"postcss-load-config": "^6.0.1",
 		"prettier": "^3.3.3",
