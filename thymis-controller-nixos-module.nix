@@ -56,6 +56,7 @@ in
         default = "thymis";
         description = "Name of the Nginx virtual host";
       };
+      package = lib.mkPackageOption inputs.thymis.packages.${config.nixpkgs.hostPlatform.system} "thymis-controller";
     };
   };
   config = lib.mkIf cfg.enable {
@@ -63,7 +64,7 @@ in
       description = "Thymis controller";
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
-      script = "${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-controller}/bin/thymis-controller";
+      script = "${cfg.package}/bin/thymis-controller";
       serviceConfig.Restart = "always";
       path = [
         "/run/current-system/sw"
