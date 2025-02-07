@@ -44,8 +44,7 @@
 				getAllowedImageFormatsForDeviceType(selectedDeviceType, availableModules)?.[0] ||
 				'sd-card-image',
 			device_name: identifier,
-			nix_state_version: '24.11',
-			agent_enabled: true
+			nix_state_version: '24.11'
 		};
 		const device: Device = {
 			displayName,
