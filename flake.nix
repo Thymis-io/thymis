@@ -36,7 +36,16 @@
       eachSystem = nixpkgs.lib.genAttrs (import ./flake.systems.nix);
       nixosModules = {
         thymis-device = ./thymis-device-nixos-module.nix;
-        thymis-controller = ./thymis-controller-nixos-module.nix;
+        thymis-controller = {
+          imports = [
+            ./thymis-controller-nixos-module.nix
+          ];
+          nixpkgs.overlays = [
+            (final: prev: {
+              thymis-controller = self.packages.${final.stdenv.system}.thymis-controller;
+            })
+          ];
+        };
       } // (nixpkgs.lib.mapAttrs'
         (name: value: {
           name = "thymis-device-${name}";

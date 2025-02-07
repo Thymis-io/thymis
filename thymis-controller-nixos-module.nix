@@ -56,7 +56,7 @@ in
         default = "thymis";
         description = "Name of the Nginx virtual host";
       };
-      package = lib.mkPackageOption inputs.thymis.packages.${config.nixpkgs.hostPlatform.system} "thymis-controller";
+      package = lib.mkPackageOption pkgs "thymis-controller" { };
     };
   };
   config = lib.mkIf cfg.enable {
