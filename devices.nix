@@ -45,7 +45,7 @@ let
         ];
         raspberry-pi-nix.libcamera-overlay.enable = false;
         raspberry-pi-nix.board = "bcm2711";
-        boot.kernelParams = [ "snd_bcm2835.enable_headphones=1" "snd_bcm2835.enable_hdmi=1" ];
+        boot.kernelParams = [ "snd_bcm2835.enable_headphones=1" "snd_bcm2835.enable_hdmi=1" "brcmfmac.roamoff=1" "brcmfmac.feature_disable=0x282000" ];
         hardware.raspberry-pi.config = {
           all = {
             dt-overlays = {
