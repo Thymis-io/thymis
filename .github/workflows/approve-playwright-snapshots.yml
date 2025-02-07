@@ -40,7 +40,19 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - name: Get branch of PR
+        uses: xt0rted/pull-request-comment-branch@v3
+        id: comment-branch
+      - name: Get Thymis App Token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.THYMIS_APP_ID }}
+          private-key: ${{ secrets.THYMIS_APP_PRIVATE_KEY }}
       - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -87,7 +99,19 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - name: Get branch of PR
+        uses: xt0rted/pull-request-comment-branch@v3
+        id: comment-branch
+      - name: Get Thymis App Token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.THYMIS_APP_ID }}
+          private-key: ${{ secrets.THYMIS_APP_PRIVATE_KEY }}
       - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
