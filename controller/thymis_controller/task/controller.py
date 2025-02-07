@@ -140,6 +140,7 @@ class TaskController:
                 time.sleep(0.1)
             # switch to a new executor
             self.executor.stop()
+            db_engine = self.executor.db_engine
             self.executor = TaskWorkerPoolManager(self)
-            self.executor.start(db_session.bind)
+            self.executor.start(db_engine)
             crud.task.delete_all_tasks(db_session)
