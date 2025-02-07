@@ -133,4 +133,7 @@ class TaskController:
                 for task_id in task_ids:
                     self.executor.cancel_task(task_id)
                 time.sleep(0.1)
+            # wait for futures
+            while self.executor.futures:
+                time.sleep(0.1)
             crud.task.delete_all_tasks(db_session)

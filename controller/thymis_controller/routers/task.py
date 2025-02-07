@@ -54,7 +54,7 @@ async def retry_task(
 
 
 @router.post("/tasks/delete_all")
-async def delete_all_tasks(
+def delete_all_tasks(
     task_controller: TaskControllerAD, db_session: SessionAD, project: ProjectAD
 ):
     if is_running_in_playwright():
