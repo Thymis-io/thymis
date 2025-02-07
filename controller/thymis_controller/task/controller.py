@@ -3,6 +3,7 @@ import contextlib
 import logging
 import os
 import random
+import threading
 import time
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -142,8 +143,9 @@ class TaskController:
                     self.executor.cancel_task(task_id)
                 time.sleep(0.1)
             # switch to a new executor
-            self.executor.stop()
             db_engine = self.executor._db_engine
+            # self.executor.stop()
+            threading.Thread(target=self.executor.stop).start()
             self.executor = TaskWorkerPoolManager(self)
             asyncio.run_coroutine_threadsafe(self.executor.start(db_engine), self.loop)
             crud.task.delete_all_tasks(db_session)
