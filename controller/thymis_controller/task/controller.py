@@ -129,11 +129,17 @@ class TaskController:
                 # save their ids
                 task_ids.append(task.id)
             # while there are still alive tasks, spam cancel them
-            while crud.task.get_all_alive_tasks(db_session):
+            start_time = time.time()
+            while (
+                crud.task.get_all_alive_tasks(db_session)
+                and any(lambda future: future.running(), self.executor.futures)
+                and time.time() - start_time < 6
+            ):
                 for task_id in task_ids:
                     self.executor.cancel_task(task_id)
                 time.sleep(0.1)
-            # wait for futures
-            while self.executor.futures:
-                time.sleep(0.1)
+            # switch to a new executor
+            self.executor.stop()
+            self.executor = TaskWorkerPoolManager(self)
+            self.executor.start(db_session.bind)
             crud.task.delete_all_tasks(db_session)
