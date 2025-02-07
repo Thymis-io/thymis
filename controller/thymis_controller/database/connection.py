@@ -23,4 +23,4 @@ def create_sqlalchemy_engine():
         parent = path.parent
         if not parent.exists():
             os.makedirs(parent)
-    return create_engine(get_db_url())
+    return create_engine(get_db_url(), pool_size=20, max_overflow=40)
