@@ -132,7 +132,7 @@ class TaskController:
             start_time = time.time()
             while (
                 crud.task.get_all_alive_tasks(db_session)
-                and any(lambda future: future.running(), self.executor.futures)
+                and any(future.running() for future in self.executor.futures)
                 and time.time() - start_time < 6
             ):
                 for task_id in task_ids:
