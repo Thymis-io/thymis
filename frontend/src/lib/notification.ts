@@ -18,6 +18,7 @@ export type FrontendToast = {
 let socket: WebSocket | undefined;
 
 export const startNotificationSocket = () => {
+	console.log('starting notification socket');
 	const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 	socket = new WebSocket(`${scheme}://${window.location.host}/api/notification`);
 	socket.onmessage = async (event) => {
@@ -32,5 +33,9 @@ export const startNotificationSocket = () => {
 		} else {
 			const _: never = notification.inner;
 		}
+	};
+	socket.onclose = () => {
+		console.log('notification socket closed');
+		setTimeout(startNotificationSocket, 1000);
 	};
 };
