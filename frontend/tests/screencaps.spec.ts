@@ -455,8 +455,7 @@ colorSchemes.forEach((colorScheme) => {
 			await showChangesButton.click();
 
 			await expect(page).toHaveScreenshot({
-				mask: [page.locator('.playwright-snapshot-unstable')],
-				maxDiffPixels: 1000 // commit hashes in the diff may change
+				mask: [page.locator('.playwright-snapshot-unstable')]
 			});
 		});
 	});
