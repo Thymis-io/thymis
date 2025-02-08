@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-import threading
 import traceback
 from queue import Queue
 from typing import Literal, Union
@@ -55,15 +54,12 @@ class NotificationManager:
     def __init__(self):
         self.active_connections: list[WebSocket] = []
 
-    def start(self):
+    async def start(self):
         self.alive = True
-        threading.Thread(target=self.start_send_queue).start()
+        asyncio.create_task(self.send_queue())
 
     def stop(self):
         self.alive = False
-
-    def start_send_queue(self):
-        asyncio.run(self.send_queue())
 
     def next_notification(self) -> Notification | None:
         if self.queue.qsize() > 0:
@@ -77,7 +73,7 @@ class NotificationManager:
 
     async def send_queue(self):
         while self.alive:
-            notification = self.next_notification()
+            notification = asyncio.to_thread(self.next_notification)
 
             if not notification:
                 await asyncio.sleep(0.5)
