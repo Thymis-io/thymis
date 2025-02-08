@@ -54,7 +54,7 @@ class NotificationManager:
     def __init__(self):
         self.active_connections: list[WebSocket] = []
 
-    async def start(self):
+    def start(self):
         self.alive = True
         asyncio.create_task(self.send_queue())
 
