@@ -83,15 +83,10 @@ jobs:
           script: |
             nix build .#thymis-controller --print-build-logs
       - name: Run tests
-        uses: ./.github/actions/run-command-with-nix-cache-upload
-        with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            set +e  # revert the default `set -e`
-            export THYMIS_FLAKE_ROOT='..'
-            ../.github/npm_test_integration.sh
-          working-directory: frontend
+        run: |
+          export THYMIS_FLAKE_ROOT='..'
+          ../.github/npm_test_integration.sh
+        working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload
         if: always()
@@ -181,15 +176,10 @@ jobs:
           script: |
             nix build .#thymis-controller --print-build-logs
       - name: Run tests
-        uses: ./.github/actions/run-command-with-nix-cache-upload
-        with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            set +e  # revert the default `set -e`
-            # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
-            ../.github/npm_test_integration.sh
-          working-directory: frontend
+        run: |
+          # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
+          ../.github/npm_test_integration.sh
+        working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload
         if: always()
@@ -234,15 +224,10 @@ jobs:
           script: |
             nix build .#thymis-controller --print-build-logs
       - name: Run tests
-        uses: ./.github/actions/run-command-with-nix-cache-upload
-        with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            set +e  # revert the default `set -e`
-            export THYMIS_FLAKE_ROOT='..'
-            ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
-          working-directory: frontend
+        run: |
+          export THYMIS_FLAKE_ROOT='..'
+          ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
+        working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload
         if: always()
@@ -287,15 +272,10 @@ jobs:
           script: |
             nix build .#thymis-controller --print-build-logs
       - name: Run tests
-        uses: ./.github/actions/run-command-with-nix-cache-upload
-        with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            set +e  # revert the default `set -e`
-            # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
-            ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
-          working-directory: frontend
+        run: |
+          # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
+          ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
+        working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload
         if: always()
