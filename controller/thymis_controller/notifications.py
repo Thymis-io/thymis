@@ -73,7 +73,7 @@ class NotificationManager:
 
     async def send_queue(self):
         while self.alive:
-            notification = asyncio.to_thread(self.next_notification)
+            notification = await asyncio.to_thread(self.next_notification)
 
             if not notification:
                 await asyncio.sleep(0.5)
