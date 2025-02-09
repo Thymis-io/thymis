@@ -21,16 +21,23 @@ from thymis_controller.task.executor import TaskWorkerPoolManager
 
 if TYPE_CHECKING:
     from thymis_controller.network_relay import NetworkRelay
+    from thymis_controller.notifications import NotificationManager
 
 logger = logging.getLogger(__name__)
 
 
 class TaskController:
-    def __init__(self, access_client_endpoint: str, network_relay: "NetworkRelay"):
+    def __init__(
+        self,
+        access_client_endpoint: str,
+        network_relay: "NetworkRelay",
+        notification_manager: "NotificationManager",
+    ):
         self.executor = TaskWorkerPoolManager(self)
         self.access_client_endpoint = access_client_endpoint
         self.network_relay = network_relay
         network_relay.task_controller = self
+        self.notification_manager = notification_manager
 
     @contextlib.asynccontextmanager
     async def start(self, db_engine: sqlalchemy.Engine):

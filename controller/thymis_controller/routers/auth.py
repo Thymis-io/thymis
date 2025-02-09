@@ -10,8 +10,10 @@ from pydantic import BaseModel
 from thymis_controller.config import global_settings
 from thymis_controller.dependencies import (
     SessionAD,
+    UserSessionIDAD,
+    UserSessionTokenAD,
     apply_user_session,
-    get_user_session_id,
+    get_user_session_token,
     invalidate_user_session,
     require_valid_user_session,
 )
@@ -82,10 +84,11 @@ def login():
 @router.get("/logout")
 def logout(
     response: Response,
-    user_session: Annotated[str, Depends(get_user_session_id)],
+    user_session_id: UserSessionIDAD,
+    user_session_token: UserSessionTokenAD,
     db_session: SessionAD,
 ):
-    invalidate_user_session(db_session, response, user_session)
+    invalidate_user_session(db_session, response, user_session_id, user_session_token)
     return RedirectResponse(
         "/", headers=response.headers, status_code=status.HTTP_303_SEE_OTHER
     )
