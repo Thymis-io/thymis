@@ -206,41 +206,6 @@ export const subscribeTask = (taskId: string) => {
 	socket.send(JSON.stringify({ type: 'subscribe_task', task_id: taskId }));
 };
 
-let lastTaskStatus: TasksShort = {};
-taskStatus.subscribe((tasks) => {
-	// if a task.type is commandtask, and the task just finished, download the image
-	// tasks have a uuid now at .id
-	// tasks.forEach((task) => {
-	Object.values(tasks).forEach(async (task) => {
-		if (task.task_type !== 'build_device_image_task') return;
-		if (task.state !== 'completed') return;
-		if (!task.task_submission_data) return;
-		if (!('configuration_id' in task.task_submission_data)) return;
-		// check: this task was previously in the list, but not completed
-		const otherTask = lastTaskStatus[task.id];
-		if (!otherTask) return;
-		if (otherTask.state === 'completed') return;
-		// download the image
-		// only if: config deviceModule image format is sd card
-		const config_id = task.task_submission_data.configuration_id as string;
-		const config = getConfigByIdentifier(currentState, config_id);
-		const image_format = getConfigImageFormat(config);
-		if (browser && image_format === 'sd-card-image') {
-			const downloadUrl = `/api/download-image?identifier=${task.task_submission_data.configuration_id}`;
-			const response = await fetchWithNotify(downloadUrl, { method: 'HEAD' });
-			if (response.ok) {
-				const a = document.createElement('a');
-				a.href = downloadUrl;
-				document.body.appendChild(a);
-				a.click();
-				document.body.removeChild(a);
-			}
-		}
-	});
-
-	lastTaskStatus = structuredClone(tasks);
-});
-
 if (browser) {
 	startSocket();
 }

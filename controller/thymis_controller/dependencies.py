@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from thymis_controller.config import global_settings
 from thymis_controller.crud import web_session
 from thymis_controller.network_relay import NetworkRelay
+from thymis_controller.notifications import NotificationManager
 from thymis_controller.project import Project
 from thymis_controller.task.controller import TaskController
 
@@ -55,23 +56,31 @@ def get_db_session(connection: HTTPConnection) -> Generator[Session, None, None]
 # session annotated dependency for FastAPI endpoints
 SessionAD = Annotated[Session, Depends(get_db_session)]
 
+UserSessionIDAD = Annotated[Union[uuid.UUID, None], Cookie(alias="session-id")]
 
-def check_user_session(db_session: SessionAD, user_session_id) -> bool:
-    user_session_id = uuid.UUID(user_session_id) if user_session_id else None
-    if user_session_id is None:
+UserSessionTokenAD = Annotated[Union[str, None], Cookie(alias="session-token")]
+
+
+def check_user_session(
+    db_session: SessionAD, user_session_id: uuid.UUID, user_session_token: str
+) -> Optional[bool]:
+    if user_session_id is None or user_session_token is None:
         return None
-    return web_session.validate(db_session, user_session_id)
+    return web_session.validate(db_session, user_session_id, user_session_token)
 
 
 def require_valid_user_session(
     db_engine: EngineAD,
-    user_session_id: Annotated[Union[str, None], Cookie(alias="session")] = None,
+    user_session_id: UserSessionIDAD,
+    user_session_token: UserSessionTokenAD,
 ) -> bool:
     """
     Check if the session is valid
     """
     with Session(db_engine) as db_session:
-        valid_user_session = check_user_session(db_session, user_session_id)
+        valid_user_session = check_user_session(
+            db_session, user_session_id, user_session_token
+        )
     if not valid_user_session:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="No valid session"
@@ -79,16 +88,24 @@ def require_valid_user_session(
     return True
 
 
-def get_user_session_id(
-    user_session_id: Annotated[Union[str, None], Cookie(alias="session")] = None
+def get_user_session_token(
+    user_session_token: Annotated[
+        Union[uuid.UUID, None], Cookie(alias="session-token")
+    ] = None
 ) -> Optional[str]:
-    return user_session_id
+    return user_session_token
 
 
 def invalidate_user_session(
-    db_session: SessionAD, response: Response, user_session_id: str
+    db_session: SessionAD,
+    response: Response,
+    user_session_id: uuid.UUID,
+    user_session_token: str,
 ):
-    response.delete_cookie("session")
+    if not web_session.validate(db_session, user_session_id, user_session_token):
+        return
+    response.delete_cookie("session-id")
+    response.delete_cookie("session-token")
     web_session.delete(db_session, user_session_id)
 
 
@@ -97,10 +114,20 @@ def apply_user_session(db_session: SessionAD, response: Response):
     exp = (
         user_session.created_at.astimezone(datetime.UTC) + web_session.SESSION_LIFETIME
     )
+    is_using_https = global_settings.BASE_URL.startswith("https")
     response.set_cookie(
-        key="session",
-        value=str(user_session.session_id),
-        httponly=False,
+        key="session-id",
+        value=str(user_session.id),
+        httponly=True,
+        secure=is_using_https,
+        samesite="strict",
+        expires=exp,
+    )
+    response.set_cookie(
+        key="session-token",
+        value=user_session.session_token,
+        httponly=True,
+        secure=is_using_https,
         samesite="strict",
         expires=exp,
     )
@@ -111,3 +138,12 @@ def get_task_controller(connection: HTTPConnection) -> "TaskController":
 
 
 TaskControllerAD = Annotated["TaskController", Depends(get_task_controller)]
+
+
+def get_notification_manager(connection: HTTPConnection) -> "NotificationManager":
+    return connection.state.notification_manager
+
+
+NotificationManagerAD = Annotated[
+    "NotificationManager", Depends(get_notification_manager)
+]

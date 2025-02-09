@@ -26,9 +26,11 @@ from thymis_controller.db_models.deployment_info import DeploymentInfo
 from thymis_controller.dependencies import (
     EngineAD,
     NetworkRelayAD,
+    NotificationManagerAD,
     ProjectAD,
     SessionAD,
     TaskControllerAD,
+    UserSessionIDAD,
     require_valid_user_session,
 )
 from thymis_controller.models import device
@@ -134,6 +136,7 @@ async def build_download_image(
     identifier: str,
     db_session: SessionAD,
     task_controller: TaskControllerAD,
+    user_session_id: UserSessionIDAD,
     project: ProjectAD,
 ):
     project.repo.add(".")
@@ -152,6 +155,7 @@ async def build_download_image(
             config_state=config.model_dump(mode="json"),
             commit=project.repo.head_commit(),
             controller_ssh_pubkey=project.public_key,
+            user_session_id=user_session_id,
         ),
         db_session=db_session,
     )
@@ -219,8 +223,12 @@ async def download_image(
 
 
 @router.websocket("/notification")
-async def notification_websocket(websocket: WebSocket):
-    await websocket.state.notification_manager.connect(websocket)
+async def notification_websocket(
+    websocket: WebSocket,
+    notification_manager: NotificationManagerAD,
+    user_session_id: UserSessionIDAD,
+):
+    await notification_manager.connect(websocket, user_session_id)
 
 
 @router.get("/history", tags=["history"])

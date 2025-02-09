@@ -208,6 +208,7 @@ class TaskWorkerPoolManager:
                                     original_disk_config_id=message.update.configuration_id,
                                     token=message.update.token,
                                 )
+
                                 if message.update.image_format == "nixos-vm":
                                     # start a new task to start the VM
                                     if task.task_submission_data is None:
@@ -228,6 +229,12 @@ class TaskWorkerPoolManager:
                                         new_task_submission, db_session
                                     )
                                     db_session.commit()
+                                else:
+                                    self.controller.notification_manager.broadcast_image_built_notification(
+                                        message.update.user_session_id,
+                                        message.update.configuration_id,
+                                        message.update.image_format,
+                                    )
                             case (
                                 models_task.AgentShouldSwitchToNewConfigurationUpdate()
                             ):

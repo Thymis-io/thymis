@@ -158,7 +158,9 @@ async def lifespan(app: FastAPI):
     db_engine = create_sqlalchemy_engine()
     network_relay = NetworkRelay(db_engine, notification_manager)
     task_controller = TaskController(
-        f"ws://{host}:{port}/agent/relay_for_clients", network_relay
+        f"ws://{host}:{port}/agent/relay_for_clients",
+        network_relay,
+        notification_manager,
     )
     with sqlalchemy.orm.Session(db_engine) as db_session:
         project = Project(global_settings.PROJECT_PATH.resolve(), db_session)
