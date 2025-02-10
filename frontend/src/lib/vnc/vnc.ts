@@ -12,6 +12,22 @@ const deviceHasVNCStringModule = (device: Device, state: State) =>
 		return tagHasVNCStringModule(tagObj, state);
 	});
 
+const customModuleHasVncString = (module: ModuleSettings) => {
+	if (!(module.type === 'thymis_controller.modules.whatever.WhateverModule')) return false;
+	return JSON.stringify(module).toLowerCase().includes('vnc');
+};
+
+const tagHasCustomVNCModule = (tag: Tag, state: State) =>
+	tag.modules.some(customModuleHasVncString);
+
+const deviceHasCustomVNCModule = (device: Device, state: State) =>
+	device.modules.some(customModuleHasVncString) ||
+	device.tags.some((tag) => {
+		const tagObj = state.tags.find((t) => t.identifier === tag);
+		if (!tagObj) return false;
+		return tagHasCustomVNCModule(tagObj, state);
+	});
+
 const builtInKioskVNCModuleDetect = (target: Device | Tag, state: State) => {
 	const kioskModuleType = 'thymis_controller.modules.kiosk.Kiosk';
 	let module;
@@ -34,9 +50,11 @@ export const targetShouldShowVNC = (target: Device | Tag, state: State) => {
 	if ('tags' in target) {
 		if (deviceHasVNCStringModule(target, state)) return true;
 		if (builtInKioskVNCModuleDetect(target, state)) return true;
+		if (deviceHasCustomVNCModule(target, state)) return true;
 	} else {
 		if (tagHasVNCStringModule(target, state)) return true;
 		if (builtInKioskVNCModuleDetect(target, state)) return true;
+		if (tagHasCustomVNCModule(target, state)) return true;
 	}
 	return false;
 };
