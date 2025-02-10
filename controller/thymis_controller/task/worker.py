@@ -425,7 +425,6 @@ def build_device_image_task(
                     configuration_commit=task_data.commit,
                     image_format=image_format,
                     token=token,
-                    user_session_id=task_data.user_session_id,
                 ),
             )
         )

@@ -3,6 +3,7 @@ import logging
 import os
 import random
 import time
+import uuid
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
@@ -51,13 +52,14 @@ class TaskController:
     def get_task_count(self, session: Session):
         return crud.task.get_task_count(session)
 
-    def submit(self, task: TaskSubmissionData, db_session: Session) -> models.Task:
+    def submit(self, task: TaskSubmissionData, user_session_id: uuid.UUID, db_session: Session) -> models.Task:
         # creates a database entry, then submits to executor
         task_db = task_create(
             db_session,
             start_time=datetime.now(timezone.utc),
             state="pending",
             task_type=task.type,
+            user_session_id=user_session_id,
             task_submission_data=task.model_dump(mode="json"),
             parent_task_id=(
                 task.parent_task_id if hasattr(task, "parent_task_id") else None

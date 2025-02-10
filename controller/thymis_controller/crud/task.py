@@ -12,6 +12,7 @@ def create(
     start_time,
     state,
     task_type,
+    user_session_id,
     task_submission_data,
     parent_task_id,
 ):
@@ -21,6 +22,7 @@ def create(
         start_time=start_time,
         state=state,
         task_type=task_type,
+        user_session_id=user_session_id,
         task_submission_data=task_submission_data,
         parent_task_id=parent_task_id,
     )

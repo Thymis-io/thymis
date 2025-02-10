@@ -15,13 +15,17 @@ export const handle: Handle = async ({ event, resolve }) => {
 	});
 };
 
+const cookiesToSend = ['session-id', 'session-token'];
+
 export const handleFetch: HandleFetch = async ({ request, fetch, event }) => {
 	const parsedRequestUrl = new URL(request.url);
 	if (event.url.host === parsedRequestUrl.host && parsedRequestUrl.pathname.startsWith('/api')) {
-		const session = event.cookies.get('session');
-		if (session) {
-			const cookies = request.headers.get('cookie') || '';
-			request.headers.set('cookie', `${cookies}; session=${session}`);
+		for (const cookie of cookiesToSend) {
+			const value = event.cookies.get(cookie);
+			if (value) {
+				const cookies = request.headers.get('cookie') || '';
+				request.headers.set('cookie', `${cookies}; ${cookie}=${value}`);
+			}
 		}
 		const parsedControllerHost = new URL(controllerHost);
 		const new_url = request.url.replace(parsedRequestUrl.origin, parsedControllerHost.origin);
