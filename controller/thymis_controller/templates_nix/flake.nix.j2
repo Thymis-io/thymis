@@ -49,7 +49,7 @@
           };
         };
       nixosConfigurations = builtins.listToAttrs
-        (builtins.map device-to-nixosConfigurations state-json.devices);
+        (builtins.map device-to-nixosConfigurations state-json.configs);
     in
     {
       nixosConfigurations = nixosConfigurations;
