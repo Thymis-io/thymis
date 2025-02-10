@@ -38,9 +38,9 @@
 	const removeTag = (tag: string) => {
 		$state.tags = projectTags.filter((t) => t.identifier !== tag);
 
-		$state.devices = $state.devices.map((d) => {
-			d.tags = d.tags.filter((t) => t !== tag);
-			return d;
+		$state.configs = $state.configs.map((config) => {
+			config.tags = config.tags.filter((t) => t !== tag);
+			return config;
 		});
 
 		saveState();
@@ -58,9 +58,9 @@
 				return t;
 			});
 
-			$state.devices = $state.devices.map((d) => {
-				d.tags = d.tags.map((t) => (t === oldTagIdentifier ? newIdentifier : t));
-				return d;
+			$state.configs = $state.configs.map((config) => {
+				config.tags = config.tags.map((t) => (t === oldTagIdentifier ? newIdentifier : t));
+				return config;
 			});
 
 			saveState();
@@ -96,7 +96,7 @@
 	};
 
 	const startDrag = ((e: MouseEvent | TouchEvent) => {
-		// preventing default to prevent lag on touch devices (because of the browser checking for screen scrolling)
+		// preventing default to prevent lag on touch tags (because of the browser checking for screen scrolling)
 		e.preventDefault();
 		dragDisabled = false;
 	}) satisfies TouchEventHandler<HTMLDivElement> & MouseEventHandler<HTMLDivElement>;
@@ -131,7 +131,7 @@
 	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2 w-12" />
 		<TableHeadCell padding="p-2">{$t('tags.table.name')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('tags.table.devices')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('tags.table.configs')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('tags.table.actions')}</TableHeadCell>
 	</TableHead>
 	<tbody
@@ -187,16 +187,16 @@
 					</svelte:fragment>
 				</TableBodyEditCell>
 				<TableBodyCell tdClass="p-2">
-					{@const devicesWithTag = $state.devices.filter((d) =>
-						d.tags.includes(tag.data.identifier)
+					{@const configsWithTag = $state.configs.filter((config) =>
+						config.tags.includes(tag.data.identifier)
 					)}
-					<span id="devicesWithTagCount-{tag.data.identifier}">
-						{devicesWithTag.length}
-						{devicesWithTag.length === 1 ? $t('tag.device') : $t('tags.devices')}:&nbsp;
-						{devicesWithTag.length > 0 ? devicesWithTag.map((d) => d.displayName).join(', ') : ''}
+					<span id="configsWithTagCount-{tag.data.identifier}">
+						{configsWithTag.length}
+						{configsWithTag.length === 1 ? $t('tag.device') : $t('tags.configs')}:&nbsp;
+						{configsWithTag.length > 0 ? configsWithTag.map((d) => d.displayName).join(', ') : ''}
 					</span>
-					<Tooltip triggeredBy="#devicesWithTagCount-{tag.data.identifier}">
-						{devicesWithTag.map((d) => d.displayName).join(', ')}
+					<Tooltip triggeredBy="#configsWithTagCount-{tag.data.identifier}">
+						{configsWithTag.map((d) => d.displayName).join(', ')}
 					</Tooltip>
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-1">

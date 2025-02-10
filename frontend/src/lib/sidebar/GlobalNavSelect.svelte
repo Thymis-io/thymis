@@ -81,26 +81,26 @@
 			</DropdownItem>
 		{/if}
 	{/each}
-	{#each $state.devices as device}
+	{#each $state.configs as config}
 		{@const active =
 			$globalNavSelectedTargetType === 'config' &&
-			$globalNavSelectedConfig?.identifier === device.identifier}
+			$globalNavSelectedConfig?.identifier === config.identifier}
 		{@const subpage = [
 			'/configuration/configuration-details',
 			'/configuration/edit',
-			targetShouldShowVNC(device, $state) ? '/configuration/vnc' : undefined,
+			targetShouldShowVNC(config, $state) ? '/configuration/vnc' : undefined,
 			'/configuration/terminal'
 		].includes($page.url.pathname)
 			? $page.url.pathname
 			: '/configuration/configuration-details'}
-		{#if isSearched(search, device.displayName)}
+		{#if isSearched(search, config.displayName)}
 			<DropdownItem
-				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'config', device.identifier)}`}
+				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'config', config.identifier)}`}
 				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-600 dark:text-primary-400' : ''}`}
 				on:click={() => (open = false)}
 			>
 				<HardDrive size={'1rem'} class="min-w-4" />
-				<span class="text-base truncate" title={device.displayName}>{device.displayName}</span>
+				<span class="text-base truncate" title={config.displayName}>{config.displayName}</span>
 			</DropdownItem>
 		{/if}
 	{/each}

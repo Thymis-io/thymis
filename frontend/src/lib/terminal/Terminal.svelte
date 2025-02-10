@@ -1,6 +1,5 @@
 <script lang="ts">
 	import '@xterm/xterm/css/xterm.css';
-	import { type Device } from '$lib/state';
 	import { onDestroy, onMount } from 'svelte';
 	import type { ITerminalInitOnlyOptions, ITerminalOptions } from '@xterm/xterm';
 	import type { Terminal as TerminalType } from '@xterm/xterm';

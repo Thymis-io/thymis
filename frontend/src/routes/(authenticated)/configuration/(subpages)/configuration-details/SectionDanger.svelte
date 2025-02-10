@@ -1,20 +1,21 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import Section from './Section.svelte';
-	import { saveState, type Device, state } from '$lib/state';
+	import { saveState, type Config, state } from '$lib/state';
 	import { Button } from 'flowbite-svelte';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import Trash from 'lucide-svelte/icons/trash-2';
 	import { goto } from '$app/navigation';
 
-	export let device: Device;
+	export let config: Config;
 
-	let deviceToDelete: Device | undefined = undefined;
+	let configToDelete: Config | undefined = undefined;
 
-	const deleteDevice = async (device: Device) => {
-		$state.devices = $state.devices.filter((d) => d.identifier !== device.identifier);
+	const deleteConfiguration = async (config: Config) => {
+		const identifier = config.identifier;
+		$state.configs = $state.configs.filter((config) => config.identifier !== identifier);
 		await saveState();
-		// await goto('/devices');
+		// await goto('/configuration/list');
 		setTimeout(async () => await goto('/configuration/list'), 200);
 	};
 
@@ -23,18 +24,18 @@
 </script>
 
 <DeleteConfirm
-	target={deviceToDelete?.displayName}
+	target={configToDelete?.displayName}
 	on:confirm={() => {
-		if (deviceToDelete) deleteDevice(deviceToDelete);
-		deviceToDelete = undefined;
+		if (configToDelete) deleteConfiguration(configToDelete);
+		configToDelete = undefined;
 	}}
-	on:cancel={() => (deviceToDelete = undefined)}
+	on:cancel={() => (configToDelete = undefined)}
 />
 <Section class={className} title={$t('configuration-details.danger')}>
 	<Button
 		class="px-2 py-1.5 gap-2 justify-start"
 		color="alternative"
-		on:click={() => (deviceToDelete = device)}
+		on:click={() => (configToDelete = config)}
 	>
 		<Trash size="16" />
 		{$t('configurations.actions.delete')}

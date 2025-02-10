@@ -37,7 +37,7 @@
 	"configurations": {
 		"title": "Gerätekonfigurationen",
 		"details-title": "Konfiguration",
-		"create-new": "Neue Konfiguration Erstellen ({deviceCount}/{deviceLimit})",
+		"create-new": "Neue Konfiguration Erstellen ({configCount}/{configLimit})",
 		"table": {
 			"name": "Name",
 			"target-host": "Ziel Host",
@@ -63,7 +63,7 @@
 		"edit-tags-title": "Tags Bearbeiten",
 		"new-tag-placeholder": "Neuer Tag...",
 		"unknown-target": "Unbekanntes Ziel",
-		"limit-explain": "Sie können bis zu {deviceLimit} Geräte verwalten.\nFür größere Projekte bieten wir auf thymis.io/ skalierbare Pläne an, die Ihren Anforderungen entsprechen"
+		"limit-explain": "Sie können bis zu {configLimit} Geräte verwalten.\nFür größere Projekte bieten wir auf thymis.io/ skalierbare Pläne an, die Ihren Anforderungen entsprechen"
 	},
 	"codeblock": {
 		"copy": "Kopieren",
@@ -169,7 +169,7 @@
 		"summary": "Zusammenfassung"
 	},
 	"overview": {
-		"devices": "Geräte ({count})",
+		"configs": "Konfigurationen ({count})",
 		"tags": "Tags ({count})",
 		"modules": "Modules ({count})"
 	},
@@ -255,10 +255,10 @@
 		},
 		"table": {
 			"name": "Name",
-			"devices": "Geräte",
+			"configs": "Konfigurationen",
 			"actions": "Aktionen"
 		},
-		"devices": "Geräte",
+		"configs": "Konfigurationen",
 		"details-title": "Tag"
 	},
 	"deleteConfirm": {

@@ -1,12 +1,12 @@
-import type { Device, Module, ModuleSettings, State, Tag } from '$lib/state';
+import type { Config, Module, ModuleSettings, State, Tag } from '$lib/state';
 
 const isVNCModule = (module: ModuleSettings) => module.type.toLowerCase().includes('vnc');
 
 const tagHasVNCStringModule = (tag: Tag, state: State) => tag.modules.some(isVNCModule);
 
-const deviceHasVNCStringModule = (device: Device, state: State) =>
-	device.modules.some(isVNCModule) ||
-	device.tags.some((tag) => {
+const configHasVNCStringModule = (config: Config, state: State) =>
+	config.modules.some(isVNCModule) ||
+	config.tags.some((tag) => {
 		const tagObj = state.tags.find((t) => t.identifier === tag);
 		if (!tagObj) return false;
 		return tagHasVNCStringModule(tagObj, state);
@@ -20,22 +20,22 @@ const customModuleHasVncString = (module: ModuleSettings) => {
 const tagHasCustomVNCModule = (tag: Tag, state: State) =>
 	tag.modules.some(customModuleHasVncString);
 
-const deviceHasCustomVNCModule = (device: Device, state: State) =>
-	device.modules.some(customModuleHasVncString) ||
-	device.tags.some((tag) => {
+const configHasCustomVNCModule = (config: Config, state: State) =>
+	config.modules.some(customModuleHasVncString) ||
+	config.tags.some((tag) => {
 		const tagObj = state.tags.find((t) => t.identifier === tag);
 		if (!tagObj) return false;
 		return tagHasCustomVNCModule(tagObj, state);
 	});
 
-const builtInKioskVNCModuleDetect = (target: Device | Tag, state: State) => {
+const builtInKioskVNCModuleDetect = (target: Config | Tag, state: State) => {
 	const kioskModuleType = 'thymis_controller.modules.kiosk.Kiosk';
 	let module;
 	if ('tags' in target) {
-		const device = target;
+		const config = target;
 		module =
-			device.modules.find((module) => module.type === kioskModuleType) ||
-			device.tags
+			config.modules.find((module) => module.type === kioskModuleType) ||
+			config.tags
 				.flatMap((tag) => state.tags.find((t) => t.identifier === tag)?.modules)
 				.find((module) => module?.type === kioskModuleType);
 	} else {
@@ -46,11 +46,11 @@ const builtInKioskVNCModuleDetect = (target: Device | Tag, state: State) => {
 	return 'enable_vnc' in module.settings ? module.settings.enable_vnc : false;
 };
 
-export const targetShouldShowVNC = (target: Device | Tag, state: State) => {
+export const targetShouldShowVNC = (target: Config | Tag, state: State) => {
 	if ('tags' in target) {
-		if (deviceHasVNCStringModule(target, state)) return true;
+		if (configHasVNCStringModule(target, state)) return true;
 		if (builtInKioskVNCModuleDetect(target, state)) return true;
-		if (deviceHasCustomVNCModule(target, state)) return true;
+		if (configHasCustomVNCModule(target, state)) return true;
 	} else {
 		if (tagHasVNCStringModule(target, state)) return true;
 		if (builtInKioskVNCModuleDetect(target, state)) return true;
@@ -59,11 +59,11 @@ export const targetShouldShowVNC = (target: Device | Tag, state: State) => {
 	return false;
 };
 
-export const deviceVNCPassword = (device: Device, state: State, availableModules: Module[]) => {
+export const configVNCPassword = (config: Config, state: State, availableModules: Module[]) => {
 	const kioskModuleType = 'thymis_controller.modules.kiosk.Kiosk';
 	const kioskModuleSettings =
-		device.modules.find((module) => module.type === kioskModuleType) ||
-		device.tags
+		config.modules.find((module) => module.type === kioskModuleType) ||
+		config.tags
 			.flatMap((tag) => state.tags.find((t) => t.identifier === tag)?.modules)
 			.find((module) => module?.type === kioskModuleType);
 	if (!kioskModuleSettings) return 'password';

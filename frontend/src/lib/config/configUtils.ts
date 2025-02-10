@@ -1,4 +1,4 @@
-import type { Device, Module, SelectOneSettingType, SettingType } from '$lib/state';
+import type { Config, Module, SelectOneSettingType, SettingType } from '$lib/state';
 
 export const isASelectOneSetting = (
 	type: SettingType | undefined
@@ -41,14 +41,14 @@ export const getAllowedImageFormatsForDeviceType = (
 	return [];
 };
 
-export const getDeviceType = (device: Device | undefined) => {
-	return device?.modules.find(
+export const getDeviceType = (config: Config | undefined) => {
+	return config?.modules.find(
 		(module) => module.type === 'thymis_controller.modules.thymis.ThymisDevice'
 	)?.settings['device_type'] as string | undefined;
 };
 
-export const getConfigImageFormat = (device: Device | undefined) => {
-	return device?.modules.find(
+export const getConfigImageFormat = (config: Config | undefined) => {
+	return config?.modules.find(
 		(module) => module.type === 'thymis_controller.modules.thymis.ThymisDevice'
 	)?.settings['image_format'] as string | undefined;
 };

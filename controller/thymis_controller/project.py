@@ -221,13 +221,13 @@ class Project:
         (self.repo_dir / "hosts").mkdir(exist_ok=True)
         (self.repo_dir / "tags").mkdir(exist_ok=True)
         # for each host create its own folder
-        for device in state.devices:
+        for config in state.configs:
             # assert device.identifier, "identifier cannot be empty"
-            if not device.identifier:
+            if not config.identifier:
                 logger.info("Device with empty identifier found, skipping")
                 continue
             self.create_folder_and_write_modules(
-                "hosts", device.identifier, device.modules, HOST_PRIORITY
+                "hosts", config.identifier, config.modules, HOST_PRIORITY
             )
         for tag in state.tags:
             self.create_folder_and_write_modules(

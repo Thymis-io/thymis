@@ -15,7 +15,7 @@ class ModuleSettings(BaseModel):
     settings: Dict[str, JsonValue]
 
 
-class Device(BaseModel):
+class Config(BaseModel):
     displayName: str
     identifier: str
     modules: List[ModuleSettings]
@@ -33,7 +33,7 @@ class State(BaseModel):
     version: str = migration.latest_version
     repositories: Dict[str, Repo] = {}
     tags: List[Tag] = []
-    devices: List[Device] = []
+    configs: List[Config] = []
 
 
-__all__ = ["Repo", "ModuleSettings", "Device", "Tag", "State"]
+__all__ = ["Repo", "ModuleSettings", "Config", "Tag", "State"]

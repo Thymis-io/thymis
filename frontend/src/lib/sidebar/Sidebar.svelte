@@ -63,7 +63,7 @@
 	};
 
 	$: anyTargetHasVNC =
-		$state.devices.some((device) => targetShouldShowVNC(device, $state)) ||
+		$state.configs.some((config) => targetShouldShowVNC(config, $state)) ||
 		$state.tags.some((tag) => targetShouldShowVNC(tag, $state));
 
 	let navItems: NavItem[] = [];

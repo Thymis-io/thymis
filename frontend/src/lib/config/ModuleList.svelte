@@ -3,7 +3,7 @@
 	import {
 		globalNavSelectedTarget,
 		saveState,
-		type Device,
+		type Config,
 		type Module,
 		type ModuleSettings,
 		type Tag,
@@ -23,7 +23,7 @@
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 
 	export let contextType: string | null;
-	export let context: Tag | Device | undefined;
+	export let context: Tag | Config | undefined;
 
 	export let selfModules: Module[];
 	export let availableModules: Module[] = [];
@@ -31,7 +31,7 @@
 
 	let moduleToRemove: Module | undefined;
 
-	const addModule = (target: Tag | Device | undefined, module: Module) => {
+	const addModule = (target: Tag | Config | undefined, module: Module) => {
 		if (target && !target.modules.find((m) => m.type === module.type)) {
 			target.modules = [...target.modules, { type: module.type, settings: {} }];
 			saveState();
@@ -40,7 +40,7 @@
 	};
 
 	export let removeModule:
-		| ((target: Tag | Device | undefined, module: Module) => void)
+		| ((target: Tag | Config | undefined, module: Module) => void)
 		| undefined = undefined;
 
 	let addModuleModalOpen = false;
@@ -49,7 +49,7 @@
 		module: Module,
 		selectedConfigModule: Module | undefined,
 		selectedConfigContext: string | null,
-		selectedConfigTarget: Tag | Device | undefined
+		selectedConfigTarget: Tag | Config | undefined
 	) =>
 		module.type === selectedConfigModule?.type &&
 		contextType === selectedConfigContext &&

@@ -133,17 +133,17 @@ async def build_download_image(
     project.repo.add(".")
     project.repo.commit(f"Build image for {identifier}")
 
-    device = next(
-        device
-        for device in project.read_state().devices
-        if device.identifier == identifier
+    config = next(
+        config
+        for config in project.read_state().configs
+        if config.identifier == identifier
     )
 
     task_controller.submit(
         models.BuildDeviceImageTaskSubmission(
             project_path=str(project.path),
             configuration_id=identifier,
-            device_state=device.model_dump(mode="json"),
+            config_state=config.model_dump(mode="json"),
             commit=project.repo.head_commit(),
             controller_ssh_pubkey=project.public_key,
         ),
@@ -180,7 +180,7 @@ async def download_image(
 ):
     # downloads /tmp/thymis-devices.{identifier} file from filesystem
     # compare identifier with project first
-    device = next(device for device in state.devices if device.identifier == identifier)
+    device = next(device for device in state.configs if device.identifier == identifier)
 
     if device is None:
         return Response(status_code=404)
