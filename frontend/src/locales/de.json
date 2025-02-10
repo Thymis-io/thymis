@@ -135,7 +135,7 @@
 			}
 		},
 		"create": "Gerätekonfiguration erstellen",
-		"device-type": "Gerätetyp – Um welche Art von Hardwaregerät handelt es sich? \n- Erforderlich",
+		"device-type": "Gerätetyp – Auf welcher Art von Hardware wird diese Konfiguration verwendet? \n- Erforderlich",
 		"device-type-cannot-be-empty": "Der Gerätetyp darf nicht leer sein.",
 		"device-with-display-name-name-exists": "Das Gerät mit dem Anzeigenamen „{displayName}“ ist bereits im Projekt vorhanden.",
 		"tag-with-display-name-name-exists": "Der Tag mit dem Anzeigenamen „{displayName}“ ist bereits im Projekt vorhanden.",
@@ -145,7 +145,7 @@
 		"name-helper": "Die Gerätekonfiguration wird intern {identifier} genannt.",
 		"name-helper-tag": "Der Tag wird intern {identifier} genannt.",
 		"no-tags": "Ihr Projekt hat noch keine Tags, daher können Sie diesem Gerät keine zuweisen.",
-		"tags": "Geräte-Tags – Welche Tags sollten diesem Gerät zugewiesen werden?",
+		"tags": "Geräte-Tags – Welche Tags sollten dieser Konfiguration zugewiesen werden?",
 		"display-name-tag": "Anzeigename – Wie der Tag in der Benutzeroberfläche angezeigt wird"
 	},
 	"history": {
