@@ -419,7 +419,7 @@ colorSchemes.forEach((colorScheme) => {
 			await page.goto('/vnc');
 			await expect(page).toHaveScreenshot();
 
-			await page.locator('button').filter({ hasText: 'No tag or device selected' }).nth(1).click();
+			await page.locator('button').filter({ hasText: 'No tag or config selected' }).nth(1).click();
 			await page.locator('a').filter({ hasText: 'My Device 2' }).click();
 			await page.locator('button').filter({ hasText: 'VNC' }).click();
 
