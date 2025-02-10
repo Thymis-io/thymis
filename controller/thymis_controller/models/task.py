@@ -200,7 +200,6 @@ class BuildDeviceImageTaskSubmission(BaseModel):
     config_state: dict
     commit: str
     controller_ssh_pubkey: str
-    user_session_id: uuid.UUID
 
 
 class SSHCommandTaskSubmission(BaseModel):
@@ -283,7 +282,6 @@ class ImageBuiltUpdate(BaseModel):
     configuration_id: str
     configuration_commit: str
     token: str
-    user_session_id: uuid.UUID
 
 
 class AgentShouldSwitchToNewConfigurationUpdate(BaseModel):

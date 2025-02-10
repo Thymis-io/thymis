@@ -29,6 +29,9 @@ class Task(Base):
     state = Column(String(50), nullable=False)
     exception = Column(Text, nullable=True)
     task_type = Column(String(50), nullable=False)
+    user_session_id = Column(
+        Uuid(as_uuid=True), ForeignKey("sessions.id"), nullable=True
+    )
     task_submission_data = Column(JSON, nullable=True)  # New field for submission data
 
     # Composite Task Fields

@@ -231,7 +231,7 @@ class TaskWorkerPoolManager:
                                     db_session.commit()
                                 else:
                                     self.controller.notification_manager.broadcast_image_built_notification(
-                                        message.update.user_session_id,
+                                        task.user_session_id,
                                         message.update.configuration_id,
                                         message.update.image_format,
                                     )

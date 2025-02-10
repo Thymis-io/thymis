@@ -155,8 +155,8 @@ async def build_download_image(
             config_state=config.model_dump(mode="json"),
             commit=project.repo.head_commit(),
             controller_ssh_pubkey=project.public_key,
-            user_session_id=user_session_id,
         ),
+        user_session_id=user_session_id,
         db_session=db_session,
     )
 
@@ -226,9 +226,8 @@ async def download_image(
 async def notification_websocket(
     websocket: WebSocket,
     notification_manager: NotificationManagerAD,
-    user_session_id: UserSessionIDAD,
 ):
-    await notification_manager.connect(websocket, user_session_id)
+    await notification_manager.connect(websocket)
 
 
 @router.get("/history", tags=["history"])
