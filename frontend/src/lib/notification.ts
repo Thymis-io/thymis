@@ -25,6 +25,18 @@ export type ImageBuiltNotification = {
 
 let socket: WebSocket | undefined;
 
+let isDownloadLeader = false;
+
+if (browser) {
+	navigator.locks.request(
+		'download-leader',
+		(lock) =>
+			new Promise(() => {
+				isDownloadLeader = true;
+			})
+	);
+}
+
 export const startNotificationSocket = () => {
 	console.log('starting notification socket');
 	const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
@@ -40,7 +52,7 @@ export const startNotificationSocket = () => {
 			});
 		} else if (notification.inner.kind === 'image_built') {
 			const inner: ImageBuiltNotification = notification.inner;
-			if (browser && inner.image_format === 'sd-card-image') {
+			if (browser && inner.image_format === 'sd-card-image' && isDownloadLeader) {
 				const downloadUrl = `/api/download-image?identifier=${inner.configuration_id}`;
 				const response = await fetchWithNotify(downloadUrl, { method: 'HEAD' });
 				if (response.ok) {
