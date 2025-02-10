@@ -63,9 +63,10 @@ class NotificationManager:
     alive: bool
 
     def __init__(self):
-        self.active_connections: list[
-            (WebSocket, uuid.UUID)
-        ] = []  # connection, user_session_id
+        # self.active_connections: list[
+        #     (WebSocket, uuid.UUID)
+        # ] = []  # connection, user_session_id
+        self.active_connections: dict[WebSocket, uuid.UUID] = {}
 
     def start(self):
         self.alive = True
@@ -106,6 +107,7 @@ class NotificationManager:
 
     async def connect(self, websocket: WebSocket, user_session_id: uuid.UUID):
         await websocket.accept()
+        self.active_connections[websocket] = user_session_id
 
         try:
             while self.is_connection_healthy(websocket):
@@ -116,12 +118,7 @@ class NotificationManager:
             self.disconnect(websocket)
 
     def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(
-            next(
-                (x for x in self.active_connections if x[0] == websocket),
-                None,
-            )
-        )
+        self.active_connections.pop(websocket, None)
 
     def is_connection_healthy(self, websocket: WebSocket):
         return WebSocketState.DISCONNECTED not in (
@@ -133,7 +130,7 @@ class NotificationManager:
         self.queue.put(Notification(FrontendToast(message=message)))
 
     async def _broadcast(self, message: Notification):
-        for connection, user_session_id in self.active_connections:
+        for connection, user_session_id in self.active_connections.items():
             if (
                 hasattr(message.data.inner, "user_session_id")
                 and message.data.inner.user_session_id != user_session_id
