@@ -66,7 +66,7 @@
 		<slot name="icon" />
 		<span>{context?.displayName}</span>
 	</div>
-	{#if $globalNavSelectedTarget?.identifier !== context?.identifier}
+	{#if $globalNavSelectedTarget?.identifier !== context?.identifier || $globalNavSelectedTargetType !== contextType}
 		<ToolbarButton
 			href="/configuration/edit?{buildConfigSelectModuleSearchParam(
 				$page.url.search,
