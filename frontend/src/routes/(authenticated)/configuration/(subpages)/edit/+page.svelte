@@ -25,7 +25,7 @@
 	} from '$lib/searchParamHelpers';
 	import type { PageData } from './$types';
 	import ModuleCard from '$lib/config/ModuleCard.svelte';
-	import HardDrive from 'lucide-svelte/icons/hard-drive';
+	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import { queryParam } from 'sveltekit-search-params';
 	import { derived } from 'svelte/store';
@@ -103,7 +103,7 @@
 				{#if $globalNavSelectedTag}
 					<TagIcon size="20" />
 				{:else if $globalNavSelectedConfig}
-					<HardDrive size="20" />
+					<FileCode size="20" />
 				{/if}
 			</slot>
 		</ModuleList>

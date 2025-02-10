@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import TagIcon from 'lucide-svelte/icons/tag';
-	import HardDrive from 'lucide-svelte/icons/hard-drive';
+	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import { Button, Dropdown, DropdownItem, Search } from 'flowbite-svelte';
 	import ChevronDownOutline from 'flowbite-svelte-icons/ChevronDownOutline.svelte';
 	import { page } from '$app/stores';
@@ -37,7 +37,7 @@
 			{$globalNavSelectedTag?.displayName}
 		</span>
 	{:else if $globalNavSelectedConfig}
-		<HardDrive size={'1rem'} class="min-w-4 text-primary-600 dark:text-primary-400" />
+		<FileCode size={'1rem'} class="min-w-4 text-primary-600 dark:text-primary-400" />
 		<span
 			class="font-semibold text-primary-600 dark:text-primary-400 truncate"
 			title={$globalNavSelectedConfig?.displayName}
@@ -45,8 +45,8 @@
 			{$globalNavSelectedConfig?.displayName}
 		</span>
 	{:else}
-		<span class="font-semibold truncate" title={$t('common.no-tag-or-device-selected')}>
-			{$t('common.no-tag-or-device-selected')}
+		<span class="font-semibold truncate" title={$t('common.no-tag-or-config-selected')}>
+			{$t('common.no-tag-or-config-selected')}
 		</span>
 	{/if}
 	<ChevronDownOutline class="h-4 text-white ml-auto dark:text-white" />
@@ -99,7 +99,7 @@
 				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-600 dark:text-primary-400' : ''}`}
 				on:click={() => (open = false)}
 			>
-				<HardDrive size={'1rem'} class="min-w-4" />
+				<FileCode size={'1rem'} class="min-w-4" />
 				<span class="text-base truncate" title={config.displayName}>{config.displayName}</span>
 			</DropdownItem>
 		{/if}

@@ -23,7 +23,7 @@
 		"search": "Search...",
 		"save": "Save",
 		"cancel": "Cancel",
-		"no-tag-or-device-selected": "No tag or device selected",
+		"no-tag-or-config-selected": "No tag or config selected",
 		"logout": "Logout",
 		"documentation": "Documentation",
 		"github": "GitHub",

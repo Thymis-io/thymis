@@ -23,7 +23,7 @@
 		"search": "Suchen...",
 		"save": "Speichern",
 		"cancel": "Abbrechen",
-		"no-tag-or-device-selected": "Kein Tag oder Gerät ausgewählt",
+		"no-tag-or-config-selected": "Kein Tag oder Konfig ausgewählt",
 		"logout": "Abmelden",
 		"documentation": "Dokumentation",
 		"github": "GitHub",
