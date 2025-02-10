@@ -66,7 +66,7 @@ export const deviceVNCPassword = (device: Device, state: State, availableModules
 		device.tags
 			.flatMap((tag) => state.tags.find((t) => t.identifier === tag)?.modules)
 			.find((module) => module?.type === kioskModuleType);
-	if (!kioskModuleSettings) return '';
+	if (!kioskModuleSettings) return 'password';
 	const kioskModule = availableModules.find((module) => module.type === kioskModuleType);
 	// return "vnc_password" in kioskModule.settings ? kioskModule.settings.vnc_password : '';
 	const password =
