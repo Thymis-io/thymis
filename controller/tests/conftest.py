@@ -10,7 +10,7 @@ from thymis_controller.dependencies import (
     get_project,
     require_valid_user_session,
 )
-from thymis_controller.models.state import Device
+from thymis_controller.models.state import Config
 
 # Create an in-memory SQLite database for testing
 SQLITE_DATABASE_URL = "sqlite:///:memory:"

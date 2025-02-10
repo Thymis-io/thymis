@@ -70,7 +70,7 @@ export type Tag = {
 	modules: ModuleSettings[];
 };
 
-export type Device = {
+export type Config = {
 	displayName: string;
 	identifier: string;
 	modules: ModuleSettings[];
@@ -83,7 +83,7 @@ export type Repo = {
 
 export type State = {
 	repositories: { [name: string]: Repo };
-	devices: Device[];
+	configs: Config[];
 	tags: Tag[];
 };
 
@@ -117,7 +117,7 @@ export const getTagByIdentifier = (state: State, identifier: string) => {
 };
 
 export const getConfigByIdentifier = (state: State, identifier: string) => {
-	return state.devices.find((config) => config.identifier === identifier);
+	return state.configs.find((config) => config.identifier === identifier);
 };
 
 export const globalNavSelectedTag = derived(

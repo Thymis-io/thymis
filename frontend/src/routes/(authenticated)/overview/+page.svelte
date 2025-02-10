@@ -12,11 +12,10 @@
 <!-- container for a bunch of cards -->
 <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
 	<Card class="card p-4 bg-white rounded-lg shadow-md w-full">
-		<!-- number of devices: data.state.devices.length -->
 		<div class="flex items-center justify-around">
 			<div class="flex items-center justify-center bg-primary-500 rounded-full p-5 w-full">
 				<P weight="bold" size="2xl" color="text-white dark:text-gray-900">
-					{$t('overview.devices', { values: { count: $state.devices.length } })}
+					{$t('overview.configs', { values: { count: $state.configs.length } })}
 				</P>
 			</div>
 		</div>

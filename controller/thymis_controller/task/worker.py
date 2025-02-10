@@ -300,7 +300,7 @@ def build_device_image_task(
     device_module = next(
         (
             module
-            for module in task_data.device_state.get("modules", [])
+            for module in task_data.config_state.get("modules", [])
             if module.get("type") == "thymis_controller.modules.thymis.ThymisDevice"
         ),
         None,

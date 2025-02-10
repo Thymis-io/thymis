@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import Section from './Section.svelte';
-	import { type Device, type Module, state } from '$lib/state';
+	import { type Config, type Module, state } from '$lib/state';
 	import {
 		buildGlobalNavSearchParam,
 		buildConfigSelectModuleSearchParam
@@ -12,13 +12,13 @@
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import EditTagModal from '$lib/EditTagModal.svelte';
 
-	export let device: Device;
+	export let config: Config;
 	export let availableModules: Module[];
 
-	let currentlyEditingDevice: Device | undefined = undefined;
+	let currentlyEditingConfig: Config | undefined = undefined;
 
-	const getOwnModules = (device: Device, availableModules: Module[]) => {
-		return device.modules
+	const getOwnModules = (config: Config, availableModules: Module[]) => {
+		return config.modules
 			.map((module) => availableModules.find((m) => m.type === module.type))
 			.filter((m) => !!m);
 	};
@@ -31,18 +31,18 @@
 	export { className as class };
 </script>
 
-<EditTagModal bind:currentlyEditingDevice />
+<EditTagModal bind:currentlyEditingConfig />
 <Section class={className} title={$t('configuration-details.config')}>
 	<p class="text-base">{$t('configuration-details.modules')}</p>
 	<div class="flex gap-2 items-center flex-wrap">
-		{#each getOwnModules(device, availableModules) as module}
+		{#each getOwnModules(config, availableModules) as module}
 			<a
 				href={`/configuration/edit?${buildConfigSelectModuleSearchParam(
 					$page.url.search,
 					'config',
-					device.identifier,
+					config.identifier,
 					'config',
-					device.identifier,
+					config.identifier,
 					module
 				)}`}
 			>
@@ -57,7 +57,7 @@
 	<p class="text-base">{$t('configuration-details.tags')}</p>
 	<div class="flex gap-2 items-center">
 		<div class="flex gap-2 flex-wrap">
-			{#each device.tags as tag, i}
+			{#each config.tags as tag, i}
 				<Button
 					pill
 					size="sm"
@@ -75,7 +75,7 @@
 		<Button
 			color="alternative"
 			class="p-2 py-1.5 gap-2"
-			on:click={() => (currentlyEditingDevice = device)}
+			on:click={() => (currentlyEditingConfig = config)}
 		>
 			<Pen size="16" />
 			<span class="text-sm">{$t('configuration-details.edit-tags')}</span>

@@ -1,28 +1,28 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { Device, Module } from '$lib/state';
+	import type { Config, Module } from '$lib/state';
 	import { state } from '$lib/state';
 	import { Card, Spinner, Toggle, P } from 'flowbite-svelte';
 	import { onDestroy, onMount } from 'svelte';
-	import { deviceVNCPassword, targetShouldShowVNC } from '$lib/vnc/vnc';
+	import { configVNCPassword, targetShouldShowVNC } from '$lib/vnc/vnc';
 	import { page } from '$app/stores';
 	import { type DeploymentInfo } from '$lib/deploymentInfo';
 
-	export let device: Device | undefined;
+	export let config: Config | undefined;
 	export let deploymentInfo: DeploymentInfo;
 	let deviceHost: string;
 	let rfb: any;
 	let connected = false;
 	let connectionFailed = false;
 
-	let controlDevice = false;
+	let control = false;
 
-	$: hasVNC = deploymentInfo && device && targetShouldShowVNC(device, $state);
+	$: hasVNC = deploymentInfo && config && targetShouldShowVNC(config, $state);
 
 	let div: HTMLCanvasElement;
 
 	const initVNC = async (deploymentInfo: DeploymentInfo) => {
-		if (!deploymentInfo || !device) {
+		if (!deploymentInfo || !config) {
 			return;
 		}
 
@@ -32,7 +32,7 @@
 		const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 		const url = `${scheme}://${window.location.host}/api/vnc/${deploymentInfo.id}`;
 
-		const password = deviceVNCPassword(device, $state, $page.data.availableModules as Module[]);
+		const password = configVNCPassword(config, $state, $page.data.availableModules as Module[]);
 		const canvas = document.getElementById(`vnc-canvas-${deploymentInfo.id}`);
 
 		if (rfb) {
@@ -47,16 +47,16 @@
 		rfb.addEventListener('disconnect', () => (connectionFailed = true));
 		rfb.addEventListener('securityfailure', () => (connectionFailed = true));
 
-		rfb.viewOnly = !controlDevice;
+		rfb.viewOnly = !control;
 		rfb.scaleViewport = true;
 		rfb.showDotCursor = true;
 	};
 
-	const toggleControlDevice = () => {
-		controlDevice = !controlDevice;
+	const toggleControl = () => {
+		control = !control;
 
 		if (rfb) {
-			rfb.viewOnly = !controlDevice;
+			rfb.viewOnly = !control;
 		}
 	};
 
@@ -80,12 +80,7 @@
 			<pre class="text-base">vncviewer {deploymentInfo?.reachable_deployed_host}:5900</pre>
 			<div class="flex items-center gap-2">
 				<P>{$t('vnc.control-device')}</P>
-				<Toggle
-					bind:checked={controlDevice}
-					class="mr-[-10px]"
-					size="small"
-					on:click={toggleControlDevice}
-				/>
+				<Toggle bind:checked={control} class="mr-[-10px]" size="small" on:click={toggleControl} />
 			</div>
 		</div>
 		<div

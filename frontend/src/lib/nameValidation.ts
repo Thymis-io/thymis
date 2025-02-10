@@ -9,8 +9,8 @@ export const nameToIdentifier = (displayName: string): string => {
 	identifier = identifier.replace(/^-+|-+$/g, '');
 	// remove multiple hyphens
 	identifier = identifier.replace(/-+/g, '-');
-	// prepend with 'device-' if it doesn't start with a letter
-	identifier = /^[a-z]/.test(identifier) ? identifier : `device-${identifier}`;
+	// prepend with 'config-' if it doesn't start with a letter
+	identifier = /^[a-z]/.test(identifier) ? identifier : `config-${identifier}`;
 
 	return identifier;
 };
@@ -23,13 +23,13 @@ export const nameValidation = (displayName: string, targetType: string): string 
 	const identifier = nameToIdentifier(displayName);
 
 	if (targetType === 'config') {
-		if (get(state).devices.find((device) => device.displayName === displayName)) {
+		if (get(state).configs.find((config) => config.displayName === displayName)) {
 			return get(t)('create-configuration.device-with-display-name-name-exists', {
 				values: { displayName }
 			});
 		}
 
-		if (get(state).devices.find((device) => device.identifier === identifier)) {
+		if (get(state).configs.find((config) => config.identifier === identifier)) {
 			return get(t)('create-configuration.identifier-exists');
 		}
 	} else if (targetType === 'tag') {

@@ -2,14 +2,11 @@
 	import { t } from 'svelte-i18n';
 	import Section from './Section.svelte';
 	import type { DeploymentInfo } from '$lib/deploymentInfo';
-	import { Button } from 'flowbite-svelte';
-	import Pencil from 'lucide-svelte/icons/pencil';
-	import CirclePlus from 'lucide-svelte/icons/circle-plus';
-	import type { Device } from '$lib/state';
+	import type { Config } from '$lib/state';
 	import EditDeploymentInfo from '$lib/EditDeploymentInfo.svelte';
 
 	export let deploymentInfos: DeploymentInfo[] = [];
-	export let device: Device;
+	export let config: Config;
 
 	let className = '';
 	export { className as class };
@@ -22,7 +19,7 @@
 <EditDeploymentInfo
 	bind:deploymentInfo={currentDeploymentInfo}
 	bind:open={editDeploymentInfoModalOpen}
-	configIdentifier={device.identifier}
+	configIdentifier={config.identifier}
 />
 <Section class={className} title={$t('configuration-details.deployment-info')}>
 	<div class="flex flex-col gap-2">

@@ -15,7 +15,7 @@
 		ModuleSettings,
 		ModuleSettingsWithOrigin,
 		Tag,
-		Device,
+		Config,
 		Module,
 		Origin
 	} from '$lib/state';
@@ -41,7 +41,7 @@
 		}
 	);
 
-	const getOrigin = (target: Tag | Device): Origin => {
+	const getOrigin = (target: Tag | Config): Origin => {
 		return {
 			originId: target.identifier,
 			originContext: 'tags' in target ? 'config' : 'tag',
@@ -49,7 +49,7 @@
 		};
 	};
 
-	const getModuleSettings = (target: Tag | Device | undefined): ModuleSettingsWithOrigin[] => {
+	const getModuleSettings = (target: Tag | Config | undefined): ModuleSettingsWithOrigin[] => {
 		if (!target) {
 			return [];
 		}
@@ -68,20 +68,20 @@
 		return [...ownModules, ...tagModules];
 	};
 
-	const getOwnModuleSettings = (target: Tag | Device | undefined): ModuleSettingsWithOrigin[] => {
+	const getOwnModuleSettings = (target: Tag | Config | undefined): ModuleSettingsWithOrigin[] => {
 		return target?.modules.map((m) => ({ ...getOrigin(target), priority: undefined, ...m })) ?? [];
 	};
 
-	const getSelfModules = (selectedTarget: Tag | Device | undefined) => {
+	const getSelfModules = (selectedTarget: Tag | Config | undefined) => {
 		let settings = getOwnModuleSettings(selectedTarget);
 		return data.availableModules.filter((m) => settings.find((s) => s.type === m.type)) ?? [];
 	};
 
-	const getOtherSettings = (target: Device | Tag | undefined, module: Module | undefined) => {
+	const getOtherSettings = (target: Config | Tag | undefined, module: Module | undefined) => {
 		return getModuleSettings(target)?.filter((s) => s.type === module?.type);
 	};
 
-	const removeModule = (target: Tag | Device | undefined, module: ModuleSettings | Module) => {
+	const removeModule = (target: Tag | Config | undefined, module: ModuleSettings | Module) => {
 		if (target) {
 			target.modules = target.modules.filter((m) => m.type !== module.type);
 		}

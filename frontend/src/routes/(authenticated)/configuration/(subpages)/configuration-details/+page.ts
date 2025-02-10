@@ -8,8 +8,8 @@ export const load: PageLoad = async ({ fetch, url, parent }) => {
 	if (identifier) {
 		deploymentInfos = await getConnectedDeploymentInfosByConfigId(fetch, identifier);
 		const parentData: PageParentData = await parent();
-		// if config is not in parentData state, redirect to '/devices'
-		if (!parentData.state.devices.find((device) => device.identifier === identifier)) {
+		// if config is not in parentData state, redirect to '/configuration/list'
+		if (!parentData.state.configs.find((config) => config.identifier === identifier)) {
 			redirect(303, '/configuration/list');
 		}
 		return { deploymentInfos: deploymentInfos };

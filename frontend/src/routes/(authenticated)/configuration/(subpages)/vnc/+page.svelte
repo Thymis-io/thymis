@@ -20,7 +20,7 @@
 
 	const getConfigFromIdentifier = (identifier: string | null) => {
 		if (!identifier) return undefined;
-		return data.state.devices.find((device) => device.identifier === identifier);
+		return data.state.configs.find((config) => config.identifier === identifier);
 	};
 </script>
 
@@ -39,16 +39,16 @@
 		{#if data.deploymentInfos}
 			{#each data.deploymentInfos as deploymentInfo}
 				<VncView
-					device={getConfigFromIdentifier(deploymentInfo.deployed_config_id)}
+					config={getConfigFromIdentifier(deploymentInfo.deployed_config_id)}
 					{deploymentInfo}
 				/>
 			{/each}
 		{/if}
 	{:else if $globalNavSelectedTargetType === 'tag' && $globalNavSelectedTag}
-		{#each data.state.devices.filter( (device) => device.tags.includes($globalNavSelectedTag.identifier) ) as device}
-			{#if targetShouldShowVNC(device, $state)}
-				{#each data.allDeploymentInfos.get(device.identifier) ?? [] as deploymentInfo}
-					<VncView {device} {deploymentInfo} />
+		{#each data.state.configs.filter( (config) => config.tags.includes($globalNavSelectedTag.identifier) ) as config}
+			{#if targetShouldShowVNC(config, $state)}
+				{#each data.allDeploymentInfos.get(config.identifier) ?? [] as deploymentInfo}
+					<VncView {config} {deploymentInfo} />
 				{/each}
 			{/if}
 		{/each}

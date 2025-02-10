@@ -195,7 +195,7 @@ class BuildDeviceImageTaskSubmission(BaseModel):
     type: Literal["build_device_image_task"] = "build_device_image_task"
     project_path: str
     configuration_id: str
-    device_state: dict
+    config_state: dict
     commit: str
     controller_ssh_pubkey: str
 

@@ -49,8 +49,8 @@
 	</TableHead>
 	<tbody>
 		{#each hardwareDevices as { id, hardwareDevice }, i (id)}
-			{@const deployedConfig = data.state.devices.find(
-				(d) => d.identifier === hardwareDevice.deployment_info?.deployed_config_id
+			{@const deployedConfig = data.state.configs.find(
+				(config) => config.identifier === hardwareDevice.deployment_info?.deployed_config_id
 			)}
 			{@const deviceType = getDeviceType(deployedConfig)}
 			<tr
