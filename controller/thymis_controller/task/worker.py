@@ -151,6 +151,7 @@ def build_project_task(
             ".#thymis",
             "--out-link",
             "/tmp/thymis",
+            "--allow-dirty-locks",
         ],
         cwd=repo_path,
     )
@@ -204,6 +205,7 @@ def deploy_device_task(
                 f'{repo_path}#nixosConfigurations."{task_data.device.identifier}".config.system.build.toplevel',
                 "--out-link",
                 toplevel_path,
+                "--allow-dirty-locks",
             ],
             env,
             cwd=tmpdir,
@@ -341,6 +343,7 @@ def build_device_image_task(
             f'git+file:{repo_path}?rev={task_data.commit}#nixosConfigurations."{task_data.configuration_id}".config.system.build.thymis-image-with-secrets-builder-{architecture}',
             "--out-link",
             secrets_builder_dest,
+            "--allow-dirty-locks",
         ],
         cwd=repo_path,
     )
