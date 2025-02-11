@@ -1,7 +1,7 @@
 """change-session-id-to-native-uuid
 
 Revision ID: cf011834f9aa
-Revises: bc8f00254345
+Revises: f1997e82baa2
 Create Date: 2025-02-09 22:02:53.434583
 
 """
@@ -10,7 +10,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "cf011834f9aa"
-down_revision = "bc8f00254345"
+down_revision = "f1997e82baa2"
 branch_labels = None
 depends_on = None
 
