@@ -6,9 +6,10 @@ import thymis_agent.agent as agent
 import thymis_controller.network_relay as nr
 from fastapi import APIRouter, HTTPException, Request, WebSocket
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 from thymis_controller import crud, models
 from thymis_controller.config import global_settings
-from thymis_controller.dependencies import NetworkRelayAD, ProjectAD, SessionAD
+from thymis_controller.dependencies import EngineAD, NetworkRelayAD, ProjectAD
 from thymis_controller.nix import check_device_reference
 from thymis_controller.utils import determine_first_host_with_key
 
@@ -46,7 +47,7 @@ async def relay(
     websocket: WebSocket,
     network_relay: NetworkRelayAD,
     project: ProjectAD,
-    db_session: SessionAD,
+    db_engine: EngineAD,
 ):
     logger.info(f"Agent connection from {websocket.client.host}")
     res = await network_relay.accept_ws_and_start_msg_loop_for_edge_agents(websocket)
@@ -54,7 +55,8 @@ async def relay(
         logger.error(f"Agent connection from {websocket.client.host} failed")
         return
     msg_loop, connection_id = res
-    project.update_known_hosts(db_session)
+    with Session(db_engine) as db_session:
+        project.update_known_hosts(db_session)
     logger.info(
         f"Agent connection from {websocket.client.host} established with connection id {connection_id}"
     )
@@ -65,8 +67,6 @@ async def relay(
 async def relay_for_clients(
     websocket: WebSocket,
     network_relay: NetworkRelayAD,
-    project: ProjectAD,
-    db_session: SessionAD,
 ):
     logger.info(f"Agent connection from {websocket.client.host}")
     await network_relay.ws_for_access_clients(websocket)

@@ -16,7 +16,6 @@ from fastapi import (
     WebSocket,
 )
 from fastapi.concurrency import run_in_threadpool
-from fastapi.requests import HTTPConnection
 from fastapi.responses import FileResponse, RedirectResponse
 from paramiko import PKey, SSHClient
 from sqlalchemy.orm import Session
@@ -24,6 +23,7 @@ from thymis_controller import crud, dependencies, models, modules, utils
 from thymis_controller.config import global_settings
 from thymis_controller.db_models.deployment_info import DeploymentInfo
 from thymis_controller.dependencies import (
+    EngineAD,
     NetworkRelayAD,
     ProjectAD,
     SessionAD,
@@ -259,11 +259,12 @@ async def update(
 @router.websocket("/vnc/{deployment_info_id}")
 async def vnc_websocket(
     deployment_info_id: uuid.UUID,
-    db_session: SessionAD,
+    db_engine: EngineAD,
     websocket: WebSocket,
     network_relay: NetworkRelayAD,
 ):
-    deployment_info = crud.deployment_info.get_by_id(db_session, deployment_info_id)
+    with Session(db_engine) as db_session:
+        deployment_info = crud.deployment_info.get_by_id(db_session, deployment_info_id)
 
     if deployment_info is None:
         await websocket.close()
@@ -463,10 +464,11 @@ def scan_public_key(
 async def terminal_websocket(
     deployment_info_id: uuid.UUID,
     websocket: WebSocket,
-    db_session: SessionAD,
+    db_engine: EngineAD,
     network_relay: NetworkRelayAD,
 ):
-    deployment_info = crud.deployment_info.get_by_id(db_session, deployment_info_id)
+    with Session(db_engine) as db_session:
+        deployment_info = crud.deployment_info.get_by_id(db_session, deployment_info_id)
 
     if deployment_info is None:
         await websocket.close()

@@ -33,9 +33,22 @@ def get_state(project: Project = Depends(get_project)):
     return project.read_state()
 
 
+def get_db_engine(connection: HTTPConnection):
+    return connection.state.engine
+
+
+EngineAD = Annotated[Session, Depends(get_db_engine)]
+
+
 def get_db_session(connection: HTTPConnection) -> Generator[Session, None, None]:
+    start_connection_time = datetime.datetime.now()
     with Session(connection.state.engine) as session:
         yield session
+    connection_time = datetime.datetime.now() - start_connection_time
+    if connection_time > datetime.timedelta(seconds=1):
+        logger.warning(
+            f"Database connection livetime: {connection_time.total_seconds()}s for {connection.scope['path']}"
+        )
 
 
 # session annotated dependency for FastAPI endpoints
@@ -50,13 +63,14 @@ def check_user_session(db_session: SessionAD, user_session_id) -> bool:
 
 
 def require_valid_user_session(
-    db_session: SessionAD,
+    db_engine: EngineAD,
     user_session_id: Annotated[Union[str, None], Cookie(alias="session")] = None,
 ) -> bool:
     """
     Check if the session is valid
     """
-    valid_user_session = check_user_session(db_session, user_session_id)
+    with Session(db_engine) as db_session:
+        valid_user_session = check_user_session(db_session, user_session_id)
     if not valid_user_session:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="No valid session"
