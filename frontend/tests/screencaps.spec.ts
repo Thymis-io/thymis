@@ -342,17 +342,25 @@ colorSchemes.forEach((colorScheme) => {
 				maxDiffPixels: 3000
 			});
 
+			const resolutions = [
+				{ width: 1600, height: 900 },
+				{ width: 1366, height: 768 },
+				{ width: 1280, height: 720 },
+				{ width: 1024, height: 768 },
+				{ width: 800, height: 600 }
+			];
 			// create new browser context with viewport zoom
-			const zoomedContext = await browser.newContext({
-				viewport: viewport,
-				deviceScaleFactor: 2
-			});
-			const zoomedPage = await zoomedContext.newPage();
-			await login(zoomedPage);
-			await zoomedPage.goto('http://localhost:8000/configuration/list');
-			await expect(zoomedPage).toHaveScreenshot({
-				maxDiffPixels: 3500
-			});
+			for (const resolution of resolutions) {
+				const zoomedContext = await browser.newContext({
+					viewport: resolution
+				});
+				const zoomedPage = await zoomedContext.newPage();
+				await zoomedPage.goto('http://localhost:8000/configuration/list');
+				await expect(zoomedPage).toHaveScreenshot({
+					maxDiffPixels: 3500
+				});
+				await zoomedContext.close();
+			}
 		});
 
 		test('Download Raspberry Pi 4 image', async ({ page, request }) => {
