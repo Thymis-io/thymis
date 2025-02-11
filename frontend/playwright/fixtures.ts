@@ -22,7 +22,7 @@ export const test = baseTest.extend<{}, { workerStorageState: string }>({
 			}
 
 			// Important: make sure we authenticate in a clean environment by unsetting storage state.
-			// const page = await browser.newPage({ storageState: undefined });
+			const page = await browser.newPage({ storageState: undefined });
 
 			// // Acquire a unique account, for example create a new one.
 			// // Alternatively, you can have a list of precreated accounts for testing.
