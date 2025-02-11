@@ -9,7 +9,7 @@ buildNpmPackage {
   pname = "thymis-frontend";
   version = "0.0.1";
   src = ./.;
-  npmDepsHash = "sha256-LAnKNyaT2vE3glrT5Qtxq8ZqJh1XKJApUSfFvPB5tKg=";
+  npmDepsHash = "sha256-+G0IozDwFRfq+qp/8qcICmY1G0b/EhqxTVtrOMEz/k0=";
   postInstall = ''
     mkdir -p $packageOut/build
     cp -r ./build/* $packageOut/build
