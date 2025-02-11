@@ -66,7 +66,7 @@ class Module(ABC):
 
             self.write_nix_settings(f, path, module_settings, priority, project)
 
-            f.write("}\n")
+            f.write("\n}\n")
 
         format_nix_file(str(path / filename))
 
