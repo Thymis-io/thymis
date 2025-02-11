@@ -15,7 +15,7 @@ if grep -q -E -e "npx playwright install" -e "error: attribute '\"[[:digit:]]+\.
     echo "Playwright tests failed due to missing browsers"
     echo "MISSING_BROWSERS=true" >> $GITHUB_ENV
 fi
-if grep -q -E -e "[[:digit:]]+ failed" -e "was not able to start" output.log; then
+if grep -q -E -e "[[:digit:]]+ failed" -e "was not able to start" -e "Error: Timed out waiting [[:digit:]]+ms from config.webServer" output.log; then
     echo "Playwright tests failed"
     exit 1
 fi
