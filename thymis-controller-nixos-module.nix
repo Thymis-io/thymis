@@ -112,7 +112,7 @@ in
       gc = {
         options = "--keep-outputs";
         randomizedDelaySec = "15min";
-        dates = [ "02:00" ]; # at 1am
+        dates = "02:00"; # every day
         automatic = true;
       };
     });
