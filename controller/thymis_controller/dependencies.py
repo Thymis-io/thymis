@@ -47,7 +47,7 @@ def get_db_session(connection: HTTPConnection) -> Generator[Session, None, None]
     connection_time = datetime.datetime.now() - start_connection_time
     if connection_time > datetime.timedelta(seconds=1):
         logger.warning(
-            f"Database connection livetime: {connection_time.total_seconds()}s for {connection.scope['path']}"
+            f"Database connection lifetime: {connection_time.total_seconds()}s for {connection.scope['path']}"
         )
 
 
