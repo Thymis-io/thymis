@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '../playwright/fixtures';
+import { test, expect, type Page, login } from '../playwright/fixtures';
 import { clearState, deleteAllTasks, expectToHaveScreenshotWithHighlight } from './utils';
 
 const colorSchemes = ['light', 'dark'] as const;
@@ -298,7 +298,7 @@ colorSchemes.forEach((colorScheme) => {
 			});
 		});
 
-		test('Create moneyshot', async ({ page, request }) => {
+		test('Create moneyshot', async ({ page, request, browser, viewport }) => {
 			await clearState(page, request);
 			await deleteAllTasks(page, request);
 
@@ -340,6 +340,18 @@ colorSchemes.forEach((colorScheme) => {
 
 			await expect(page).toHaveScreenshot({
 				maxDiffPixels: 3000
+			});
+
+			// create new browser context with viewport zoom
+			const zoomedContext = await browser.newContext({
+				viewport: viewport,
+				deviceScaleFactor: 2
+			});
+			const zoomedPage = await zoomedContext.newPage();
+			await login(zoomedPage);
+			await zoomedPage.goto('http://localhost:8000/configuration/list');
+			await expect(zoomedPage).toHaveScreenshot({
+				maxDiffPixels: 3500
 			});
 		});
 
