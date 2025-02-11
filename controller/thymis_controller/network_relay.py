@@ -269,11 +269,18 @@ class NetworkRelay(nr.NetworkRelay):
                 self.connection_id_to_start_message[connection_id].deployed_config_id,
                 None,
             )
-            hardware_device = crud_hardware_device.create_or_update(
-                db_session,
-                self.connection_id_to_start_message[connection_id].hardware_ids,
-                deployment_info.id,
-            )
+
+            if len(self.connection_id_to_start_message[connection_id].hardware_ids) > 0:
+                hardware_device = crud_hardware_device.create_or_update(
+                    db_session,
+                    self.connection_id_to_start_message[connection_id].hardware_ids,
+                    deployment_info.id,
+                )
+            else:
+                logger.warning(
+                    "Agent %s has no hardware ids, not creating a hardware device",
+                    connection_id,
+                )
 
         async def msg_loop_but_close_connection_at_end():
             try:
