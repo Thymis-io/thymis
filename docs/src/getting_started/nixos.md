@@ -46,6 +46,7 @@ Add NixOS module `thymis.nixosModules.thymis-controller` to the configuration (f
     enable = true;
     system-binfmt-aarch64-enable = true; # enables emulation of aarch64 binaries, default is true on x86_64, needed for building aarch64 images on x86_64
     system-binfmt-x86_64-enable = false; # enables emulation of x86_64 binaries, default is false
+    recommended-nix-gc-settings-enable = true; # enables recommended Nix garbage collection settings, default is true
     repo-path = "/var/lib/thymis/repository"; # directory where the controller will store the repository holding the project
     database-url = "sqlite:////var/lib/thymis/thymis.sqlite"; # URL of the database
     base-url = "https://my-thymis-controller/"; # base URL of the controller, how it will be accessed from the outside

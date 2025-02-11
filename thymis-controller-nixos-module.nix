@@ -10,6 +10,9 @@ in
         default = pkgs.stdenv.targetPlatform.system == "x86_64";
       };
       system-binfmt-x86_64-enable = lib.mkEnableOption "whether to enable the system binfmt for x86_64";
+      recommended-nix-gc-settings-enable = lib.mkEnableOption "whether to enable the recommended Nix garbage collection settings" // {
+        default = true;
+      };
       project-path = lib.mkOption {
         type = lib.types.str;
         default = "/var/lib/thymis";
@@ -100,6 +103,19 @@ in
         };
       };
     };
+    nix = lib.mkIf cfg.recommended-nix-gc-settings-enable (lib.mkDefault {
+      settings = {
+        keep-outputs = "true";
+        min-free = "12G"; # should be enough for 2x image
+        auto-optimise-store = "true";
+      };
+      gc = {
+        options = "--keep-outputs";
+        randomizedDelaySec = "15min";
+        dates = [ "02:00" ]; # at 1am
+        automatic = true;
+      };
+    });
     boot.binfmt.emulatedSystems = (lib.lists.optional cfg.system-binfmt-aarch64-enable "aarch64-linux")
       ++ (lib.lists.optional cfg.system-binfmt-x86_64-enable "x86_64-linux");
   };
