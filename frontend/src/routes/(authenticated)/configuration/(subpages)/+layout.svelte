@@ -3,6 +3,12 @@
 	import { globalNavSelectedTargetType, globalNavSelectedTarget } from '$lib/state';
 	import Tabbar from '$lib/components/Tabbar.svelte';
 	import PageHead from '$lib/components/PageHead.svelte';
+	import Download from 'lucide-svelte/icons/download';
+	import Play from 'lucide-svelte/icons/play';
+	import { globalNavSelectedConfig, type Config } from '$lib/state';
+	import { getConfigImageFormat } from '$lib/config/configUtils';
+	import { fetchWithNotify } from '$lib/fetchWithNotify';
+	import { Button } from 'flowbite-svelte';
 
 	$: selectedTargetName = $globalNavSelectedTarget?.displayName ?? '';
 	$: titleMap = {
@@ -11,8 +17,32 @@
 		null: selectedTargetName
 	};
 	$: title = titleMap[$globalNavSelectedTargetType ?? 'null'];
+
+	const buildAndDownloadImage = async (config: Config) => {
+		await fetchWithNotify(`/api/action/build-download-image?identifier=${config.identifier}`, {
+			method: 'POST'
+		});
+	};
 </script>
 
-<PageHead {title} />
+<PageHead {title}>
+	{#if $globalNavSelectedConfig}
+		<Button
+			color="alternative"
+			class="whitespace-nowrap gap-2 px-2 py-1 m-1"
+			on:click={() => buildAndDownloadImage($globalNavSelectedConfig)}
+		>
+			{#if getConfigImageFormat($globalNavSelectedConfig) == 'nixos-vm'}
+				<Play size={'1rem'} class="min-w-4" />
+				<span class="text-base whitespace-nowrap"
+					>{$t('configurations.actions.build-vm-and-start')}</span
+				>
+			{:else}
+				<Download size={'1rem'} class="min-w-4" />
+				<span class="text-base whitespace-nowrap">{$t('configurations.actions.download')}</span>
+			{/if}
+		</Button>
+	{/if}
+</PageHead>
 <Tabbar />
 <slot />

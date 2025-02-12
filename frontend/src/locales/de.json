@@ -47,7 +47,8 @@
 		},
 		"actions": {
 			"edit": "Module Bearbeiten",
-			"download": "Image Herunterladen",
+			"download": "Geräte-Image Herunterladen",
+			"build-vm-and-start": "VM bauen und starten",
 			"restart": "Neustarten",
 			"delete": "Löschen",
 			"view-details": "Details anzeigen",

@@ -47,7 +47,8 @@
 		},
 		"actions": {
 			"edit": "Edit Modules",
-			"download": "Download Image",
+			"download": "Download Device Image",
+			"build-vm-and-start": "Build and start VM",
 			"restart": "Restart",
 			"delete": "Delete",
 			"view-details": "View Details",
