@@ -2,16 +2,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { t } from 'svelte-i18n';
-
-	import {
-		Sidebar,
-		SidebarDropdownWrapper,
-		SidebarGroup,
-		SidebarItem,
-		SidebarWrapper
-	} from 'flowbite-svelte';
-	import AngleDownOutline from 'flowbite-svelte-icons/AngleDownOutline.svelte';
-	import AngleUpOutline from 'flowbite-svelte-icons/AngleUpOutline.svelte';
+	import { Sidebar, SidebarGroup, SidebarWrapper } from 'flowbite-svelte';
 	import ServerSolid from 'svelte-awesome-icons/ServerSolid.svelte';
 	import CodeCommitSolid from 'svelte-awesome-icons/CodeCommitSolid.svelte';
 	import ChartSimpleSolid from 'svelte-awesome-icons/ChartSimpleSolid.svelte';
@@ -31,11 +22,10 @@
 
 	let spanClass = 'ms-4';
 	let childClass =
-		'p-2 hover:bg-gray-100 text-gray-500 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 flex items-center font-medium';
+		'p-1 hover:bg-gray-100 text-gray-500 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 ';
 
 	let nonActiveClass =
-		childClass +
-		' hover:text-gray-500 hover:cursor-pointer dark:text-gray-400 dark:hover:text-white';
+		childClass + ' hover:cursor-pointer dark:text-gray-400 hover:text-black dark:hover:text-white';
 	let activeClass = childClass + ' cursor-default text-primary-600 dark:text-primary-400';
 	export let asideClass = '';
 
@@ -117,27 +107,26 @@
 	asideClass="{asideClass} lg:sticky lg:top-0 border-e border-gray-200 dark:border-gray-600 lg:block"
 >
 	<SidebarWrapper
-		divClass="overflow-y-auto p-2 bg-white scrolling-touch h-full lg:block dark:bg-gray-800 lg:me-0"
+		divClass="overflow-y-auto  bg-white scrolling-touch h-full lg:block dark:bg-gray-800 lg:me-0"
 	>
-		<nav class="divide-y text-base font-medium">
-			<SidebarGroup ulClass="list-unstyled fw-normal mb-4 space-y-2">
-				<GlobalNavSelect />
+		<nav class="flex divide-x divide-gray-200 dark:divide-gray-600 text-base font-medium h-full">
+			<SidebarGroup ulClass="list-unstyled fw-normal p-1 py-2 space-y-2 bg-gray-850">
 				{#each navItems as { name, icon, children, href, hidden } (name)}
 					{#if !hidden}
-						<SidebarItem spanClass="ms-3 font-semibold" label={name} {href} {activeClass}>
-							<svelte:component this={icon} slot="icon" size={'1rem'} class="min-w-4" />
-						</SidebarItem>
+						<a
+							{href}
+							class={'flex flex-col items-center text-center gap-2 text-xs w-16 ' +
+								(activeMainSidebar === href ? activeClass : nonActiveClass)}
+						>
+							<svelte:component this={icon} size={20} />
+							{name}
+						</a>
 					{/if}
 				{/each}
 			</SidebarGroup>
+			<div class="flex flex-col p-2 w-full overflow-x-auto">
+				<GlobalNavSelect />
+			</div>
 		</nav>
 	</SidebarWrapper>
 </Sidebar>
-
-<!-- <div
-	hidden={drawerHidden}
-	class="fixed inset-0 z-20 bg-gray-900/50 dark:bg-gray-900/60 lg:hidden"
-	on:click={closeDrawer}
-	on:keydown={closeDrawer}
-	role="presentation"
-/> -->
