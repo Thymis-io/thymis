@@ -16,6 +16,7 @@
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Search from 'lucide-svelte/icons/search';
+	import Sliders from 'lucide-svelte/icons/sliders-horizontal';
 	import GripVertical from 'lucide-svelte/icons/grip-vertical';
 	import CreateConfigModal from './CreateConfigModal.svelte';
 	import EditTagModal from '$lib/EditTagModal.svelte';
@@ -236,6 +237,18 @@
 						>
 							<Search size={18} class="min-w-3" />
 							{$t('configurations.actions.view-details')}
+						</Button>
+						<Button
+							class="px-3 py-1.5 gap-2"
+							color="alternative"
+							href={`/configuration/edit?${buildGlobalNavSearchParam(
+								$page.url.search,
+								'config',
+								config.data.identifier
+							)}`}
+						>
+							<Sliders size={18} class="min-w-3" />
+							{$t('nav.configure')}
 						</Button>
 					</div>
 				</TableBodyCell>
