@@ -69,14 +69,14 @@
 			href: '/configuration/list'
 		},
 		{
-			name: $t('nav.devices'),
-			icon: ServerSolid,
-			href: '/devices'
-		},
-		{
 			name: $t('nav.tags'),
 			icon: TagIcon,
 			href: '/tags'
+		},
+		{
+			name: $t('nav.devices'),
+			icon: ServerSolid,
+			href: '/devices'
 		},
 		{
 			name: $t('nav.global-vnc'),

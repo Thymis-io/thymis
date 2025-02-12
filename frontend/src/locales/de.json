@@ -13,10 +13,10 @@
 		"hardware-devices": "Hardware Geräte",
 		"history": "Versionen",
 		"terminal": "Terminal",
-		"global-vnc": "VNC Alle Geräte",
+		"global-vnc": "VNC Geräte",
 		"device-vnc": "VNC",
 		"external-repositories": "Externe Reposi\u00ADtories",
-		"tags": "Tags",
+		"tags": "Konfig. Tags",
 		"device-details": "Details"
 	},
 	"common": {

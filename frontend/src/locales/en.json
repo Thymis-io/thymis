@@ -8,15 +8,15 @@
 		"overview": "Overview",
 		"configure": "Configure",
 		"config-tag": "Configure Tag",
-		"configurations": "Configura\u00ADtions",
+		"configurations": "Configs",
 		"devices": "Devices",
 		"hardware-devices": "Hardware Devices",
 		"history": "History",
 		"terminal": "Terminal",
-		"global-vnc": "VNC All Devices",
+		"global-vnc": "VNC Devices",
 		"device-vnc": "VNC",
 		"external-repositories": "External Reposi\u00ADtories",
-		"tags": "Tags",
+		"tags": "Config-Tags",
 		"device-details": "Details"
 	},
 	"common": {
