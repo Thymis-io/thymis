@@ -8,6 +8,8 @@
     "enabled": true
   },
   "automerge": true,
+  "schedule": ["* 6 * * *"],
+  "timezone": "Europe/Berlin",
   "rebaseWhen": "auto",
   "gitIgnoredAuthors": ["185514190+thymis-github-app[bot]@users.noreply.github.com"],
   "prConcurrentLimit": 3,
