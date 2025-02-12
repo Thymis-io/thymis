@@ -29,7 +29,7 @@
       "matchUpdateTypes": ["minor", "patch"]
     },
     {
-      "matchPackageNames": ["/@playwright\/test/"],
+      "matchPackageNames": ["/@playwright\/test/", "/flowbite/"],
       "matchManagers": ["npm"],
       "enabled": false
     }
