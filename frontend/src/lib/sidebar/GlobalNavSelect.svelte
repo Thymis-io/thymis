@@ -2,8 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
-	import { Button, Dropdown, DropdownItem, Search } from 'flowbite-svelte';
-	import ChevronDownOutline from 'flowbite-svelte-icons/ChevronDownOutline.svelte';
+	import { DropdownItem, Search } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import {
 		globalNavSelectedConfig,
@@ -27,39 +26,8 @@
 	};
 </script>
 
-<Button class="text-base w-full flex gap-2 justify-start p-2" color="alternative">
-	{#if $globalNavSelectedTag}
-		<TagIcon size={'1rem'} class="min-w-4 text-primary-600 dark:text-primary-400" />
-		<span
-			class="font-semibold text-primary-600 dark:text-primary-400 truncate"
-			title={$globalNavSelectedTag?.displayName}
-		>
-			{$globalNavSelectedTag?.displayName}
-		</span>
-	{:else if $globalNavSelectedConfig}
-		<FileCode size={'1rem'} class="min-w-4 text-primary-600 dark:text-primary-400" />
-		<span
-			class="font-semibold text-primary-600 dark:text-primary-400 truncate"
-			title={$globalNavSelectedConfig?.displayName}
-		>
-			{$globalNavSelectedConfig?.displayName}
-		</span>
-	{:else}
-		<span class="font-semibold truncate" title={$t('common.no-tag-or-config-selected')}>
-			{$t('common.no-tag-or-config-selected')}
-		</span>
-	{/if}
-	<ChevronDownOutline class="h-4 text-white ml-auto dark:text-white" />
-</Button>
-<Dropdown
-	class="overflow-y-auto px-3 h-60 text-sm relative"
-	containerClass="z-50 left-4 right-4 flex flex-col whitespace-nowrap"
-	strategy="absolute"
-	bind:open
->
-	<div slot="header" class="p-3 pb-0">
-		<Search size="sm" bind:value={search} placeholder={$t('common.search')} />
-	</div>
+<Search class="p-2 pl-8" size="sm" bind:value={search} placeholder={$t('common.search')} />
+<div class="flex flex-col overflow-y-auto h-full w-full text-sm relative gap-1 py-1">
 	{#each $state.tags as tag}
 		{@const active =
 			$globalNavSelectedTargetType === 'tag' &&
@@ -73,7 +41,7 @@
 		{#if isSearched(search, tag.displayName)}
 			<DropdownItem
 				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.identifier)}`}
-				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-600 dark:text-primary-400' : ''}`}
+				class={`flex gap-2 p-1 hover:bg-gray-100 items-center rounded ${active ? 'text-primary-600 dark:text-primary-400 hover:text-primary-600' : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'}`}
 				on:click={() => (open = false)}
 			>
 				<TagIcon size={'1rem'} class="min-w-4" />
@@ -96,7 +64,7 @@
 		{#if isSearched(search, config.displayName)}
 			<DropdownItem
 				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'config', config.identifier)}`}
-				class={`flex gap-2 my-1 p-1 hover:bg-primary-500 items-center rounded ${active ? 'text-primary-600 dark:text-primary-400' : ''}`}
+				class={`flex gap-2 p-1 hover:bg-gray-100 items-center rounded ${active ? 'text-primary-600 dark:text-primary-400 hover:text-primary-600' : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'}`}
 				on:click={() => (open = false)}
 			>
 				<FileCode size={'1rem'} class="min-w-4" />
@@ -104,4 +72,4 @@
 			</DropdownItem>
 		{/if}
 	{/each}
-</Dropdown>
+</div>
