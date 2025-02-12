@@ -2,14 +2,14 @@
 	import { t } from 'svelte-i18n';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
-	import { DropdownItem, Search } from 'flowbite-svelte';
+	import { Dropdown, DropdownItem, Search } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import {
 		globalNavSelectedConfig,
 		globalNavSelectedTag,
 		globalNavSelectedTargetType,
 		state
-	} from '../state';
+	} from '$lib/state';
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
@@ -26,8 +26,16 @@
 	};
 </script>
 
-<Search class="p-2 pl-8" size="sm" bind:value={search} placeholder={$t('common.search')} />
-<div class="flex flex-col overflow-y-auto h-full w-full text-sm relative gap-1 py-1">
+<Search
+	class="lg:w-64 xl:w-96 p-2 pl-8 "
+	size="sm"
+	bind:value={search}
+	placeholder={$t('common.search')}
+/>
+<Dropdown
+	class="lg:w-64 xl:w-96 flex flex-col overflow-y-auto h-full w-full text-sm relative gap-1 py-1"
+	bind:open
+>
 	{#each $state.tags as tag}
 		{@const active =
 			$globalNavSelectedTargetType === 'tag' &&
@@ -72,4 +80,4 @@
 			</DropdownItem>
 		{/if}
 	{/each}
-</div>
+</Dropdown>

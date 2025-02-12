@@ -5,6 +5,7 @@
 	import BookOpenOutline from 'flowbite-svelte-icons/BookOpenOutline.svelte';
 	import Globe from 'lucide-svelte/icons/globe';
 	import UserMenu from './UserMenu.svelte';
+	import GlobalSearch from './GlobalSearch.svelte';
 
 	export let authenticated = true;
 	export let drawerHidden: boolean;
@@ -26,7 +27,7 @@
 		</NavBrand>
 		{#if authenticated}
 			<div class="ms-2 w-2 sm:w-48 lg:w-64 xl:w-96 block">
-				<Search size="sm" placeholder={$t('common.search')} class="py-1 sm:py-2" />
+				<GlobalSearch />
 			</div>
 		{/if}
 	</div>
