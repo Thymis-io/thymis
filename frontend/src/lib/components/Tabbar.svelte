@@ -3,7 +3,7 @@
 	import { TabItem, Tabs } from 'flowbite-svelte';
 	import { t } from 'svelte-i18n';
 
-	import SlidersSolid from 'svelte-awesome-icons/SlidersSolid.svelte';
+	import Sliders from 'lucide-svelte/icons/sliders-horizontal';
 	import TerminalSolid from 'svelte-awesome-icons/TerminalSolid.svelte';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import ListCollapse from 'lucide-svelte/icons/list-collapse';
@@ -36,13 +36,13 @@
 		},
 		{
 			name: $t(`nav.configure`),
-			icon: SlidersSolid,
+			icon: Sliders,
 			href: '/configuration/edit',
 			hidden: !$globalNavSelectedConfig
 		},
 		{
 			name: $t(`nav.config-tag`),
-			icon: SlidersSolid,
+			icon: Sliders,
 			href: '/configuration/edit',
 			hidden: !$globalNavSelectedTag
 		},
