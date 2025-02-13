@@ -80,13 +80,6 @@
 	const getOtherSettings = (target: Config | Tag | undefined, module: Module | undefined) => {
 		return getModuleSettings(target)?.filter((s) => s.type === module?.type);
 	};
-
-	const removeModule = (target: Tag | Config | undefined, module: ModuleSettings | Module) => {
-		if (target) {
-			target.modules = target.modules.filter((m) => m.type !== module.type);
-		}
-		saveState();
-	};
 </script>
 
 <div class="grid grid-flow-row grid-cols-1 md:grid-cols-[250px_auto] gap-4">
@@ -97,7 +90,6 @@
 			selfModules={getSelfModules($globalNavSelectedTarget)}
 			availableModules={data.availableModules}
 			configSelectedModule={$configSelectedModule}
-			{removeModule}
 		>
 			<slot slot="icon">
 				{#if $globalNavSelectedTag}

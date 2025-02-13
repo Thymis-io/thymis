@@ -21,6 +21,7 @@
 		configSelectedModuleContextType
 	} from '$lib/searchParamHelpers';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
+	import { goto } from '$app/navigation';
 
 	export let contextType: string | null;
 	export let context: Tag | Config | undefined;
@@ -31,17 +32,39 @@
 
 	let moduleToRemove: Module | undefined;
 
+	const goToModule = (module: Module | undefined) => {
+		goto(
+			`/configuration/edit?${buildConfigSelectModuleSearchParam(
+				$page.url.search,
+				$globalNavSelectedTargetType,
+				$globalNavSelectedTarget?.identifier,
+				contextType,
+				context?.identifier,
+				module
+			)}`
+		);
+	};
+
 	const addModule = (target: Tag | Config | undefined, module: Module) => {
 		if (target && !target.modules.find((m) => m.type === module.type)) {
 			target.modules = [...target.modules, { type: module.type, settings: {} }];
 			saveState();
 		}
 		addModuleModalOpen = false;
+		goToModule(module);
 	};
 
-	export let removeModule:
-		| ((target: Tag | Config | undefined, module: Module) => void)
-		| undefined = undefined;
+	const removeModule = (target: Tag | Config | undefined, module: ModuleSettings | Module) => {
+		if (target) {
+			target.modules = target.modules.filter((m) => m.type !== module.type);
+		}
+		saveState();
+		goToModule(undefined);
+	};
+
+	$: canChangeModules =
+		contextType === $globalNavSelectedTargetType &&
+		context?.identifier === $globalNavSelectedTarget?.identifier;
 
 	let addModuleModalOpen = false;
 
@@ -58,7 +81,7 @@
 
 <DeleteConfirm
 	target={moduleToRemove?.displayName}
-	on:confirm={() => moduleToRemove && removeModule?.(context, moduleToRemove)}
+	on:confirm={() => moduleToRemove && removeModule(context, moduleToRemove)}
 	on:cancel={() => (moduleToRemove = undefined)}
 />
 <div class="flex justify-between mb-2">
@@ -118,7 +141,7 @@
 					/>
 					<P>{module.displayName}</P>
 				</a>
-				{#if removeModule && ($globalNavSelectedTargetType !== 'config' || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}
+				{#if canChangeModules && ($globalNavSelectedTargetType !== 'config' || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}
 					<button
 						class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
 						on:click={() => (moduleToRemove = module)}
@@ -132,7 +155,7 @@
 			</div>
 		{/each}
 	{/if}
-	{#if removeModule}
+	{#if canChangeModules}
 		<button
 			id="add-module"
 			class="p-2 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700"
