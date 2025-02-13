@@ -51,7 +51,7 @@
 
 	$: settingEntries = Object.entries(module.settings).sort((a, b) => a[1].order - b[1].order);
 
-	const canReallyEditSetting: (setting: Setting) => boolean = (setting) =>
+	const canReallyEditSetting = (canEdit: boolean, setting: Setting) =>
 		canEdit &&
 		!(
 			setting &&
@@ -65,9 +65,6 @@
 				configSelectedModuleContextType
 			)
 		);
-
-	const canClearSetting: (setting: Setting) => boolean = (setting) =>
-		canEdit && !canReallyEditSetting(setting);
 
 	const canPaste = (clipboardText: string, setting: Setting<SettingType>) => {
 		if (clipboardText === undefined) return;
@@ -101,7 +98,7 @@
 					{setting}
 					moduleSettings={settings}
 					value={settings?.settings[key]}
-					disabled={!canReallyEditSetting(setting)}
+					disabled={!canReallyEditSetting(canEdit, setting)}
 					onChange={(value) => setSetting(setting, key, value)}
 				/>
 				<div class="ml-auto" />
@@ -130,7 +127,7 @@
 					</button>
 					<Tooltip type="auto"><p>{$t('config.paste')}</p></Tooltip>
 				{/if}
-				{#if canEdit || canClearSetting(setting)}
+				{#if canEdit}
 					{#if settings?.settings[key] !== undefined}
 						<button
 							class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
@@ -139,7 +136,7 @@
 							<X size="20" />
 						</button>
 						<Tooltip type="auto"><P size="sm">{$t('config.clear')}</P></Tooltip>
-					{:else if canReallyEditSetting(setting)}
+					{:else if canReallyEditSetting(canEdit, setting)}
 						<button
 							class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 							on:click={() =>

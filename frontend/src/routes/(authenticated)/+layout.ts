@@ -19,16 +19,6 @@ export const load = (async ({ fetch, url, data }) => {
 				.split('; ')
 				.find((row) => row.startsWith('locale='))
 				?.split('=')[1] || lang;
-		console.log(
-			'setting locale:',
-			lang,
-			'from cookie',
-			document.cookie,
-			'navigator',
-			window.navigator.language,
-			'url',
-			url
-		);
 		locale.set(lang);
 	}
 	await waitLocale(lang);
