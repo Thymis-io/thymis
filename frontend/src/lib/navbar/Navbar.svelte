@@ -34,30 +34,33 @@
 	<div class="flex items-center sm:gap-2 p-1">
 		<ToolbarButton
 			size="lg"
-			class="flex items-center gap-1"
+			class="flex items-center gap-1 text-base"
 			href="https://thymis.io/"
 			ariaLabel="Thymis Website"
+			title={$t('common.website')}
 		>
 			<Globe size="1.2em" />
-			{$t('common.website')}
+			<span class="hidden lg:block">{$t('common.website')}</span>
 		</ToolbarButton>
 		<ToolbarButton
 			size="lg"
-			class="flex items-center gap-1"
+			class="flex items-center gap-1 text-base"
 			href="https://docs.thymis.io/"
 			ariaLabel="Thymis Documentation"
+			title={$t('common.documentation')}
 		>
 			<BookOpenOutline />
-			{$t('common.documentation')}
+			<span class="hidden lg:block">{$t('common.documentation')}</span>
 		</ToolbarButton>
 		<ToolbarButton
 			size="lg"
-			class="flex items-center gap-1"
+			class="flex items-center gap-1 text-base"
 			href="https://github.com/thymis-io/thymis"
 			ariaLabel="Star Thymis on GitHub"
+			title={$t('common.github')}
 		>
 			<GithubSolid />
-			{$t('common.github')}
+			<span class="hidden lg:block">{$t('common.github')}</span>
 		</ToolbarButton>
 		<DarkMode />
 		{#if authenticated}
