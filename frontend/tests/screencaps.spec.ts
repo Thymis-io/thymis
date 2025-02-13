@@ -217,9 +217,6 @@ colorSchemes.forEach((colorScheme) => {
 			await expectToHaveScreenshotWithHighlight(page, addContainerModuleButton);
 			await addContainerModuleButton.click();
 
-			const containerModuleButton = page.locator('a').filter({ hasText: 'OCI Containers' });
-			await containerModuleButton.click();
-
 			await expect(page).toHaveScreenshot();
 
 			const addContainerButton = page.locator('button').filter({ hasText: 'Add Container' });
@@ -424,9 +421,6 @@ colorSchemes.forEach((colorScheme) => {
 
 			const addKioskModuleButton = page.locator('button').filter({ hasText: 'Kiosk' });
 			await addKioskModuleButton.click();
-
-			const kioskModuleButton = page.locator('a').filter({ hasText: 'Kiosk' });
-			await kioskModuleButton.click();
 
 			const enableVNCButton = page
 				.locator('p', { hasText: 'Enable VNC server' })
