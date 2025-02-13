@@ -14,6 +14,7 @@
 	import Trash from 'lucide-svelte/icons/trash';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Pen from 'lucide-svelte/icons/pen';
+	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import GripVertical from 'lucide-svelte/icons/grip-vertical';
 	import { dndzone, SOURCES, TRIGGERS, type DndEvent } from 'svelte-dnd-action';
 	import { flip } from 'svelte/animate';
@@ -186,18 +187,24 @@
 						{/if}
 					</svelte:fragment>
 				</TableBodyEditCell>
-				<TableBodyCell tdClass="p-2">
+				<TableBodyCell tdClass="p-2 px-2 md:px-4">
 					{@const configsWithTag = $state.configs.filter((config) =>
 						config.tags.includes(tag.data.identifier)
 					)}
-					<span id="configsWithTagCount-{tag.data.identifier}">
-						{configsWithTag.length}
-						{configsWithTag.length === 1 ? $t('tag.device') : $t('tags.configs')}:&nbsp;
-						{configsWithTag.length > 0 ? configsWithTag.map((d) => d.displayName).join(', ') : ''}
-					</span>
-					<Tooltip triggeredBy="#configsWithTagCount-{tag.data.identifier}">
-						{configsWithTag.map((d) => d.displayName).join(', ')}
-					</Tooltip>
+					<div class="flex flex-wrap gap-2">
+						{#each configsWithTag as config}
+							<Button
+								size="sm"
+								class="p-2 py-0.5 gap-1"
+								href={`/configuration/edit?${buildGlobalNavSearchParam($page.url.search, 'config', config.identifier)}`}
+							>
+								<FileCode size={'0.75rem'} class="min-w-3" />
+								<span class="text-nowrap">
+									{config.displayName}
+								</span>
+							</Button>
+						{/each}
+					</div>
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-1">
 					<Button
