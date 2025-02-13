@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { t } from 'svelte-i18n';
+	import { t, locale } from 'svelte-i18n';
 	import { Sidebar, SidebarGroup, SidebarWrapper } from 'flowbite-svelte';
 	import ServerSolid from 'svelte-awesome-icons/ServerSolid.svelte';
 	import CodeCommitSolid from 'svelte-awesome-icons/CodeCommitSolid.svelte';
@@ -114,7 +114,8 @@
 					{#if !hidden}
 						<a
 							{href}
-							class={'flex flex-row lg:flex-col items-center text-center gap-2 text-xs  ' +
+							lang={$locale}
+							class={'flex flex-row lg:flex-col items-center text-center gap-2 text-xs hyphens-auto ' +
 								(activeMainSidebar === href ? activeClass : nonActiveClass)}
 						>
 							<svelte:component this={icon} size={20} />

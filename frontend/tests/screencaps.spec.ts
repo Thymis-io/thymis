@@ -379,8 +379,8 @@ colorSchemes.forEach((colorScheme) => {
 
 			const downloadPromise = page.waitForEvent('download');
 
-			// find button 'Download image' and click on it
-			await page.locator('button').filter({ hasText: 'Download image' }).first().click();
+			// find download button and click on it
+			await page.locator('button').filter({ hasText: 'Download Device Image' }).first().click();
 
 			test.setTimeout(300000);
 			await downloadPromise;
@@ -433,7 +433,10 @@ colorSchemes.forEach((colorScheme) => {
 			await page.goto('/vnc');
 			await expect(page).toHaveScreenshot();
 
-			await page.locator('button').filter({ hasText: 'No tag or config selected' }).nth(1).click();
+			await page.getByPlaceholder('Search...').click();
+
+			await expect(page).toHaveScreenshot();
+
 			await page.locator('a').filter({ hasText: 'My Device 2' }).click();
 			await page.locator('button').filter({ hasText: 'VNC' }).click();
 
