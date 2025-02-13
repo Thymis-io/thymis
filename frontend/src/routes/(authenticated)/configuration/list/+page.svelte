@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
-	import { saveState, type Config, type Tag } from '$lib/state';
+	import { saveState, state, type Config, type Tag } from '$lib/state';
 	import Pen from 'lucide-svelte/icons/pen';
 	import {
 		Button,
@@ -16,6 +16,7 @@
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Search from 'lucide-svelte/icons/search';
+	import Trash from 'lucide-svelte/icons/trash-2';
 	import Sliders from 'lucide-svelte/icons/sliders-horizontal';
 	import GripVertical from 'lucide-svelte/icons/grip-vertical';
 	import CreateConfigModal from './CreateConfigModal.svelte';
@@ -29,6 +30,7 @@
 	import { nameToIdentifier, nameValidation } from '$lib/nameValidation';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import PageHead from '$lib/components/PageHead.svelte';
+	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 
 	const flipDurationMs = 200;
 	let dragDisabled = true;
@@ -110,6 +112,14 @@
 		return false;
 	};
 
+	let configToDelete: Config | undefined = undefined;
+
+	const deleteConfiguration = async (config: Config) => {
+		const identifier = config.identifier;
+		$state.configs = $state.configs.filter((config) => config.identifier !== identifier);
+		await saveState();
+	};
+
 	$: configs = data.state.configs.map((config) => {
 		return { id: config.identifier, data: config };
 	});
@@ -143,6 +153,14 @@
 		</Tooltip>
 	{/if}
 </PageHead>
+<DeleteConfirm
+	target={configToDelete?.displayName}
+	on:confirm={() => {
+		if (configToDelete) deleteConfiguration(configToDelete);
+		configToDelete = undefined;
+	}}
+	on:cancel={() => (configToDelete = undefined)}
+/>
 <CreateConfigModal bind:open={newConfigModalOpen} />
 <EditTagModal bind:currentlyEditingConfig />
 <Table shadow>
@@ -249,6 +267,14 @@
 						>
 							<Sliders size={18} class="min-w-3" />
 							{$t('nav.configure')}
+						</Button>
+						<Button
+							class="ml-8 px-2 py-1.5 gap-2 justify-start"
+							color="alternative"
+							on:click={() => (configToDelete = config.data)}
+						>
+							<Trash size="16" />
+							{$t('configurations.actions.delete')}
 						</Button>
 					</div>
 				</TableBodyCell>
