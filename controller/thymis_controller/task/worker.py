@@ -272,6 +272,20 @@ def deploy_device_task(
             ):
                 report_task_finished(task, conn, False, "Unexpected message from agent")
                 return
+            # write message stdout and stderr to task log
+            conn.send(
+                models_task.RunnerToControllerTaskUpdate(
+                    id=task.id,
+                    update=models_task.TaskStdOutErrUpdate(
+                        stdoutb64=base64.b64encode(
+                            message.inner.stdout.encode("utf-8")
+                        ).decode("utf-8"),
+                        stderrb64=base64.b64encode(
+                            message.inner.stderr.encode("utf-8")
+                        ).decode("utf-8"),
+                    ),
+                )
+            )
         except queue.Empty:
             report_task_finished(task, conn, False, "Timeout waiting for agent")
         except Exception as e:

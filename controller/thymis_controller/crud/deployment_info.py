@@ -26,7 +26,7 @@ def create(
 def update(
     session: Session,
     id: uuid.UUID,
-    ssh_public_key: str,
+    ssh_public_key: str | None = None,
     deployed_config_commit: str | None = None,
     deployed_config_id: str | None = None,
     reachable_deployed_host: str | None = None,

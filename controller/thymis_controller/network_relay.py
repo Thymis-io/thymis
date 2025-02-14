@@ -87,14 +87,35 @@ class NetworkRelay(nr.NetworkRelay):
         self.task_controller: Optional["TaskController"] = None
         self.notification_manager: "NotificationManager" = notification_manager
 
-    async def handle_custom_agent_message(self, message: agent.AgentToRelayMessage):
+    async def handle_custom_agent_message(
+        self, message: agent.AgentToRelayMessage, connection_id: str
+    ):
         match message.inner:
             case agent.EtRSwitchToNewConfigResultMessage():
+                # update deployment_info
+                with sqlalchemy.orm.Session(self.db_engine) as db_session:
+                    deployment_info = crud_deployment_info.get_by_ssh_public_key(
+                        db_session, self.connection_id_to_public_key[connection_id]
+                    )
+                    if not deployment_info:
+                        logger.error(
+                            "Deployment info not found for public key %s",
+                            self.connection_id_to_public_key[connection_id],
+                        )
+                        raise ValueError("Deployment info not found")
+                    if message.inner.is_activated:
+                        crud_deployment_info.update(
+                            db_session,
+                            deployment_info.id,
+                            deployed_config_commit=message.inner.config_commit,
+                        )
                 self.task_controller.executor.send_message_to_task(
                     message.inner.task_id,
                     models_task.ControllerToRunnerTaskUpdate(
                         inner=models_task.AgentSwitchToNewConfigurationResult(
-                            success=message.inner.success, reason=message.inner.error
+                            success=message.inner.switch_success,
+                            stdout=message.inner.stdout,
+                            stderr=message.inner.stderr,
                         )
                     ),
                 )

@@ -109,6 +109,7 @@ class AgentToRelayMessage(BaseModel):
 
 class EtRSwitchToNewConfigResultMessage(BaseModel):
     kind: Literal["switch_to_new_config_result"] = "switch_to_new_config_result"
+    config_commit: str
     task_id: uuid.UUID
     is_activated: bool
     switch_success: bool
@@ -188,6 +189,7 @@ class Agent(ea.EdgeAgent):
                         AgentToRelayMessage(
                             inner=EtRSwitchToNewConfigResultMessage(
                                 task_id=message.inner.task_id,
+                                config_commit=message.inner.config_commit,
                                 is_activated=False,
                                 switch_success=False,
                                 stdout=stdout.decode(),
@@ -232,13 +234,26 @@ class Agent(ea.EdgeAgent):
 
                 switch_success = proc.returncode == 0
 
-                if switch_success:
+                # switch_success should imply is_activated, if not, then it's a bug
+                if switch_success and not is_activated:
+                    logger.error(
+                        "Switch success but not activated, this is a bug: %s",
+                        stderr_str,
+                    )
+                    raise RuntimeError(
+                        "Switch success but not activated, this is a bug",
+                        stdout,
+                        stderr,
+                    )
+
+                if is_activated:
                     self.update_config_commit(message.inner.config_commit)
 
                 await self.websocket.send(
                     AgentToRelayMessage(
                         inner=EtRSwitchToNewConfigResultMessage(
                             task_id=message.inner.task_id,
+                            config_commit=message.inner.config_commit,
                             is_activated=is_activated,
                             switch_success=switch_success,
                             stdout=stdout.decode(),
@@ -362,7 +377,7 @@ def main():
     if not controller_host:
         raise ValueError("CONTROLLER_HOST environment variable is required")
 
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     set_minimum_time(agent_metadata["datetime"])
 
