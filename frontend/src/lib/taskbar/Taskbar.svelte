@@ -20,6 +20,8 @@
 		{ name: $t('taskbar.status') },
 		{ name: $t('taskbar.actions'), additionalStyle: 'width: 10%' }
 	];
+
+	const tdClass = 'border border-gray-300 dark:border-gray-700 px-2';
 </script>
 
 <table class="w-full border-collapse" use:ResizableColumns>
@@ -41,19 +43,19 @@
 	<tbody>
 		{#each taskList as task}
 			<tr>
-				<td class="border border-gray-300 dark:border-gray-700">
+				<td class={tdClass}>
 					<RenderUnixTimestamp timestamp={task.start_time} />
 				</td>
-				<td class="border border-gray-300 dark:border-gray-700">
+				<td class={tdClass}>
 					<RenderUnixTimestamp timestamp={task.end_time} />
 				</td>
-				<td class="border border-gray-300 dark:border-gray-700">
+				<td class={tdClass}>
 					<TaskbarName {task} />
 				</td>
-				<td class="border border-gray-300 dark:border-gray-700">
+				<td class={tdClass}>
 					<TaskbarStatus {task} />
 				</td>
-				<td class="border border-gray-300 dark:border-gray-700">
+				<td class={tdClass}>
 					<TaskbarActions {task} />
 				</td>
 			</tr>
