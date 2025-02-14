@@ -5,19 +5,20 @@
 	import { taskStatus } from '$lib/taskstatus';
 	import TaskbarActions from './TaskbarActions.svelte';
 	import TaskbarStatus from './TaskbarStatus.svelte';
-	import RenderUnixTimestamp from '$lib/components/RenderUnixTimestamp.svelte';
 	import TaskbarMinimize from './TaskbarMinimize.svelte';
 	import TaskbarName from './TaskbarName.svelte';
+	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
+	import RenderTimeDuration from '$lib/components/RenderTimeDuration.svelte';
 
 	export let taskbarMinimized: boolean;
 
 	$: taskList = Object.values($taskStatus).sort((a, b) => (a.start_time < b.start_time ? 1 : -1));
 
 	$: headers = [
-		{ name: $t('taskbar.start-time'), additionalStyle: 'width: 20em' },
-		{ name: $t('taskbar.end-time'), additionalStyle: 'width: 20em' },
 		{ name: $t('taskbar.task-type') },
 		{ name: $t('taskbar.status') },
+		{ name: $t('taskbar.start-time'), additionalStyle: 'width: 16em' },
+		{ name: $t('taskbar.duration'), additionalStyle: 'width: 16em' },
 		{ name: $t('taskbar.actions'), additionalStyle: 'width: 10em' }
 	];
 
@@ -44,16 +45,16 @@
 		{#each taskList as task}
 			<tr>
 				<td class={tdClass}>
-					<RenderUnixTimestamp timestamp={task.start_time} />
-				</td>
-				<td class={tdClass}>
-					<RenderUnixTimestamp timestamp={task.end_time} />
-				</td>
-				<td class={tdClass}>
 					<TaskbarName {task} />
 				</td>
 				<td class={tdClass}>
 					<TaskbarStatus {task} />
+				</td>
+				<td class={tdClass}>
+					<RenderTimeAgo timestamp={task.start_time} minSeconds={1} />
+				</td>
+				<td class={tdClass}>
+					<RenderTimeDuration start={task.start_time} end={task.end_time} />
 				</td>
 				<td class={tdClass}>
 					<TaskbarActions {task} />
