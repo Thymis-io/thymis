@@ -131,6 +131,7 @@ class RtEUpdatePublicKeyMessage(BaseModel):
 class RtESwitchToNewConfigMessage(BaseModel):
     kind: Literal["switch_to_new_config"] = "switch_to_new_config"
     new_path_to_config: str
+    config_commit: str
     task_id: uuid.UUID
 
 
@@ -231,6 +232,9 @@ class Agent(ea.EdgeAgent):
 
                 switch_success = proc.returncode == 0
 
+                if switch_success:
+                    self.update_config_commit(message.inner.config_commit)
+
                 await self.websocket.send(
                     AgentToRelayMessage(
                         inner=EtRSwitchToNewConfigResultMessage(
@@ -255,6 +259,13 @@ class Agent(ea.EdgeAgent):
             ip_addresses=self.detect_ip_addresses(),
             last_error=last_error,
         )
+
+    def update_config_commit(self, new_commit: str):
+        self.agent_metadata["configuration_commit"] = new_commit
+        metadata_path = find_file(AGENT_DATA_PATHS, AGENT_METADATA_FILENAME)
+        if metadata_path:
+            with open(metadata_path, "w", encoding="utf-8") as f:
+                json.dump(self.agent_metadata, f)
 
     def detect_system_config(self) -> Tuple[str, str]:
         return (
@@ -351,7 +362,7 @@ def main():
     if not controller_host:
         raise ValueError("CONTROLLER_HOST environment variable is required")
 
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
     set_minimum_time(agent_metadata["datetime"])
 

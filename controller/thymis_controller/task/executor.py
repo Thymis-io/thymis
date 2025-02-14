@@ -252,6 +252,7 @@ class TaskWorkerPoolManager:
                                         agent.RelayToAgentMessage(
                                             inner=agent.RtESwitchToNewConfigMessage(
                                                 new_path_to_config=message.update.path_to_configuration,
+                                                config_commit=message.update.config_commit,
                                                 task_id=task_id,
                                             )
                                         ).model_dump_json()
