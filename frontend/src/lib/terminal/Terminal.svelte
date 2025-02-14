@@ -42,13 +42,15 @@
 		terminal.loadAddon(fitAddon);
 		fitAddon.fit();
 
-		const observer = new ResizeObserver(() => {
+		const fitTerminal = () => {
 			fitAddon?.fit();
 			const dims = fitAddon.proposeDimensions();
 			if (ws.readyState === ws.OPEN) {
 				ws.send(`\x04${JSON.stringify(dims)}`);
 			}
-		});
+		};
+
+		const observer = new ResizeObserver(fitTerminal);
 		if (terminal.element) observer.observe(terminal.element);
 
 		const webglAddon = new WebglAddon();
@@ -57,6 +59,14 @@
 		terminal.writeln(`Connecting...`);
 		const attachAddon = new AttachAddon(ws);
 		terminal.loadAddon(attachAddon);
+
+		let initialFit = true;
+		terminal.onData(() => {
+			if (initialFit) {
+				fitTerminal();
+				initialFit = false;
+			}
+		});
 	};
 
 	const resetConnection = () => {
