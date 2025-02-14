@@ -7,8 +7,6 @@
 
 	$: seconds = Math.max(0, Math.floor((endDate.getTime() - startDate.getTime()) / 1000));
 
-	$: console.log(startDate, endDate, seconds);
-
 	$: timeDuration = (seconds: number) => {
 		const hours = Math.floor(seconds / 3600);
 		const minutes = Math.floor((seconds % 3600) / 60);

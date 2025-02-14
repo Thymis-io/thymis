@@ -90,7 +90,8 @@
 		<span>{context?.displayName}</span>
 	</div>
 	{#if $globalNavSelectedTarget?.identifier !== context?.identifier || $globalNavSelectedTargetType !== contextType}
-		<ToolbarButton
+		<a
+			class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
 			href="/configuration/edit?{buildConfigSelectModuleSearchParam(
 				$page.url.search,
 				contextType,
@@ -101,10 +102,8 @@
 			)}"
 		>
 			<Pen size="20" />
-		</ToolbarButton>
-		<Tooltip type="auto">
-			<P size="sm">{$t('config.edit_tag_modules')}</P>
-		</Tooltip>
+		</a>
+		<Tooltip type="auto">{$t('config.edit_tag_modules')}</Tooltip>
 	{/if}
 </div>
 <div class="ml-2">
@@ -148,9 +147,7 @@
 					>
 						<Trash size={20} />
 					</button>
-					<Tooltip type="auto">
-						<P size="sm">{$t('config.remove_module')}</P>
-					</Tooltip>
+					<Tooltip type="auto">{$t('config.remove_module')}</Tooltip>
 				{/if}
 			</div>
 		{/each}
@@ -163,9 +160,7 @@
 		>
 			<Plus />
 		</button>
-		<Tooltip type="auto" triggeredBy="#add-module">
-			<P size="sm">{$t('config.add_module')}</P>
-		</Tooltip>
+		<Tooltip type="auto" triggeredBy="#add-module">{$t('config.add_module')}</Tooltip>
 		<Modal title={$t('config.add_module')} bind:open={addModuleModalOpen} autoclose outsideclose>
 			<div class="grid gap-1">
 				{#each availableModules as module}
