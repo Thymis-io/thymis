@@ -3,6 +3,10 @@
 	import { type TaskShort } from '$lib/taskstatus';
 	export let task: TaskShort;
 	import { Progressbar } from 'flowbite-svelte';
+	import PendingIcon from 'lucide-svelte/icons/clock';
+	import RunningIcon from 'lucide-svelte/icons/play';
+	import CompletedIcon from 'lucide-svelte/icons/check';
+	import FailedIcon from 'lucide-svelte/icons/ban';
 
 	let progress = 0;
 	const progressScalingFunction = (done: number, expected: number) => {
@@ -17,17 +21,25 @@
 	$: if (task.nix_status) {
 		progress = progressScalingFunction(task.nix_status.done, task.nix_status.expected);
 	}
-
-	const taskState = {
-		pending: $t('taskbar.pending'),
-		running: $t('taskbar.running'),
-		completed: $t('taskbar.completed'),
-		failed: $t('taskbar.failed')
-	};
 </script>
 
-{task.state in taskState ? taskState[task.state] : task.state}
-
+<div class="flex gap-2 mr-2 items-center">
+	{#if task.state === 'pending'}
+		<PendingIcon size="18" />
+		{$t('taskbar.pending')}
+	{:else if task.state === 'running'}
+		<RunningIcon size="18" />
+		{$t('taskbar.running')}
+	{:else if task.state === 'completed'}
+		<CompletedIcon size="18" />
+		{$t('taskbar.completed')}
+	{:else if task.state === 'failed'}
+		<FailedIcon size="18" />
+		{$t('taskbar.failed')}
+	{:else}
+		{task.state}
+	{/if}
+</div>
 {#if task.nix_status && task.state === 'running'}
 	<Progressbar {progress} />
 {/if}
