@@ -91,7 +91,7 @@ colorSchemes.forEach((colorScheme) => {
 			// fill in the form input "Freeform Settings"
 			const freeformSettingsInput = page.locator('textarea').first();
 			await freeformSettingsInput.fill(
-				'programs.bash.promptInit = "PS1=\\"\\[Hello World Custom Prompt\\] \\"";'
+				'programs.bash.promptInit = "PS1=\\"\\[Hello World Custom Prompt\\] \\"";services.openssh.settings.PrintLastLog = "no";'
 			);
 
 			// click on "Deploy" button
