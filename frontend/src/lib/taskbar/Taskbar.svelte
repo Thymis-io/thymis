@@ -14,11 +14,11 @@
 	$: taskList = Object.values($taskStatus).sort((a, b) => (a.start_time < b.start_time ? 1 : -1));
 
 	$: headers = [
-		{ name: $t('taskbar.start-time') },
-		{ name: $t('taskbar.end-time') },
+		{ name: $t('taskbar.start-time'), additionalStyle: 'width: 20em' },
+		{ name: $t('taskbar.end-time'), additionalStyle: 'width: 20em' },
 		{ name: $t('taskbar.task-type') },
 		{ name: $t('taskbar.status') },
-		{ name: $t('taskbar.actions'), additionalStyle: 'width: 10%' }
+		{ name: $t('taskbar.actions'), additionalStyle: 'width: 10em' }
 	];
 
 	const tdClass = 'border border-gray-300 dark:border-gray-700 px-2';
