@@ -318,7 +318,8 @@ class AgentSwitchToNewConfigurationResult(BaseModel):
         "agent_switch_to_new_configuration_result"
     ] = "agent_switch_to_new_configuration_result"
     success: bool
-    reason: Optional[str]
+    stdout: str
+    stderr: str
 
 
 __all__ = [
