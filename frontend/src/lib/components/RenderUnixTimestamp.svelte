@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let timestamp: string | null;
+	export let timestamp: string | undefined | null;
 
 	let date: Date;
 
