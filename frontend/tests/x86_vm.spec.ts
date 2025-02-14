@@ -74,6 +74,44 @@ colorSchemes.forEach((colorScheme) => {
 			await expect(page).toHaveScreenshot({
 				mask: [page.locator('.playwright-snapshot-unstable')]
 			});
+
+			// add a CustomModule and configure services.openssh.banner to "Hello World", then deploy and then take another screenshot
+
+			// go to "Configure" tab
+			await page.locator('a', { hasText: 'Configure' }).first().click();
+
+			// click on "Add Module" button
+			const addModuleButton = page.locator('#add-module').first();
+			await addModuleButton.click();
+
+			// select "CustomModule" from dropdown
+			const addCustomModuleButton = page.locator('button').filter({ hasText: 'Custom Module' });
+			await addCustomModuleButton.click();
+
+			// fill in the form input "Freeform Settings"
+			const freeformSettingsInput = page.locator('textarea').first();
+			await freeformSettingsInput.fill('services.openssh.banner = "Hello World";');
+
+			// click on "Deploy" button
+			const deployButton = page.locator('button').filter({ hasText: 'Deploy' });
+			await deployButton.click();
+
+			// Click on new "Deploy" button in modal to confirm
+			const deployButtonModal = page
+				.locator('button')
+				.filter({ hasText: 'Deploy' })
+				.locator('visible=true');
+			await deployButtonModal.click();
+
+			// Wait for a second "completed" status
+			await page.locator('td', { hasText: 'completed' }).nth(1).waitFor({ timeout: 360000 });
+
+			// Navigate back to "Details" tab
+			await page.locator('a', { hasText: 'Details' }).first().click();
+
+			await expect(page).toHaveScreenshot({
+				mask: [page.locator('.playwright-snapshot-unstable')]
+			});
 		});
 	});
 });
