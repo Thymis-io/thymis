@@ -23,7 +23,7 @@
 	}
 </script>
 
-<div class="flex gap-2 mr-2 items-center">
+<div class="flex gap-2 items-center">
 	{#if task.state === 'pending'}
 		<PendingIcon size="18" />
 		{$t('taskbar.pending')}
