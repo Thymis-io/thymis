@@ -26,7 +26,7 @@
 
 	$: {
 		if (browser) {
-			document.cookie = `taskbar-minimized=${taskbarMinimized};`;
+			document.cookie = `taskbar-minimized=${taskbarMinimized}; SameSite=Lax;`;
 		}
 	}
 

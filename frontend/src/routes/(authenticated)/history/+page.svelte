@@ -35,15 +35,16 @@
 					<span class="playwright-snapshot-unstable inline-block w-20">{history.SHA1}</span>
 				</div>
 				<div class="shrink">
-					<!-- <Button
-							class="p-2 mr-2 w-full flex justify-center gap-2 rounded"
-							color="alternative"
-							on:click={() => (revertCommit = history)}
-							disabled={index === 0}
-						>
-							<Undo />
-							{$t('history.revert-commit-button')}
-						</Button> -->
+					<!--
+					<Button
+						class="p-2 mr-2 w-full flex justify-center gap-2 rounded"
+						color="alternative"
+						on:click={() => (revertCommit = history)}
+						disabled={index === 0}
+					>
+						<Undo />
+						{$t('history.revert-commit-button')}
+					</Button>
 					<Tooltip type="auto">
 						<P size="sm">
 							{#if index === 0}
@@ -53,6 +54,7 @@
 							{/if}
 						</P>
 					</Tooltip>
+					 -->
 				</div>
 			</div>
 		</li>

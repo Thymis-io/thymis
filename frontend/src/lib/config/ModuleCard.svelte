@@ -112,7 +112,7 @@
 				>
 					<Copy size="20" />
 				</button>
-				<Tooltip type="auto"><p>{$t('config.copy')}</p></Tooltip>
+				<Tooltip type="auto">{$t('config.copy')}</Tooltip>
 				{#if canEdit}
 					<button
 						class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
@@ -125,7 +125,7 @@
 					>
 						<Paste size="20" />
 					</button>
-					<Tooltip type="auto"><p>{$t('config.paste')}</p></Tooltip>
+					<Tooltip type="auto">{$t('config.paste')}</Tooltip>
 				{/if}
 				{#if canEdit}
 					{#if settings?.settings[key] !== undefined}
@@ -135,7 +135,7 @@
 						>
 							<X size="20" />
 						</button>
-						<Tooltip type="auto"><P size="sm">{$t('config.clear')}</P></Tooltip>
+						<Tooltip type="auto">{$t('config.clear')}</Tooltip>
 					{:else if canReallyEditSetting(canEdit, setting)}
 						<button
 							class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
@@ -150,7 +150,7 @@
 						>
 							<Pen size="20" />
 						</button>
-						<Tooltip type="auto"><P size="sm">{$t('config.edit')}</P></Tooltip>
+						<Tooltip type="auto">{$t('config.edit')}</Tooltip>
 					{/if}
 				{/if}
 				{#if showRouting}
