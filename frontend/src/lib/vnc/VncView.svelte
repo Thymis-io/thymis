@@ -77,7 +77,7 @@
 {#if hasVNC}
 	<Card class="w-full max-w-none" padding="sm">
 		<div class="flex flex-wrap justify-between h-12 content-start gap-2">
-			<pre class="text-base">vncviewer {deploymentInfo?.reachable_deployed_host}:5900</pre>
+			<pre class="text-base"></pre>
 			<div class="flex items-center gap-2">
 				<P>{$t('vnc.control-device')}</P>
 				<Toggle bind:checked={control} class="mr-[-10px]" size="small" on:click={toggleControl} />

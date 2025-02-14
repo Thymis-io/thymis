@@ -38,10 +38,7 @@
 		<SectionDanger class="col-span-1" config={currentConfig} />
 		{#if targetShouldShowVNC(currentConfig, $state)}
 			{#each data.deploymentInfos as deploymentInfo}
-				<Section
-					class="col-span-2"
-					title="{$t('nav.device-vnc')} {deploymentInfo.reachable_deployed_host}"
-				>
+				<Section class="col-span-2" title={$t('nav.device-vnc')}>
 					<VncView config={currentConfig} {deploymentInfo} />
 				</Section>
 			{/each}

@@ -37,9 +37,6 @@
 <Table shadow>
 	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2 w-12" />
-		<TableHeadCell padding="p-2">
-			{$t('hardware-devices.table.reachable-deployed-host')}
-		</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.configuration-name')}</TableHeadCell>
 		<TableHeadCell padding="p-2">
 			{$t('hardware-devices.table.deployed-config-commit')}
@@ -57,20 +54,6 @@
 				class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
 			>
 				<TableBodyCell tdClass="p-2"></TableBodyCell>
-				<TableBodyCell tdClass="p-2">
-					<div class="flex gap-2">
-						{hardwareDevice.deployment_info?.reachable_deployed_host}
-						<button
-							class="ml-2"
-							on:click={() => {
-								editDeploymentInfoModalOpen = true;
-								currentDeploymentInfo = hardwareDevice.deployment_info;
-							}}
-						>
-							<Pen size={16} />
-						</button>
-					</div>
-				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					<a
 						href={`/configuration/configuration-details?${buildGlobalNavSearchParam($page.url.search, 'config', deployedConfig?.identifier)}`}

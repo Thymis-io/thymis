@@ -54,7 +54,7 @@
 		const webglAddon = new WebglAddon();
 		terminal.loadAddon(webglAddon);
 
-		terminal.writeln(`Connecting to ${deployment_info.reachable_deployed_host}...`);
+		terminal.writeln(`Connecting...`);
 		const attachAddon = new AttachAddon(ws);
 		terminal.loadAddon(attachAddon);
 	};
