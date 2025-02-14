@@ -231,6 +231,12 @@ def deploy_device_task(
             conn,
             process_list,
             [
+                *(
+                    ["/bin/sudo"]
+                    if "RUNNING_IN_PLAYWRIGHT" in os.environ
+                    and not "DBUS_SESSION_BUS_ADDRESS" in os.environ
+                    else []
+                ),
                 systemd_run,
                 "-E",
                 "NIX_SSHOPTS",
