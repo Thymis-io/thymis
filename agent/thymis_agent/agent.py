@@ -194,6 +194,9 @@ class Agent(ea.EdgeAgent):
                             )
                         ).model_dump_json()
                     )
+                    raise subprocess.CalledProcessError(
+                        proc.returncode, args, stdout, stderr
+                    )
 
                 args = [
                     "systemd-run",
