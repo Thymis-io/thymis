@@ -183,6 +183,7 @@
 		"latest-task": "Latest Task",
 		"start-time": "Start Time",
 		"end-time": "End Time",
+		"duration": "Duration",
 		"task-type": "Name",
 		"status": "Status",
 		"actions": "Actions",
@@ -263,6 +264,17 @@
 		},
 		"configs": "Configs",
 		"details-title": "Tag"
+	},
+	"time": {
+		"ago": {
+			"year": "{count} {count, plural, one {year} other {years}} ago",
+			"month": "{count} {count, plural, one {month} other {months}} ago",
+			"week": "{count} {count, plural, one {week} other {weeks}} ago",
+			"day": "{count} {count, plural, one {day} other {days}} ago",
+			"hour": "{count} {count, plural, one {hour} other {hours}} ago",
+			"minute": "{count} {count, plural, one {minute} other {minutes}} ago",
+			"second": "{count} {count, plural, one {second} other {seconds}} ago"
+		}
 	},
 	"deleteConfirm": {
 		"title": "Delete {target}",

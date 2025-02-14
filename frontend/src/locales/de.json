@@ -232,6 +232,7 @@
 		"running": "Läuft",
 		"start-time": "Start Zeit",
 		"end-time": "End Zeit",
+		"duration": "Dauer",
 		"task-type": "Name",
 		"status": "Status",
 		"actions": "Aktionen",
@@ -262,6 +263,17 @@
 		},
 		"configs": "Konfigurationen",
 		"details-title": "Tag"
+	},
+	"time": {
+		"ago": {
+			"year": "vor {count} {count, plural, one {Jahr} other {Jahren}}",
+			"month": "vor {count} {count, plural, one {Monat} other {Monaten}}",
+			"week": "vor {count} {count, plural, one {Woche} other {Wochen}}",
+			"day": "vor {count} {count, plural, one {Tag} other {Tagen}}",
+			"hour": "vor {count, plural, one {einer Stunde} other {{count} Stunden}}",
+			"minute": "vor {count, plural, one {einer Minute} other {{count} Minuten}}",
+			"second": "vor {count, plural, one {einer Sekunde} other {{count} Sekunden}}"
+		}
 	},
 	"deleteConfirm": {
 		"title": "{target} löschen",
