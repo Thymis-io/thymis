@@ -63,10 +63,15 @@
 						{deployedConfig?.displayName}
 					</a>
 				</TableBodyCell>
-				<TableBodyCell tdClass="p-2">
-					{hardwareDevice.deployment_info?.deployed_config_commit?.slice(0, 8) ??
-						$t('configuration-details.no-commit')}
-				</TableBodyCell>
+				{#if hardwareDevice.deployment_info?.deployed_config_commit}
+					<TableBodyCell tdClass="p-2">
+						<span class="playwright-snapshot-unstable font-mono">
+							{hardwareDevice.deployment_info.deployed_config_commit.slice(0, 8)}
+						</span>
+					</TableBodyCell>
+				{:else}
+					<TableBodyCell tdClass="p-2">{$t('configuration-details.no-commit')}</TableBodyCell>
+				{/if}
 				<TableBodyCell tdClass="p-2">
 					{deviceType && deviceType in deviceTypes ? deviceTypes[deviceType] : deviceType}
 				</TableBodyCell>

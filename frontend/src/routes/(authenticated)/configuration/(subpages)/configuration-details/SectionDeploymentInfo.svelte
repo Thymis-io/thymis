@@ -27,10 +27,13 @@
 			{#if deploymentInfo}
 				<div class="grid grid-cols-[max-content_max-content_max-content_1fr] gap-x-2">
 					<p class="break-all text-base">{$t('configuration-details.deployed-at')}:</p>
-					<p class="break-all text-base playwright-snapshot-unstable">
-						{deploymentInfo.deployed_config_commit?.slice(0, 8) ??
-							$t('configuration-details.no-commit')}
-					</p>
+					{#if deploymentInfo.deployed_config_commit}
+						<p class="break-all text-base playwright-snapshot-unstable font-mono">
+							{deploymentInfo.deployed_config_commit.slice(0, 8)}
+						</p>
+					{:else}
+						<p class="break-all text-base">{$t('configuration-details.no-commit')}</p>
+					{/if}
 				</div>
 			{/if}
 		{:else}
