@@ -218,12 +218,20 @@ def deploy_device_task(
         # resolve the toplevel path
         config_path = str(pathlib.Path(toplevel_path).resolve())
 
+        systemd_run = "systemd-run"
+        if shutil.which(systemd_run) is None:
+            # check for "/bin/systemd-run" as well
+            systemd_run = "/bin/systemd-run"
+            if not os.path.exists(systemd_run):
+                report_task_finished(task, conn, False, "systemd-run not found")
+                return
+
         returncode = run_command(
             task,
             conn,
             process_list,
             [
-                "systemd-run",
+                systemd_run,
                 "-E",
                 "NIX_SSHOPTS",
                 "-E",
