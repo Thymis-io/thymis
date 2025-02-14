@@ -252,7 +252,7 @@ def deploy_device_task(
                 "--service-type=exec",
                 f"--unit=thymis-nix-copy-closure-{random.randbytes(8).hex()}",
                 "--wait",
-                "nix-copy-closure",
+                shutil.which("nix-copy-closure"),
                 *NIX_CMD[1:],
                 "--to",
                 "root@localhost",
