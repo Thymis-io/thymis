@@ -90,7 +90,9 @@ colorSchemes.forEach((colorScheme) => {
 
 			// fill in the form input "Freeform Settings"
 			const freeformSettingsInput = page.locator('textarea').first();
-			await freeformSettingsInput.fill('services.openssh.banner = "Hello World";');
+			await freeformSettingsInput.fill(
+				'programs.bash.promptInit = "PS1=\\"\\[Hello World Custom Prompt\\] \\"";'
+			);
 
 			// click on "Deploy" button
 			const deployButton = page.locator('button').filter({ hasText: 'Deploy' });
