@@ -14,7 +14,7 @@
 
 	$: taskList = Object.values($taskStatus).sort((a, b) => (a.start_time < b.start_time ? 1 : -1));
 
-	const headers = [
+	$: headers = [
 		{ name: $t('taskbar.start-time') },
 		{ name: $t('taskbar.end-time') },
 		{ name: $t('taskbar.task-type') },
