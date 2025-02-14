@@ -60,3 +60,10 @@ def check_access_client_token_validity(
         .count()
         > 0
     )
+
+
+def revoke_access_client_token(session: Session, token: str):
+    session.query(db_models.AccessClientToken).filter_by(token=token).update(
+        {"revoked": True}
+    )
+    session.commit()

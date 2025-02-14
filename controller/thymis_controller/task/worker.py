@@ -232,7 +232,7 @@ def deploy_device_task(
             process_list,
             [
                 *(
-                    ["/bin/sudo"]
+                    ["/bin/sudo", "-n", "-E"]
                     if "RUNNING_IN_PLAYWRIGHT" in os.environ
                     and not "DBUS_SESSION_BUS_ADDRESS" in os.environ
                     else []

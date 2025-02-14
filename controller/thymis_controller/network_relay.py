@@ -1,4 +1,5 @@
 import logging
+import os
 import uuid
 from typing import TYPE_CHECKING, Any, Optional, assert_never
 
@@ -347,3 +348,17 @@ class NetworkRelay(nr.NetworkRelay):
             if public_key not in self.public_key_to_connection_id:
                 raise ValueError("No connection found for public key")
             return self.public_key_to_connection_id[public_key]
+
+    async def disconnect_and_ban_all_connections(self, db_session):
+        if "RUNNING_IN_PLAYWRIGHT" in os.environ:
+            for connection_id, connection in self.registered_agent_connections.items():
+                start_message = self.connection_id_to_start_message[connection_id]
+                del self.connection_id_to_start_message[connection_id]
+                # ban the token
+                crud_agent_token.revoke_access_client_token(
+                    db_session, start_message.token
+                )
+                await connection.close()
+                public_key = self.connection_id_to_public_key[connection_id]
+                del self.public_key_to_connection_id[public_key]
+                del self.connection_id_to_public_key[connection_id]
