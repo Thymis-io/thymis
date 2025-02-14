@@ -259,6 +259,7 @@ def deploy_device_task(
                 update=models_task.AgentShouldSwitchToNewConfigurationUpdate(
                     deployment_info_id=task_data.device.deployment_info_id,
                     path_to_configuration=config_path,
+                    config_commit=task_data.config_commit,
                 ),
             )
         )

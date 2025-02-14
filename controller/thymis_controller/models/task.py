@@ -167,6 +167,7 @@ class DeployDevicesTaskSubmission(BaseModel):
     ssh_key_path: str
     known_hosts_path: str
     controller_ssh_pubkey: str
+    config_commit: str
 
 
 class DeployDeviceTaskSubmission(BaseModel):
@@ -178,6 +179,7 @@ class DeployDeviceTaskSubmission(BaseModel):
     controller_ssh_pubkey: str
     controller_access_client_endpoint: str
     access_client_token: str
+    config_commit: str
     parent_task_id: Optional[uuid.UUID] = None
 
 
@@ -288,6 +290,15 @@ class AgentShouldSwitchToNewConfigurationUpdate(BaseModel):
     ] = "agent_should_switch_to_new_configuration"
     path_to_configuration: str
     deployment_info_id: uuid.UUID
+    config_commit: str
+
+
+class AgentSwitchedToNewConfigurationUpdate(BaseModel):
+    type: Literal[
+        "agent_switched_to_new_configuration"
+    ] = "agent_switched_to_new_configuration"
+    success: bool
+    reason: Optional[str]
 
 
 # sent from controller to task runner

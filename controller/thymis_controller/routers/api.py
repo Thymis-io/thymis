@@ -116,6 +116,7 @@ async def deploy(
             ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
             known_hosts_path=str(project.known_hosts_path),
             controller_ssh_pubkey=project.public_key,
+            config_commit=project.repo.head_commit(),
         ),
         db_session=session,
     )

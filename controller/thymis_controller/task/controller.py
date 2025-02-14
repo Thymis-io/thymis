@@ -80,6 +80,7 @@ class TaskController:
                     controller_ssh_pubkey=task.controller_ssh_pubkey,
                     parent_task_id=task_db.id,
                     access_client_token=access_client_token,
+                    config_commit=task.config_commit,
                 )
                 subtask = task_create(
                     db_session,
