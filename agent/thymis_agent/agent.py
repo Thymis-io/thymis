@@ -110,8 +110,10 @@ class AgentToRelayMessage(BaseModel):
 class EtRSwitchToNewConfigResultMessage(BaseModel):
     kind: Literal["switch_to_new_config_result"] = "switch_to_new_config_result"
     task_id: uuid.UUID
-    success: bool
-    error: Optional[str]
+    is_activated: bool
+    switch_success: bool
+    stdout: str
+    stderr: str
 
 
 class RelayToAgentMessage(BaseModel):
@@ -166,80 +168,77 @@ class Agent(ea.EdgeAgent):
             case RtESwitchToNewConfigMessage():
                 new_path_to_config = message.inner.new_path_to_config
                 logger.info("Switching to new configuration: %s", new_path_to_config)
-                try:
-                    args = [
-                        "nix-env",
-                        "-p",
-                        "/nix/var/nix/profiles/system",
-                        "--set",
-                        new_path_to_config,
-                    ]
-                    proc = await asyncio.create_subprocess_exec(
-                        args[0],
-                        *args[1:],
-                        stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.PIPE,
-                    )
-                    stdout, stderr = await proc.communicate()
-                    if proc.returncode != 0:
-                        raise subprocess.CalledProcessError(
-                            proc.returncode, args, stdout, stderr
-                        )
-                    args = [
-                        "systemd-run",
-                        "-E",
-                        "LOCALE_ARCHIVE",
-                        "-E",
-                        "NIXOS_INSTALL_BOOTLOADER=1",
-                        "--collect",
-                        "--no-ask-password",
-                        "--pipe",
-                        "--quiet",
-                        "--service-type=exec",
-                        "--unit=thymis-nixos-rebuild-switch-to-configuration",
-                        "--wait",
-                        f"{new_path_to_config}/bin/switch-to-configuration",
-                        "switch",
-                    ]
-                    proc = await asyncio.create_subprocess_exec(
-                        args[0],
-                        *args[1:],
-                        stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.PIPE,
-                    )
-                    stdout, stderr = await proc.communicate()
-                    if proc.returncode != 0:
-                        raise subprocess.CalledProcessError(
-                            proc.returncode, args, stdout, stderr
-                        )
-                except subprocess.CalledProcessError as e:
-                    logger.error(
-                        "Failed to switch to new configuration: %s",
-                        str(e) + "\n" + e.stdout.decode() + "\n" + e.stderr.decode(),
-                    )
+                args = [
+                    "nix-env",
+                    "-p",
+                    "/nix/var/nix/profiles/system",
+                    "--set",
+                    new_path_to_config,
+                ]
+                proc = await asyncio.create_subprocess_exec(
+                    args[0],
+                    *args[1:],
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+                stdout, stderr = await proc.communicate()
+                if proc.returncode != 0:
                     await self.websocket.send(
                         AgentToRelayMessage(
                             inner=EtRSwitchToNewConfigResultMessage(
                                 task_id=message.inner.task_id,
-                                success=False,
-                                error=str(e)
-                                + "\n"
-                                + e.stdout.decode()
-                                + "\n"
-                                + e.stderr.decode(),
+                                is_activated=False,
+                                switch_success=False,
+                                stdout=stdout.decode(),
+                                stderr=stderr.decode(),
                             )
                         ).model_dump_json()
                     )
-                else:
-                    await self.websocket.send(
-                        AgentToRelayMessage(
-                            inner=EtRSwitchToNewConfigResultMessage(
-                                task_id=message.inner.task_id,
-                                success=True,
-                                error=None,
-                            )
-                        ).model_dump_json()
-                    )
+
+                args = [
+                    "systemd-run",
+                    "-E",
+                    "LOCALE_ARCHIVE",
+                    "-E",
+                    "NIXOS_INSTALL_BOOTLOADER=1",
+                    "--collect",
+                    "--no-ask-password",
+                    "--pipe",
+                    "--quiet",
+                    "--service-type=exec",
+                    "--unit=thymis-nixos-rebuild-switch-to-configuration",
+                    "--wait",
+                    f"{new_path_to_config}/bin/switch-to-configuration",
+                    "switch",
+                ]
+                proc = await asyncio.create_subprocess_exec(
+                    args[0],
+                    *args[1:],
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+                stdout, stderr = await proc.communicate()
+
+                # check: "activating the configuration..." and not "Failed to run activate script" in stderr means: is_activated=True
+                stderr_str = stderr.decode()
+                is_activated = (
+                    "activating the configuration..." in stderr_str
+                    and "Failed to run activate script" not in stderr_str
+                )
+
+                switch_success = proc.returncode == 0
+
+                await self.websocket.send(
+                    AgentToRelayMessage(
+                        inner=EtRSwitchToNewConfigResultMessage(
+                            task_id=message.inner.task_id,
+                            is_activated=is_activated,
+                            switch_success=switch_success,
+                            stdout=stdout.decode(),
+                            stderr=stderr.decode(),
+                        )
+                    ).model_dump_json()
+                )
 
             case _:
                 logger.error("Unknown message: %s", message)
