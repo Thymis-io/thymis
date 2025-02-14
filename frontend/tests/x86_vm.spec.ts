@@ -97,10 +97,7 @@ colorSchemes.forEach((colorScheme) => {
 			await deployButton.click();
 
 			// Click on new "Deploy" button in modal to confirm
-			const deployButtonModal = page
-				.locator('button')
-				.filter({ hasText: 'Deploy' })
-				.locator('visible=true');
+			const deployButtonModal = page.getByRole('dialog').locator('button', { hasText: 'Deploy' });
 			await deployButtonModal.click();
 
 			// Wait for a second "completed" status
