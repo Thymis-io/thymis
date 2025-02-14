@@ -106,7 +106,7 @@ class NetworkRelay(nr.NetworkRelay):
                     if message.inner.is_activated:
                         crud_deployment_info.update(
                             db_session,
-                            deployment_info.id,
+                            deployment_info[0].id,
                             deployed_config_commit=message.inner.config_commit,
                         )
                 self.task_controller.executor.send_message_to_task(
