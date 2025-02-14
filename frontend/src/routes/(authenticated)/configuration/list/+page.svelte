@@ -76,40 +76,9 @@
 	}) satisfies KeyboardEventHandler<HTMLDivElement>;
 
 	const renameConfig = async (config: Config, displayName: string) => {
-		const oldIdentifier = config.identifier;
-		const identifier = nameToIdentifier(displayName);
-
-		if (identifier && !data.state.configs.some((config) => config.identifier === identifier)) {
-			config.displayName = displayName;
-			config.identifier = identifier;
-
-			const success = await saveState();
-
-			if (success) {
-				const renameRequest = await fetchWithNotify(`/api/rename_config_id_legacy`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						old_config_id: oldIdentifier,
-						new_config_id: identifier
-					})
-				});
-
-				if (renameRequest.ok) {
-					return true;
-				}
-
-				config.displayName = config.displayName;
-				config.identifier = oldIdentifier;
-				await saveState();
-
-				return false;
-			}
-		}
-
-		return false;
+		config.displayName = displayName;
+		await saveState();
+		return true;
 	};
 
 	let configToDelete: Config | undefined = undefined;
@@ -206,21 +175,7 @@
 							config.data.displayName = config.data.displayName;
 						}
 					}}
-				>
-					<svelte:fragment slot="bottom" let:value={newDisplayName}>
-						{#if nameValidation(newDisplayName, 'config')}
-							{#if newDisplayName !== config.data.displayName}
-								<Helper color="red">{nameValidation(newDisplayName, 'config')}</Helper>
-							{/if}
-						{:else}
-							<Helper color="green">
-								{$t('create-configuration.name-helper', {
-									values: { identifier: nameToIdentifier(newDisplayName) }
-								})}
-							</Helper>
-						{/if}
-					</svelte:fragment>
-				</TableBodyEditCell>
+				/>
 				<TableBodyCell tdClass="p-2 px-2 md:px-4">
 					<div class="flex gap-4">
 						<div class="flex gap-2">

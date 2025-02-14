@@ -143,15 +143,3 @@ def get_by_config_id(
         .filter(db_models.DeploymentInfo.deployed_config_id == config_id)
         .all()
     )
-
-
-def rename_config_id_for_deployment_without_commit(
-    session: Session, old_config_id: str, new_config_id: str
-) -> None:
-    # we only execute this rename for deployment_infos where commit is None
-    # this is because we don't want to rename the config_id for deployments that have a commit
-    session.query(db_models.DeploymentInfo).filter(
-        db_models.DeploymentInfo.deployed_config_id == old_config_id,
-        db_models.DeploymentInfo.deployed_config_commit == None,
-    ).update({db_models.DeploymentInfo.deployed_config_id: new_config_id})
-    session.commit()

@@ -417,23 +417,6 @@ def get_hardware_devices(db_session: SessionAD):
     return crud.hardware_device.get_all(db_session)
 
 
-@router.post("/rename_config_id_legacy")
-def rename_config_id_legacy(
-    db_session: SessionAD,
-    old_config_id: str,
-    new_config_id: str,
-    project: ProjectAD,
-):
-    """
-    Rename a config_id in the database
-    """
-    crud.deployment_info.rename_config_id_for_deployment_without_commit(
-        db_session, old_config_id, new_config_id
-    )
-    project.update_known_hosts(db_session)
-    return {"message": "config_id renamed"}
-
-
 HOST_PATTERN = r"^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$"
 
 
