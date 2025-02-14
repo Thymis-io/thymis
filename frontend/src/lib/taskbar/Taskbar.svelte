@@ -8,6 +8,7 @@
 	import TaskbarStatus from './TaskbarStatus.svelte';
 	import RenderUnixTimestamp from '$lib/components/RenderUnixTimestamp.svelte';
 	import TaskbarMinimize from './TaskbarMinimize.svelte';
+	import { state } from '$lib/state';
 
 	export let taskbarMinimized: boolean;
 
@@ -21,26 +22,10 @@
 		{ name: $t('taskbar.actions'), additionalStyle: 'width: 10%' }
 	];
 
-	const localizeTaskType = {
-		project_flake_update_task: () => $t('taskbar.task-types.project_flake_update'),
-		build_project_task: () => $t('taskbar.task-types.build_project'),
-		deploy_devices_task: () => $t('taskbar.task-types.deploy_devices'),
-		deploy_device_task: ({ task_submission_data }) =>
-			$t('taskbar.task-types.deploy_device', {
-				values: { device: task_submission_data?.device?.identifier }
-			}),
-		build_device_image_task: ({ task_submission_data }) =>
-			$t('taskbar.task-types.build_device_image', {
-				values: { device: task_submission_data?.configuration_id }
-			}),
-		ssh_command_task: () => $t('taskbar.task-types.ssh_command')
-	} as Record<string, (args: any) => string>;
-
-	const taskName = (task: TaskShort) => {
-		if (task.task_type in localizeTaskType) {
-			return localizeTaskType[task.task_type](task);
-		}
-		return task.task_type;
+	const configToDisplayName = (identifier: string | undefined) => {
+		if (!identifier) return '';
+		const device = $state.configs.find((config) => config.identifier === identifier);
+		return device ? device.displayName : identifier;
 	};
 </script>
 
@@ -70,7 +55,26 @@
 					<RenderUnixTimestamp timestamp={task.end_time} />
 				</td>
 				<td class="border border-gray-300 dark:border-gray-700">
-					{taskName(task)}
+					{#if task.task_type === 'project_flake_update_task'}
+						{$t('taskbar.task-types.project_flake_update')}
+					{:else if task.task_type === 'build_project_task'}
+						{$t('taskbar.task-types.build_project')}
+					{:else if task.task_type === 'deploy_devices_task'}
+						{$t('taskbar.task-types.deploy_devices')}
+					{:else if task.task_type === 'deploy_device_task'}
+						{@const name = configToDisplayName(task.task_submission_data?.device?.identifier)}
+						{$t('taskbar.task-types.deploy_device', { values: { device: name } })}
+					{:else if task.task_type === 'build_device_image_task'}
+						{@const name = configToDisplayName(task.task_submission_data?.configuration_id)}
+						{$t('taskbar.task-types.build_device_image', { values: { device: name } })}
+					{:else if task.task_type === 'ssh_command_task'}
+						{$t('taskbar.task-types.ssh_command')}
+					{:else if task.task_type === 'run_nixos_vm_task'}
+						{@const name = configToDisplayName(task.task_submission_data?.configuration_id)}
+						{$t('taskbar.task-types.run_nixos_vm_task', { values: { device: name } })}
+					{:else}
+						{task.task_type}
+					{/if}
 				</td>
 				<td class="border border-gray-300 dark:border-gray-700">
 					<TaskbarStatus {task} />

@@ -244,7 +244,8 @@
 			"deploy_devices": "Geräte Ausrollen",
 			"deploy_device": "Gerät Ausrollen: {device}",
 			"build_device_image": "Geräte-Image Bauen: {device}",
-			"ssh_command": "SSH Befehl Ausführen"
+			"ssh_command": "SSH Befehl Ausführen",
+			"run_nixos_vm_task": "NixOS VM für {device} Ausführen"
 		}
 	},
 	"tags": {

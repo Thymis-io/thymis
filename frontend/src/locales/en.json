@@ -193,9 +193,10 @@
 			"project_flake_update": "Update Nix Flake",
 			"build_project": "Build Project",
 			"deploy_devices": "Deploy Devices",
-			"deploy_device": "Deploy Device {device}",
-			"build_device_image": "Build Device Image {device}",
-			"ssh_command": "Run SSH Command"
+			"deploy_device": "Deploy to {device}",
+			"build_device_image": "Build Image for {device}",
+			"ssh_command": "Run SSH Command",
+			"run_nixos_vm_task": "Run NixOS VM for {device}"
 		}
 	},
 	"config": {
