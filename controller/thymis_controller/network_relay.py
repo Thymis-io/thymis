@@ -93,6 +93,17 @@ class NetworkRelay(nr.NetworkRelay):
     ):
         match message.inner:
             case agent.EtRSwitchToNewConfigResultMessage():
+                # compat: v3 dev to v3 final
+                if "success" in message.inner:
+                    # agent is old, update message to new format
+                    message.inner = agent.EtRSwitchToNewConfigResultMessage(
+                        switch_success=message.inner.success,
+                        stdout="",
+                        stderr=message.inner.error or "",
+                        is_activated=message.inner.success,
+                        config_commit=None,
+                        task_id=message.inner.task_id,
+                    )
                 # update deployment_info
                 with sqlalchemy.orm.Session(self.db_engine) as db_session:
                     deployment_info = crud_deployment_info.get_by_ssh_public_key(
