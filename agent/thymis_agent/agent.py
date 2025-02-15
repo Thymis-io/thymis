@@ -109,12 +109,14 @@ class AgentToRelayMessage(BaseModel):
 
 class EtRSwitchToNewConfigResultMessage(BaseModel):
     kind: Literal["switch_to_new_config_result"] = "switch_to_new_config_result"
-    config_commit: str
     task_id: uuid.UUID
-    is_activated: bool
-    switch_success: bool
-    stdout: str
-    stderr: str
+    success: Optional[bool] = None  # in v3 dev
+    error: Optional[str] = None  # in v3 dev
+    config_commit: str | None = None  # in v3 final
+    is_activated: bool | None = None  # in v3 final
+    switch_success: bool | None = None  # in v3 final
+    stdout: str | None = None  # in v3 final
+    stderr: str | None = None  # in v3 final
 
 
 class RelayToAgentMessage(BaseModel):
