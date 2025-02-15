@@ -6,18 +6,25 @@ type ValueTypes = Literal["bool", "string", "path", "package", "textarea", "int"
 
 
 class SelectOneType(BaseModel):
+    type: Literal["select-one"] = "select-one"
     select_one: List[Tuple[str, str]] = Field(serialization_alias="select-one")
     extra_data: Optional[dict[str, JsonValue]] = Field(default=None)
 
 
 class ListType(BaseModel):
+    type: Literal["list"] = "list"
     settings: dict[str, "Setting"] = Field(serialization_alias="list-of")
     element_name: Optional[str] = Field(
         serialization_alias="element-name", default=None
     )
 
 
-type SettingTypes = Union[ValueTypes, SelectOneType, ListType]
+class InlineFileType(BaseModel):
+    type: Literal["inline-file"] = "inline-file"
+    accept: Optional[str] = None
+
+
+type SettingTypes = Union[ValueTypes, SelectOneType, ListType, InlineFileType]
 
 
 class Setting(BaseModel):

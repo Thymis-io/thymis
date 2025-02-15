@@ -1,7 +1,7 @@
 { config, lib, pkgs, inputs, modulesPath, options, ... }:
 let
   cfg = config.thymis.config;
-  use-wifi = cfg.wifi-ssid != "" && cfg.wifi-password != "";
+  use-wifi = cfg.wifi-ssid != "" && (cfg.wifi-password != "" || cfg.wifi-auth != "");
   settingsFormat = pkgs.formats.json { };
 in
 
@@ -40,6 +40,16 @@ in
             default = "";
             description = "Password for the wifi network";
           };
+          wifi-auth = lib.mkOption {
+            type = lib.types.str;
+            default = "";
+            description = "Authentication method for the wifi network";
+          };
+          wifi-auth-protocols = lib.mkOption {
+            type = lib.types.listOf lib.types.str;
+            default = [ ];
+            description = "Authentication protocols for the wifi network";
+          };
           agent = lib.mkOption {
             type = lib.types.submodule {
               options = {
@@ -74,7 +84,9 @@ in
       enable = true;
       networks = {
         "${cfg.wifi-ssid}" = {
-          psk = "${cfg.wifi-password}";
+          psk = lib.mkIf (cfg.wifi-password != "") cfg.wifi-password;
+          auth = lib.mkIf (cfg.wifi-auth != "") cfg.wifi-auth;
+          protocols = lib.mkIf (cfg.wifi-auth-protocols != [ ]) cfg.wifi-auth-protocols;
         };
       };
     };

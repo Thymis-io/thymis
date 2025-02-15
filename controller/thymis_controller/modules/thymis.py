@@ -8,161 +8,6 @@ from thymis_controller.nix import convert_python_value_to_nix, template_env
 from thymis_controller.project import Project
 
 
-class ThymisController(modules.Module):
-    display_name: str = "Thymis Controller"
-
-    project_dir = modules.Setting(
-        display_name=modules.LocalizedString(
-            en="Project Directory",
-            de="Projektverzeichnis",
-        ),
-        type="string",
-        default=None,
-        description=modules.LocalizedString(
-            en="The path to the project directory.",
-            de="Der Pfad zum Projektverzeichnis.",
-        ),
-        nix_attr_name="services.thymis-controller.project-path",
-        example="/var/lib/thymis",
-        order=10,
-    )
-    base_url = modules.Setting(
-        display_name=modules.LocalizedString(
-            en="Base URL",
-            de="Basis URL",
-        ),
-        nix_attr_name="services.thymis-controller.base-url",
-        type="string",
-        default=None,
-        description=modules.LocalizedString(
-            en="The base URL of the controller.",
-            de="Die Basis URL des Controllers.",
-        ),
-        example="http://localhost:8000",
-        order=30,
-    )
-    auth_basic = modules.Setting(
-        display_name=modules.LocalizedString(
-            en="Basic Auth",
-            de="Basic Auth",
-        ),
-        nix_attr_name="services.thymis-controller.auth-basic",
-        type="bool",
-        default=None,
-        description=modules.LocalizedString(
-            en="Enable basic authentication.",
-            de="Aktiviere Basic Authentifizierung.",
-        ),
-        example="true",
-        order=40,
-    )
-    auth_basic_username = modules.Setting(
-        display_name=modules.LocalizedString(
-            en="Basic Auth Username",
-            de="Basic Auth Benutzername",
-        ),
-        nix_attr_name="services.thymis-controller.auth-basic-username",
-        type="string",
-        default=None,
-        description=modules.LocalizedString(
-            en="The username for basic authentication.",
-            de="Der Benutzername für die Basic Authentifizierung.",
-        ),
-        example="admin",
-        order=50,
-    )
-    auth_basic_password_file = modules.Setting(
-        display_name=modules.LocalizedString(
-            en="Basic Auth Password File",
-            de="Basic Auth Passwort Datei",
-        ),
-        nix_attr_name="services.thymis-controller.auth-basic-password-file",
-        type="path",
-        default=None,
-        description=modules.LocalizedString(
-            en="The path to the password file for basic authentication.",
-            de="Der Pfad zur Passwortdatei für die Basic Authentifizierung.",
-        ),
-        example="/var/lib/thymis/auth-basic-password",
-        order=60,
-    )
-    listen_host = modules.Setting(
-        display_name=modules.LocalizedString(
-            en="Listen Host",
-            de="Listen Host",
-        ),
-        nix_attr_name="services.thymis-controller.listen-host",
-        type="string",
-        default=None,
-        description=modules.LocalizedString(
-            en="The host to listen on.",
-            de="Der Host, auf dem gehört werden soll.",
-        ),
-        example="127.0.0.1",
-        order=70,
-    )
-    listen_port = modules.Setting(
-        display_name=modules.LocalizedString(
-            en="Listen Port",
-            de="Listen Port",
-        ),
-        nix_attr_name="services.thymis-controller.listen-port",
-        type="int",
-        default=None,
-        description=modules.LocalizedString(
-            en="The port to listen on.",
-            de="Der Port, auf dem gehört werden soll.",
-        ),
-        example="8000",
-        order=80,
-    )
-    nginx_vhost_enable = modules.Setting(
-        display_name=modules.LocalizedString(
-            en="Enable Nginx Vhost",
-            de="Nginx Vhost aktivieren",
-        ),
-        nix_attr_name="services.thymis-controller.nginx-vhost-enable",
-        type="bool",
-        default=None,
-        description=modules.LocalizedString(
-            en="Enable the Nginx vhost.",
-            de="Aktiviere den Nginx Vhost.",
-        ),
-        example="true",
-        order=90,
-    )
-    nginx_vhost_name = modules.Setting(
-        display_name=modules.LocalizedString(
-            en="Nginx Vhost Name",
-            de="Nginx Vhost Name",
-        ),
-        nix_attr_name="services.thymis-controller.nginx-vhost-name",
-        type="string",
-        default=None,
-        description=modules.LocalizedString(
-            en="The name of the Nginx vhost.",
-            de="Der Name des Nginx Vhosts.",
-        ),
-        example="thymis",
-        order=100,
-    )
-
-    def write_nix_settings(
-        self,
-        f,
-        path,
-        module_settings: models.ModuleSettings,
-        priority: int,
-        project: Project,
-    ):
-        f.write(f"  imports = [\n")
-        f.write(f"    inputs.thymis.nixosModules.thymis-controller\n")
-        f.write(f"  ];\n")
-        f.write("  services.thymis-controller.enable = true;\n")
-
-        return super().write_nix_settings(f, path, module_settings, priority, project)
-
-
 class ThymisDevice(modules.Module):
     icon: str = read_into_base64(
         str(pathlib.Path(__file__).parent / "hard-drive-thymis.png")
@@ -309,6 +154,140 @@ class ThymisDevice(modules.Module):
         ),
         example="",
         order=50,
+    )
+
+    wifi_auth = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="WiFi Auth (wpa_supplicant config)",
+            de="WiFi Auth (wpa_supplicant config)",
+        ),
+        nix_attr_name="thymis.config.wifi-auth",
+        type="string",
+        default="",
+        description=modules.LocalizedString(
+            en="""The WiFi authentication configuration. Für bspw. WPA2-Enterprise-Netzwerke.
+
+Mutually exclusive with `wifi_password`.
+
+Example:
+```
+eap=PEAP
+identity="user@example.com"
+password="example_password"
+ca_file="/etc/ssl/certs/ca-certificates.crt" # uses system ca (default mozilla) with user certs
+```
+""",
+            de="""Die WiFi-Authentifizierungskonfiguration. Für bspw. WPA2-Enterprise-Netzwerke.
+
+Gegenseitig ausschließend mit `wifi_password`.
+
+Beispiel:
+```
+eap=PEAP
+identity="user@example.com"
+password="example_password"
+ca_file="/etc/ssl/certs/ca-certificates.crt" # uses system ca (default mozilla) with user certs
+```
+""",
+        ),
+        example="",
+        order=55,
+    )
+    # list of (one of "WPA-PSK", "WPA-EAP", "IEEE8021X", "NONE", "WPA-NONE", "FT-PSK", "FT-EAP", "FT-EAP-SHA384", "WPA-PSK-SHA256", "WPA-EAP-SHA256", "SAE", "FT-SAE", "WPA-EAP-SUITE-B", "WPA-EAP-SUITE-B-192", "OSEN", "FILS-SHA256", "FILS-SHA384", "FT-FILS-SHA256", "FT-FILS-SHA384", "OWE", "DPP")
+    all_protocols = [
+        "WPA-PSK",
+        "WPA-EAP",
+        "IEEE8021X",
+        "NONE",
+        "WPA-NONE",
+        "FT-PSK",
+        "FT-EAP",
+        "FT-EAP-SHA384",
+        "WPA-PSK-SHA256",
+        "WPA-EAP-SHA256",
+        "SAE",
+        "FT-SAE",
+        "WPA-EAP-SUITE-B",
+        "WPA-EAP-SUITE-B-192",
+        "OSEN",
+        "FILS-SHA256",
+        "FILS-SHA384",
+        "FT-FILS-SHA256",
+        "FT-FILS-SHA384",
+        "OWE",
+        "DPP",
+    ]
+
+    wifi_auth_protocols = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="WiFi Auth Protocols",
+            de="WiFi Auth Protokolle",
+        ),
+        nix_attr_name="thymis.config.wifi-auth-protocols",
+        type=modules.ListType(
+            settings={
+                "protocol": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Protocol",
+                        de="Protokoll",
+                    ),
+                    type=modules.SelectOneType(
+                        select_one=all_protocols,
+                    ),
+                    default="WPA-PSK",
+                    description=modules.LocalizedString(
+                        en="The WiFi authentication protocol.",
+                        de="Das WiFi-Authentifizierungsprotokoll.",
+                    ),
+                    example="",
+                )
+            },
+            element_name=modules.LocalizedString(
+                en="Protocol",
+                de="Protokoll",
+            ),
+        ),
+        default=[],
+        description=modules.LocalizedString(
+            en="The WiFi authentication protocols accepted by this network, siehe key_mgmt option in wpa_supplicant",
+            de="Die WiFi-Authentifizierungsprotokolle, die von diesem Netzwerk akzeptiert werden, siehe key_mgmt option in wpa_supplicant",
+        ),
+        example="",
+        order=56,
+    )
+
+    security_pki_certificates = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Trusted root certificates",
+            de="Vertrauenswürdige Stammzertifikate",
+        ),
+        nix_attr_name="security.pki.certificates",
+        type=modules.ListType(
+            settings={
+                "certificate": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Certificate",
+                        de="Zertifikat",
+                    ),
+                    type="textarea",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The certificate in PEM format.",
+                        de="Das Zertifikat im PEM-Format.",
+                    ),
+                    example="",
+                )
+            },
+            element_name=modules.LocalizedString(
+                en="Certificate",
+                de="Zertifikat",
+            ),
+        ),
+        default=[],
+        description=modules.LocalizedString(
+            en="PKI certificates, available in /etc/ssl/certs/ca-certificates.crt, with mozilla ca store used as a base.",
+            de="PKI-Zertifikate, verfügbar in /etc/ssl/certs/ca-certificates.crt, mit mozilla ca store als Basis.",
+        ),
     )
 
     authorized_keys = modules.Setting(
