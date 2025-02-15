@@ -93,16 +93,17 @@ class NetworkRelay(nr.NetworkRelay):
     ):
         match message.inner:
             case agent.EtRSwitchToNewConfigResultMessage():
+                inner = message.inner
                 # compat: v3 dev to v3 final
-                if "success" in message.inner:
+                if "success" in inner and inner.success is not None:
                     # agent is old, update message to new format
-                    message.inner = agent.EtRSwitchToNewConfigResultMessage(
-                        switch_success=message.inner.success,
+                    inner = agent.EtRSwitchToNewConfigResultMessage(
+                        switch_success=inner.success,
                         stdout="",
-                        stderr=message.inner.error or "",
-                        is_activated=message.inner.success,
+                        stderr=inner.error or "",
+                        is_activated=inner.success,
                         config_commit=None,
-                        task_id=message.inner.task_id,
+                        task_id=inner.task_id,
                     )
                 # update deployment_info
                 with sqlalchemy.orm.Session(self.db_engine) as db_session:
@@ -115,19 +116,19 @@ class NetworkRelay(nr.NetworkRelay):
                             self.connection_id_to_public_key[connection_id],
                         )
                         raise ValueError("Deployment info not found")
-                    if message.inner.is_activated:
+                    if inner.is_activated:
                         crud_deployment_info.update(
                             db_session,
                             deployment_info[0].id,
-                            deployed_config_commit=message.inner.config_commit,
+                            deployed_config_commit=inner.config_commit,
                         )
                 self.task_controller.executor.send_message_to_task(
-                    message.inner.task_id,
+                    inner.task_id,
                     models_task.ControllerToRunnerTaskUpdate(
                         inner=models_task.AgentSwitchToNewConfigurationResult(
-                            success=message.inner.switch_success,
-                            stdout=message.inner.stdout,
-                            stderr=message.inner.stderr,
+                            success=inner.switch_success,
+                            stdout=inner.stdout,
+                            stderr=inner.stderr,
                         )
                     ),
                 )
