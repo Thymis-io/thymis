@@ -95,7 +95,7 @@ class NetworkRelay(nr.NetworkRelay):
             case agent.EtRSwitchToNewConfigResultMessage():
                 inner = message.inner
                 # compat: v3 dev to v3 final
-                if "success" in inner and inner.success is not None:
+                if hasattr(inner, "success") and inner.success is None:
                     # agent is old, update message to new format
                     inner = agent.EtRSwitchToNewConfigResultMessage(
                         switch_success=inner.success,
