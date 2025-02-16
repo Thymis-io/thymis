@@ -65,8 +65,9 @@ in
   config = lib.mkIf cfg.enable {
     systemd.services.thymis-controller = {
       description = "Thymis controller";
-      after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
+      wants = [ "network-online.target" ];
+      after = [ "network-online.target" ];
       script = "${cfg.package}/bin/thymis-controller";
       serviceConfig.Restart = "always";
       path = [
