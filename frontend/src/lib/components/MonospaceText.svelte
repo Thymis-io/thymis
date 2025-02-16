@@ -5,8 +5,8 @@
 	import type { LanguageType } from 'svelte-highlight/languages';
 	import ashes from 'svelte-highlight/styles/ashes';
 
-	export let code;
-	export let language: LanguageType<string> | undefined;
+	export let code: string;
+	export let language: LanguageType<string> | undefined = undefined;
 
 	let copied = false;
 
@@ -24,7 +24,10 @@
 </svelte:head>
 
 <div class="relative">
-	{#if language}
+	{#if code.length > 5000}
+		<!-- Code highlighting is very expensive, disable it after an arbitrary number of characters -->
+		<LineNumbers highlighted={code} />
+	{:else if language}
 		<Highlight {code} {language} let:highlighted>
 			<LineNumbers {highlighted} />
 		</Highlight>
