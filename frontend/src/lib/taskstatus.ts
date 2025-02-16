@@ -72,15 +72,29 @@ export type TaskShort = {
 
 export type TasksShort = Record<string, TaskShort>;
 
-type TaskStatus = {
-	type: 'new_task' | 'task_update';
+type ShortTaskMessage = {
+	type: 'new_short_task' | 'short_task_update';
+	task_id: string;
 	task: TaskShort;
+};
+
+type SubscripedTaskMessage = {
+	type: 'subscribed_task';
+	task_id: string;
+	task: Task;
+};
+
+type SubscripedTaskOutputMessage = {
+	type: 'subscribed_task_output';
+	task_id: string;
+	stdout: string;
+	stderr: string;
 };
 
 let socket: WebSocket | undefined;
 
 export const taskStatus = writable<Record<string, TaskShort>>({});
-export const tasksById: Record<string, Task> = {};
+export const subscribedTask = writable<Task | null>(null);
 
 export const getAllTasks = async (
 	limit: number,
@@ -129,20 +143,40 @@ const startSocket = () => {
 	const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 	socket = new WebSocket(`${scheme}://${window.location.host}/api/task_status`);
 	socket.onmessage = async (event) => {
-		const data = JSON.parse(event.data) as TaskStatus;
-		taskStatus.update((ts) => {
-			const taskPage = get(page).url.searchParams.get('task-page') ?? '1';
-			if (data.task.id in ts || (data.type === 'new_task' && taskPage === '1')) {
-				ts[data.task.id] = data.task;
-			}
-			return ts;
-		});
-		await invalidate((url) => url.pathname.startsWith(`/api/tasks/${data.task.id}`));
+		const data = JSON.parse(event.data) as
+			| ShortTaskMessage
+			| SubscripedTaskMessage
+			| SubscripedTaskOutputMessage;
+		if (data.type === 'new_short_task' || data.type === 'short_task_update') {
+			taskStatus.update((ts) => {
+				const taskPage = get(page).url.searchParams.get('task-page') ?? '1';
+				if (data.task.id in ts || (data.type === 'new_short_task' && taskPage === '1')) {
+					ts[data.task.id] = data.task;
+				}
+				return ts;
+			});
+		} else if (data.type === 'subscribed_task') {
+			subscribedTask.set(data.task);
+		} else if (data.type === 'subscribed_task_output') {
+			subscribedTask.update((task) => {
+				if (task && task.id === data.task_id) {
+					task.process_stdout += data.stdout;
+					task.process_stderr += data.stderr;
+				}
+				return task;
+			});
+		}
 	};
 	socket.onclose = () => {
 		console.log('task_status socket closed');
 		setTimeout(startSocket, 1000);
 	};
+};
+
+export const subscribeTask = (taskId: string) => {
+	if (!socket || taskId === get(subscribedTask)?.id) return;
+	subscribedTask.set(null);
+	socket.send(JSON.stringify({ type: 'subscribe_task', task_id: taskId }));
 };
 
 let lastTaskStatus: TasksShort = {};

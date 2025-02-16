@@ -3,19 +3,24 @@ import uuid
 
 from fastapi import APIRouter, Response, WebSocket
 from thymis_controller.dependencies import (
+    EngineAD,
     NetworkRelayAD,
     ProjectAD,
     SessionAD,
     TaskControllerAD,
 )
 from thymis_controller.routers.frontend import is_running_in_playwright
+from thymis_controller.task.subscribe_ui import TaskWebsocketSubscriber
 
 router = APIRouter()
 
 
 @router.websocket("/task_status")
-async def task_status(websocket: WebSocket, task_controller: TaskControllerAD):
-    await task_controller.subscribe_ui(websocket)
+async def task_status(
+    websocket: WebSocket, db_engine: EngineAD, task_controller: TaskControllerAD
+):
+    await websocket.accept()
+    await TaskWebsocketSubscriber(db_engine, task_controller).connect(websocket)
 
 
 @router.get("/tasks")

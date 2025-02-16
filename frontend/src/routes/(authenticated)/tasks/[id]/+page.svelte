@@ -5,6 +5,7 @@
 	import { Button } from 'flowbite-svelte';
 	import MonospaceText from '$lib/components/MonospaceText.svelte';
 	import RenderUnixTimestamp from '$lib/components/RenderUnixTimestamp.svelte';
+	import { subscribedTask, subscribeTask } from '$lib/taskstatus';
 
 	export let data: PageData;
 
@@ -24,6 +25,10 @@
 	const needsDoubleQuotes = (str: string) => {
 		return str !== escapeForDoubleQuotes(str) || str.includes(' ');
 	};
+
+	$: {
+		subscribeTask(task.id);
+	}
 </script>
 
 {#if task}
@@ -128,14 +133,20 @@
 			<MonospaceText code={task.nix_info_logs.join('\n')} />
 		{/if}
 
-		{#if task.process_stdout}
+		{#if $subscribedTask?.process_stdout}
+			<p>Standard output:</p>
+			<MonospaceText code={cleanStdOut($subscribedTask?.process_stdout)} />
+		{:else if task.process_stdout}
 			<p>Standard output:</p>
 			<MonospaceText code={cleanStdOut(task.process_stdout)} />
 		{:else}
 			<p>No standard output</p>
 		{/if}
 
-		{#if task.process_stderr}
+		{#if $subscribedTask?.process_stderr}
+			<p>Standard error:</p>
+			<MonospaceText code={cleanStdOut($subscribedTask?.process_stderr)} />
+		{:else if task.process_stderr}
 			<p>Standard error:</p>
 			<MonospaceText code={cleanStdOut(task.process_stderr)} />
 		{:else}
