@@ -15,7 +15,7 @@
 
 	const fetchDiff = async (refA: string, refB: string) => {
 		const res = await fetchWithNotify(`/api/history/diff?refA=${refA}&refB=${refB}`);
-		return (await res.json()) as string[];
+		return (await res.json()) as string;
 	};
 </script>
 
