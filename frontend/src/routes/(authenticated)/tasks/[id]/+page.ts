@@ -6,7 +6,8 @@ export const load = (async ({ params, fetch }) => {
 	try {
 		const task = await getTask(params.id, fetch);
 		return {
-			task
+			task,
+			task_id: params.id
 		};
 	} catch (e) {
 		error(404, 'Task not found');

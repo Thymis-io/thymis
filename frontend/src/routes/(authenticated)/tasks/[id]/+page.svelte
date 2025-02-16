@@ -5,11 +5,18 @@
 	import { Button } from 'flowbite-svelte';
 	import MonospaceText from '$lib/components/MonospaceText.svelte';
 	import RenderUnixTimestamp from '$lib/components/RenderUnixTimestamp.svelte';
-	import { subscribedTask, subscribeTask } from '$lib/taskstatus';
+	import { subscribedTask, subscribeTask, type Task } from '$lib/taskstatus';
 
 	export let data: PageData;
 
-	$: task = data.task;
+	let task: Task | undefined;
+	$: {
+		if (!$subscribedTask) {
+			task = data.task;
+		} else {
+			task = $subscribedTask;
+		}
+	}
 
 	// if task is undefined, go to 404
 	const cleanStdOut = (stdoutorerr: string) => {
@@ -27,7 +34,7 @@
 	};
 
 	$: {
-		subscribeTask(task.id);
+		subscribeTask(data.task_id);
 	}
 </script>
 
@@ -133,20 +140,14 @@
 			<MonospaceText code={task.nix_info_logs.join('\n')} />
 		{/if}
 
-		{#if $subscribedTask?.process_stdout}
-			<p>Standard output:</p>
-			<MonospaceText code={cleanStdOut($subscribedTask?.process_stdout)} />
-		{:else if task.process_stdout}
+		{#if task.process_stdout}
 			<p>Standard output:</p>
 			<MonospaceText code={cleanStdOut(task.process_stdout)} />
 		{:else}
 			<p>No standard output</p>
 		{/if}
 
-		{#if $subscribedTask?.process_stderr}
-			<p>Standard error:</p>
-			<MonospaceText code={cleanStdOut($subscribedTask?.process_stderr)} />
-		{:else if task.process_stderr}
+		{#if task.process_stderr}
 			<p>Standard error:</p>
 			<MonospaceText code={cleanStdOut(task.process_stderr)} />
 		{:else}
