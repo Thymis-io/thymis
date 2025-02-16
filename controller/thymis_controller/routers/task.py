@@ -20,7 +20,10 @@ async def task_status(
     websocket: WebSocket, db_engine: EngineAD, task_controller: TaskControllerAD
 ):
     await websocket.accept()
-    await TaskWebsocketSubscriber(db_engine, task_controller).connect(websocket)
+    task_subscriber = TaskWebsocketSubscriber(db_engine, task_controller, websocket)
+    task_subscriber.connect()
+    await task_subscriber.run()
+    task_subscriber.disconnect()
 
 
 @router.get("/tasks")
