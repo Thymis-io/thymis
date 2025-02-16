@@ -5,6 +5,7 @@ from typing import Annotated, Generator, Optional, Union
 
 from fastapi import Cookie, Depends, HTTPException, Request, Response, WebSocket, status
 from fastapi.requests import HTTPConnection
+from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 from thymis_controller.config import global_settings
 from thymis_controller.crud import web_session
@@ -37,7 +38,7 @@ def get_db_engine(connection: HTTPConnection):
     return connection.state.engine
 
 
-EngineAD = Annotated[Session, Depends(get_db_engine)]
+EngineAD = Annotated[Engine, Depends(get_db_engine)]
 
 
 def get_db_session(connection: HTTPConnection) -> Generator[Session, None, None]:
