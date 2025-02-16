@@ -16,7 +16,7 @@ import thymis_agent.agent as agent
 import thymis_controller.crud as crud
 import thymis_controller.crud.task as crud_task
 import thymis_controller.models.task as models_task
-from thymis_controller.task.subscribe_ui import TaskUISubscriptionManager
+from thymis_controller.event import Event
 from thymis_controller.task.worker import worker_run_task
 
 if TYPE_CHECKING:
@@ -33,20 +33,15 @@ class TaskWorkerPoolManager:
         self.listen_threads = {}
         self.controller = controller
         self._db_engine = None
+        self.on_new_task = Event()
+        self.on_task_update = Event()
+        self.on_task_output = Event()
 
     @property
     def db_engine(self):
         if self._db_engine is None:
             raise ValueError("TaskWorkerPoolManager not started")
         return self._db_engine
-
-    @property
-    def ui_subscription_manager(self) -> "TaskUISubscriptionManager":
-        if self.controller.ui_subscription_manager is None:
-            raise ValueError(
-                "TaskWorkerPoolManager's controller does not have a UI subscription manager"
-            )
-        return self.controller.ui_subscription_manager
 
     def submit(self, task_submission: models_task.TaskSubmission):
         executor_side, worker_side = Pipe()
@@ -98,7 +93,7 @@ class TaskWorkerPoolManager:
             task = crud_task.get_task_by_id(db_session, task_id)
             task.add_exception("Task was cancelled")
             db_session.commit()
-            self.ui_subscription_manager.notify_task_update(task)
+            self.on_task_update.notify(task)
         try:
             self.send_message_to_task(
                 task_id,
@@ -120,7 +115,7 @@ class TaskWorkerPoolManager:
         try:
             with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
                 task = crud_task.get_task_by_id(db_session, task_id)
-                self.ui_subscription_manager.notify_new_task(task)
+                self.on_new_task.notify(task)
 
             while True:
                 message_avail = conn.poll(0.5)
@@ -169,8 +164,11 @@ class TaskWorkerPoolManager:
                                 if task.process_stderr is None:
                                     task.process_stderr = b""
                                 # append new data to stdout and stderr
-                                task.process_stdout += base64.b64decode(stdoutb64)
-                                task.process_stderr += base64.b64decode(stderrb64)
+                                stdout = base64.b64decode(stdoutb64)
+                                stderr = base64.b64decode(stderrb64)
+                                task.process_stdout += stdout
+                                task.process_stderr += stderr
+                                self.on_task_output.notify(task, stdout, stderr)
                                 db_session.commit()
                             case models_task.TaskNixStatusUpdate(status=status):
                                 task.nix_status = status.model_dump(
@@ -262,8 +260,7 @@ class TaskWorkerPoolManager:
                             case _:
                                 assert_never(message.update)
 
-                        # notify UI
-                        self.ui_subscription_manager.notify_task_update(task)
+                        self.on_task_update.notify(task)
                 except Exception as e:
                     traceback.print_exc()
                     logger.error("Error processing message from worker: %s", e)
@@ -274,7 +271,7 @@ class TaskWorkerPoolManager:
         if message:
             with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
                 task = crud_task.get_task_by_id(db_session, message.id)
-                self.ui_subscription_manager.notify_task_update(task)
+                self.on_task_update.notify(task)
         conn.close()
 
     def update_composite_task(self, task_id: uuid.UUID):
@@ -291,7 +288,7 @@ class TaskWorkerPoolManager:
             if "failed" in child_states and task.state != "failed":
                 task.state = "failed"
                 db_session.commit()
-                self.ui_subscription_manager.notify_task_update(task)
+                self.on_task_update.notify(task)
 
             if "pending" in child_states or "running" in child_states:
                 return
@@ -303,7 +300,7 @@ class TaskWorkerPoolManager:
                 task.end_time = datetime.now()
 
             db_session.commit()
-            self.ui_subscription_manager.notify_task_update(task)
+            self.on_task_update.notify(task)
 
     def finish_task(self, future: Future):
         task_id = self.future_to_id[future]
@@ -323,7 +320,7 @@ class TaskWorkerPoolManager:
                 task.end_time = datetime.now()
                 task.add_exception("Worker finished before signalling success")
                 db_session.commit()
-                self.ui_subscription_manager.notify_task_update(task)
+                self.on_task_update.notify(task)
                 logger.info("Task %s marked as failed", task_id)
 
             if task.parent_task_id:
@@ -345,7 +342,7 @@ class TaskWorkerPoolManager:
                     )
 
                     db_session.commit()
-                    self.ui_subscription_manager.notify_task_update(parent_task)
+                    self.on_task_update.notify(parent_task)
 
             logger.info("Task %s finished with state %s", task_id, task.state)
             if "RUNNING_IN_PLAYWRIGHT" in os.environ and task.state == "failed":

@@ -19,7 +19,6 @@ from thymis_controller.models.task import (
     TaskSubmissionData,
 )
 from thymis_controller.task.executor import TaskWorkerPoolManager
-from thymis_controller.task.subscribe_ui import TaskUISubscriptionManager
 
 if TYPE_CHECKING:
     from thymis_controller.network_relay import NetworkRelay
@@ -30,27 +29,21 @@ logger = logging.getLogger(__name__)
 class TaskController:
     def __init__(self, access_client_endpoint: str, network_relay: "NetworkRelay"):
         self.executor = TaskWorkerPoolManager(self)
-        self.ui_subscription_manager = TaskUISubscriptionManager(self)
         self.access_client_endpoint = access_client_endpoint
         self.network_relay = network_relay
         network_relay.task_controller = self
 
     @contextlib.asynccontextmanager
     async def start(self, db_engine: sqlalchemy.Engine):
-        await self.ui_subscription_manager.start()
         await self.executor.start(db_engine)
         yield self
         self.executor.stop()
-        self.ui_subscription_manager.stop()
 
     def get_tasks(self, session: Session, limit: int = 100, offset: int = 0):
         return get_tasks_short(session, limit, offset)
 
     def get_task_count(self, session: Session):
         return crud.task.get_task_count(session)
-
-    async def subscribe_ui(self, websocket: WebSocket):
-        await self.ui_subscription_manager.connect(websocket)
 
     def submit(self, task: TaskSubmissionData, db_session: Session) -> models.Task:
         # creates a database entry, then submits to executor
