@@ -86,7 +86,7 @@ in
         "${cfg.wifi-ssid}" = {
           psk = lib.mkIf (cfg.wifi-password != "") cfg.wifi-password;
           auth = lib.mkIf (cfg.wifi-auth != "") cfg.wifi-auth;
-          protocols = lib.mkIf (cfg.wifi-auth-protocols != [ ]) cfg.wifi-auth-protocols;
+          authProtocols = lib.mkIf (cfg.wifi-auth-protocols != [ ]) (map (x: x.protocol) cfg.wifi-auth-protocols);
         };
       };
     };
