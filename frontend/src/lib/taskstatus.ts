@@ -87,19 +87,7 @@ type SubscripedTaskMessage = {
 type SubscripedTaskOutputMessage = {
 	type: 'subscribed_task_output';
 	task_id: string;
-	stdout?: string;
-	stderr?: string;
-	nix_errors?: {
-		msg: string;
-		raw_msg: string;
-		line?: number;
-		column?: number;
-		file?: string;
-	}[];
-	nix_error_logs?: string[];
-	nix_warning_logs?: string[];
-	nix_notice_logs?: string[];
-	nix_info_logs?: string[];
+	task: Task;
 };
 
 let socket: WebSocket | undefined;
@@ -166,46 +154,41 @@ const startSocket = () => {
 				}
 				return ts;
 			});
+			subscribedTask.update((task) => {
+				if (task && task.id === data.task_id) {
+					return { ...task, ...data.task };
+				}
+				return task;
+			});
 		} else if (data.type === 'subscribed_task') {
 			subscribedTask.set(data.task);
 		} else if (data.type === 'subscribed_task_output') {
 			subscribedTask.update((task) => {
 				if (task && task.id === data.task_id) {
-					if (task.process_stdout) {
-						task.process_stdout += data.stdout;
-					} else {
-						task.process_stdout = data.stdout;
-					}
-					if (task.process_stderr) {
-						task.process_stderr += data.stderr;
-					} else {
-						task.process_stderr = data.stderr;
-					}
-					if (task.nix_errors) {
-						task.nix_errors.push(...(data.nix_errors ?? []));
-					} else {
-						task.nix_errors = data.nix_errors;
-					}
-					if (task.nix_error_logs) {
-						task.nix_error_logs.push(...(data.nix_error_logs ?? []));
-					} else {
-						task.nix_error_logs = data.nix_error_logs;
-					}
-					if (task.nix_warning_logs) {
-						task.nix_warning_logs.push(...(data.nix_warning_logs ?? []));
-					} else {
-						task.nix_warning_logs = data.nix_warning_logs;
-					}
-					if (task.nix_notice_logs) {
-						task.nix_notice_logs.push(...(data.nix_notice_logs ?? []));
-					} else {
-						task.nix_notice_logs = data.nix_notice_logs;
-					}
-					if (task.nix_info_logs) {
-						task.nix_info_logs.push(...(data.nix_info_logs ?? []));
-					} else {
-						task.nix_info_logs = data.nix_info_logs;
-					}
+					return {
+						...data.task,
+						process_stdout: task.process_stdout
+							? task.process_stdout + data.task.process_stdout
+							: data.task.process_stdout,
+						process_stderr: task.process_stderr
+							? task.process_stderr + data.task.process_stderr
+							: data.task.process_stderr,
+						nix_errors: task.nix_errors
+							? task.nix_errors.concat(data.task.nix_errors ?? [])
+							: data.task.nix_errors,
+						nix_error_logs: task.nix_error_logs
+							? task.nix_error_logs.concat(data.task.nix_error_logs ?? [])
+							: data.task.nix_error_logs,
+						nix_warning_logs: task.nix_warning_logs
+							? task.nix_warning_logs.concat(data.task.nix_warning_logs ?? [])
+							: data.task.nix_warning_logs,
+						nix_notice_logs: task.nix_notice_logs
+							? task.nix_notice_logs.concat(data.task.nix_notice_logs ?? [])
+							: data.task.nix_notice_logs,
+						nix_info_logs: task.nix_info_logs
+							? task.nix_info_logs.concat(data.task.nix_info_logs ?? [])
+							: data.task.nix_info_logs
+					};
 				}
 				return task;
 			});
