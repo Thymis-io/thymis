@@ -165,7 +165,7 @@ class ThymisDevice(modules.Module):
         type="string",
         default="",
         description=modules.LocalizedString(
-            en="""The WiFi authentication configuration. Für bspw. WPA2-Enterprise-Netzwerke.
+            en="""The WiFi authentication configuration. E.g. for WPA2-Enterprise networks.
 
 Mutually exclusive with `wifi_password`.
 
@@ -288,6 +288,7 @@ ca_file="/etc/ssl/certs/ca-certificates.crt" # uses system ca (default mozilla) 
             en="PKI certificates, available in /etc/ssl/certs/ca-certificates.crt, with mozilla ca store used as a base.",
             de="PKI-Zertifikate, verfügbar in /etc/ssl/certs/ca-certificates.crt, mit mozilla ca store als Basis.",
         ),
+        order=57,
     )
 
     authorized_keys = modules.Setting(

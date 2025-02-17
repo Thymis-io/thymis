@@ -26,8 +26,8 @@
 		if (typeof setting.type === 'object' && setting.type.hasOwnProperty('list-of')) {
 			return 'list-of';
 		}
-		if (typeof setting.type === 'object' && setting.type.hasOwnProperty('list-of')) {
-			return 'list-of';
+		if (typeof setting.type === 'object' && setting.type.hasOwnProperty('inline-file')) {
+			return 'inline-file';
 		}
 		console.error(`Unknown setting type: ${setting.type}`);
 	};
