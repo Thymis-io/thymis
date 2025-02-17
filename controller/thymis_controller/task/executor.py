@@ -164,12 +164,10 @@ class TaskWorkerPoolManager:
                                 if task.process_stderr is None:
                                     task.process_stderr = b""
                                 # append new data to stdout and stderr
-                                stdout = base64.b64decode(stdoutb64)
-                                stderr = base64.b64decode(stderrb64)
-                                task.process_stdout += stdout
-                                task.process_stderr += stderr
-                                self.on_task_output.notify(task)
+                                task.process_stdout += base64.b64decode(stdoutb64)
+                                task.process_stderr += base64.b64decode(stderrb64)
                                 db_session.commit()
+                                self.on_task_output.notify(task)
                             case models_task.TaskNixStatusUpdate(status=status):
                                 task.nix_status = status.model_dump(
                                     include=("done", "expected", "running", "failed")
@@ -181,8 +179,8 @@ class TaskWorkerPoolManager:
                                 task.nix_warning_logs = status.logs_by_level.get(1)
                                 task.nix_notice_logs = status.logs_by_level.get(2)
                                 task.nix_info_logs = status.logs_by_level.get(3)
-                                self.on_task_output.notify(task)
                                 db_session.commit()
+                                self.on_task_output.notify(task)
                             case models_task.TaskCompletedUpdate():
                                 # task.state = "completed"
                                 if not task.children:

@@ -120,25 +120,25 @@ class TaskWebsocketSubscriber:
         task = models.Task.from_orm_task(db_task)
         if task.process_stdout:
             task.process_stdout = task.process_stdout[self.stdout_count :]
-            self.stdout_count = len(task.process_stdout)
+            self.stdout_count = len(db_task.process_stdout)
         if task.process_stderr:
             task.process_stderr = task.process_stderr[self.stderr_count :]
-            self.stderr_count = len(task.process_stderr)
+            self.stderr_count = len(db_task.process_stderr)
         if task.nix_errors:
             task.nix_errors = task.nix_errors[self.nix_errors_count :]
-            self.nix_errors_count = len(task.nix_errors)
+            self.nix_errors_count = len(db_task.nix_errors)
         if task.nix_error_logs:
             task.nix_error_logs = task.nix_error_logs[self.nix_error_logs_count :]
-            self.nix_error_logs_count = len(task.nix_error_logs)
+            self.nix_error_logs_count = len(db_task.nix_error_logs)
         if task.nix_warning_logs:
             task.nix_warning_logs = task.nix_warning_logs[self.nix_warning_logs_count :]
-            self.nix_warning_logs_count = len(task.nix_warning_logs)
+            self.nix_warning_logs_count = len(db_task.nix_warning_logs)
         if task.nix_notice_logs:
             task.nix_notice_logs = task.nix_notice_logs[self.nix_notice_logs_count :]
-            self.nix_notice_logs_count = len(task.nix_notice_logs)
+            self.nix_notice_logs_count = len(db_task.nix_notice_logs)
         if task.nix_info_logs:
             task.nix_info_logs = task.nix_info_logs[self.nix_info_logs_count :]
-            self.nix_info_logs_count = len(task.nix_info_logs)
+            self.nix_info_logs_count = len(db_task.nix_info_logs)
         return task
 
     def enqueue_task(self, task_message: TaskMessage):
