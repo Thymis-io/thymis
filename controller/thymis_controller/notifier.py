@@ -1,4 +1,4 @@
-class Event:
+class Notifier:
     def __init__(self):
         self.subscribers = []
 

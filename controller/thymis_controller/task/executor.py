@@ -16,7 +16,7 @@ import thymis_agent.agent as agent
 import thymis_controller.crud as crud
 import thymis_controller.crud.task as crud_task
 import thymis_controller.models.task as models_task
-from thymis_controller.event import Event
+from thymis_controller.notifier import Notifier
 from thymis_controller.task.worker import worker_run_task
 
 if TYPE_CHECKING:
@@ -33,9 +33,9 @@ class TaskWorkerPoolManager:
         self.listen_threads = {}
         self.controller = controller
         self._db_engine = None
-        self.on_new_task = Event()
-        self.on_task_update = Event()
-        self.on_task_output = Event()
+        self.on_new_task = Notifier()
+        self.on_task_update = Notifier()
+        self.on_task_output = Notifier()
 
     @property
     def db_engine(self):
