@@ -162,7 +162,7 @@ class ThymisDevice(modules.Module):
             de="WiFi Auth (wpa_supplicant config)",
         ),
         nix_attr_name="thymis.config.wifi-auth",
-        type="string",
+        type="textarea",
         default="",
         description=modules.LocalizedString(
             en="""The WiFi authentication configuration. E.g. for WPA2-Enterprise networks.
@@ -261,7 +261,6 @@ ca_file="/etc/ssl/certs/ca-certificates.crt" # uses system ca (default mozilla) 
             en="Trusted root certificates",
             de="Vertrauenswürdige Stammzertifikate",
         ),
-        nix_attr_name="security.pki.certificates",
         type=modules.ListType(
             settings={
                 "certificate": modules.Setting(
@@ -611,6 +610,12 @@ ca_file="/etc/ssl/certs/ca-certificates.crt" # uses system ca (default mozilla) 
             else self.agent_controller_url.default
         )
 
+        security_pki_certificates = (
+            module_settings.settings["security_pki_certificates"]
+            if "security_pki_certificates" in module_settings.settings
+            else self.security_pki_certificates.default
+        )
+
         f.write("  imports = [\n")
 
         if write_target_type == "hosts":
@@ -690,6 +695,18 @@ ca_file="/etc/ssl/certs/ca-certificates.crt" # uses system ca (default mozilla) 
             f.write(f"  networking.timeServers = {time_servers_nix};\n")
 
         f.write(f'  time.timeZone = "{time_zone}";\n')
+
+        if security_pki_certificates:
+            certificates = list(
+                map(
+                    lambda x: x["certificate"] if "certificate" in x else None,
+                    security_pki_certificates,
+                )
+            )
+            security_pki_certificates_nix = convert_python_value_to_nix(
+                certificates, ident=1
+            )
+            f.write(f"  security.pki.certificates = {security_pki_certificates_nix};\n")
 
         return super().write_nix_settings(f, path, module_settings, priority, project)
 
