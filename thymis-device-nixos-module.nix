@@ -46,7 +46,15 @@ in
             description = "Authentication method for the wifi network";
           };
           wifi-auth-protocols = lib.mkOption {
-            type = lib.types.listOf lib.types.str;
+            type = lib.types.submodule {
+              options = {
+                protocol = lib.mkOption {
+                  type = lib.types.str;
+                  default = "";
+                  description = "Authentication protocol for the wifi network";
+                };
+              };
+            };
             default = [ ];
             description = "Authentication protocols for the wifi network";
           };
