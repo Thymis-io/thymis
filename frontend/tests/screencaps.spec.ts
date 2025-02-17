@@ -475,5 +475,39 @@ colorSchemes.forEach((colorScheme) => {
 				mask: [page.locator('.playwright-snapshot-unstable')]
 			});
 		});
+
+		test('Configure Wifi Network', async ({ page, request }) => {
+			await clearState(page, request);
+			await deleteAllTasks(page, request);
+
+			await createConfiguration(page, 'My Device 1', 'Raspberry Pi 4', []);
+
+			await page.goto('/configuration/list');
+
+			await page.getByRole('button', { name: 'View Details' }).click();
+
+			await page.waitForURL('http://localhost:8000/configuration/configuration-details*');
+
+			const configureTagButton = page.locator('a', { hasText: 'Configure' }).first();
+			await configureTagButton.click();
+
+			const wifiSSID = page.locator('p', { hasText: 'WiFi SSID' }).first();
+			await wifiSSID.hover();
+			await page.mouse.wheel(0, 400);
+
+			await expect(page).toHaveScreenshot();
+
+			const wifiSSIDInput = wifiSSID.locator('..').locator('input').first();
+			await wifiSSIDInput.fill('MyWifi');
+
+			const wifiPassword = page
+				.locator('p', { hasText: 'WiFi Password' })
+				.locator('..')
+				.locator('input')
+				.first();
+			await wifiPassword.fill('MyPassword');
+
+			await expect(page).toHaveScreenshot();
+		});
 	});
 });
