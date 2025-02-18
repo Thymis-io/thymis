@@ -1593,7 +1593,7 @@ full = ["httpx (>=0.27.0,<0.29.0)", "itsdangerous", "jinja2", "python-multipart 
 
 [[package]]
 name = "thymis-agent"
-version = "0.2.0"
+version = "0.3.0"
 description = ""
 optional = false
 python-versions = "^3.11"
