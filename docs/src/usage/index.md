@@ -1,6 +1,6 @@
 # Usage
 
-Before diving into specific features, make sure that your Thymis setup is up and running. If you haven’t already, please refer to the [Getting Started guide](getting_started.md) to set up the Thymis environment and install necessary dependencies.
+Before diving into specific features, make sure that your Thymis setup is up and running. If you haven’t already, please refer to the [Getting Started guide](getting_started/index.md) to set up the Thymis environment and install necessary dependencies.
 
 ## Scenarios
 
