@@ -74,6 +74,7 @@ export const load = (async ({ fetch, url, data }) => {
 		fetch
 	);
 	const minimizeTaskbar = data?.minimizeTaskbar === 'true';
+	const vncDisplaysPerColumn = parseInt(data?.vncDisplaysPerColumn || '3');
 
 	return {
 		state: state,
@@ -81,6 +82,7 @@ export const load = (async ({ fetch, url, data }) => {
 		allTasks: allTasks,
 		totalTaskCount: totalTaskCount,
 		tasksPerPage: tasksPerPage,
-		minimizeTaskbar: minimizeTaskbar
+		minimizeTaskbar: minimizeTaskbar,
+		vncDisplaysPerColumn: vncDisplaysPerColumn
 	};
 }) satisfies LayoutLoad;

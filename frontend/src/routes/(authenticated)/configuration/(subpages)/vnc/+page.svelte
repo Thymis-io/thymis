@@ -9,14 +9,13 @@
 	import VncView from '$lib/vnc/VncView.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import type { PageData } from './$types';
-	import { queryParam } from 'sveltekit-search-params';
 	import DynamicGrid from '$lib/components/DynamicGrid.svelte';
 	import Dropdown from '$lib/components/Dropdown.svelte';
+	import { browser } from '$app/environment';
 
 	export let data: PageData;
 
-	$: columnsParam = queryParam('vnc-config-columns');
-	$: columns = parseInt($columnsParam ?? '2');
+	let columns = data.vncDisplaysPerColumn;
 
 	const getConfigFromIdentifier = (identifier: string | null) => {
 		if (!identifier) return undefined;
@@ -30,7 +29,10 @@
 		values={[1, 2, 3, 4, 5, 6]}
 		showBox={false}
 		selected={columns}
-		onSelected={(value) => ($columnsParam = value.toString())}
+		onSelected={(value) => {
+			columns = value;
+			if (browser) document.cookie = `vnc-displays-per-column=${columns}; SameSite=Lax;`;
+		}}
 		class="min-w-10"
 	/>
 </div>
