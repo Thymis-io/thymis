@@ -1,12 +1,12 @@
-<script lang="ts">
+<script lang="ts" generics="T extends string | number">
 	import { browser } from '$app/environment';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 	import { onDestroy, onMount } from 'svelte';
 
-	export let values: (string | number)[] = [];
-	export let selected: string | number | null = null;
+	export let values: T[] = [];
+	export let selected: T | null = null;
 	export let showBox: boolean = true;
-	export let onSelected: (item: string | number) => void = () => {};
+	export let onSelected: (item: T) => void = () => {};
 
 	let divClass: string = 'w-64';
 	let isOpen = false;
@@ -20,7 +20,7 @@
 		isOpen = false;
 	};
 
-	const selectItem = (item: string | number) => {
+	const selectItem = (item: T) => {
 		selected = item;
 		isOpen = false;
 		onSelected(item);
