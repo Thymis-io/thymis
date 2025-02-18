@@ -9,7 +9,6 @@ from pydantic import BaseModel
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 from thymis_controller import crud, db_models, models
-from thymis_controller.nix.log_parse import ErrorInfoNixLine, ParsedNixProcess
 from thymis_controller.task.controller import TaskController
 
 logger = logging.getLogger(__name__)
@@ -48,10 +47,14 @@ class TaskWebsocketSubscriber:
         self.task_queue = asyncio.Queue[TaskMessage]()
         self.send_lock = asyncio.Lock()
         self.process_subscribed_task_lock = threading.Lock()
-        self.subscribed_task: uuid.UUID | None = None
         self.db_engine = db_engine
         self.controller = controller
         self.websocket = websocket
+        with self.process_subscribed_task_lock:
+            self.reset_subscribed_task(None)
+
+    def reset_subscribed_task(self, task_id: uuid.UUID | None):
+        self.subscribed_task = task_id
         self.stdout_count = 0
         self.stderr_count = 0
         self.nix_errors_count = 0
@@ -71,52 +74,49 @@ class TaskWebsocketSubscriber:
         self.controller.executor.on_task_output.unsubscribe(self.notify_task_output)
 
     async def run(self):
-        send_task_coroutine = self.loop.create_task(self.websocket_loop(self.send_task))
-        receive_task_coroutine = self.loop.create_task(
-            self.websocket_loop(self.receive_message)
-        )
-        await asyncio.gather(send_task_coroutine, receive_task_coroutine)
+        send_task = self.loop.create_task(self.send_loop())
+        receive_task = self.loop.create_task(self.receive_loop())
 
-    async def websocket_loop(self, inner):
+        try:
+            await asyncio.gather(send_task, receive_task)
+        except (WebSocketDisconnect, asyncio.QueueShutDown, asyncio.CancelledError):
+            return
+        except Exception:
+            return
+        finally:
+            send_task.cancel()
+            receive_task.cancel()
+
+    async def send_loop(self):
         while True:
-            try:
-                await inner()
-            except (WebSocketDisconnect, asyncio.QueueShutDown):
-                break
-            except Exception:
-                break
-
-    async def send_task(self):
-        task = await self.task_queue.get()
-        async with self.send_lock:
-            if task.type == "subscribed_task" and self.subscribed_task != task.task_id:
-                return
-            await self.websocket.send_json(task.model_dump(mode="json"))
-
-    async def receive_message(self):
-        message = await self.websocket.receive_json()
-        if "type" in message and message["type"] == "subscribe_task":
-            task_id = uuid.UUID(message["task_id"])
+            task = await self.task_queue.get()
             async with self.send_lock:
-                with self.process_subscribed_task_lock:
-                    self.subscribed_task = task_id
-                    self.stdout_count = 0
-                    self.stderr_count = 0
-                    self.nix_errors_count = 0
-                    self.nix_error_logs_count = 0
-                    self.nix_warning_logs_count = 0
-                    self.nix_notice_logs_count = 0
-                    self.nix_info_logs_count = 0
-                    with Session(self.db_engine) as db_session:
-                        task = self.controller.get_task(task_id, db_session)
-                    subscribed_task = self.create_subscribed_task_message(task)
-                await self.websocket.send_json(
-                    SubscribedTask(task_id=task.id, task=subscribed_task).model_dump(
-                        mode="json"
-                    )
-                )
+                if (
+                    task.type == "subscribed_task"
+                    and self.subscribed_task != task.task_id
+                ):
+                    return
+                await self.websocket.send_json(task.model_dump(mode="json"))
 
-    def create_subscribed_task_message(self, db_task: db_models.Task):
+    async def receive_loop(self):
+        while True:
+            message = await self.websocket.receive_json()
+            if "type" in message and message["type"] == "subscribe_task":
+                task_id = uuid.UUID(message["task_id"])
+                async with self.send_lock:
+                    with self.process_subscribed_task_lock:
+                        self.reset_subscribed_task(task_id)
+                        with Session(self.db_engine) as db_session:
+                            task = self.controller.get_task(task_id, db_session)
+                        subscribed_task = self.create_subscribed_task(task)
+                    await self.websocket.send_json(
+                        SubscribedTask(
+                            task_id=task_id, task=subscribed_task
+                        ).model_dump(mode="json")
+                    )
+
+    def create_subscribed_task(self, db_task: db_models.Task):
+        # pylint: disable=attribute-defined-outside-init
         task = models.Task.from_orm_task(db_task)
         if task.process_stdout:
             task.process_stdout = task.process_stdout[self.stdout_count :]
@@ -155,7 +155,8 @@ class TaskWebsocketSubscriber:
     def notify_task_output(self, task: db_models.Task):
         with self.process_subscribed_task_lock:
             if self.subscribed_task == task.id:
-                subscribed_task = self.create_subscribed_task_message(task)
                 self.enqueue_task(
-                    SubscribedTaskOutput(task_id=task.id, task=subscribed_task)
+                    SubscribedTaskOutput(
+                        task_id=task.id, task=self.create_subscribed_task(task)
+                    )
                 )
