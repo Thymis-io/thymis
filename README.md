@@ -128,10 +128,11 @@ The controller takes care of running the frontend for you. You can access thymis
   - New features and bug fixes, possibly containing breaking changes.
   - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.2.0)
 
-- [ ] `Release 0.3.0`
+- [x] `Release 0.3.0`
   - Task persistence using the database
   - Update to nixpkgs/NixOS 24.11
   - New features and bug fixes, possibly containing breaking changes.
+  - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.3.0)
 
 - [ ] `Release 0.4.0`
   - Rework module system for outside developers
