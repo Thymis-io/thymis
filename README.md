@@ -133,6 +133,13 @@ The controller takes care of running the frontend for you. You can access thymis
   - Update to nixpkgs/NixOS 24.11
   - New features and bug fixes, possibly containing breaking changes.
 
+- [ ] `Release 0.4.0`
+  - Rework module system for outside developers
+  - Automatic rollback if OTA update fails or condition is met
+  - Secrets management
+  - New features and bug fixes, possibly containing breaking changes.
+
+
 ---
 
 ## License
