@@ -124,6 +124,7 @@ class RelayToAgentMessage(BaseModel):
     inner: Union[
         "RtEUpdatePublicKeyMessage",
         "RtESwitchToNewConfigMessage",
+        "RtESuccesfullySSHConnectedMessage",
     ] = Field(discriminator="kind")
 
 
@@ -136,6 +137,10 @@ class RtESwitchToNewConfigMessage(BaseModel):
     new_path_to_config: str
     config_commit: str
     task_id: uuid.UUID
+
+
+class RtESuccesfullySSHConnectedMessage(BaseModel):
+    kind: Literal["successfully_ssh_connected"] = "successfully_ssh_connected"
 
 
 class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
@@ -163,10 +168,13 @@ class Agent(ea.EdgeAgent):
         self.controller_host = controller_host
         self.token = token
         self.agent_metadata = agent_metadata
+        self.signal_ssh_connected = asyncio.Event()
 
     async def handle_custom_relay_message(self, message: RelayToAgentMessage):
         logger.info("Received custom relay message: %s", message)
         match message.inner:
+            case RtESuccesfullySSHConnectedMessage():
+                self.signal_ssh_connected.set()
             case RtEUpdatePublicKeyMessage():
                 self.update_public_key()
             case RtESwitchToNewConfigMessage():
@@ -252,10 +260,12 @@ class Agent(ea.EdgeAgent):
                     self.update_config_commit(message.inner.config_commit)
 
                 async def wait_for_reconnect_and_send_result():
-                    await self.websocket.close()
-                    if self.websocket:
-                        await self.websocket.wait_closed()
+                    websocket = self.websocket
+                    await websocket.close()
+                    if self.websocket is websocket:
+                        await websocket.wait_closed()
                     await self.signal_connected.wait()
+                    await self.signal_ssh_connected.wait()
                     # we are now reconnected
                     await self.websocket.send(
                         AgentToRelayMessage(
@@ -284,6 +294,9 @@ class Agent(ea.EdgeAgent):
             ip_addresses=self.detect_ip_addresses(),
             last_error=last_error,
         )
+
+    async def on_connection_closed(self):
+        self.signal_ssh_connected.clear()
 
     def update_config_commit(self, new_commit: str):
         self.agent_metadata["configuration_commit"] = new_commit
