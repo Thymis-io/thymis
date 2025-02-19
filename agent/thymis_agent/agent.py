@@ -71,7 +71,7 @@ def find_agent_token():
 def find_agent_metadata():
     val = None
     logger.debug("Looking for agent metadata in %s", AGENT_DATA_PATHS)
-    metadata_path = find_file(
+    metadata_path = find_file_multiple_names(
         AGENT_DATA_PATHS,
         [
             AGENT_METADATA_FILENAME,
