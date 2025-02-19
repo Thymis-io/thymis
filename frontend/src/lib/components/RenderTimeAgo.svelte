@@ -6,6 +6,16 @@
 	export let minSeconds: number = 0;
 
 	let currentDate = new Date();
+	let date: Date | undefined;
+
+	$: {
+		if (timestamp) {
+			const timeZoneAwareTimestamp = timestamp.includes('+') ? timestamp : timestamp + '+0000';
+			date = new Date(Date.parse(timeZoneAwareTimestamp));
+		} else {
+			date = undefined;
+		}
+	}
 
 	onMount(() => {
 		const interval = setInterval(() => {
@@ -14,8 +24,6 @@
 
 		return () => clearInterval(interval);
 	});
-
-	$: date = new Date(Date.parse(timestamp));
 
 	$: timeSince = (date: Date, currentDate: Date) => {
 		const seconds = Math.max(
