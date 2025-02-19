@@ -76,7 +76,7 @@ async def delete_all(
     if is_running_in_playwright():
         task_controller.delete_all_tasks(db_session)
         project.clear_history(db_session)
-        network_relay.disconnect_and_ban_all_connections(db_session)
+        await network_relay.disconnect_and_ban_all_connections(db_session)
         return {"message": "All tasks deleted"}
     else:
         return Response(status_code=403)
