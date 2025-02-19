@@ -280,6 +280,9 @@ class Agent(ea.EdgeAgent):
                         ).model_dump_json()
                     )
 
+                    # restart agent using systemd
+                    os.system("systemctl restart thymis-agent")
+
                 asyncio.create_task(wait_for_reconnect_and_send_result())
 
             case _:

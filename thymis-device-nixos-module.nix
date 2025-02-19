@@ -127,6 +127,7 @@ in
       environment = {
         CONTROLLER_HOST = cfg.agent.controller-url;
       };
+      serviceConfig.Restart = "always";
     };
   };
 }
