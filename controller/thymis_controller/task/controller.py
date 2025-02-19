@@ -3,11 +3,10 @@ import logging
 import os
 import random
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 import sqlalchemy
-from fastapi import WebSocket
 from sqlalchemy.orm import Session
 from thymis_controller import crud, db_models, models
 from thymis_controller.crud.agent_token import create_access_client_token
@@ -49,7 +48,7 @@ class TaskController:
         # creates a database entry, then submits to executor
         task_db = task_create(
             db_session,
-            start_time=datetime.now(),
+            start_time=datetime.now(timezone.utc),
             state="pending",
             task_type=task.type,
             task_submission_data=task.model_dump(mode="json"),
@@ -77,7 +76,7 @@ class TaskController:
                 )
                 subtask = task_create(
                     db_session,
-                    start_time=datetime.now(),
+                    start_time=datetime.now(timezone.utc),
                     state="pending",
                     task_type="deploy_device_task",
                     task_submission_data=submission_data.model_dump(mode="json"),
