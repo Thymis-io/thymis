@@ -379,6 +379,7 @@ class NetworkRelay(nr.NetworkRelay):
                     db_session, start_message.token
                 )
                 await connection.close()
-                public_key = self.connection_id_to_public_key[connection_id]
-                del self.public_key_to_connection_id[public_key]
-                del self.connection_id_to_public_key[connection_id]
+                if connection_id in self.connection_id_to_public_key:
+                    public_key = self.connection_id_to_public_key[connection_id]
+                    del self.public_key_to_connection_id[public_key]
+                    del self.connection_id_to_public_key[connection_id]
