@@ -251,18 +251,26 @@ class Agent(ea.EdgeAgent):
                 if is_activated:
                     self.update_config_commit(message.inner.config_commit)
 
-                await self.websocket.send(
-                    AgentToRelayMessage(
-                        inner=EtRSwitchToNewConfigResultMessage(
-                            task_id=message.inner.task_id,
-                            config_commit=message.inner.config_commit,
-                            is_activated=is_activated,
-                            switch_success=switch_success,
-                            stdout=stdout.decode(),
-                            stderr=stderr.decode(),
-                        )
-                    ).model_dump_json()
-                )
+                async def wait_for_reconnect_and_send_result():
+                    await self.websocket.close()
+                    if self.websocket:
+                        await self.websocket.wait_closed()
+                    await self.signal_connected.wait()
+                    # we are now reconnected
+                    await self.websocket.send(
+                        AgentToRelayMessage(
+                            inner=EtRSwitchToNewConfigResultMessage(
+                                task_id=message.inner.task_id,
+                                config_commit=message.inner.config_commit,
+                                is_activated=is_activated,
+                                switch_success=switch_success,
+                                stdout=stdout.decode(),
+                                stderr=stderr.decode(),
+                            )
+                        ).model_dump_json()
+                    )
+
+                asyncio.create_task(wait_for_reconnect_and_send_result())
 
             case _:
                 logger.error("Unknown message: %s", message)
