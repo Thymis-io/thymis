@@ -304,6 +304,8 @@ class NetworkRelay(nr.NetworkRelay):
                 None,
             )
 
+            deployment_info_id = deployment_info.id
+
             if len(self.connection_id_to_start_message[connection_id].hardware_ids) > 0:
                 hardware_device = crud_hardware_device.create_or_update(
                     db_session,
@@ -323,7 +325,7 @@ class NetworkRelay(nr.NetworkRelay):
             await edge_agent_connection.send_text(
                 agent.RelayToAgentMessage(
                     inner=agent.RtESuccesfullySSHConnectedMessage(
-                        deployment_info_id=deployment_info.id
+                        deployment_info_id=deployment_info_id
                     )
                 ).model_dump_json()
             )
