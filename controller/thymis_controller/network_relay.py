@@ -316,13 +316,18 @@ class NetworkRelay(nr.NetworkRelay):
                     connection_id,
                 )
 
-        await edge_agent_connection.send_text(
-            agent.RelayToAgentMessage(
-                inner=agent.RtESuccesfullySSHConnectedMessage(
-                    deployment_info_id=deployment_info.id
-                )
-            ).model_dump_json()
-        )
+        if (
+            not self.connection_id_to_start_message[connection_id].last_error
+            or not "Input tag 'successfully_ssh_connected' found using 'kind' does not match any of the expected tags"
+            in self.connection_id_to_start_message[connection_id].last_error
+        ):
+            await edge_agent_connection.send_text(
+                agent.RelayToAgentMessage(
+                    inner=agent.RtESuccesfullySSHConnectedMessage(
+                        deployment_info_id=deployment_info.id
+                    )
+                ).model_dump_json()
+            )
 
         async def msg_loop_but_close_connection_at_end():
             try:
