@@ -316,9 +316,8 @@ class NetworkRelay(nr.NetworkRelay):
                     connection_id,
                 )
 
-        if (
-            not self.connection_id_to_start_message[connection_id].last_error
-            or not "Input tag 'successfully_ssh_connected' found using 'kind' does not match any of the expected tags"
+        if not self.connection_id_to_start_message[connection_id].last_error or not (
+            "Input tag 'successfully_ssh_connected' found using 'kind' does not match any of the expected tags"
             in self.connection_id_to_start_message[connection_id].last_error
         ):
             await edge_agent_connection.send_text(
