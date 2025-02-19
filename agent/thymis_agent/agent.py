@@ -179,6 +179,7 @@ class Agent(ea.EdgeAgent):
                 self.update_public_key()
             case RtESwitchToNewConfigMessage():
                 new_path_to_config = message.inner.new_path_to_config
+                current_config = os.readlink("/run/current-system")
                 logger.info("Switching to new configuration: %s", new_path_to_config)
                 args = [
                     "nix-env",
@@ -264,8 +265,63 @@ class Agent(ea.EdgeAgent):
                     await websocket.close()
                     if self.websocket is websocket:
                         await websocket.wait_closed()
-                    await self.signal_connected.wait()
-                    await self.signal_ssh_connected.wait()
+                    try:
+                        async with asyncio.timeout(60):  # 1 minute timeout
+                            await self.signal_connected.wait()
+                            await self.signal_ssh_connected.wait()
+                    except asyncio.TimeoutError:
+                        logger.error("Timeout waiting for connection, rolling back")
+                        # rollback
+                        args = [
+                            "nix-env",
+                            "-p",
+                            "/nix/var/nix/profiles/system",
+                            "--set",
+                            current_config,
+                        ]
+                        proc = await asyncio.create_subprocess_exec(
+                            args[0],
+                            *args[1:],
+                            stdout=asyncio.subprocess.PIPE,
+                            stderr=asyncio.subprocess.PIPE,
+                        )
+                        stdout_l, stderr_l = await proc.communicate()
+                        if proc.returncode != 0:
+                            logger.error(
+                                "Failed to set profile in rollback: %s",
+                                stderr_l.decode(),
+                            )
+
+                        args = [
+                            "systemd-run",
+                            "-E",
+                            "LOCALE_ARCHIVE",
+                            "-E",
+                            "NIXOS_INSTALL_BOOTLOADER=1",
+                            "--collect",
+                            "--no-ask-password",
+                            "--pipe",
+                            "--quiet",
+                            "--service-type=exec",
+                            "--unit=thymis-nixos-rebuild-switch-to-configuration-rollback",
+                            "--wait",
+                            f"{current_config}/bin/switch-to-configuration",
+                            "switch",
+                        ]
+
+                        proc = await asyncio.create_subprocess_exec(
+                            args[0],
+                            *args[1:],
+                            stdout=asyncio.subprocess.PIPE,
+                            stderr=asyncio.subprocess.PIPE,
+                        )
+                        stdout_l, stderr_l = await proc.communicate()
+                        if proc.returncode != 0:
+                            logger.error(
+                                "Failed to successfully rollback to previous configuration: %s",
+                                stderr_l.decode(),
+                            )
+                        return
                     # we are now reconnected
                     await self.websocket.send(
                         AgentToRelayMessage(
@@ -279,7 +335,6 @@ class Agent(ea.EdgeAgent):
                             )
                         ).model_dump_json()
                     )
-
                     # restart agent using systemd
                     os.system("systemctl restart thymis-agent")
 
