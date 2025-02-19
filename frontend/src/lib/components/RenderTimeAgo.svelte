@@ -46,7 +46,7 @@
 	};
 </script>
 
-{#if timestamp && date}
+{#if date}
 	<p
 		title={date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'long' })}
 		class="playwright-snapshot-unstable"

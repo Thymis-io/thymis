@@ -7,7 +7,7 @@ import threading
 import traceback
 import uuid
 from concurrent.futures import Future, ProcessPoolExecutor
-from datetime import datetime
+from datetime import datetime, timezone
 from multiprocessing.connection import Connection, Pipe
 from typing import TYPE_CHECKING, assert_never
 
@@ -153,7 +153,7 @@ class TaskWorkerPoolManager:
                             case models_task.TaskRejectedUpdate(reason=reason):
                                 task.state = "failed"
                                 task.add_exception(f"Task rejected: {reason}")
-                                task.end_time = datetime.now()
+                                task.end_time = datetime.now(timezone.utc)
                                 db_session.commit()
                             case models_task.TaskStdOutErrUpdate(
                                 stdoutb64=stdoutb64, stderrb64=stderrb64
@@ -185,14 +185,14 @@ class TaskWorkerPoolManager:
                                 # task.state = "completed"
                                 if not task.children:
                                     task.state = "completed"
-                                    task.end_time = datetime.now()
+                                    task.end_time = datetime.now(timezone.utc)
                                 db_session.commit()
                                 conn.close()
                                 break
                             case models_task.TaskFailedUpdate(reason=reason):
                                 task.state = "failed"
                                 task.add_exception(reason)
-                                task.end_time = datetime.now()
+                                task.end_time = datetime.now(timezone.utc)
                                 db_session.commit()
                                 conn.close()
                                 break
@@ -296,7 +296,7 @@ class TaskWorkerPoolManager:
                 task.state = "completed"
 
             if not task.end_time:
-                task.end_time = datetime.now()
+                task.end_time = datetime.now(timezone.utc)
 
             db_session.commit()
             self.on_task_update.notify(task)
@@ -316,7 +316,7 @@ class TaskWorkerPoolManager:
                 self.update_composite_task(task_id)
             elif task.state == "running" or task.state == "pending":
                 task.state = "failed"
-                task.end_time = datetime.now()
+                task.end_time = datetime.now(timezone.utc)
                 task.add_exception("Worker finished before signalling success")
                 db_session.commit()
                 self.on_task_update.notify(task)
