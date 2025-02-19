@@ -51,6 +51,15 @@ def find_file(paths, filename):
     return None
 
 
+def find_file_multiple_names(paths, filenames):
+    for path in paths:
+        for filename in filenames:
+            file_path = path / filename
+            if os.path.exists(file_path):
+                return file_path
+    return None
+
+
 def find_agent_token():
     token_path = find_file(AGENT_DATA_PATHS, AGENT_TOKEN_FILENAME)
     if token_path:
@@ -62,7 +71,14 @@ def find_agent_token():
 def find_agent_metadata():
     val = None
     logger.debug("Looking for agent metadata in %s", AGENT_DATA_PATHS)
-    metadata_path = find_file(AGENT_DATA_PATHS, AGENT_METADATA_FILENAME)
+    metadata_path = find_file(
+        AGENT_DATA_PATHS,
+        [
+            AGENT_METADATA_FILENAME,
+            f"{AGENT_METADATA_FILENAME}.new",
+            f"{AGENT_METADATA_FILENAME}.old",
+        ],
+    )
     if metadata_path:
         logger.debug("Found agent metadata at %s", metadata_path)
         with open(metadata_path, "r", encoding="utf-8") as f:
@@ -256,9 +272,11 @@ class Agent(ea.EdgeAgent):
                         stdout,
                         stderr,
                     )
-
-                if is_activated:
-                    self.update_config_commit(message.inner.config_commit)
+                try:
+                    if is_activated:
+                        self.update_config_commit(message.inner.config_commit)
+                except Exception as e:
+                    logger.error("Failed to update config commit: %s", e)
 
                 async def wait_for_reconnect_and_send_result():
                     websocket = self.websocket
@@ -360,8 +378,19 @@ class Agent(ea.EdgeAgent):
         self.agent_metadata["configuration_commit"] = new_commit
         metadata_path = find_file(AGENT_DATA_PATHS, AGENT_METADATA_FILENAME)
         if metadata_path:
-            with open(metadata_path, "w", encoding="utf-8") as f:
+            # with open(metadata_path, "w", encoding="utf-8") as f:
+            #     json.dump(self.agent_metadata, f)
+            new_path = f"{metadata_path}.new"
+            old_path = f"{metadata_path}.old"
+            # first, write to a new file
+            with open(new_path, "w", encoding="utf-8") as f:
                 json.dump(self.agent_metadata, f)
+            # then, rename the old file
+            os.rename(metadata_path, old_path)
+            # then, rename the new file
+            os.rename(new_path, metadata_path)
+            # then, remove the old file
+            os.remove(old_path)
 
     def detect_system_config(self) -> Tuple[str, str]:
         return (
