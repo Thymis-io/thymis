@@ -339,6 +339,29 @@ class Agent(ea.EdgeAgent):
                                 "Failed to successfully rollback to previous configuration: %s",
                                 stderr_l.decode(),
                             )
+
+                        # wait for reconnect
+                        await self.signal_connected.wait()
+                        await self.signal_ssh_connected.wait()
+
+                        # we are now reconnected with the old configuration
+
+                        await self.websocket.send(
+                            AgentToRelayMessage(
+                                inner=EtRSwitchToNewConfigResultMessage(
+                                    task_id=message.inner.task_id,
+                                    config_commit=message.inner.config_commit,
+                                    is_activated=False,
+                                    switch_success=False,
+                                    stdout=stdout.decode() + "\n" + stdout_l.decode(),
+                                    stderr=stderr.decode()
+                                    + "\n"
+                                    + stderr_l.decode()
+                                    + "\nReloading old configuration, cannot connect using new configuration",
+                                )
+                            ).model_dump_json()
+                        )
+
                         return
                     # we are now reconnected
                     await self.websocket.send(
