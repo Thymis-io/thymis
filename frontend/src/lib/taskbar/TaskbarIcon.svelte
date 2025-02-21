@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { type TaskShort } from '$lib/taskstatus';
-	import { Tooltip } from 'flowbite-svelte';
 
 	export let tasks: TaskShort[];
 	export let title: string;
@@ -17,4 +16,3 @@
 		{tasks.length}
 	</span>
 </div>
-<Tooltip>{title}</Tooltip>
