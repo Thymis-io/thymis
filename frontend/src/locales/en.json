@@ -78,11 +78,17 @@
 			"reachable-deployed-host": "Target Host",
 			"device-type": "Device Type",
 			"ssh-public-key": "Public SSH Key",
-			"deployed-config-commit": "Config Commit"
+			"deployed-config-commit": "Config Commit",
+			"connected": "Connected",
+			"last-seen": "Last seen",
+			"no-hardware-ids": "No hardware ids",
+			"unknown-device-type": "Unknown device type"
 		},
 		"hardware-keys": {
 			"pi-serial-number": "Pi Serial Number"
-		}
+		},
+		"known-devices-without-deployment": "Known devices without any current deployment",
+		"known-devices-with-deployment": "Currently deployed"
 	},
 	"create-configuration": {
 		"title": "Create a new device configuration",

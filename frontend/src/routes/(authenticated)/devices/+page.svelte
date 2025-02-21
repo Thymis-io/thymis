@@ -19,7 +19,7 @@
 </script>
 
 <PageHead title={$t('nav.devices')} />
-<h1 class="text-2xl font-bold">Currently Deployed</h1>
+<h1 class="text-2xl font-bold">{$t('hardware-devices.known-devices-with-deployment')}</h1>
 <!--
 We add a "Connected" column, which shows yes if last_seen < 30 seconds ago, and last_seen otherwise.
 -->
@@ -86,9 +86,11 @@ We add a "Connected" column, which shows yes if last_seen < 30 seconds ago, and 
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					{#if new Date(deploymentInfo.last_seen) > new Date(new Date().getTime() - 30000)}
-						<span class="text-green-500">Yes</span>
+						<span class="text-green-500">{$t('hardware-devices.table.connected')}</span>
 					{:else}
-						Last seen: <RenderTimeAgo timestamp={deploymentInfo.last_seen} />
+						{$t('hardware-devices.table.last-seen')}: <RenderTimeAgo
+							timestamp={deploymentInfo.last_seen}
+						/>
 					{/if}
 				</TableBodyCell>
 			</tr>
@@ -96,12 +98,12 @@ We add a "Connected" column, which shows yes if last_seen < 30 seconds ago, and 
 	</tbody>
 </Table>
 
-<h1 class="text-2xl font-bold">Known devices without any current deployment</h1>
+<h1 class="text-2xl font-bold">{$t('hardware-devices.known-devices-without-deployment')}</h1>
 <Table shadow>
 	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2 w-12" />
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.hardware-ids')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('hardware-devices.table.connected')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('hardware-devices.table.last-seen')}</TableHeadCell>
 	</TableHead>
 	<tbody>
 		{#each data.hardwareDevices as hardwareDevice (hardwareDevice.id)}
@@ -120,7 +122,7 @@ We add a "Connected" column, which shows yes if last_seen < 30 seconds ago, and 
 						{/each}
 					</TableBodyCell>
 					<TableBodyCell tdClass="p-2">
-						Last seen: <RenderTimeAgo timestamp={hardwareDevice.last_seen} />
+						<RenderTimeAgo timestamp={hardwareDevice.last_seen} />
 					</TableBodyCell>
 				</tr>
 			{/if}
