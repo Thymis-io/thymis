@@ -111,6 +111,13 @@ colorSchemes.forEach((colorScheme) => {
 			await expect(page).toHaveScreenshot({
 				mask: [page.locator('.playwright-snapshot-unstable')]
 			});
+
+			// Now, navigate to "Devices" page using sidebar and take a screenshot
+			await page.locator('a', { hasText: 'Devices' }).first().click();
+
+			await expect(page).toHaveScreenshot({
+				mask: [page.locator('.playwright-snapshot-unstable')]
+			});
 		});
 	});
 });
