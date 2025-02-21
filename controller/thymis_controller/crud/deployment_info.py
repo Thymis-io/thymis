@@ -73,6 +73,7 @@ def create_or_update_by_public_key(
             deployed_config_commit=None,
             deployed_config_id=deployed_config_id,
             reachable_deployed_host=reachable_deployed_host,
+            last_seen=datetime.now(timezone.utc),
         )
     return create(
         session,

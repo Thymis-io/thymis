@@ -46,6 +46,7 @@ def create_or_update(
     if len(overlapping_devices) == 1:
         overlapping_device = overlapping_devices[0]
         overlapping_device.deployment_info_id = deployment_info_id
+        overlapping_device.last_seen = datetime.now(timezone.utc)
         db_session.commit()
         db_session.refresh(overlapping_device)
         device = overlapping_device
