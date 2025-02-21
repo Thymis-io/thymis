@@ -123,9 +123,9 @@ def check_if_ssh_public_key_exists(session: Session, ssh_public_key: str) -> boo
 def get_all(session: Session):
     return (
         session.query(db_models.DeploymentInfo)
-        .order_by(db_models.DeploymentInfo.deployed_config_id.asc())
-        .order_by(db_models.DeploymentInfo.last_seen.desc())
         .order_by(db_models.DeploymentInfo.first_seen.desc())
+        .order_by(db_models.DeploymentInfo.last_seen.desc())
+        .order_by(db_models.DeploymentInfo.deployed_config_id.asc())
         .all()
     )
 
