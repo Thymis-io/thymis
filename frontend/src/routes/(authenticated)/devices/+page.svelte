@@ -85,7 +85,10 @@ We add a "Connected" column, which shows yes if last_seen < 30 seconds ago, and 
 					{/if}
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
-					{#if new Date(deploymentInfo.last_seen) > new Date(new Date().getTime() - 30000)}
+					{@const timestamp = deploymentInfo.last_seen.includes('+')
+						? deploymentInfo.last_seen
+						: deploymentInfo.last_seen + '+0000'}
+					{#if new Date(timestamp) > new Date(new Date().getTime() - 30000)}
 						<span class="text-green-500">{$t('hardware-devices.table.connected')}</span>
 					{:else}
 						{$t('hardware-devices.table.last-seen')}: <RenderTimeAgo
