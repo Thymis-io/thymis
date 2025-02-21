@@ -49,6 +49,8 @@ def update(
         deployment_info.deployed_config_id = deployed_config_id
     if reachable_deployed_host is not None:
         deployment_info.reachable_deployed_host = reachable_deployed_host
+    if last_seen is not None:
+        deployment_info.last_seen = last_seen
     session.commit()
     session.refresh(deployment_info)
     return deployment_info
