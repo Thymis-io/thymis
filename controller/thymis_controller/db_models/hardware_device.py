@@ -20,7 +20,7 @@ class HardwareDevice(Base):
     hardware_ids: Mapped[dict[str, str]] = mapped_column(JSON, nullable=False)
 
     deployment_info_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("deployment_info.id")
+        ForeignKey("deployment_info.id"), nullable=True
     )
     deployment_info: Mapped["DeploymentInfo"] = relationship(
         back_populates="hardware_devices"
