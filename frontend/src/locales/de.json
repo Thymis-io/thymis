@@ -53,7 +53,8 @@
 			"delete": "Löschen",
 			"view-details": "Details anzeigen",
 			"download-image-tooltip": "Lade das Geräte-Image herunter",
-			"restart-tooltip": "Starte das Gerät neu"
+			"restart-tooltip": "Starte das Gerät neu",
+			"build_vm_and_start": "VM bauen und starten"
 		},
 		"status": {
 			"online": "Online",
@@ -77,11 +78,17 @@
 			"reachable-deployed-host": "Ziel Host",
 			"device-type": "Gerätetyp",
 			"ssh-public-key": "Öffentlicher SSH-Schlüssel",
-			"deployed-config-commit": "Konfigurations-Commit"
+			"deployed-config-commit": "Konfigurations-Commit",
+			"connected": "Verbunden",
+			"last-seen": "Zuletzt gesehen",
+			"no-hardware-ids": "Keine Hardware -IDs",
+			"unknown-device-type": "Unbekannter Gerätetyp"
 		},
 		"hardware-keys": {
 			"pi-serial-number": "Pi Seriennummer"
-		}
+		},
+		"known-devices-with-deployment": "Derzeit deployed",
+		"known-devices-without-deployment": "Bekannte Geräte ohne aktuelles deployment"
 	},
 	"create-configuration": {
 		"title": "Neue Gerätekonfiguration Erstellen",
