@@ -365,7 +365,10 @@ def get_all_deployment_infos(db_session: SessionAD):
     """
     Get all deployment_infos
     """
-    return map(lambda x: x.to_dict(), crud.deployment_info.get_all(db_session))
+    return map(
+        models.DeploymentInfo.from_deployment_info,
+        crud.deployment_info.get_all(db_session),
+    )
 
 
 @router.patch("/deployment_info/{id}", response_model=models.DeploymentInfo)

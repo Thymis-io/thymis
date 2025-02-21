@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
@@ -16,6 +17,8 @@ def create(
         deployed_config_commit=deployed_config_commit,
         deployed_config_id=deployed_config_id,
         reachable_deployed_host=reachable_deployed_host,
+        last_seen=datetime.now(timezone.utc),
+        first_seen=datetime.now(timezone.utc),
     )
     session.add(new_deployment_info)
     session.commit()
@@ -30,6 +33,7 @@ def update(
     deployed_config_commit: str | None = None,
     deployed_config_id: str | None = None,
     reachable_deployed_host: str | None = None,
+    last_seen: str | None = None,
 ) -> db_models.DeploymentInfo:
     deployment_info = (
         session.query(db_models.DeploymentInfo)
@@ -113,7 +117,11 @@ def check_if_ssh_public_key_exists(session: Session, ssh_public_key: str) -> boo
 
 
 def get_all(session: Session):
-    return session.query(db_models.DeploymentInfo).all()
+    return (
+        session.query(db_models.DeploymentInfo)
+        .order_by(db_models.DeploymentInfo.first_seen.desc())
+        .all()
+    )
 
 
 def get_first_device_host_by_config_id(session: Session, config_id: str) -> str | None:

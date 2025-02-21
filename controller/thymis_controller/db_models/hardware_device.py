@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import JSON, Column, ForeignKey, String, Uuid
@@ -24,3 +25,5 @@ class HardwareDevice(Base):
     deployment_info: Mapped["DeploymentInfo"] = relationship(
         back_populates="hardware_devices"
     )
+
+    last_seen: Mapped[datetime] = mapped_column(nullable=True)

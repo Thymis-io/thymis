@@ -1,6 +1,7 @@
 import logging
 import os
 import uuid
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Optional, assert_never
 
 import http_network_relay.network_relay as nr
@@ -134,6 +135,31 @@ class NetworkRelay(nr.NetworkRelay):
                 )
             case _:
                 assert_never(message.inner)
+
+    async def handle_edge_agent_message(self, message, message_outer, connection_id):
+        # if is keep alive message, update last seen in deployment_info and hardware_device
+        if isinstance(message, nr.EtRKeepAliveMessage):
+            with sqlalchemy.orm.Session(self.db_engine) as db_session:
+                deployment_info = crud_deployment_info.get_by_ssh_public_key(
+                    db_session, self.connection_id_to_public_key[connection_id]
+                )
+                if not deployment_info:
+                    logger.error(
+                        "Deployment info not found for public key %s",
+                        self.connection_id_to_public_key[connection_id],
+                    )
+                    raise ValueError("Deployment info not found")
+                deployment_info = crud_deployment_info.update(
+                    db_session,
+                    deployment_info[0].id,
+                    last_seen=datetime.now(timezone.utc),
+                )
+                if deployment_info.hardware_devices:
+                    for hardware_device in deployment_info.hardware_devices:
+                        hardware_device.last_seen = datetime.now(timezone.utc)
+                db_session.commit()
+
+        return super().handle_edge_agent_message(message, message_outer, connection_id)
 
     async def get_agent_msg_loop_permission_and_create_connection_id(
         self, start_message: BaseModel, edge_agent_connection: WebSocket
@@ -343,7 +369,11 @@ class NetworkRelay(nr.NetworkRelay):
                 del self.connection_id_to_start_message[connection_id]
 
         self.notification_manager.broadcast_invalidate_notification(
-            ["/api/connected_deployment_infos_by_config_id"]
+            [
+                "/api/deployment_info",
+                "/api/deployment_infos_by_config_id",
+                "/api/connected_deployment_infos_by_config_id",
+            ]
         )
 
         return msg_loop_but_close_connection_at_end(), connection_id

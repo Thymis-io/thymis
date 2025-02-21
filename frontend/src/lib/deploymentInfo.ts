@@ -1,4 +1,5 @@
 import { fetchWithNotify } from './fetchWithNotify';
+import type { HardwareDevice } from './hardwareDevices';
 
 export type DeploymentInfo = {
 	id: string;
@@ -6,6 +7,9 @@ export type DeploymentInfo = {
 	deployed_config_commit: string | null;
 	deployed_config_id: string | null;
 	reachable_deployed_host: string | null;
+	last_seen: string;
+	first_seen: string;
+	hardware_devices: HardwareDevice[];
 };
 
 export const getDeploymentInfoByConfigId = async (
