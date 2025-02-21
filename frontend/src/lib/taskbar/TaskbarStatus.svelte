@@ -8,6 +8,10 @@
 	import CompletedIcon from 'lucide-svelte/icons/check';
 	import FailedIcon from 'lucide-svelte/icons/ban';
 
+	export let showIcons: boolean = true;
+	export let showText: boolean = true;
+	export let showProgress: boolean = true;
+
 	let progress = 0;
 	const progressScalingFunction = (done: number, expected: number) => {
 		const f = (x: number) => x * x + 1;
@@ -25,21 +29,37 @@
 
 <div class="flex gap-2 items-center">
 	{#if task.state === 'pending'}
-		<PendingIcon size="18" />
-		{$t('taskbar.pending')}
+		{#if showIcons}
+			<PendingIcon size="18" />
+		{/if}
+		{#if showText}
+			{$t('taskbar.pending')}
+		{/if}
 	{:else if task.state === 'running'}
-		<RunningIcon size="18" />
-		{$t('taskbar.running')}
+		{#if showIcons}
+			<RunningIcon size="18" />
+		{/if}
+		{#if showText}
+			{$t('taskbar.running')}
+		{/if}
 	{:else if task.state === 'completed'}
-		<CompletedIcon size="18" />
-		{$t('taskbar.completed')}
+		{#if showIcons}
+			<CompletedIcon size="18" />
+		{/if}
+		{#if showText}
+			{$t('taskbar.completed')}
+		{/if}
 	{:else if task.state === 'failed'}
-		<FailedIcon size="18" />
-		{$t('taskbar.failed')}
+		{#if showIcons}
+			<FailedIcon size="18" />
+		{/if}
+		{#if showText}
+			{$t('taskbar.failed')}
+		{/if}
 	{:else}
 		{task.state}
 	{/if}
 </div>
-{#if task.nix_status && task.state === 'running'}
+{#if showProgress && task.nix_status && task.state === 'running'}
 	<Progressbar {progress} />
 {/if}

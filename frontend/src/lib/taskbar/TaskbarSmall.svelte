@@ -10,12 +10,16 @@
 	import { page } from '$app/stores';
 	import Paginator from '$lib/components/Paginator.svelte';
 	import { queryParam } from 'sveltekit-search-params';
+	import TaskbarName from './TaskbarName.svelte';
+	import TaskbarStatus from './TaskbarStatus.svelte';
 
 	$: pendingTasks = Object.values($taskStatus).filter((task) => task.state === 'pending');
 	$: runningTasks = Object.values($taskStatus).filter((task) => task.state === 'running');
 	$: completedTasks = Object.values($taskStatus).filter((task) => task.state === 'completed');
 	$: failedTasks = Object.values($taskStatus).filter((task) => task.state === 'failed');
-	$: latestTask = Object.values($taskStatus)[Object.values($taskStatus).length - 1];
+	$: latestTask = Object.values($taskStatus).sort((a, b) =>
+		a.start_time < b.start_time ? 1 : -1
+	)[0];
 
 	let currentPageParam = queryParam('task-page');
 	let currentPage = $currentPageParam;
@@ -47,11 +51,10 @@
 				{$t('taskbar.latest-task')}:
 			</span>
 			<span class="text-xs md:text-sm truncate max-w-64">
-				{latestTask.task_type}
+				<TaskbarName task={latestTask} />
 			</span>
-			<Tooltip class="max-w-[100vw]">{latestTask.task_type}</Tooltip>
 			<span class="text-xs md:text-sm">
-				({latestTask.state})
+				<TaskbarStatus task={latestTask} showText={false} showProgress={false} />
 			</span>
 		{/if}
 	</div>
