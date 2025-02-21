@@ -1,3 +1,4 @@
+import os
 import uuid
 from datetime import datetime, timezone
 
@@ -151,3 +152,9 @@ def get_by_config_id(
         .filter(db_models.DeploymentInfo.deployed_config_id == config_id)
         .all()
     )
+
+
+def delete_all(session: Session):
+    if "RUNNING_IN_PLAYWRIGHT" in os.environ:
+        session.query(db_models.DeploymentInfo).delete()
+        session.commit()
