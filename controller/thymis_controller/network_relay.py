@@ -365,10 +365,11 @@ class NetworkRelay(nr.NetworkRelay):
                 await msg_loop
             finally:
                 # close the connection
-                public_key = self.connection_id_to_public_key[connection_id]
-                del self.public_key_to_connection_id[public_key]
-                del self.connection_id_to_public_key[connection_id]
-                del self.connection_id_to_start_message[connection_id]
+                if connection_id in self.connection_id_to_public_key:
+                    public_key = self.connection_id_to_public_key[connection_id]
+                    del self.public_key_to_connection_id[public_key]
+                    del self.connection_id_to_public_key[connection_id]
+                    del self.connection_id_to_start_message[connection_id]
 
         self.notification_manager.broadcast_invalidate_notification(
             [
@@ -423,5 +424,6 @@ class NetworkRelay(nr.NetworkRelay):
                     public_key = self.connection_id_to_public_key[connection_id]
                     del self.public_key_to_connection_id[public_key]
                     del self.connection_id_to_public_key[connection_id]
+                    del self.connection_id_to_start_message[connection_id]
             # delete all deployment infos
             crud_deployment_info.delete_all(db_session)
