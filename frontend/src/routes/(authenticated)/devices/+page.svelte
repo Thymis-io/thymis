@@ -105,7 +105,7 @@ We add a "Connected" column, which shows yes if last_seen < 30 seconds ago, and 
 	</TableHead>
 	<tbody>
 		{#each data.hardwareDevices as hardwareDevice (hardwareDevice.id)}
-			{#if !hardwareDevice.deployment_info}
+			{#if !hardwareDevice.deployment_info_id}
 				<tr
 					class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
 				>
