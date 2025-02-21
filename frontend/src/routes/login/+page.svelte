@@ -1,5 +1,5 @@
 <script lang="ts">
-	import '$lib/i18n';
+	// import '$lib/i18n';
 	import { queryParam } from 'sveltekit-search-params';
 	import '../../app.postcss';
 	import type { Writable } from 'svelte/store';
