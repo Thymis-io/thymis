@@ -159,7 +159,9 @@ class NetworkRelay(nr.NetworkRelay):
                         hardware_device.last_seen = datetime.now(timezone.utc)
                 db_session.commit()
 
-        return super().handle_edge_agent_message(message, message_outer, connection_id)
+        return await super().handle_edge_agent_message(
+            message, message_outer, connection_id
+        )
 
     async def get_agent_msg_loop_permission_and_create_connection_id(
         self, start_message: BaseModel, edge_agent_connection: WebSocket
