@@ -29,7 +29,6 @@ jobs:
           message: |
             ### Updating snapshots. Click [here](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) to see the status.
           comment-tag: playwright-snapshots-update
-          mode: recreate
           github-token: ${{ steps.generate-token.outputs.token }}
 
   update-snapshots-aarch64:

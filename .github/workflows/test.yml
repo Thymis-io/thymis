@@ -103,7 +103,6 @@ jobs:
             View the [Playwright report](${{ steps.artifact-upload.outputs.artifact-url }}) to review the visual differences.
             **To approve the snapshot changes and update the snapshots, please comment:** /approve-snapshots
           comment-tag: playwright-snapshots
-          mode: recreate
       - name: Get Thymis App Token
         id: generate-token
         if: ${{ failure() && env.MISSING_BROWSERS == 'true' }}
@@ -196,7 +195,6 @@ jobs:
             View the [Playwright report](${{ steps.artifact-upload.outputs.artifact-url }}) to review the visual differences.
             **To approve the snapshot changes and update the snapshots, please comment:** /approve-snapshots
           comment-tag: playwright-snapshots
-          mode: recreate
 
   test-frontend-integration-x64:
     runs-on: ubuntu-latest
@@ -244,7 +242,6 @@ jobs:
             View the [Playwright report](${{ steps.artifact-upload.outputs.artifact-url }}) to review the visual differences.
             **To approve the snapshot changes and update the snapshots, please comment:** /approve-snapshots
           comment-tag: playwright-snapshots
-          mode: recreate
 
   test-frontend-integration-stable-input-x64:
     runs-on: ubuntu-latest
@@ -292,7 +289,6 @@ jobs:
             View the [Playwright report](${{ steps.artifact-upload.outputs.artifact-url }}) to review the visual differences.
             **To approve the snapshot changes and update the snapshots, please comment:** /approve-snapshots
           comment-tag: playwright-snapshots
-          mode: recreate
 
   test-pre-commit:
     runs-on: ubuntu-latest
