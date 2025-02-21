@@ -423,3 +423,5 @@ class NetworkRelay(nr.NetworkRelay):
                     public_key = self.connection_id_to_public_key[connection_id]
                     del self.public_key_to_connection_id[public_key]
                     del self.connection_id_to_public_key[connection_id]
+            # delete all deployment infos
+            crud_deployment_info.delete_all(db_session)
