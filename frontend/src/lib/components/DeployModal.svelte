@@ -2,7 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
-	import { Button, Modal, Label, Input } from 'flowbite-svelte';
+	import { Button, Modal, Input } from 'flowbite-svelte';
 	import { invalidate } from '$app/navigation';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import {
@@ -88,10 +88,11 @@
 	}}
 >
 	<div>
-		<Label class="block mb-2">{$t('deploy.summary')}</Label>
+		<p class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.summary')}</p>
 		<Input type="text" bind:value={message} placeholder={$t('deploy.summary')} />
 	</div>
 	<div class="mt-4 min-h-12">
+		<div class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.selected')}</div>
 		<MultiSelect
 			options={Array.prototype.concat(
 				Object.values($state.tags).map((tag) => ({
@@ -111,16 +112,16 @@
 			outerDivClass="w-full"
 			let:option
 		>
-			<div class="flex gap-2 items-center">
+			<div class="flex gap-2 items-center text-base text-gray-900 dark:text-white">
 				<svelte:component this={option.icon} size={16} />{option.label}
 			</div>
 		</MultiSelect>
 	</div>
-	<div class="text-base">Deploy Configs</div>
-	<div class="min-h-32 mt-4">
+	<div class="min-h-32">
+		<div class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.configurations')}</div>
 		<div class="flex flex-wrap flex-row gap-2">
 			{#each filteredConfigs as config}
-				<Button class={'flex p-2 py-0.5 gap-1'}>
+				<Button class={'flex p-2 py-0.5 gap-1 text-base'}>
 					<FileCode size={'0.75rem'} class="min-w-3" />
 					{config.displayName}
 				</Button>
