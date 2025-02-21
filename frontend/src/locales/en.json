@@ -177,7 +177,9 @@
 		"stderr": "Standard Error",
 		"error-lines": "Error Lines",
 		"raw-output": "Full Output",
-		"summary": "Summary"
+		"summary": "Message",
+		"selected": "Tags/configs to deploy",
+		"configurations": "Affected configs"
 	},
 	"overview": {
 		"configs": "Configs ({count})",

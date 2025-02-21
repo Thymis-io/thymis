@@ -456,7 +456,7 @@ colorSchemes.forEach((colorScheme) => {
 			const deployButtonAction = page.locator('button').filter({ hasText: 'Deploy' });
 			await deployButtonAction.click();
 
-			const messageInput = page.getByPlaceholder('Summary');
+			const messageInput = page.getByPlaceholder('Message');
 			await messageInput.fill('Deploying device');
 
 			const deployButton = page.locator('button').filter({ hasText: 'Deploy' }).nth(1);

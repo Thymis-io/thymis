@@ -175,7 +175,9 @@
 		"stderr": "Standard Error",
 		"error-lines": "Fehler",
 		"raw-output": "Vollständige Ausgabe",
-		"summary": "Zusammenfassung"
+		"summary": "Zusammenfassung",
+		"selected": "Auszurollende Tags/Konfigurationen",
+		"configurations": "Betroffene Konfigurationen"
 	},
 	"overview": {
 		"configs": "Konfigurationen ({count})",
