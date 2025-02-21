@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from typing import TYPE_CHECKING, List
 
 from sqlalchemy import Uuid
@@ -31,6 +32,9 @@ class DeploymentInfo(Base):
         back_populates="for_deployment_info"
     )
 
+    last_seen: Mapped[datetime] = mapped_column(nullable=True)
+    first_seen: Mapped[datetime] = mapped_column(nullable=True)
+
     def to_dict(self):
         return {
             "id": str(self.id),
@@ -38,4 +42,5 @@ class DeploymentInfo(Base):
             "deployed_config_commit": self.deployed_config_commit,
             "deployed_config_id": self.deployed_config_id,
             "reachable_deployed_host": self.reachable_deployed_host,
+            "last_seen": self.last_seen,
         }

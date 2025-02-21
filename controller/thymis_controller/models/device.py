@@ -1,5 +1,6 @@
 import uuid
-from typing import Dict, List
+from datetime import datetime
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 from thymis_controller import db_models
@@ -44,6 +45,9 @@ class DeploymentInfo(BaseModel):
     deployed_config_commit: str | None
     deployed_config_id: str | None
     reachable_deployed_host: str | None
+    last_seen: Optional[datetime]
+    first_seen: Optional[datetime]
+    hardware_devices: List["HardwareDevice"]
 
     @staticmethod
     def from_deployment_info(
@@ -55,6 +59,9 @@ class DeploymentInfo(BaseModel):
             deployed_config_commit=deployment_info.deployed_config_commit,
             deployed_config_id=deployment_info.deployed_config_id,
             reachable_deployed_host=deployment_info.reachable_deployed_host,
+            hardware_devices=deployment_info.hardware_devices,
+            last_seen=deployment_info.last_seen,
+            first_seen=deployment_info.first_seen,
         )
 
 
@@ -69,6 +76,7 @@ class HardwareDevice(BaseModel):
     id: uuid.UUID
     hardware_ids: Dict[str, str]
     deployment_info: DeploymentInfo
+    last_seen: Optional[datetime]
 
 
 __all__ = [

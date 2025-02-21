@@ -3,24 +3,14 @@
 	import Section from './Section.svelte';
 	import type { DeploymentInfo } from '$lib/deploymentInfo';
 	import type { Config } from '$lib/state';
-	import EditDeploymentInfo from '$lib/EditDeploymentInfo.svelte';
 
 	export let deploymentInfos: DeploymentInfo[] = [];
 	export let config: Config;
 
 	let className = '';
 	export { className as class };
-
-	let editDeploymentInfoModalOpen = false;
-
-	let currentDeploymentInfo: DeploymentInfo | undefined = deploymentInfos?.[0];
 </script>
 
-<EditDeploymentInfo
-	bind:deploymentInfo={currentDeploymentInfo}
-	bind:open={editDeploymentInfoModalOpen}
-	configIdentifier={config.identifier}
-/>
 <Section class={className} title={$t('configuration-details.deployment-info')}>
 	<div class="flex flex-col gap-2">
 		{#each deploymentInfos as deploymentInfo}
