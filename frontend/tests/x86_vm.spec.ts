@@ -113,7 +113,7 @@ colorSchemes.forEach((colorScheme) => {
 			});
 
 			// Now, navigate to "Devices" page using sidebar and take a screenshot
-			await page.locator('a', { hasText: 'Devices' }).first().click();
+			await page.locator('a', { hasText: 'Devices' }).locator('visible=true').first().click();
 
 			await expect(page).toHaveScreenshot({
 				mask: [page.locator('.playwright-snapshot-unstable')]
