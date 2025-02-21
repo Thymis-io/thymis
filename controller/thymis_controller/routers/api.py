@@ -85,20 +85,24 @@ router.include_router(task.router)
 
 @router.post("/action/deploy")
 async def deploy(
-    summary: str,
+    message: str,
     session: SessionAD,
     project: ProjectAD,
     task_controller: TaskControllerAD,
     network_relay: NetworkRelayAD,
+    configs: list[str] = Query(None, alias="config"),
 ):
     project.repo.add(".")
-    project.repo.commit(summary)
+    project.repo.commit(message)
 
     devices: list[models.DeployDeviceInformation] = []
 
     for deployment_info in crud.deployment_info.get_all(session):
-        if network_relay.public_key_to_connection_id.get(
-            deployment_info.ssh_public_key
+        if (
+            deployment_info.deployed_config_id in configs
+            and network_relay.public_key_to_connection_id.get(
+                deployment_info.ssh_public_key
+            )
         ):
             devices.append(
                 models.DeployDeviceInformation(
