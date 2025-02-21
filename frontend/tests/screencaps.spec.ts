@@ -459,6 +459,11 @@ colorSchemes.forEach((colorScheme) => {
 			const messageInput = page.getByPlaceholder('Message');
 			await messageInput.fill('Deploying device');
 
+			await page.locator('input').nth(2).locator('..').click();
+			await page.locator('li').filter({ hasText: 'My Device 1' }).click();
+
+			await expect(page).toHaveScreenshot();
+
 			const deployButton = page.locator('button').filter({ hasText: 'Deploy' }).nth(1);
 			await deployButton.click();
 
