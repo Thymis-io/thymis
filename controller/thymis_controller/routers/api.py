@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import re
 import traceback
 import uuid
@@ -400,17 +401,15 @@ def create_deployment_info(
     deployment_info: models.CreateDeploymentInfoLegacyHostkeyRequest,
     project: ProjectAD,
 ):
-    """
-    Create a deployment_info
-    """
-    result = crud.deployment_info.create(
-        db_session,
-        ssh_public_key=deployment_info.ssh_public_key,
-        deployed_config_id=deployment_info.deployed_config_id,
-        reachable_deployed_host=deployment_info.reachable_deployed_host,
-    ).to_dict()
-    project.update_known_hosts(db_session)
-    return result
+    if "RUNNING_IN_PLAYWRIGHT" in os.environ:
+        result = crud.deployment_info.create(
+            db_session,
+            ssh_public_key=deployment_info.ssh_public_key,
+            deployed_config_id=deployment_info.deployed_config_id,
+            reachable_deployed_host=deployment_info.reachable_deployed_host,
+        )
+        project.update_known_hosts(db_session)
+        return models.DeploymentInfo.from_deployment_info(result)
 
 
 @router.get("/hardware_device", response_model=list[models.HardwareDevice])

@@ -34,13 +34,3 @@ class DeploymentInfo(Base):
 
     last_seen: Mapped[datetime] = mapped_column(nullable=True)
     first_seen: Mapped[datetime] = mapped_column(nullable=True)
-
-    def to_dict(self):
-        return {
-            "id": str(self.id),
-            "ssh_public_key": self.ssh_public_key,
-            "deployed_config_commit": self.deployed_config_commit,
-            "deployed_config_id": self.deployed_config_id,
-            "reachable_deployed_host": self.reachable_deployed_host,
-            "last_seen": self.last_seen,
-        }
