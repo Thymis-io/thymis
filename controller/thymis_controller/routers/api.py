@@ -311,7 +311,7 @@ def get_deployment_infos_by_config_id(db_session: SessionAD, deployed_config_id:
     Gets the deployment infos for all devices with the given deployed_config_id
     """
     return map(
-        lambda x: x.to_dict(),
+        device.DeploymentInfo.from_deployment_info,
         crud.deployment_info.get_by_config_id(db_session, deployed_config_id),
     )
 
@@ -336,7 +336,7 @@ def get_connected_deployment_infos_by_config_id(
         ):
             connected_deployment_infos.append(deployment_info)
     return map(
-        lambda x: x.to_dict(),
+        device.DeploymentInfo.from_deployment_info,
         connected_deployment_infos,
     )
 
