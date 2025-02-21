@@ -4,7 +4,7 @@ import { fetchWithNotify } from './fetchWithNotify';
 export type HardwareDevice = {
 	id: string;
 	hardware_ids: Record<string, string>;
-	deployment_info: DeploymentInfo | undefined;
+	deployment_info_id: string | undefined;
 	last_seen: string;
 };
 
