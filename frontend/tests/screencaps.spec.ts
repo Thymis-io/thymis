@@ -336,7 +336,7 @@ colorSchemes.forEach((colorScheme) => {
 			});
 
 			await expect(page).toHaveScreenshot({
-				maxDiffPixels: 3000
+				maxDiffPixels: 1000
 			});
 
 			const resolutions = [
@@ -354,7 +354,7 @@ colorSchemes.forEach((colorScheme) => {
 				const zoomedPage = await zoomedContext.newPage();
 				await zoomedPage.goto('http://localhost:8000/configuration/list');
 				await expect(zoomedPage).toHaveScreenshot({
-					maxDiffPixels: 3500
+					maxDiffPixels: 1000
 				});
 				await zoomedContext.close();
 			}
