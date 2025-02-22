@@ -75,7 +75,7 @@ class HardwareDevice(BaseModel):
 
     id: uuid.UUID
     hardware_ids: Dict[str, str]
-    deployment_info_id: uuid.UUID
+    deployment_info_id: Optional[uuid.UUID]
     last_seen: Optional[datetime]
 
 
