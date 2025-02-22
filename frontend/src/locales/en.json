@@ -81,14 +81,17 @@
 			"deployed-config-commit": "Config Commit",
 			"connected": "Connected",
 			"last-seen": "Last seen",
-			"no-hardware-ids": "No hardware ids",
-			"unknown-device-type": "Unknown device type"
+			"no-hardware-ids": "No hardware ids detected",
+			"unknown-device-type": "Unknown device type",
+			"never-seen": "Never"
 		},
 		"hardware-keys": {
 			"pi-serial-number": "Pi Serial Number"
 		},
 		"known-devices-without-deployment": "Known devices without any current deployment",
-		"known-devices-with-deployment": "Currently deployed"
+		"known-devices-with-deployment": "Currently deployed",
+		"hide-old-devices": "Hide old devices",
+		"no-known-hardware-devices-without-known-deployment": "No known hardware devices without known deployment"
 	},
 	"create-configuration": {
 		"title": "Create a new device configuration",
