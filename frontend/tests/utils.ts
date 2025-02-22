@@ -3,8 +3,11 @@ import {
 	type APIRequestContext,
 	type Locator,
 	type Page,
-	type PageAssertionsToHaveScreenshotOptions
+	type PageAssertionsToHaveScreenshotOptions,
+	type TestInfo
 } from '../playwright/fixtures';
+
+export const colorSchemes = ['light', 'dark'] as const;
 
 type MyHighlightOptions = {
 	highlight: boolean;
@@ -93,14 +96,36 @@ export const unhighlightAll = async (screenshotTarget: Page | Locator) => {
 	`);
 };
 
-export const expectToHaveScreenshotWithHighlight = async (
-	screenshotTarget: Page | Locator,
+export const expectScreenshot = async (
+	page: Page,
+	testInfo: TestInfo,
+	counter: { count: number },
+	options?: PageAssertionsToHaveScreenshotOptions
+) => {
+	counter.count++;
+
+	for (const colorScheme of colorSchemes) {
+		await page.evaluate((scheme) => {
+			document.documentElement.classList.toggle('dark', scheme === 'dark');
+		}, colorScheme);
+
+		await expect(page).toHaveScreenshot(
+			`Color-scheme-${colorScheme}-${testInfo.title}-${counter.count}.png`,
+			options
+		);
+	}
+};
+
+export const expectScreenshotWithHighlight = async (
+	screenshotTarget: Page,
 	highlightedElement: Locator,
+	testInfo: TestInfo,
+	counter: { count: number },
 	options?: PageAssertionsToHaveScreenshotOptions,
 	myOptions?: MyHighlightOptions
 ) => {
 	const toScreenshot = await highlightLocator(screenshotTarget, highlightedElement, myOptions);
-	await expect(toScreenshot).toHaveScreenshot(options);
+	await expectScreenshot(toScreenshot, testInfo, counter, options);
 	await unhighlightAll(screenshotTarget);
 };
 
