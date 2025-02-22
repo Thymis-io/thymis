@@ -81,8 +81,9 @@
 			"deployed-config-commit": "Konfigurations-Commit",
 			"connected": "Verbunden",
 			"last-seen": "Zuletzt gesehen",
-			"no-hardware-ids": "Keine Hardware -IDs",
-			"unknown-device-type": "Unbekannter Gerätetyp"
+			"no-hardware-ids": "Keine Hardware -IDs gefunden",
+			"unknown-device-type": "Unbekannter Gerätetyp",
+			"never-seen": "Nie"
 		},
 		"hardware-keys": {
 			"pi-serial-number": "Pi Seriennummer"

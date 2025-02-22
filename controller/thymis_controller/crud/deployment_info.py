@@ -2,6 +2,7 @@ import os
 import uuid
 from datetime import datetime, timezone
 
+from sqlalchemy import nullslast
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
 
@@ -126,6 +127,7 @@ def get_all(session: Session):
         .order_by(db_models.DeploymentInfo.first_seen.desc())
         .order_by(db_models.DeploymentInfo.last_seen.desc())
         .order_by(db_models.DeploymentInfo.deployed_config_id.asc())
+        .order_by(nullslast(db_models.DeploymentInfo.reachable_deployed_host.asc()))
         .all()
     )
 
