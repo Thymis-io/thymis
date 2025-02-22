@@ -6,27 +6,80 @@ import {
 	type PageAssertionsToHaveScreenshotOptions
 } from '../playwright/fixtures';
 
-export const highlightLocator = async (screenshotTarget: Page | Locator, locator: Locator) => {
+type MyHighlightOptions = {
+	highlight: boolean;
+	screenshotHighlightedElement: boolean;
+	marginHighlight: number;
+	marginScreenshot: number;
+};
+
+export const highlightLocator = async (
+	screenshotTarget: Page | Locator,
+	locator: Locator,
+	options: Partial<MyHighlightOptions> = {}
+) => {
+	const defaultOptions = {
+		highlight: true,
+		screenshotHighlightedElement: false,
+		marginHighlight: 8,
+		marginScreenshot: 32
+	};
+	const myOptions: MyHighlightOptions = { ...defaultOptions, ...options };
 	const boundingBox = await locator.boundingBox();
 	if (!boundingBox) {
 		console.warn(`Bounding box not found for locator: ${locator}`);
-		return;
+		return options.screenshotHighlightedElement ? locator : screenshotTarget;
+	}
+	if (options.marginScreenshot && !options.screenshotHighlightedElement) {
+		console.warn('marginScreenshot is only used when screenshotHighlightedElement is true');
+	}
+	if (
+		options.screenshotHighlightedElement &&
+		options.marginHighlight &&
+		options.marginScreenshot &&
+		options.marginHighlight > options.marginScreenshot
+	) {
+		console.warn(
+			'marginHighlight should be smaller than or equal to marginScreenshot, otherwise the screenshot will be cropped without the highlight'
+		);
 	}
 	// add element with marginally bigger size
-	const margin = 8;
 	const page = 'page' in screenshotTarget ? screenshotTarget.page() : screenshotTarget;
-	page.evaluate(`
-		const div = document.createElement('div');
-		div.className = 'playwright-highlight';
-		div.style.position = 'absolute';
-		div.style.border = '2px solid red';
-		div.style.top = '${boundingBox.y - margin}px';
-		div.style.left = '${boundingBox.x - margin}px';
-		div.style.width = '${boundingBox.width + 2 * margin}px';
-		div.style.height = '${boundingBox.height + 2 * margin}px';
-		div.style.zIndex = '999999';
-		document.body.appendChild(div);
+	if (options.highlight) {
+		page.evaluate(`
+		const highlightDiv = document.createElement('div');
+		highlightDiv.className = 'playwright-highlight';
+		highlightDiv.style.position = 'absolute';
+		highlightDiv.style.border = '2px solid red';
+		highlightDiv.style.top = '${boundingBox.y - myOptions.marginHighlight}px';
+		highlightDiv.style.left = '${boundingBox.x - myOptions.marginHighlight}px';
+		highlightDiv.style.width = '${boundingBox.width + 2 * myOptions.marginHighlight}px';
+		highlightDiv.style.height = '${boundingBox.height + 2 * myOptions.marginHighlight}px';
+		highlightDiv.style.zIndex = '999999';
+		document.body.appendChild(highlightDiv);
 	`);
+	}
+	if (options.screenshotHighlightedElement) {
+		const myId = Math.random().toString(36).substring(7);
+		// Make a new div with the same size as the bounding box, and take a screenshot of that
+		await page.evaluate(
+			`
+		const screenshotDiv = document.createElement('div');
+		screenshotDiv.id = '${myId}';
+		screenshotDiv.className = 'playwright-highlight';
+		screenshotDiv.style.position = 'absolute';
+		screenshotDiv.style.top = '${boundingBox.y - myOptions.marginScreenshot}px';
+		screenshotDiv.style.left = '${boundingBox.x - myOptions.marginScreenshot}px';
+		screenshotDiv.style.width = '${boundingBox.width + 2 * myOptions.marginScreenshot}px';
+		screenshotDiv.style.height = '${boundingBox.height + 2 * myOptions.marginScreenshot}px';
+		screenshotDiv.style.zIndex = '999999';
+		document.body.appendChild(screenshotDiv);
+	`
+		);
+
+		return page.locator(`#${myId}`);
+	}
+	return options.screenshotHighlightedElement ? locator : screenshotTarget;
 };
 
 export const unhighlightAll = async (screenshotTarget: Page | Locator) => {
@@ -43,10 +96,11 @@ export const unhighlightAll = async (screenshotTarget: Page | Locator) => {
 export const expectToHaveScreenshotWithHighlight = async (
 	screenshotTarget: Page | Locator,
 	highlightedElement: Locator,
-	options?: PageAssertionsToHaveScreenshotOptions
+	options?: PageAssertionsToHaveScreenshotOptions,
+	myOptions?: MyHighlightOptions
 ) => {
-	await highlightLocator(screenshotTarget, highlightedElement);
-	await expect(screenshotTarget).toHaveScreenshot(options);
+	const toScreenshot = await highlightLocator(screenshotTarget, highlightedElement, myOptions);
+	await expect(toScreenshot).toHaveScreenshot(options);
 	await unhighlightAll(screenshotTarget);
 };
 
