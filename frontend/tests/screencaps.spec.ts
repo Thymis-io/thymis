@@ -1,11 +1,4 @@
-import {
-	test,
-	expect,
-	type Page,
-	login,
-	type TestInfo,
-	type PageAssertionsToHaveScreenshotOptions
-} from '../playwright/fixtures';
+import { test, expect, type Page } from '../playwright/fixtures';
 import {
 	clearState,
 	deleteAllTasks,
