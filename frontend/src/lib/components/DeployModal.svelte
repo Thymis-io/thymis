@@ -112,19 +112,21 @@
 			outerDivClass="w-full"
 			let:option
 		>
-			<div class="flex gap-2 items-center text-base text-gray-900 dark:text-white">
+			<div class="flex gap-1 items-center text-base text-gray-900 dark:text-white">
 				<svelte:component this={option.icon} size={16} />{option.label}
 			</div>
 		</MultiSelect>
 	</div>
-	<div class="min-h-32">
-		<div class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.configurations')}</div>
+	<div class="min-h-32 text-base text-gray-900 dark:text-white">
+		<div class="mb-1">{$t('deploy.configurations')}</div>
 		<div class="flex flex-wrap flex-row gap-2">
 			{#each filteredConfigs as config}
-				<Button class={'flex p-2 py-0.5 gap-1 text-base'}>
-					<FileCode size={'0.75rem'} class="min-w-3" />
+				<div
+					class={'flex items-center text-white bg-primary-700 dark:bg-primary-600 rounded p-2 py-0.5 gap-1'}
+				>
+					<FileCode size={'0.8rem'} class="min-w-3" />
 					{config.displayName}
-				</Button>
+				</div>
 			{/each}
 		</div>
 	</div>
