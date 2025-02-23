@@ -58,7 +58,8 @@ export type Setting<T extends SettingType = SettingType> = {
 
 export type Module = {
 	type: string;
-	icon: string;
+	icon: string | undefined;
+	iconDark: string | undefined;
 	displayName: string;
 	settings: Record<string, Setting>;
 };

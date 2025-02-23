@@ -1,5 +1,8 @@
+import pathlib
+
 import thymis_controller.modules.modules as modules
 from thymis_controller import models
+from thymis_controller.lib import read_into_base64
 from thymis_controller.nix import template_env
 from thymis_controller.project import Project
 
@@ -8,6 +11,14 @@ class OCIContainers(modules.Module):
     display_name = modules.LocalizedString(
         en="OCI Containers",
         de="OCI Container",
+    )
+
+    icon: str = read_into_base64(
+        str(pathlib.Path(__file__).parent / "icons" / "Containers.svg")
+    )
+
+    icon_dark: str = read_into_base64(
+        str(pathlib.Path(__file__).parent / "icons" / "Containers_dark.svg")
     )
 
     containers = modules.Setting(

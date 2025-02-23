@@ -31,6 +31,7 @@ def localize(locale: str, value: Optional[Localizable]) -> Optional[str]:
 class Module(ABC):
     display_name: Localizable
     icon: Optional[str] = None
+    icon_dark: Optional[str] = None
 
     def get_model(self, locale: str) -> models.Module:
         # collect all settings
@@ -45,6 +46,7 @@ class Module(ABC):
             displayName=localize(locale, self.display_name),
             settings=settings,
             icon=self.icon,
+            iconDark=self.icon_dark,
         )
 
     @property

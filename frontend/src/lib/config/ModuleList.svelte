@@ -22,6 +22,7 @@
 	} from '$lib/searchParamHelpers';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import { goto } from '$app/navigation';
+	import ModuleIcon from './ModuleIcon.svelte';
 
 	export let contextType: string | null;
 	export let context: Tag | Config | undefined;
@@ -133,11 +134,7 @@
 					class={`block px-2 py-1.5 w-full flex gap-2 items-center`}
 					data-sveltekit-noscroll
 				>
-					<img
-						src={module.icon ?? '/favicon.png'}
-						alt={module.displayName}
-						class="w-[20px] w-[20px]"
-					/>
+					<ModuleIcon {module} />
 					<P>{module.displayName}</P>
 				</a>
 				{#if canChangeModules && ($globalNavSelectedTargetType !== 'config' || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}
@@ -168,7 +165,7 @@
 						class="btn m-0 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2"
 						on:click={() => addModule(context, module)}
 					>
-						<img src={module.icon ?? '/favicon.png'} alt={module.displayName} class="w-6 h-6" />
+						<ModuleIcon {module} />
 						<P>{module.displayName}</P>
 					</button>
 				{/each}

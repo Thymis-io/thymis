@@ -40,6 +40,7 @@ class Module(BaseModel):
     type: str
     displayName: str
     icon: Optional[str] = None
+    iconDark: Optional[str] = None
     settings: dict[str, Setting]
 
 

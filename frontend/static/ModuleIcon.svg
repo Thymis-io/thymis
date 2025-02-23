@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+
+<svg
+   width="800px"
+   height="800px"
+   viewBox="0 0 16 16"
+   id="device-16px"
+   version="1.1"
+   sodipodi:docname="ModuleIcon.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="namedview4"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.72036503"
+     inkscape:cx="229.74463"
+     inkscape:cy="422.70236"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Icone"
+     showgrid="true">
+    <inkscape:grid
+       id="grid4"
+       units="px"
+       originx="0"
+       originy="0"
+       spacingx="0.079999998"
+       spacingy="0.079999998"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       enabled="true"
+       visible="true" />
+  </sodipodi:namedview>
+  <rect
+     id="Retângulo_223"
+     data-name="Retângulo 223"
+     width="16"
+     height="16"
+     fill="#ccc"
+     opacity="0"
+     style="stroke:#000000;stroke-opacity:1" />
+  <g
+     id="Icone"
+     transform="translate(0.648 0.648)"
+     style="stroke:#000000;stroke-opacity:1">
+    <g
+       id="Retângulo_203"
+       data-name="Retângulo 203"
+       transform="translate(2.352 2.352)"
+       fill="none"
+       stroke="#000000"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       stroke-width="1"
+       style="stroke:#1a1a1a;stroke-opacity:1;stroke-width:0.8;stroke-dasharray:none">
+      <rect
+         width="10"
+         height="10"
+         stroke="none"
+         id="rect1"
+         style="stroke:#1a1a1a;stroke-opacity:1;stroke-width:0.8;stroke-dasharray:none" />
+      <rect
+         x="0.5"
+         y="0.5"
+         width="9"
+         height="9"
+         fill="none"
+         id="rect2"
+         style="stroke:#1a1a1a;stroke-opacity:1;stroke-width:0.8;stroke-dasharray:none" />
+    </g>
+    <g
+       id="Retângulo_206"
+       data-name="Retângulo 206"
+       transform="translate(5.352 5.352)"
+       fill="none"
+       stroke="#000000"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       stroke-width="1"
+       style="stroke:#1a1a1a;stroke-opacity:1;stroke-width:0.8;stroke-dasharray:none">
+      <rect
+         width="4"
+         height="4"
+         stroke="none"
+         id="rect3"
+         style="stroke:#1a1a1a;stroke-opacity:1;stroke-width:0.8;stroke-dasharray:none" />
+      <rect
+         x="0.5"
+         y="0.5"
+         width="3"
+         height="3"
+         fill="none"
+         id="rect4"
+         style="stroke:#1a1a1a;stroke-opacity:1;stroke-width:0.8;stroke-dasharray:none" />
+    </g>
+    <g
+       id="Grupo_327"
+       data-name="Grupo 327"
+       transform="matrix(1.0112756,0,0,0.88470756,-0.27605211,2.6240923)"
+       style="stroke:#1a1a1a;stroke-opacity:1">
+      <line
+         id="Linha_24"
+         data-name="Linha 24"
+         y1="13.851999"
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-width="1"
+         style="stroke:#1a1a1a;stroke-opacity:1"
+         x1="5.1429996"
+         x2="5.1429996"
+         y2="10.851999" />
+      <line
+         id="Linha_28"
+         data-name="Linha 28"
+         y1="3"
+         transform="translate(7.543,10.852)"
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-width="1"
+         style="stroke:#1a1a1a;stroke-opacity:1"
+         x1="0"
+         x2="0"
+         y2="0" />
+      <line
+         id="Linha_29"
+         data-name="Linha 29"
+         y1="13.851999"
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-width="1"
+         style="stroke:#1a1a1a;stroke-opacity:1"
+         x1="9.9429998"
+         x2="9.9429998"
+         y2="10.851999" />
+    </g>
+    <g
+       id="Grupo_328"
+       data-name="Grupo 328"
+       transform="matrix(1,0,0,0.89999998,-0.191,-9.9147997)"
+       style="stroke:#1a1a1a;stroke-opacity:1">
+      <line
+         id="Linha_24-2"
+         data-name="Linha 24"
+         y1="13.852"
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-width="1"
+         style="stroke:#1a1a1a;stroke-opacity:1"
+         x1="5.1429996"
+         x2="5.1429996"
+         y2="10.852" />
+      <line
+         id="Linha_28-2"
+         data-name="Linha 28"
+         y1="3"
+         transform="translate(7.543,10.852)"
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-width="1"
+         style="stroke:#1a1a1a;stroke-opacity:1"
+         x1="0"
+         x2="0"
+         y2="0" />
+      <line
+         id="Linha_29-2"
+         data-name="Linha 29"
+         y1="13.852"
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-width="1"
+         style="stroke:#1a1a1a;stroke-opacity:1"
+         x1="9.9429998"
+         x2="9.9429998"
+         y2="10.852" />
+    </g>
+    <g
+       id="Grupo_329"
+       data-name="Grupo 329"
+       transform="matrix(0,-1.0112756,0.88470756,0,2.6240923,14.980052)"
+       style="stroke:#1a1a1a;stroke-opacity:1">
+      <line
+         id="Linha_24-3"
+         data-name="Linha 24"
+         y1="13.851999"
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-width="1"
+         style="stroke:#1a1a1a;stroke-opacity:1"
+         x1="5.1430001"
+         x2="5.1430001"
+         y2="10.851999" />
+      <line
+         id="Linha_28-3"
+         data-name="Linha 28"
+         y1="3"
+         transform="translate(7.543,10.852)"
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-width="1"
+         style="stroke:#1a1a1a;stroke-opacity:1"
+         x1="0"
+         x2="0"
+         y2="0" />
+      <line
+         id="Linha_29-3"
+         data-name="Linha 29"
+         y1="13.851999"
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-width="1"
+         style="stroke:#1a1a1a;stroke-opacity:1"
+         x1="9.9429998"
+         x2="9.9429998"
+         y2="10.851999" />
+    </g>
+    <g
+       id="Grupo_330"
+       data-name="Grupo 330"
+       transform="matrix(0,-1,0.89999998,0,-9.9147997,14.895)"
+       style="stroke:#1a1a1a;stroke-opacity:1">
+      <line
+         id="Linha_24-4"
+         data-name="Linha 24"
+         y1="13.852"
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-width="1"
+         style="stroke:#1a1a1a;stroke-opacity:1"
+         x1="5.1430001"
+         x2="5.1430001"
+         y2="10.852" />
+      <line
+         id="Linha_28-4"
+         data-name="Linha 28"
+         y1="3"
+         transform="translate(7.543,10.852)"
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-width="1"
+         style="stroke:#1a1a1a;stroke-opacity:1"
+         x1="0"
+         x2="0"
+         y2="0" />
+      <line
+         id="Linha_29-4"
+         data-name="Linha 29"
+         y1="13.852"
+         fill="none"
+         stroke="#000000"
+         stroke-linecap="round"
+         stroke-width="1"
+         style="stroke:#1a1a1a;stroke-opacity:1"
+         x1="9.9429998"
+         x2="9.9429998"
+         y2="10.852" />
+    </g>
+  </g>
+</svg>

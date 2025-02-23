@@ -6,9 +6,9 @@ from .whatever import WhateverModule
 
 ALL_MODULES: list[Module] = [
     ThymisDevice(),
-    WhateverModule(),
-    Kiosk(),
     OCIContainers(),
+    Kiosk(),
+    WhateverModule(),
 ]
 
 ALL_MODULES_START = ALL_MODULES.copy()
