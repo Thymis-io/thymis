@@ -11,6 +11,7 @@
 	import Pen from 'lucide-svelte/icons/pen';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import EditTagModal from '$lib/EditTagModal.svelte';
+	import ModuleIcon from '$lib/config/ModuleIcon.svelte';
 
 	export let config: Config;
 	export let availableModules: Module[];
@@ -47,7 +48,7 @@
 				)}`}
 			>
 				<Button pill size="sm" class="p-2 py-1 gap-2 text-nowrap">
-					<img src={module.icon ?? '/favicon.png'} alt={module.displayName} class="w-4 h-4" />
+					<ModuleIcon {module} />
 					{module.displayName}
 					<Pen size="16" />
 				</Button>

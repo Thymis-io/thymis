@@ -9,11 +9,15 @@ from thymis_controller.project import Project
 
 
 class ThymisDevice(modules.Module):
+    display_name: str = "Core Device Configuration"
+
     icon: str = read_into_base64(
-        str(pathlib.Path(__file__).parent / "hard-drive-thymis.png")
+        str(pathlib.Path(__file__).parent / "icons" / "CoreDevice.svg")
     )
 
-    display_name: str = "Core Device Configuration"
+    icon_dark: str = read_into_base64(
+        str(pathlib.Path(__file__).parent / "icons" / "CoreDevice_dark.svg")
+    )
 
     device_type = modules.Setting(
         display_name=modules.LocalizedString(

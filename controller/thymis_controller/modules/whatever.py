@@ -1,10 +1,21 @@
+import pathlib
+
 import thymis_controller.modules.modules as modules
 from thymis_controller import models
+from thymis_controller.lib import read_into_base64
 from thymis_controller.project import Project
 
 
 class WhateverModule(modules.Module):
     display_name: str = "Custom Module"
+
+    icon: str = read_into_base64(
+        str(pathlib.Path(__file__).parent / "icons" / "CustomCoding.svg")
+    )
+
+    icon_dark: str = read_into_base64(
+        str(pathlib.Path(__file__).parent / "icons" / "CustomCoding_dark.svg")
+    )
 
     settings = modules.Setting(
         display_name=modules.LocalizedString(
