@@ -47,7 +47,7 @@
 					module
 				)}`}
 			>
-				<Button pill size="sm" class="p-2 py-1 gap-2 text-nowrap">
+				<Button pill size="sm" class="flex p-2 py-1 gap-2 text-nowrap text-base items-center">
 					<ModuleIcon {module} />
 					{module.displayName}
 					<Pen size="16" />
@@ -62,7 +62,7 @@
 				<Button
 					pill
 					size="sm"
-					class="p-2 py-1 gap-2"
+					class="flex p-2 py-1 gap-2 text-nowrap text-base items-center"
 					href={`/configuration/edit?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
 				>
 					<TagIcon size="16" />
