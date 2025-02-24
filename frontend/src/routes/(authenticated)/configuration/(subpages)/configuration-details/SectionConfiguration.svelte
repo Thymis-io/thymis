@@ -48,7 +48,7 @@
 				)}`}
 			>
 				<Button pill size="sm" class="flex p-2 py-1 gap-2 text-nowrap text-base items-center">
-					<ModuleIcon {module} />
+					<ModuleIcon {module} theme="dark" />
 					{module.displayName}
 					<Pen size="16" />
 				</Button>
