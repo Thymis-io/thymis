@@ -75,6 +75,14 @@ export const getAllDeploymentInfos = async (fetch: typeof window.fetch) => {
 	return [];
 };
 
+export const getAllConnectedDeploymentInfos = async (fetch: typeof window.fetch) => {
+	const response = await fetchWithNotify('/api/connected_deployment_info', undefined, {}, fetch);
+	if (response.ok) {
+		return (await response.json()) as DeploymentInfo[];
+	}
+	return [];
+};
+
 export const getAllDeploymentInfosAsMapFromConfigId = async (fetch: typeof window.fetch) => {
 	const deploymentInfos = await getAllDeploymentInfos(fetch);
 	const deploymentInfosMap = new Map<string, DeploymentInfo[]>();
