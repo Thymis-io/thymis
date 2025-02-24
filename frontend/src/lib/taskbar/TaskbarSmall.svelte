@@ -40,8 +40,8 @@
 	class="border-2 dark:border-0 w-full h-full flex px-2 gap-2 sm:gap-4 xl:gap-10 pr-8 md:pr-16 items-center bg-gray-50 dark:bg-gray-700"
 >
 	<!-- svelte-ignore missing-declaration -->
-	<div class="text-xs md:text-sm playwright-snapshot-unstable">
-		{$t('taskbar.version')}: {versionInfo.version} (<span class="font-mono"
+	<div class="text-xs md:text-sm">
+		{$t('taskbar.version')}: {versionInfo.version} (<span class="font-mono playwright-censor"
 			>{versionInfo.headRev.slice(0, 8)}</span
 		>{versionInfo.dirty ? '-dirty' : ''})
 	</div>
