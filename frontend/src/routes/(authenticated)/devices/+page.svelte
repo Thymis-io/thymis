@@ -71,7 +71,7 @@
 					</TableBodyCell>
 					<TableBodyCell tdClass="p-2">
 						{#if deploymentInfo.deployed_config_commit}
-							<span class="playwright-censor font-mono">
+							<span class="playwright-snapshot-unstable font-mono">
 								{deploymentInfo.deployed_config_commit.slice(0, 8)}
 							</span>
 						{:else}

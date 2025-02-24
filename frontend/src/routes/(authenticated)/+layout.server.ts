@@ -1,5 +1,6 @@
 import { toast } from '@zerodevx/svelte-toast';
 import type { LayoutServerLoad } from './$types';
+import { env } from '$env/dynamic/private';
 
 export const load: LayoutServerLoad = async ({ cookies }) => {
 	toast.pop(0);
@@ -8,6 +9,7 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
 
 	return {
 		minimizeTaskbar: minimizeTaskbar,
-		vncDisplaysPerColumn: vncDisplaysPerColumn
+		vncDisplaysPerColumn: vncDisplaysPerColumn,
+		inPlaywright: 'RUNNING_IN_PLAYWRIGHT' in env
 	};
 };
