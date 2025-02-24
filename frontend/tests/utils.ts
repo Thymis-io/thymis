@@ -123,10 +123,11 @@ export const expectScreenshot = async (
 				// @ts-expect-error globalThis is not defined
 				globalThis.addedIds.push(element.id);
 			}
-			// @ts-expect-error globalThis is not defined
-			globalThis.originalValues[element.id] = element.textContent;
-			// @ts-expect-error element is not defined
-			element.textContent = '0'.repeat(element.textContent.length);
+			if (element.textContent) {
+				// @ts-expect-error globalThis is not defined
+				globalThis.originalValues[element.id] = element.textContent;
+				element.textContent = '0'.repeat(element.textContent.length);
+			}
 		}
 	});
 
