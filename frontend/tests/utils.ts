@@ -28,16 +28,16 @@ export const highlightLocator = async (
 	const boundingBox = await locator.boundingBox();
 	if (!boundingBox) {
 		console.warn(`Bounding box not found for locator: ${locator}`);
-		return options.screenshotHighlightedElement ? locator : screenshotTarget;
+		return myOptions.screenshotHighlightedElement ? locator : screenshotTarget;
 	}
-	if (options.marginScreenshot && !options.screenshotHighlightedElement) {
+	if (myOptions.marginScreenshot && !myOptions.screenshotHighlightedElement) {
 		console.warn('marginScreenshot is only used when screenshotHighlightedElement is true');
 	}
 	if (
-		options.screenshotHighlightedElement &&
-		options.marginHighlight &&
-		options.marginScreenshot &&
-		options.marginHighlight > options.marginScreenshot
+		myOptions.screenshotHighlightedElement &&
+		myOptions.marginHighlight &&
+		myOptions.marginScreenshot &&
+		myOptions.marginHighlight > myOptions.marginScreenshot
 	) {
 		console.warn(
 			'marginHighlight should be smaller than or equal to marginScreenshot, otherwise the screenshot will be cropped without the highlight'
@@ -45,7 +45,7 @@ export const highlightLocator = async (
 	}
 	// add element with marginally bigger size
 	const page = 'page' in screenshotTarget ? screenshotTarget.page() : screenshotTarget;
-	if (options.highlight) {
+	if (myOptions.highlight) {
 		page.evaluate(`
 		const highlightDiv = document.createElement('div');
 		highlightDiv.className = 'playwright-highlight';
@@ -59,7 +59,7 @@ export const highlightLocator = async (
 		document.body.appendChild(highlightDiv);
 	`);
 	}
-	if (options.screenshotHighlightedElement) {
+	if (myOptions.screenshotHighlightedElement) {
 		const myId = Math.random().toString(36).substring(7);
 		// Make a new div with the same size as the bounding box, and take a screenshot of that
 		await page.evaluate(
@@ -79,7 +79,7 @@ export const highlightLocator = async (
 
 		return page.locator(`#${myId}`);
 	}
-	return options.screenshotHighlightedElement ? locator : screenshotTarget;
+	return myOptions.screenshotHighlightedElement ? locator : screenshotTarget;
 };
 
 export const unhighlightAll = async (screenshotTarget: Page | Locator) => {
