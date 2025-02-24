@@ -7,7 +7,7 @@ test.skip(os.arch() !== 'x64', 'You can only run this suite in an x86 VM');
 const colorSchemes = ['light', 'dark'] as const;
 
 const waitForTerminalText = async (page: Page, text: string) => {
-	return await page.waitForFunction(() => {
+	return await page.waitForFunction((text: string) => {
 		// window.terminals[].buffer.active.getLine(0 up to .length-1).translateToString()
 		window.terminals = window.terminals || [];
 		let all_buffers = '';
@@ -17,7 +17,7 @@ const waitForTerminalText = async (page: Page, text: string) => {
 			}
 		}
 		return all_buffers.includes(text);
-	});
+	}, text);
 };
 
 const createConfiguration = async (
