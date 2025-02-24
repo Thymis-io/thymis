@@ -412,7 +412,8 @@ class NetworkRelay(nr.NetworkRelay):
 
     async def disconnect_and_ban_all_connections(self, db_session):
         if "RUNNING_IN_PLAYWRIGHT" in os.environ:
-            for connection_id, connection in self.registered_agent_connections.items():
+            agent_connections = self.registered_agent_connections.copy()
+            for connection_id, connection in agent_connections.items():
                 start_message = self.connection_id_to_start_message[connection_id]
                 # ban the token
                 crud_agent_token.revoke_access_client_token(
