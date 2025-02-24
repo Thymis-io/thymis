@@ -107,6 +107,7 @@ colorSchemes.forEach((colorScheme) => {
 
 			// Navigate back to "Details" tab
 			await page.locator('a', { hasText: 'Details' }).first().click();
+			await page.locator('p', { hasText: 'Deployed:' }).first().waitFor();
 
 			await expect(page).toHaveScreenshot({
 				mask: [page.locator('.playwright-snapshot-unstable')]
