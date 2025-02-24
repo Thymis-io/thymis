@@ -29,15 +29,15 @@
 	/>
 </div>
 <DynamicGrid class={columns === 2 ? 'gap-4' : 'gap-2'} {columns}>
-	{#each data.allDeploymentInfos as [configId, deploymentInfos]}
-		{@const config = data.state.configs.find((d) => d.identifier === configId)}
+	{#each data.allDeploymentInfos as deploymentInfo}
+		{@const config = data.state.configs.find(
+			(d) => d.identifier === deploymentInfo.deployed_config_id
+		)}
 		{#if config && targetShouldShowVNC(config, $state)}
-			{#each deploymentInfos as deploymentInfo}
-				<div>
-					<p class=" mb-2 text-center text-gray-900 dark:text-white">{config.displayName}</p>
-					<VncView {config} {deploymentInfo} />
-				</div>
-			{/each}
+			<div>
+				<p class=" mb-2 text-center text-gray-900 dark:text-white">{config.displayName}</p>
+				<VncView {config} {deploymentInfo} />
+			</div>
 		{/if}
 	{/each}
 </DynamicGrid>
