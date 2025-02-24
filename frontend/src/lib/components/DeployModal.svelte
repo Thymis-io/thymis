@@ -67,7 +67,7 @@
 	}
 
 	const deploy = async () => {
-		const configs = filteredConfigs.map((config) => '&config=' + config.identifier).join();
+		const configs = filteredConfigs.map((config) => '&config=' + config.identifier).join('');
 		await fetchWithNotify(`/api/action/deploy?message=${encodeURIComponent(message)}${configs}`, {
 			method: 'POST'
 		});

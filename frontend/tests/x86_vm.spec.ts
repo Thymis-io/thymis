@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '../playwright/fixtures';
-import { clearState, deleteAllTasks, expectScreenshot } from './utils';
+import { clearState, createConfiguration, deleteAllTasks, expectScreenshot } from './utils';
 import * as os from 'os';
 
 test.skip(os.arch() !== 'x64', 'You can only run this suite in an x86 VM');
@@ -18,54 +18,33 @@ const waitForTerminalText = async (page: Page, text: string) => {
 	}, text);
 };
 
-const createConfiguration = async (
-	page: Page,
-	name: string,
-	deviceType: string,
-	tags: string[]
-) => {
-	await page.goto('/configuration/list');
-
-	const addConfigurationButton = page
-		.locator('button')
-		.filter({ hasText: 'Create New Configuration' });
-	await addConfigurationButton.click();
-
-	const displayNameInput = page.locator('#display-name').first();
-	await displayNameInput.fill(name);
-
-	const deviceTypeSelect = page.locator('#device-type').first();
-	await deviceTypeSelect.selectOption({ label: deviceType });
-
-	if (tags.length > 0) {
-		const tagsMultiSelect = page.locator('input[autocomplete]');
-		await tagsMultiSelect.click();
-
-		// for each tag, input and enter
-		for (const tag of tags) {
-			await page.getByRole('option', { name: tag }).click();
-		}
-	}
-
-	await page.getByRole('heading', { name: 'Create a new device' }).click();
-
-	const saveButton = page.locator('button').filter({ hasText: 'Create device configuration' });
-	await saveButton.click();
-};
-
 test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	const screenshotCounter = { count: 0 };
 	await clearState(page, request);
 	await deleteAllTasks(page, request);
 
-	await createConfiguration(page, 'VM Test x64', 'Generic x86-64', []);
+	await createConfiguration(page, 'VM Test x64 1', 'Generic x86-64', []);
+	await createConfiguration(page, 'VM Test x64 2', 'Generic x86-64', []);
 
 	await page.goto('/configuration/list');
 
-	// find row with 'VM Test x64' and click on button 'View Details'
+	// find row with 'VM Test x64 1' and click on button 'View Details'
 	await page
 		.locator('tr')
-		.filter({ hasText: 'VM Test x64' })
+		.filter({ hasText: 'VM Test x64 1' })
+		.getByRole('button', { name: 'View Details' })
+		.first()
+		.click();
+
+	// select button "Build and start VM"
+	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
+
+	await page.goto('/configuration/list');
+
+	// find row with 'VM Test x64 2' and click on button 'View Details'
+	await page
+		.locator('tr')
+		.filter({ hasText: 'VM Test x64 2' })
 		.getByRole('button', { name: 'View Details' })
 		.first()
 		.click();
@@ -75,13 +54,30 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 
 	// wait until: 1x on screen "completed", 1x on screen "running"
 	test.setTimeout(360000);
-	await page.locator('td', { hasText: 'completed' }).first().waitFor({ timeout: 360000 });
-	await page.locator('td', { hasText: 'running' }).first().waitFor({ timeout: 30000 });
+	await page
+		.locator('td', { hasText: 'completed' })
+		.nth(1)
+		.or(page.locator('td', { hasText: 'failed' }).first())
+		.waitFor({ timeout: 360000 });
+	await expect(page.locator('td', { hasText: 'completed' }).nth(1)).toBeVisible();
 
-	// wait until "Deployed:" is shown on screen
-	await page.locator('p', { hasText: 'Deployed:' }).first().waitFor({ timeout: 360000 });
+	await page
+		.locator('td', { hasText: 'running' })
+		.nth(1)
+		.or(page.locator('td', { hasText: 'failed' }).first())
+		.waitFor({ timeout: 360000 });
+	await expect(page.locator('td', { hasText: 'running' }).nth(1)).toBeVisible();
 
-	await waitForTerminalText(page, '[root@vm-test-x64:~]#');
+	// go to "Devices" page and wait until "Connected" is shown twice
+	await page.goto('/devices');
+	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 30000 });
+
+	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	await page.getByPlaceholder('Search...').click();
+	await page.locator('#global-search-dropdown').locator('a', { hasText: 'VM Test x64 1' }).click();
+
+	await waitForTerminalText(page, '[root@vm-test-x64-1:~]#');
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		mask: [page.locator('.playwright-snapshot-unstable')]
@@ -109,6 +105,10 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	// click on "Deploy" button
 	const deployButton = page.locator('button').filter({ hasText: 'Deploy' });
 	await deployButton.click();
+
+	// add the second VM to the deployment
+	await page.locator('input').nth(2).locator('..').click();
+	await page.locator('li').filter({ hasText: 'VM Test x64 2' }).click();
 
 	// Click on new "Deploy" button in modal to confirm
 	const deployButtonModal = page.getByRole('dialog').locator('button', { hasText: 'Deploy' });
