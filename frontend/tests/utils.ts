@@ -97,7 +97,7 @@ export const unhighlightAll = async (screenshotTarget: Page | Locator) => {
 };
 
 export const expectScreenshot = async (
-	page: Page,
+	screenshotTarget: Page | Locator,
 	testInfo: TestInfo,
 	counter: { count: number },
 	options?: PageAssertionsToHaveScreenshotOptions
@@ -105,6 +105,7 @@ export const expectScreenshot = async (
 	counter.count++;
 
 	for (const colorScheme of colorSchemes) {
+		const page = 'page' in screenshotTarget ? screenshotTarget.page() : screenshotTarget;
 		await page.evaluate((scheme) => {
 			document.documentElement.classList.toggle('dark', scheme === 'dark');
 		}, colorScheme);
@@ -117,14 +118,18 @@ export const expectScreenshot = async (
 };
 
 export const expectScreenshotWithHighlight = async (
-	screenshotTarget: Page,
+	screenshotTarget: Page | Locator,
 	highlightedElement: Locator,
 	testInfo: TestInfo,
 	counter: { count: number },
 	options?: PageAssertionsToHaveScreenshotOptions,
-	myOptions?: MyHighlightOptions
+	highlightOptions?: MyHighlightOptions
 ) => {
-	const toScreenshot = await highlightLocator(screenshotTarget, highlightedElement, myOptions);
+	const toScreenshot = await highlightLocator(
+		screenshotTarget,
+		highlightedElement,
+		highlightOptions
+	);
 	await expectScreenshot(toScreenshot, testInfo, counter, options);
 	await unhighlightAll(screenshotTarget);
 };
