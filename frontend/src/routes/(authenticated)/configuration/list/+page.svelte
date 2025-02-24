@@ -97,7 +97,7 @@
 	let currentlyEditingConfig: Config | undefined = undefined;
 </script>
 
-<PageHead title={$t('configurations.title')}>
+<PageHead title={$t('configurations.title')} repoStatus={data.repoStatus}>
 	<Button
 		color="alternative"
 		class="whitespace-nowrap gap-2 px-2 py-1 m-1"

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import DeployActions from '$lib/components/DeployActions.svelte';
+	import { type RepoStatus } from '$lib/repo/repo';
 
+	export let repoStatus: RepoStatus;
 	export let title: string;
 </script>
 
@@ -9,5 +11,5 @@
 		<h1 class="text-3xl font-bold dark:text-white">{title}</h1>
 		<slot />
 	</div>
-	<DeployActions />
+	<DeployActions {repoStatus} />
 </div>

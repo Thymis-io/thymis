@@ -6,6 +6,7 @@ import type { State, Module } from '$lib/state';
 import { error, redirect } from '@sveltejs/kit';
 import { getAllTasks } from '$lib/taskstatus';
 import { fetchWithNotify } from '$lib/fetchWithNotify';
+import { type RepoStatus } from '$lib/repo/repo';
 
 export const load = (async ({ fetch, url, data }) => {
 	let lang = 'en';
@@ -72,6 +73,26 @@ export const load = (async ({ fetch, url, data }) => {
 		console.error('Error fetching available modules', e);
 	}
 
+	const repoStatusResponse = await fetchWithNotify(
+		`/api/repo_status`,
+		{
+			method: 'GET',
+			headers: {
+				'content-type': 'application/json'
+			}
+		},
+		{},
+		fetch
+	);
+
+	let repoStatus: RepoStatus = { changes: [] };
+
+	try {
+		repoStatus = (await repoStatusResponse.json()) as RepoStatus;
+	} catch (e) {
+		console.error('Error fetching repo status', e);
+	}
+
 	const taskPage = parseInt(url.searchParams.get('task-page') || '1');
 	const tasksPerPage = 20;
 	const { tasks: allTasks, totalCount: totalTaskCount } = await getAllTasks(
@@ -86,6 +107,7 @@ export const load = (async ({ fetch, url, data }) => {
 	return {
 		state: state,
 		availableModules: availableModules,
+		repoStatus: repoStatus,
 		allTasks: allTasks,
 		totalTaskCount: totalTaskCount,
 		tasksPerPage: tasksPerPage,

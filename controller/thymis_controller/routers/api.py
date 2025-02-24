@@ -267,6 +267,11 @@ def get_diff(
     return project.repo.diff(refA, refB)
 
 
+@router.get("/repo_status", tags=["history"])
+def get_repo_status(project: ProjectAD):
+    return project.repo.status()
+
+
 @router.post("/action/update")
 def update(
     project: ProjectAD,

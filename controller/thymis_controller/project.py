@@ -18,6 +18,7 @@ from thymis_controller import crud, migration, models
 from thymis_controller.config import global_settings
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
+from thymis_controller.notifications import NotificationManager
 from thymis_controller.repo import Repo
 from thymis_controller.task import controller as task
 
@@ -139,17 +140,24 @@ def get_module_class_instance_by_type(module_type: str):
 class Project:
     path: pathlib.Path
     repo: Repo
+    notification_manager: NotificationManager
     known_hosts_path: pathlib.Path
     public_key: str
     state_lock = threading.Lock()
     repo_dir: pathlib.Path
 
-    def __init__(self, path, db_session: sqlalchemy.orm.Session):
+    def __init__(
+        self,
+        path,
+        notification_manager: NotificationManager,
+        db_session: sqlalchemy.orm.Session,
+    ):
         self.path = pathlib.Path(path)
+        self.notification_manager = notification_manager
         # create the path if not exists
         self.path.mkdir(exist_ok=True, parents=True)
         self.repo_dir = self.path / "repository"
-        self.repo = Repo(self.repo_dir)
+        self.repo = Repo(self.repo_dir, self.notification_manager)
 
         # get public key of controller instance
         public_key_process = subprocess.run(
@@ -264,7 +272,7 @@ class Project:
             # reinits the git repo
             if (self.repo_dir / ".git").exists():
                 shutil.rmtree(self.repo_dir / ".git")
-            self.repo = Repo(self.repo_dir)
+            self.repo = Repo(self.repo_dir, self.notification_manager)
             self.write_state_and_reload(State())
             self.update_known_hosts(db_session)
 

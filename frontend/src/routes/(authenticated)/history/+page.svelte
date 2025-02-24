@@ -19,7 +19,7 @@
 	};
 </script>
 
-<PageHead title={$t('nav.history')} />
+<PageHead title={$t('nav.history')} repoStatus={data.repoStatus} />
 <RollbackModal bind:commit={revertCommit} />
 <ul class="list-disc ml-4">
 	{#each data.history as history, index}

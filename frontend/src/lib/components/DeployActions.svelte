@@ -5,8 +5,13 @@
 	import Refresh from 'lucide-svelte/icons/refresh-ccw';
 	import Boxes from 'lucide-svelte/icons/boxes';
 	import DeployModal from '$lib/components/DeployModal.svelte';
+	import GitCommitVertical from 'lucide-svelte/icons/git-commit-vertical';
 	import { invalidate } from '$app/navigation';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
+	import CommitModal from '$lib/repo/CommitModal.svelte';
+	import { type RepoStatus } from '$lib/repo/repo';
+
+	export let repoStatus: RepoStatus;
 
 	const buttonClass = 'flex-auto sm:flex-[0_1_100px] gap-2 px-2 py-1.5 h-min';
 	const textClass = 'text-base whitespace-nowrap';
@@ -21,9 +26,19 @@
 	};
 
 	let openDeploy = false;
+	let openCommit = false;
 </script>
 
 <div class="flex flex-wrap justify-end align-start ml-2 my-1.5 gap-1 sm:gap-2 w-[38rem]">
+	<Button color="alternative" class={buttonClass} on:click={() => (openCommit = true)}>
+		<div class="flex">
+			<GitCommitVertical size={'1rem'} class="min-w-4" />
+			<span class="pt-1">
+				{repoStatus.changes.length}
+			</span>
+		</div>
+		<span class={textClass}>{$t('deploy.commit')}</span>
+	</Button>
 	<Button color="alternative" class={buttonClass} on:click={build}>
 		<Hammer size={'1rem'} class="min-w-4" />
 		<span class={textClass}>{$t('deploy.build')}</span>
@@ -37,4 +52,5 @@
 		<span class={textClass}>{$t('deploy.deploy')}</span>
 	</Button>
 	<DeployModal bind:open={openDeploy} />
+	<CommitModal bind:open={openCommit} {repoStatus} />
 </div>

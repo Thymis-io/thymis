@@ -26,6 +26,7 @@ python-multipart = "^0.0.20"
 paramiko = "^3.5.0"
 http-network-relay = {git = "https://git@github.com/Thymis-io/http-network-relay.git"}
 thymis-agent = {path = "../agent"}
+watchdog = "^6.0.0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.2"
