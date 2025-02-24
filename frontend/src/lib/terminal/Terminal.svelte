@@ -20,8 +20,10 @@
 		WebglAddon = (await import('@xterm/addon-webgl')).WebglAddon;
 		terminal = new Terminal(options);
 		terminal.open(divElement);
-		window.terminals = window.terminals || [];
-		window.terminals.push(terminal);
+		if (browser) {
+			window.terminals = window.terminals || [];
+			window.terminals.push(terminal);
+		}
 	});
 
 	export let deploymentInfo: DeploymentInfo;
@@ -78,7 +80,9 @@
 
 	onDestroy(() => {
 		resetConnection();
-		window.terminals = window.terminals.filter((t) => t !== terminal);
+		if (browser) {
+			window.terminals = window.terminals.filter((t) => t !== terminal);
+		}
 	});
 
 	$: {
