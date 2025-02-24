@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { DarkMode, NavBrand, NavHamburger, Search, ToolbarButton } from 'flowbite-svelte';
-	import GithubSolid from 'flowbite-svelte-icons/GithubSolid.svelte';
-	import BookOpenOutline from 'flowbite-svelte-icons/BookOpenOutline.svelte';
+	import { DarkMode, NavBrand, NavHamburger, ToolbarButton } from 'flowbite-svelte';
+	import BookOpen from 'lucide-svelte/icons/book-open';
 	import Globe from 'lucide-svelte/icons/globe';
 	import UserMenu from './UserMenu.svelte';
 	import GlobalSearch from './GlobalSearch.svelte';
+	import GithubIcon from './GithubIcon.svelte';
 
 	export let authenticated = true;
 	export let drawerHidden: boolean;
@@ -49,7 +49,7 @@
 			ariaLabel="Thymis Documentation"
 			title={$t('common.documentation')}
 		>
-			<BookOpenOutline />
+			<BookOpen size="18" />
 			<span class="hidden lg:block">{$t('common.documentation')}</span>
 		</ToolbarButton>
 		<ToolbarButton
@@ -59,7 +59,7 @@
 			ariaLabel="Star Thymis on GitHub"
 			title={$t('common.github')}
 		>
-			<GithubSolid />
+			<GithubIcon />
 			<span class="hidden lg:block">{$t('common.github')}</span>
 		</ToolbarButton>
 		<DarkMode />

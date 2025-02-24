@@ -4,7 +4,7 @@
 	import { t } from 'svelte-i18n';
 
 	import Sliders from 'lucide-svelte/icons/sliders-horizontal';
-	import TerminalSolid from 'svelte-awesome-icons/TerminalSolid.svelte';
+	import Terminal from 'lucide-svelte/icons/terminal';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import ListCollapse from 'lucide-svelte/icons/list-collapse';
 	import {
@@ -54,7 +54,7 @@
 		},
 		{
 			name: $t('nav.terminal'),
-			icon: TerminalSolid,
+			icon: Terminal,
 			href: '/configuration/terminal',
 			hidden: !$globalNavSelectedConfig
 		}
