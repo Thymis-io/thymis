@@ -7,6 +7,8 @@ declare global {
 		// interface PageData {}
 		// interface Platform {}
 	}
+	// eslint-disable-next-line no-var
+	var terminals: TerminalType[];
 }
 
 export {};

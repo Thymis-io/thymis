@@ -6,6 +6,20 @@ test.skip(os.arch() !== 'x64', 'You can only run this suite in an x86 VM');
 
 const colorSchemes = ['light', 'dark'] as const;
 
+const waitForTerminalText = async (page: Page, text: string) => {
+	return await page.waitForFunction(() => {
+		// window.terminals[].buffer.active.getLine(0 up to .length-1).translateToString()
+		window.terminals = window.terminals || [];
+		let all_buffers = '';
+		for (const terminal of window.terminals) {
+			for (let i = 0; i < terminal.buffer.active.length; i++) {
+				all_buffers += terminal.buffer.active.getLine(i).translateToString();
+			}
+		}
+		return all_buffers.includes(text);
+	});
+};
+
 const createConfiguration = async (
 	page: Page,
 	name: string,
@@ -71,6 +85,8 @@ colorSchemes.forEach((colorScheme) => {
 			// wait until "Deployed:" is shown on screen
 			await page.locator('p', { hasText: 'Deployed:' }).first().waitFor({ timeout: 360000 });
 
+			await waitForTerminalText(page, '[root@vm-test-x64:~]#');
+
 			await expect(page).toHaveScreenshot({
 				mask: [page.locator('.playwright-snapshot-unstable')]
 			});
@@ -108,6 +124,8 @@ colorSchemes.forEach((colorScheme) => {
 			// Navigate back to "Details" tab
 			await page.locator('a', { hasText: 'Details' }).first().click();
 			await page.locator('p', { hasText: 'Deployed:' }).first().waitFor();
+
+			await waitForTerminalText(page, '[Hello World Custom Prompt]');
 
 			await expect(page).toHaveScreenshot({
 				mask: [page.locator('.playwright-snapshot-unstable')]
