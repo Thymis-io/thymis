@@ -3,10 +3,10 @@
 	import { page } from '$app/stores';
 	import { t, locale } from 'svelte-i18n';
 	import { Sidebar, SidebarGroup, SidebarWrapper } from 'flowbite-svelte';
-	import ServerSolid from 'svelte-awesome-icons/ServerSolid.svelte';
-	import CodeCommitSolid from 'svelte-awesome-icons/CodeCommitSolid.svelte';
-	import ChartSimpleSolid from 'svelte-awesome-icons/ChartSimpleSolid.svelte';
-	import GearSolid from 'svelte-awesome-icons/GearSolid.svelte';
+	import Settings from 'lucide-svelte/icons/settings';
+	import ChartBar from 'lucide-svelte/icons/chart-bar';
+	import Server from 'lucide-svelte/icons/server';
+	import GitBranch from 'lucide-svelte/icons/git-graph';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
@@ -59,7 +59,7 @@
 	$: navItems = [
 		{
 			name: $t('nav.overview'),
-			icon: ChartSimpleSolid,
+			icon: ChartBar,
 			href: '/overview'
 		},
 		{
@@ -74,7 +74,7 @@
 		},
 		{
 			name: $t('nav.devices'),
-			icon: ServerSolid,
+			icon: Server,
 			href: '/devices'
 		},
 		{
@@ -85,12 +85,12 @@
 		},
 		{
 			name: $t('nav.history'),
-			icon: CodeCommitSolid,
+			icon: GitBranch,
 			href: '/history'
 		},
 		{
 			name: $t('nav.external-repositories'),
-			icon: GearSolid,
+			icon: Settings,
 			href: '/external-repositories'
 		}
 	];
@@ -109,7 +109,9 @@
 		divClass="overflow-y-auto bg-white scrolling-touch h-full lg:block dark:bg-gray-800 lg:me-0"
 	>
 		<nav class="flex dark:divide-gray-600 text-base font-medium h-full">
-			<SidebarGroup ulClass="list-unstyled fw-normal p-4 lg:p-1 py-2 space-y-2 bg-gray-850 w-full">
+			<SidebarGroup
+				ulClass="list-unstyled fw-normal p-4  mt-2 lg:p-1 py-2 space-y-2 bg-gray-850 w-full"
+			>
 				{#each navItems as { name, icon, children, href, hidden } (name)}
 					{#if !hidden}
 						<a
