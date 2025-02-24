@@ -18,7 +18,7 @@
 				<div class="grid grid-cols-[max-content_max-content_max-content_1fr] gap-x-2">
 					<p class="break-all text-base">{$t('configuration-details.deployed-at')}:</p>
 					{#if deploymentInfo.deployed_config_commit}
-						<p class="break-all text-base playwright-snapshot-unstable font-mono">
+						<p class="break-all text-base playwright-censor font-mono">
 							{deploymentInfo.deployed_config_commit.slice(0, 8)}
 						</p>
 					{:else}
