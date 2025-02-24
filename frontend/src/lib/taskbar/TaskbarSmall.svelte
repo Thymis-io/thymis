@@ -28,12 +28,25 @@
 		currentPage = page.toString();
 		currentPageParam.set(currentPage);
 	};
+
+	const versionInfo: {
+		version: string;
+		headRev: string;
+		dirty: boolean;
+	} = __THYMIS_PACKAGE_VERSION__; // ts-ignore
 </script>
 
 <div
-	class="border-2 dark:border-0 w-full h-full flex px-2 gap-2 sm:gap-4 xl:gap-10 pr-8 md:pr-16 justify-end items-center bg-gray-50 dark:bg-gray-700"
+	class="border-2 dark:border-0 w-full h-full flex px-2 gap-2 sm:gap-4 xl:gap-10 pr-8 md:pr-16 items-center bg-gray-50 dark:bg-gray-700"
 >
-	<TaskbarIcon title={$t('taskbar.pending')} tasks={pendingTasks}>
+	<!-- svelte-ignore missing-declaration -->
+	<div class="text-xs md:text-sm playwright-snapshot-unstable">
+		{$t('taskbar.version')}: {versionInfo.version} ({versionInfo.headRev.substring(
+			0,
+			7
+		)}{versionInfo.dirty ? '-dirty' : ''})
+	</div>
+	<TaskbarIcon class="ml-auto" title={$t('taskbar.pending')} tasks={pendingTasks}>
 		<PendingIcon size={20} slot="icon" class="w-full" />
 	</TaskbarIcon>
 	<TaskbarIcon title={$t('taskbar.running')} tasks={runningTasks}>

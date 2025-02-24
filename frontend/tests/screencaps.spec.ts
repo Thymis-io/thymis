@@ -346,7 +346,8 @@ test('Create moneyshot', async ({ page, request, browser }, testInfo) => {
 	});
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
-		maxDiffPixels: 1000
+		maxDiffPixels: 1000,
+		mask: []
 	});
 
 	const resolutions = [
@@ -364,7 +365,8 @@ test('Create moneyshot', async ({ page, request, browser }, testInfo) => {
 		const zoomedPage = await zoomedContext.newPage();
 		await zoomedPage.goto('http://localhost:8000/configuration/list');
 		await expectScreenshot(zoomedPage, testInfo, screenshotCounter, {
-			maxDiffPixels: 1000
+			maxDiffPixels: 1000,
+			mask: []
 		});
 		await zoomedContext.close();
 	}

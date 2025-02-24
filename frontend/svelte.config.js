@@ -8,7 +8,7 @@ try {
 	dirty =
 		(process.env.GIT_REV || '').search('dirty') != -1 ||
 		(!((process.env.GIT_REV || '').search('dirty') != -1) &&
-			execSync('git status --porcelain').toString().trim());
+			execSync('git status --porcelain').toString().trim()) != '';
 } catch (e) {
 	/* empty */
 }

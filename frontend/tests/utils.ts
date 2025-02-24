@@ -103,9 +103,14 @@ export const expectScreenshot = async (
 	options?: PageAssertionsToHaveScreenshotOptions
 ) => {
 	counter.count++;
+	const page = 'page' in screenshotTarget ? screenshotTarget.page() : screenshotTarget;
+
+	// if options or options.mask is undefined, set it to an array with the default mask
+	if (!options || options.mask === undefined) {
+		options = { ...options, mask: [page.locator('.playwright-snapshot-unstable')] };
+	}
 
 	for (const colorScheme of colorSchemes) {
-		const page = 'page' in screenshotTarget ? screenshotTarget.page() : screenshotTarget;
 		await page.evaluate((scheme) => {
 			document.documentElement.classList.toggle('dark', scheme === 'dark');
 		}, colorScheme);

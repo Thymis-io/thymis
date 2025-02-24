@@ -209,7 +209,8 @@
 			"build_device_image": "Build Image for {device}",
 			"ssh_command": "Run SSH Command",
 			"run_nixos_vm_task": "Run NixOS VM for {device}"
-		}
+		},
+		"version": "Thymis version"
 	},
 	"config": {
 		"header": {
