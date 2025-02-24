@@ -9,6 +9,7 @@ declare global {
 	}
 	// eslint-disable-next-line no-var
 	var terminals: TerminalType[];
+	declare const __THYMIS_PACKAGE_VERSION__;
 }
 
 export {};

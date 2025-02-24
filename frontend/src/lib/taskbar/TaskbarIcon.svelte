@@ -3,9 +3,12 @@
 
 	export let tasks: TaskShort[];
 	export let title: string;
+
+	let clazz: string = '';
+	export { clazz as class };
 </script>
 
-<div class="flex items-center gap-[2px] sm:gap-1 lg:gap-2">
+<div class="flex items-center gap-[2px] sm:gap-1 lg:gap-2 {clazz}">
 	<div class="w-[12px] sm:w-[20px]">
 		<slot name="icon" />
 	</div>

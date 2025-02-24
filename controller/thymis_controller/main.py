@@ -5,6 +5,7 @@ import secrets
 import subprocess
 import sys
 from contextlib import asynccontextmanager
+from importlib.metadata import version
 
 import sqlalchemy.orm
 import thymis_controller.lib  # pylint: disable=unused-import
@@ -190,7 +191,7 @@ app = FastAPI(
     title="Thymis Controller API",
     description=description,
     summary="Controller backend for gathering and changing information of a device",
-    version="0.3.0",
+    version=version("thymis-controller"),
     contact={
         "name": "Thymis",
         "url": "https://thymis.io",
