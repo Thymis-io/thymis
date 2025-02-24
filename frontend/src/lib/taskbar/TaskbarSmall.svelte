@@ -41,9 +41,9 @@
 >
 	<!-- svelte-ignore missing-declaration -->
 	<div class="text-xs md:text-sm">
-		{$t('taskbar.version')}: {versionInfo.version} (
-		<div><span class="font-mono playwright-censor">{versionInfo.headRev.slice(0, 8)}</span></div>
-		{versionInfo.dirty ? '-dirty' : ''})
+		{$t('taskbar.version')}: {versionInfo.version} (<span class="font-mono playwright-censor"
+			>{versionInfo.headRev.slice(0, 8)}</span
+		>{versionInfo.dirty ? '-dirty' : ''})
 	</div>
 	<TaskbarIcon class="ml-auto" title={$t('taskbar.pending')} tasks={pendingTasks}>
 		<PendingIcon size={20} slot="icon" class="w-full" />
