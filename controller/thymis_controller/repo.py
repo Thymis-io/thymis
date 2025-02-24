@@ -1,9 +1,14 @@
+import asyncio
 import datetime
 import logging
 import pathlib
 import subprocess
+import threading
 
 from pydantic import BaseModel
+from thymis_controller.notifications import NotificationManager
+from watchdog.events import FileSystemEvent, FileSystemEventHandler
+from watchdog.observers import Observer
 
 logger = logging.getLogger(__name__)
 
@@ -16,10 +21,61 @@ class Commit(BaseModel):
     author: str
 
 
+class FileChange(BaseModel):
+    file: str
+    diff: str
+
+
+class RepoStatus(BaseModel):
+    changes: list[FileChange]
+
+
+class StateEventHandler(FileSystemEventHandler):
+    def __init__(self, notification_manager: NotificationManager):
+        self.notification_manager = notification_manager
+        self.last_event = datetime.datetime.min
+        self.event_loop = asyncio.get_event_loop()
+        self.debounce_task = None
+        self.debounce_lock = threading.Lock()
+
+    def on_any_event(self, event: FileSystemEvent) -> None:
+        if event.event_type != "modified":
+            return
+        if self.should_debounce():
+            return
+
+        self.last_event = datetime.datetime.now()
+        self.notification_manager.broadcast_invalidate_notification(
+            ["/api/repo_changes", "/api/state"]
+        )
+
+    def should_debounce(self):
+        delta = datetime.datetime.now() - self.last_event
+        if delta > datetime.timedelta(seconds=0.2):
+            return False
+
+        with self.debounce_lock:
+            if not self.debounce_task or self.debounce_task.done():
+                self.debounce_task = self.event_loop.create_task(self.debounce())
+        return True
+
+    async def debounce(self):
+        await asyncio.sleep(0.2)
+        self.notification_manager.broadcast_invalidate_notification(
+            ["/api/repo_changes", "/api/state"]
+        )
+
+
 class Repo:
-    def __init__(self, path: pathlib.Path):
+    def __init__(self, path: pathlib.Path, notification_manager: NotificationManager):
         self.path = path
+        self.notification_manager = notification_manager
         self.init()
+
+        state_event_handler = StateEventHandler(self.notification_manager)
+        state_observer = Observer()
+        state_observer.schedule(state_event_handler, str(self.path / "state.json"))
+        state_observer.start()
 
     def run_command(self, *args: str) -> str:
         return subprocess.run(
@@ -81,3 +137,20 @@ class Repo:
         refB = refB or "HEAD"
 
         return self.run_command("git", "diff", refA, refB, "state.json")
+
+    def status(self) -> RepoStatus:
+        try:
+            result = self.run_command("git", "status", "--porcelain")
+        except subprocess.CalledProcessError:
+            logger.exception("Error getting git status")
+            return RepoStatus(changes=[])
+
+        return RepoStatus(
+            changes=[
+                FileChange(
+                    file=file, diff=self.run_command("git", "diff", "HEAD", file)
+                )
+                for line in result.splitlines()
+                for file in line.split(maxsplit=1)[1:]
+            ]
+        )

@@ -25,6 +25,9 @@
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import CreateTagModal from './CreateTagModal.svelte';
 	import PageHead from '$lib/components/PageHead.svelte';
+	import type { PageData } from './$types';
+
+	export let data: PageData;
 
 	$: tags = $state.tags.map((t) => ({ id: t.identifier, data: t }));
 	$: projectTags = $state.tags;
@@ -107,7 +110,7 @@
 	}) satisfies KeyboardEventHandler<HTMLDivElement>;
 </script>
 
-<PageHead title={$t('nav.tags')}>
+<PageHead title={$t('nav.tags')} repoStatus={data.repoStatus}>
 	<Button
 		color="alternative"
 		class="whitespace-nowrap gap-2 px-2 py-1 m-1"

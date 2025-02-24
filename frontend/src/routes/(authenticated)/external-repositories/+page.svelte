@@ -12,6 +12,9 @@
 		TableBodyCell
 	} from 'flowbite-svelte';
 	import PageHead from '$lib/components/PageHead.svelte';
+	import type { PageData } from './$types';
+
+	export let data: PageData;
 
 	const generateUniqueKey = () => {
 		let num = 1;
@@ -58,7 +61,7 @@
 	};
 </script>
 
-<PageHead title={$t('nav.external-repositories')} />
+<PageHead title={$t('nav.external-repositories')} repoStatus={data.repoStatus} />
 <Table shadow>
 	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2">{$t('settings.repo.name')}</TableHeadCell>

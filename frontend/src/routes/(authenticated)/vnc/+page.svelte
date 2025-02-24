@@ -14,7 +14,7 @@
 	let columns = data.vncDisplaysPerColumn;
 </script>
 
-<PageHead title={$t('nav.global-vnc')} />
+<PageHead title={$t('nav.global-vnc')} repoStatus={data.repoStatus} />
 <div class="flex items-center mb-2">
 	{$t('vnc.column-count')}
 	<Dropdown

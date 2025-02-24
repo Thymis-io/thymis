@@ -11,6 +11,7 @@ from thymis_controller.dependencies import (
     require_valid_user_session,
 )
 from thymis_controller.models.state import Config
+from thymis_controller.notifications import NotificationManager
 
 # Create an in-memory SQLite database for testing
 SQLITE_DATABASE_URL = "sqlite:///:memory:"
@@ -44,7 +45,7 @@ def project(db_session):
 
     # create temp folder
     tmpdir = tempfile.TemporaryDirectory(delete=False)
-    yield Project(tmpdir.name, db_session)
+    yield Project(tmpdir.name, NotificationManager(), db_session)
     tmpdir.cleanup()
 
 

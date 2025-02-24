@@ -9,6 +9,9 @@
 	import { getConfigImageFormat } from '$lib/config/configUtils';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import { Button } from 'flowbite-svelte';
+	import type { LayoutData } from './$types';
+
+	export let data: LayoutData;
 
 	$: selectedTargetName = $globalNavSelectedTarget?.displayName ?? '';
 	$: titleMap = {
@@ -26,7 +29,7 @@
 	};
 </script>
 
-<PageHead {title}>
+<PageHead {title} repoStatus={data.repoStatus}>
 	{#if $globalNavSelectedConfig}
 		<Button
 			color="alternative"

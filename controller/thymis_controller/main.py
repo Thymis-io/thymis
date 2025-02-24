@@ -163,7 +163,9 @@ async def lifespan(app: FastAPI):
         notification_manager,
     )
     with sqlalchemy.orm.Session(db_engine) as db_session:
-        project = Project(global_settings.PROJECT_PATH.resolve(), db_session)
+        project = Project(
+            global_settings.PROJECT_PATH.resolve(), notification_manager, db_session
+        )
     async with task_controller.start(db_engine):
         logger.debug("starting frontend")
         await frontend.frontend.run()

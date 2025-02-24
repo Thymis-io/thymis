@@ -166,18 +166,22 @@
 		"no-revert": "Already at this state",
 		"rollback-modal-title": "Revert commit",
 		"rollback-modal-body": "This will discard all uncommitted changes and create a new commit with the state of the selected commit.\n\n{newCommit}\n\nAre you sure you want to continue?",
-		"rollback-modal-confirm": "Revert"
+		"rollback-modal-confirm": "Revert",
+		"internal-file-changes": "Internal file changes",
+		"no-internal-file-changes": "No internal file changes",
+		"show-internal-files": "Show"
 	},
 	"deploy": {
 		"build": "Build",
 		"deploy": "Deploy",
 		"update": "Update",
+		"commit": "Commit",
 		"build-status": "Build Status: {status}",
 		"stdout": "Standard Output",
 		"stderr": "Standard Error",
 		"error-lines": "Error Lines",
 		"raw-output": "Full Output",
-		"summary": "Message",
+		"summary": "Commit Message",
 		"selected": "Tags/configs to deploy",
 		"configurations": "Affected configs"
 	},
