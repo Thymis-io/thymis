@@ -345,8 +345,16 @@ test('Create moneyshot', async ({ page, request, browser }, testInfo) => {
 		mask: [page.locator('.playwright-snapshot-unstable')]
 	});
 
+	const updateSnapshots = testInfo.config.updateSnapshots;
+
+	let maxDiffPixels = 1000;
+
+	if (updateSnapshots === 'all' || updateSnapshots === 'changed') {
+		maxDiffPixels = 100;
+	}
+
 	await expectScreenshot(page, testInfo, screenshotCounter, {
-		maxDiffPixels: 1000,
+		maxDiffPixels: maxDiffPixels,
 		mask: []
 	});
 
@@ -365,7 +373,7 @@ test('Create moneyshot', async ({ page, request, browser }, testInfo) => {
 		const zoomedPage = await zoomedContext.newPage();
 		await zoomedPage.goto('http://localhost:8000/configuration/list');
 		await expectScreenshot(zoomedPage, testInfo, screenshotCounter, {
-			maxDiffPixels: 1000,
+			maxDiffPixels: maxDiffPixels,
 			mask: []
 		});
 		await zoomedContext.close();
