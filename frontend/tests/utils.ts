@@ -153,3 +153,51 @@ export const deleteAllTasks = async (page: Page, request: APIRequestContext) => 
 	await tasksRequest.json();
 	await page.reload();
 };
+
+export const createConfiguration = async (
+	page: Page,
+	name: string,
+	deviceType: string,
+	tags: string[]
+) => {
+	await page.goto('/configuration/list');
+
+	const addConfigurationButton = page
+		.locator('button')
+		.filter({ hasText: 'Create New Configuration' });
+	await addConfigurationButton.click();
+
+	const displayNameInput = page.locator('#display-name').first();
+	await displayNameInput.fill(name);
+
+	const deviceTypeSelect = page.locator('#device-type').first();
+	await deviceTypeSelect.selectOption({ label: deviceType });
+
+	if (tags.length > 0) {
+		const tagsMultiSelect = page.locator('input[autocomplete]');
+		await tagsMultiSelect.click();
+
+		// for each tag, input and enter
+		for (const tag of tags) {
+			await page.getByRole('option', { name: tag }).click();
+		}
+	}
+
+	await page.getByRole('heading', { name: 'Create a new device' }).click();
+
+	const saveButton = page.locator('button').filter({ hasText: 'Create device configuration' });
+	await saveButton.click();
+};
+
+export const createTag = async (page: Page, name: string) => {
+	await page.goto('/tags');
+
+	const addTagButton = page.locator('button').filter({ hasText: 'Create Tag' });
+	await addTagButton.click();
+
+	const tagNameInput = page.locator('#display-name').first();
+	await tagNameInput.fill(name);
+
+	const saveButton = page.locator('button').filter({ hasText: 'Add tag' });
+	await saveButton.click();
+};
