@@ -13,6 +13,8 @@
 	import TaskbarName from './TaskbarName.svelte';
 	import TaskbarStatus from './TaskbarStatus.svelte';
 
+	export let inPlaywright: boolean = false;
+
 	$: pendingTasks = Object.values($taskStatus).filter((task) => task.state === 'pending');
 	$: runningTasks = Object.values($taskStatus).filter((task) => task.state === 'running');
 	$: completedTasks = Object.values($taskStatus).filter((task) => task.state === 'completed');
@@ -40,9 +42,9 @@
 	class="border-2 dark:border-0 w-full h-full flex px-2 gap-2 sm:gap-4 xl:gap-10 pr-8 md:pr-16 items-center bg-gray-50 dark:bg-gray-700"
 >
 	<!-- svelte-ignore missing-declaration -->
-	<div class="text-xs md:text-sm">
-		{$t('taskbar.version')}: {versionInfo.version} (<span class="font-mono playwright-censor"
-			>{versionInfo.headRev.slice(0, 8)}</span
+	<div class="text-xs md:text-sm playwright-snapshot-unstable">
+		{$t('taskbar.version')}: {versionInfo.version} (<span class="font-mono"
+			>{#if inPlaywright}00000000{:else}{versionInfo.headRev.slice(0, 8)}{/if}</span
 		>{versionInfo.dirty ? '-dirty' : ''})
 	</div>
 	<TaskbarIcon class="ml-auto" title={$t('taskbar.pending')} tasks={pendingTasks}>

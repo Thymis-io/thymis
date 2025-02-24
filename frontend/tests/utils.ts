@@ -110,27 +110,6 @@ export const expectScreenshot = async (
 		options = { ...options, mask: [page.locator('.playwright-snapshot-unstable')] };
 	}
 
-	// censor playwright-censor by replacing all chars with "0"
-	page.evaluate(() => {
-		// @ts-expect-error globalThis is not defined
-		globalThis.originalValues = globalThis.originalValues || {};
-		globalThis.addedIds = globalThis.addedIds || [];
-		const elements = document.querySelectorAll('.playwright-censor');
-		for (const element of elements) {
-			// add id if not present
-			if (!element.id) {
-				element.id = Math.random().toString(36).substring(7);
-				// @ts-expect-error globalThis is not defined
-				globalThis.addedIds.push(element.id);
-			}
-			if (element.textContent) {
-				// @ts-expect-error globalThis is not defined
-				globalThis.originalValues[element.id] = element.textContent;
-				element.textContent = '0'.repeat(element.textContent.length);
-			}
-		}
-	});
-
 	for (const colorScheme of colorSchemes) {
 		await page.evaluate((scheme) => {
 			document.documentElement.classList.toggle('dark', scheme === 'dark');
@@ -141,27 +120,6 @@ export const expectScreenshot = async (
 			options
 		);
 	}
-
-	// reset the original values
-	page.evaluate(() => {
-		const elements = document.querySelectorAll('.playwright-censor');
-		for (const element of elements) {
-			// @ts-expect-error globalThis is not defined
-			element.textContent = globalThis.originalValues[element.id];
-			// delete id
-			// @ts-expect-error globalThis is not defined
-			delete globalThis.originalValues[element.id];
-		}
-		// @ts-expect-error globalThis is not defined
-		for (const id of globalThis.addedIds) {
-			const element = document.getElementById(id);
-			if (element) {
-				element.removeAttribute('id');
-			}
-		}
-		// @ts-expect-error globalThis is not defined
-		globalThis.addedIds = [];
-	});
 };
 
 export const expectScreenshotWithHighlight = async (

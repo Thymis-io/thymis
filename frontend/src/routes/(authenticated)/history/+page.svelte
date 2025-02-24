@@ -32,7 +32,9 @@
 					<span>on</span>
 					<span class="playwright-snapshot-unstable inline-block w-64">{history.date}</span>
 					<span>with hash</span>
-					<span class="playwright-censor inline-block font-mono">{history.SHA1}</span>
+					<span class="playwright-snapshot-unstable inline-block font-mono w-20"
+						>{history.SHA1}</span
+					>
 				</div>
 				<div class="shrink">
 					<!--

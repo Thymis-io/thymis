@@ -85,7 +85,7 @@
 					<MainWindow bind:drawerHidden><slot /></MainWindow>
 					<div class="relative h-[40px]">
 						<TaskbarMinimize bind:taskbarMinimized class="mt-2" />
-						<TaskbarSmall />
+						<TaskbarSmall inPlaywright={data.inPlaywright} />
 					</div>
 				</div>
 			{:else}
@@ -102,7 +102,7 @@
 						</div>
 						<div class="w-full h-[40px]">
 							<TaskbarMinimize bind:taskbarMinimized class="mt-2" />
-							<TaskbarSmall />
+							<TaskbarSmall inPlaywright />
 						</div>
 					</div>
 				</SplitPane>
