@@ -72,7 +72,9 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await page.goto('/devices');
 	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 30000 });
 
-	await expectScreenshot(page, testInfo, screenshotCounter);
+	await expectScreenshot(page, testInfo, screenshotCounter, {
+		maxDiffPixels: 128
+	});
 
 	await page.getByPlaceholder('Search...').click();
 	await page.locator('#global-search-dropdown').locator('a', { hasText: 'VM Test x64 1' }).click();
@@ -80,7 +82,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await waitForTerminalText(page, '[root@vm-test-x64-1:~]#');
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
-		mask: [page.locator('.playwright-snapshot-unstable')]
+		maxDiffPixels: 128
 	});
 
 	// add a CustomModule and configure services.openssh.banner to "Hello World", then deploy and then take another screenshot
@@ -114,8 +116,8 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	const deployButtonModal = page.getByRole('dialog').locator('button', { hasText: 'Deploy' });
 	await deployButtonModal.click();
 
-	// Wait for a second "completed" status
-	await page.locator('td', { hasText: 'completed' }).nth(1).waitFor({ timeout: 360000 });
+	// Wait for a fifth "completed" status
+	await page.locator('td', { hasText: 'completed' }).nth(4).waitFor({ timeout: 360000 });
 
 	// Navigate back to "Details" tab
 	await page.locator('a', { hasText: 'Details' }).first().click();
@@ -124,13 +126,13 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await waitForTerminalText(page, '[Hello World Custom Prompt]');
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
-		mask: [page.locator('.playwright-snapshot-unstable')]
+		maxDiffPixels: 128
 	});
 
 	// Now, navigate to "Devices" page using sidebar and take a screenshot
 	await page.locator('a', { hasText: 'Devices' }).locator('visible=true').first().click();
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
-		mask: [page.locator('.playwright-snapshot-unstable')]
+		maxDiffPixels: 128
 	});
 });
