@@ -17,14 +17,13 @@
 			label: projectTags.find((t) => t.identifier === tag)?.displayName ?? ''
 		}));
 	};
-
-	$: setSelectedTags(currentlyEditingConfig?.tags || [], projectTags);
 </script>
 
 <Modal
 	title={$t('configurations.edit-tags-title')}
 	open={!!currentlyEditingConfig}
 	on:close={() => (currentlyEditingConfig = undefined)}
+	on:open={() => setSelectedTags(currentlyEditingConfig?.tags || [], projectTags)}
 	outsideclose
 	bodyClass="p-4 md:p-5 space-y-4 flex-1"
 >
@@ -46,9 +45,12 @@
 	<div class="flex justify-end gap-2">
 		<Button
 			on:click={async () => {
-				if (currentlyEditingConfig) {
-					currentlyEditingConfig.tags = selectedTags.map((tag) => tag.value);
-				}
+				$state.configs = $state.configs.map((config) => {
+					if (config.identifier === currentlyEditingConfig?.identifier) {
+						config.tags = selectedTags.map((tag) => tag.value);
+					}
+					return config;
+				});
 				await saveState();
 				currentlyEditingConfig = undefined;
 			}}
