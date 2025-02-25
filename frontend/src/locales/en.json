@@ -176,6 +176,8 @@
 		"deploy": "Deploy",
 		"update": "Update",
 		"commit": "Commit",
+		"dirty-repo-tooltip": "Please commit all changes before deploying",
+		"no-affected-configs-tooltip": "Please select at least one config to deploy",
 		"build-status": "Build Status: {status}",
 		"stdout": "Standard Output",
 		"stderr": "Standard Error",

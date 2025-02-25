@@ -33,6 +33,7 @@
 			(url) => url.pathname === '/api/history' || url.pathname === '/api/repo_status'
 		);
 
+		message = '';
 		open = false;
 	};
 </script>
@@ -43,7 +44,6 @@
 	size="xl"
 	outsideclose
 	on:open={() => {
-		message = new Date().toLocaleString() + ': ';
 		if (stateJson) selectedFile = stateJson.path;
 	}}
 >
@@ -52,7 +52,10 @@
 			<p class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.summary')}</p>
 			<div class="flex flex-row gap-2">
 				<Input type="text" bind:value={message} placeholder={$t('deploy.summary')} />
-				<Button on:click={commit} disabled={repoStatus.changes.length === 0}>
+				<Button
+					on:click={commit}
+					disabled={repoStatus.changes.length === 0 || message.length === 0}
+				>
 					{$t('deploy.commit')}
 				</Button>
 			</div>

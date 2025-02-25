@@ -175,6 +175,8 @@
 		"build": "Bauen",
 		"deploy": "Ausrollen",
 		"update": "Updaten",
+		"dirty-repo-tooltip": "Alle Änderugen müssen committed werden, bevor Konfigurationen ausgerollt werden können",
+		"no-affected-configs-tooltip": "Wählen Sie mindestens eine Konfiguration aus",
 		"build-status": "Status: {status}",
 		"stdout": "Standard Output",
 		"stderr": "Standard Error",

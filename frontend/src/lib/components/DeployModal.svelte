@@ -2,7 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
-	import { Button, Modal, Input } from 'flowbite-svelte';
+	import { Button, Modal, Input, Tooltip } from 'flowbite-svelte';
 	import { invalidate } from '$app/navigation';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import {
@@ -133,6 +133,16 @@
 		>
 			{$t('deploy.deploy')}
 		</Button>
+		{#if filteredConfigs.length === 0 || repoStatus.changes.length > 0}
+			<Tooltip defaultClass="py-2 px-3 w-80 text-sm font-medium z-50">
+				{#if filteredConfigs.length === 0}
+					<p>{$t('deploy.no-affected-configs-tooltip')}</p>
+				{/if}
+				{#if repoStatus.changes.length > 0}
+					<p>{$t('deploy.dirty-repo-tooltip')}</p>
+				{/if}
+			</Tooltip>
+		{/if}
 	</div>
 </Modal>
 
