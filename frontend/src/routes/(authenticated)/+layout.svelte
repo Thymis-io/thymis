@@ -115,8 +115,8 @@
 		duration: 0,
 		initial: 0,
 		next: 0,
-		classes: ['whitespace-pre-line'],
-		theme: { '--toastWidth': '32rem' }
+		classes: ['whitespace-pre-line [overflow-wrap:anywhere]'],
+		theme: { '--toastWidth': '40rem' }
 	}}
 />
 

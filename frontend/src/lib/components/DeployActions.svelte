@@ -51,6 +51,6 @@
 		<Boxes size={'1rem'} class="min-w-4" />
 		<span class={textClass}>{$t('deploy.deploy')}</span>
 	</Button>
-	<DeployModal bind:open={openDeploy} />
+	<DeployModal bind:open={openDeploy} {repoStatus} />
 	<CommitModal bind:open={openCommit} {repoStatus} />
 </div>

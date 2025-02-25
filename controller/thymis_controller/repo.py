@@ -162,3 +162,6 @@ class Repo:
                 ]
             )
         )
+
+    def is_dirty(self) -> bool:
+        return bool(self.run_command("git", "status", "--porcelain"))

@@ -166,7 +166,10 @@
 		"no-revert": "Bereits auf diesem Commit",
 		"rollback-modal-body": "Hierdurch werden alle nicht gespeicherten Änderungen verworfen und ein neuer Commit mit dem Zustand des ausgewählten Commits erstellt.\n\n\n{newCommit}\n\n\nSind Sie sicher, dass Sie fortfahren möchten?",
 		"rollback-modal-confirm": "Zurücksetzen",
-		"rollback-modal-title": "Commit zurücksetzen"
+		"rollback-modal-title": "Commit zurücksetzen",
+		"internal-file-changes": "{count} internen Dateiänderungen",
+		"no-internal-file-changes": "keine internen Dateiänderungen",
+		"show-internal-files": "Anzeigen"
 	},
 	"deploy": {
 		"build": "Bauen",

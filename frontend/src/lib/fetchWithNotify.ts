@@ -21,7 +21,8 @@ export const fetchWithNotify = async (
 		if (customResponse && response.status in customResponse) {
 			message = customResponse[response.status];
 		} else {
-			message = url + ': ' + response.status + ' ' + response.statusText;
+			message =
+				url + ': ' + response.status + ' ' + response.statusText + '\n' + (await response.text());
 		}
 
 		if (message !== null) {

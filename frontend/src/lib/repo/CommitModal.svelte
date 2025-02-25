@@ -5,6 +5,8 @@
 	import { type FileChange, type RepoStatus } from '$lib/repo/repo';
 	import FileIcon from 'lucide-svelte/icons/file';
 	import SplitPane from '$lib/splitpane/SplitPane.svelte';
+	import { fetchWithNotify } from '$lib/fetchWithNotify';
+	import { invalidate } from '$app/navigation';
 
 	export let repoStatus: RepoStatus;
 
@@ -22,6 +24,17 @@
 	let overflowClass = 'overflow-hidden text-ellipsis ';
 
 	export let open = false;
+
+	const commit = async () => {
+		await fetchWithNotify(`/api/action/commit?message=${encodeURIComponent(message)}`, {
+			method: 'POST'
+		});
+		await invalidate(
+			(url) => url.pathname === '/api/history' || url.pathname === '/api/repo_status'
+		);
+
+		open = false;
+	};
 </script>
 
 <Modal
@@ -30,6 +43,7 @@
 	size="xl"
 	outsideclose
 	on:open={() => {
+		message = new Date().toLocaleString() + ': ';
 		if (stateJson) selectedFile = stateJson.path;
 	}}
 >
@@ -38,7 +52,9 @@
 			<p class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.summary')}</p>
 			<div class="flex flex-row gap-2">
 				<Input type="text" bind:value={message} placeholder={$t('deploy.summary')} />
-				<Button>{$t('deploy.commit')}</Button>
+				<Button on:click={commit} disabled={repoStatus.changes.length === 0}>
+					{$t('deploy.commit')}
+				</Button>
 			</div>
 		</div>
 		<div class="flex gap-2 mt-4">
