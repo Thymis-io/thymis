@@ -10,6 +10,6 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
 	return {
 		minimizeTaskbar: minimizeTaskbar,
 		vncDisplaysPerColumn: vncDisplaysPerColumn,
-		inPlaywright: 'RUNNING_IN_PLAYWRIGHT' in env
+		inPlaywright: 'RUNNING_IN_PLAYWRIGHT' in env && env.RUNNING_IN_PLAYWRIGHT === 'true'
 	};
 };
