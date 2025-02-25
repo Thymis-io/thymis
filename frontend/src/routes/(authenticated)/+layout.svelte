@@ -102,7 +102,7 @@
 						</div>
 						<div class="w-full h-[40px]">
 							<TaskbarMinimize bind:taskbarMinimized class="mt-2" />
-							<TaskbarSmall inPlaywright />
+							<TaskbarSmall inPlaywright={data.inPlaywright} />
 						</div>
 					</div>
 				</SplitPane>
