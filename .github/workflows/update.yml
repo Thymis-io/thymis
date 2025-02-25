@@ -58,11 +58,11 @@ jobs:
               BRANCH_NAME=update-flake-lock
               git switch -c update-flake-lock
             fi
+            git push origin HEAD
             # create a PR if not exists for this branch
             if ! gh pr list --state open --head $BRANCH_NAME; then
               gh pr create --fill
             fi
-            git push origin HEAD
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
