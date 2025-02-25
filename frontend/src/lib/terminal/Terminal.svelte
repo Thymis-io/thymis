@@ -85,11 +85,18 @@
 		}
 	});
 
-	const reInitTerminal = () => initTerminal(deploymentInfo, terminal);
+	let oldDeploymentInfoId = deploymentInfo.id;
+
+	const reInitTerminal = () => {
+		// only re-init terminal if deployment id has changed
+		if (oldDeploymentInfoId !== deploymentInfo.id) {
+			oldDeploymentInfoId = deploymentInfo.id;
+			resetConnection();
+			initTerminal(deploymentInfo, terminal);
+		}
+	};
 
 	$: {
-		resetConnection();
-
 		if (browser && deploymentInfo.id && terminal) {
 			reInitTerminal();
 		}
