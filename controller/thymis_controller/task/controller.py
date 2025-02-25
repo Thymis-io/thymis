@@ -90,6 +90,7 @@ class TaskController:
                     start_time=datetime.now(timezone.utc),
                     state="pending",
                     task_type="deploy_device_task",
+                    user_session_id=user_session_id,
                     task_submission_data=submission_data.model_dump(mode="json"),
                     parent_task_id=task_db.id,
                 )
