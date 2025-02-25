@@ -138,7 +138,7 @@ class NetworkRelay(nr.NetworkRelay):
 
     async def handle_edge_agent_message(self, message, message_outer, connection_id):
         # if is keep alive message, update last seen in deployment_info and hardware_device
-        # if isinstance(message, nr.EtRKeepAliveMessage):
+
         # actually, every message is a good time to update the last seen
         with sqlalchemy.orm.Session(self.db_engine) as db_session:
             deployment_info = crud_deployment_info.get_by_ssh_public_key(
@@ -160,6 +160,11 @@ class NetworkRelay(nr.NetworkRelay):
                     hardware_device.last_seen = datetime.now(timezone.utc)
             # update clients
             db_session.commit()
+        if isinstance(message, nr.EtRKeepAliveMessage):
+            # notify browsers to update /api/all_connected_deployment_info
+            self.notification_manager.broadcast_invalidate_notification(
+                ["/api/all_connected_deployment_info"]
+            )
 
         return await super().handle_edge_agent_message(
             message, message_outer, connection_id
