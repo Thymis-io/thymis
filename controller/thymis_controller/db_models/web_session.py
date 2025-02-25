@@ -9,9 +9,7 @@ class WebSession(Base):
 
     id = Column(Uuid, primary_key=True, index=True)
     session_token = Column(String, unique=True, nullable=False)
-    created_at = Column(
-        DateTime, default=datetime.now(timezone.utc), nullable=False
-    )
+    created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
 
     def __repr__(self):
         return f"<Session {self.id}>"
