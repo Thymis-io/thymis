@@ -1,7 +1,7 @@
 """add-user-session-id-column-to-task
 
 Revision ID: a8d5ad9db0f0
-Revises: 9839fa566965
+Revises: cf011834f9aa
 Create Date: 2025-02-11 16:39:46.689359
 
 """
@@ -10,7 +10,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "a8d5ad9db0f0"
-down_revision = "9839fa566965"
+down_revision = "cf011834f9aa"
 branch_labels = None
 depends_on = None
 
