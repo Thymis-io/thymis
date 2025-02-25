@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import logging
+import os
 import pathlib
 import subprocess
 import threading
@@ -22,6 +23,8 @@ class Commit(BaseModel):
 
 
 class FileChange(BaseModel):
+    path: str
+    dir: str
     file: str
     diff: str
 
@@ -149,10 +152,13 @@ class Repo:
             changes=reversed(
                 [
                     FileChange(
-                        file=file, diff=self.run_command("git", "diff", "HEAD", file)
+                        path=path,
+                        dir=os.path.dirname(path),
+                        file=os.path.basename(path),
+                        diff=self.run_command("git", "diff", "HEAD", path),
                     )
                     for line in result.splitlines()
-                    for file in line.split(maxsplit=1)[1:]
+                    for path in line.split(maxsplit=1)[1:]
                 ]
             )
         )
