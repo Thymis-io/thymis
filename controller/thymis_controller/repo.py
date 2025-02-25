@@ -74,13 +74,18 @@ class Repo:
     def __init__(self, path: pathlib.Path, notification_manager: NotificationManager):
         self.path = path
         self.notification_manager = notification_manager
+        self.state_observer = None
         self.init()
 
     def start_file_watcher(self):
         state_event_handler = StateEventHandler(self.notification_manager)
-        state_observer = Observer()
-        state_observer.schedule(state_event_handler, str(self.path / "state.json"))
-        state_observer.start()
+        self.state_observer = Observer()
+        self.state_observer.schedule(state_event_handler, str(self.path / "state.json"))
+        self.state_observer.start()
+
+    def stop_file_watcher(self):
+        if self.state_observer:
+            self.state_observer.stop()
 
     def run_command(self, *args: str) -> str:
         return subprocess.run(
