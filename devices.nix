@@ -29,9 +29,14 @@ let
         };
         boot.kernelModules = [ "vc4" "bcm2835_dma" "i2c_bcm2835" ];
         nixpkgs.overlays = [
-          (final: super: {
+          (final: prev: {
             makeModulesClosure = x:
-              super.makeModulesClosure (x // { allowMissing = true; });
+              prev.makeModulesClosure (x // { allowMissing = true; });
+            compressFirmwareXz = inputs.nixpkgs.legacyPackages.${final.stdenv.system}.compressFirmwareXz;
+            compressFirmwareZstd = inputs.nixpkgs.legacyPackages.${final.stdenv.system}.compressFirmwareZstd;
+            raspberrypiWirelessFirmware = prev.raspberrypiWirelessFirmware // {
+              compressFirmware = false;
+            };
           })
         ];
         nixpkgs.hostPlatform = "aarch64-linux";
@@ -53,10 +58,15 @@ let
             };
           };
         };
-        nixpkgs.overlays = [
-          (final: super: {
+        nixpkgs.overlays = lib.mkAfter [
+          (final: prev: {
             makeModulesClosure = x:
-              super.makeModulesClosure (x // { allowMissing = true; });
+              prev.makeModulesClosure (x // { allowMissing = true; });
+            compressFirmwareXz = inputs.nixpkgs.legacyPackages.${final.stdenv.system}.compressFirmwareXz;
+            compressFirmwareZstd = inputs.nixpkgs.legacyPackages.${final.stdenv.system}.compressFirmwareZstd;
+            raspberrypiWirelessFirmware = prev.raspberrypiWirelessFirmware // {
+              compressFirmware = false;
+            };
           })
         ];
         nixpkgs.hostPlatform = "aarch64-linux";
@@ -71,9 +81,14 @@ let
         raspberry-pi-nix.libcamera-overlay.enable = false;
         raspberry-pi-nix.board = "bcm2712";
         nixpkgs.overlays = [
-          (final: super: {
+          (final: prev: {
             makeModulesClosure = x:
-              super.makeModulesClosure (x // { allowMissing = true; });
+              prev.makeModulesClosure (x // { allowMissing = true; });
+            compressFirmwareXz = inputs.nixpkgs.legacyPackages.${final.stdenv.system}.compressFirmwareXz;
+            compressFirmwareZstd = inputs.nixpkgs.legacyPackages.${final.stdenv.system}.compressFirmwareZstd;
+            raspberrypiWirelessFirmware = prev.raspberrypiWirelessFirmware // {
+              compressFirmware = false;
+            };
           })
         ];
         nixpkgs.hostPlatform = "aarch64-linux";
