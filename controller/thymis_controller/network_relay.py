@@ -162,7 +162,7 @@ class NetworkRelay(nr.NetworkRelay):
                 db_session.commit()
             # notify browsers to update /api/all_connected_deployment_info
             self.notification_manager.broadcast_invalidate_notification(
-                ["/api/all_connected_deployment_info"]
+                ["/api/all_deployment_infos", "/api/all_connected_deployment_info"]
             )
 
         return await super().handle_edge_agent_message(
@@ -379,7 +379,8 @@ class NetworkRelay(nr.NetworkRelay):
 
         self.notification_manager.broadcast_invalidate_notification(
             [
-                "/api/deployment_info",
+                "/api/all_deployment_infos",
+                "/api/all_connected_deployment_info",
                 "/api/deployment_infos_by_config_id",
                 "/api/connected_deployment_infos_by_config_id",
             ]
