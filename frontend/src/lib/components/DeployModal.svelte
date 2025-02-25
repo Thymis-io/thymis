@@ -13,7 +13,9 @@
 		type Tag
 	} from '$lib/state';
 	import MultiSelect from 'svelte-multiselect';
+	import type { RepoStatus } from '$lib/repo/repo';
 
+	export let repoStatus: RepoStatus;
 	export let open = false;
 
 	type Option = {
@@ -49,7 +51,6 @@
 		return [];
 	};
 
-	let message = new Date().toLocaleString() + ': ';
 	let selectedOptions = defaultSelectedOption(
 		$globalNavSelectedTarget,
 		$globalNavSelectedTargetType
@@ -68,7 +69,7 @@
 
 	const deploy = async () => {
 		const configs = filteredConfigs.map((config) => '&config=' + config.identifier).join('');
-		await fetchWithNotify(`/api/action/deploy?message=${encodeURIComponent(message)}${configs}`, {
+		await fetchWithNotify(`/api/action/deploy?${configs}`, {
 			method: 'POST'
 		});
 		await invalidate((url) => url.pathname === '/api/history');
@@ -83,15 +84,10 @@
 	size="lg"
 	outsideclose
 	on:open={() => {
-		message = new Date().toLocaleString() + ': ';
 		selectedOptions = defaultSelectedOption($globalNavSelectedTarget, $globalNavSelectedTargetType);
 	}}
 >
-	<div>
-		<p class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.summary')}</p>
-		<Input type="text" bind:value={message} placeholder={$t('deploy.summary')} />
-	</div>
-	<div class="mt-4 min-h-12">
+	<div class="min-h-12">
 		<div class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.selected')}</div>
 		<MultiSelect
 			options={Array.prototype.concat(
@@ -131,7 +127,12 @@
 		</div>
 	</div>
 	<div class="flex flex-wrap gap-2 justify-end">
-		<Button on:click={deploy} disabled={filteredConfigs.length === 0}>{$t('deploy.deploy')}</Button>
+		<Button
+			on:click={deploy}
+			disabled={filteredConfigs.length === 0 || repoStatus.changes.length > 0}
+		>
+			{$t('deploy.deploy')}
+		</Button>
 	</div>
 </Modal>
 

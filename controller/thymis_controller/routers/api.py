@@ -89,7 +89,6 @@ router.include_router(task.router)
 
 @router.post("/action/deploy")
 async def deploy(
-    message: str,
     session: SessionAD,
     project: ProjectAD,
     task_controller: TaskControllerAD,
@@ -97,8 +96,11 @@ async def deploy(
     user_session_id: UserSessionIDAD,
     configs: list[str] = Query(None, alias="config"),
 ):
-    project.repo.add(".")
-    project.repo.commit(message)
+    if project.repo.is_dirty():
+        raise HTTPException(
+            status_code=409,
+            detail="Repository is dirty. Please commit your changes first.",
+        )
 
     devices: list[models.DeployDeviceInformation] = []
 
@@ -270,6 +272,13 @@ def get_diff(
 @router.get("/repo_status", tags=["history"])
 def get_repo_status(project: ProjectAD):
     return project.repo.status()
+
+
+@router.post("/action/commit")
+async def commit(project: ProjectAD, message: str):
+    project.repo.add(".")
+    project.repo.commit(message)
+    return {"message": "commit successful"}
 
 
 @router.post("/action/update")
