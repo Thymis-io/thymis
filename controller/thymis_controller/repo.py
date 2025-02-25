@@ -46,7 +46,7 @@ class StateEventHandler(FileSystemEventHandler):
 
         self.last_event = datetime.datetime.now()
         self.notification_manager.broadcast_invalidate_notification(
-            ["/api/repo_changes", "/api/state"]
+            ["/api/repo_status", "/api/state"]
         )
 
     def should_debounce(self):
@@ -62,7 +62,7 @@ class StateEventHandler(FileSystemEventHandler):
     async def debounce(self):
         await asyncio.sleep(0.2)
         self.notification_manager.broadcast_invalidate_notification(
-            ["/api/repo_changes", "/api/state"]
+            ["/api/repo_status", "/api/state"]
         )
 
 
@@ -146,11 +146,13 @@ class Repo:
             return RepoStatus(changes=[])
 
         return RepoStatus(
-            changes=[
-                FileChange(
-                    file=file, diff=self.run_command("git", "diff", "HEAD", file)
-                )
-                for line in result.splitlines()
-                for file in line.split(maxsplit=1)[1:]
-            ]
+            changes=reversed(
+                [
+                    FileChange(
+                        file=file, diff=self.run_command("git", "diff", "HEAD", file)
+                    )
+                    for line in result.splitlines()
+                    for file in line.split(maxsplit=1)[1:]
+                ]
+            )
         )
