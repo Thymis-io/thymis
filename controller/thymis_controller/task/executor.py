@@ -226,7 +226,9 @@ class TaskWorkerPoolManager:
                                         ],
                                     )
                                     new_task = self.controller.submit(
-                                        new_task_submission, db_session
+                                        new_task_submission,
+                                        task.user_session_id,
+                                        db_session,
                                     )
                                     db_session.commit()
                                 else:

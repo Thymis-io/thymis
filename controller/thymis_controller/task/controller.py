@@ -124,7 +124,7 @@ class TaskController:
     def retry_task(self, task_id: str, db_session: Session):
         task = crud.task.get_task_by_id(db_session, task_id)
         task_data = TaskSubmission.from_orm_task(task).data
-        self.submit(task_data, db_session)
+        self.submit(task_data, task.user_session_id, db_session)
 
     def delete_all_tasks(self, db_session: Session):
         if "RUNNING_IN_PLAYWRIGHT" in os.environ:
