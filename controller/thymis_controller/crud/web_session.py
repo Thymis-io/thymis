@@ -32,9 +32,7 @@ def validate(db_session: Session, session_id: uuid.UUID, session_token: str) -> 
     if web_session is None:
         return False
 
-    expiration_time = (
-        web_session.created_at.astimezone(timezone.utc) + SESSION_LIFETIME
-    )
+    expiration_time = web_session.created_at.astimezone(timezone.utc) + SESSION_LIFETIME
     is_expired = expiration_time < datetime.now(timezone.utc)
     if is_expired:
         delete(db_session, session_token)

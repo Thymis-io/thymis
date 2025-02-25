@@ -52,7 +52,9 @@ class TaskController:
     def get_task_count(self, session: Session):
         return crud.task.get_task_count(session)
 
-    def submit(self, task: TaskSubmissionData, user_session_id: uuid.UUID, db_session: Session) -> models.Task:
+    def submit(
+        self, task: TaskSubmissionData, user_session_id: uuid.UUID, db_session: Session
+    ) -> models.Task:
         # creates a database entry, then submits to executor
         task_db = task_create(
             db_session,
