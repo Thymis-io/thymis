@@ -4,11 +4,11 @@
 	import Hammer from 'lucide-svelte/icons/hammer';
 	import Refresh from 'lucide-svelte/icons/refresh-ccw';
 	import Boxes from 'lucide-svelte/icons/boxes';
-	import DeployModal from '$lib/components/DeployModal.svelte';
 	import GitCommitVertical from 'lucide-svelte/icons/git-commit-vertical';
+	import DeployModal from '$lib/repo/DeployModal.svelte';
+	import CommitModal from '$lib/repo/CommitModal.svelte';
 	import { invalidate } from '$app/navigation';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
-	import CommitModal from '$lib/repo/CommitModal.svelte';
 	import { type RepoStatus } from '$lib/repo/repo';
 
 	export let repoStatus: RepoStatus;
@@ -47,20 +47,10 @@
 		</div>
 		<span class={textClass}>{$t('deploy.commit')}</span>
 	</Button>
-	<Button
-		color="alternative"
-		class={buttonClass}
-		disabled={repoStatus.changes.length > 0}
-		on:click={() => (openDeploy = true)}
-	>
+	<Button color="alternative" class={buttonClass} on:click={() => (openDeploy = true)}>
 		<Boxes size={'1rem'} class="min-w-4" />
 		<span class={textClass}>{$t('deploy.deploy')}</span>
 	</Button>
-	{#if repoStatus.changes.length > 0}
-		<Tooltip placement="bottom" class="z-50">
-			<p>{$t('deploy.dirty-repo-tooltip')}</p>
-		</Tooltip>
-	{/if}
 	<DeployModal bind:open={openDeploy} {repoStatus} />
 	<CommitModal bind:open={openCommit} {repoStatus} />
 </div>
