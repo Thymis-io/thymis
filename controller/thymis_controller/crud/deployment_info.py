@@ -52,6 +52,8 @@ def update(
         deployment_info.reachable_deployed_host = reachable_deployed_host
     if last_seen is not None:
         deployment_info.last_seen = last_seen
+    if deployment_info.first_seen is None:
+        deployment_info.first_seen = last_seen
     session.commit()
     session.refresh(deployment_info)
     return deployment_info
@@ -127,7 +129,18 @@ def get_all(session: Session):
         .order_by(db_models.DeploymentInfo.first_seen.desc())
         .order_by(db_models.DeploymentInfo.last_seen.desc())
         .order_by(db_models.DeploymentInfo.deployed_config_id.asc())
-        .order_by(nullslast(db_models.DeploymentInfo.reachable_deployed_host.asc()))
+        .order_by(nullslast(db_models.DeploymentInfo.deployed_config_commit.asc()))
+        .all()
+    )
+
+
+def get_all_stable(session: Session):
+    return (
+        session.query(db_models.DeploymentInfo)
+        .order_by(db_models.DeploymentInfo.deployed_config_id.asc())
+        .order_by(nullslast(db_models.DeploymentInfo.deployed_config_commit.asc()))
+        .order_by(db_models.DeploymentInfo.first_seen.desc())
+        .order_by(db_models.DeploymentInfo.last_seen.desc())
         .all()
     )
 

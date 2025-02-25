@@ -85,11 +85,13 @@
 		}
 	});
 
+	const reInitTerminal = () => initTerminal(deploymentInfo, terminal);
+
 	$: {
 		resetConnection();
 
-		if (browser && deploymentInfo && terminal) {
-			initTerminal(deploymentInfo, terminal);
+		if (browser && deploymentInfo.id && terminal) {
+			reInitTerminal();
 		}
 	}
 </script>
