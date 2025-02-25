@@ -139,28 +139,27 @@ class NetworkRelay(nr.NetworkRelay):
     async def handle_edge_agent_message(self, message, message_outer, connection_id):
         # if is keep alive message, update last seen in deployment_info and hardware_device
 
-        # actually, every message is a good time to update the last seen
-        with sqlalchemy.orm.Session(self.db_engine) as db_session:
-            deployment_info = crud_deployment_info.get_by_ssh_public_key(
-                db_session, self.connection_id_to_public_key[connection_id]
-            )
-            if not deployment_info:
-                logger.error(
-                    "Deployment info not found for public key %s",
-                    self.connection_id_to_public_key[connection_id],
-                )
-                raise ValueError("Deployment info not found")
-            deployment_info = crud_deployment_info.update(
-                db_session,
-                deployment_info[0].id,
-                last_seen=datetime.now(timezone.utc),
-            )
-            if deployment_info.hardware_devices:
-                for hardware_device in deployment_info.hardware_devices:
-                    hardware_device.last_seen = datetime.now(timezone.utc)
-            # update clients
-            db_session.commit()
         if isinstance(message, nr.EtRKeepAliveMessage):
+            with sqlalchemy.orm.Session(self.db_engine) as db_session:
+                deployment_info = crud_deployment_info.get_by_ssh_public_key(
+                    db_session, self.connection_id_to_public_key[connection_id]
+                )
+                if not deployment_info:
+                    logger.error(
+                        "Deployment info not found for public key %s",
+                        self.connection_id_to_public_key[connection_id],
+                    )
+                    raise ValueError("Deployment info not found")
+                deployment_info = crud_deployment_info.update(
+                    db_session,
+                    deployment_info[0].id,
+                    last_seen=datetime.now(timezone.utc),
+                )
+                if deployment_info.hardware_devices:
+                    for hardware_device in deployment_info.hardware_devices:
+                        hardware_device.last_seen = datetime.now(timezone.utc)
+                # update clients
+                db_session.commit()
             # notify browsers to update /api/all_connected_deployment_info
             self.notification_manager.broadcast_invalidate_notification(
                 ["/api/all_connected_deployment_info"]
