@@ -33,19 +33,22 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set git config
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          git fetch --all
+          USER_NAME=${{ steps.generate-token.outputs.app-slug }}[bot]
+          USER_ID=$(gh api "/users/${USER_NAME}" --jq '.id')
+          USER_EMAIL="${USER_ID}+${{ steps.generate-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+          git config user.email $USER_EMAIL
+          git config user.name $USER_NAME
       - name: Update flake lock
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            git fetch --all
-            git switch ${{ github.head_ref || github.ref_name }}
-            USER_NAME=${{ steps.generate-token.outputs.app-slug }}[bot]
-            USER_ID=$(gh api "/users/${USER_NAME}" --jq '.id')
-            USER_EMAIL="${USER_ID}+${{ steps.generate-token.outputs.app-slug }}[bot]@users.noreply.github.com"
-            git config user.email $USER_EMAIL
-            git config user.name $USER_NAME
             nix flake update --commit-lock-file
       - name: Commit and push changes
         run: |
