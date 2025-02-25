@@ -423,32 +423,21 @@ test('Create History Entry', async ({ page, request }, testInfo) => {
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
-	const deployButtonAction = page.locator('button').filter({ hasText: 'Deploy' });
-	await deployButtonAction.click();
+	await page.locator('button').filter({ hasText: 'Commit' }).click();
 
 	const messageInput = page.getByPlaceholder('Message');
-	await messageInput.fill('Deploying device');
-
-	await page.locator('input').nth(2).locator('..').click();
-	await page.locator('li').filter({ hasText: 'My Device 1' }).click();
+	await messageInput.fill('Commiting changes');
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
-	const deployButton = page.locator('button').filter({ hasText: 'Deploy' }).nth(1);
-	await deployButton.click();
+	await page.locator('button').filter({ hasText: 'Commit' }).nth(1).click();
 
-	await page.locator('td', { hasText: 'completed' }).first().waitFor();
+	await expectScreenshot(page, testInfo, screenshotCounter);
 
-	await expectScreenshot(page, testInfo, screenshotCounter, {
-		mask: [page.locator('.playwright-snapshot-unstable')]
-	});
-
-	const showChangesButton = page.locator('button').filter({ hasText: 'Show Changes' });
+	const showChangesButton = page.locator('button').filter({ hasText: 'Show Changes' }).nth(0);
 	await showChangesButton.click();
 
-	await expectScreenshot(page, testInfo, screenshotCounter, {
-		mask: [page.locator('.playwright-snapshot-unstable')]
-	});
+	await expectScreenshot(page, testInfo, screenshotCounter);
 });
 
 test('Configure Wifi Network', async ({ page, request }, testInfo) => {
