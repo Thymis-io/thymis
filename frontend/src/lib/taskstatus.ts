@@ -136,11 +136,20 @@ export const retryTask = async (taskId: string, fetch: typeof window.fetch = win
 	return response;
 };
 
+let resolvePromise: () => void;
+let socketPromise = new Promise<void>((resolve) => {
+	resolvePromise = resolve;
+});
+
 const startSocket = () => {
 	console.log('starting task_status socket');
 	// get schemed from current location
 	const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 	socket = new WebSocket(`${scheme}://${window.location.host}/api/task_status`);
+	socket.onopen = () => {
+		console.log('task_status socket opened');
+		resolvePromise();
+	};
 	socket.onmessage = async (event) => {
 		const data = JSON.parse(event.data) as
 			| ShortTaskMessage
@@ -196,11 +205,15 @@ const startSocket = () => {
 	};
 	socket.onclose = () => {
 		console.log('task_status socket closed');
+		socketPromise = new Promise<void>((resolve) => {
+			resolvePromise = resolve;
+		});
 		setTimeout(startSocket, 1000);
 	};
 };
 
-export const subscribeTask = (taskId: string) => {
+export const subscribeTask = async (taskId: string) => {
+	await socketPromise;
 	if (!socket || taskId === get(subscribedTask)?.id) return;
 	subscribedTask.set(null);
 	socket.send(JSON.stringify({ type: 'subscribe_task', task_id: taskId }));
