@@ -31,6 +31,11 @@ def is_running_in_playwright():
     return "RUNNING_IN_PLAYWRIGHT" in os.environ
 
 
+running_in_playwright_dict = (
+    {"RUNNING_IN_PLAYWRIGHT": "true"} if is_running_in_playwright() else {}
+)
+
+
 def is_in_local_devshell():
     return "THYMIS_DEV_SHELL" in os.environ
 
@@ -98,6 +103,7 @@ class Frontend:
                     "HOST": "127.0.0.1",
                     "PUBLIC_CONTROLLER_HOST": controller_base_url(),
                     "PATH": os.environ["PATH"],
+                    **running_in_playwright_dict,
                 },
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -109,6 +115,7 @@ class Frontend:
                     "PORT": str(FRONTEND_PORT),
                     "HOST": "127.0.0.1",
                     "PUBLIC_CONTROLLER_HOST": controller_base_url(),
+                    **running_in_playwright_dict,
                 },
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
