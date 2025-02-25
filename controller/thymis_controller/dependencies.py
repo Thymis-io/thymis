@@ -56,13 +56,15 @@ def get_db_session(connection: HTTPConnection) -> Generator[Session, None, None]
 # session annotated dependency for FastAPI endpoints
 SessionAD = Annotated[Session, Depends(get_db_session)]
 
-UserSessionIDAD = Annotated[Union[uuid.UUID, None], Cookie(alias="session-id")]
+UserSessionIDAD = Annotated[Optional[uuid.UUID], Cookie(alias="session-id")]
 
-UserSessionTokenAD = Annotated[Union[str, None], Cookie(alias="session-token")]
+UserSessionTokenAD = Annotated[Optional[str], Cookie(alias="session-token")]
 
 
 def check_user_session(
-    db_session: SessionAD, user_session_id: uuid.UUID, user_session_token: str
+    db_session: SessionAD,
+    user_session_id: Optional[uuid.UUID],
+    user_session_token: Optional[str],
 ) -> Optional[bool]:
     if user_session_id is None or user_session_token is None:
         return None
@@ -71,8 +73,8 @@ def check_user_session(
 
 def require_valid_user_session(
     db_engine: EngineAD,
-    user_session_id: UserSessionIDAD,
-    user_session_token: UserSessionTokenAD,
+    user_session_id: UserSessionIDAD = None,
+    user_session_token: UserSessionTokenAD = None,
 ) -> bool:
     """
     Check if the session is valid
