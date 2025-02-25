@@ -10,15 +10,16 @@ import sys
 import tempfile
 import threading
 import traceback
+import uuid
 
-import paramiko
 import sqlalchemy
 import sqlalchemy.orm
-from thymis_controller import crud, migration, models, task
+from thymis_controller import crud, migration, models
 from thymis_controller.config import global_settings
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
 from thymis_controller.repo import Repo
+from thymis_controller.task import controller as task
 
 logger = logging.getLogger(__name__)
 
@@ -282,11 +283,15 @@ class Project:
         logger.debug("Updated known_hosts file at %s", self.known_hosts_path)
 
     def create_update_task(
-        self, task_controller: "task.TaskController", db_session: sqlalchemy.orm.Session
+        self,
+        task_controller: "task.TaskController",
+        user_session_id: uuid.Uuid,
+        db_session: sqlalchemy.orm.Session,
     ):
         return task_controller.submit(
             models.task.ProjectFlakeUpdateTaskSubmission(
                 project_path=str(self.path),
             ),
-            db_session,
+            user_session_id=user_session_id,
+            db_session=db_session,
         )
