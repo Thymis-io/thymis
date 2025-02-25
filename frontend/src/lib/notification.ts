@@ -57,8 +57,13 @@ export const startNotificationSocket = () => {
 				const response = await fetchWithNotify(downloadUrl, { method: 'HEAD' });
 				if (response.ok) {
 					const a = document.createElement('a');
+					a.target = '_blank';
 					a.href = downloadUrl;
+					a.setAttribute('download', '');
 					document.body.appendChild(a);
+					a.onclick = (e) => {
+						e.stopPropagation();
+					};
 					a.click();
 					document.body.removeChild(a);
 				}
