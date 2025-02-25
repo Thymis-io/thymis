@@ -7,18 +7,22 @@
 buildNpmPackage {
   GIT_REV = git-rev;
   pname = "thymis-frontend";
-  version = "0.0.1";
+  version = (builtins.fromJSON (builtins.readFile ./package.json)).version;
   src = ./.;
   npmDepsHash = "sha256-+011/zQVy9PhdeaLy0SRnTK1o5870iTEZOIDTUxWfPg=";
-  postInstall = ''
-    mkdir -p $packageOut/build
-    cp -r ./build/* $packageOut/build
-    # create bin/thymis-frontend
+  dontNpmInstall = true;
+  installPhase = ''
+    runHook preInstall
+
+    mkdir -p $out/lib/thymis-frontend/build
+    cp -r ./build/* $out/lib/thymis-frontend/build
     mkdir -p $out/bin
     cat > $out/bin/thymis-frontend <<EOF
     #!${runtimeShell}
-    ${nodejs_22}/bin/node $packageOut/build/index.js
+    ${nodejs_22}/bin/node $out/lib/thymis-frontend/build/index.js
     EOF
     chmod +x $out/bin/thymis-frontend
+
+    runHook postInstall
   '';
 }
