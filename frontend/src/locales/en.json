@@ -174,6 +174,7 @@
 	"deploy": {
 		"build": "Build",
 		"deploy": "Deploy",
+		"commit-deploy": "Commit & Deploy",
 		"update": "Update",
 		"commit": "Commit",
 		"dirty-repo-tooltip": "Please commit all changes before deploying",
