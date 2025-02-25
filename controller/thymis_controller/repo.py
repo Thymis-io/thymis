@@ -48,9 +48,7 @@ class StateEventHandler(FileSystemEventHandler):
             return
 
         self.last_event = datetime.datetime.now()
-        self.notification_manager.broadcast_invalidate_notification(
-            ["/api/repo_status", "/api/state"]
-        )
+        self.broadcast_update()
 
     def should_debounce(self):
         delta = datetime.datetime.now() - self.last_event
@@ -64,6 +62,9 @@ class StateEventHandler(FileSystemEventHandler):
 
     async def debounce(self):
         await asyncio.sleep(0.2)
+        self.broadcast_update()
+
+    def broadcast_update(self):
         self.notification_manager.broadcast_invalidate_notification(
             ["/api/repo_status", "/api/state"]
         )
@@ -75,6 +76,7 @@ class Repo:
         self.notification_manager = notification_manager
         self.init()
 
+    def start_file_watcher(self):
         state_event_handler = StateEventHandler(self.notification_manager)
         state_observer = Observer()
         state_observer.schedule(state_event_handler, str(self.path / "state.json"))
@@ -165,3 +167,7 @@ class Repo:
 
     def is_dirty(self) -> bool:
         return bool(self.run_command("git", "status", "--porcelain"))
+
+    def has_root_commit(self) -> bool:
+        result = self.run_command("git", "rev-list", "--max-parents=0", "HEAD")
+        return bool(result)

@@ -193,6 +193,11 @@ class Project:
             logger.error("Error while migrating state: %s", e)
             traceback.print_exc()
 
+        if not self.repo.has_root_commit():
+            self.repo.add(".")
+            self.repo.commit("Initial commit")
+        self.repo.start_file_watcher()
+
         logger.debug("Initializing known_hosts file")
         self.known_hosts_path = None
         self.update_known_hosts(db_session)
@@ -274,6 +279,10 @@ class Project:
                 shutil.rmtree(self.repo_dir / ".git")
             self.repo = Repo(self.repo_dir, self.notification_manager)
             self.write_state_and_reload(State())
+            if not self.repo.has_root_commit():
+                self.repo.add(".")
+                self.repo.commit("Initial commit")
+            self.repo.start_file_watcher()
             self.update_known_hosts(db_session)
 
     def update_known_hosts(self, db_session: sqlalchemy.orm.Session):
