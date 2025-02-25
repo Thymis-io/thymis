@@ -38,6 +38,12 @@ export const load = (async ({ fetch, url, data }) => {
 	if (stateResponse.status === 401) {
 		redirect(307, '/login?redirect=' + encodeURIComponent(url.pathname + url.search));
 	}
+	if (stateResponse.status === 422) {
+		// log
+		console.debug('State response status 422');
+		console.debug(stateResponse);
+		console.debug(await stateResponse.text());
+	}
 	const state = (await stateResponse.json()) as State;
 	if (!state) {
 		error(500, 'Could not fetch state');
