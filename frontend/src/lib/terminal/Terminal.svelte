@@ -85,7 +85,7 @@
 		}
 	});
 
-	let oldDeploymentInfoId = deploymentInfo.id;
+	let oldDeploymentInfoId: string | undefined = undefined;
 
 	const reInitTerminal = () => {
 		// only re-init terminal if deployment id has changed
