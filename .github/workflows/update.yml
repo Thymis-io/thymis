@@ -51,7 +51,7 @@ jobs:
         run: |
             # if on master, create a new branch
             BRANCH_NAME=${{ github.head_ref || github.ref_name }}
-            if [ "$BRANCH_NAME" = "master" ]; then
+            if [ "$BRANCH_NAME" = "master" ] && [ "$BRANCH_NAME" != "update-flake-lock" ]; then
               BRANCH_NAME=update-flake-lock
               git switch -c update-flake-lock
             fi
