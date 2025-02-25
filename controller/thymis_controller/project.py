@@ -282,7 +282,6 @@ class Project:
             if not self.repo.has_root_commit():
                 self.repo.add(".")
                 self.repo.commit("Initial commit")
-            self.repo.start_file_watcher()
             self.update_known_hosts(db_session)
 
     def update_known_hosts(self, db_session: sqlalchemy.orm.Session):
