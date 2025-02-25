@@ -89,9 +89,9 @@
 			href: '/history'
 		},
 		{
-			name: $t('nav.external-repositories'),
+			name: $t('nav.project-settings'),
 			icon: Settings,
-			href: '/external-repositories'
+			href: '/project-settings'
 		}
 	];
 
