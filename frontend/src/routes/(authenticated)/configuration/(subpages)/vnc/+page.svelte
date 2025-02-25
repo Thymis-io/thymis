@@ -37,22 +37,11 @@
 	/>
 </div>
 <DynamicGrid class={columns === 2 ? 'gap-4' : 'gap-2'} {columns}>
-	{#if $globalNavSelectedTargetType === 'config' && $globalNavSelectedConfig}
-		{#if data.deploymentInfos}
-			{#each data.deploymentInfos as deploymentInfo}
-				<VncView
-					config={getConfigFromIdentifier(deploymentInfo.deployed_config_id)}
-					{deploymentInfo}
-				/>
-			{/each}
+	{#each data.deploymentInfos as deploymentInfo}
+		{@const config = getConfigFromIdentifier(deploymentInfo.deployed_config_id)}
+		{@const showVNC = config && targetShouldShowVNC(config, $state)}
+		{#if showVNC}
+			<VncView {config} {deploymentInfo} />
 		{/if}
-	{:else if $globalNavSelectedTargetType === 'tag' && $globalNavSelectedTag}
-		{#each data.state.configs.filter( (config) => config.tags.includes($globalNavSelectedTag.identifier) ) as config}
-			{#if targetShouldShowVNC(config, $state)}
-				{#each data.allDeploymentInfos.get(config.identifier) ?? [] as deploymentInfo}
-					<VncView {config} {deploymentInfo} />
-				{/each}
-			{/if}
-		{/each}
-	{/if}
+	{/each}
 </DynamicGrid>

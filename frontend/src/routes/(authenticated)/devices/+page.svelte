@@ -49,7 +49,7 @@
 	</TableHead>
 	<tbody>
 		{#each data.deploymentInfos as deploymentInfo (deploymentInfo.id)}
-			{#if !hideOldDevices || (deploymentInfo.last_seen && new Date(deploymentInfo.last_seen) > new Date(new Date().getTime() - hideAfter))}
+			{#if !hideOldDevices || (deploymentInfo.last_seen && new Date(deploymentInfo.last_seen) > new Date(data.loadTime - hideAfter))}
 				{@const deployedConfig = data.state.configs.find(
 					(config) => config.identifier === deploymentInfo.deployed_config_id
 				)}

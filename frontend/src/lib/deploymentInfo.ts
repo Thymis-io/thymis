@@ -68,7 +68,7 @@ export const getConnectedDeploymentInfosByConfigId = async (
 };
 
 export const getAllDeploymentInfos = async (fetch: typeof window.fetch) => {
-	const response = await fetchWithNotify('/api/deployment_info', undefined, {}, fetch);
+	const response = await fetchWithNotify('/api/deployment_infos', undefined, {}, fetch);
 	if (response.ok) {
 		return (await response.json()) as DeploymentInfo[];
 	}
@@ -76,7 +76,12 @@ export const getAllDeploymentInfos = async (fetch: typeof window.fetch) => {
 };
 
 export const getAllConnectedDeploymentInfos = async (fetch: typeof window.fetch) => {
-	const response = await fetchWithNotify('/api/connected_deployment_info', undefined, {}, fetch);
+	const response = await fetchWithNotify(
+		'/api/all_connected_deployment_info',
+		undefined,
+		{},
+		fetch
+	);
 	if (response.ok) {
 		return (await response.json()) as DeploymentInfo[];
 	}

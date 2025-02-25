@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -33,4 +33,4 @@ class DeploymentInfo(Base):
     )
 
     last_seen: Mapped[datetime] = mapped_column(nullable=True)
-    first_seen: Mapped[datetime] = mapped_column(nullable=True)
+    first_seen: Mapped[Optional[datetime]] = mapped_column(nullable=True)

@@ -365,14 +365,16 @@ def delete_deployment_info(db_session: SessionAD, id: uuid.UUID, project: Projec
     project.update_known_hosts(db_session)
 
 
-@router.get("/connected_deployment_info", response_model=list[models.DeploymentInfo])
+@router.get(
+    "/all_connected_deployment_info", response_model=list[models.DeploymentInfo]
+)
 def get_connected_deployment_infos(
     db_session: SessionAD, network_relay: NetworkRelayAD
 ):
     """
     Get all connected deployment_infos
     """
-    all_deployment_infos = crud.deployment_info.get_all(db_session)
+    all_deployment_infos = crud.deployment_info.get_all_stable(db_session)
     connected_deployment_infos = []
     for deployment_info in all_deployment_infos:
         if network_relay.public_key_to_connection_id.get(
@@ -385,7 +387,7 @@ def get_connected_deployment_infos(
     )
 
 
-@router.get("/deployment_info", response_model=list[models.DeploymentInfo])
+@router.get("/deployment_infos", response_model=list[models.DeploymentInfo])
 def get_all_deployment_infos(db_session: SessionAD):
     """
     Get all deployment_infos
