@@ -73,9 +73,11 @@ async def build_repo(
     project: ProjectAD,
     task_controller: TaskControllerAD,
     db_session: SessionAD,
+    user_session_id: UserSessionIDAD,
 ):
     task_controller.submit(
         models.BuildProjectTaskSubmission(project_path=str(project.path)),
+        user_session_id=user_session_id,
         db_session=db_session,
     )
 
@@ -92,6 +94,7 @@ async def deploy(
     project: ProjectAD,
     task_controller: TaskControllerAD,
     network_relay: NetworkRelayAD,
+    user_session_id: UserSessionIDAD,
     configs: list[str] = Query(None, alias="config"),
 ):
     project.repo.add(".")
@@ -125,6 +128,7 @@ async def deploy(
             controller_ssh_pubkey=project.public_key,
             config_commit=project.repo.head_commit(),
         ),
+        user_session_id=user_session_id,
         db_session=session,
     )
 
@@ -167,6 +171,7 @@ async def restart_device(
     db_session: SessionAD,
     task_controller: TaskControllerAD,
     project: ProjectAD,
+    user_session_id: UserSessionIDAD,
 ):
     for target_host in crud.deployment_info.get_by_config_id(db_session, identifier):
         task_controller.submit(
@@ -178,6 +183,7 @@ async def restart_device(
                 ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
                 ssh_known_hosts_path=str(project.known_hosts_path),
             ),
+            user_session_id=user_session_id,
             db_session=db_session,
         )
 
@@ -263,9 +269,10 @@ async def update(
     project: ProjectAD,
     task_controller: TaskControllerAD,
     db_session: SessionAD,
+    user_session_id: UserSessionIDAD,
 ):
     project.reload_from_disk()
-    project.create_update_task(task_controller, db_session)
+    project.create_update_task(task_controller, user_session_id, db_session)
 
     return {"message": "update started"}
 
