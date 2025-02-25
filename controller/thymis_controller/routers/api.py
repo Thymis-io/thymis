@@ -387,7 +387,7 @@ def get_connected_deployment_infos(
     )
 
 
-@router.get("/deployment_infos", response_model=list[models.DeploymentInfo])
+@router.get("/all_deployment_infos", response_model=list[models.DeploymentInfo])
 def get_all_deployment_infos(db_session: SessionAD):
     """
     Get all deployment_infos
