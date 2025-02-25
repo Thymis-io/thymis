@@ -1,0 +1,64 @@
+name: Update flake lock
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/update.yml
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1" # every Monday at 6:00 UTC
+
+concurrency:
+  group: nix-flake-update
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Get Thymis App Token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.THYMIS_APP_ID }}
+          private-key: ${{ secrets.THYMIS_APP_PRIVATE_KEY }}
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          ref: ${{ github.head_ref || github.ref_name }}
+      - uses: ./.github/actions/setup-nix
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update flake lock
+        uses: ./.github/actions/run-command-with-nix-cache-upload
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            git fetch --all
+            git switch ${{ github.head_ref || github.ref_name }}
+            USER_NAME=${{ steps.generate-token.outputs.app-slug }}[bot]
+            USER_ID=$(gh api "/users/${USER_NAME}" --jq '.id')
+            USER_EMAIL="${USER_ID}+${{ steps.generate-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+            git config user.email $USER_EMAIL
+            git config user.name $USER_NAME
+            nix flake update --commit-lock-file
+      - name: Commit and push changes
+        run: |
+            # if on master, create a new branch
+            BRANCH_NAME=${{ github.head_ref || github.ref_name }}
+            if [ "$BRANCH_NAME" = "master" ]; then
+              BRANCH_NAME=update-flake-lock
+              git switch -c update-flake-lock
+            fi
+            # create a PR if not exists for this branch
+            if ! gh pr list --state open --head $BRANCH_NAME; then
+              gh pr create --fill
+            fi
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
