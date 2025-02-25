@@ -277,11 +277,13 @@ class Project:
             # reinits the git repo
             if (self.repo_dir / ".git").exists():
                 shutil.rmtree(self.repo_dir / ".git")
+            self.repo.stop_file_watcher()
             self.repo = Repo(self.repo_dir, self.notification_manager)
             self.write_state_and_reload(State())
             if not self.repo.has_root_commit():
                 self.repo.add(".")
                 self.repo.commit("Initial commit")
+            self.repo.start_file_watcher()
             self.update_known_hosts(db_session)
 
     def update_known_hosts(self, db_session: sqlalchemy.orm.Session):
