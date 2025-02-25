@@ -285,7 +285,7 @@ class Project:
     def create_update_task(
         self,
         task_controller: "task.TaskController",
-        user_session_id: uuid.Uuid,
+        user_session_id: uuid.UUID,
         db_session: sqlalchemy.orm.Session,
     ):
         return task_controller.submit(
