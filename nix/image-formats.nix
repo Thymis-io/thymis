@@ -117,7 +117,7 @@ let
       else
 
       # now use xorriso to add the files to the iso, and copy the result to the final destination at the same time
-      ${pkgs.xorriso}/bin/xorriso -indev "$IMAGE" -outdev "$FINAL_IMAGE_DESTINATION" -add $secrets_dir_abs/*
+      (cd "$secrets_dir_abs" && ${pkgs.xorriso}/bin/xorriso -indev "$IMAGE" -outdev "$FINAL_IMAGE_DESTINATION" -add ./*)
       fi
 
       echo "Final image: $FINAL_IMAGE_DESTINATION"
