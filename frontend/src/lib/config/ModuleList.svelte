@@ -46,10 +46,10 @@
 		);
 	};
 
-	const addModule = (target: Tag | Config | undefined, module: Module) => {
+	const addModule = async (target: Tag | Config | undefined, module: Module) => {
 		if (target && !target.modules.find((m) => m.type === module.type)) {
 			target.modules = [...target.modules, { type: module.type, settings: {} }];
-			saveState();
+			await saveState();
 		}
 		addModuleModalOpen = false;
 		goToModule(module);
