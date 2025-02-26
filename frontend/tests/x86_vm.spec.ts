@@ -115,6 +115,8 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await page.locator('input').nth(2).locator('..').click();
 	await page.locator('li').filter({ hasText: 'VM Test x64 2' }).click();
 
+	await expectScreenshot(page, testInfo, screenshotCounter);
+
 	// Click on new "Deploy" button in modal to confirm
 	const deployButtonModal = page.getByRole('dialog').locator('button', { hasText: 'Deploy' });
 	await deployButtonModal.click();
