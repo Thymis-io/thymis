@@ -101,11 +101,23 @@
 		selectedFile = 'state.json';
 	}}
 >
-	<div class={'flex flex-col gap-4 ' + (hasFileChanges ? 'h-[60vh]' : '')}>
+	<div class={'flex flex-col gap-8 ' + (hasFileChanges ? 'h-[60vh]' : '')}>
 		{#if hasFileChanges}
+			<div>
+				<p class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.summary')}</p>
+				<Input
+					type="text"
+					bind:value={message}
+					placeholder={$t('deploy.summary')}
+					disabled={repoStatus.changes.length === 0}
+				/>
+			</div>
+			<p class="text-base text-gray-900 dark:text-white mb-[-2em]">{$t('deploy.open-changes')}</p>
 			<FileChanges {repoStatus} {selectedFile} />
+		{:else}
+			<p class="text-base text-gray-900 dark:text-white">{$t('deploy.no-changes')}</p>
 		{/if}
-		<div class="flex flex-row gap-4 min-h-48">
+		<div class="flex flex-row gap-4 min-h-32">
 			<div class="flex-1">
 				<div class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.selected')}</div>
 				<MultiSelect
@@ -132,6 +144,7 @@
 					</div>
 				</MultiSelect>
 			</div>
+			<div class="inline-block h-full w-0.5 self-stretch bg-neutral-100 dark:bg-white/10"></div>
 			<div class="flex-1 text-base text-gray-900 dark:text-white">
 				<div class="mb-1">{$t('deploy.configurations')}</div>
 				<div class="flex flex-wrap flex-row gap-2">
@@ -148,9 +161,7 @@
 		</div>
 		<div>
 			{#if hasFileChanges}
-				<p class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.summary')}</p>
-				<div class="flex flex-row gap-2">
-					<Input type="text" bind:value={message} placeholder={$t('deploy.summary')} />
+				<div class="flex flex-row justify-end gap-2">
 					<Button
 						on:click={() => {
 							commit();
@@ -183,6 +194,6 @@
 
 <style>
 	:root {
-		--sms-options-max-height: 12em;
+		--sms-options-max-height: 8em;
 	}
 </style>

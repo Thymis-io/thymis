@@ -177,7 +177,8 @@
 		"commit-deploy": "Commit & Deploy",
 		"update": "Update",
 		"commit": "Commit",
-		"no-changes": "No changes to commit",
+		"open-changes": "Open Changes",
+		"no-changes": "No changes to commit, working on a clean state",
 		"dirty-repo-tooltip": "Please commit all changes before deploying",
 		"no-affected-configs-tooltip": "Please select at least one config to deploy",
 		"build-status": "Build Status: {status}",
@@ -185,7 +186,7 @@
 		"stderr": "Standard Error",
 		"error-lines": "Error Lines",
 		"raw-output": "Full Output",
-		"summary": "Commit Message",
+		"summary": "Summary of the changes",
 		"selected": "Tags/configs to deploy",
 		"configurations": "Affected configs"
 	},

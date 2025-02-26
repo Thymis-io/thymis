@@ -36,24 +36,30 @@
 		selectedFile = 'state.json';
 	}}
 >
-	<div class={'flex flex-col gap-4 ' + (hasFileChanges ? 'h-[60vh]' : '')}>
+	<div class={'flex flex-col gap-8 ' + (hasFileChanges ? 'h-[60vh]' : '')}>
 		{#if hasFileChanges}
+			<div>
+				<p class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.summary')}</p>
+				<Input
+					type="text"
+					bind:value={message}
+					placeholder={$t('deploy.summary')}
+					disabled={repoStatus.changes.length === 0}
+				/>
+			</div>
+			<p class="text-base text-gray-900 dark:text-white mb-[-2em]">{$t('deploy.open-changes')}</p>
 			<FileChanges {repoStatus} {selectedFile} />
 		{:else}
 			<p class="text-base text-gray-900 dark:text-white">{$t('deploy.no-changes')}</p>
 		{/if}
-		<div>
-			<p class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.summary')}</p>
-			<div class="flex flex-row gap-2">
-				<Input type="text" bind:value={message} placeholder={$t('deploy.summary')} />
-				<Button
-					on:click={commit}
-					disabled={repoStatus.changes.length === 0 || message.length === 0}
-					class="w-48"
-				>
-					{$t('deploy.commit')}
-				</Button>
-			</div>
+		<div class="flex justify-end">
+			<Button
+				on:click={commit}
+				disabled={repoStatus.changes.length === 0 || message.length === 0}
+				class="w-48"
+			>
+				{$t('deploy.commit')}
+			</Button>
 		</div>
 	</div>
 </Modal>
