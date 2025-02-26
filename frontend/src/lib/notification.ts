@@ -27,7 +27,7 @@ let socket: WebSocket | undefined;
 
 let isDownloadLeader = false;
 
-if (browser) {
+if (browser && navigator.locks) {
 	navigator.locks.request(
 		'download-leader',
 		(lock) =>
