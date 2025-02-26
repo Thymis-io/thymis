@@ -320,6 +320,137 @@ let
             };
           key = "github:thymis-io/thymis/image-formats.nix:nixos-vm";
         };
+      usb-stick-installer = { config, inputs, pkgs, extendModules, modulesPath, ... }:
+        let
+          variant = extendModules {
+            modules = [
+              {
+                boot.kernelParams = [ "systemd.unit=getty.target" ];
+                console = {
+                  earlySetup = true;
+                  font = "ter-v16n";
+                  packages = [ pkgs.terminus_font ];
+                };
+                isoImage.isoName = "${config.isoImage.isoBaseName}-${config.system.nixos.label}-${pkgs.stdenv.hostPlatform.system}.iso";
+                isoImage.makeEfiBootable = true;
+                isoImage.makeUsbBootable = true;
+                isoImage.squashfsCompression = "zstd -Xcompression-level 15"; # xz takes forever
+
+                systemd.services."getty@tty1" = {
+                  overrideStrategy = "asDropin";
+                  serviceConfig = {
+                    ExecStart = [ "" installerFailsafe ];
+                    Restart = "no";
+                    StandardInput = "null";
+                  };
+                };
+              }
+              (modulesPath + "/installer/cd-dvd/iso-image.nix")
+              (modulesPath + "/profiles/all-hardware.nix")
+            ];
+          };
+          installer = pkgs.writeShellApplication {
+            name = "installer";
+            runtimeInputs = with pkgs; [
+              dosfstools
+              e2fsprogs
+              gawk
+              nixos-install-tools
+              util-linux
+              config.nix.package
+            ];
+            text = ''
+              set -euo pipefail
+
+              echo "Setting up disks..."
+              for i in $(lsblk -pln -o NAME,TYPE | grep disk | awk '{ print $1 }'); do
+                if [[ "$i" == "/dev/fd0" ]]; then
+                  echo "$i is a floppy, skipping..."
+                  continue
+                fi
+                if grep -ql "^$i" <(mount); then
+                  echo "$i is in use, skipping..."
+                else
+                  DEVICE_MAIN="$i"
+                  break
+                fi
+              done
+              if [[ -z "$DEVICE_MAIN" ]]; then
+                echo "ERROR: No usable disk found on this machine!"
+                exit 1
+              else
+                echo "Found $DEVICE_MAIN, erasing..."
+              fi
+
+              DISKO_DEVICE_MAIN=''${DEVICE_MAIN#"/dev/"} ${config.system.build.diskoScript} 2> /dev/null
+
+              echo "Installing the system..."
+              nixos-install --no-channel-copy --no-root-password --option substituters "" --system ${config.system.build.toplevel}
+
+              # copy thymis- prefixed files from /boot, /efi, /boot/efi to the new /mnt/boot
+              mkdir -p /mnt/boot
+              cp -r /boot/thymis-* /mnt/boot
+              cp -r /efi/thymis-* /mnt/boot
+              cp -r /boot/efi/thymis-* /mnt/boot
+
+              echo "Done! Rebooting..."
+              sleep 3
+              reboot
+            '';
+          };
+          installerFailsafe = pkgs.writeShellScript "failsafe" ''
+            ${lib.getExe installer} || echo "ERROR: Installation failure!"
+            sleep 3600
+          '';
+
+        in
+        {
+          imports = [
+            inputs.thymis.inputs.disko.nixosModules.disko
+          ];
+          disko.devices = {
+            disk = {
+              main = {
+                device = "/dev/$DISKO_DEVICE_MAIN";
+                type = "disk";
+                content = {
+                  type = "gpt";
+                  partitions = {
+                    ESP = {
+                      type = "EF00";
+                      size = "1G";
+                      content = {
+                        type = "filesystem";
+                        format = "vfat";
+                        mountpoint = "/boot";
+                        mountOptions = [ "fmask=0022" "dmask=0022" ];
+                      };
+                    };
+                    root = {
+                      size = "100%";
+                      content = {
+                        type = "filesystem";
+                        format = "ext4";
+                        mountpoint = "/";
+                        mountOptions = [ "noatime" ];
+                      };
+                    };
+                  };
+                };
+              };
+            };
+          };
+
+          system.build.thymis-image-with-secrets-builder-aarch64 = image-with-secrets-builder {
+            pkgs = inputs.nixpkgs.legacyPackages.aarch64-linux;
+            image-path = variant.config.system.build.isoImage;
+          };
+          system.build.thymis-image-with-secrets-builder-x86_64 = image-with-secrets-builder {
+            pkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
+            image-path = variant.config.system.build.isoImage;
+          };
+          key = "github:thymis-io/thymis/image-formats.nix:usb-stick-installer";
+        };
     };
 in
 imageFormats

@@ -31,7 +31,6 @@ class ThymisDevice(modules.Module):
                 ("Raspberry Pi 3", "raspberry-pi-3"),
                 ("Raspberry Pi 4", "raspberry-pi-4"),
                 ("Raspberry Pi 5", "raspberry-pi-5"),
-                ("Generic AArch64", "generic-aarch64"),
             ],
             extra_data={
                 "only_editable_on_target_type": ["config"],
@@ -56,13 +55,13 @@ class ThymisDevice(modules.Module):
             select_one=[
                 ("SD-Card Image", "sd-card-image"),
                 ("Virtual Disk Image (qcow)", "qcow"),
+                ("USB Stick Installer", "usb-stick-installer"),
                 ("NixOS VM", "nixos-vm"),
             ],
             extra_data={
                 "restrict_values_on_other_key": {
                     "device_type": {
-                        "generic-x86_64": ["nixos-vm"],
-                        "generic-aarch64": ["nixos-vm"],
+                        "generic-x86_64": ["nixos-vm", "usb-stick-installer"],
                         "raspberry-pi-3": ["sd-card-image"],
                         "raspberry-pi-4": ["sd-card-image"],
                         "raspberry-pi-5": ["sd-card-image"],
