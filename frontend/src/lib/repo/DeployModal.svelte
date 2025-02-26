@@ -163,9 +163,9 @@
 			{#if hasFileChanges}
 				<div class="flex flex-row justify-end gap-2">
 					<Button
-						on:click={() => {
-							commit();
-							deploy();
+						on:click={async () => {
+							await commit();
+							await deploy();
 							open = false;
 						}}
 						disabled={filteredConfigs.length === 0 || message.length === 0}
