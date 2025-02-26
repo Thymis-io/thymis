@@ -205,7 +205,7 @@ async def download_image(
         return Response(status_code=404)
 
     # files should be in project_path/images/identifier.ENDING
-    expected_endings = ["img", "qcow2", "nixos-vm"]
+    expected_endings = ["img", "qcow2", "nixos-vm", "iso"]
     non_file_endings = ["nixos-vm"]
     image_dir = global_settings.PROJECT_PATH / "images"
     relevant_paths = []
