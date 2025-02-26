@@ -354,6 +354,11 @@ test('Download Raspberry Pi 4 image', async ({ page, request }, testInfo) => {
 
 	// find download button and click on it
 	await page.locator('button').filter({ hasText: 'Download Device Image' }).first().click();
+	await page
+		.locator('button')
+		.filter({ hasText: 'Commit & Download Device Image' })
+		.first()
+		.click();
 
 	test.setTimeout(300000);
 	await page.waitForEvent('download');
@@ -425,7 +430,7 @@ test('Create History Entry', async ({ page, request }, testInfo) => {
 
 	await page.locator('button').filter({ hasText: 'Commit' }).click();
 
-	const messageInput = page.getByPlaceholder('Message');
+	const messageInput = page.getByPlaceholder('Summary of the changes');
 	await messageInput.fill('Commiting changes');
 
 	await expectScreenshot(page, testInfo, screenshotCounter);

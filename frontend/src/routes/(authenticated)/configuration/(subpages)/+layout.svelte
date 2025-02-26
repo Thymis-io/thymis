@@ -56,10 +56,10 @@
 	action={isVM
 		? $t('configurations.actions.commit-build-vm-and-start')
 		: $t('configurations.actions.commit-download')}
-	onAction={(message) => {
+	onAction={async (message) => {
 		openCommitModal = false;
-		commit(message);
-		buildAndDownloadImage($globalNavSelectedConfig);
+		await commit(message);
+		await buildAndDownloadImage($globalNavSelectedConfig);
 	}}
 />
 <PageHead {title} repoStatus={data.repoStatus}>
