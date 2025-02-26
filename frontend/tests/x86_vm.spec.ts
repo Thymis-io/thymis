@@ -38,6 +38,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 
 	// select button "Build and start VM"
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
+	await expectScreenshot(page, testInfo, screenshotCounter);
 	await page.locator('button').filter({ hasText: 'Commit & Build and start VM' }).first().click();
 
 	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
