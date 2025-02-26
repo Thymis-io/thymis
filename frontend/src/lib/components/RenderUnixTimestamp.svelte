@@ -7,9 +7,9 @@
 </script>
 
 {#if timestamp && date}
-	<p title={date.toISOString()} class="playwright-snapshot-unstable">
+	<span title={date.toISOString()} class="playwright-snapshot-unstable">
 		<time datetime={date.toISOString()}>
 			{date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'long' })}
 		</time>
-	</p>
+	</span>
 {/if}

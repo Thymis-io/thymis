@@ -17,7 +17,7 @@
 </script>
 
 {#if seconds}
-	<p title={timeDuration(seconds)} class="playwright-snapshot-unstable">
+	<span title={timeDuration(seconds)} class="playwright-snapshot-unstable">
 		{timeDuration(seconds)}
-	</p>
+	</span>
 {/if}
