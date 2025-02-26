@@ -404,7 +404,8 @@ test('VNC View', async ({ page, request }, testInfo) => {
 		.locator('..');
 	await enableVNCButton.click();
 
-	await page.goto('/vnc');
+	await page.locator('nav:visible').locator('a').filter({ hasText: 'VNC Devices' }).click();
+
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
 	await page.getByPlaceholder('Search...').click();
