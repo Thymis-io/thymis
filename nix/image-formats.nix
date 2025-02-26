@@ -353,6 +353,8 @@ let
                     StandardInput = "null";
                   };
                 };
+                disko.devices = lib.mkForce { };
+                boot.loader.systemd-boot.enable = lib.mkForce false;
               }
               (modulesPath + "/installer/cd-dvd/iso-image.nix")
               (modulesPath + "/profiles/all-hardware.nix")
