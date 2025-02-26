@@ -52,7 +52,7 @@ export const startNotificationSocket = () => {
 			});
 		} else if (notification.inner.kind === 'image_built') {
 			const inner: ImageBuiltNotification = notification.inner;
-			if (browser && inner.image_format === 'sd-card-image' && isDownloadLeader) {
+			if (browser && inner.image_format !== 'nixos-vm' && isDownloadLeader) {
 				const downloadUrl = `/api/download-image?identifier=${inner.configuration_id}`;
 				const response = await fetchWithNotify(downloadUrl, { method: 'HEAD' });
 				if (response.ok) {
