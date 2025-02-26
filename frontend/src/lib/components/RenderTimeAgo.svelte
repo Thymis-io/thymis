@@ -47,12 +47,14 @@
 </script>
 
 {#if date}
-	<span
-		title={date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'long' })}
-		class="playwright-snapshot-unstable"
-	>
-		<time datetime={date.toISOString()}>
-			{timeSince(date, currentDate)}
-		</time>
-	</span>
+	<div class="inline-block">
+		<span
+			title={date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'long' })}
+			class="playwright-snapshot-unstable"
+		>
+			<time datetime={date.toISOString()}>
+				{timeSince(date, currentDate)}
+			</time>
+		</span>
+	</div>
 {/if}
