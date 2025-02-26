@@ -2,38 +2,30 @@
 	import { t } from 'svelte-i18n';
 	import { Button, Input, Modal } from 'flowbite-svelte';
 	import { type RepoStatus } from '$lib/repo/repo';
-	import { fetchWithNotify } from '$lib/fetchWithNotify';
-	import { invalidate } from '$app/navigation';
 	import FileChanges from './FileChanges.svelte';
 
 	export let repoStatus: RepoStatus;
+	export let title: string | undefined = undefined;
+	export let action: string | undefined = undefined;
+	export let defaultMessage: string = 'commit';
 
-	let message = 'commit';
+	let message = defaultMessage;
 	let selectedFile = '';
 	$: hasFileChanges = repoStatus.changes.length > 0;
 
 	export let open = false;
 
-	const commit = async () => {
-		await fetchWithNotify(`/api/action/commit?message=${encodeURIComponent(message)}`, {
-			method: 'POST'
-		});
-		await invalidate(
-			(url) => url.pathname === '/api/history' || url.pathname === '/api/repo_status'
-		);
-
-		message = '';
-		open = false;
-	};
+	export let onAction: (message: string) => void;
 </script>
 
 <Modal
 	bind:open
-	title={$t('deploy.commit')}
+	title={title ?? $t('deploy.commit')}
 	size="xl"
 	outsideclose
 	on:open={() => {
 		selectedFile = 'state.json';
+		message = defaultMessage;
 	}}
 >
 	<div class={'flex flex-col gap-8 ' + (hasFileChanges ? 'h-[60vh]' : '')}>
@@ -54,11 +46,15 @@
 		{/if}
 		<div class="flex justify-end">
 			<Button
-				on:click={commit}
+				on:click={() => {
+					onAction(message);
+					message = defaultMessage;
+					open = false;
+				}}
 				disabled={repoStatus.changes.length === 0 || message.length === 0}
 				class="w-48"
 			>
-				{$t('deploy.commit')}
+				{action ?? $t('deploy.commit')}
 			</Button>
 		</div>
 	</div>

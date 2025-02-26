@@ -145,8 +145,11 @@ async def build_download_image(
     user_session_id: UserSessionIDAD,
     project: ProjectAD,
 ):
-    project.repo.add(".")
-    project.repo.commit(f"Build image for {identifier}")
+    if project.repo.is_dirty():
+        raise HTTPException(
+            status_code=409,
+            detail="Repository is dirty. Please commit your changes first.",
+        )
 
     config = next(
         config
