@@ -27,7 +27,7 @@ let
         exit 1
       fi
 
-      IMAGE_ENDINGS="qcow2 img -vm"
+      IMAGE_ENDINGS="qcow2 img iso -vm"
       for ENDING in $IMAGE_ENDINGS; do
         IMAGE_WITH_ENDING=$(find "$image_dir" -name "*$ENDING" -mindepth 1 | head -n 1)
         if ! [ -z "$IMAGE_WITH_ENDING" ]; then
