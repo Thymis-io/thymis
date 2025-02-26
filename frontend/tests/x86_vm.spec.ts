@@ -69,7 +69,8 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await expect(page.locator('td', { hasText: 'running' }).nth(1)).toBeVisible();
 
 	// go to "Devices" page and wait until "Connected" is shown twice
-	await page.goto('/devices');
+	// await page.goto('/devices');
+	await page.locator('a', { hasText: 'Devices' }).locator('visible=true').first().click();
 	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 30000 });
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
