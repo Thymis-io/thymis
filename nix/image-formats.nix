@@ -17,6 +17,8 @@ let
       secret_dir="$1"
       final_image_destination_base="$2"
 
+      secrets_dir_abs=$(realpath "$secret_dir")
+
       if [ ! -d "$secret_dir" ]; then
         echo "Secret directory does not exist: $secret_dir"
         exit 1
@@ -88,7 +90,6 @@ let
 
       echo "Extracted first FAT partition to $TMPDIR/image_first_fat_partition"
 
-      secrets_dir_abs=$(realpath "$secret_dir")
 
       echo "Checking FAT partition"
 
