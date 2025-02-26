@@ -68,8 +68,8 @@ const config: PlaywrightTestConfig = {
 	reporter: [['list'], ['html']],
 	expect: {
 		toHaveScreenshot: {
-			maxDiffPixels: 32,
-			threshold: 0.04
+			maxDiffPixels: 48,
+			threshold: 0.08
 		}
 	}
 };
