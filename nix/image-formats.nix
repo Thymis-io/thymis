@@ -346,7 +346,7 @@ let
                 isoImage.squashfsCompression = "zstd -Xcompression-level 15"; # xz takes forever
 
                 isoImage.forceTextMode = true;
-                boot.loader.timeout = 1;
+                boot.loader.timeout = lib.mkForce 1;
 
                 systemd.services."getty@tty1" = {
                   overrideStrategy = "asDropin";
