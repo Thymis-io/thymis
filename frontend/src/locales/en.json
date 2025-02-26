@@ -49,12 +49,12 @@
 			"edit": "Edit Modules",
 			"download": "Download Device Image",
 			"build-vm-and-start": "Build and start VM",
+			"commit-download": "Commit & Download Device Image",
+			"commit-build-vm-and-start": "Commit & Build and start VM",
 			"restart": "Restart",
 			"delete": "Delete",
 			"view-details": "View Details",
-			"download-image-tooltip": "Download the device image",
-			"restart-tooltip": "Restart the device",
-			"build_vm_and_start": "Build and start VM"
+			"restart-tooltip": "Restart the device"
 		},
 		"status": {
 			"online": "Online",

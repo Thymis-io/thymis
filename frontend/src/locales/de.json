@@ -49,12 +49,12 @@
 			"edit": "Module Bearbeiten",
 			"download": "Geräte-Image Herunterladen",
 			"build-vm-and-start": "VM bauen und starten",
+			"commit-download": "Commit & Geräte-Image Herunterladen",
+			"commit-build-vm-and-start": "Commit & VM bauen und starten",
 			"restart": "Neustarten",
 			"delete": "Löschen",
 			"view-details": "Details anzeigen",
-			"download-image-tooltip": "Lade das Geräte-Image herunter",
-			"restart-tooltip": "Starte das Gerät neu",
-			"build_vm_and_start": "VM bauen und starten"
+			"restart-tooltip": "Starte das Gerät neu"
 		},
 		"status": {
 			"online": "Online",
@@ -265,7 +265,7 @@
 			"deploy_device": "Gerät Ausrollen: {device}",
 			"build_device_image": "Geräte-Image Bauen: {device}",
 			"ssh_command": "SSH Befehl Ausführen",
-			"run_nixos_vm_task": "NixOS VM für {device} Ausführen"
+			"run_nixos_vm_task": "NixOS VM für {device} ausführen"
 		},
 		"version": "Thymis version"
 	},

@@ -25,6 +25,15 @@
 		invalidate((url) => url.pathname === '/api/available_modules');
 	};
 
+	const commit = async (message: string) => {
+		await fetchWithNotify(`/api/action/commit?message=${encodeURIComponent(message)}`, {
+			method: 'POST'
+		});
+		await invalidate(
+			(url) => url.pathname === '/api/history' || url.pathname === '/api/repo_status'
+		);
+	};
+
 	let openDeploy = false;
 	let openCommit = false;
 </script>
@@ -52,5 +61,5 @@
 		<span class={textClass}>{$t('deploy.deploy')}</span>
 	</Button>
 	<DeployModal bind:open={openDeploy} {repoStatus} />
-	<CommitModal bind:open={openCommit} {repoStatus} />
+	<CommitModal bind:open={openCommit} {repoStatus} onAction={commit} />
 </div>
