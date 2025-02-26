@@ -352,13 +352,11 @@ test('Download Raspberry Pi 4 image', async ({ page, request }, testInfo) => {
 		.first()
 		.click();
 
-	const downloadPromise = page.waitForEvent('download');
-
 	// find download button and click on it
 	await page.locator('button').filter({ hasText: 'Download Device Image' }).first().click();
 
 	test.setTimeout(300000);
-	await downloadPromise;
+	await page.waitForEvent('download');
 });
 
 test('VNC View', async ({ page, request }, testInfo) => {

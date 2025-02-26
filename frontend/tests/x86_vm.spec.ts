@@ -138,4 +138,19 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: 128
 	});
+
+	// now, switch the first device to usb installer, download the image and check for download
+	await page.getByPlaceholder('Search...').click();
+	await page.locator('#global-search-dropdown').locator('a', { hasText: 'VM Test x64 1' }).click();
+
+	// configure the device to usb installer
+	await page.locator('a', { hasText: 'Configure' }).first().click();
+	// select "Core Device Configuration"
+	await page.locator('a', { hasText: 'Core Device Configuration' }).first().click();
+	// select div with text "Image Format", find the select element and select "usb-installer"
+	await page.getByRole('combobox').nth(1).selectOption({ value: 'usb-stick-installer' });
+	// find download button and click on it
+	await page.locator('button').filter({ hasText: 'Download Device Image' }).first().click();
+	test.setTimeout(360000);
+	await page.waitForEvent('download');
 });
