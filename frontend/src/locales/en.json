@@ -177,6 +177,7 @@
 		"commit-deploy": "Commit & Deploy",
 		"update": "Update",
 		"commit": "Commit",
+		"no-changes": "No changes to commit",
 		"dirty-repo-tooltip": "Please commit all changes before deploying",
 		"no-affected-configs-tooltip": "Please select at least one config to deploy",
 		"build-status": "Build Status: {status}",

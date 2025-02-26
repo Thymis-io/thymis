@@ -19,8 +19,8 @@
 	let overflowClass = 'overflow-hidden text-ellipsis ';
 </script>
 
-<div class="flex h-full overflow-hidden gap-2 mt-8">
-	<SplitPane type="horizontal" leftPaneClass="pr-1" min="15%" max="60%" pos="20%">
+<div class="flex h-full overflow-hidden gap-2">
+	<SplitPane type="horizontal" leftPaneClass="pr-2" min="15%" max="60%" pos="20%">
 		<div class="flex flex-col" slot="a">
 			{#if stateJson}
 				<button
