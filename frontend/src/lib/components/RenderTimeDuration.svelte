@@ -14,10 +14,13 @@
 
 		return `${hours}h ${minutes}m ${secs}s`;
 	};
+
+	let clazz = '';
+	export { clazz as class };
 </script>
 
 {#if seconds}
-	<span title={timeDuration(seconds)} class="playwright-snapshot-unstable">
+	<span title={timeDuration(seconds)} class="playwright-snapshot-unstable {clazz}">
 		{timeDuration(seconds)}
 	</span>
 {/if}

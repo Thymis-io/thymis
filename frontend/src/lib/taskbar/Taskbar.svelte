@@ -25,44 +25,46 @@
 	const tdClass = 'border border-gray-300 dark:border-gray-700 px-2';
 </script>
 
-<table class="w-full border-collapse" use:ResizableColumns>
-	<thead>
-		<tr class="sticky top-0 bg-gray-100 dark:bg-gray-800">
-			{#each headers.entries() as [i, header]}
-				<th
-					class="border border-l-2 border-r-2 border-t-0 border-gray-300 dark:border-gray-600 text-base"
-					style={header.additionalStyle}
-				>
-					{#if i === headers.length - 1}
-						<TaskbarMinimize bind:taskbarMinimized />
-					{/if}
-					{header.name}
-				</th>
-			{/each}
-		</tr>
-	</thead>
-	<tbody>
-		{#each taskList as task}
-			<tr>
-				<td class={tdClass}>
-					<TaskbarName {task} />
-				</td>
-				<td class={tdClass}>
-					<TaskbarStatus {task} />
-				</td>
-				<td class={tdClass}>
-					<RenderTimeAgo timestamp={task.start_time} minSeconds={1} />
-				</td>
-				<td class={tdClass}>
-					<RenderTimeDuration start={task.start_time} end={task.end_time} />
-				</td>
-				<td class={tdClass}>
-					<TaskbarActions {task} />
-				</td>
+<div class="overflow-y-auto">
+	<table class="w-full border-collapse" use:ResizableColumns>
+		<thead>
+			<tr class="sticky top-0 bg-gray-100 dark:bg-gray-800">
+				{#each headers.entries() as [i, header]}
+					<th
+						class="border border-l-2 border-r-2 border-t-0 border-gray-300 dark:border-gray-600 text-base"
+						style={header.additionalStyle}
+					>
+						{#if i === headers.length - 1}
+							<TaskbarMinimize bind:taskbarMinimized />
+						{/if}
+						{header.name}
+					</th>
+				{/each}
 			</tr>
-		{/each}
-	</tbody>
-</table>
+		</thead>
+		<tbody>
+			{#each taskList as task}
+				<tr>
+					<td class={tdClass}>
+						<TaskbarName {task} />
+					</td>
+					<td class={tdClass}>
+						<TaskbarStatus {task} />
+					</td>
+					<td class={tdClass}>
+						<RenderTimeAgo class="block" timestamp={task.start_time} minSeconds={1} />
+					</td>
+					<td class={tdClass}>
+						<RenderTimeDuration class="block" start={task.start_time} end={task.end_time} />
+					</td>
+					<td class={tdClass}>
+						<TaskbarActions {task} />
+					</td>
+				</tr>
+			{/each}
+		</tbody>
+	</table>
+</div>
 
 <style>
 	th:first-child,
