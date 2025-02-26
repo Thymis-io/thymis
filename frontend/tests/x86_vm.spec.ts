@@ -26,6 +26,9 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await createConfiguration(page, 'VM Test x64 1', 'Generic x86-64', []);
 	await createConfiguration(page, 'VM Test x64 2', 'Generic x86-64', []);
 
+	// VM tasks can flip order, so we need to allow for some pixel differences
+	const maxDiffPixels = 256;
+
 	await page.goto('/configuration/list');
 
 	// find row with 'VM Test x64 1' and click on button 'View Details'
@@ -38,7 +41,9 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 
 	// select button "Build and start VM"
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
-	await expectScreenshot(page, testInfo, screenshotCounter);
+	await expectScreenshot(page, testInfo, screenshotCounter, {
+		maxDiffPixels: maxDiffPixels
+	});
 	await page.locator('button').filter({ hasText: 'Commit & Build and start VM' }).first().click();
 
 	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
@@ -76,7 +81,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 60000 });
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
-		maxDiffPixels: 128
+		maxDiffPixels: maxDiffPixels
 	});
 
 	await page.getByPlaceholder('Search...').click();
@@ -85,7 +90,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await waitForTerminalText(page, '[root@vm-test-x64-1:~]#');
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
-		maxDiffPixels: 128
+		maxDiffPixels: maxDiffPixels
 	});
 
 	// add a CustomModule and configure services.openssh.banner to "Hello World", then deploy and then take another screenshot
@@ -115,7 +120,9 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await page.locator('input').nth(2).locator('..').click();
 	await page.locator('li').filter({ hasText: 'VM Test x64 2' }).click();
 
-	await expectScreenshot(page, testInfo, screenshotCounter);
+	await expectScreenshot(page, testInfo, screenshotCounter, {
+		maxDiffPixels: maxDiffPixels
+	});
 
 	// Click on new "Deploy" button in modal to confirm
 	const deployButtonModal = page.getByRole('dialog').locator('button', { hasText: 'Deploy' });
@@ -131,7 +138,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await waitForTerminalText(page, '[Hello World Custom Prompt]');
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
-		maxDiffPixels: 128
+		maxDiffPixels: maxDiffPixels
 	});
 
 	// Now, navigate to "Devices" page using sidebar and take a screenshot
@@ -141,7 +148,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 60000 });
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
-		maxDiffPixels: 128
+		maxDiffPixels: maxDiffPixels
 	});
 
 	// now, switch the first device to usb installer, download the image and check for download
