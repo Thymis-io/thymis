@@ -319,7 +319,6 @@ let
               start-vm = "${variant.config.system.build.vm}/bin/run-${config.system.name}-vm";
             };
           key = "github:thymis-io/thymis/image-formats.nix:nixos-vm";
-          _file = ./image-formats.nix;
         };
     };
 in

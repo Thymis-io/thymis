@@ -33,12 +33,12 @@
       inputs = inputss // {
         thymis = self;
       };
-      eachSystem = nixpkgs.lib.genAttrs (import ./flake.systems.nix);
+      forAllSystems = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ];
       nixosModules = {
-        thymis-device = ./thymis-device-nixos-module.nix;
+        thymis-device = ./nix/thymis-device-nixos-module.nix;
         thymis-controller = {
           imports = [
-            ./thymis-controller-nixos-module.nix
+            ./nix/thymis-controller-nixos-module.nix
           ];
           nixpkgs.overlays = [
             (final: prev: {
@@ -51,13 +51,13 @@
           name = "thymis-device-${name}";
           value = value;
         })
-        (import ./devices.nix { inherit inputs; lib = nixpkgs.lib; })
+        (import ./nix/devices.nix { inherit inputs; lib = nixpkgs.lib; })
       ) // (nixpkgs.lib.mapAttrs'
         (name: value: {
           name = "thymis-image-${name}";
           value = value;
         })
-        (import ./image-formats.nix { inherit inputs; lib = nixpkgs.lib; })
+        (import ./nix/image-formats.nix { inherit inputs; lib = nixpkgs.lib; })
       );
 
       activate-thymis-controller-module = {
@@ -125,8 +125,8 @@
     in
     {
       inputs = inputs;
-      formatter = eachSystem (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
-      devShells = eachSystem (system:
+      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
+      devShells = forAllSystems (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
           pkgsWithPlayWrightOverlays = import inputs.nixpkgs-for-playwright-browsers {
@@ -180,7 +180,7 @@
       overlays = [
         (import ./nix/playwright-by-version/playwright-driver-overlay.nix inputs.nixpkgs-for-playwright-browsers)
       ];
-      packages = eachSystem (system:
+      packages = forAllSystems (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
           pkgsWithPlayWrightOverlays = import inputs.nixpkgs-for-playwright-browsers {
@@ -206,7 +206,6 @@
         {
           thymis-frontend = thymis-frontend;
           thymis-controller = thymis-controller;
-          thymis-controller-container = import ./docker.nix { inherit pkgs thymis-controller; };
           thymis-agent = thymis-agent;
           playwright-driver-all = pkgs.writeText "playwright-driver-all.json"
             (builtins.toJSON (

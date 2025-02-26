@@ -6,7 +6,7 @@ set -e
 # and runs `poetry lock` `poetry install`, `npm install` respectively.
 
 MY_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-PROJECT_DIR="$MY_DIR"
+PROJECT_DIR="$(dirname "$MY_DIR")"
 
 # if "--no-dev-version" is passed, then the version will not have .dev, or -dev appended to it.
 NO_DEV_VERSION=false
