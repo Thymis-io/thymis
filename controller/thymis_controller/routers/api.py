@@ -196,12 +196,10 @@ async def download_image(
 ):
     # downloads /tmp/thymis-devices.{identifier} file from filesystem
     # compare identifier with project first
-    try:
-        device = next(
-            device for device in state.configs if device.identifier == identifier
-        )
-    except StopIteration:
-        device = None
+    device = next(
+        (device for device in state.configs if device.identifier == identifier),
+        None,
+    )
 
     if device is None:
         return Response(status_code=404)
