@@ -11,7 +11,7 @@
       , ...
     }:
     let
-      eachSystem = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ];
+      forAllSystems = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ];
       state-json = builtins.fromJSON (builtins.readFile ./state.json);
       device-to-nixosConfigurations = d:
         let
@@ -53,7 +53,7 @@
     in
     {
       nixosConfigurations = nixosConfigurations;
-      packages = eachSystem (system:
+      packages = forAllSystems (system:
         let
           pkgs = import nixpkgs { inherit system; };
         in
