@@ -44,17 +44,17 @@
 		if (interval > 1) return $t('time.ago.minute', { values: { count: Math.floor(interval) } });
 		return $t('time.ago.second', { values: { count: Math.floor(seconds) } });
 	};
+	let clazz = '';
+	export { clazz as class };
 </script>
 
 {#if date}
-	<div class="inline-block">
-		<span
-			title={date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'long' })}
-			class="playwright-snapshot-unstable"
-		>
-			<time datetime={date.toISOString()}>
-				{timeSince(date, currentDate)}
-			</time>
-		</span>
-	</div>
+	<span
+		title={date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'long' })}
+		class="playwright-snapshot-unstable {clazz}"
+	>
+		<time datetime={date.toISOString()}>
+			{timeSince(date, currentDate)}
+		</time>
+	</span>
 {/if}
