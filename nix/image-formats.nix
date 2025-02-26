@@ -29,7 +29,7 @@ let
 
       IMAGE_ENDINGS="qcow2 img iso -vm"
       for ENDING in $IMAGE_ENDINGS; do
-        IMAGE_WITH_ENDING=$(find "$image_dir" -name "*$ENDING" -mindepth 1 | head -n 1)
+        IMAGE_WITH_ENDING=$(find "$image_dir" -name "*$ENDING" -mindepth 1 -type f | head -n 1)
         if ! [ -z "$IMAGE_WITH_ENDING" ]; then
           IMAGE="$IMAGE_WITH_ENDING"
           EXTENSION="$ENDING"
