@@ -12,27 +12,29 @@
 	$: stateJson = repoStatus.changes.find((change) => change.path === 'state.json');
 	$: internalChanges = repoStatus.changes.filter((change) => change.path !== 'state.json');
 
+	let textClass = 'text-base text-gray-800 dark:text-gray-100 ';
+	let selectedClass = 'bg-gray-100 dark:bg-gray-600 ';
 	let fileClass =
-		'flex items-center gap-1 text-base text-start text-gray-800 dark:text-gray-100 ' +
-		'hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer p-1 px-2 rounded break-all ' +
-		'whitespace-nowrap overflow-hidden text-ellipsis';
+		textClass +
+		'flex items-center gap-1 p-1 px-2 text-start ' +
+		'hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded break-all ' +
+		'whitespace-nowrap overflow-hidden text-ellipsis ';
 	let overflowClass = 'overflow-hidden text-ellipsis ';
 </script>
 
-<div class="flex h-full overflow-hidden gap-2">
+<div class="h-full overflow-hidden">
 	<SplitPane type="horizontal" leftPaneClass="pr-2" min="15%" max="60%" pos="20%">
-		<div class="flex flex-col" slot="a">
+		<div slot="a" class="flex flex-col">
 			{#if stateJson}
 				<button
-					class={fileClass +
-						(selectedFile === stateJson.path ? ' bg-gray-100 dark:bg-gray-600' : '')}
+					class={fileClass + (selectedFile === stateJson.path ? selectedClass : '')}
 					on:click={() => (selectedFile = stateJson.path)}
 				>
 					<FileIcon size="18" class="flex-shrink-0" />
 					{stateJson.path}
 				</button>
 			{/if}
-			<div class="flex text-base text-gray-800 dark:text-gray-100 p-1 mt-4 mb-1">
+			<div class={textClass + 'flex p-1 mt-4 mb-1'}>
 				{#if internalChanges.length === 0}
 					{$t('history.no-internal-file-changes')}
 				{:else}
@@ -41,7 +43,7 @@
 			</div>
 			{#each internalChanges as change}
 				<button
-					class={fileClass + (selectedFile === change.path ? ' bg-gray-100 dark:bg-gray-600' : '')}
+					class={fileClass + (selectedFile === change.path ? selectedClass : '')}
 					on:click={() => (selectedFile = change.path)}
 					title={change.path}
 				>
