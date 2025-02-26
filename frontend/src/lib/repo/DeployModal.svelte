@@ -19,8 +19,9 @@
 	export let repoStatus: RepoStatus;
 	export let open = false;
 
+	let message = 'deploy';
 	let selectedFile = '';
-	let message = '';
+	$: hasFileChanges = repoStatus.changes.length > 0;
 
 	type Option = {
 		type: 'tag' | 'config';
@@ -71,14 +72,22 @@
 		);
 	}
 
+	const commit = async () => {
+		await fetchWithNotify(`/api/action/commit?message=${encodeURIComponent(message)}`, {
+			method: 'POST'
+		});
+		await invalidate(
+			(url) => url.pathname === '/api/history' || url.pathname === '/api/repo_status'
+		);
+		message = '';
+	};
+
 	const deploy = async () => {
 		const configs = filteredConfigs.map((config) => '&config=' + config.identifier).join('');
 		await fetchWithNotify(`/api/action/deploy?${configs}`, {
 			method: 'POST'
 		});
 		await invalidate((url) => url.pathname === '/api/history');
-
-		open = false;
 	};
 </script>
 
@@ -92,68 +101,83 @@
 		selectedFile = 'state.json';
 	}}
 >
-	<div class="flex flex-col h-[80vh]">
-		<div class="">
-			<div class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.selected')}</div>
-			<MultiSelect
-				options={Array.prototype.concat(
-					Object.values($state.tags).map((tag) => ({
-						type: 'tag',
-						value: tag.identifier,
-						label: tag.displayName,
-						icon: TagIcon
-					})),
-					Object.values($state.configs).map((config) => ({
-						type: 'config',
-						value: config.identifier,
-						label: config.displayName,
-						icon: FileCode
-					}))
-				)}
-				bind:selected={selectedOptions}
-				outerDivClass="w-full"
-				let:option
-			>
-				<div class="flex gap-1 items-center text-base text-gray-900 dark:text-white">
-					<svelte:component this={option.icon} size={16} />{option.label}
-				</div>
-			</MultiSelect>
-		</div>
-		<div class="text-base text-gray-900 dark:text-white mt-4">
-			<div class="mb-1">{$t('deploy.configurations')}</div>
-			<div class="flex flex-wrap flex-row gap-2">
-				{#each filteredConfigs as config}
-					<div
-						class={'flex items-center text-white bg-primary-700 dark:bg-primary-600 rounded p-2 py-0.5 gap-1'}
-					>
-						<FileCode size={'0.8rem'} class="min-w-3" />
-						{config.displayName}
+	<div class={'flex flex-col gap-4 ' + (hasFileChanges ? 'h-[60vh]' : '')}>
+		{#if hasFileChanges}
+			<FileChanges {repoStatus} {selectedFile} />
+		{/if}
+		<div class="flex flex-row gap-4 min-h-48">
+			<div class="flex-1">
+				<div class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.selected')}</div>
+				<MultiSelect
+					options={Array.prototype.concat(
+						Object.values($state.tags).map((tag) => ({
+							type: 'tag',
+							value: tag.identifier,
+							label: tag.displayName,
+							icon: TagIcon
+						})),
+						Object.values($state.configs).map((config) => ({
+							type: 'config',
+							value: config.identifier,
+							label: config.displayName,
+							icon: FileCode
+						}))
+					)}
+					bind:selected={selectedOptions}
+					outerDivClass="w-full"
+					let:option
+				>
+					<div class="flex gap-1 items-center text-base text-gray-900 dark:text-white">
+						<svelte:component this={option.icon} size={16} />{option.label}
 					</div>
-				{/each}
+				</MultiSelect>
+			</div>
+			<div class="flex-1 text-base text-gray-900 dark:text-white">
+				<div class="mb-1">{$t('deploy.configurations')}</div>
+				<div class="flex flex-wrap flex-row gap-2">
+					{#each filteredConfigs as config}
+						<div
+							class={'flex items-center text-white bg-primary-700 dark:bg-primary-600 rounded p-2 py-0.5 gap-1'}
+						>
+							<FileCode size={'0.8rem'} class="min-w-3" />
+							{config.displayName}
+						</div>
+					{/each}
+				</div>
 			</div>
 		</div>
-		<div class="flex gap-2 justify-end mt-8">
-			<Input
-				type="text"
-				bind:value={message}
-				placeholder={$t('deploy.summary')}
-				disabled={repoStatus.changes.length === 0}
-			/>
-			{#if repoStatus.changes.length === 0}
-				<Button on:click={deploy} disabled={filteredConfigs.length === 0} class="w-48">
-					{$t('deploy.deploy')}
-				</Button>
+		<div>
+			{#if hasFileChanges}
+				<p class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.summary')}</p>
+				<div class="flex flex-row gap-2">
+					<Input type="text" bind:value={message} placeholder={$t('deploy.summary')} />
+					<Button
+						on:click={() => {
+							commit();
+							deploy();
+							open = false;
+						}}
+						disabled={filteredConfigs.length === 0 || message.length === 0}
+						class="w-48"
+					>
+						{$t('deploy.commit-deploy')}
+					</Button>
+				</div>
 			{:else}
-				<Button
-					on:click={deploy}
-					disabled={filteredConfigs.length === 0 || message.length === 0}
-					class="w-48"
-				>
-					{$t('deploy.commit-deploy')}
-				</Button>
+				<div class="flex flex-row justify-end gap-2">
+					<Button
+						on:click={() => {
+							deploy();
+							open = false;
+						}}
+						disabled={filteredConfigs.length === 0}
+						class="w-48"
+					>
+						{$t('deploy.deploy')}
+					</Button>
+				</div>
 			{/if}
 		</div>
-		<FileChanges {repoStatus} {selectedFile} />
 	</div>
 </Modal>
 

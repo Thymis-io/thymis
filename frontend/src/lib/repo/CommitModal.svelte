@@ -8,8 +8,9 @@
 
 	export let repoStatus: RepoStatus;
 
-	let message = '';
+	let message = 'commit';
 	let selectedFile = '';
+	$: hasFileChanges = repoStatus.changes.length > 0;
 
 	export let open = false;
 
@@ -35,7 +36,12 @@
 		selectedFile = 'state.json';
 	}}
 >
-	<div class="flex flex-col h-[80vh]">
+	<div class={'flex flex-col gap-4 ' + (hasFileChanges ? 'h-[60vh]' : '')}>
+		{#if hasFileChanges}
+			<FileChanges {repoStatus} {selectedFile} />
+		{:else}
+			<p class="text-base text-gray-900 dark:text-white">{$t('deploy.no-changes')}</p>
+		{/if}
 		<div>
 			<p class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.summary')}</p>
 			<div class="flex flex-row gap-2">
@@ -43,11 +49,11 @@
 				<Button
 					on:click={commit}
 					disabled={repoStatus.changes.length === 0 || message.length === 0}
+					class="w-48"
 				>
 					{$t('deploy.commit')}
 				</Button>
 			</div>
 		</div>
-		<FileChanges {repoStatus} {selectedFile} />
 	</div>
 </Modal>
