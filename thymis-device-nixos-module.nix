@@ -129,5 +129,35 @@ in
       };
       serviceConfig.Restart = "always";
     };
+
+    documentation = {
+      enable = lib.mkDefault false;
+      doc.enable = lib.mkDefault false;
+      info.enable = lib.mkDefault false;
+      man.enable = lib.mkDefault false;
+      nixos.enable = lib.mkDefault false;
+    };
+    environment = {
+      # Perl is a default package.
+      defaultPackages = lib.mkForce [ ];
+      stub-ld.enable = lib.mkDefault false;
+    };
+    programs = {
+      # The lessopen package pulls in Perl.
+      less.lessopen = lib.mkDefault null;
+      command-not-found.enable = lib.mkDefault false;
+    };
+    xdg.autostart.enable = lib.mkDefault false;
+    xdg.icons.enable = lib.mkDefault false;
+    xdg.mime.enable = lib.mkDefault false;
+    xdg.sounds.enable = lib.mkDefault false;
+    boot.enableContainers = lib.mkDefault false;
+    services.udisks2.enable = lib.mkDefault false;
+    services.speechd.enable = lib.mkForce false;
+    nixpkgs.overlays = [
+      (final: prev: {
+        espeak = prev.espeak.override { mbrolaSupport = false; pcaudiolibSupport = false; sonicSupport = false; };
+      })
+    ];
   };
 }
