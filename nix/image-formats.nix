@@ -440,6 +440,9 @@ let
               };
             };
           };
+          boot.loader.systemd-boot.enable = true;
+          boot.loader.efi.canTouchEfiVariables = true;
+
 
           system.build.thymis-image-with-secrets-builder-aarch64 = image-with-secrets-builder {
             pkgs = inputs.nixpkgs.legacyPackages.aarch64-linux;
