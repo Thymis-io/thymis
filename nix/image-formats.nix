@@ -66,6 +66,8 @@ let
 
       echo "Image: $IMAGE"
 
+      # if EXTENSION is not iso
+      if [ "$EXTENSION" != "iso" ]; then
       cp --no-preserve=mode,ownership "$IMAGE" "$FINAL_IMAGE_DESTINATION"
 
       echo "Final image: $FINAL_IMAGE_DESTINATION"
@@ -109,6 +111,12 @@ let
         ${pkgs.qemu}/bin/qemu-img convert -f raw -O qcow2 "$FINAL_IMAGE_DESTINATION" "$QCOW_ORIGINAL_FINAL_DESTINATION"
         rm -f "$FINAL_IMAGE_DESTINATION"
         FINAL_IMAGE_DESTINATION="$QCOW_ORIGINAL_FINAL_DESTINATION"
+      fi
+
+      else
+
+      # now use xorriso to add the files to the iso, and copy the result to the final destination at the same time
+      ${pkgs.xorriso}/bin/xorriso -indev "$IMAGE" -outdev "$FINAL_IMAGE_DESTINATION" -add $secrets_dir_abs/*
       fi
 
       echo "Final image: $FINAL_IMAGE_DESTINATION"
@@ -392,6 +400,7 @@ let
               cp -r /boot/thymis-* /mnt/boot
               cp -r /efi/thymis-* /mnt/boot
               cp -r /boot/efi/thymis-* /mnt/boot
+              cp -r /thymis-* /mnt/boot
 
               echo "Done! Rebooting..."
               sleep 3
