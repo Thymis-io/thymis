@@ -345,6 +345,9 @@ let
                 isoImage.makeUsbBootable = true;
                 isoImage.squashfsCompression = "zstd -Xcompression-level 15"; # xz takes forever
 
+                isoImage.forceTextMode = true;
+                boot.loader.timeout = 1;
+
                 systemd.services."getty@tty1" = {
                   overrideStrategy = "asDropin";
                   serviceConfig = {
@@ -400,10 +403,23 @@ let
 
               # copy thymis- prefixed files from /boot, /efi, /boot/efi to the new /mnt/boot
               mkdir -p /mnt/boot
-              cp -r /boot/thymis-* /mnt/boot
-              cp -r /efi/thymis-* /mnt/boot
-              cp -r /boot/efi/thymis-* /mnt/boot
-              cp -r /thymis-* /mnt/boot
+              # cp -r /boot/thymis-* /mnt/boot
+              # cp -r /efi/thymis-* /mnt/boot
+              # cp -r /boot/efi/thymis-* /mnt/boot
+              # cp -r /thymis-* /mnt/boot
+              # only copy if the directory exists, as well as thymis-* files
+              if [ -d /boot ] && [ -n "$(find /boot -maxdepth 1 -name 'thymis-*' -print -quit)" ]; then
+                cp -r /boot/thymis-* /mnt/boot
+              fi
+              if [ -d /efi ] && [ -n "$(find /efi -maxdepth 1 -name 'thymis-*' -print -quit)" ]; then
+                cp -r /efi/thymis-* /mnt/boot
+              fi
+              if [ -d /boot/efi ] && [ -n "$(find /boot/efi -maxdepth 1 -name 'thymis-*' -print -quit)" ]; then
+                cp -r /boot/efi/thymis-* /mnt/boot
+              fi
+              if [ -n "$(find / -maxdepth 1 -name 'thymis-*' -print -quit)" ]; then
+                cp -r /thymis-* /mnt/boot
+              fi
 
               echo "Done! Rebooting..."
               sleep 3
