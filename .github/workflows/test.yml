@@ -201,6 +201,10 @@ jobs:
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
+      - name: Delete huge unnecessary tools folder
+        run: |
+          cd /opt
+          find . -maxdepth 1 -mindepth 1 '!' -path ./containerd '!' -path ./actionarchivecache '!' -path ./runner '!' -path ./runner-cache -exec rm -rf '{}' ';'
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
         with:
@@ -248,6 +252,10 @@ jobs:
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
+      - name: Delete huge unnecessary tools folder
+        run: |
+          cd /opt
+          find . -maxdepth 1 -mindepth 1 '!' -path ./containerd '!' -path ./actionarchivecache '!' -path ./runner '!' -path ./runner-cache -exec rm -rf '{}' ';'
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
         with:
