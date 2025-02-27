@@ -17,7 +17,9 @@
 		"device-vnc": "VNC",
 		"external-repositories": "External Repositories",
 		"tags": "Config-Tags",
-		"device-details": "Details"
+		"device-details": "Details",
+		"project-settings": "Project Settings",
+		"backup-export-import": "Backup project"
 	},
 	"common": {
 		"search": "Search...",
@@ -260,7 +262,10 @@
 			"edit-name": "Edit Name",
 			"edit-url": "Edit URL",
 			"delete": "Delete"
-		}
+		},
+		"backup-export-import-description": "Would you like to backup/export your project? Click the button below to create a backup of your project.",
+		"backup-export": "Export",
+		"import-project": "Import"
 	},
 	"tags": {
 		"actions": {

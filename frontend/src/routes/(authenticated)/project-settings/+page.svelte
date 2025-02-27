@@ -9,8 +9,11 @@
 		TableHeadCell,
 		TableBody,
 		TableBodyRow,
-		TableBodyCell
+		TableBodyCell,
+		Modal
 	} from 'flowbite-svelte';
+	import ArrowRightFromLine from 'lucide-svelte/icons/arrow-right-from-line';
+	import Import from 'lucide-svelte/icons/import';
 	import PageHead from '$lib/components/PageHead.svelte';
 
 	const generateUniqueKey = () => {
@@ -58,7 +61,50 @@
 	};
 </script>
 
-<PageHead title={$t('nav.external-repositories')} />
+<!-- <PageHead title={$t('nav.external-repositories')} /> -->
+<PageHead title={$t('nav.project-settings')} />
+
+<h2 class="text-2xl font-bold">{$t('nav.backup-export-import')}</h2>
+
+<!--
+Backuping:
+The user is supposed to:
+- Click on the "Backup/Export project" button
+- The frontend will send a request to the backend to create a backup of the project
+- The backend will create a backup of the project and return the backup file
+- The frontend will download the backup file
+
+Importing:
+The user is supposed to:
+- Click on the "Import project" button
+- The user will be prompted to select a backup file
+- The frontend will send the backup file to the backend
+- The backend will show information about the backup file and ask the user to confirm the import
+- The frontend will send a request to the backend to import the project
+- The backend will import the project and restart the server
+-->
+
+<p>
+	{$t('settings.backup-export-import-description')}
+</p>
+
+<div class="flex gap-4 mt-4">
+	<Button class="" on:click={async () => {}}>
+		<ArrowRightFromLine size="1rem" class="min-w-4 mr-2" />
+		{$t('settings.backup-export')}</Button
+	>
+	<Button
+		class=""
+		on:click={() => {
+			// todo: implement import
+		}}
+	>
+		<Import size="1rem" class="min-w-4 mr-2" />
+		{$t('settings.import-project')}</Button
+	>
+</div>
+
+<h2 class="mt-6 text-2xl font-bold">{$t('nav.external-repositories')}</h2>
 <Table shadow>
 	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2">{$t('settings.repo.name')}</TableHeadCell>
