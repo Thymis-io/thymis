@@ -9,6 +9,7 @@ from typing import Annotated, Optional
 import paramiko
 from fastapi import (
     APIRouter,
+    Body,
     Depends,
     HTTPException,
     Query,
@@ -62,8 +63,8 @@ def get_available_modules(request: Request) -> list[models.Module]:
 
 
 @router.patch("/state")
-async def update_state(request: Request, project: ProjectAD):
-    new_state = State.model_validate(await request.json())
+def update_state(payload: Annotated[dict, Body()], project: ProjectAD):
+    new_state = State.model_validate(payload)
     project.write_state_and_reload(new_state)
     return new_state
 
@@ -138,7 +139,7 @@ async def deploy(
 
 
 @router.post("/action/build-download-image")
-async def build_download_image(
+def build_download_image(
     identifier: str,
     db_session: SessionAD,
     task_controller: TaskControllerAD,
@@ -278,7 +279,7 @@ def get_repo_status(project: ProjectAD):
 
 
 @router.post("/action/commit")
-async def commit(project: ProjectAD, message: str):
+def commit(project: ProjectAD, message: str):
     project.repo.add(".")
     project.repo.commit(message)
     return {"message": "commit successful"}

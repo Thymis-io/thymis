@@ -15,7 +15,7 @@
 
 	export let open = false;
 
-	export let onAction: (message: string) => void;
+	export let onAction: (message: string) => Promise<void> | void;
 </script>
 
 <Modal
@@ -46,8 +46,8 @@
 		{/if}
 		<div class="flex justify-end">
 			<Button
-				on:click={() => {
-					onAction(message);
+				on:click={async () => {
+					await onAction(message);
 					message = defaultMessage;
 					open = false;
 				}}
