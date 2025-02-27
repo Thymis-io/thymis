@@ -268,7 +268,7 @@ def get_diff(
 
 
 @router.post("/action/update")
-async def update(
+def update(
     project: ProjectAD,
     task_controller: TaskControllerAD,
     db_session: SessionAD,
