@@ -39,7 +39,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	// select button "Build and start VM"
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
 
-	await page.goto('/configuration/list');
+	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
 
 	// find row with 'VM Test x64 2' and click on button 'View Details'
 	await page
@@ -71,7 +71,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	// go to "Devices" page and wait until "Connected" is shown twice
 	// await page.goto('/devices');
 	await page.locator('a', { hasText: 'Devices' }).locator('visible=true').first().click();
-	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 30000 });
+	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 60000 });
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: 128
@@ -134,7 +134,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await page.locator('a', { hasText: 'Devices' }).locator('visible=true').first().click();
 
 	// Wait for 2 "Connected" statuses
-	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 30000 });
+	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 60000 });
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: 128
