@@ -354,40 +354,42 @@ class TaskWorkerPoolManager:
 
             logger.info("Task %s finished with state %s", task_id, task.state)
             if "RUNNING_IN_PLAYWRIGHT" in os.environ and task.state == "failed":
-                print(f"Task error for task {task_id}:")
-                print(task.exception)
-                print(f"STDOUT for task {task_id}:")
+                logger.error("Task submission data for task %s:", task_id)
+                logger.error(task.task_submission_data)
+                logger.error("Task error for task %s:", task_id)
+                logger.error(task.exception)
+                logger.error("STDOUT for task %s:", task_id)
                 if task.process_stdout:
-                    print(task.process_stdout.decode("utf-8"))
+                    logger.error(task.process_stdout.decode("utf-8"))
                 else:
-                    print("No stdout")
-                print(f"STDERR for task {task_id}:")
+                    logger.error("No stdout")
+                logger.error("STDERR for task %s:", task_id)
                 if task.process_stderr:
-                    print(task.process_stderr.decode("utf-8"))
+                    logger.error(task.process_stderr.decode("utf-8"))
                 else:
-                    print("No stderr")
-                print(f"Nix status for task {task_id}:")
+                    logger.error("No stderr")
+                logger.error("Nix status for task %s:", task_id)
                 if task.nix_status:
-                    print(task.nix_status)
+                    logger.error(task.nix_status)
                 else:
-                    print("No nix status")
-                print(f"Nix error logs for task {task_id}:")
+                    logger.error("No nix status")
+                logger.error("Nix error logs for task %s:", task_id)
                 if task.nix_error_logs:
-                    print(task.nix_error_logs)
+                    logger.error(task.nix_error_logs)
                 else:
-                    print("No nix error logs")
-                print(f"Nix warning logs for task {task_id}:")
+                    logger.error("No nix error logs")
+                logger.error("Nix warning logs for task %s:", task_id)
                 if task.nix_warning_logs:
-                    print(task.nix_warning_logs)
+                    logger.error(task.nix_warning_logs)
                 else:
-                    print("No nix warning logs")
-                print(f"Nix notice logs for task {task_id}:")
+                    logger.error("No nix warning logs")
+                logger.error("Nix notice logs for task %s:", task_id)
                 if task.nix_notice_logs:
-                    print(task.nix_notice_logs)
+                    logger.error(task.nix_notice_logs)
                 else:
-                    print("No nix notice logs")
-                print(f"Nix info logs for task {task_id}:")
+                    logger.error("No nix notice logs")
+                logger.error("Nix info logs for task %s:", task_id)
                 if task.nix_info_logs:
-                    print(task.nix_info_logs)
+                    logger.error(task.nix_info_logs)
                 else:
-                    print("No nix info logs")
+                    logger.error("No nix info logs")
