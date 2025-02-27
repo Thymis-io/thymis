@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { globalNavSelectedTargetType, globalNavSelectedTarget } from '$lib/state';
+	import { globalNavSelectedTargetType, globalNavSelectedTarget, saveState } from '$lib/state';
 	import Tabbar from '$lib/components/Tabbar.svelte';
 	import PageHead from '$lib/components/PageHead.svelte';
 	import Download from 'lucide-svelte/icons/download';
@@ -19,6 +19,7 @@
 	$: title = titleMap[$globalNavSelectedTargetType ?? 'null'];
 
 	const buildAndDownloadImage = async (config: Config) => {
+		await saveState();
 		await fetchWithNotify(`/api/action/build-download-image?identifier=${config.identifier}`, {
 			method: 'POST'
 		});
