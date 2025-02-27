@@ -72,6 +72,11 @@ let
       if [ "$EXTENSION" != "iso" ]; then
       cp --no-preserve=mode,ownership "$IMAGE" "$FINAL_IMAGE_DESTINATION"
 
+      # if qcow, delete $IMAGE
+      if [ $IS_QCOW2 -eq 1 ]; then
+        rm -f "$IMAGE"
+      fi
+
       echo "Final image: $FINAL_IMAGE_DESTINATION"
       PARTED_OUTPUT=$(${pkgs.parted}/bin/parted --json -s "$FINAL_IMAGE_DESTINATION" print)
       echo "Parted output: $PARTED_OUTPUT"
@@ -133,6 +138,9 @@ let
         chmod +x "$final_image_destination_base.start-vm"
         echo "Start VM script: $final_image_destination_base.start-vm"
       fi
+
+      # clean tmpdir
+      rm -rf "$TMPDIR"
 
       echo "Done"
       exit 0
