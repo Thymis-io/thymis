@@ -256,6 +256,7 @@ def deploy_device_task(
                 *NIX_CMD[1:],
                 "--to",
                 "root@localhost",
+                "--gzip",
                 config_path,
             ],
             env,
