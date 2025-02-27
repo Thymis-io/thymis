@@ -67,11 +67,14 @@
 		<Button
 			color="alternative"
 			class="whitespace-nowrap gap-2 px-2 py-1 m-1"
-			on:click={() => {
+			on:click={async () => {
+				await saveState();
+				await invalidate((url) => url.pathname === '/api/repo_status');
+
 				if (data.repoStatus.changes.length > 0) {
 					openCommitModal = true;
 				} else {
-					buildAndDownloadImage($globalNavSelectedConfig);
+					await buildAndDownloadImage($globalNavSelectedConfig);
 				}
 			}}
 		>
