@@ -33,8 +33,8 @@
 
 	let moduleToRemove: Module | undefined;
 
-	const goToModule = (module: Module | undefined) => {
-		goto(
+	const goToModule = async (module: Module | undefined) => {
+		await goto(
 			`/configuration/edit?${buildConfigSelectModuleSearchParam(
 				$page.url.search,
 				$globalNavSelectedTargetType,
@@ -52,7 +52,7 @@
 			await saveState();
 		}
 		addModuleModalOpen = false;
-		goToModule(module);
+		await goToModule(module);
 	};
 
 	const removeModule = (target: Tag | Config | undefined, module: ModuleSettings | Module) => {
