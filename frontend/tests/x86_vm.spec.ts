@@ -164,6 +164,11 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await page.getByRole('combobox').nth(1).selectOption({ value: 'usb-stick-installer' });
 	// find download button and click on it
 	await page.locator('button').filter({ hasText: 'Download Device Image' }).first().click();
+	await page
+		.locator('button')
+		.filter({ hasText: 'Commit & Download Device Image' })
+		.first()
+		.click();
 	test.setTimeout(360000);
 	await page.waitForEvent('download');
 });
