@@ -107,6 +107,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await addCustomModuleButton.click();
 
 	// fill in the form input "Freeform Settings"
+	await page.locator('p', { hasText: 'Freeform Settings' }).waitFor();
 	const freeformSettingsInput = page.locator('textarea').first();
 	await freeformSettingsInput.fill(
 		'programs.bash.promptInit = "PS1=\\"\\[Hello World Custom Prompt\\] \\"";services.openssh.settings.PrintLastLog = "no";'
