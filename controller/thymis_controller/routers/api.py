@@ -62,10 +62,10 @@ def get_available_modules(request: Request) -> list[models.Module]:
 
 
 @router.patch("/state")
-async def update_state(new_state: Request, project: ProjectAD):
-    new_state = await new_state.json()
-    new_state = State.model_validate(new_state)
-    return project.write_state_and_reload(new_state)
+async def update_state(request: Request, project: ProjectAD):
+    new_state = State.model_validate(await request.json())
+    project.write_state_and_reload(new_state)
+    return new_state
 
 
 @router.post("/action/build")
