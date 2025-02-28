@@ -179,6 +179,7 @@
 		"commit": "Commit",
 		"open-changes": "Open Changes",
 		"no-changes": "No changes to commit, working on a clean state",
+		"add-all-configs": "Add all configs",
 		"dirty-repo-tooltip": "Please commit all changes before deploying",
 		"no-affected-configs-tooltip": "Please select at least one config to deploy",
 		"build-status": "Build Status: {status}",

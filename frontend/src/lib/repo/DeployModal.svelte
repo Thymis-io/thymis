@@ -30,46 +30,24 @@
 		icon: any;
 	};
 
-	const defaultSelectedOption = (
-		globalNavSelectedTarget: Config | Tag | undefined,
-		globalNavSelectedTargetType: string | null
-	): Option[] => {
-		if (globalNavSelectedTargetType === 'config' && globalNavSelectedTarget) {
-			return [
-				{
-					type: 'config',
-					value: globalNavSelectedTarget.identifier,
-					label: globalNavSelectedTarget.displayName,
-					icon: FileCode
-				}
-			];
-		} else if (globalNavSelectedTargetType === 'tag' && globalNavSelectedTarget) {
-			return [
-				{
-					type: 'tag',
-					value: globalNavSelectedTarget.identifier,
-					label: globalNavSelectedTarget.displayName,
-					icon: TagIcon
-				}
-			];
-		}
-		return [];
+	const toOption = (target: Config | Tag, type: 'tag' | 'config'): Option => {
+		return {
+			type: type,
+			value: target.identifier,
+			label: target.displayName,
+			icon: type === 'tag' ? TagIcon : FileCode
+		};
 	};
 
-	let selectedOptions = defaultSelectedOption(
-		$globalNavSelectedTarget,
-		$globalNavSelectedTargetType
-	);
-
-	let filteredConfigs: Config[];
+	let selectedOptions: Option[] = [];
+	let affectedConfigs: Config[];
 	$: {
 		const configs = selectedOptions.filter((opt) => opt.type === 'config').map((opt) => opt.value);
 		const tags = selectedOptions.filter((opt) => opt.type === 'tag').map((opt) => opt.value);
 
-		filteredConfigs = Object.values($state.configs).filter(
-			(config) =>
-				configs.includes(config.identifier) || config.tags.some((tag) => tags.includes(tag))
-		);
+		affectedConfigs = $state.configs.filter((config) => {
+			return configs.includes(config.identifier) || config.tags.some((tag) => tags.includes(tag));
+		});
 	}
 
 	const commit = async () => {
@@ -83,7 +61,7 @@
 	};
 
 	const deploy = async () => {
-		const configs = filteredConfigs.map((config) => '&config=' + config.identifier).join('');
+		const configs = affectedConfigs.map((config) => '&config=' + config.identifier).join('');
 		await fetchWithNotify(`/api/action/deploy?${configs}`, {
 			method: 'POST'
 		});
@@ -97,8 +75,12 @@
 	size="xl"
 	outsideclose
 	on:open={() => {
-		selectedOptions = defaultSelectedOption($globalNavSelectedTarget, $globalNavSelectedTargetType);
 		selectedFile = 'state.json';
+		if ($globalNavSelectedTarget && $globalNavSelectedTargetType) {
+			selectedOptions = [toOption($globalNavSelectedTarget, $globalNavSelectedTargetType)];
+		} else {
+			selectedOptions = [];
+		}
 	}}
 >
 	<div class={'flex flex-col gap-8 ' + (hasFileChanges ? 'h-[60vh]' : '')}>
@@ -122,18 +104,8 @@
 				<div class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.selected')}</div>
 				<MultiSelect
 					options={Array.prototype.concat(
-						Object.values($state.tags).map((tag) => ({
-							type: 'tag',
-							value: tag.identifier,
-							label: tag.displayName,
-							icon: TagIcon
-						})),
-						Object.values($state.configs).map((config) => ({
-							type: 'config',
-							value: config.identifier,
-							label: config.displayName,
-							icon: FileCode
-						}))
+						$state.tags.map((tag) => toOption(tag, 'tag')),
+						$state.configs.map((config) => toOption(config, 'config'))
 					)}
 					bind:selected={selectedOptions}
 					outerDivClass="w-full"
@@ -143,12 +115,24 @@
 						<svelte:component this={option.icon} size={16} />{option.label}
 					</div>
 				</MultiSelect>
+				<Button
+					color="alternative"
+					class="mt-2 float-right"
+					on:click={() => {
+						selectedOptions = Array.prototype.concat(
+							selectedOptions.filter((opt) => opt.type === 'tag'),
+							$state.configs.map((config) => toOption(config, 'config'))
+						);
+					}}
+				>
+					{$t('deploy.add-all-configs')}
+				</Button>
 			</div>
-			<div class="inline-block h-full w-0.5 self-stretch bg-neutral-100 dark:bg-white/10"></div>
+			<div class="inline-block w-0.5 self-stretch bg-neutral-100 dark:bg-white/10"></div>
 			<div class="flex-1 text-base text-gray-900 dark:text-white">
 				<div class="mb-1">{$t('deploy.configurations')}</div>
 				<div class="flex flex-wrap flex-row gap-2">
-					{#each filteredConfigs as config}
+					{#each affectedConfigs as config}
 						<div
 							class={'flex items-center text-white bg-primary-700 dark:bg-primary-600 rounded p-2 py-0.5 gap-1'}
 						>
@@ -168,7 +152,7 @@
 							await deploy();
 							open = false;
 						}}
-						disabled={filteredConfigs.length === 0 || message.length === 0}
+						disabled={affectedConfigs.length === 0 || message.length === 0}
 						class="w-48"
 					>
 						{$t('deploy.commit-deploy')}
@@ -181,7 +165,7 @@
 							deploy();
 							open = false;
 						}}
-						disabled={filteredConfigs.length === 0}
+						disabled={affectedConfigs.length === 0}
 						class="w-48"
 					>
 						{$t('deploy.deploy')}
