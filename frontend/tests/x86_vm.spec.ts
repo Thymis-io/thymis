@@ -29,7 +29,8 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	// VM tasks can flip order, so we need to allow for some pixel differences
 	const maxDiffPixels = 256;
 
-	await page.goto('/configuration/list');
+	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
+	await page.locator('h1', { hasText: 'Device Configurations' }).waitFor();
 
 	// find row with 'VM Test x64 1' and click on button 'View Details'
 	await page
@@ -47,6 +48,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await page.locator('button').filter({ hasText: 'Commit & Build and start VM' }).first().click();
 
 	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
+	await page.locator('h1', { hasText: 'Device Configurations' }).waitFor();
 
 	// find row with 'VM Test x64 2' and click on button 'View Details'
 	await page
