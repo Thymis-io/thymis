@@ -224,6 +224,7 @@ class Project:
             subprocess.run(
                 ["nix", *NIX_CMD[1:], "flake", "lock", "--allow-dirty-locks"],
                 cwd=self.repo_dir,
+                capture_output=True,
                 check=True,
             )
         except subprocess.CalledProcessError as e:
