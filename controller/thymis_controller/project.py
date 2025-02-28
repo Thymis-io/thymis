@@ -219,11 +219,19 @@ class Project:
             f.write(render_flake_nix(repositories))
         self.repo.add(".")
         # write missing flake.lock entries using nix flake lock
-        subprocess.run(
-            ["nix", *NIX_CMD[1:], "flake", "lock", "--allow-dirty-locks"],
-            cwd=self.repo_dir,
-            check=True,
-        )
+        error = None
+        try:
+            subprocess.run(
+                ["nix", *NIX_CMD[1:], "flake", "lock", "--allow-dirty-locks"],
+                cwd=self.repo_dir,
+                check=True,
+            )
+        except subprocess.CalledProcessError as e:
+            logger.error("Error while running nix flake lock: %s", e)
+            logger.error("stdout: %s", e.stdout)
+            logger.error("stderr: %s", e.stderr)
+            traceback.print_exc()
+            error = e
         self.set_repositories_in_python_path(self.repo_dir, state)
         # create modules folder if not exists
         modules_path = self.repo_dir / "modules"
@@ -248,6 +256,8 @@ class Project:
                 "tags", tag.identifier, tag.modules, tag.priority
             )
         self.repo.add(".")
+        if error:
+            raise error
 
     def reload_from_disk(self):
         self.write_state_and_reload(self.read_state())
