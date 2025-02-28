@@ -42,16 +42,16 @@ fi
 sed -i "s/^version = .*/version = \"$PY_VERSION\"/" $PROJECT_DIR/agent/pyproject.toml
 
 # run poetry lock and install
-(cd $PROJECT_DIR/agent && poetry lock && poetry install)
+(cd $PROJECT_DIR/agent && poetry lock)
 
 # Set the version in controller/pyproject.toml
 sed -i "s/^version = .*/version = \"$PY_VERSION\"/" $PROJECT_DIR/controller/pyproject.toml
 
 # run poetry lock and install
-(cd $PROJECT_DIR/controller && poetry lock && poetry install)
+(cd $PROJECT_DIR/controller && poetry lock)
 
 # Set the version in frontend/package.json
 sed -i "s/\"version\": .*/\"version\": \"$NPM_VERSION\",/" $PROJECT_DIR/frontend/package.json
 
 # run npm install
-(cd $PROJECT_DIR/frontend && npm install)
+(cd $PROJECT_DIR/frontend && rm -rf node_modules && npm install)
