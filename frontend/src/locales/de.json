@@ -177,6 +177,7 @@
 		"update": "Updaten",
 		"open-changes": "Offene Änderungen",
 		"no-changes": "Keine Änderungen, Arbeitsverzeichnis ist sauber",
+		"add-all-configs": "Alle Konfigurationen hinzufügen",
 		"dirty-repo-tooltip": "Alle Änderungen müssen committed werden, bevor Konfigurationen ausgerollt werden können",
 		"no-affected-configs-tooltip": "Wählen Sie mindestens eine Konfiguration aus",
 		"build-status": "Status: {status}",
