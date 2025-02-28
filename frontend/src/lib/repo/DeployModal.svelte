@@ -12,9 +12,10 @@
 		type Config,
 		type Tag
 	} from '$lib/state';
-	import MultiSelect from 'svelte-multiselect';
+	import FloatingMultiSelect from '$lib/components/FloatingMultiSelect.svelte';
 	import type { RepoStatus } from '$lib/repo/repo';
 	import FileChanges from './FileChanges.svelte';
+	import type { ObjectOption } from 'svelte-multiselect';
 
 	export let repoStatus: RepoStatus;
 	export let open = false;
@@ -23,14 +24,14 @@
 	let selectedFile = '';
 	$: hasFileChanges = repoStatus.changes.length > 0;
 
-	type Option = {
+	type MyOption = {
 		type: 'tag' | 'config';
 		value: string;
 		label: string;
 		icon: any;
-	};
+	} & ObjectOption;
 
-	const toOption = (target: Config | Tag, type: 'tag' | 'config'): Option => {
+	const toOption = (target: Config | Tag, type: 'tag' | 'config'): MyOption => {
 		return {
 			type: type,
 			value: target.identifier,
@@ -38,8 +39,9 @@
 			icon: type === 'tag' ? TagIcon : FileCode
 		};
 	};
+	const toOptionList = (options: any[]): MyOption[] => options as MyOption[];
 
-	let selectedOptions: Option[] = [];
+	let selectedOptions: MyOption[] = [];
 	let affectedConfigs: Config[];
 	$: {
 		const configs = selectedOptions.filter((opt) => opt.type === 'config').map((opt) => opt.value);
@@ -99,22 +101,25 @@
 		{:else}
 			<p class="text-base text-gray-900 dark:text-white">{$t('deploy.no-changes')}</p>
 		{/if}
-		<div class="flex flex-row gap-4 min-h-32">
+		<div class="flex flex-row gap-4">
 			<div class="flex-1">
 				<div class="text-base text-gray-900 dark:text-white mb-1">{$t('deploy.selected')}</div>
-				<MultiSelect
-					options={Array.prototype.concat(
-						$state.tags.map((tag) => toOption(tag, 'tag')),
-						$state.configs.map((config) => toOption(config, 'config'))
+				<FloatingMultiSelect
+					options={toOptionList(
+						Array.prototype.concat(
+							$state.tags.map((tag) => toOption(tag, 'tag')),
+							$state.configs.map((config) => toOption(config, 'config'))
+						)
 					)}
 					bind:selected={selectedOptions}
 					outerDivClass="w-full"
 					let:option
 				>
 					<div class="flex gap-1 items-center text-base text-gray-900 dark:text-white">
-						<svelte:component this={option.icon} size={16} />{option.label}
+						<svelte:component this={option.icon} size={16} />
+						{option.label}
 					</div>
-				</MultiSelect>
+				</FloatingMultiSelect>
 				<Button
 					color="alternative"
 					class="mt-2 float-right"
@@ -128,8 +133,8 @@
 					{$t('deploy.add-all-configs')}
 				</Button>
 			</div>
-			<div class="inline-block w-0.5 self-stretch bg-neutral-100 dark:bg-white/10"></div>
-			<div class="flex-1 text-base text-gray-900 dark:text-white">
+			<div class="flex-0 inline-block w-0.5 self-stretch bg-neutral-100 dark:bg-white/10"></div>
+			<div class="flex-1 flex flex-col gap-2 text-base text-gray-900 dark:text-white">
 				<div class="mb-1">{$t('deploy.configurations')}</div>
 				<div class="flex flex-wrap flex-row gap-2">
 					{#each affectedConfigs as config}
@@ -141,43 +146,41 @@
 						</div>
 					{/each}
 				</div>
+				<div class="mt-auto ml-auto">
+					{#if hasFileChanges}
+						<Button
+							on:click={async () => {
+								await commit();
+								await deploy();
+								open = false;
+							}}
+							disabled={affectedConfigs.length === 0 || message.length === 0}
+							class="w-48"
+						>
+							{$t('deploy.commit-deploy')}
+						</Button>
+					{:else}
+						<div class="mt-auto">
+							<Button
+								on:click={() => {
+									deploy();
+									open = false;
+								}}
+								disabled={affectedConfigs.length === 0}
+								class="w-48"
+							>
+								{$t('deploy.deploy')}
+							</Button>
+						</div>
+					{/if}
+				</div>
 			</div>
-		</div>
-		<div>
-			{#if hasFileChanges}
-				<div class="flex flex-row justify-end gap-2">
-					<Button
-						on:click={async () => {
-							await commit();
-							await deploy();
-							open = false;
-						}}
-						disabled={affectedConfigs.length === 0 || message.length === 0}
-						class="w-48"
-					>
-						{$t('deploy.commit-deploy')}
-					</Button>
-				</div>
-			{:else}
-				<div class="flex flex-row justify-end gap-2">
-					<Button
-						on:click={() => {
-							deploy();
-							open = false;
-						}}
-						disabled={affectedConfigs.length === 0}
-						class="w-48"
-					>
-						{$t('deploy.deploy')}
-					</Button>
-				</div>
-			{/if}
 		</div>
 	</div>
 </Modal>
 
 <style>
 	:root {
-		--sms-options-max-height: 8em;
+		--sms-options-max-height: 12em;
 	}
 </style>
