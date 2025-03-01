@@ -128,6 +128,7 @@ in
         CONTROLLER_HOST = cfg.agent.controller-url;
       };
       serviceConfig.Restart = "always";
+      serviceConfig.Type = "notify";
     };
 
     documentation = {

@@ -43,6 +43,29 @@ AGENT_METADATA_FILENAME = "thymis-metadata.json"
 CONTROLLER_PUBLIC_KEY_FILENAME = "thymis-controller-ssh-pubkey.txt"
 
 
+# see https://www.freedesktop.org/software/systemd/man/latest/sd_notify.html
+class SystemdNotifier:
+    def __init__(self):
+        self.NOTIFY_SOCKET = os.getenv("NOTIFY_SOCKET")
+        self.already_signaled_ready = False
+
+    def notify(self, message: str):
+        if self.NOTIFY_SOCKET is None:
+            return
+        with socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM) as sock:
+            sock.connect(self.NOTIFY_SOCKET)
+            sock.sendall(message.encode("utf-8"))
+
+    def ready(self):
+        if self.already_signaled_ready:
+            return
+        self.notify("READY=1")
+        self.already_signaled_ready = True
+
+    def status(self, message: str):
+        self.notify(f"STATUS={message}")
+
+
 def find_file(paths, filename):
     for path in paths:
         file_path = path / filename
@@ -177,7 +200,9 @@ class Agent(ea.EdgeAgent):
 
     controller_host: str
 
-    def __init__(self, controller_host, token, agent_metadata):
+    def __init__(
+        self, controller_host, token, agent_metadata, systemd_notifier: SystemdNotifier
+    ):
         super().__init__(
             f"{replace_url_protocol_with_ws(controller_host)}/agent/relay",
         )
@@ -185,12 +210,15 @@ class Agent(ea.EdgeAgent):
         self.token = token
         self.agent_metadata = agent_metadata
         self.signal_ssh_connected = asyncio.Event()
+        self.systemd_notifier = systemd_notifier
 
     async def handle_custom_relay_message(self, message: RelayToAgentMessage):
         logger.info("Received custom relay message: %s", message)
         match message.inner:
             case RtESuccesfullySSHConnectedMessage():
                 self.signal_ssh_connected.set()
+                self.systemd_notifier.ready()
+                self.systemd_notifier.status("Connected to controller")
             case RtEUpdatePublicKeyMessage():
                 self.update_public_key()
             case RtESwitchToNewConfigMessage():
@@ -396,6 +424,8 @@ class Agent(ea.EdgeAgent):
 
     async def on_connection_closed(self):
         self.signal_ssh_connected.clear()
+        self.systemd_notifier.status("Connection closed, reconnecting...")
+        await super().on_connection_closed()
 
     def update_config_commit(self, new_commit: str):
         self.agent_metadata["configuration_commit"] = new_commit
@@ -514,9 +544,11 @@ def main():
 
     set_minimum_time(agent_metadata["datetime"])
 
+    systemd_notifier = SystemdNotifier()
+
     load_controller_public_key_into_root_authorized_keys()
     agent_token = find_agent_token()
-    agent = Agent(controller_host, agent_token, agent_metadata)
+    agent = Agent(controller_host, agent_token, agent_metadata, systemd_notifier)
     asyncio.run(agent.async_main())
 
 
