@@ -1,7 +1,7 @@
 import json
 import pathlib
 from typing import Annotated, Optional
-from urllib.parse import unquote
+from urllib.parse import quote, unquote
 
 import httpx
 from fastapi import APIRouter, Depends, Form, HTTPException, Response, status
@@ -78,7 +78,7 @@ def login_basic(
         return response
     else:
         return RedirectResponse(
-            f"/login?redirect={redirect}&authError=credentials",
+            f"/login?redirect={quote(redirect)}&authError=credentials",
             headers=response.headers,
             status_code=status.HTTP_303_SEE_OTHER,
         )

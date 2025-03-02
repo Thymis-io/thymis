@@ -5,6 +5,7 @@
 	import Navbar from '$lib/navbar/Navbar.svelte';
 
 	const redirectString = queryParam('redirect');
+	$: redirectStringDecoded = $redirectString ? decodeURI($redirectString) : null;
 	const authError: Writable<string | null> = queryParam('authError');
 </script>
 
@@ -74,8 +75,8 @@
 						class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
 						>Sign in</button
 					>
-					{#if redirectString}
-						<input type="text" name="redirect" value={$redirectString} hidden />
+					{#if $redirectString}
+						<input type="text" name="redirect" value={redirectStringDecoded} hidden />
 					{/if}
 				</form>
 			</div>

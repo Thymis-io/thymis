@@ -40,13 +40,7 @@ test('overview page shows overview', async ({ page, request }, testInfo) => {
 	await clearState(page, request);
 	await deleteAllTasks(page, request);
 
-	await page.goto('/login');
-
-	await page.fill('input[name="username"]', 'admin');
-	await page.fill('input[name="password"]', 'testadminpassword');
-	await page.click('button[type="submit"]');
-
-	await page.waitForURL('http://localhost:8000/overview');
+	await page.goto('/overview');
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 });

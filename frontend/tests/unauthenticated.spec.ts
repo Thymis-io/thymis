@@ -53,7 +53,7 @@ test('login page shows login form', async ({ page }, testInfo) => {
 	await expectScreenshot(page, testInfo, screenshotCounter);
 });
 
-test('can login with testadminpassword', async ({ page }) => {
+test('can login with testadminpassword and redirect to login', async ({ page }) => {
 	await page.goto('/login');
 
 	await page.fill('input[name="username"]', 'admin');
@@ -65,11 +65,25 @@ test('can login with testadminpassword', async ({ page }) => {
 	expect(page.url()).toBe('http://localhost:8000/overview');
 });
 
+test('can redirect to page after login', async ({ page }) => {
+	await page.goto('/devices');
+
+	await page.waitForURL(/http:\/\/localhost:8000\/login\?redirect=.+\/devices/);
+
+	await page.fill('input[name="username"]', 'admin');
+	await page.fill('input[name="password"]', 'testadminpassword');
+	await page.click('button[type="submit"]');
+
+	await page.waitForURL('http://localhost:8000/devices');
+
+	expect(page.url()).toBe('http://localhost:8000/devices');
+});
+
 test('visiting overview page without login redirects to login', async ({ page }) => {
 	const resp = await page.goto('/overview');
 
 	expect(resp?.status()).toBe(200);
-	expect(resp?.url()).toBe('http://localhost:8000/login?redirect=%2Foverview');
+	expect(resp?.url()).toMatch(/http:\/\/localhost:8000\/login\?redirect=.+\/overview/);
 });
 
 test('highlight login button', async ({ page }, testInfo) => {
