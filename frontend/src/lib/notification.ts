@@ -31,7 +31,7 @@ let isDownloadLeader = false;
 if (browser && navigator.locks) {
 	navigator.locks.request(
 		'download-leader',
-		(lock) =>
+		(_lock) =>
 			new Promise(() => {
 				isDownloadLeader = true;
 			})

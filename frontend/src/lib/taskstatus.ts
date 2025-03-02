@@ -1,10 +1,6 @@
 import { browser } from '$app/environment';
 import { get, writable } from 'svelte/store';
-import { invalidate } from '$app/navigation';
 import { fetchWithNotify } from './fetchWithNotify';
-import { page } from '$app/stores';
-import { currentState, getConfigByIdentifier } from './state';
-import { getConfigImageFormat } from './config/configUtils';
 
 export type TaskState = 'pending' | 'running' | 'completed' | 'failed';
 
@@ -157,7 +153,7 @@ const startSocket = () => {
 			| SubscripedTaskOutputMessage;
 		if (data.type === 'new_short_task' || data.type === 'short_task_update') {
 			taskStatus.update((ts) => {
-				const taskPage = get(page).url.searchParams.get('task-page') ?? '1';
+				const taskPage = new URL(window.location.href).searchParams.get('task-page') ?? '1';
 				if (data.task.id in ts || (data.type === 'new_short_task' && taskPage === '1')) {
 					ts[data.task.id] = data.task;
 				}

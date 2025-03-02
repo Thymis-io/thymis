@@ -1,5 +1,5 @@
 <script lang="ts">
-	import DeployActions from '$lib/components/DeployActions.svelte';
+	import DeployActions from '$lib/components/layout/DeployActions.svelte';
 	import { type RepoStatus } from '$lib/repo/repo';
 
 	export let repoStatus: RepoStatus;

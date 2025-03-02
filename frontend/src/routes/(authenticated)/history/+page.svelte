@@ -4,7 +4,7 @@
 	import type { PageData } from './$types';
 	import RollbackModal from './RollbackModal.svelte';
 	import type { Commit } from '$lib/history';
-	import PageHead from '$lib/components/PageHead.svelte';
+	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import MonospaceText from '$lib/components/MonospaceText.svelte';
 	import { diff } from 'svelte-highlight/languages';

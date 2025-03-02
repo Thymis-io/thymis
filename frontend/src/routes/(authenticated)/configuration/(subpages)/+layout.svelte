@@ -2,7 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import { globalNavSelectedTargetType, globalNavSelectedTarget, saveState } from '$lib/state';
 	import Tabbar from '$lib/components/Tabbar.svelte';
-	import PageHead from '$lib/components/PageHead.svelte';
+	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import Download from 'lucide-svelte/icons/download';
 	import Play from 'lucide-svelte/icons/play';
 	import { globalNavSelectedConfig, type Config } from '$lib/state';

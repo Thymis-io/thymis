@@ -1294,6 +1294,20 @@ docs = ["sphinx (>=1.6.5)", "sphinx-rtd-theme"]
 tests = ["hypothesis (>=3.27.0)", "pytest (>=3.2.1,!=3.3.0)"]
 
 [[package]]
+name = "pyrage"
+version = "1.2.4"
+description = "Python bindings for rage (age in Rust)"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "pyrage-1.2.4-cp39-abi3-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:7faf916520e188224eca97b0acf9391a7fe306bb9ee53d6106f8300b149811a7"},
+    {file = "pyrage-1.2.4-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:52a2ad032041fd695c24e94f8629594c232abd506b8825c2f42f6c0e66c09ae6"},
+    {file = "pyrage-1.2.4-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cdbae5da22c92d5e3c0b50a20fa18e0e55e69da15bff5a8c5ea333a262ab79ea"},
+    {file = "pyrage-1.2.4-cp39-abi3-win_amd64.whl", hash = "sha256:8dac1f31b88d9f5de6af3b94b613f775b96d04bf962dbc1954c9bdb263c556fc"},
+    {file = "pyrage-1.2.4.tar.gz", hash = "sha256:d14cf05da3f66ed57e625a5269e1e8804a53be83c6689d77f2bfc49e9794b6ef"},
+]
+
+[[package]]
 name = "pytest"
 version = "8.3.5"
 description = "pytest: simple powerful testing with Python"
@@ -1978,4 +1992,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.13"
-content-hash = "b12126c0063d7562e2dd95c9cc187bdc8d8ff2450be40c29edafdde957f254c5"
+content-hash = "dc814e7606beea39205dc20f49a5c73f0511b544ebf124ed23634a2359c0a88e"
