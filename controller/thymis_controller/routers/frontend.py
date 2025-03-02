@@ -52,6 +52,17 @@ def controller_base_url():
     )
 
 
+def env():
+    from thymis_controller.main import detect_host_port
+
+    host, port = detect_host_port()
+
+    return {
+        "PUBLIC_BASE_URL": global_settings.BASE_URL,
+        "PRIVATE_BASE_URL": f"http://{host}:{port}",
+    }
+
+
 class Frontend:
     def __init__(self):
         self.url = f"http://127.0.0.1:{FRONTEND_PORT}"
@@ -81,8 +92,8 @@ class Frontend:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 env={
-                    "PUBLIC_CONTROLLER_HOST": controller_base_url(),
                     "PATH": os.environ["PATH"],
+                    **env(),
                 },
             )
 
@@ -101,8 +112,8 @@ class Frontend:
                 env={
                     "PORT": str(FRONTEND_PORT),
                     "HOST": "127.0.0.1",
-                    "PUBLIC_CONTROLLER_HOST": controller_base_url(),
                     "PATH": os.environ["PATH"],
+                    **env(),
                     **running_in_playwright_dict,
                 },
                 stdout=subprocess.PIPE,
@@ -115,6 +126,7 @@ class Frontend:
                     "PORT": str(FRONTEND_PORT),
                     "HOST": "127.0.0.1",
                     "PUBLIC_CONTROLLER_HOST": controller_base_url(),
+                    **env(),
                     **running_in_playwright_dict,
                 },
                 stdout=subprocess.PIPE,

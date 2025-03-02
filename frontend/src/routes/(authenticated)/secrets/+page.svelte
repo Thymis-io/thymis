@@ -14,116 +14,165 @@
 		Label,
 		Input,
 		Textarea,
-		Select
+		Select,
+		Spinner
 	} from 'flowbite-svelte';
-	import PageHead from '$lib/components/PageHead.svelte';
+	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import type { PageData } from './$types';
+	import { invalidate } from '$app/navigation';
+	import type { ChangeEventHandler } from 'svelte/elements';
 
 	export let data: PageData;
 
-	// Secret type definitions
-	type SecretType = 'single-line' | 'multi-line' | 'file';
+	type SecretType = 'single_line' | 'multi_line' | 'env_list' | 'file';
 
-	interface BaseSecret {
+	type SecretShort = {
+		id: string;
+		display_name: string;
 		type: SecretType;
-	}
+		value_str?: string;
+		value_size: number;
+		filename?: string;
+		created_at: string;
+		updated_at: string;
+		delete_at?: string | null;
+	};
 
-	interface SingleLineSecret extends BaseSecret {
-		type: 'single-line';
-		value: string;
-	}
+	type CreateSecretRequest = {
+		display_name: string;
+		type: SecretType;
+		value_str?: string;
+		value_b64?: string;
+		filename?: string;
+	};
 
-	interface MultiLineSecret extends BaseSecret {
-		type: 'multi-line';
-		value: string;
-	}
-
-	interface FileSecret extends BaseSecret {
-		type: 'file';
-		value: ArrayBuffer;
-		filename: string;
-		mimeType: string;
-	}
-
-	type Secret = SingleLineSecret | MultiLineSecret | FileSecret;
-
-	type SecretEntry = [string, Secret];
-
-	// Local state
-	let secrets: SecretEntry[] = [];
+	// Dictionary mapping UUIDs to secrets
+	let secrets: Record<string, SecretShort> = {};
 	let showEditModal = false;
-	let currentSecretName = '';
+	let currentSecretId: string | null = null;
 	let editedSecretName = '';
-	let editedSecretType: SecretType = 'single-line';
-	let editedSingleLineValue = '';
-	let editedMultiLineValue = '';
+	let lastEditedSecretType: SecretType = 'single_line';
+	let editedSecretType: SecretType = 'single_line';
+	let editedSingleLineValue: string | null = null;
+	let editedMultiLineValue: string | undefined = undefined;
 	let editedFileValue: File | null = null;
-	let editedFileInfo = { name: '', type: '', size: 0 };
+	let editedEnvVarList: [string, string][] | null = null;
+	let editedFileInfo = { name: '', size: 0 };
+	let isLoadingFile = false;
 
-	// Constants for functions to avoid recreating them
-	const changeSecretName = (oldName: string, newName: string): void => {
-		if (oldName === newName || newName.trim() === '') return;
-		if (secrets.some(([name]) => name === newName)) {
+	const stringToEnvVars = (str: string): [string, string][] => {
+		return str.split('\n').map((line) => {
+			const [key, value] = line.split('=');
+			return [key.trim(), value.trim()];
+		});
+	};
+
+	const envVarsToString = (envVars: [string, string][]): string => {
+		return envVars.map(([key, value]) => `${key}=${value}`).join('\n');
+	};
+
+	$: secrets = data.secrets;
+
+	// Functions to work with the new data structure
+	const changeSecretName = (id: string, newName: string): void => {
+		const secret = secrets[id];
+		if (!secret || secret.display_name === newName || newName.trim() === '') return;
+
+		// Check if name already exists for another secret
+		const nameExists = Object.values(secrets).some(
+			(s) => s.display_name === newName && s.id !== id
+		);
+		if (nameExists) {
 			alert($t('secrets.name-exists'));
 			return;
 		}
 
-		const index = secrets.findIndex(([name]) => name === oldName);
-		if (index !== -1) {
-			const secretValue = secrets[index][1];
-			secrets.splice(index, 1);
-			secrets = [...secrets, [newName, secretValue]];
-		}
+		// Update the secret name
+		secrets[id] = { ...secret, display_name: newName };
+		secrets = { ...secrets }; // Trigger reactivity
 	};
 
-	const openEditSecret = (name: string): void => {
-		const secret = secrets.find(([secretName]) => secretName === name)?.[1];
+	const openEditSecret = async (id: string): Promise<void> => {
+		const secret = secrets[id];
 		if (!secret) return;
 
-		currentSecretName = name;
-		editedSecretName = name;
+		currentSecretId = id;
+		editedSecretName = secret.display_name;
 		editedSecretType = secret.type;
 
-		if (secret.type === 'single-line') {
-			editedSingleLineValue = secret.value;
-			editedMultiLineValue = '';
+		if (secret.type === 'single_line') {
+			editedSingleLineValue = secret.value_str || '';
+			editedMultiLineValue = undefined;
 			editedFileValue = null;
-		} else if (secret.type === 'multi-line') {
-			editedSingleLineValue = '';
-			editedMultiLineValue = secret.value;
+			editedEnvVarList = null;
+		} else if (secret.type === 'multi_line') {
+			editedSingleLineValue = null;
+			editedMultiLineValue = secret.value_str || '';
 			editedFileValue = null;
+			editedEnvVarList = null;
+		} else if (secret.type === 'env_list') {
+			editedSingleLineValue = null;
+			editedMultiLineValue = undefined;
+			editedFileValue = null;
+			editedEnvVarList = stringToEnvVars(secret.value_str || '');
 		} else if (secret.type === 'file') {
-			editedSingleLineValue = '';
-			editedMultiLineValue = '';
+			editedSingleLineValue = null;
+			editedMultiLineValue = undefined;
 			editedFileInfo = {
-				name: (secret as FileSecret).filename,
-				type: (secret as FileSecret).mimeType,
-				size: (secret as FileSecret).value.byteLength
+				name: secret.filename || '',
+				size: secret.value_size
 			};
+			editedFileValue = null;
+			editedEnvVarList = null;
+
+			// If file content isn't loaded, we don't need to do anything
+			// It will be requested only when downloading or viewing
 		}
 
 		showEditModal = true;
 	};
 
-	const copySecretId = (name: string): void => {
-		navigator.clipboard.writeText(`\${secrets.${name}}`);
+	const copySecretId = (id: string): void => {
+		const secret = secrets[id];
+		if (secret) {
+			// Copy by name for template usage
+			// navigator.clipboard.writeText(`\${secrets.${secret.name}}`);
+			// Alternative: Show a dropdown with options to copy by ID or name
+			navigator.clipboard.writeText(
+				JSON.stringify({
+					secret_id: secret.id
+				})
+			);
+		}
 	};
 
-	const deleteSecret = (name: string): void => {
+	const deleteSecret = (id: string): void => {
 		if (confirm($t('secrets.confirm-delete'))) {
-			secrets = secrets.filter(([secretName]) => secretName !== name);
+			const { [id]: _, ...remainingSecrets } = secrets;
+			secrets = remainingSecrets;
 		}
 	};
 
 	const addSecret = (): void => {
-		const newName = `new_secret_${secrets.length + 1}`;
-		currentSecretName = '';
+		const newName = `new_secret_${Object.keys(secrets).length + 1}`;
+		currentSecretId = null;
 		editedSecretName = newName;
-		editedSecretType = 'single-line';
+		editedSecretType = 'single_line';
 		editedSingleLineValue = '';
-		editedMultiLineValue = '';
+		editedMultiLineValue = undefined;
 		editedFileValue = null;
+		editedEnvVarList = null;
 		showEditModal = true;
+	};
+
+	const _arrayBufferToBase64 = (buffer: ArrayBuffer) => {
+		var binary = '';
+		var bytes = new Uint8Array(buffer);
+		var len = bytes.byteLength;
+		for (var i = 0; i < len; i++) {
+			binary += String.fromCharCode(bytes[i]);
+		}
+		return window.btoa(binary);
 	};
 
 	const handleFileChange = (event: Event) => {
@@ -132,7 +181,6 @@
 			editedFileValue = input.files[0];
 			editedFileInfo = {
 				name: input.files[0].name,
-				type: input.files[0].type,
 				size: input.files[0].size
 			};
 		}
@@ -145,84 +193,96 @@
 		}
 
 		// Check for duplicate name (except when editing the current secret)
-		if (
-			currentSecretName !== editedSecretName &&
-			secrets.some(([name]) => name === editedSecretName)
-		) {
+		const nameExists = Object.values(secrets).some(
+			(s) => s.display_name === editedSecretName && (!currentSecretId || s.id !== currentSecretId)
+		);
+
+		if (nameExists) {
 			alert($t('secrets.name-exists'));
 			return;
 		}
 
-		let newSecret: Secret;
+		let newSecret: CreateSecretRequest | null = null;
 
 		switch (editedSecretType) {
-			case 'single-line':
+			case 'single_line':
 				newSecret = {
-					type: 'single-line',
-					value: editedSingleLineValue
+					display_name: editedSecretName,
+					type: 'single_line',
+					value_str: editedSingleLineValue || ''
 				};
 				break;
 
-			case 'multi-line':
+			case 'multi_line':
 				newSecret = {
-					type: 'multi-line',
-					value: editedMultiLineValue
+					display_name: editedSecretName,
+					type: 'multi_line',
+					value_str: editedMultiLineValue || ''
+				};
+				break;
+
+			case 'env_list':
+				newSecret = {
+					display_name: editedSecretName,
+					type: 'env_list',
+					value_str: envVarsToString(editedEnvVarList || [])
 				};
 				break;
 
 			case 'file':
-				if (!editedFileValue) {
-					// If editing an existing file secret, keep the old value
-					if (currentSecretName) {
-						const existingSecret = secrets.find(
-							([name]) => name === currentSecretName
-						)?.[1] as FileSecret;
-						if (existingSecret && existingSecret.type === 'file') {
-							newSecret = { ...existingSecret };
-							break;
-						}
+				if (editedFileValue) {
+					// New file uploaded, process it
+					const arrayBuffer = await editedFileValue.arrayBuffer();
+					newSecret = {
+						display_name: editedSecretName,
+						type: 'file',
+						filename: editedFileValue.name,
+						value_b64: _arrayBufferToBase64(arrayBuffer)
+					};
+				} else if (currentSecretId) {
+					// Editing existing file secret without changing the file
+					const existingSecret = secrets[currentSecretId];
+					if (existingSecret && existingSecret.type === 'file') {
+						newSecret = {
+							...existingSecret,
+							display_name: editedSecretName
+						};
+						break;
 					}
+				} else {
 					alert($t('secrets.file-required'));
 					return;
 				}
-				const arrayBuffer = await editedFileValue.arrayBuffer();
-				newSecret = {
-					type: 'file',
-					value: arrayBuffer,
-					filename: editedFileValue.name,
-					mimeType: editedFileValue.type
-				};
 				break;
 
 			default:
 				return;
 		}
 
-		// If we're editing an existing secret, remove it first
-		if (currentSecretName) {
-			secrets = secrets.filter(([name]) => name !== currentSecretName);
-		}
+		if (!newSecret) return;
 
-		// Add the new or updated secret
-		secrets = [...secrets, [editedSecretName, newSecret]];
+		// Update the secrets dictionary by creating or updating (depends on wether currentSecretId is null)
+		if (currentSecretId) {
+			await fetch(`/api/secrets/${currentSecretId}`, {
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(newSecret)
+			});
+		} else {
+			await fetch('/api/secrets', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(newSecret)
+			});
+		}
+		await invalidate('/api/secrets');
 
 		// Close the modal
 		showEditModal = false;
-	};
-
-	const convertValue = (): void => {
-		// Handle conversion between secret types when type changes
-		if (editedSecretType === 'single-line') {
-			if (editedMultiLineValue) {
-				// Convert multi-line to single-line
-				editedSingleLineValue = editedMultiLineValue.split('\n')[0];
-			}
-		} else if (editedSecretType === 'multi-line') {
-			if (editedSingleLineValue) {
-				// Convert single-line to multi-line
-				editedMultiLineValue = editedSingleLineValue;
-			}
-		}
 	};
 </script>
 
@@ -235,31 +295,36 @@
 		<TableHeadCell padding="p-2">{$t('secrets.actions')}</TableHeadCell>
 	</TableHead>
 	<TableBody>
-		{#each secrets as [name, secret]}
+		{#each Object.entries(secrets) as [id, secret]}
 			<TableBodyRow>
 				<TableBodyEditCell
-					bind:value={name}
-					onEnter={(newName) => changeSecretName(name, newName)}
+					bind:value={secret.display_name}
+					onEnter={(newName) => changeSecretName(id, newName)}
 				/>
 				<TableBodyCell tdClass="p-2">
-					{#if secret.type === 'single-line'}
+					{#if secret.type === 'single_line'}
 						{$t('secrets.type-single-line')}
-					{:else if secret.type === 'multi-line'}
+					{:else if secret.type === 'multi_line'}
 						{$t('secrets.type-multi-line')}
+					{:else if secret.type === 'env_list'}
+						{$t('secrets.type-env-list')}
 					{:else if secret.type === 'file'}
 						{$t('secrets.type-file')}
 					{/if}
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					<div class="flex gap-1">
-						<Button size="xs" on:click={() => openEditSecret(name)}>
+						<Button size="xs" on:click={() => openEditSecret(id)}>
 							{$t('secrets.edit')}
 						</Button>
-						<Button size="xs" on:click={() => copySecretId(name)}>
-							C
+						<Button
+							size="xs"
+							on:click={() => copySecretId(id)}
+							title={`Copy \${secrets.${secret.display_name}}`}
+						>
 							{$t('secrets.copy-id')}
 						</Button>
-						<Button size="xs" color="red" on:click={() => deleteSecret(name)}>
+						<Button size="xs" color="red" on:click={() => deleteSecret(id)}>
 							{$t('secrets.delete')}
 						</Button>
 					</div>
@@ -267,21 +332,23 @@
 			</TableBodyRow>
 		{:else}
 			<TableBodyRow>
-				<TableBodyCell colspan="3" class="text-center p-4">
+				<TableBodyCell colspan={3} class="text-center p-4">
 					{$t('secrets.no-secrets')}
 				</TableBodyCell>
 			</TableBodyRow>
 		{/each}
 	</TableBody>
 </Table>
-<Button color="alternative" class="mt-4" on:click={() => addSecret()}>
-	+ {$t('secrets.add-secret')}
-</Button>
+<div class="flex justify-between mt-4">
+	<Button color="alternative" on:click={() => addSecret()}>
+		+ {$t('secrets.add-secret')}
+	</Button>
+</div>
 
 <!-- Edit Secret Modal -->
 <Modal
 	bind:open={showEditModal}
-	title={currentSecretName ? $t('secrets.edit-secret') : $t('secrets.add-secret')}
+	title={currentSecretId ? $t('secrets.edit-secret') : $t('secrets.add-secret')}
 	size="lg"
 >
 	<div class="space-y-4">
@@ -295,20 +362,27 @@
 		</div>
 
 		<div>
-			<Label for="secretType">{$t('secrets.type')}</Label>
-			<Select id="secretType" bind:value={editedSecretType} on:change={convertValue}>
-				<option value="single-line">{$t('secrets.type-single-line')}</option>
-				<option value="multi-line">{$t('secrets.type-multi-line')}</option>
-				<option value="file">{$t('secrets.type-file')}</option>
-			</Select>
+			<Label for="secretType">
+				{$t('secrets.type')}
+			</Label>
+			<div class="flex items-center">
+				{#if editedSecretType === 'single_line'}
+					{$t('secrets.type-single-line')}
+				{:else if editedSecretType === 'multi_line'}
+					{$t('secrets.type-multi-line')}
+				{:else if editedSecretType === 'env_list'}
+					{$t('secrets.type-env-list')}
+				{:else if editedSecretType === 'file'}
+					{$t('secrets.type-file')}
+				{/if}
+			</div>
 		</div>
-
-		{#if editedSecretType === 'single-line'}
+		{#if editedSecretType === 'single_line'}
 			<div>
 				<Label for="singleLineValue">{$t('secrets.value')}</Label>
 				<Input id="singleLineValue" bind:value={editedSingleLineValue} />
 			</div>
-		{:else if editedSecretType === 'multi-line'}
+		{:else if editedSecretType === 'multi_line'}
 			<div>
 				<Label for="multiLineValue">{$t('secrets.value')}</Label>
 				<Textarea id="multiLineValue" bind:value={editedMultiLineValue} rows={5} />
@@ -320,7 +394,6 @@
 				{#if editedFileInfo.name}
 					<div class="mt-2 text-sm">
 						<p>{$t('secrets.filename')}: {editedFileInfo.name}</p>
-						<p>{$t('secrets.filetype')}: {editedFileInfo.type || $t('secrets.unknown')}</p>
 						<p>{$t('secrets.filesize')}: {(editedFileInfo.size / 1024).toFixed(2)} KB</p>
 					</div>
 				{/if}

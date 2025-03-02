@@ -90,8 +90,9 @@ def child_task_states(db_session, tasks: list[uuid.UUID]) -> set[str]:
     return set(task.state for task in tasks)
 
 
-def delete_all_tasks(db_session: Session):
-    if "RUNNING_IN_PLAYWRIGHT" in os.environ:
+if "RUNNING_IN_PLAYWRIGHT" in os.environ:
+
+    def delete_all_tasks(db_session: Session):
         db_session.query(db_models.Task).delete()
         db_session.commit()
 

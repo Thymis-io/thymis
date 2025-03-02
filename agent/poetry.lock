@@ -726,6 +726,34 @@ files = [
 windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
+name = "pyrage"
+version = "1.2.4"
+description = "Python bindings for rage (age in Rust)"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "pyrage-1.2.4-cp39-abi3-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:7faf916520e188224eca97b0acf9391a7fe306bb9ee53d6106f8300b149811a7"},
+    {file = "pyrage-1.2.4-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:52a2ad032041fd695c24e94f8629594c232abd506b8825c2f42f6c0e66c09ae6"},
+    {file = "pyrage-1.2.4-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cdbae5da22c92d5e3c0b50a20fa18e0e55e69da15bff5a8c5ea333a262ab79ea"},
+    {file = "pyrage-1.2.4-cp39-abi3-win_amd64.whl", hash = "sha256:8dac1f31b88d9f5de6af3b94b613f775b96d04bf962dbc1954c9bdb263c556fc"},
+    {file = "pyrage-1.2.4.tar.gz", hash = "sha256:d14cf05da3f66ed57e625a5269e1e8804a53be83c6689d77f2bfc49e9794b6ef"},
+]
+
+[[package]]
+name = "pyrage-stubs"
+version = "1.2.4"
+description = "A PEP 561 stub package for pyrage's types"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "pyrage_stubs-1.2.4-py3-none-any.whl", hash = "sha256:cf95670c61be8e6d91f3433db26ae4d41d5dff5eab1b73bf6054b09b6f681357"},
+    {file = "pyrage_stubs-1.2.4.tar.gz", hash = "sha256:00d90a5daff51f9d692490ae3134dd14439ebd743a0c2d6426c36580b3a7fb8f"},
+]
+
+[package.dependencies]
+pyrage = ">=1.2.0,<2.0"
+
+[[package]]
 name = "pytest"
 version = "8.3.5"
 description = "pytest: simple powerful testing with Python"
@@ -1225,4 +1253,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "d6217e3bf9a596c6aa597d3783f5e610db88bebbf6440ae1cd127801efbc443d"
+content-hash = "d40f63bcf861ef362a43dc7e4501c6632019420c1e37fbbe5d92fed95762b4e9"

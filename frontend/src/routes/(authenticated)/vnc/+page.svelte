@@ -4,7 +4,7 @@
 	import VncView from '$lib/vnc/VncView.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import type { PageData } from './$types';
-	import PageHead from '$lib/components/PageHead.svelte';
+	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import DynamicGrid from '$lib/components/DynamicGrid.svelte';
 	import Dropdown from '$lib/components/Dropdown.svelte';
 	import { browser } from '$app/environment';
