@@ -29,7 +29,7 @@
 	import { flip } from 'svelte/animate';
 	import { nameToIdentifier, nameValidation } from '$lib/nameValidation';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
-	import PageHead from '$lib/components/PageHead.svelte';
+	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 
 	const flipDurationMs = 200;

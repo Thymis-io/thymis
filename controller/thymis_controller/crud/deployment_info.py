@@ -174,7 +174,8 @@ def get_by_config_id(
     )
 
 
-def delete_all(session: Session):
-    if "RUNNING_IN_PLAYWRIGHT" in os.environ:
+if "RUNNING_IN_PLAYWRIGHT" in os.environ:
+
+    def delete_all(session: Session):
         session.query(db_models.DeploymentInfo).delete()
         session.commit()

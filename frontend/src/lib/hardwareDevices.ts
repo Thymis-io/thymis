@@ -1,4 +1,3 @@
-import type { DeploymentInfo } from './deploymentInfo';
 import { fetchWithNotify } from './fetchWithNotify';
 
 export type HardwareDevice = {

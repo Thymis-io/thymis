@@ -6,7 +6,6 @@ from urllib.parse import quote, unquote
 import httpx
 from fastapi import APIRouter, Depends, Form, HTTPException, Response, status
 from fastapi.responses import RedirectResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
 from thymis_controller.config import global_settings
 from thymis_controller.dependencies import (
