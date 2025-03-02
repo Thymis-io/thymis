@@ -10,6 +10,7 @@
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
+	import FileLock from 'lucide-svelte/icons/file-lock-2';
 	import { state } from '$lib/state';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
@@ -92,6 +93,11 @@
 			name: $t('nav.external-repositories'),
 			icon: Settings,
 			href: '/external-repositories'
+		},
+		{
+			name: $t('nav.secrets'),
+			icon: FileLock,
+			href: '/secrets'
 		}
 	];
 
