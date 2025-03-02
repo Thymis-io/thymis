@@ -3,7 +3,7 @@
 	import type { PageData } from './$types';
 	import { Card, P } from 'flowbite-svelte';
 	import { state } from '$lib/state';
-	import PageHead from '$lib/components/PageHead.svelte';
+	import PageHead from '$lib/components/layout/PageHead.svelte';
 
 	export let data: PageData;
 </script>

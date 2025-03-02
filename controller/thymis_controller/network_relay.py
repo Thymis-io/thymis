@@ -417,8 +417,9 @@ class NetworkRelay(nr.NetworkRelay):
                 raise ValueError("No connection found for public key")
             return self.public_key_to_connection_id[public_key]
 
-    async def disconnect_and_ban_all_connections(self, db_session):
-        if "RUNNING_IN_PLAYWRIGHT" in os.environ:
+    if "RUNNING_IN_PLAYWRIGHT" in os.environ:
+
+        async def disconnect_and_ban_all_connections(self, db_session):
             agent_connections = self.registered_agent_connections.copy()
             for connection_id, connection in agent_connections.items():
                 start_message = self.connection_id_to_start_message[connection_id]

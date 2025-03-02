@@ -11,7 +11,7 @@
 		TableBodyRow,
 		TableBodyCell
 	} from 'flowbite-svelte';
-	import PageHead from '$lib/components/PageHead.svelte';
+	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
