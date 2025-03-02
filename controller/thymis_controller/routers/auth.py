@@ -50,11 +50,14 @@ def login_basic(
 
     # check for redirect in cookie
     redirect_url = None
+    safe_redirect = None
     if redirect is not None and redirect_cookie is not None:
         # look for uuid in cookie[uuid], but first urldecode and jsondecode
         redirect_cookie = unquote(redirect_cookie)
         redirect_dict = json.loads(redirect_cookie)
-        redirect_url = redirect_dict.get(redirect)
+        redirect_url, safe_redirect = (
+            {k: (v, k) for k, v in redirect_dict.items()}
+        ).get(redirect, (None, None))
     if redirect_url is None:
         redirect_url = "/overview"
 
@@ -77,8 +80,14 @@ def login_basic(
         )
         return response
     else:
+        if safe_redirect is not None:
+            return RedirectResponse(
+                f"/login?redirect={quote(safe_redirect)}&authError=credentials",
+                headers=response.headers,
+                status_code=status.HTTP_303_SEE_OTHER,
+            )
         return RedirectResponse(
-            f"/login?redirect={quote(redirect)}&authError=credentials",
+            f"/login?authError=credentials",
             headers=response.headers,
             status_code=status.HTTP_303_SEE_OTHER,
         )
