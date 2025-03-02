@@ -1,5 +1,6 @@
 import { toast } from '@zerodevx/svelte-toast';
 import { browser } from '$app/environment';
+import { invalidate } from '$app/navigation';
 
 export type CustomResponseMessage = {
 	[statusCode: number]: string | null;
@@ -15,6 +16,13 @@ export const fetchWithNotify = async (
 	const response = await fetch(url, init);
 
 	if (!acceptableStatus.includes(response.status)) {
+		// if 401, reload page
+		if (response.status === 401) {
+			// browser reload
+			if (browser) {
+				document.location.reload();
+			}
+		}
 		console.error(`fetch ${url}: ${response.status} ${response.statusText}`);
 		let message = null;
 

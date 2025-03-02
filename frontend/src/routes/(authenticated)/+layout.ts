@@ -37,7 +37,7 @@ export const load = (async ({ fetch, url, data }) => {
 	);
 
 	if (stateResponse.status === 401) {
-		redirect(307, '/login?redirect=' + encodeURIComponent(url.pathname + url.search));
+		redirect(307, '/login');
 	}
 	if (stateResponse.status === 422) {
 		// log

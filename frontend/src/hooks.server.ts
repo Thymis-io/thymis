@@ -19,7 +19,10 @@ const cookiesToSend = ['session-id', 'session-token'];
 
 export const handleFetch: HandleFetch = async ({ request, fetch, event }) => {
 	const parsedRequestUrl = new URL(request.url);
-	if (event.url.host === parsedRequestUrl.host && parsedRequestUrl.pathname.startsWith('/api')) {
+	if (
+		event.url.host === parsedRequestUrl.host &&
+		(parsedRequestUrl.pathname.startsWith('/api') || parsedRequestUrl.pathname.startsWith('/auth'))
+	) {
 		for (const cookie of cookiesToSend) {
 			const value = event.cookies.get(cookie);
 			if (value) {
@@ -29,7 +32,6 @@ export const handleFetch: HandleFetch = async ({ request, fetch, event }) => {
 		}
 		const parsedControllerHost = new URL(controllerHost);
 		const new_url = request.url.replace(parsedRequestUrl.origin, parsedControllerHost.origin);
-		console.log('fetching:', new_url);
 		request = new Request(new_url, request);
 	}
 	return fetch(request);

@@ -5,6 +5,7 @@ from typing import Annotated, Generator, Optional, Union
 
 from fastapi import Cookie, Depends, HTTPException, Request, Response, WebSocket, status
 from fastapi.requests import HTTPConnection
+from pydantic import Json
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 from thymis_controller.config import global_settings
@@ -54,15 +55,17 @@ def get_db_session(connection: HTTPConnection) -> Generator[Session, None, None]
 
 
 # session annotated dependency for FastAPI endpoints
-SessionAD = Annotated[Session, Depends(get_db_session)]
+DBSessionAD = Annotated[Session, Depends(get_db_session)]
 
 UserSessionIDAD = Annotated[Optional[uuid.UUID], Cookie(alias="session-id")]
 
 UserSessionTokenAD = Annotated[Optional[str], Cookie(alias="session-token")]
 
+LoginRedirectCookieAD = Annotated[Optional[str], Cookie(alias="login-redirect")]
+
 
 def check_user_session(
-    db_session: SessionAD,
+    db_session: DBSessionAD,
     user_session_id: Optional[uuid.UUID],
     user_session_token: Optional[str],
 ) -> Optional[bool]:
@@ -99,7 +102,7 @@ def get_user_session_token(
 
 
 def invalidate_user_session(
-    db_session: SessionAD,
+    db_session: DBSessionAD,
     response: Response,
     user_session_id: uuid.UUID,
     user_session_token: str,
@@ -111,19 +114,21 @@ def invalidate_user_session(
     web_session.delete(db_session, user_session_id)
 
 
-def apply_user_session(db_session: SessionAD, response: Response):
+def apply_user_session(db_session: DBSessionAD, response: Response):
     user_session = web_session.create(db_session)
-    exp = (
-        user_session.created_at.astimezone(datetime.UTC) + web_session.SESSION_LIFETIME
+    is_using_https = (
+        global_settings.BASE_URL.startswith("https")
+        or global_settings.BASE_URL.startswith("http://localhost")
+        or global_settings.BASE_URL.startswith("http://127.0.0.1")
     )
-    is_using_https = global_settings.BASE_URL.startswith("https")
     response.set_cookie(
         key="session-id",
         value=str(user_session.id),
         httponly=True,
         secure=is_using_https,
         samesite="strict",
-        expires=exp,
+        expires=web_session.SESSION_LIFETIME_SECONDS,
+        max_age=web_session.SESSION_LIFETIME_SECONDS,
     )
     response.set_cookie(
         key="session-token",
@@ -131,7 +136,8 @@ def apply_user_session(db_session: SessionAD, response: Response):
         httponly=True,
         secure=is_using_https,
         samesite="strict",
-        expires=exp,
+        expires=web_session.SESSION_LIFETIME_SECONDS,
+        max_age=web_session.SESSION_LIFETIME_SECONDS,
     )
 
 
