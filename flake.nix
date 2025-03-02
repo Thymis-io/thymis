@@ -154,7 +154,7 @@
               export THYMIS_DEV_SHELL=true
               export THYMIS_FLAKE_ROOT=$(git rev-parse --show-toplevel)
               export PATH=${inputs.nix.packages."${system}".nix}/bin:$PATH
-              alias run-dev="cd controller && UVICORN_PORT=8080 THYMIS_BASE_URL=http://127.0.0.1:8080 poetry run uvicorn thymis_controller.main:app --reload --host 0.0.0.0 --port 8080; cd .."
+              alias run-dev="(cd $THYMIS_FLAKE_ROOT/controller && UVICORN_PORT=8080 THYMIS_BASE_URL=http://127.0.0.1:8080 poetry run uvicorn thymis_controller.main:app --reload --host 0.0.0.0 --port 8080)"
             '';
           };
           ci = pkgs.mkShell {
