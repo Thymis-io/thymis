@@ -399,6 +399,10 @@ test('VNC View', async ({ page, request }, testInfo) => {
 	await enableVNCButton.click();
 
 	await page.locator('nav:visible').locator('a').filter({ hasText: 'VNC Devices' }).click();
+	await page.locator('nav:visible').locator('a').filter({ hasText: 'VNC Devices' }).click();
+	await page.locator('nav:visible').locator('a').filter({ hasText: 'VNC Devices' }).click();
+	await page.locator('nav:visible').locator('a').filter({ hasText: 'VNC Devices' }).click();
+	await page.locator('nav:visible').locator('a').filter({ hasText: 'VNC Devices' }).click();
 
 	// wait for "Displays per Row"
 	await page.getByText('Displays per Row:').waitFor();
