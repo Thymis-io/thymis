@@ -25,11 +25,11 @@ from thymis_controller import crud, dependencies, models, modules, utils
 from thymis_controller.config import global_settings
 from thymis_controller.db_models.deployment_info import DeploymentInfo
 from thymis_controller.dependencies import (
+    DBSessionAD,
     EngineAD,
     NetworkRelayAD,
     NotificationManagerAD,
     ProjectAD,
-    SessionAD,
     TaskControllerAD,
     UserSessionIDAD,
     require_valid_user_session,
@@ -73,7 +73,7 @@ def update_state(payload: Annotated[dict, Body()], project: ProjectAD):
 async def build_repo(
     project: ProjectAD,
     task_controller: TaskControllerAD,
-    db_session: SessionAD,
+    db_session: DBSessionAD,
     user_session_id: UserSessionIDAD,
 ):
     task_controller.submit(
@@ -90,7 +90,7 @@ router.include_router(task.router)
 
 @router.post("/action/deploy")
 async def deploy(
-    session: SessionAD,
+    session: DBSessionAD,
     project: ProjectAD,
     task_controller: TaskControllerAD,
     network_relay: NetworkRelayAD,
@@ -141,7 +141,7 @@ async def deploy(
 @router.post("/action/build-download-image")
 def build_download_image(
     identifier: str,
-    db_session: SessionAD,
+    db_session: DBSessionAD,
     task_controller: TaskControllerAD,
     user_session_id: UserSessionIDAD,
     project: ProjectAD,
@@ -174,7 +174,7 @@ def build_download_image(
 @router.post("/action/restart-device")
 async def restart_device(
     identifier: str,
-    db_session: SessionAD,
+    db_session: DBSessionAD,
     task_controller: TaskControllerAD,
     project: ProjectAD,
     user_session_id: UserSessionIDAD,
@@ -289,7 +289,7 @@ def commit(project: ProjectAD, message: str):
 def update(
     project: ProjectAD,
     task_controller: TaskControllerAD,
-    db_session: SessionAD,
+    db_session: DBSessionAD,
     user_session_id: UserSessionIDAD,
 ):
     project.reload_from_disk()
@@ -346,7 +346,7 @@ async def vnc_websocket(
     "/deployment_infos_by_config_id/{deployed_config_id}",
     response_model=list[device.DeploymentInfo],
 )
-def get_deployment_infos_by_config_id(db_session: SessionAD, deployed_config_id: str):
+def get_deployment_infos_by_config_id(db_session: DBSessionAD, deployed_config_id: str):
     """
     Gets the deployment infos for all devices with the given deployed_config_id
     """
@@ -361,7 +361,7 @@ def get_deployment_infos_by_config_id(db_session: SessionAD, deployed_config_id:
     response_model=list[device.DeploymentInfo],
 )
 def get_connected_deployment_infos_by_config_id(
-    db_session: SessionAD, deployed_config_id: str, network_relay: NetworkRelayAD
+    db_session: DBSessionAD, deployed_config_id: str, network_relay: NetworkRelayAD
 ):
     """
     Gets the deployment infos for all connected devices with the given deployed_config_id
@@ -382,7 +382,7 @@ def get_connected_deployment_infos_by_config_id(
 
 
 @router.get("/deployment_info/{id}", response_model=models.DeploymentInfo)
-def get_deployment_info(db_session: SessionAD, id: uuid.UUID):
+def get_deployment_info(db_session: DBSessionAD, id: uuid.UUID):
     """
     Get a specific deployment_info by id
     """
@@ -393,7 +393,7 @@ def get_deployment_info(db_session: SessionAD, id: uuid.UUID):
 
 
 @router.delete("/deployment_info/{id}", status_code=204)
-def delete_deployment_info(db_session: SessionAD, id: uuid.UUID, project: ProjectAD):
+def delete_deployment_info(db_session: DBSessionAD, id: uuid.UUID, project: ProjectAD):
     """
     Delete a deployment_info
     """
@@ -405,7 +405,7 @@ def delete_deployment_info(db_session: SessionAD, id: uuid.UUID, project: Projec
     "/all_connected_deployment_info", response_model=list[models.DeploymentInfo]
 )
 def get_connected_deployment_infos(
-    db_session: SessionAD, network_relay: NetworkRelayAD
+    db_session: DBSessionAD, network_relay: NetworkRelayAD
 ):
     """
     Get all connected deployment_infos
@@ -424,7 +424,7 @@ def get_connected_deployment_infos(
 
 
 @router.get("/all_deployment_infos", response_model=list[models.DeploymentInfo])
-def get_all_deployment_infos(db_session: SessionAD):
+def get_all_deployment_infos(db_session: DBSessionAD):
     """
     Get all deployment_infos
     """
@@ -436,7 +436,7 @@ def get_all_deployment_infos(db_session: SessionAD):
 
 @router.patch("/deployment_info/{id}", response_model=models.DeploymentInfo)
 def update_deployment_info(
-    db_session: SessionAD,
+    db_session: DBSessionAD,
     id: uuid.UUID,
     deployment_info: models.CreateDeploymentInfoLegacyHostkeyRequest,
     project: ProjectAD,
@@ -459,7 +459,7 @@ def update_deployment_info(
 
 @router.post("/create_deployment_info", response_model=models.DeploymentInfo)
 def create_deployment_info(
-    db_session: SessionAD,
+    db_session: DBSessionAD,
     deployment_info: models.CreateDeploymentInfoLegacyHostkeyRequest,
     project: ProjectAD,
 ):
@@ -475,7 +475,7 @@ def create_deployment_info(
 
 
 @router.get("/hardware_device", response_model=list[models.HardwareDevice])
-def get_hardware_devices(db_session: SessionAD):
+def get_hardware_devices(db_session: DBSessionAD):
     """
     Get all hardware devices
     """
@@ -601,6 +601,6 @@ def connect_to_ssh_shell(
 
 
 @router.get("/testSession")
-def test_session(session: SessionAD):
+def test_session(session: DBSessionAD):
     session
     return {"message": "session is valid"}

@@ -3,10 +3,10 @@ import uuid
 
 from fastapi import APIRouter, Response, WebSocket
 from thymis_controller.dependencies import (
+    DBSessionAD,
     EngineAD,
     NetworkRelayAD,
     ProjectAD,
-    SessionAD,
     TaskControllerAD,
 )
 from thymis_controller.routers.frontend import is_running_in_playwright
@@ -29,7 +29,7 @@ async def task_status(
 @router.get("/tasks")
 async def get_tasks(
     task_controller: TaskControllerAD,
-    session: SessionAD,
+    session: DBSessionAD,
     response: Response,
     limit: int = 100,
     offset: int = 0,
@@ -40,7 +40,7 @@ async def get_tasks(
 
 @router.get("/tasks/{task_id}")
 async def get_task(
-    task_id: uuid.UUID, task_controller: TaskControllerAD, db_session: SessionAD
+    task_id: uuid.UUID, task_controller: TaskControllerAD, db_session: DBSessionAD
 ):
     try:
         return task_controller.get_task(task_id, db_session)
@@ -60,7 +60,7 @@ async def cancel_task(task_controller: TaskControllerAD, task_id: uuid.UUID):
 
 @router.post("/tasks/{task_id}/retry")
 async def retry_task(
-    task_controller: TaskControllerAD, db_session: SessionAD, task_id: uuid.UUID
+    task_controller: TaskControllerAD, db_session: DBSessionAD, task_id: uuid.UUID
 ):
     task_controller.retry_task(task_id, db_session)
     return {"message": "Task retried"}
@@ -69,7 +69,7 @@ async def retry_task(
 @router.post("/tasks/delete_all")
 async def delete_all(
     task_controller: TaskControllerAD,
-    db_session: SessionAD,
+    db_session: DBSessionAD,
     project: ProjectAD,
     network_relay: NetworkRelayAD,
 ):
