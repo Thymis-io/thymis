@@ -38,9 +38,9 @@ router = APIRouter(
 def login_basic(
     username: Annotated[str, Form()],
     password: Annotated[str, Form()],
-    redirect: Annotated[Optional[str], Form()],
     response: Response,
     db_session: DBSessionAD,
+    redirect: Annotated[Optional[str], Form()] = None,
     redirect_cookie: LoginRedirectCookieAD = None,
 ):
     if not global_settings.AUTH_BASIC:
