@@ -48,6 +48,7 @@
 
 	// Dictionary mapping UUIDs to secrets
 	let secrets: Record<string, SecretShort> = {};
+	let showCreateModal = false;
 	let showEditModal = false;
 	let currentSecretId: string | null = null;
 	let editedSecretName = '';
@@ -61,14 +62,33 @@
 	let isLoadingFile = false;
 
 	const stringToEnvVars = (str: string): [string, string][] => {
-		return str.split('\n').map((line) => {
-			const [key, value] = line.split('=');
-			return [key.trim(), value.trim()];
-		});
+		if (!str || str.trim() === '') {
+			return [['', '']]; // Default empty entry
+		}
+
+		return str
+			.split('\n')
+			.filter((line) => line.trim() !== '')
+			.map((line) => {
+				const separatorIndex = line.indexOf('=');
+				if (separatorIndex === -1) {
+					return [line.trim(), '']; // No value
+				}
+				const key = line.substring(0, separatorIndex).trim();
+				const value = line.substring(separatorIndex + 1).trim();
+				return [key, value];
+			});
 	};
 
 	const envVarsToString = (envVars: [string, string][]): string => {
-		return envVars.map(([key, value]) => `${key}=${value}`).join('\n');
+		if (!envVars || envVars.length === 0) {
+			return '';
+		}
+
+		return envVars
+			.filter(([key]) => key.trim() !== '') // Only include entries with non-empty keys
+			.map(([key, value]) => `${key}=${value}`)
+			.join('\n');
 	};
 
 	$: secrets = data.secrets;
@@ -96,7 +116,10 @@
 		const secret = secrets[id];
 		if (!secret) return;
 
-		currentSecretId = id;
+		// Make sure currentSecretId is properly set as a string
+		currentSecretId = String(id);
+		console.log('Opening edit for secret:', { id, currentSecretId, name: secret.display_name });
+
 		editedSecretName = secret.display_name;
 		editedSecretType = secret.type;
 
@@ -114,7 +137,9 @@
 			editedSingleLineValue = null;
 			editedMultiLineValue = undefined;
 			editedFileValue = null;
-			editedEnvVarList = stringToEnvVars(secret.value_str || '');
+			// Parse environment variables with better handling
+			const envList = stringToEnvVars(secret.value_str || '');
+			editedEnvVarList = envList.length > 0 ? envList : [['', '']];
 		} else if (secret.type === 'file') {
 			editedSingleLineValue = null;
 			editedMultiLineValue = undefined;
@@ -127,6 +152,7 @@
 
 			// If file content isn't loaded, we don't need to do anything
 			// It will be requested only when downloading or viewing
+			setTimeout(() => resetFileInput('editFileValue'), 100);
 		}
 
 		showEditModal = true;
@@ -161,8 +187,10 @@
 		editedSingleLineValue = '';
 		editedMultiLineValue = undefined;
 		editedFileValue = null;
-		editedEnvVarList = null;
-		showEditModal = true;
+		editedFileInfo = { name: '', size: 0 };
+		editedEnvVarList = [['', '']]; // Initialize with an empty pair
+		setTimeout(() => resetFileInput('fileValue'), 100);
+		showCreateModal = true;
 	};
 
 	const _arrayBufferToBase64 = (buffer: ArrayBuffer) => {
@@ -183,6 +211,17 @@
 				name: input.files[0].name,
 				size: input.files[0].size
 			};
+			console.log('File selected:', editedFileInfo);
+		} else {
+			console.log('No file selected');
+		}
+	};
+
+	// Reset file input to avoid issues with the same file being selected twice
+	const resetFileInput = (inputId: string) => {
+		const fileInput = document.getElementById(inputId) as HTMLInputElement;
+		if (fileInput) {
+			fileInput.value = '';
 		}
 	};
 
@@ -192,97 +231,178 @@
 			return;
 		}
 
-		// Check for duplicate name (except when editing the current secret)
-		const nameExists = Object.values(secrets).some(
-			(s) => s.display_name === editedSecretName && (!currentSecretId || s.id !== currentSecretId)
-		);
+		// Enhanced debugging for saving
+		console.log('Saving secret with:', {
+			currentSecretId,
+			editedSecretName,
+			editedSecretType,
+			secretsCount: Object.keys(secrets).length
+		});
 
-		if (nameExists) {
-			alert($t('secrets.name-exists'));
-			return;
+		// Special case: if currentSecretId exists and the name hasn't changed, skip the name check
+		const currentSecret = currentSecretId ? secrets[currentSecretId] : null;
+		if (currentSecret && currentSecret.display_name === editedSecretName) {
+			console.log('Name unchanged, skipping conflict check');
+			// Name hasn't changed, continue with the save
+		} else {
+			// Only check for conflicts if the name has actually changed
+			let conflictDetected = false;
+
+			// Debug check for all secrets
+			console.log(
+				'All secrets:',
+				Object.entries(secrets).map(([id, s]) => ({
+					id,
+					name: s.display_name,
+					matches_name: s.display_name === editedSecretName,
+					matches_id: id === currentSecretId,
+					would_conflict: s.display_name === editedSecretName && id !== currentSecretId
+				}))
+			);
+
+			// Explicit for loop for better control
+			for (const [id, secret] of Object.entries(secrets)) {
+				if (secret.display_name === editedSecretName) {
+					// If this is not the secret we're currently editing
+					if (id !== currentSecretId) {
+						console.log('Conflict found:', {
+							existingId: id,
+							currentId: currentSecretId,
+							name: secret.display_name,
+							areIdsEqual: id === currentSecretId
+						});
+						conflictDetected = true;
+						break;
+					}
+				}
+			}
+
+			if (conflictDetected) {
+				alert(`${$t('secrets.name-exists')}: "${editedSecretName}" ${$t('secrets.already-used')}`);
+				return;
+			}
 		}
 
 		let newSecret: CreateSecretRequest | null = null;
 
-		switch (editedSecretType) {
-			case 'single_line':
-				newSecret = {
-					display_name: editedSecretName,
-					type: 'single_line',
-					value_str: editedSingleLineValue || ''
-				};
-				break;
-
-			case 'multi_line':
-				newSecret = {
-					display_name: editedSecretName,
-					type: 'multi_line',
-					value_str: editedMultiLineValue || ''
-				};
-				break;
-
-			case 'env_list':
-				newSecret = {
-					display_name: editedSecretName,
-					type: 'env_list',
-					value_str: envVarsToString(editedEnvVarList || [])
-				};
-				break;
-
-			case 'file':
-				if (editedFileValue) {
-					// New file uploaded, process it
-					const arrayBuffer = await editedFileValue.arrayBuffer();
+		try {
+			switch (editedSecretType) {
+				case 'single_line':
 					newSecret = {
 						display_name: editedSecretName,
-						type: 'file',
-						filename: editedFileValue.name,
-						value_b64: _arrayBufferToBase64(arrayBuffer)
+						type: 'single_line',
+						value_str: editedSingleLineValue || ''
 					};
-				} else if (currentSecretId) {
-					// Editing existing file secret without changing the file
-					const existingSecret = secrets[currentSecretId];
-					if (existingSecret && existingSecret.type === 'file') {
-						newSecret = {
-							...existingSecret,
-							display_name: editedSecretName
-						};
-						break;
+					break;
+
+				case 'multi_line':
+					newSecret = {
+						display_name: editedSecretName,
+						type: 'multi_line',
+						value_str: editedMultiLineValue || ''
+					};
+					break;
+
+				case 'env_list':
+					newSecret = {
+						display_name: editedSecretName,
+						type: 'env_list',
+						value_str: envVarsToString(editedEnvVarList || [])
+					};
+					break;
+
+				case 'file':
+					if (editedFileValue) {
+						// New file uploaded, process it
+						try {
+							console.log('Processing file upload:', editedFileInfo);
+							const arrayBuffer = await editedFileValue.arrayBuffer();
+							const base64Data = _arrayBufferToBase64(arrayBuffer);
+
+							newSecret = {
+								display_name: editedSecretName,
+								type: 'file',
+								filename: editedFileValue.name,
+								value_b64: base64Data
+							};
+							console.log('File processed successfully');
+						} catch (error) {
+							console.error('Error processing file:', error);
+							alert($t('secrets.file-processing-error'));
+							return;
+						}
+					} else if (currentSecretId) {
+						// Editing existing file secret without changing the file
+						const existingSecret = secrets[currentSecretId];
+						if (existingSecret && existingSecret.type === 'file') {
+							newSecret = {
+								display_name: editedSecretName,
+								type: 'file',
+								filename: existingSecret.filename
+							};
+						}
+					} else {
+						alert($t('secrets.file-required'));
+						return;
 					}
-				} else {
-					alert($t('secrets.file-required'));
+					break;
+
+				default:
 					return;
-				}
-				break;
+			}
 
-			default:
-				return;
+			if (!newSecret) return;
+
+			// Debug the payload being sent
+			console.log('Sending payload:', newSecret);
+
+			// Update the secrets dictionary by creating or updating (depends on wether currentSecretId is null)
+			if (currentSecretId) {
+				// log
+				console.log('Updating existing secret:', { currentSecretId, newSecret });
+				await fetch(`/api/secrets/${currentSecretId}`, {
+					method: 'PATCH',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(newSecret)
+				});
+			} else {
+				await fetch('/api/secrets', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(newSecret)
+				});
+			}
+			await invalidate('/api/secrets');
+
+			// Close the modal
+			showCreateModal = false;
+			showEditModal = false;
+		} catch (error) {
+			console.error('Error saving secret:', error);
+			alert($t('secrets.save-error'));
+			return;
 		}
+	};
 
-		if (!newSecret) return;
+	// Helper function to add an env variable pair
+	const addEnvVariable = () => {
+		editedEnvVarList = [...(editedEnvVarList || [['', '']]), ['', '']];
+	};
 
-		// Update the secrets dictionary by creating or updating (depends on wether currentSecretId is null)
-		if (currentSecretId) {
-			await fetch(`/api/secrets/${currentSecretId}`, {
-				method: 'PATCH',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(newSecret)
-			});
+	// Helper function to remove an env variable pair
+	const removeEnvVariable = (index: number) => {
+		if (editedEnvVarList && editedEnvVarList.length > 1) {
+			const newList = [...editedEnvVarList];
+			newList.splice(index, 1);
+			editedEnvVarList = newList;
 		} else {
-			await fetch('/api/secrets', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(newSecret)
-			});
+			// Don't remove the last one, just clear it
+			editedEnvVarList = [['', '']];
 		}
-		await invalidate('/api/secrets');
-
-		// Close the modal
-		showEditModal = false;
 	};
 </script>
 
@@ -345,11 +465,12 @@
 	</Button>
 </div>
 
-<!-- Edit Secret Modal -->
+<!-- Create Secret Modal -->
 <Modal
-	bind:open={showEditModal}
-	title={currentSecretId ? $t('secrets.edit-secret') : $t('secrets.add-secret')}
+	bind:open={showCreateModal}
+	title={$t('secrets.add-secret')}
 	size="lg"
+	on:close={() => resetFileInput('fileValue')}
 >
 	<div class="space-y-4">
 		<div>
@@ -365,7 +486,86 @@
 			<Label for="secretType">
 				{$t('secrets.type')}
 			</Label>
-			<div class="flex items-center">
+			<Select id="secretType" bind:value={editedSecretType}>
+				<option value="single_line">{$t('secrets.type-single-line')}</option>
+				<option value="multi_line">{$t('secrets.type-multi-line')}</option>
+				<option value="env_list">{$t('secrets.type-env-list')}</option>
+				<option value="file">{$t('secrets.type-file')}</option>
+			</Select>
+		</div>
+
+		{#if editedSecretType === 'single_line'}
+			<div>
+				<Label for="singleLineValue">{$t('secrets.value')}</Label>
+				<Input id="singleLineValue" bind:value={editedSingleLineValue} />
+			</div>
+		{:else if editedSecretType === 'multi_line'}
+			<div>
+				<Label for="multiLineValue">{$t('secrets.value')}</Label>
+				<Textarea id="multiLineValue" bind:value={editedMultiLineValue} rows={5} />
+			</div>
+		{:else if editedSecretType === 'env_list'}
+			<div>
+				<Label>{$t('secrets.env-variables')}</Label>
+				{#if !editedEnvVarList || editedEnvVarList.length === 0}
+					{@const dummy = editedEnvVarList = [['', '']]}
+				{/if}
+				{#each editedEnvVarList as [key, value], i}
+					<div class="flex gap-2 mb-2">
+						<Input placeholder="KEY" bind:value={editedEnvVarList[i][0]} />
+						<Input placeholder="VALUE" bind:value={editedEnvVarList[i][1]} />
+						<Button size="xs" color="red" on:click={() => removeEnvVariable(i)}>X</Button>
+					</div>
+				{/each}
+				<Button size="xs" on:click={addEnvVariable}>+ {$t('secrets.add-variable')}</Button>
+			</div>
+		{:else if editedSecretType === 'file'}
+			<div>
+				<Label for="fileValue">{$t('secrets.file')}</Label>
+				<Input id="fileValue" type="file" on:change={handleFileChange} />
+				{#if editedFileInfo.name}
+					<div class="mt-2 text-sm bg-gray-100 p-2 rounded">
+						<p><strong>{$t('secrets.filename')}:</strong> {editedFileInfo.name}</p>
+						<p>
+							<strong>{$t('secrets.filesize')}:</strong>
+							{(editedFileInfo.size / 1024).toFixed(2)} KB
+						</p>
+					</div>
+				{/if}
+			</div>
+		{/if}
+	</div>
+
+	<svelte:fragment slot="footer">
+		<Button on:click={saveSecret}>{$t('common.save')}</Button>
+		<Button color="alternative" on:click={() => (showCreateModal = false)}
+			>{$t('common.cancel')}</Button
+		>
+	</svelte:fragment>
+</Modal>
+
+<!-- Edit Secret Modal -->
+<Modal
+	bind:open={showEditModal}
+	title={$t('secrets.edit-secret')}
+	size="lg"
+	on:close={() => resetFileInput('editFileValue')}
+>
+	<div class="space-y-4">
+		<div>
+			<Label for="editSecretName">{$t('secrets.name')}</Label>
+			<Input
+				id="editSecretName"
+				bind:value={editedSecretName}
+				placeholder={$t('secrets.name-placeholder')}
+			/>
+		</div>
+
+		<div>
+			<Label for="secretTypeDisabled">
+				{$t('secrets.type')}
+			</Label>
+			<div class="p-2 border border-gray-300 rounded-lg bg-gray-50">
 				{#if editedSecretType === 'single_line'}
 					{$t('secrets.type-single-line')}
 				{:else if editedSecretType === 'multi_line'}
@@ -377,24 +577,50 @@
 				{/if}
 			</div>
 		</div>
+
 		{#if editedSecretType === 'single_line'}
 			<div>
-				<Label for="singleLineValue">{$t('secrets.value')}</Label>
-				<Input id="singleLineValue" bind:value={editedSingleLineValue} />
+				<Label for="editSingleLineValue">{$t('secrets.value')}</Label>
+				<Input id="editSingleLineValue" bind:value={editedSingleLineValue} />
 			</div>
 		{:else if editedSecretType === 'multi_line'}
 			<div>
-				<Label for="multiLineValue">{$t('secrets.value')}</Label>
-				<Textarea id="multiLineValue" bind:value={editedMultiLineValue} rows={5} />
+				<Label for="editMultiLineValue">{$t('secrets.value')}</Label>
+				<Textarea id="editMultiLineValue" bind:value={editedMultiLineValue} rows={5} />
+			</div>
+		{:else if editedSecretType === 'env_list'}
+			<div>
+				<Label>{$t('secrets.env-variables')}</Label>
+				{#if !editedEnvVarList || editedEnvVarList.length === 0}
+					{@const dummy = editedEnvVarList = [['', '']]}
+				{/if}
+				{#each editedEnvVarList as [key, value], i}
+					<div class="flex gap-2 mb-2">
+						<Input placeholder="KEY" bind:value={editedEnvVarList[i][0]} />
+						<Input placeholder="VALUE" bind:value={editedEnvVarList[i][1]} />
+						<Button size="xs" color="red" on:click={() => removeEnvVariable(i)}>X</Button>
+					</div>
+				{/each}
+				<Button size="xs" on:click={addEnvVariable}>+ {$t('secrets.add-variable')}</Button>
 			</div>
 		{:else if editedSecretType === 'file'}
 			<div>
-				<Label for="fileValue">{$t('secrets.file')}</Label>
-				<Input id="fileValue" type="file" on:change={handleFileChange} />
+				<Label for="editFileValue">{$t('secrets.file')}</Label>
 				{#if editedFileInfo.name}
-					<div class="mt-2 text-sm">
-						<p>{$t('secrets.filename')}: {editedFileInfo.name}</p>
-						<p>{$t('secrets.filesize')}: {(editedFileInfo.size / 1024).toFixed(2)} KB</p>
+					<div class="mb-2 text-sm bg-gray-100 p-2 rounded">
+						<p>
+							<strong>{$t('secrets.current-file')}:</strong>
+							{editedFileInfo.name} ({(editedFileInfo.size / 1024).toFixed(2)} KB)
+						</p>
+					</div>
+				{/if}
+				<Input id="editFileValue" type="file" on:change={handleFileChange} />
+				{#if editedFileValue}
+					<div class="mt-2 text-sm bg-green-100 p-2 rounded">
+						<p>
+							<strong>{$t('secrets.new-file')}:</strong>
+							{editedFileValue.name} ({(editedFileValue.size / 1024).toFixed(2)} KB)
+						</p>
 					</div>
 				{/if}
 			</div>

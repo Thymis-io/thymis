@@ -1,4 +1,5 @@
 import base64
+import uuid
 
 from fastapi import APIRouter, HTTPException
 from thymis_controller.dependencies import DBSessionAD, ProjectAD
@@ -8,7 +9,9 @@ router = APIRouter()
 
 
 @router.get("/secrets")
-async def get_secrets(session: DBSessionAD, project: ProjectAD) -> list[SecretShort]:
+async def get_secrets(
+    session: DBSessionAD, project: ProjectAD
+) -> dict[uuid.UUID, SecretShort]:
     return project.get_all_secrets(session)
 
 
@@ -46,13 +49,13 @@ async def update_secret(
         value = base64.b64decode(secret_update.value_b64)
     if secret_update.value_str:
         value = secret_update.value_str.encode("utf-8")
-    if not value:
+    if not value and not (secret_update.type == "file"):
         raise HTTPException(
             status_code=400, detail="Either value_b64 or value_str must be provided"
         )
     return project.update_secret(
         session,
-        secret_id,
+        uuid.UUID(secret_id),
         secret_update.display_name,
         secret_update.type,
         value,
