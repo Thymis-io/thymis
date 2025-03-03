@@ -244,13 +244,13 @@ class Project:
     def get_all_secrets(
         self,
         db_session: sqlalchemy.orm.Session,
-    ) -> list[models.SecretShort]:
+    ) -> dict[uuid.UUID, models.SecretShort]:
         # get all secrets from the database
         secrets = crud.secrets.get_all_secrets(db_session)
-        return [
-            models.SecretShort.from_orm_secret(secret, self.decrypt)
+        return {
+            secret.id: models.SecretShort.from_orm_secret(secret, self.decrypt)
             for secret in secrets
-        ]
+        }
 
     def update_secret(
         self,
@@ -264,7 +264,7 @@ class Project:
         # encrypt the value and save it to the database
         if value:
             value_size = len(value)
-            value_enc = self.encrypt(value.decode("utf-8"))
+            value_enc = self.encrypt(value)
         else:
             value_size = None
             value_enc = None
