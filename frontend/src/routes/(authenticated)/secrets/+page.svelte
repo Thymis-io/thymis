@@ -118,7 +118,6 @@
 
 		// Make sure currentSecretId is properly set as a string
 		currentSecretId = String(id);
-		console.log('Opening edit for secret:', { id, currentSecretId, name: secret.display_name });
 
 		editedSecretName = secret.display_name;
 		editedSecretType = secret.type;
@@ -150,8 +149,6 @@
 			editedFileValue = null;
 			editedEnvVarList = null;
 
-			// If file content isn't loaded, we don't need to do anything
-			// It will be requested only when downloading or viewing
 			setTimeout(() => resetFileInput('editFileValue'), 100);
 		}
 
@@ -211,9 +208,6 @@
 				name: input.files[0].name,
 				size: input.files[0].size
 			};
-			console.log('File selected:', editedFileInfo);
-		} else {
-			console.log('No file selected');
 		}
 	};
 
@@ -231,46 +225,19 @@
 			return;
 		}
 
-		// Enhanced debugging for saving
-		console.log('Saving secret with:', {
-			currentSecretId,
-			editedSecretName,
-			editedSecretType,
-			secretsCount: Object.keys(secrets).length
-		});
-
 		// Special case: if currentSecretId exists and the name hasn't changed, skip the name check
 		const currentSecret = currentSecretId ? secrets[currentSecretId] : null;
 		if (currentSecret && currentSecret.display_name === editedSecretName) {
-			console.log('Name unchanged, skipping conflict check');
 			// Name hasn't changed, continue with the save
 		} else {
 			// Only check for conflicts if the name has actually changed
 			let conflictDetected = false;
-
-			// Debug check for all secrets
-			console.log(
-				'All secrets:',
-				Object.entries(secrets).map(([id, s]) => ({
-					id,
-					name: s.display_name,
-					matches_name: s.display_name === editedSecretName,
-					matches_id: id === currentSecretId,
-					would_conflict: s.display_name === editedSecretName && id !== currentSecretId
-				}))
-			);
 
 			// Explicit for loop for better control
 			for (const [id, secret] of Object.entries(secrets)) {
 				if (secret.display_name === editedSecretName) {
 					// If this is not the secret we're currently editing
 					if (id !== currentSecretId) {
-						console.log('Conflict found:', {
-							existingId: id,
-							currentId: currentSecretId,
-							name: secret.display_name,
-							areIdsEqual: id === currentSecretId
-						});
 						conflictDetected = true;
 						break;
 					}
@@ -315,7 +282,6 @@
 					if (editedFileValue) {
 						// New file uploaded, process it
 						try {
-							console.log('Processing file upload:', editedFileInfo);
 							const arrayBuffer = await editedFileValue.arrayBuffer();
 							const base64Data = _arrayBufferToBase64(arrayBuffer);
 
@@ -325,7 +291,6 @@
 								filename: editedFileValue.name,
 								value_b64: base64Data
 							};
-							console.log('File processed successfully');
 						} catch (error) {
 							console.error('Error processing file:', error);
 							alert($t('secrets.file-processing-error'));
@@ -353,13 +318,8 @@
 
 			if (!newSecret) return;
 
-			// Debug the payload being sent
-			console.log('Sending payload:', newSecret);
-
-			// Update the secrets dictionary by creating or updating (depends on wether currentSecretId is null)
+			// Update the secrets dictionary by creating or updating
 			if (currentSecretId) {
-				// log
-				console.log('Updating existing secret:', { currentSecretId, newSecret });
 				await fetch(`/api/secrets/${currentSecretId}`, {
 					method: 'PATCH',
 					headers: {
@@ -404,6 +364,43 @@
 			editedEnvVarList = [['', '']];
 		}
 	};
+
+	// Add download function using JavaScript
+	const downloadFile = async (secretId: string, filename: string) => {
+		try {
+			// Show loading state
+			isLoadingFile = true;
+
+			// Fetch the file content from the API
+			const response = await fetch(`/api/secrets/${secretId}/download`);
+
+			if (!response.ok) {
+				throw new Error('Failed to download file');
+			}
+
+			// Get the file content as blob
+			const blob = await response.blob();
+
+			// Create a URL for the blob
+			const url = window.URL.createObjectURL(blob);
+
+			// Create a temporary anchor element
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = filename || `secret_${secretId}.bin`;
+
+			// Append to body, click to trigger download, then remove
+			document.body.appendChild(a);
+			a.click();
+			window.URL.revokeObjectURL(url);
+			document.body.removeChild(a);
+		} catch (error) {
+			console.error('Error downloading file:', error);
+			alert($t('secrets.download-error'));
+		} finally {
+			isLoadingFile = false;
+		}
+	};
 </script>
 
 <PageHead title={$t('nav.secrets')} repoStatus={data.repoStatus} />
@@ -444,6 +441,7 @@
 						>
 							{$t('secrets.copy-id')}
 						</Button>
+
 						<Button size="xs" color="red" on:click={() => deleteSecret(id)}>
 							{$t('secrets.delete')}
 						</Button>
@@ -612,6 +610,40 @@
 							<strong>{$t('secrets.current-file')}:</strong>
 							{editedFileInfo.name} ({(editedFileInfo.size / 1024).toFixed(2)} KB)
 						</p>
+
+						<!-- Add prominent download button in the edit modal -->
+						{#if currentSecretId}
+							<div class="mt-3">
+								<Button
+									size="xs"
+									color="blue"
+									class="w-full"
+									disabled={isLoadingFile}
+									on:click={() => downloadFile(currentSecretId, editedFileInfo.name)}
+								>
+									{#if isLoadingFile}
+										<Spinner class="mr-2" size="4" />
+									{/if}
+									<span class="flex items-center">
+										<svg
+											class="w-4 h-4 mr-1"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+											></path>
+										</svg>
+										{$t('secrets.download-file')}
+									</span>
+								</Button>
+							</div>
+						{/if}
 					</div>
 				{/if}
 				<Input id="editFileValue" type="file" on:change={handleFileChange} />
