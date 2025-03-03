@@ -2,6 +2,7 @@ import base64
 import uuid
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import Response
 from thymis_controller.dependencies import DBSessionAD, ProjectAD
 from thymis_controller.models.secrets import SecretCreateRequest, SecretShort
 
@@ -60,4 +61,20 @@ async def update_secret(
         secret_update.type,
         value,
         secret_update.filename,
+    )
+
+
+@router.get("/secrets/{secret_id}/download")
+async def download_secret(
+    secret_id: uuid.UUID, session: DBSessionAD, project: ProjectAD
+):
+    # Try to download the file directly
+    res = project.download_secret_file(session, secret_id)
+    if not res:
+        raise HTTPException(status_code=404, detail="Secret not found")
+    content, filename = res
+    return Response(
+        content,
+        media_type="application/octet-stream",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
