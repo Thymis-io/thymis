@@ -288,6 +288,21 @@ class Project:
     ) -> bool:
         return crud.secrets.delete(db_session, secret_id)
 
+    def download_secret_file(
+        self,
+        db_session: sqlalchemy.orm.Session,
+        secret_id: uuid.UUID,
+    ) -> tuple[bytes, str] | None:
+        secret = crud.secrets.get_by_id(db_session, secret_id)
+        if not secret:
+            return None
+        # assert
+        if not secret.filename and (not secret.type == db_models.SecretTypes.FILE):
+            return None
+        # decrypt the value
+        value = self.decrypt(secret.value_enc)
+        return value, secret.filename
+
     def read_state(self):
         with self.state_lock:
             with open(self.repo_dir / "state.json", "r", encoding="utf-8") as f:
