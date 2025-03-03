@@ -14,7 +14,8 @@ import uuid
 
 import sqlalchemy
 import sqlalchemy.orm
-from thymis_controller import crud, migration, models
+from pyrage import decrypt, encrypt, ssh
+from thymis_controller import crud, db_models, migration, models
 from thymis_controller.config import global_settings
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
@@ -145,6 +146,8 @@ class Project:
     public_key: str
     state_lock = threading.Lock()
     repo_dir: pathlib.Path
+    controller_age_identity: ssh.Identity
+    controller_age_recipient: ssh.Recipient
 
     def __init__(
         self,
@@ -171,6 +174,7 @@ class Project:
             ],
             capture_output=True,
             text=True,
+            check=True,
         )
 
         if public_key_process.returncode != 0:
@@ -178,6 +182,14 @@ class Project:
             self.public_key = None
         else:
             self.public_key = public_key_process.stdout.strip()
+
+        # get age identity
+        with open(global_settings.PROJECT_PATH / "id_thymis", "rb") as f:
+            controller_age = ssh.Identity.from_buffer(
+                f.read(),
+            )
+        self.controller_age_identity = controller_age
+        self.controller_age_recipient = ssh.Recipient.from_str(self.public_key)
 
         # create a state, if not exists
         state_path = self.repo_dir / "state.json"
@@ -201,6 +213,95 @@ class Project:
         logger.debug("Initializing known_hosts file")
         self.known_hosts_path = None
         self.update_known_hosts(db_session)
+
+    def encrypt(self, data: bytes) -> bytes:
+        return encrypt(data, [self.controller_age_recipient])
+
+    def decrypt(self, data: bytes) -> bytes:
+        return decrypt(data, [self.controller_age_identity])
+
+    def create_secret(
+        self,
+        db_session: sqlalchemy.orm.Session,
+        display_name: str,
+        secret_type: db_models.SecretTypes,
+        value: bytes,
+        filename: str | None = None,
+    ) -> db_models.Secret:
+        # encrypt the value and save it to the database
+        value_size = len(value)
+        value_enc = self.encrypt(value)
+        secret = crud.secrets.create(
+            db_session,
+            display_name,
+            secret_type,
+            value_enc,
+            value_size,
+            filename,
+        )
+        return secret
+
+    def get_all_secrets(
+        self,
+        db_session: sqlalchemy.orm.Session,
+    ) -> dict[uuid.UUID, models.SecretShort]:
+        # get all secrets from the database
+        secrets = crud.secrets.get_all_secrets(db_session)
+        return {
+            secret.id: models.SecretShort.from_orm_secret(secret, self.decrypt)
+            for secret in secrets
+        }
+
+    def update_secret(
+        self,
+        db_session: sqlalchemy.orm.Session,
+        secret_id: uuid.UUID,
+        display_name: str | None = None,
+        secret_type: db_models.SecretTypes | None = None,
+        value: bytes | None = None,
+        filename: str | None = None,
+    ) -> models.SecretShort | None:
+        # encrypt the value and save it to the database
+        if value:
+            value_size = len(value)
+            value_enc = self.encrypt(value)
+        else:
+            value_size = None
+            value_enc = None
+        secret = crud.secrets.update(
+            db_session,
+            secret_id,
+            display_name,
+            secret_type,
+            value_enc,
+            value_size,
+            filename,
+        )
+        return (
+            models.SecretShort.from_orm_secret(secret, self.decrypt) if secret else None
+        )
+
+    def delete_secret(
+        self,
+        db_session: sqlalchemy.orm.Session,
+        secret_id: uuid.UUID,
+    ) -> bool:
+        return crud.secrets.delete(db_session, secret_id)
+
+    def download_secret_file(
+        self,
+        db_session: sqlalchemy.orm.Session,
+        secret_id: uuid.UUID,
+    ) -> tuple[bytes, str] | None:
+        secret = crud.secrets.get_by_id(db_session, secret_id)
+        if not secret:
+            return None
+        # assert
+        if not secret.filename and (not secret.type == db_models.SecretTypes.FILE):
+            return None
+        # decrypt the value
+        value = self.decrypt(secret.value_enc)
+        return value, secret.filename
 
     def read_state(self):
         with self.state_lock:
@@ -283,8 +384,9 @@ class Project:
         repositories = BUILTIN_REPOSITORIES | state.repositories
         load_repositories(path, repositories)
 
-    def clear_history(self, db_session: sqlalchemy.orm.Session):
-        if "RUNNING_IN_PLAYWRIGHT" in os.environ:
+    if "RUNNING_IN_PLAYWRIGHT" in os.environ:
+
+        def clear_history(self, db_session: sqlalchemy.orm.Session):
             # reinits the git repo
             if (self.repo_dir / ".git").exists():
                 shutil.rmtree(self.repo_dir / ".git")

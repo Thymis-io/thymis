@@ -127,8 +127,9 @@ class TaskController:
         task_data = TaskSubmission.from_orm_task(task).data
         self.submit(task_data, task.user_session_id, db_session)
 
-    def delete_all_tasks(self, db_session: Session):
-        if "RUNNING_IN_PLAYWRIGHT" in os.environ:
+    if "RUNNING_IN_PLAYWRIGHT" in os.environ:
+
+        def delete_all_tasks(self, db_session: Session):
             task_ids = []
             for task in crud.task.get_all_tasks(db_session):
                 # save their ids

@@ -24,7 +24,7 @@
 	import { nameToIdentifier, nameValidation } from '$lib/nameValidation';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import CreateTagModal from './CreateTagModal.svelte';
-	import PageHead from '$lib/components/PageHead.svelte';
+	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
