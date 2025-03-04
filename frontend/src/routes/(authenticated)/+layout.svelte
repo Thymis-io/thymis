@@ -78,6 +78,8 @@
 		class="fixed top-0 z-40 mx-auto w-full flex-none border-b border-gray-200 bg-white dark:border-gray-600 dark:bg-gray-800"
 	>
 		<Navbar
+			globalState={data.globalState}
+			nav={data.nav}
 			class="h-[calc(var(--navbar-height))] max-h-[calc(var(--navbar-height))]"
 			bind:drawerHidden
 		/>

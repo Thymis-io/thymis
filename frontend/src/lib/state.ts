@@ -1,6 +1,5 @@
 import { invalidate } from '$app/navigation';
-import { derived, writable } from 'svelte/store';
-//import { queryParam } from 'sveltekit-search-params';
+import { writable } from 'svelte/store';
 import { fetchWithNotify } from './fetchWithNotify';
 
 export type ModuleSettings = {
@@ -166,38 +165,14 @@ export const build = async () => {
 	await fetchWithNotify(`/api/action/build`, { method: 'POST' });
 };
 
-export const getTagByIdentifier = (state: State, identifier: string) => {
+export const getTagByIdentifier = (state: State, identifier: string | null) => {
+	if (!identifier) return undefined;
 	return state.tags.find((tag) => tag.identifier === identifier);
 };
 
-export const getConfigByIdentifier = (state: State, identifier: string) => {
+export const getConfigByIdentifier = (state: State, identifier: string | null) => {
+	if (!identifier) return undefined;
 	return state.configs.find((config) => config.identifier === identifier);
 };
-
-export const globalNavSelectedTag = undefined; /* derived(
-	[globalState, queryParam('global-nav-target-type'), queryParam('global-nav-target')],
-	([$state, $context, $identifier]) => {
-		if ($context === 'tag') {
-			return getTagByIdentifier($state, $identifier);
-		}
-	}
-);*/
-
-export const globalNavSelectedConfig = undefined; /* derived(
-	[globalState, queryParam('global-nav-target-type'), queryParam('global-nav-target')],
-	([$state, $context, $identifier]) => {
-		if ($context === 'config') {
-			return getConfigByIdentifier($state, $identifier);
-		}
-	}
-);*/
-
-export const globalNavSelectedTarget = undefined; /*derived(
-	[globalNavSelectedConfig, globalNavSelectedTag],
-	([$globalNavSelectedConfig, $globalNavSelectedTag]) =>
-		$globalNavSelectedConfig || $globalNavSelectedTag
-);*/
-
-export const globalNavSelectedTargetType = derived([], () => null); // queryParam<ContextType>('global-nav-target-type');
 
 export type ContextType = 'tag' | 'config';

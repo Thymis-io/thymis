@@ -1,46 +1,27 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import {
-		globalNavSelectedTarget,
-		saveState,
-		type Config,
-		type Module,
-		type ModuleSettings,
-		type Tag,
-		globalNavSelectedTargetType,
-		type ContextType
-	} from '$lib/state';
-	import { Modal, P, ToolbarButton, Tooltip } from 'flowbite-svelte';
+	import { saveState, type Config, type Module, type ModuleSettings, type Tag } from '$lib/state';
+	import { Modal, P, Tooltip } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import Pen from 'lucide-svelte/icons/pen';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Trash from 'lucide-svelte/icons/trash';
-	import {
-		buildConfigSelectModuleSearchParam,
-		configSelectedModuleContext,
-		configSelectedModuleContextType
-	} from '$lib/searchParamHelpers';
+	import { buildConfigSelectModuleSearchParam } from '$lib/searchParamHelpers';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import { goto } from '$app/navigation';
 	import ModuleIcon from './ModuleIcon.svelte';
+	import type { Nav } from '../../routes/(authenticated)/+layout';
 
 	interface Props {
+		nav: Nav;
 		contextType: string | null;
 		context: Tag | Config | undefined;
 		selfModules: Module[];
 		availableModules?: Module[];
-		configSelectedModule: Module | undefined;
 		icon?: import('svelte').Snippet;
 	}
 
-	let {
-		contextType,
-		context,
-		selfModules,
-		availableModules = [],
-		configSelectedModule,
-		icon
-	}: Props = $props();
+	let { nav, contextType, context, selfModules, availableModules = [], icon }: Props = $props();
 
 	let moduleToRemove: Module | undefined = $state();
 
@@ -48,8 +29,8 @@
 		await goto(
 			`/configuration/edit?${buildConfigSelectModuleSearchParam(
 				$page.url.search,
-				$globalNavSelectedTargetType,
-				$globalNavSelectedTarget?.identifier,
+				nav.selectedTargetType,
+				nav.selectedTargetIdentifier,
 				contextType,
 				context?.identifier,
 				module
@@ -75,8 +56,7 @@
 	};
 
 	let canChangeModules = $derived(
-		contextType === $globalNavSelectedTargetType &&
-			context?.identifier === $globalNavSelectedTarget?.identifier
+		contextType === nav.selectedTargetType && context?.identifier === nav.selectedTarget?.identifier
 	);
 
 	let addModuleModalOpen = $state(false);
@@ -104,7 +84,7 @@
 		{@render icon?.()}
 		<span>{context?.displayName}</span>
 	</div>
-	{#if $globalNavSelectedTarget?.identifier !== context?.identifier || $globalNavSelectedTargetType !== contextType}
+	{#if nav.selectedTarget?.identifier !== context?.identifier || nav.selectedTargetType !== contextType}
 		<a
 			class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
 			href="/configuration/edit?{buildConfigSelectModuleSearchParam(
@@ -113,7 +93,7 @@
 				context?.identifier,
 				contextType,
 				context?.identifier,
-				configSelectedModule
+				nav.selectedModule
 			)}"
 		>
 			<Pen size="20" />
@@ -128,9 +108,9 @@
 				class={`flex justify-between gap-1 rounded ${
 					isSelected(
 						module,
-						configSelectedModule,
-						$configSelectedModuleContextType,
-						$configSelectedModuleContext
+						nav.selectedModule,
+						nav.selectedModuleContextType,
+						nav.selectedModuleContext
 					)
 						? 'bg-gray-300 dark:bg-gray-600'
 						: 'hover:bg-gray-200 dark:hover:bg-gray-700'
@@ -139,8 +119,8 @@
 				<a
 					href="/configuration/edit?{buildConfigSelectModuleSearchParam(
 						$page.url.search,
-						$globalNavSelectedTargetType,
-						$globalNavSelectedTarget?.identifier,
+						nav.selectedTargetType,
+						nav.selectedTarget?.identifier,
 						contextType,
 						context.identifier,
 						module
@@ -151,7 +131,7 @@
 					<ModuleIcon {module} />
 					<P>{module.displayName}</P>
 				</a>
-				{#if canChangeModules && ($globalNavSelectedTargetType !== 'config' || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}
+				{#if canChangeModules && (nav.selectedTargetType !== 'config' || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}
 					<button
 						class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
 						onclick={() => (moduleToRemove = module)}

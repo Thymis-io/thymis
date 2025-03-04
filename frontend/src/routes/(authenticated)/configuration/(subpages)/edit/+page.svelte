@@ -2,34 +2,12 @@
 	import { t } from 'svelte-i18n';
 	import { Card } from 'flowbite-svelte';
 	import ModuleList from '$lib/config/ModuleList.svelte';
-	import {
-		getTagByIdentifier,
-		globalNavSelectedTargetType,
-		saveState,
-		globalNavSelectedTarget,
-		globalState,
-		globalNavSelectedTag,
-		globalNavSelectedConfig
-	} from '$lib/state';
-	import type {
-		ModuleSettings,
-		ModuleSettingsWithOrigin,
-		Tag,
-		Config,
-		Module,
-		Origin
-	} from '$lib/state';
-	import {
-		configSelectedModuleContext,
-		configSelectedModuleContextType
-	} from '$lib/searchParamHelpers';
+	import { getTagByIdentifier } from '$lib/state';
+	import type { ModuleSettingsWithOrigin, Tag, Config, Module, Origin } from '$lib/state';
 	import type { PageData } from './$types';
 	import ModuleCard from '$lib/config/ModuleCard.svelte';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import TagIcon from 'lucide-svelte/icons/tag';
-	//import { queryParam } from 'sveltekit-search-params';
-	import { derived } from 'svelte/store';
-	import { page } from '$app/stores';
 
 	interface Props {
 		data: PageData;
@@ -37,14 +15,6 @@
 	}
 
 	let { data, children }: Props = $props();
-
-	const configSelectedModule = undefined; /* derived(
-		[page, queryParam('config-selected-module')],
-		([$page, m]) => {
-			let availableModules = $page.data.availableModules as Module[];
-			return availableModules.find((module) => module.type === m);
-		}
-	);*/
 
 	const getOrigin = (target: Tag | Config): Origin => {
 		return {
@@ -63,7 +33,7 @@
 		let tagModules: ModuleSettingsWithOrigin[] = [];
 
 		if ('tags' in target) {
-			let usedTags = target.tags.flatMap((t) => getTagByIdentifier($globalState, t) ?? []);
+			let usedTags = target.tags.flatMap((t) => getTagByIdentifier(data.globalState, t) ?? []);
 
 			tagModules = usedTags.flatMap((t) =>
 				t.modules.map((m) => ({ ...getOrigin(t), priority: t.priority, ...m }))
@@ -90,28 +60,28 @@
 <div class="grid grid-flow-row grid-cols-1 md:grid-cols-[250px_auto] gap-4">
 	<Card class="max-w-none" padding={'sm'}>
 		<ModuleList
-			contextType={$globalNavSelectedTargetType}
-			context={$globalNavSelectedTarget}
-			selfModules={getSelfModules($globalNavSelectedTarget)}
+			nav={data.nav}
+			contextType={data.nav.selectedTargetType}
+			context={data.nav.selectedTarget}
+			selfModules={getSelfModules(data.nav.selectedTarget)}
 			availableModules={data.availableModules}
-			configSelectedModule={$configSelectedModule}
 		>
 			{#snippet icon()}
-				{#if children}{@render children()}{:else if $globalNavSelectedTag}
+				{#if children}{@render children()}{:else if data.nav.selectedTag}
 					<TagIcon size="20" />
-				{:else if $globalNavSelectedConfig}
+				{:else if data.nav.selectedConfig}
 					<FileCode size="20" />
 				{/if}
 			{/snippet}
 		</ModuleList>
-		{#each $globalNavSelectedConfig?.tags ?? [] as tagIdentifier}
-			{@const usedTag = getTagByIdentifier($globalState, tagIdentifier)}
+		{#each data.nav.selectedConfig?.tags ?? [] as tagIdentifier}
+			{@const usedTag = getTagByIdentifier(data.globalState, tagIdentifier)}
 			<div class="mt-6">
 				<ModuleList
+					nav={data.nav}
 					contextType="tag"
 					context={usedTag}
 					selfModules={getSelfModules(usedTag)}
-					configSelectedModule={$configSelectedModule}
 				>
 					{#snippet icon()}
 						<TagIcon size="20" />
@@ -120,16 +90,16 @@
 			</div>
 		{/each}
 	</Card>
-	{#if $configSelectedModule && $configSelectedModuleContext?.modules.find((m) => m.type === $configSelectedModule.type)}
+	{#if data.nav.selectedModule && data.nav.selectedModuleContextType && data.nav.selectedModuleContext?.modules.find((m) => m.type === data.nav.selectedModule?.type)}
 		<ModuleCard
-			module={$configSelectedModule}
-			configSelectedModuleContextType={$configSelectedModuleContextType}
-			settings={getOwnModuleSettings($configSelectedModuleContext).find(
-				(s) => s.type === $configSelectedModule?.type
+			nav={data.nav}
+			module={data.nav.selectedModule}
+			settings={getOwnModuleSettings(data.nav.selectedModuleContext).find(
+				(s) => s.type === data.nav.selectedModule?.type
 			)}
-			otherSettings={getOtherSettings($globalNavSelectedTarget, $configSelectedModule)}
-			showRouting={$globalNavSelectedTargetType === 'config'}
-			canEdit={$globalNavSelectedTarget === $configSelectedModuleContext}
+			otherSettings={getOtherSettings(data.nav.selectedTarget, data.nav.selectedModule)}
+			showRouting={data.nav.selectedTargetType === 'config'}
+			canEdit={data.nav.selectedTarget === data.nav.selectedModuleContext}
 		/>
 	{/if}
 </div>

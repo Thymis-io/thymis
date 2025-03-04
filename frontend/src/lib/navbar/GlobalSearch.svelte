@@ -4,14 +4,17 @@
 	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import { Dropdown, DropdownItem, Search } from 'flowbite-svelte';
 	import { page } from '$app/stores';
-	import {
-		globalNavSelectedConfig,
-		globalNavSelectedTag,
-		globalNavSelectedTargetType,
-		globalState
-	} from '$lib/state';
+	import { type State } from '$lib/state';
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
+	import type { Nav } from '../../routes/(authenticated)/+layout';
+
+	interface Props {
+		nav: Nav;
+		globalState: State;
+	}
+
+	let { nav, globalState }: Props = $props();
 
 	let search = $state('');
 	let open = $state(false);
@@ -37,13 +40,12 @@
 	id="global-search-dropdown"
 	bind:open
 >
-	{#each $globalState.tags as tag}
+	{#each globalState.tags as tag}
 		{@const active =
-			$globalNavSelectedTargetType === 'tag' &&
-			$globalNavSelectedTag?.identifier === tag.identifier}
+			nav.selectedTargetType === 'tag' && nav.selectedTag?.identifier === tag.identifier}
 		{@const subpage = [
 			'/configuration/edit',
-			targetShouldShowVNC(tag, $globalState) ? '/configuration/vnc' : undefined
+			targetShouldShowVNC(tag, globalState) ? '/configuration/vnc' : undefined
 		].includes($page.url.pathname)
 			? $page.url.pathname
 			: '/configuration/edit'}
@@ -58,14 +60,13 @@
 			</DropdownItem>
 		{/if}
 	{/each}
-	{#each $globalState.configs as config}
+	{#each globalState.configs as config}
 		{@const active =
-			$globalNavSelectedTargetType === 'config' &&
-			$globalNavSelectedConfig?.identifier === config.identifier}
+			nav.selectedTargetType === 'config' && nav.selectedConfig?.identifier === config.identifier}
 		{@const subpage = [
 			'/configuration/configuration-details',
 			'/configuration/edit',
-			targetShouldShowVNC(config, $globalState) ? '/configuration/vnc' : undefined,
+			targetShouldShowVNC(config, globalState) ? '/configuration/vnc' : undefined,
 			'/configuration/terminal'
 		].includes($page.url.pathname)
 			? $page.url.pathname
