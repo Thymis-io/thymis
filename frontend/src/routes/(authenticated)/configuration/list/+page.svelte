@@ -108,7 +108,12 @@
 	let currentlyEditingConfig: Config | undefined = $state(undefined);
 </script>
 
-<PageHead title={$t('configurations.title')} repoStatus={data.repoStatus}>
+<PageHead
+	title={$t('configurations.title')}
+	repoStatus={data.repoStatus}
+	globalState={data.globalState}
+	nav={data.nav}
+>
 	<Button
 		color="alternative"
 		class="whitespace-nowrap gap-2 px-2 py-1 m-1"

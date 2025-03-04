@@ -7,24 +7,21 @@
 	import { Button, Modal, Input, Tooltip } from 'flowbite-svelte';
 	import { invalidate } from '$app/navigation';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
-	import {
-		globalNavSelectedTarget,
-		globalNavSelectedTargetType,
-		globalState,
-		type Config,
-		type Tag
-	} from '$lib/state';
+	import { type Config, type State, type Tag } from '$lib/state';
 	import FloatingMultiSelect from '$lib/components/FloatingMultiSelect.svelte';
 	import type { RepoStatus } from '$lib/repo/repo';
 	import FileChanges from './FileChanges.svelte';
 	import type { ObjectOption } from 'svelte-multiselect';
+	import type { Nav } from '../../routes/(authenticated)/+layout';
 
 	interface Props {
+		nav: Nav;
+		globalState: State;
 		repoStatus: RepoStatus;
 		open?: boolean;
 	}
 
-	let { repoStatus, open = $bindable(false) }: Props = $props();
+	let { nav, globalState, repoStatus, open = $bindable(false) }: Props = $props();
 
 	let message = $state('deploy');
 	let selectedFile = $state('');
@@ -48,12 +45,12 @@
 	const toOptionList = (options: any[]): MyOption[] => options as MyOption[];
 
 	let selectedOptions: MyOption[] = $state([]);
-	let affectedConfigs: Config[] = $state();
+	let affectedConfigs: Config[] = $state([]);
 	run(() => {
 		const configs = selectedOptions.filter((opt) => opt.type === 'config').map((opt) => opt.value);
 		const tags = selectedOptions.filter((opt) => opt.type === 'tag').map((opt) => opt.value);
 
-		affectedConfigs = $globalState.configs.filter((config) => {
+		affectedConfigs = globalState.configs.filter((config) => {
 			return configs.includes(config.identifier) || config.tags.some((tag) => tags.includes(tag));
 		});
 	});
@@ -84,8 +81,8 @@
 	outsideclose
 	on:open={() => {
 		selectedFile = 'state.json';
-		if ($globalNavSelectedTarget && $globalNavSelectedTargetType) {
-			selectedOptions = [toOption($globalNavSelectedTarget, $globalNavSelectedTargetType)];
+		if (nav.selectedTarget && nav.selectedTargetType) {
+			selectedOptions = [toOption(nav.selectedTarget, nav.selectedTargetType)];
 		} else {
 			selectedOptions = [];
 		}
@@ -113,8 +110,8 @@
 				<FloatingMultiSelect
 					options={toOptionList(
 						Array.prototype.concat(
-							$globalState.tags.map((tag) => toOption(tag, 'tag')),
-							$globalState.configs.map((config) => toOption(config, 'config'))
+							globalState.tags.map((tag) => toOption(tag, 'tag')),
+							globalState.configs.map((config) => toOption(config, 'config'))
 						)
 					)}
 					bind:selected={selectedOptions}
@@ -133,7 +130,7 @@
 					on:click={() => {
 						selectedOptions = Array.prototype.concat(
 							selectedOptions.filter((opt) => opt.type === 'tag'),
-							$globalState.configs.map((config) => toOption(config, 'config'))
+							globalState.configs.map((config) => toOption(config, 'config'))
 						);
 					}}
 				>

@@ -65,7 +65,12 @@
 	};
 </script>
 
-<PageHead title={$t('nav.external-repositories')} repoStatus={data.repoStatus} />
+<PageHead
+	title={$t('nav.external-repositories')}
+	repoStatus={data.repoStatus}
+	globalState={data.globalState}
+	nav={data.nav}
+/>
 <Table shadow>
 	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2">{$t('settings.repo.name')}</TableHeadCell>

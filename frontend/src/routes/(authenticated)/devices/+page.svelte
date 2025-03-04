@@ -31,7 +31,12 @@
 	);
 </script>
 
-<PageHead title={$t('nav.devices')} repoStatus={data.repoStatus} />
+<PageHead
+	title={$t('nav.devices')}
+	repoStatus={data.repoStatus}
+	globalState={data.globalState}
+	nav={data.nav}
+/>
 <!-- Add show all devices slider checkbox -->
 <div class="flex items-center justify-between mb-4">
 	<h1 class="text-2xl font-bold">{$t('hardware-devices.known-devices-with-deployment')}</h1>
