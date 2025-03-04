@@ -558,6 +558,128 @@ ca_file="/etc/ssl/certs/ca-certificates.crt" # uses system ca (default mozilla) 
         order=100,
     )
 
+    secrets = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Secrets",
+            de="Secrets",
+        ),
+        description=modules.LocalizedString(
+            en="""Secrets to be placed on the device.
+
+You can provide path, owner, group, mode for each secret.
+
+Secrets are perfect for
+- Passwords
+- SSH keys
+- TLS certificates
+- Passwords
+- Private keys
+- Any other secret data
+""",
+            de="""Secrets, die auf dem Gerät platziert werden sollen.
+
+Jedes Secret kann mit Pfad, Besitzer, Gruppe und Modus angegeben werden.
+Secrets sind perfekt für
+- Passwörter
+- SSH-Schlüssel
+- TLS-Zertifikate
+- Passwörter
+- Private Schlüssel
+- Alle anderen geheimen Daten
+""",
+        ),
+        type=modules.ListType(
+            settings={
+                "secret": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Secret",
+                        de="Secret",
+                    ),
+                    type=modules.SecretType(
+                        allowed_types=[
+                            db_models.SecretTypes.SINGLE_LINE,
+                            db_models.SecretTypes.MULTI_LINE,
+                            db_models.SecretTypes.ENV_LIST,
+                            db_models.SecretTypes.FILE,
+                        ],
+                        default_processing_type=db_models.SecretProcessingTypes.NONE,
+                        default_save_to_image=False,
+                    ),
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The secret.",
+                        de="Das Secret.",
+                    ),
+                    example="",
+                    order=0,
+                ),
+                "path": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Path",
+                        de="Pfad",
+                    ),
+                    type="string",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The path where the secret will be placed.",
+                        de="Der Pfad, an dem das Secret abgelegt wird.",
+                    ),
+                    example="",
+                    order=10,
+                ),
+                "owner": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Owner",
+                        de="Besitzer",
+                    ),
+                    type="string",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The owner of the secret.",
+                        de="Der Besitzer des Secrets.",
+                    ),
+                    example="",
+                    order=20,
+                ),
+                "group": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Group",
+                        de="Gruppe",
+                    ),
+                    type="string",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The group of the secret.",
+                        de="Die Gruppe des Secrets.",
+                    ),
+                    example="",
+                    order=30,
+                ),
+                "mode": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Mode",
+                        de="Modus",
+                    ),
+                    type="string",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The mode of the secret, bspw. 0600.",
+                        de="Der Mode des Secrets, bspw. 0600.",
+                    ),
+                    example="",
+                    order=40,
+                ),
+            },
+            element_name=modules.LocalizedString(
+                en="Secret",
+                de="Secret",
+            ),
+        ),
+        default=[],
+        example="",
+        order=110,
+    )
+
     def write_nix_settings(
         self,
         f,
