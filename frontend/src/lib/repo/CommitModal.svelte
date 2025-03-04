@@ -4,9 +4,6 @@
 	import { type RepoStatus } from '$lib/repo/repo';
 	import FileChanges from './FileChanges.svelte';
 
-	let message = $state(defaultMessage);
-	let selectedFile = $state('');
-
 	interface Props {
 		repoStatus: RepoStatus;
 		title?: string | undefined;
@@ -24,7 +21,10 @@
 		open = $bindable(false),
 		onAction
 	}: Props = $props();
+
 	let hasFileChanges = $derived(repoStatus.changes.length > 0);
+	let message = $state(defaultMessage);
+	let selectedFile = $state('');
 </script>
 
 <Modal

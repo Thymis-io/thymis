@@ -2,12 +2,6 @@
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
 	import { Card } from 'flowbite-svelte';
-	import {
-		globalNavSelectedConfig,
-		globalNavSelectedTag,
-		globalNavSelectedTargetType,
-		globalState
-	} from '$lib/state';
 	import SectionConfiguration from './SectionConfiguration.svelte';
 	import SectionActions from './SectionActions.svelte';
 	import SectionDanger from './SectionDanger.svelte';
@@ -23,24 +17,24 @@
 
 	let { data }: Props = $props();
 
-	let currentConfig = $derived($globalNavSelectedConfig);
+	let currentConfig = $derived(data.nav.selectedConfig);
 </script>
 
-{#if $globalNavSelectedTargetType === 'config' && currentConfig}
+{#if data.nav.selectedConfig}
 	<div class="grid grid-cols-4 grid-flow-row gap-x-2 gap-y-6">
 		<SectionDeploymentInfo
 			class="col-span-3"
 			deploymentInfos={data.deploymentInfos}
-			config={currentConfig}
+			config={data.nav.selectedConfig}
 		/>
-		<SectionActions class="col-span-1" config={currentConfig} />
+		<SectionActions class="col-span-1" config={data.nav.selectedConfig} />
 		<SectionConfiguration
 			class="col-span-3"
-			config={currentConfig}
+			config={data.nav.selectedConfig}
 			availableModules={data.availableModules}
 		/>
-		<SectionDanger class="col-span-1" config={currentConfig} />
-		{#if targetShouldShowVNC(currentConfig, $globalState)}
+		<SectionDanger class="col-span-1" config={data.nav.selectedConfig} />
+		{#if targetShouldShowVNC(currentConfig, data.globalState)}
 			{#each data.deploymentInfos as deploymentInfo}
 				<Section class="col-span-2" title={$t('nav.device-vnc')}>
 					<VncView config={currentConfig} {deploymentInfo} />
@@ -55,4 +49,6 @@
 			</Section>
 		{/each}
 	</div>
-{:else if $globalNavSelectedTargetType === 'tag' && $globalNavSelectedTag}{/if}
+{:else if data.nav.selectedTag}
+	<div></div>
+{/if}
