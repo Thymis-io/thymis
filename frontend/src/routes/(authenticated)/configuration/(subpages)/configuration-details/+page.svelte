@@ -29,11 +29,16 @@
 		/>
 		<SectionActions class="col-span-1" config={data.nav.selectedConfig} />
 		<SectionConfiguration
+			globalState={data.globalState}
 			class="col-span-3"
 			config={data.nav.selectedConfig}
 			availableModules={data.availableModules}
 		/>
-		<SectionDanger class="col-span-1" config={data.nav.selectedConfig} />
+		<SectionDanger
+			class="col-span-1"
+			config={data.nav.selectedConfig}
+			globalState={data.globalState}
+		/>
 		{#if targetShouldShowVNC(currentConfig, data.globalState)}
 			{#each data.deploymentInfos as deploymentInfo}
 				<Section class="col-span-2" title={$t('nav.device-vnc')}>

@@ -1,6 +1,13 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { saveState, type Config, type Module, type ModuleSettings, type Tag } from '$lib/state';
+	import {
+		saveState,
+		type Config,
+		type Module,
+		type ModuleSettings,
+		type State,
+		type Tag
+	} from '$lib/state';
 	import { Modal, P, Tooltip } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import Pen from 'lucide-svelte/icons/pen';
@@ -14,6 +21,7 @@
 
 	interface Props {
 		nav: Nav;
+		globalState: State;
 		contextType: string | null;
 		context: Tag | Config | undefined;
 		selfModules: Module[];
@@ -21,13 +29,22 @@
 		icon?: import('svelte').Snippet;
 	}
 
-	let { nav, contextType, context, selfModules, availableModules = [], icon }: Props = $props();
+	let {
+		nav,
+		globalState,
+		contextType,
+		context,
+		selfModules,
+		availableModules = [],
+		icon
+	}: Props = $props();
 
 	let moduleToRemove: Module | undefined = $state();
 
 	const goToModule = async (module: Module | undefined) => {
 		await goto(
 			`/configuration/edit?${buildConfigSelectModuleSearchParam(
+				globalState,
 				$page.url.search,
 				nav.selectedTargetType,
 				nav.selectedTargetIdentifier,
@@ -41,7 +58,7 @@
 	const addModule = async (target: Tag | Config | undefined, module: Module) => {
 		if (target && !target.modules.find((m) => m.type === module.type)) {
 			target.modules = [...target.modules, { type: module.type, settings: {} }];
-			await saveState();
+			await saveState(globalState);
 		}
 		addModuleModalOpen = false;
 		await goToModule(module);
@@ -51,7 +68,7 @@
 		if (target) {
 			target.modules = target.modules.filter((m) => m.type !== module.type);
 		}
-		saveState();
+		saveState(globalState);
 		goToModule(undefined);
 	};
 
@@ -88,6 +105,7 @@
 		<a
 			class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
 			href="/configuration/edit?{buildConfigSelectModuleSearchParam(
+				globalState,
 				$page.url.search,
 				contextType,
 				context?.identifier,
@@ -118,6 +136,7 @@
 			>
 				<a
 					href="/configuration/edit?{buildConfigSelectModuleSearchParam(
+						globalState,
 						$page.url.search,
 						nav.selectedTargetType,
 						nav.selectedTarget?.identifier,

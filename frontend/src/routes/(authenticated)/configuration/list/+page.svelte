@@ -29,8 +29,6 @@
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
 	import { flip } from 'svelte/animate';
-	import { nameToIdentifier, nameValidation } from '$lib/nameValidation';
-	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 
@@ -66,7 +64,7 @@
 		configs = newItems;
 		// also send new config order to backend and reload
 		data.globalState.configs = configs.map((config) => config.data);
-		saveState();
+		saveState(data.globalState);
 		// Ensure dragging is stopped on drag finish via pointer (mouse, touch)
 		if (source === SOURCES.POINTER) {
 			dragDisabled = true;
@@ -83,7 +81,7 @@
 
 	const renameConfig = async (config: Config, displayName: string) => {
 		config.displayName = displayName;
-		await saveState();
+		await saveState(data.globalState);
 		return true;
 	};
 
@@ -94,7 +92,7 @@
 		$globalState.configs = $globalState.configs.filter(
 			(config) => config.identifier !== identifier
 		);
-		await saveState();
+		await saveState(data.globalState);
 	};
 
 	let configs;
@@ -146,8 +144,8 @@
 	}}
 	on:cancel={() => (configToDelete = undefined)}
 />
-<CreateConfigModal bind:open={newConfigModalOpen} />
-<EditTagModal bind:currentlyEditingConfig />
+<CreateConfigModal globalState={data.globalState} bind:open={newConfigModalOpen} />
+<EditTagModal globalState={data.globalState} bind:currentlyEditingConfig />
 <Table shadow>
 	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2 w-12" />
@@ -199,7 +197,7 @@
 								<Button
 									size="sm"
 									class="p-2 py-0.5 gap-1"
-									href={`/configuration/edit?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
+									href={`/configuration/edit?${buildGlobalNavSearchParam(data.globalState, $page.url.search, 'tag', tag)}`}
 								>
 									<TagIcon size={'0.75rem'} class="min-w-3" />
 									<span class="text-nowrap">
@@ -219,6 +217,7 @@
 							class="px-3 py-1.5 gap-2"
 							color="alternative"
 							href={`/configuration/configuration-details?${buildGlobalNavSearchParam(
+								data.globalState,
 								$page.url.search,
 								'config',
 								config.data.identifier
@@ -231,6 +230,7 @@
 							class="px-3 py-1.5 gap-2"
 							color="alternative"
 							href={`/configuration/edit?${buildGlobalNavSearchParam(
+								data.globalState,
 								$page.url.search,
 								'config',
 								config.data.identifier

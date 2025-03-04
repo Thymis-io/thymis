@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { saveState, globalState } from '$lib/state';
+	import { saveState } from '$lib/state';
 	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
 	import {
 		Button,
@@ -27,7 +27,7 @@
 		do {
 			key = `new-repo-${num}`;
 			num++;
-		} while ($globalState.repositories[key]);
+		} while (data.globalState.repositories[key]);
 
 		return key;
 	};
@@ -35,32 +35,32 @@
 	const addRepo = () => {
 		let key = generateUniqueKey();
 
-		$globalState.repositories = {
-			...$globalState.repositories,
+		data.globalState.repositories = {
+			...data.globalState.repositories,
 			[key]: {
 				url: 'git+https://github.com/Thymis-io/thymis.git'
 			}
 		};
 
-		saveState();
+		saveState(data.globalState);
 	};
 
 	const deleteRepo = (name: string) => {
-		$globalState.repositories = Object.fromEntries(
-			Object.entries($globalState.repositories).filter(([key, value]) => key !== name)
+		data.globalState.repositories = Object.fromEntries(
+			Object.entries(data.globalState.repositories).filter(([key, value]) => key !== name)
 		);
 
-		saveState();
+		saveState(data.globalState);
 	};
 
 	const changeRepoName = (oldName: string, newName: string) => {
-		if (!$globalState.repositories[newName]) {
-			$globalState.repositories = Object.fromEntries(
-				Object.entries($globalState.repositories).map(([key, value]) =>
+		if (!data.globalState.repositories[newName]) {
+			data.globalState.repositories = Object.fromEntries(
+				Object.entries(data.globalState.repositories).map(([key, value]) =>
 					key === oldName ? [newName, value] : [key, value]
 				)
 			);
-			saveState();
+			saveState(data.globalState);
 		}
 	};
 </script>
@@ -78,10 +78,10 @@
 		<TableHeadCell padding="p-2">{$t('settings.repo.actions')}</TableHeadCell>
 	</TableHead>
 	<TableBody>
-		{#each Object.entries($globalState.repositories) as [name, repo]}
+		{#each Object.entries(data.globalState.repositories) as [name, repo]}
 			<TableBodyRow>
 				<TableBodyEditCell bind:value={name} onEnter={(newName) => changeRepoName(name, newName)} />
-				<TableBodyEditCell bind:value={repo.url} onEnter={() => saveState()} />
+				<TableBodyEditCell bind:value={repo.url} onEnter={() => saveState(data.globalState)} />
 				<TableBodyCell tdClass="p-2">
 					<div class="flex gap-1">
 						<Button on:click={() => deleteRepo(name)}>

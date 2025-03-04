@@ -148,14 +148,13 @@ globalState.subscribe((value) => {
 	currentState = value;
 });
 
-export const saveState = async () => {
-	globalState.set(currentState);
+export const saveState = async (state: State) => {
 	const response = await fetchWithNotify(`/api/state`, {
 		method: 'PATCH',
 		headers: {
 			'content-type': 'application/json'
 		},
-		body: JSON.stringify(currentState)
+		body: JSON.stringify(state)
 	});
 	await invalidate((url) => url.pathname === '/api/state');
 	return response.ok;

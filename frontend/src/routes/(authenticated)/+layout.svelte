@@ -25,33 +25,12 @@
 
 	let { data, children }: Props = $props();
 
-	$globalState = data.globalState;
-	let lastDataState = $state(data.globalState);
-	let lastState = $state(data.globalState);
-
 	let taskbarMinimized = $state(data.minimizeTaskbar ?? false);
 
 	run(() => {
 		if (browser) {
 			document.cookie = `taskbar-minimized=${taskbarMinimized}; SameSite=Lax;`;
 		}
-	});
-
-	run(() => {
-		// check which state changed
-		if (lastDataState !== data.globalState && lastState !== $globalState) {
-			// unexpected state change
-			console.error('Unexpected state change');
-			console.log(lastDataState, lastState, data.globalState);
-		} else if (lastDataState !== data.globalState) {
-			// server state changed
-			$globalState = data.globalState; // update local state store
-		} else if (lastState !== $globalState) {
-			// local state changed
-			saveState(); // save local state to server
-		}
-		lastDataState = data.globalState;
-		lastState = $globalState;
 	});
 
 	run(() => {
