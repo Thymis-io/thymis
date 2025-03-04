@@ -35,10 +35,14 @@
 
 	let { data }: Props = $props();
 
-	let tags;
-	run(() => {
+	type DraggableTag = { id: string; data: Tag };
+	let tags = $state<DraggableTag[]>(
+		data.globalState.tags.map((t) => ({ id: t.identifier, data: t }))
+	);
+	$effect(() => {
 		tags = data.globalState.tags.map((t) => ({ id: t.identifier, data: t }));
 	});
+
 	let projectTags = $derived(data.globalState.tags);
 	let projectTagIds = $derived(projectTags.map((t) => t.identifier));
 
