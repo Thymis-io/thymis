@@ -54,10 +54,6 @@ async def update_secret(
         value = base64.b64decode(secret_update.value_b64)
     if secret_update.value_str is not None:
         value = secret_update.value_str.encode("utf-8")
-    if (value is None) and not (secret_update.type == "file"):
-        raise HTTPException(
-            status_code=400, detail="Either value_b64 or value_str must be provided"
-        )
 
     # Pass include_in_image and processing_type to update_secret
     return project.update_secret(
