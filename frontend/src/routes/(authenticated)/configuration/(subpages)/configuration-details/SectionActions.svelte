@@ -9,16 +9,18 @@
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import { getConfigImageFormat } from '$lib/config/configUtils';
 
-	export let config: Config;
-
 	const restartDevices = async (config: Config) => {
 		await fetchWithNotify(`/api/action/restart-device?identifier=${config.identifier}`, {
 			method: 'POST'
 		});
 	};
 
-	let className = '';
-	export { className as class };
+	interface Props {
+		config: Config;
+		class?: string;
+	}
+
+	let { config, class: className = '' }: Props = $props();
 </script>
 
 <Section class={className} title={$t('configuration-details.actions')}>

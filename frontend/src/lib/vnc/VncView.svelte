@@ -8,18 +8,22 @@
 	import { page } from '$app/stores';
 	import { type DeploymentInfo } from '$lib/deploymentInfo';
 
-	export let config: Config | undefined;
-	export let deploymentInfo: DeploymentInfo;
+	interface Props {
+		config: Config | undefined;
+		deploymentInfo: DeploymentInfo;
+	}
+
+	let { config, deploymentInfo }: Props = $props();
 	let deviceHost: string;
 	let rfb: any;
-	let connected = false;
-	let connectionFailed = false;
+	let connected = $state(false);
+	let connectionFailed = $state(false);
 
-	let control = false;
+	let control = $state(false);
 
-	$: hasVNC = deploymentInfo && config && targetShouldShowVNC(config, $globalState);
+	let hasVNC = $derived(deploymentInfo && config && targetShouldShowVNC(config, $globalState));
 
-	let div: HTMLDivElement;
+	let div: HTMLDivElement = $state();
 
 	const initVNC = async (deploymentInfo: DeploymentInfo) => {
 		if (!deploymentInfo || !config) {

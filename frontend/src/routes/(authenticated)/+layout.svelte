@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import '../../app.postcss';
 	import Navbar from '$lib/navbar/Navbar.svelte';
 	import Sidebar from '$lib/sidebar/Sidebar.svelte';
@@ -16,21 +18,26 @@
 	import { onMount } from 'svelte';
 	import { startNotificationSocket } from '$lib/notification';
 
-	export let data: LayoutData;
+	interface Props {
+		data: LayoutData;
+		children?: import('svelte').Snippet;
+	}
+
+	let { data, children }: Props = $props();
 
 	$globalState = data.globalState;
-	let lastDataState = data.globalState;
-	let lastState = data.globalState;
+	let lastDataState = $state(data.globalState);
+	let lastState = $state(data.globalState);
 
-	let taskbarMinimized = data.minimizeTaskbar ?? false;
+	let taskbarMinimized = $state(data.minimizeTaskbar ?? false);
 
-	$: {
+	run(() => {
 		if (browser) {
 			document.cookie = `taskbar-minimized=${taskbarMinimized}; SameSite=Lax;`;
 		}
-	}
+	});
 
-	$: {
+	run(() => {
 		// check which state changed
 		if (lastDataState !== data.globalState && lastState !== $globalState) {
 			// unexpected state change
@@ -45,17 +52,17 @@
 		}
 		lastDataState = data.globalState;
 		lastState = $globalState;
-	}
+	});
 
-	$: {
+	run(() => {
 		let taskStatusValue = {};
 		for (const task of data.allTasks) {
 			taskStatusValue[task.id] = task;
 		}
 		$taskStatus = taskStatusValue;
-	}
+	});
 
-	let drawerHidden = true;
+	let drawerHidden = $state(true);
 
 	onMount(() => {
 		startNotificationSocket();
@@ -82,7 +89,7 @@
 		<div class="flex flex-row h-full">
 			{#if taskbarMinimized}
 				<div class="w-full relative dark:border-gray-600 bg-gray-50 dark:bg-gray-900 mb-[40px]">
-					<MainWindow bind:drawerHidden><slot /></MainWindow>
+					<MainWindow bind:drawerHidden>{@render children?.()}</MainWindow>
 					<div class="relative h-[40px]">
 						<TaskbarMinimize bind:taskbarMinimized class="mt-2" />
 						<TaskbarSmall inPlaywright={data.inPlaywright} />
@@ -90,21 +97,24 @@
 				</div>
 			{:else}
 				<SplitPane type="vertical" pos="70%" min="12rem" max="80%">
-					<MainWindow bind:drawerHidden slot="a">
-						<slot />
-					</MainWindow>
-					<div
-						class="w-full relative border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900"
-						slot="b"
-					>
-						<div class="max-h-full overflow-x-hidden overflow-y-auto h-[calc(100%-40px)]">
-							<Taskbar bind:taskbarMinimized />
+					{#snippet a()}
+						<MainWindow bind:drawerHidden>
+							{@render children?.()}
+						</MainWindow>
+					{/snippet}
+					{#snippet b()}
+						<div
+							class="w-full relative border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900"
+						>
+							<div class="max-h-full overflow-x-hidden overflow-y-auto h-[calc(100%-40px)]">
+								<Taskbar bind:taskbarMinimized />
+							</div>
+							<div class="w-full h-[40px]">
+								<TaskbarMinimize bind:taskbarMinimized class="mt-2" />
+								<TaskbarSmall inPlaywright={data.inPlaywright} />
+							</div>
 						</div>
-						<div class="w-full h-[40px]">
-							<TaskbarMinimize bind:taskbarMinimized class="mt-2" />
-							<TaskbarSmall inPlaywright={data.inPlaywright} />
-						</div>
-					</div>
+					{/snippet}
 				</SplitPane>
 			{/if}
 		</div>

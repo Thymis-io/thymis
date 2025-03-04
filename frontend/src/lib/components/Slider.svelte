@@ -1,10 +1,13 @@
 <script lang="ts">
-	export let value: number;
-	export let min: number | undefined;
-	export let max: number | undefined;
-	export let step: number | undefined;
+	interface Props {
+		value: number;
+		min: number | undefined;
+		max: number | undefined;
+		step: number | undefined;
+		onChange: (value: number) => void;
+	}
 
-	export let onChange: (value: number) => void;
+	let { value = $bindable(), min, max, step, onChange }: Props = $props();
 
 	const internalOnChange = (e: Event) => {
 		onChange(parseInt((e.target as HTMLInputElement).value));
@@ -17,7 +20,7 @@
 	{max}
 	{step}
 	bind:value
-	on:change={(e) => internalOnChange(e)}
+	onchange={(e) => internalOnChange(e)}
 	class="range my-4 w-full"
 />
 

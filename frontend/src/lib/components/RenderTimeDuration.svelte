@@ -1,22 +1,22 @@
 <script lang="ts">
-	export let start: string | undefined;
-	export let end: string | undefined;
+	interface Props {
+		start: string | undefined;
+		end: string | undefined;
+		class?: string;
+	}
 
-	$: startDate = new Date(Date.parse(start));
-	$: endDate = new Date(Date.parse(end));
+	let { start, end, class: clazz = '' }: Props = $props();
 
-	$: seconds = Math.max(0, Math.floor((endDate.getTime() - startDate.getTime()) / 1000));
-
-	$: timeDuration = (seconds: number) => {
+	let startDate = $derived(new Date(Date.parse(start)));
+	let endDate = $derived(new Date(Date.parse(end)));
+	let seconds = $derived(Math.max(0, Math.floor((endDate.getTime() - startDate.getTime()) / 1000)));
+	let timeDuration = $derived((seconds: number) => {
 		const hours = Math.floor(seconds / 3600);
 		const minutes = Math.floor((seconds % 3600) / 60);
 		const secs = seconds % 60;
 
 		return `${hours}h ${minutes}m ${secs}s`;
-	};
-
-	let clazz = '';
-	export { clazz as class };
+	});
 </script>
 
 {#if seconds}

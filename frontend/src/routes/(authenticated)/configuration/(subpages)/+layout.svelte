@@ -13,18 +13,23 @@
 	import CommitModal from '$lib/repo/CommitModal.svelte';
 	import { invalidate } from '$app/navigation';
 
-	export let data: LayoutData;
+	interface Props {
+		data: LayoutData;
+		children?: import('svelte').Snippet;
+	}
 
-	let openCommitModal = false;
+	let { data, children }: Props = $props();
 
-	$: isVM = getConfigImageFormat($globalNavSelectedConfig) == 'nixos-vm';
-	$: selectedTargetName = $globalNavSelectedTarget?.displayName ?? '';
-	$: titleMap = {
+	let openCommitModal = $state(false);
+
+	let isVM = $derived(getConfigImageFormat($globalNavSelectedConfig) == 'nixos-vm');
+	let selectedTargetName = $derived($globalNavSelectedTarget?.displayName ?? '');
+	let titleMap = $derived({
 		config: `${$t('configurations.details-title')}: ${selectedTargetName}`,
 		tag: `${$t('tags.details-title')}: ${selectedTargetName}`,
 		null: selectedTargetName
-	};
-	$: title = titleMap[$globalNavSelectedTargetType ?? 'null'];
+	});
+	let title = $derived(titleMap[$globalNavSelectedTargetType ?? 'null']);
 
 	const commit = async (message: string) => {
 		await fetchWithNotify(`/api/action/commit?message=${encodeURIComponent(message)}`, {
@@ -91,4 +96,4 @@
 	{/if}
 </PageHead>
 <Tabbar />
-<slot />
+{@render children?.()}

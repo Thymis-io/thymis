@@ -1,51 +1,65 @@
 <script>
+	import { run } from 'svelte/legacy';
+
 	import { createEventDispatcher } from 'svelte';
 	import { constrain } from './utils.js';
 
 	/** @type {ReturnType<typeof createEventDispatcher<{ change: undefined }>>} */
 	const dispatch = createEventDispatcher();
 
-	/** @type {string | undefined} */
-	export let id = undefined;
+	/**
+	 * @typedef {Object} Props
+	 * @property {string | undefined} [id]
+	 * @property {'horizontal' | 'vertical'} type
+	 * @property {import('./types').Length} [pos]
+	 * @property {import('./types').Length} [min]
+	 * @property {import('./types').Length} [max]
+	 * @property {boolean} [disabled]
+	 * @property {'min' | 'max'} [priority]
+	 * @property {string} [class]
+	 * @property {string} [leftPaneClass]
+	 * @property {string} [rightPaneClass]
+	 * @property {string} [dividerClass]
+	 * @property {import('svelte').Snippet} [a]
+	 * @property {import('svelte').Snippet} [b]
+	 */
 
-	/** @type {'horizontal' | 'vertical'} */
-	export let type;
-
-	/** @type {import('./types').Length} */
-	export let pos = '50%';
-
-	/** @type {import('./types').Length} */
-	export let min = '0%';
-
-	/** @type {import('./types').Length} */
-	export let max = '100%';
-
-	export let disabled = false;
-
-	/** @type {'min' | 'max'}*/
-	export let priority = 'min';
-
-	let clazz = '';
-	export { clazz as class };
-
-	export let leftPaneClass = '';
-	export let rightPaneClass = '';
-	export let dividerClass = '';
+	/** @type {Props} */
+	let {
+		id = undefined,
+		type,
+		pos = '50%',
+		min = '0%',
+		max = '100%',
+		disabled = false,
+		priority = 'min',
+		class: clazz = '',
+		leftPaneClass = '',
+		rightPaneClass = '',
+		dividerClass = '',
+		a,
+		b
+	} = $props();
 
 	/** @type {HTMLElement} */
-	let splitpane_container;
+	let splitpane_container = $state();
 
-	let dragging = false;
-	let w = 0;
-	let h = 0;
+	let dragging = $state(false);
+	let w = $state(0);
+	let h = $state(0);
 
-	$: position = pos;
+	let position;
+	run(() => {
+		position = pos;
+	});
 
 	// constrain position
-	$: if (splitpane_container) {
-		const size = type === 'horizontal' ? w : h;
-		position = constrain(splitpane_container, size, min, max, position, priority);
-	}
+	run(() => {
+		if (splitpane_container) {
+			const size = type === 'horizontal' ? w : h;
+			position = constrain(splitpane_container, size, min, max, position, priority);
+		}
+	});
 
 	/**
 	 * @param {number} x
@@ -115,11 +129,11 @@
 	style="--pos: {position}"
 >
 	<div class="pane {leftPaneClass || ''}">
-		<slot name="a" />
+		{@render a?.()}
 	</div>
 
 	<div class="pane {rightPaneClass || ''}">
-		<slot name="b" />
+		{@render b?.()}
 	</div>
 
 	{#if pos !== '0%' && pos !== '100%'}
@@ -127,12 +141,12 @@
 			class="{type} divider {dividerClass || ''}"
 			class:disabled
 			use:drag={(e) => update(e.clientX, e.clientY)}
-		/>
+		></div>
 	{/if}
 </div>
 
 {#if dragging}
-	<div class="mousecatcher" />
+	<div class="mousecatcher"></div>
 {/if}
 
 <style>

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import type { PageData } from './$types';
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
@@ -7,16 +9,20 @@
 	import RenderUnixTimestamp from '$lib/components/RenderUnixTimestamp.svelte';
 	import { subscribedTask, subscribeTask, type Task } from '$lib/taskstatus';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
 
-	let task: Task | undefined;
-	$: {
+	let { data }: Props = $props();
+
+	let task: Task | undefined = $state();
+	run(() => {
 		if (!$subscribedTask) {
 			task = data.task;
 		} else {
 			task = $subscribedTask;
 		}
-	}
+	});
 
 	// if task is undefined, go to 404
 	const cleanStdOut = (stdoutorerr: string) => {
@@ -33,9 +39,9 @@
 		return str !== escapeForDoubleQuotes(str) || str.includes(' ');
 	};
 
-	$: {
+	run(() => {
 		subscribeTask(data.task_id);
-	}
+	});
 </script>
 
 {#if task}

@@ -20,12 +20,23 @@
 	import ConfigRenderer from './ConfigRenderer.svelte';
 	import { configSelectedModuleContext } from '$lib/searchParamHelpers';
 
-	export let module: Module;
-	export let settings: ModuleSettingsWithOrigin | undefined;
-	export let configSelectedModuleContextType: ContextType;
-	export let otherSettings: ModuleSettingsWithOrigin[] | undefined;
-	export let showRouting: boolean;
-	export let canEdit: boolean;
+	interface Props {
+		module: Module;
+		settings: ModuleSettingsWithOrigin | undefined;
+		configSelectedModuleContextType: ContextType;
+		otherSettings: ModuleSettingsWithOrigin[] | undefined;
+		showRouting: boolean;
+		canEdit: boolean;
+	}
+
+	let {
+		module,
+		settings = $bindable(),
+		configSelectedModuleContextType,
+		otherSettings,
+		showRouting,
+		canEdit
+	}: Props = $props();
 
 	const setSetting = async (setting: Setting<SettingType>, settingKey: string, value: any) => {
 		if ($configSelectedModuleContext && settings) {
@@ -49,7 +60,9 @@
 		return (b.priority ?? 0) - (a.priority ?? 0);
 	};
 
-	$: settingEntries = Object.entries(module.settings).sort((a, b) => a[1].order - b[1].order);
+	let settingEntries = $derived(
+		Object.entries(module.settings).sort((a, b) => a[1].order - b[1].order)
+	);
 
 	const canReallyEditSetting = (canEdit: boolean, setting: Setting) =>
 		canEdit &&
@@ -110,10 +123,10 @@
 					disabled={!canReallyEditSetting(canEdit, setting)}
 					onChange={(value) => setSetting(setting, key, value)}
 				/>
-				<div class="ml-auto" />
+				<div class="ml-auto"></div>
 				<button
 					class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
-					on:click={async (e) =>
+					onclick={async (e) =>
 						await navigator.clipboard.writeText(
 							JSON.stringify({ type: setting.type, value: settings?.settings[key] })
 						)}
@@ -125,7 +138,7 @@
 				{#if canEdit}
 					<button
 						class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-						on:click={async () => {
+						onclick={async () => {
 							const clipboardText = await navigator.clipboard.readText();
 							if (canPaste(clipboardText, setting)) {
 								setSetting(setting, key, JSON.parse(clipboardText).value);
@@ -140,7 +153,7 @@
 					{#if settings?.settings[key] !== undefined}
 						<button
 							class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-							on:click={() => setSetting(setting, key, null)}
+							onclick={() => setSetting(setting, key, null)}
 						>
 							<X size="20" />
 						</button>
@@ -148,7 +161,7 @@
 					{:else if canReallyEditSetting(canEdit, setting)}
 						<button
 							class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-							on:click={() =>
+							onclick={() =>
 								setSetting(
 									setting,
 									key,
@@ -166,7 +179,7 @@
 					{#if other && other.length > 0}
 						{#if sameOrigin(settings, other[0])}
 							{@const otherDefinitions = other.filter((o) => !sameOrigin(settings, o))}
-							<button class="m-0 p-1" on:click={() => {}}>
+							<button class="m-0 p-1" onclick={() => {}}>
 								<Route class="text-primary-600 dark:text-primary-400" size="20" />
 							</button>
 							<Tooltip type="auto" class="z-50">
@@ -187,7 +200,7 @@
 							{@const otherDefinitions = other.filter(
 								(o) => !sameOrigin(o, settings) && !sameOrigin(o, other[0])
 							)}
-							<button class="m-0 p-1" on:click={() => {}}>
+							<button class="m-0 p-1" onclick={() => {}}>
 								<RouteOff class="text-primary-600 dark:text-primary-400" size="20" />
 							</button>
 							<Tooltip type="auto" class="z-50">
@@ -207,7 +220,7 @@
 							</Tooltip>
 						{/if}
 					{:else if self !== undefined}
-						<button class="m-0 p-1" on:click={() => {}}>
+						<button class="m-0 p-1" onclick={() => {}}>
 							<Route class="text-primary-600 dark:text-primary-400" size="20" />
 						</button>
 						<Tooltip type="auto" class="z-50">
@@ -215,7 +228,7 @@
 							<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P>
 						</Tooltip>
 					{:else}
-						<button class="m-0 p-1" on:click={() => {}}>
+						<button class="m-0 p-1" onclick={() => {}}>
 							<RouteOff class="text-primary-600 dark:text-primary-400" size="20" />
 						</button>
 						<Tooltip type="auto" class="z-50">

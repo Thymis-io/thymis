@@ -9,21 +9,25 @@
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
 
-	$: deviceTypes = getDeviceTypesMap(data.availableModules);
+	let { data }: Props = $props();
+
+	let deviceTypes = $derived(getDeviceTypesMap(data.availableModules));
 
 	const hardwareKeyToDisplayName = {
 		'pi-serial-number': () => $t('hardware-devices.hardware-keys.pi-serial-number')
 	} as Record<string, () => string>;
 
-	let hideOldDevices = true;
+	let hideOldDevices = $state(true);
 
 	// hide after 1 day
 	const hideAfter = 1 * 1000 * 60 * 60 * 24; // 1000ms/s * 60s/m * 60m/h * 24h/d = X ms/d = 1 => 1d = X ms
 
-	$: hardwareDevicesWithoutDeploymentInfo = data.hardwareDevices.filter(
-		(hardwareDevice) => !hardwareDevice.deployment_info_id
+	let hardwareDevicesWithoutDeploymentInfo = $derived(
+		data.hardwareDevices.filter((hardwareDevice) => !hardwareDevice.deployment_info_id)
 	);
 </script>
 

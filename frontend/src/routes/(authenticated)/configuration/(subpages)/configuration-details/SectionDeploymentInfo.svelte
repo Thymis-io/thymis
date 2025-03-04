@@ -4,11 +4,13 @@
 	import type { DeploymentInfo } from '$lib/deploymentInfo';
 	import type { Config } from '$lib/state';
 
-	export let deploymentInfos: DeploymentInfo[] = [];
-	export let config: Config;
+	interface Props {
+		deploymentInfos?: DeploymentInfo[];
+		config: Config;
+		class?: string;
+	}
 
-	let className = '';
-	export { className as class };
+	let { deploymentInfos = [], config, class: className = '' }: Props = $props();
 </script>
 
 <Section class={className} title={$t('configuration-details.deployment-info')}>

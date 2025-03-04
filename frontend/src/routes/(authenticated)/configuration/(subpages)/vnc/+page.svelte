@@ -13,9 +13,13 @@
 	import Dropdown from '$lib/components/Dropdown.svelte';
 	import { browser } from '$app/environment';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
 
-	let columns = data.vncDisplaysPerColumn;
+	let { data }: Props = $props();
+
+	let columns = $state(data.vncDisplaysPerColumn);
 
 	const getConfigFromIdentifier = (identifier: string | null) => {
 		if (!identifier) return undefined;
