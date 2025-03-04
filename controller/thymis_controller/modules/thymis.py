@@ -1,7 +1,7 @@
 import pathlib
 
 import thymis_controller.modules.modules as modules
-from thymis_controller import models
+from thymis_controller import db_models, models
 from thymis_controller.config import global_settings
 from thymis_controller.lib import read_into_base64
 from thymis_controller.nix import convert_python_value_to_nix, template_env
@@ -117,7 +117,12 @@ class ThymisDevice(modules.Module):
             de="Root Passwort",
         ),
         nix_attr_name="thymis.config.password",
-        type="string",
+        type=modules.SecretType(
+            allowed_types=[db_models.SecretTypes.SINGLE_LINE],
+            default_processing_type=db_models.SecretProcessingTypes.MKPASSWD_YESCRYPT,
+            default_save_to_image=True,
+            on_device_path="/root/.thymis/root_password",
+        ),
         default="",
         description=modules.LocalizedString(
             en="The root password of the device.",
