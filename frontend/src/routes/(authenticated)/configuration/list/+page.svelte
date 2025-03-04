@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
 	import { saveState, type Config, type Tag } from '$lib/state';
@@ -31,6 +29,14 @@
 	}
 
 	let { data = $bindable() }: Props = $props();
+
+	type DraggableConfig = { id: string; data: Config };
+	let configs = $state<DraggableConfig[]>(
+		data.globalState.configs.map((config) => ({ id: config.identifier, data: config }))
+	);
+	$effect(() => {
+		configs = data.globalState.configs.map((config) => ({ id: config.identifier, data: config }));
+	});
 
 	const findTag = (identifier: string) => {
 		return data.globalState.tags.find((t) => t.identifier === identifier);
@@ -85,13 +91,6 @@
 		);
 		await saveState(data.globalState);
 	};
-
-	let configs;
-	run(() => {
-		configs = data.globalState.configs.map((config) => {
-			return { id: config.identifier, data: config };
-		});
-	});
 
 	let newConfigModalOpen = $state(false);
 	let currentlyEditingConfig: Config | undefined = $state(undefined);
