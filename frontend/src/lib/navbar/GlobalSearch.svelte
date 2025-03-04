@@ -51,7 +51,7 @@
 			: '/configuration/edit'}
 		{#if isSearched(search, tag.displayName)}
 			<DropdownItem
-				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.identifier)}`}
+				href={`${subpage}?${buildGlobalNavSearchParam(globalState, $page.url.search, 'tag', tag.identifier)}`}
 				class={`flex gap-2 p-1 hover:bg-gray-100 items-center rounded ${active ? 'text-primary-600 dark:text-primary-400 hover:text-primary-600' : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'}`}
 				on:click={() => (open = false)}
 			>
@@ -73,7 +73,7 @@
 			: '/configuration/configuration-details'}
 		{#if isSearched(search, config.displayName)}
 			<DropdownItem
-				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'config', config.identifier)}`}
+				href={`${subpage}?${buildGlobalNavSearchParam(globalState, $page.url.search, 'config', config.identifier)}`}
 				class={`flex gap-2 p-1 hover:bg-gray-100 items-center rounded ${active ? 'text-primary-600 dark:text-primary-400 hover:text-primary-600' : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'}`}
 				on:click={() => (open = false)}
 			>

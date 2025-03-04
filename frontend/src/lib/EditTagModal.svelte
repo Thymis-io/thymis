@@ -1,16 +1,17 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { type Config, saveState, globalState, type Tag } from '$lib/state';
+	import { type Config, saveState, type Tag, type State } from '$lib/state';
 	import { Button, Modal, Label, P } from 'flowbite-svelte';
 	import MultiSelect from 'svelte-multiselect';
 
 	interface Props {
+		globalState: State;
 		currentlyEditingConfig: Config | undefined;
 	}
 
-	let { currentlyEditingConfig = $bindable() }: Props = $props();
+	let { globalState, currentlyEditingConfig = $bindable() }: Props = $props();
 
-	let projectTags = $derived($globalState.tags);
+	let projectTags = $derived(globalState.tags);
 	let tagsSelect = $derived(
 		projectTags?.map((tag) => ({ value: tag.identifier, label: tag.displayName }))
 	);
@@ -51,13 +52,13 @@
 	<div class="flex justify-end gap-2">
 		<Button
 			on:click={async () => {
-				$globalState.configs = $globalState.configs.map((config) => {
+				globalState.configs = globalState.configs.map((config) => {
 					if (config.identifier === currentlyEditingConfig?.identifier) {
 						config.tags = selectedTags.map((tag) => tag.value);
 					}
 					return config;
 				});
-				await saveState();
+				await saveState(globalState);
 				currentlyEditingConfig = undefined;
 			}}
 		>

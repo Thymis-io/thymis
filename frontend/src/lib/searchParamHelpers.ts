@@ -1,5 +1,4 @@
-import { globalState, type Module } from './state';
-import { get } from 'svelte/store';
+import { type Module, type State } from './state';
 
 const setParam = (params: URLSearchParams, key: string, value: string | null | undefined) => {
 	if (value) {
@@ -16,35 +15,38 @@ export const setSearchParam = (search: string, key: string, value: string | null
 };
 
 const hasModule = (
+	globalState: State,
 	contextType: string | null | undefined,
 	contextIdentifier: string | null | undefined,
 	moduleType: string | null | undefined
 ) => {
 	if (contextType === 'tag') {
-		const tag = get(globalState).tags.find((t) => t.identifier === contextIdentifier);
+		const tag = globalState.tags.find((t) => t.identifier === contextIdentifier);
 		return tag?.modules.some((m) => m.type === moduleType);
 	} else if (contextType === 'config') {
-		const config = get(globalState).configs.find((c) => c.identifier === contextIdentifier);
+		const config = globalState.configs.find((c) => c.identifier === contextIdentifier);
 		return config?.modules.some((m) => m.type === moduleType);
 	}
 	return false;
 };
 
 const setFirstSelectedModule = (
+	globalState: State,
 	params: URLSearchParams,
 	contextType: string | null | undefined,
 	contextIdentifier: string | null | undefined
 ) => {
 	if (contextType === 'tag') {
-		const tag = get(globalState).tags.find((t) => t.identifier === contextIdentifier);
+		const tag = globalState.tags.find((t) => t.identifier === contextIdentifier);
 		setParam(params, 'config-selected-module', tag?.modules[0]?.type);
 	} else if (contextType === 'config') {
-		const config = get(globalState).configs.find((c) => c.identifier === contextIdentifier);
+		const config = globalState.configs.find((c) => c.identifier === contextIdentifier);
 		setParam(params, 'config-selected-module', config?.modules[0]?.type);
 	}
 };
 
 export const buildGlobalNavSearchParam = (
+	globalState: State,
 	search: string,
 	targetType: string | null | undefined,
 	target: string | null | undefined
@@ -56,14 +58,15 @@ export const buildGlobalNavSearchParam = (
 	setParam(params, 'config-selected-module-context-identifier', target);
 	if (
 		!params.get('config-selected-module') ||
-		!hasModule(targetType, target, params.get('config-selected-module'))
+		!hasModule(globalState, targetType, target, params.get('config-selected-module'))
 	) {
-		setFirstSelectedModule(params, targetType, target);
+		setFirstSelectedModule(globalState, params, targetType, target);
 	}
 	return params.toString();
 };
 
 export const buildConfigSelectModuleSearchParam = (
+	globalState: State,
 	search: string,
 	targetType: string | null | undefined,
 	target: string | null | undefined,
@@ -77,8 +80,8 @@ export const buildConfigSelectModuleSearchParam = (
 	setParam(params, 'config-selected-module-context-type', contextType);
 	setParam(params, 'config-selected-module-context-identifier', contextIdentifier);
 	setParam(params, 'config-selected-module', module?.type);
-	if (!module || !hasModule(contextType, contextIdentifier, module.type)) {
-		setFirstSelectedModule(params, contextType, contextIdentifier);
+	if (!module || !hasModule(globalState, contextType, contextIdentifier, module.type)) {
+		setFirstSelectedModule(globalState, params, contextType, contextIdentifier);
 	}
 	return params.toString();
 };
