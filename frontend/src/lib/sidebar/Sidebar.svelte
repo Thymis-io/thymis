@@ -12,8 +12,16 @@
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
-	import { globalState } from '$lib/state';
+	import { type State } from '$lib/state';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
+
+	interface Props {
+		globalState: State;
+		drawerHidden: boolean;
+		asideClass?: string;
+	}
+
+	let { globalState, drawerHidden = $bindable(), asideClass = '' }: Props = $props();
 
 	const closeDrawer = () => {
 		drawerHidden = true;
@@ -26,15 +34,9 @@
 	let nonActiveClass =
 		childClass + ' hover:cursor-pointer dark:text-gray-400 hover:text-black dark:hover:text-white';
 	let activeClass = childClass + ' cursor-default text-primary-600 dark:text-primary-400';
-	interface Props {
-		drawerHidden: boolean;
-		asideClass?: string;
-	}
-
-	let { drawerHidden = $bindable(), asideClass = '' }: Props = $props();
 
 	let mainSidebarUrl = $derived($page.url.pathname);
-	let activeMainSidebar: string = $state();
+	let activeMainSidebar: string = $state('');
 
 	afterNavigate((navigation) => {
 		// this fixes https://github.com/themesberg/flowbite-svelte/issues/364
@@ -57,8 +59,8 @@
 	};
 
 	let anyTargetHasVNC = $derived(
-		$globalState.configs.some((config) => targetShouldShowVNC(config, $globalState)) ||
-			$globalState.tags.some((tag) => targetShouldShowVNC(tag, $globalState))
+		globalState.configs.some((config) => targetShouldShowVNC(config, globalState)) ||
+			globalState.tags.some((tag) => targetShouldShowVNC(tag, globalState))
 	);
 
 	let navItems: NavItem[] = $state([]);
@@ -102,8 +104,6 @@
 			}
 		];
 	});
-
-	let dropdowns = Object.fromEntries(Object.keys(navItems).map((x) => [x, false]));
 </script>
 
 <Sidebar

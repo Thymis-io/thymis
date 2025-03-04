@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { globalState } from '$lib/state';
 	import VncView from '$lib/vnc/VncView.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import type { PageData } from './$types';
@@ -38,9 +37,9 @@
 <DynamicGrid class={columns === 2 ? 'gap-4' : 'gap-2'} {columns}>
 	{#each data.deploymentInfos as deploymentInfo}
 		{@const config = getConfigFromIdentifier(deploymentInfo.deployed_config_id)}
-		{@const showVNC = config && targetShouldShowVNC(config, $globalState)}
+		{@const showVNC = config && targetShouldShowVNC(config, data.globalState)}
 		{#if showVNC}
-			<VncView {config} {deploymentInfo} />
+			<VncView globalState={data.globalState} {config} {deploymentInfo} />
 		{/if}
 	{/each}
 </DynamicGrid>

@@ -3,18 +3,9 @@
 
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
-	import { saveState, globalState, type Config, type Tag } from '$lib/state';
+	import { saveState, type Config, type Tag } from '$lib/state';
 	import Pen from 'lucide-svelte/icons/pen';
-	import {
-		Button,
-		Helper,
-		Table,
-		TableBodyCell,
-		TableBodyRow,
-		TableHead,
-		TableHeadCell,
-		Tooltip
-	} from 'flowbite-svelte';
+	import { Button, Table, TableBodyCell, TableHead, TableHeadCell, Tooltip } from 'flowbite-svelte';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Search from 'lucide-svelte/icons/search';
@@ -89,7 +80,7 @@
 
 	const deleteConfiguration = async (config: Config) => {
 		const identifier = config.identifier;
-		$globalState.configs = $globalState.configs.filter(
+		data.globalState.configs = data.globalState.configs.filter(
 			(config) => config.identifier !== identifier
 		);
 		await saveState(data.globalState);

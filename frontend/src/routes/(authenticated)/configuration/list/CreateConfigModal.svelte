@@ -36,7 +36,7 @@
 
 	const submitData = async () => {
 		if (
-			nameValidation(displayName, 'config') ||
+			nameValidation(globalState, displayName, 'config') ||
 			deviceTypeValidation(selectedDeviceType) ||
 			!thymisDeviceModule?.type ||
 			!selectedDeviceType
@@ -89,8 +89,8 @@
 			<Label for="display-name"
 				>{$t('create-configuration.display-name')}
 				<Input id="display-name" bind:value={displayName} />
-				{#if nameValidation(displayName, 'config')}
-					<Helper color="red">{nameValidation(displayName, 'config')}</Helper>
+				{#if nameValidation(globalState, displayName, 'config')}
+					<Helper color="red">{nameValidation(globalState, displayName, 'config')}</Helper>
 				{:else}
 					<Helper color="green"
 						>{$t('create-configuration.name-helper', {
@@ -129,7 +129,8 @@
 				type="button"
 				class="btn btn-primary"
 				disabled={!!(
-					nameValidation(displayName, 'config') || deviceTypeValidation(selectedDeviceType)
+					nameValidation(globalState, displayName, 'config') ||
+					deviceTypeValidation(selectedDeviceType)
 				)}
 				on:click={submitData}
 			>

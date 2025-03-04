@@ -6,8 +6,6 @@
 	import Sidebar from '$lib/sidebar/Sidebar.svelte';
 	import SplitPane from '$lib/splitpane/SplitPane.svelte';
 	import type { LayoutData } from './$types';
-	import { saveState } from '$lib/state';
-	import { globalState } from '$lib/state';
 	import { taskStatus } from '$lib/taskstatus';
 	import Taskbar from '$lib/taskbar/Taskbar.svelte';
 	import MainWindow from './MainWindow.svelte';
@@ -64,22 +62,28 @@
 		/>
 	</header>
 	<div class="h-screen block z-50 {drawerHidden ? 'hidden' : ''} lg:hidden">
-		<Sidebar asideClass="h-full pt-[calc(var(--navbar-height))]" bind:drawerHidden />
+		<Sidebar
+			globalState={data.globalState}
+			asideClass="h-full pt-[calc(var(--navbar-height))]"
+			bind:drawerHidden
+		/>
 	</div>
 	<div class="{drawerHidden ? '' : 'hidden'} lg:block pt-[calc(var(--navbar-height))] h-full">
 		<div class="flex flex-row h-full">
 			{#if taskbarMinimized}
 				<div class="w-full relative dark:border-gray-600 bg-gray-50 dark:bg-gray-900 mb-[40px]">
-					<MainWindow bind:drawerHidden>{@render children?.()}</MainWindow>
+					<MainWindow globalState={data.globalState} bind:drawerHidden>
+						{@render children?.()}
+					</MainWindow>
 					<div class="relative h-[40px]">
 						<TaskbarMinimize bind:taskbarMinimized class="mt-2" />
-						<TaskbarSmall inPlaywright={data.inPlaywright} />
+						<TaskbarSmall globalState={data.globalState} inPlaywright={data.inPlaywright} />
 					</div>
 				</div>
 			{:else}
 				<SplitPane type="vertical" pos="70%" min="12rem" max="80%">
 					{#snippet a()}
-						<MainWindow bind:drawerHidden>
+						<MainWindow globalState={data.globalState} bind:drawerHidden>
 							{@render children?.()}
 						</MainWindow>
 					{/snippet}
@@ -88,11 +92,11 @@
 							class="w-full relative border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900"
 						>
 							<div class="max-h-full overflow-x-hidden overflow-y-auto h-[calc(100%-40px)]">
-								<Taskbar bind:taskbarMinimized />
+								<Taskbar globalState={data.globalState} bind:taskbarMinimized />
 							</div>
 							<div class="w-full h-[40px]">
 								<TaskbarMinimize bind:taskbarMinimized class="mt-2" />
-								<TaskbarSmall inPlaywright={data.inPlaywright} />
+								<TaskbarSmall globalState={data.globalState} inPlaywright={data.inPlaywright} />
 							</div>
 						</div>
 					{/snippet}
