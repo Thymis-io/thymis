@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Button, Helper, Input, Label, Modal } from 'flowbite-svelte';
-	import { type Tag, state, saveState } from '$lib/state';
+	import { type Tag, globalState, saveState } from '$lib/state';
 	import { nameToIdentifier, nameValidation } from '$lib/nameValidation';
 
 	export let open = false;
@@ -19,7 +19,7 @@
 			modules: []
 		};
 
-		$state.tags = [...$state.tags, tag];
+		$globalState.tags = [...$globalState.tags, tag];
 		saveState();
 		open = false;
 	};

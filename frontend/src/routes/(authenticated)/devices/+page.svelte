@@ -50,7 +50,7 @@
 	<tbody>
 		{#each data.deploymentInfos as deploymentInfo (deploymentInfo.id)}
 			{#if !hideOldDevices || (deploymentInfo.last_seen && new Date(deploymentInfo.last_seen) > new Date(data.loadTime - hideAfter))}
-				{@const deployedConfig = data.state.configs.find(
+				{@const deployedConfig = data.globalState.configs.find(
 					(config) => config.identifier === deploymentInfo.deployed_config_id
 				)}
 				{@const deviceType = deployedConfig && getDeviceType(deployedConfig)}
@@ -64,7 +64,7 @@
 							class="underline flex items-center gap-2 w-fit"
 						>
 							<FileCode size={18} />
-							{data.state.configs.find(
+							{data.globalState.configs.find(
 								(config) => config.identifier === deploymentInfo.deployed_config_id
 							)?.displayName}
 						</a>

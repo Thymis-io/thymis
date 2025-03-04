@@ -7,7 +7,7 @@
 		globalNavSelectedTargetType,
 		saveState,
 		globalNavSelectedTarget,
-		state,
+		globalState,
 		globalNavSelectedTag,
 		globalNavSelectedConfig
 	} from '$lib/state';
@@ -58,7 +58,7 @@
 		let tagModules: ModuleSettingsWithOrigin[] = [];
 
 		if ('tags' in target) {
-			let usedTags = target.tags.flatMap((t) => getTagByIdentifier($state, t) ?? []);
+			let usedTags = target.tags.flatMap((t) => getTagByIdentifier($globalState, t) ?? []);
 
 			tagModules = usedTags.flatMap((t) =>
 				t.modules.map((m) => ({ ...getOrigin(t), priority: t.priority, ...m }))
@@ -100,7 +100,7 @@
 			</slot>
 		</ModuleList>
 		{#each $globalNavSelectedConfig?.tags ?? [] as tagIdentifier}
-			{@const usedTag = getTagByIdentifier($state, tagIdentifier)}
+			{@const usedTag = getTagByIdentifier($globalState, tagIdentifier)}
 			<div class="mt-6">
 				<ModuleList
 					contextType="tag"

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
-	import { saveState, state, type Config, type Tag } from '$lib/state';
+	import { saveState, globalState, type Config, type Tag } from '$lib/state';
 	import Pen from 'lucide-svelte/icons/pen';
 	import {
 		Button,
@@ -38,7 +38,7 @@
 	export let data: PageData;
 
 	const findTag = (identifier: string) => {
-		return data.state.tags.find((t) => t.identifier === identifier);
+		return data.globalState.tags.find((t) => t.identifier === identifier);
 	};
 
 	const handleConsider = (e: CustomEvent<DndEvent<{ id: string; data: Config }>>) => {
@@ -59,7 +59,7 @@
 		} = e.detail;
 		configs = newItems;
 		// also send new config order to backend and reload
-		data.state.configs = configs.map((config) => config.data);
+		data.globalState.configs = configs.map((config) => config.data);
 		saveState();
 		// Ensure dragging is stopped on drag finish via pointer (mouse, touch)
 		if (source === SOURCES.POINTER) {
@@ -85,11 +85,13 @@
 
 	const deleteConfiguration = async (config: Config) => {
 		const identifier = config.identifier;
-		$state.configs = $state.configs.filter((config) => config.identifier !== identifier);
+		$globalState.configs = $globalState.configs.filter(
+			(config) => config.identifier !== identifier
+		);
 		await saveState();
 	};
 
-	$: configs = data.state.configs.map((config) => {
+	$: configs = data.globalState.configs.map((config) => {
 		return { id: config.identifier, data: config };
 	});
 

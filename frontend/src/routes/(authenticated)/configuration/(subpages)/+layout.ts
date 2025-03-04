@@ -14,7 +14,7 @@ export const load: LayoutLoad = async ({ fetch, url, parent }) => {
 		deploymentInfos = await getConnectedDeploymentInfosByConfigId(fetch, identifier);
 		return { deploymentInfos: deploymentInfos };
 	} else if (identifier && identifierType && identifierType === 'tag') {
-		const { state } = await parent();
+		const { globalState: state } = await parent();
 		const configIds = state.configs
 			.filter((config) => config.tags.includes(identifier))
 			.map((config) => config.identifier);

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import Section from './Section.svelte';
-	import { saveState, type Config, state } from '$lib/state';
+	import { saveState, type Config, globalState } from '$lib/state';
 	import { Button } from 'flowbite-svelte';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import Trash from 'lucide-svelte/icons/trash-2';
@@ -13,7 +13,9 @@
 
 	const deleteConfiguration = async (config: Config) => {
 		const identifier = config.identifier;
-		$state.configs = $state.configs.filter((config) => config.identifier !== identifier);
+		$globalState.configs = $globalState.configs.filter(
+			(config) => config.identifier !== identifier
+		);
 		await saveState();
 		// await goto('/configuration/list');
 		setTimeout(async () => await goto('/configuration/list'), 200);

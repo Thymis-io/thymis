@@ -141,16 +141,16 @@ export type State = {
 	tags: Tag[];
 };
 
-export const state = writable<State>();
+export const globalState = writable<State>();
 
 export let currentState: State;
 
-state.subscribe((value) => {
+globalState.subscribe((value) => {
 	currentState = value;
 });
 
 export const saveState = async () => {
-	state.set(currentState);
+	globalState.set(currentState);
 	const response = await fetchWithNotify(`/api/state`, {
 		method: 'PATCH',
 		headers: {
@@ -175,7 +175,7 @@ export const getConfigByIdentifier = (state: State, identifier: string) => {
 };
 
 export const globalNavSelectedTag = derived(
-	[state, queryParam('global-nav-target-type'), queryParam('global-nav-target')],
+	[globalState, queryParam('global-nav-target-type'), queryParam('global-nav-target')],
 	([$state, $context, $identifier]) => {
 		if ($context === 'tag') {
 			return getTagByIdentifier($state, $identifier);
@@ -184,7 +184,7 @@ export const globalNavSelectedTag = derived(
 );
 
 export const globalNavSelectedConfig = derived(
-	[state, queryParam('global-nav-target-type'), queryParam('global-nav-target')],
+	[globalState, queryParam('global-nav-target-type'), queryParam('global-nav-target')],
 	([$state, $context, $identifier]) => {
 		if ($context === 'config') {
 			return getConfigByIdentifier($state, $identifier);

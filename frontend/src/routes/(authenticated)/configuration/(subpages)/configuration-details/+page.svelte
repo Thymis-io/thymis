@@ -6,7 +6,7 @@
 		globalNavSelectedConfig,
 		globalNavSelectedTag,
 		globalNavSelectedTargetType,
-		state
+		globalState
 	} from '$lib/state';
 	import SectionConfiguration from './SectionConfiguration.svelte';
 	import SectionActions from './SectionActions.svelte';
@@ -36,7 +36,7 @@
 			availableModules={data.availableModules}
 		/>
 		<SectionDanger class="col-span-1" config={currentConfig} />
-		{#if targetShouldShowVNC(currentConfig, $state)}
+		{#if targetShouldShowVNC(currentConfig, $globalState)}
 			{#each data.deploymentInfos as deploymentInfo}
 				<Section class="col-span-2" title={$t('nav.device-vnc')}>
 					<VncView config={currentConfig} {deploymentInfo} />

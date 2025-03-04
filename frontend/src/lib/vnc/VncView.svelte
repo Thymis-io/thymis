@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import type { Config, Module } from '$lib/state';
-	import { state } from '$lib/state';
+	import { globalState } from '$lib/state';
 	import { Card, Spinner, Toggle, P } from 'flowbite-svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { configVNCPassword, targetShouldShowVNC } from '$lib/vnc/vnc';
@@ -17,7 +17,7 @@
 
 	let control = false;
 
-	$: hasVNC = deploymentInfo && config && targetShouldShowVNC(config, $state);
+	$: hasVNC = deploymentInfo && config && targetShouldShowVNC(config, $globalState);
 
 	let div: HTMLDivElement;
 
@@ -32,7 +32,11 @@
 		const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 		const url = `${scheme}://${window.location.host}/api/vnc/${deploymentInfo.id}`;
 
-		const password = configVNCPassword(config, $state, $page.data.availableModules as Module[]);
+		const password = configVNCPassword(
+			config,
+			$globalState,
+			$page.data.availableModules as Module[]
+		);
 
 		if (rfb) {
 			rfb.disconnect();

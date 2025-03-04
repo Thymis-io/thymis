@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import Section from './Section.svelte';
-	import { type Config, type Module, state } from '$lib/state';
+	import { type Config, type Module, globalState } from '$lib/state';
 	import {
 		buildGlobalNavSearchParam,
 		buildConfigSelectModuleSearchParam
@@ -25,7 +25,7 @@
 	};
 
 	const findTag = (identifier: string) => {
-		return $state.tags.find((t) => t.identifier === identifier);
+		return $globalState.tags.find((t) => t.identifier === identifier);
 	};
 
 	let className = '';

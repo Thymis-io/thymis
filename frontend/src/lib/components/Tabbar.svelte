@@ -11,7 +11,7 @@
 		globalNavSelectedConfig,
 		globalNavSelectedTag,
 		globalNavSelectedTarget,
-		state
+		globalState
 	} from '$lib/state';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
@@ -24,7 +24,7 @@
 	};
 
 	$: selectedTargetHasAnyVNCModule =
-		$globalNavSelectedTarget && targetShouldShowVNC($globalNavSelectedTarget, $state);
+		$globalNavSelectedTarget && targetShouldShowVNC($globalNavSelectedTarget, $globalState);
 
 	let dynamicNavItems: NavItem[] = [];
 	$: dynamicNavItems = [

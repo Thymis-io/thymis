@@ -1,6 +1,6 @@
 import { t } from 'svelte-i18n';
 import { get } from 'svelte/store';
-import { state } from '$lib/state';
+import { globalState } from '$lib/state';
 
 export const nameToIdentifier = (displayName: string): string => {
 	// strip string first
@@ -23,23 +23,23 @@ export const nameValidation = (displayName: string, targetType: string): string 
 	const identifier = nameToIdentifier(displayName);
 
 	if (targetType === 'config') {
-		if (get(state).configs.find((config) => config.displayName === displayName)) {
+		if (get(globalState).configs.find((config) => config.displayName === displayName)) {
 			return get(t)('create-configuration.device-with-display-name-name-exists', {
 				values: { displayName }
 			});
 		}
 
-		if (get(state).configs.find((config) => config.identifier === identifier)) {
+		if (get(globalState).configs.find((config) => config.identifier === identifier)) {
 			return get(t)('create-configuration.identifier-exists');
 		}
 	} else if (targetType === 'tag') {
-		if (get(state).tags.find((tag) => tag.displayName === displayName)) {
+		if (get(globalState).tags.find((tag) => tag.displayName === displayName)) {
 			return get(t)('create-configuration.tag-with-display-name-name-exists', {
 				values: { displayName }
 			});
 		}
 
-		if (get(state).tags.find((tag) => tag.identifier === identifier)) {
+		if (get(globalState).tags.find((tag) => tag.identifier === identifier)) {
 			return get(t)('create-configuration.identifier-exists');
 		}
 	}

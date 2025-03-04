@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { saveState, state } from '$lib/state';
+	import { saveState, globalState } from '$lib/state';
 	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
 	import {
 		Button,
@@ -23,7 +23,7 @@
 		do {
 			key = `new-repo-${num}`;
 			num++;
-		} while ($state.repositories[key]);
+		} while ($globalState.repositories[key]);
 
 		return key;
 	};
@@ -31,8 +31,8 @@
 	const addRepo = () => {
 		let key = generateUniqueKey();
 
-		$state.repositories = {
-			...$state.repositories,
+		$globalState.repositories = {
+			...$globalState.repositories,
 			[key]: {
 				url: 'git+https://github.com/Thymis-io/thymis.git'
 			}
@@ -42,17 +42,17 @@
 	};
 
 	const deleteRepo = (name: string) => {
-		$state.repositories = Object.fromEntries(
-			Object.entries($state.repositories).filter(([key, value]) => key !== name)
+		$globalState.repositories = Object.fromEntries(
+			Object.entries($globalState.repositories).filter(([key, value]) => key !== name)
 		);
 
 		saveState();
 	};
 
 	const changeRepoName = (oldName: string, newName: string) => {
-		if (!$state.repositories[newName]) {
-			$state.repositories = Object.fromEntries(
-				Object.entries($state.repositories).map(([key, value]) =>
+		if (!$globalState.repositories[newName]) {
+			$globalState.repositories = Object.fromEntries(
+				Object.entries($globalState.repositories).map(([key, value]) =>
 					key === oldName ? [newName, value] : [key, value]
 				)
 			);
@@ -69,7 +69,7 @@
 		<TableHeadCell padding="p-2">{$t('settings.repo.actions')}</TableHeadCell>
 	</TableHead>
 	<TableBody>
-		{#each Object.entries($state.repositories) as [name, repo]}
+		{#each Object.entries($globalState.repositories) as [name, repo]}
 			<TableBodyRow>
 				<TableBodyEditCell bind:value={name} onEnter={(newName) => changeRepoName(name, newName)} />
 				<TableBodyEditCell bind:value={repo.url} onEnter={() => saveState()} />
