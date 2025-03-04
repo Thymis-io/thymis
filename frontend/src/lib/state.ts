@@ -1,6 +1,6 @@
 import { invalidate } from '$app/navigation';
 import { derived, writable } from 'svelte/store';
-import { queryParam } from 'sveltekit-search-params';
+//import { queryParam } from 'sveltekit-search-params';
 import { fetchWithNotify } from './fetchWithNotify';
 
 export type ModuleSettings = {
@@ -174,30 +174,30 @@ export const getConfigByIdentifier = (state: State, identifier: string) => {
 	return state.configs.find((config) => config.identifier === identifier);
 };
 
-export const globalNavSelectedTag = derived(
+export const globalNavSelectedTag = undefined; /* derived(
 	[globalState, queryParam('global-nav-target-type'), queryParam('global-nav-target')],
 	([$state, $context, $identifier]) => {
 		if ($context === 'tag') {
 			return getTagByIdentifier($state, $identifier);
 		}
 	}
-);
+);*/
 
-export const globalNavSelectedConfig = derived(
+export const globalNavSelectedConfig = undefined; /* derived(
 	[globalState, queryParam('global-nav-target-type'), queryParam('global-nav-target')],
 	([$state, $context, $identifier]) => {
 		if ($context === 'config') {
 			return getConfigByIdentifier($state, $identifier);
 		}
 	}
-);
+);*/
 
-export const globalNavSelectedTarget = derived(
+export const globalNavSelectedTarget = undefined; /*derived(
 	[globalNavSelectedConfig, globalNavSelectedTag],
 	([$globalNavSelectedConfig, $globalNavSelectedTag]) =>
 		$globalNavSelectedConfig || $globalNavSelectedTag
-);
+);*/
 
-export const globalNavSelectedTargetType = queryParam<ContextType>('global-nav-target-type');
+export const globalNavSelectedTargetType = derived([], () => null); // queryParam<ContextType>('global-nav-target-type');
 
 export type ContextType = 'tag' | 'config';
