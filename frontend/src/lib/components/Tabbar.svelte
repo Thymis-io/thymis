@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
 	import { TabItem, Tabs } from 'flowbite-svelte';
 	import { t } from 'svelte-i18n';
 	import Sliders from 'lucide-svelte/icons/sliders-horizontal';
@@ -30,41 +29,38 @@
 		!nav.selectedTarget && targetShouldShowVNC(nav.selectedTarget, globalState)
 	);
 
-	let dynamicNavItems: NavItem[] = $state([]);
-	run(() => {
-		dynamicNavItems = [
-			{
-				name: $t(`nav.device-details`),
-				icon: ListCollapse,
-				href: '/configuration/configuration-details',
-				hidden: !nav.selectedConfig
-			},
-			{
-				name: $t(`nav.configure`),
-				icon: Sliders,
-				href: '/configuration/edit',
-				hidden: !nav.selectedConfig
-			},
-			{
-				name: $t(`nav.config-tag`),
-				icon: Sliders,
-				href: '/configuration/edit',
-				hidden: !nav.selectedTag
-			},
-			{
-				name: $t('nav.device-vnc'),
-				icon: ScreenShare,
-				href: '/configuration/vnc',
-				hidden: !selectedTargetHasAnyVNCModule
-			},
-			{
-				name: $t('nav.terminal'),
-				icon: Terminal,
-				href: '/configuration/terminal',
-				hidden: !nav.selectedConfig
-			}
-		];
-	});
+	let dynamicNavItems: NavItem[] = $derived([
+		{
+			name: $t(`nav.device-details`),
+			icon: ListCollapse,
+			href: '/configuration/configuration-details',
+			hidden: !nav.selectedConfig
+		},
+		{
+			name: $t(`nav.configure`),
+			icon: Sliders,
+			href: '/configuration/edit',
+			hidden: !nav.selectedConfig
+		},
+		{
+			name: $t(`nav.config-tag`),
+			icon: Sliders,
+			href: '/configuration/edit',
+			hidden: !nav.selectedTag
+		},
+		{
+			name: $t('nav.device-vnc'),
+			icon: ScreenShare,
+			href: '/configuration/vnc',
+			hidden: !selectedTargetHasAnyVNCModule
+		},
+		{
+			name: $t('nav.terminal'),
+			icon: Terminal,
+			href: '/configuration/terminal',
+			hidden: !nav.selectedConfig
+		}
+	]);
 </script>
 
 <Tabs
@@ -81,10 +77,8 @@
 						slot="title"
 						class="font-semibold flex items-center px-1 gap-2 md:min-w-32 xl:min-w-48"
 					>
-						<div class="font-semibold flex items-center px-1 gap-2 md:min-w-32 xl:min-w-48">
-							<item.icon size={18} />
-							<span>{item.name}</span>
-						</div>
+						<item.icon size={18} />
+						<span>{item.name}</span>
 					</div>
 				</TabItem>
 			</a>
