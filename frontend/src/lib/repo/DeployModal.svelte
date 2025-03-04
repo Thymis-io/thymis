@@ -8,7 +8,7 @@
 	import {
 		globalNavSelectedTarget,
 		globalNavSelectedTargetType,
-		state,
+		globalState,
 		type Config,
 		type Tag
 	} from '$lib/state';
@@ -47,7 +47,7 @@
 		const configs = selectedOptions.filter((opt) => opt.type === 'config').map((opt) => opt.value);
 		const tags = selectedOptions.filter((opt) => opt.type === 'tag').map((opt) => opt.value);
 
-		affectedConfigs = $state.configs.filter((config) => {
+		affectedConfigs = $globalState.configs.filter((config) => {
 			return configs.includes(config.identifier) || config.tags.some((tag) => tags.includes(tag));
 		});
 	}
@@ -107,8 +107,8 @@
 				<FloatingMultiSelect
 					options={toOptionList(
 						Array.prototype.concat(
-							$state.tags.map((tag) => toOption(tag, 'tag')),
-							$state.configs.map((config) => toOption(config, 'config'))
+							$globalState.tags.map((tag) => toOption(tag, 'tag')),
+							$globalState.configs.map((config) => toOption(config, 'config'))
 						)
 					)}
 					bind:selected={selectedOptions}
@@ -126,7 +126,7 @@
 					on:click={() => {
 						selectedOptions = Array.prototype.concat(
 							selectedOptions.filter((opt) => opt.type === 'tag'),
-							$state.configs.map((config) => toOption(config, 'config'))
+							$globalState.configs.map((config) => toOption(config, 'config'))
 						);
 					}}
 				>

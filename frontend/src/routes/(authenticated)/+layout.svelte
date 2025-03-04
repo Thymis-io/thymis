@@ -5,7 +5,7 @@
 	import SplitPane from '$lib/splitpane/SplitPane.svelte';
 	import type { LayoutData } from './$types';
 	import { saveState } from '$lib/state';
-	import { state } from '$lib/state';
+	import { globalState } from '$lib/state';
 	import { taskStatus } from '$lib/taskstatus';
 	import Taskbar from '$lib/taskbar/Taskbar.svelte';
 	import MainWindow from './MainWindow.svelte';
@@ -18,9 +18,9 @@
 
 	export let data: LayoutData;
 
-	$state = data.state;
-	let lastDataState = data.state;
-	let lastState = data.state;
+	$globalState = data.globalState;
+	let lastDataState = data.globalState;
+	let lastState = data.globalState;
 
 	let taskbarMinimized = data.minimizeTaskbar ?? false;
 
@@ -32,19 +32,19 @@
 
 	$: {
 		// check which state changed
-		if (lastDataState !== data.state && lastState !== $state) {
+		if (lastDataState !== data.globalState && lastState !== $globalState) {
 			// unexpected state change
 			console.error('Unexpected state change');
-			console.log(lastDataState, lastState, data.state);
-		} else if (lastDataState !== data.state) {
+			console.log(lastDataState, lastState, data.globalState);
+		} else if (lastDataState !== data.globalState) {
 			// server state changed
-			$state = data.state; // update local state store
-		} else if (lastState !== $state) {
+			$globalState = data.globalState; // update local state store
+		} else if (lastState !== $globalState) {
 			// local state changed
 			saveState(); // save local state to server
 		}
-		lastDataState = data.state;
-		lastState = $state;
+		lastDataState = data.globalState;
+		lastState = $globalState;
 	}
 
 	$: {

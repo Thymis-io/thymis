@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { type Config, saveState, state, type Tag } from '$lib/state';
+	import { type Config, saveState, globalState, type Tag } from '$lib/state';
 	import { Button, Modal, Label, P } from 'flowbite-svelte';
 	import MultiSelect from 'svelte-multiselect';
 
 	export let currentlyEditingConfig: Config | undefined;
 
-	$: projectTags = $state.tags;
+	$: projectTags = $globalState.tags;
 	$: tagsSelect = projectTags?.map((tag) => ({ value: tag.identifier, label: tag.displayName }));
 
 	let selectedTags: { value: string; label: string }[] = [];
@@ -45,7 +45,7 @@
 	<div class="flex justify-end gap-2">
 		<Button
 			on:click={async () => {
-				$state.configs = $state.configs.map((config) => {
+				$globalState.configs = $globalState.configs.map((config) => {
 					if (config.identifier === currentlyEditingConfig?.identifier) {
 						config.tags = selectedTags.map((tag) => tag.value);
 					}

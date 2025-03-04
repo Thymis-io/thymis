@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
-	import { saveState, state, type Tag } from '$lib/state';
+	import { saveState, globalState, type Tag } from '$lib/state';
 	import {
 		Button,
 		Table,
@@ -29,8 +29,8 @@
 
 	export let data: PageData;
 
-	$: tags = $state.tags.map((t) => ({ id: t.identifier, data: t }));
-	$: projectTags = $state.tags;
+	$: tags = $globalState.tags.map((t) => ({ id: t.identifier, data: t }));
+	$: projectTags = $globalState.tags;
 	$: projectTagIds = projectTags.map((t) => t.identifier);
 
 	let deleteTag: Tag | undefined = undefined;
@@ -40,9 +40,9 @@
 	let dragDisabled = true;
 
 	const removeTag = (tag: string) => {
-		$state.tags = projectTags.filter((t) => t.identifier !== tag);
+		$globalState.tags = projectTags.filter((t) => t.identifier !== tag);
 
-		$state.configs = $state.configs.map((config) => {
+		$globalState.configs = $globalState.configs.map((config) => {
 			config.tags = config.tags.filter((t) => t !== tag);
 			return config;
 		});
@@ -54,7 +54,7 @@
 		const newIdentifier = nameToIdentifier(newTag);
 
 		if (newTag && !projectTagIds.includes(newIdentifier)) {
-			$state.tags = projectTags.map((t) => {
+			$globalState.tags = projectTags.map((t) => {
 				if (t.identifier === oldTagIdentifier) {
 					t.displayName = newTag;
 					t.identifier = newIdentifier;
@@ -62,7 +62,7 @@
 				return t;
 			});
 
-			$state.configs = $state.configs.map((config) => {
+			$globalState.configs = $globalState.configs.map((config) => {
 				config.tags = config.tags.map((t) => (t === oldTagIdentifier ? newIdentifier : t));
 				return config;
 			});
@@ -92,7 +92,7 @@
 			info: { source, trigger }
 		} = e.detail;
 		tags = newItems;
-		$state.tags = tags.map((t) => t.data);
+		$globalState.tags = tags.map((t) => t.data);
 		// Ensure dragging is stopped on drag finish via keyboard
 		if (source === SOURCES.KEYBOARD && trigger === TRIGGERS.DRAG_STOPPED) {
 			dragDisabled = true;
@@ -191,7 +191,7 @@
 					</svelte:fragment>
 				</TableBodyEditCell>
 				<TableBodyCell tdClass="p-2 px-2 md:px-4">
-					{@const configsWithTag = $state.configs.filter((config) =>
+					{@const configsWithTag = $globalState.configs.filter((config) =>
 						config.tags.includes(tag.data.identifier)
 					)}
 					<div class="flex flex-wrap gap-2">

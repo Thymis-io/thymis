@@ -45,8 +45,8 @@ export const load = (async ({ fetch, url, data }) => {
 		console.debug(stateResponse);
 		console.debug(await stateResponse.text());
 	}
-	const state = (await stateResponse.json()) as State;
-	if (!state) {
+	const globalState = (await stateResponse.json()) as State;
+	if (!globalState) {
 		error(500, 'Could not fetch state');
 	}
 
@@ -105,7 +105,7 @@ export const load = (async ({ fetch, url, data }) => {
 	const inPlaywright = data?.inPlaywright || false;
 
 	return {
-		state: state,
+		globalState: globalState,
 		availableModules: availableModules,
 		repoStatus: repoStatus,
 		allTasks: allTasks,

@@ -10,7 +10,7 @@
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
-	import { state } from '$lib/state';
+	import { globalState } from '$lib/state';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
 	export let drawerHidden: boolean;
@@ -52,8 +52,8 @@
 	};
 
 	$: anyTargetHasVNC =
-		$state.configs.some((config) => targetShouldShowVNC(config, $state)) ||
-		$state.tags.some((tag) => targetShouldShowVNC(tag, $state));
+		$globalState.configs.some((config) => targetShouldShowVNC(config, $globalState)) ||
+		$globalState.tags.some((tag) => targetShouldShowVNC(tag, $globalState));
 
 	let navItems: NavItem[] = [];
 	$: navItems = [

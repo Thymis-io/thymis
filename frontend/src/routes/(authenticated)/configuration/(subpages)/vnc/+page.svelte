@@ -4,7 +4,7 @@
 		globalNavSelectedConfig,
 		globalNavSelectedTag,
 		globalNavSelectedTargetType,
-		state
+		globalState
 	} from '$lib/state';
 	import VncView from '$lib/vnc/VncView.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
@@ -19,7 +19,7 @@
 
 	const getConfigFromIdentifier = (identifier: string | null) => {
 		if (!identifier) return undefined;
-		return data.state.configs.find((config) => config.identifier === identifier);
+		return data.globalState.configs.find((config) => config.identifier === identifier);
 	};
 </script>
 
@@ -39,7 +39,7 @@
 <DynamicGrid class={columns === 2 ? 'gap-4' : 'gap-2'} {columns}>
 	{#each data.deploymentInfos as deploymentInfo}
 		{@const config = getConfigFromIdentifier(deploymentInfo.deployed_config_id)}
-		{@const showVNC = config && targetShouldShowVNC(config, $state)}
+		{@const showVNC = config && targetShouldShowVNC(config, $globalState)}
 		{#if showVNC}
 			<VncView {config} {deploymentInfo} />
 		{/if}
