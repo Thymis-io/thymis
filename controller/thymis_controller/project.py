@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 import sqlalchemy
 import sqlalchemy.orm
-from pyrage import decrypt, encrypt, ssh
+from pyrage import decrypt, encrypt, passphrase, ssh
 from thymis_controller import crud, db_models, migration, models
 from thymis_controller.config import global_settings
 from thymis_controller.models.state import State
@@ -261,6 +261,25 @@ class Project:
         logger.warning(f"Unhandled processing type: {processing_type}")
         return value
 
+    def get_processed_secrets(
+        self,
+        db_session: sqlalchemy.orm.Session,
+        secret_ids: list[uuid.UUID],
+        recipient: ssh.Recipient | str,
+    ) -> dict[uuid.UUID, bytes]:
+        # decrypt, process, encrypt
+        secrets = crud.secrets.get_by_ids(db_session, secret_ids)
+        processed_secrets = {}
+        for secret in secrets:
+            value = self.decrypt(secret.value_enc)
+            value = self._process_secret(value, secret.processing_type)
+            if isinstance(recipient, str):
+                value = passphrase.encrypt(value, recipient)
+            else:
+                value = encrypt(value, [recipient])
+            processed_secrets[secret.id] = value
+        return processed_secrets
+
     def create_secret(
         self,
         db_session: sqlalchemy.orm.Session,
@@ -296,6 +315,17 @@ class Project:
             secret.id: models.SecretShort.from_orm_secret(secret, self.decrypt)
             for secret in secrets
         }
+
+    def get_secret(
+        self,
+        db_session: sqlalchemy.orm.Session,
+        secret_id: uuid.UUID,
+    ) -> models.SecretShort | None:
+        # get a secret from the database
+        secret = crud.secrets.get_by_id(db_session, secret_id)
+        return (
+            models.SecretShort.from_orm_secret(secret, self.decrypt) if secret else None
+        )
 
     def update_secret(
         self,
@@ -500,7 +530,7 @@ class Project:
         return task_controller.submit(
             models.task.ProjectFlakeUpdateTaskSubmission(
                 project_path=str(self.path),
-                user_session_id=user_session_id,
-                db_session=db_session,
             ),
+            user_session_id=user_session_id,
+            db_session=db_session,
         )

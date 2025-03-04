@@ -1308,6 +1308,20 @@ files = [
 ]
 
 [[package]]
+name = "pyrage-stubs"
+version = "1.2.4"
+description = "A PEP 561 stub package for pyrage's types"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "pyrage_stubs-1.2.4-py3-none-any.whl", hash = "sha256:cf95670c61be8e6d91f3433db26ae4d41d5dff5eab1b73bf6054b09b6f681357"},
+    {file = "pyrage_stubs-1.2.4.tar.gz", hash = "sha256:00d90a5daff51f9d692490ae3134dd14439ebd743a0c2d6426c36580b3a7fb8f"},
+]
+
+[package.dependencies]
+pyrage = ">=1.2.0,<2.0"
+
+[[package]]
 name = "pytest"
 version = "8.3.5"
 description = "pytest: simple powerful testing with Python"
@@ -1642,12 +1656,14 @@ description = ""
 optional = false
 python-versions = "^3.11"
 files = []
-develop = false
+develop = true
 
 [package.dependencies]
 http-network-relay = {git = "https://git@github.com/Thymis-io/http-network-relay.git"}
 psutil = "^7.0.0"
 pydantic = "^2.8.2"
+pyrage = "^1.2.4"
+pyrage-stubs = "^1.2.4"
 requests = "^2.32.3"
 
 [package.source]
@@ -1992,4 +2008,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.13"
-content-hash = "dc814e7606beea39205dc20f49a5c73f0511b544ebf124ed23634a2359c0a88e"
+content-hash = "3d77b37fe40b305ab3b1d061f3a07119e98f57ed4cb868b3b013a90b67be7f62"
