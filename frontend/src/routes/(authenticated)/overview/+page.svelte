@@ -12,7 +12,12 @@
 	let { data }: Props = $props();
 </script>
 
-<PageHead title={$t('nav.overview')} repoStatus={data.repoStatus} />
+<PageHead
+	title={$t('nav.overview')}
+	repoStatus={data.repoStatus}
+	globalState={data.globalState}
+	nav={data.nav}
+/>
 <!-- container for a bunch of cards -->
 <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
 	<Card class="card p-4 bg-white rounded-lg shadow-md w-full">

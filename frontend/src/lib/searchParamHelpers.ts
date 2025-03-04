@@ -1,4 +1,3 @@
-//import { queryParam } from 'sveltekit-search-params';
 import { globalState, type Module } from './state';
 import { get } from 'svelte/store';
 
@@ -83,22 +82,3 @@ export const buildConfigSelectModuleSearchParam = (
 	}
 	return params.toString();
 };
-
-export const configSelectedModuleContextType = undefined; /* queryParam<ContextType>(
-	'config-selected-module-context-type'
-);*/
-
-export const configSelectedModuleContext = undefined; /* derived(
-	[
-		configSelectedModuleContextType,
-		queryParam('config-selected-module-context-identifier'),
-		globalState
-	],
-	([$contextType, $contextIdentifier, s]) => {
-		if ($contextType === 'tag') {
-			return getTagByIdentifier(s, $contextIdentifier);
-		} else if ($contextType === 'config') {
-			return getConfigByIdentifier(s, $contextIdentifier);
-		}
-	}
-);*/

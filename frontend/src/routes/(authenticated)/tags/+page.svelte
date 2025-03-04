@@ -119,7 +119,12 @@
 	}) satisfies KeyboardEventHandler<HTMLDivElement>;
 </script>
 
-<PageHead title={$t('nav.tags')} repoStatus={data.repoStatus}>
+<PageHead
+	title={$t('nav.tags')}
+	repoStatus={data.repoStatus}
+	globalState={data.globalState}
+	nav={data.nav}
+>
 	<Button
 		color="alternative"
 		class="whitespace-nowrap gap-2 px-2 py-1 m-1"

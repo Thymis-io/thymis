@@ -18,28 +18,28 @@
 	import Paste from 'lucide-svelte/icons/clipboard-copy';
 	import DefinitionLine from './DefinitionLine.svelte';
 	import ConfigRenderer from './ConfigRenderer.svelte';
-	import { configSelectedModuleContext } from '$lib/searchParamHelpers';
+	import type { Nav } from '../../routes/(authenticated)/+layout';
 
 	interface Props {
+		nav: Nav;
 		module: Module;
 		settings: ModuleSettingsWithOrigin | undefined;
-		configSelectedModuleContextType: ContextType;
 		otherSettings: ModuleSettingsWithOrigin[] | undefined;
 		showRouting: boolean;
 		canEdit: boolean;
 	}
 
 	let {
+		nav,
 		module,
 		settings = $bindable(),
-		configSelectedModuleContextType,
 		otherSettings,
 		showRouting,
 		canEdit
 	}: Props = $props();
 
 	const setSetting = async (setting: Setting<SettingType>, settingKey: string, value: any) => {
-		if ($configSelectedModuleContext && settings) {
+		if (nav.selectedModuleContext && settings) {
 			if (value !== undefined && value !== null) {
 				settings.settings[settingKey] = value;
 			} else {
@@ -74,9 +74,7 @@
 			setting.type.extra_data &&
 			'only_editable_on_target_type' in setting.type.extra_data &&
 			Array.isArray(setting.type.extra_data.only_editable_on_target_type) &&
-			!setting.type.extra_data.only_editable_on_target_type.includes(
-				configSelectedModuleContextType
-			)
+			!setting.type.extra_data.only_editable_on_target_type.includes(nav.selectedModuleContextType)
 		);
 
 	const canPaste = (clipboardText: string, setting: Setting<SettingType>) => {
