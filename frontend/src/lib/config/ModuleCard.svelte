@@ -2,12 +2,12 @@
 	import { t } from 'svelte-i18n';
 	import { saveState } from '$lib/state';
 	import type {
-		ContextType,
 		Module,
 		ModuleSettingsWithOrigin,
 		Origin,
 		Setting,
-		SettingType
+		SettingType,
+		State
 	} from '$lib/state';
 	import { Card, P, Tooltip } from 'flowbite-svelte';
 	import Route from 'lucide-svelte/icons/route';
@@ -22,6 +22,7 @@
 
 	interface Props {
 		nav: Nav;
+		globalState: State;
 		module: Module;
 		settings: ModuleSettingsWithOrigin | undefined;
 		otherSettings: ModuleSettingsWithOrigin[] | undefined;
@@ -31,6 +32,7 @@
 
 	let {
 		nav,
+		globalState,
 		module,
 		settings = $bindable(),
 		otherSettings,
@@ -47,7 +49,7 @@
 			}
 		}
 
-		await saveState();
+		await saveState(globalState);
 	};
 
 	const sameOrigin = (a: Origin | undefined, b: Origin | undefined) => {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import Section from './Section.svelte';
-	import { type Config, type Module, globalState } from '$lib/state';
+	import { type Config, type Module, type State } from '$lib/state';
 	import {
 		buildGlobalNavSearchParam,
 		buildConfigSelectModuleSearchParam
@@ -13,6 +13,15 @@
 	import EditTagModal from '$lib/EditTagModal.svelte';
 	import ModuleIcon from '$lib/config/ModuleIcon.svelte';
 
+	interface Props {
+		globalState: State;
+		config: Config;
+		availableModules: Module[];
+		class?: string;
+	}
+
+	let { globalState, config, availableModules, class: className = '' }: Props = $props();
+
 	let currentlyEditingConfig: Config | undefined = $state(undefined);
 
 	const getOwnModules = (config: Config, availableModules: Module[]) => {
@@ -22,25 +31,18 @@
 	};
 
 	const findTag = (identifier: string) => {
-		return $globalState.tags.find((t) => t.identifier === identifier);
+		return globalState.tags.find((t) => t.identifier === identifier);
 	};
-
-	interface Props {
-		config: Config;
-		availableModules: Module[];
-		class?: string;
-	}
-
-	let { config, availableModules, class: className = '' }: Props = $props();
 </script>
 
-<EditTagModal bind:currentlyEditingConfig />
+<EditTagModal {globalState} bind:currentlyEditingConfig />
 <Section class={className} title={$t('configuration-details.config')}>
 	<p class="text-base">{$t('configuration-details.modules')}</p>
 	<div class="flex gap-2 items-center flex-wrap">
 		{#each getOwnModules(config, availableModules) as module}
 			<a
 				href={`/configuration/edit?${buildConfigSelectModuleSearchParam(
+					globalState,
 					$page.url.search,
 					'config',
 					config.identifier,
@@ -65,7 +67,7 @@
 					pill
 					size="sm"
 					class="flex p-2 py-1 gap-2 text-nowrap text-base items-center"
-					href={`/configuration/edit?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
+					href={`/configuration/edit?${buildGlobalNavSearchParam(globalState, $page.url.search, 'tag', tag)}`}
 				>
 					<TagIcon size="16" />
 					<span class="text-nowrap">

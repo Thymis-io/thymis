@@ -3,7 +3,7 @@
 
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
-	import { saveState, globalState, type Tag } from '$lib/state';
+	import { saveState, type Tag } from '$lib/state';
 	import {
 		Button,
 		Table,
@@ -37,9 +37,9 @@
 
 	let tags;
 	run(() => {
-		tags = $globalState.tags.map((t) => ({ id: t.identifier, data: t }));
+		tags = data.globalState.tags.map((t) => ({ id: t.identifier, data: t }));
 	});
-	let projectTags = $derived($globalState.tags);
+	let projectTags = $derived(data.globalState.tags);
 	let projectTagIds = $derived(projectTags.map((t) => t.identifier));
 
 	let deleteTag: Tag | undefined = $state(undefined);
@@ -49,21 +49,20 @@
 	let dragDisabled = $state(true);
 
 	const removeTag = (tag: string) => {
-		$globalState.tags = projectTags.filter((t) => t.identifier !== tag);
-
-		$globalState.configs = $globalState.configs.map((config) => {
+		data.globalState.tags = projectTags.filter((t) => t.identifier !== tag);
+		data.globalState.configs = data.globalState.configs.map((config) => {
 			config.tags = config.tags.filter((t) => t !== tag);
 			return config;
 		});
 
-		saveState();
+		saveState(data.globalState);
 	};
 
 	const renameTag = (oldTagIdentifier: string, newTag: string) => {
 		const newIdentifier = nameToIdentifier(newTag);
 
 		if (newTag && !projectTagIds.includes(newIdentifier)) {
-			$globalState.tags = projectTags.map((t) => {
+			data.globalState.tags = projectTags.map((t) => {
 				if (t.identifier === oldTagIdentifier) {
 					t.displayName = newTag;
 					t.identifier = newIdentifier;
@@ -71,12 +70,12 @@
 				return t;
 			});
 
-			$globalState.configs = $globalState.configs.map((config) => {
+			data.globalState.configs = data.globalState.configs.map((config) => {
 				config.tags = config.tags.map((t) => (t === oldTagIdentifier ? newIdentifier : t));
 				return config;
 			});
 
-			saveState();
+			saveState(data.globalState);
 			return true;
 		}
 
@@ -101,7 +100,7 @@
 			info: { source, trigger }
 		} = e.detail;
 		tags = newItems;
-		$globalState.tags = tags.map((t) => t.data);
+		data.globalState.tags = tags.map((t) => t.data);
 		// Ensure dragging is stopped on drag finish via keyboard
 		if (source === SOURCES.KEYBOARD && trigger === TRIGGERS.DRAG_STOPPED) {
 			dragDisabled = true;
@@ -144,7 +143,7 @@
 	}}
 	on:cancel={() => (deleteTag = undefined)}
 />
-<CreateTagModal bind:open={createTagModalOpen} />
+<CreateTagModal globalState={data.globalState} bind:open={createTagModalOpen} />
 <Table shadow>
 	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2 w-12" />
@@ -205,7 +204,7 @@
 					{/snippet}
 				</TableBodyEditCell>
 				<TableBodyCell tdClass="p-2 px-2 md:px-4">
-					{@const configsWithTag = $globalState.configs.filter((config) =>
+					{@const configsWithTag = data.globalState.configs.filter((config) =>
 						config.tags.includes(tag.data.identifier)
 					)}
 					<div class="flex flex-wrap gap-2">
@@ -213,7 +212,7 @@
 							<Button
 								size="sm"
 								class="p-2 py-0.5 gap-1"
-								href={`/configuration/edit?${buildGlobalNavSearchParam($page.url.search, 'config', config.identifier)}`}
+								href={`/configuration/edit?${buildGlobalNavSearchParam(data.globalState, $page.url.search, 'config', config.identifier)}`}
 							>
 								<FileCode size={'0.75rem'} class="min-w-3" />
 								<span class="text-nowrap">
@@ -228,7 +227,7 @@
 						size="sm"
 						color="alternative"
 						class="p-3 py-1.5 gap-2"
-						href={`/configuration/edit?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.data.identifier)}`}
+						href={`/configuration/edit?${buildGlobalNavSearchParam(data.globalState, $page.url.search, 'tag', tag.data.identifier)}`}
 					>
 						<Pen size={18} />
 						{$t('tags.actions.edit')}

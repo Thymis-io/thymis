@@ -61,6 +61,7 @@
 	<Card class="max-w-none" padding={'sm'}>
 		<ModuleList
 			nav={data.nav}
+			globalState={data.globalState}
 			contextType={data.nav.selectedTargetType}
 			context={data.nav.selectedTarget}
 			selfModules={getSelfModules(data.nav.selectedTarget)}
@@ -79,6 +80,7 @@
 			<div class="mt-6">
 				<ModuleList
 					nav={data.nav}
+					globalState={data.globalState}
 					contextType="tag"
 					context={usedTag}
 					selfModules={getSelfModules(usedTag)}
@@ -93,6 +95,7 @@
 	{#if data.nav.selectedModule && data.nav.selectedModuleContextType && data.nav.selectedModuleContext?.modules.find((m) => m.type === data.nav.selectedModule?.type)}
 		<ModuleCard
 			nav={data.nav}
+			globalState={data.globalState}
 			module={data.nav.selectedModule}
 			settings={getOwnModuleSettings(data.nav.selectedModuleContext).find(
 				(s) => s.type === data.nav.selectedModule?.type

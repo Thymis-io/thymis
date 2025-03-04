@@ -69,7 +69,7 @@
 					<TableBodyCell tdClass="p-2"></TableBodyCell>
 					<TableBodyCell tdClass="p-2">
 						<a
-							href={`/configuration/configuration-details?${buildGlobalNavSearchParam($page.url.search, 'config', deploymentInfo.deployed_config_id)}`}
+							href={`/configuration/configuration-details?${buildGlobalNavSearchParam(data.globalState, $page.url.search, 'config', deploymentInfo.deployed_config_id)}`}
 							class="underline flex items-center gap-2 w-fit"
 						>
 							<FileCode size={18} />

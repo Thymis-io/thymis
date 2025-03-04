@@ -45,7 +45,7 @@
 
 	const buildAndDownloadImage = async (config: Config | undefined) => {
 		if (!config) return;
-		await saveState();
+		await saveState(data.globalState);
 		await fetchWithNotify(`/api/action/build-download-image?identifier=${config.identifier}`, {
 			method: 'POST'
 		});
@@ -76,7 +76,7 @@
 			color="alternative"
 			class="whitespace-nowrap gap-2 px-2 py-1 m-1"
 			on:click={async () => {
-				await saveState();
+				await saveState(data.globalState);
 				await invalidate((url) => url.pathname === '/api/repo_status');
 
 				if (data.repoStatus.changes.length > 0) {
