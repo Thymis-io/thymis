@@ -1,12 +1,6 @@
-import { queryParam } from 'sveltekit-search-params';
-import {
-	getConfigByIdentifier,
-	getTagByIdentifier,
-	globalState,
-	type ContextType,
-	type Module
-} from './state';
-import { derived, get } from 'svelte/store';
+//import { queryParam } from 'sveltekit-search-params';
+import { globalState, type Module } from './state';
+import { get } from 'svelte/store';
 
 const setParam = (params: URLSearchParams, key: string, value: string | null | undefined) => {
 	if (value) {
@@ -90,11 +84,11 @@ export const buildConfigSelectModuleSearchParam = (
 	return params.toString();
 };
 
-export const configSelectedModuleContextType = queryParam<ContextType>(
+export const configSelectedModuleContextType = undefined; /* queryParam<ContextType>(
 	'config-selected-module-context-type'
-);
+);*/
 
-export const configSelectedModuleContext = derived(
+export const configSelectedModuleContext = undefined; /* derived(
 	[
 		configSelectedModuleContextType,
 		queryParam('config-selected-module-context-identifier'),
@@ -107,4 +101,4 @@ export const configSelectedModuleContext = derived(
 			return getConfigByIdentifier(s, $contextIdentifier);
 		}
 	}
-);
+);*/

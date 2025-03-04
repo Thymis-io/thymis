@@ -46,7 +46,8 @@ const builtInKioskVNCModuleDetect = (target: Config | Tag, state: State) => {
 	return 'enable_vnc' in module.settings ? module.settings.enable_vnc : false;
 };
 
-export const targetShouldShowVNC = (target: Config | Tag, state: State) => {
+export const targetShouldShowVNC = (target: Config | Tag | undefined, state: State) => {
+	if (!target) return false;
 	if ('tags' in target) {
 		if (configHasVNCStringModule(target, state)) return true;
 		if (builtInKioskVNCModuleDetect(target, state)) return true;

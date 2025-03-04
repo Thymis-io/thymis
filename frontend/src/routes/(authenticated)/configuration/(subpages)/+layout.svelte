@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { globalNavSelectedTargetType, globalNavSelectedTarget, saveState } from '$lib/state';
+	import { saveState } from '$lib/state';
 	import Tabbar from '$lib/components/Tabbar.svelte';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import Download from 'lucide-svelte/icons/download';
@@ -9,9 +9,10 @@
 	import { getConfigImageFormat } from '$lib/config/configUtils';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import { Button } from 'flowbite-svelte';
-	import type { LayoutData } from './$types';
 	import CommitModal from '$lib/repo/CommitModal.svelte';
 	import { invalidate } from '$app/navigation';
+	import { page } from '$app/state';
+	import type { LayoutData } from './$types';
 
 	interface Props {
 		data: LayoutData;
@@ -23,13 +24,16 @@
 	let openCommitModal = $state(false);
 
 	let isVM = $derived(getConfigImageFormat($globalNavSelectedConfig) == 'nixos-vm');
-	let selectedTargetName = $derived($globalNavSelectedTarget?.displayName ?? '');
-	let titleMap = $derived({
-		config: `${$t('configurations.details-title')}: ${selectedTargetName}`,
-		tag: `${$t('tags.details-title')}: ${selectedTargetName}`,
-		null: selectedTargetName
+	let selectedTargetName = $derived(data.nav.selectedTarget?.displayName ?? '');
+	let title = $derived.by(() => {
+		if (data.nav.selectedTargetType === 'config') {
+			return `${$t('configurations.details-title')}: ${selectedTargetName}`;
+		}
+		if (data.nav.selectedTargetType === 'tag') {
+			return `${$t('tags.details-title')}: ${selectedTargetName}`;
+		}
+		return selectedTargetName;
 	});
-	let title = $derived(titleMap[$globalNavSelectedTargetType ?? 'null']);
 
 	const commit = async (message: string) => {
 		await fetchWithNotify(`/api/action/commit?message=${encodeURIComponent(message)}`, {
@@ -95,5 +99,5 @@
 		</Button>
 	{/if}
 </PageHead>
-<Tabbar />
+<Tabbar globalState={page.data.globalState} nav={page.data.nav} />
 {@render children?.()}

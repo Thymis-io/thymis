@@ -27,7 +27,7 @@
 	import ModuleCard from '$lib/config/ModuleCard.svelte';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import TagIcon from 'lucide-svelte/icons/tag';
-	import { queryParam } from 'sveltekit-search-params';
+	//import { queryParam } from 'sveltekit-search-params';
 	import { derived } from 'svelte/store';
 	import { page } from '$app/stores';
 
@@ -38,13 +38,13 @@
 
 	let { data, children }: Props = $props();
 
-	const configSelectedModule = derived(
+	const configSelectedModule = undefined; /* derived(
 		[page, queryParam('config-selected-module')],
 		([$page, m]) => {
 			let availableModules = $page.data.availableModules as Module[];
 			return availableModules.find((module) => module.type === m);
 		}
-	);
+	);*/
 
 	const getOrigin = (target: Tag | Config): Origin => {
 		return {

@@ -2,11 +2,19 @@ import { browser } from '$app/environment';
 import '$lib/i18n'; // Import to initialize. Important :)
 import { locale, waitLocale } from 'svelte-i18n';
 import type { LayoutLoad } from './$types';
-import type { State, Module } from '$lib/state';
+import type { State, Module, ContextType, Config, Tag } from '$lib/state';
 import { error, redirect } from '@sveltejs/kit';
 import { getAllTasks } from '$lib/taskstatus';
 import { fetchWithNotify } from '$lib/fetchWithNotify';
 import { type RepoStatus } from '$lib/repo/repo';
+
+export type Nav = {
+	selectedTargetType: ContextType;
+	selectedTargetIdentifier: string | null;
+	selectedConfig: Config | undefined;
+	selectedTag: Tag | undefined;
+	selectedTarget: Config | Tag | undefined;
+};
 
 export const load = (async ({ fetch, url, data }) => {
 	let lang = 'en';
@@ -123,9 +131,30 @@ export const load = (async ({ fetch, url, data }) => {
 	const vncDisplaysPerColumn = parseInt(data?.vncDisplaysPerColumn || '3');
 	const inPlaywright = data?.inPlaywright || false;
 
+	const globalNavTargetType = url.searchParams.get('global-nav-target-type') as ContextType;
+	const globalNavTargetIdentifier = url.searchParams.get('global-nav-target');
+	const globalNavSelectedConfig =
+		globalNavTargetType === 'config'
+			? globalState.configs.find((config) => config.identifier === globalNavTargetIdentifier)
+			: undefined;
+	const globalNavSelectedTag =
+		globalNavTargetType === 'tag'
+			? globalState.tags.find((tag) => tag.identifier === globalNavTargetIdentifier)
+			: undefined;
+	const globalNavSelectedTarget = globalNavSelectedConfig || globalNavSelectedTag;
+
+	const nav: Nav = {
+		selectedTargetType: globalNavTargetType,
+		selectedTargetIdentifier: globalNavTargetIdentifier,
+		selectedConfig: globalNavSelectedConfig,
+		selectedTag: globalNavSelectedTag,
+		selectedTarget: globalNavSelectedTarget
+	};
+
 	return {
 		globalState: globalState,
 		secrets: secrets,
+		nav: nav,
 		availableModules: availableModules,
 		repoStatus: repoStatus,
 		allTasks: allTasks,
