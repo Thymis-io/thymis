@@ -2,7 +2,6 @@
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
 	import { Card, P } from 'flowbite-svelte';
-	import { globalState } from '$lib/state';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 
 	interface Props {
@@ -24,7 +23,7 @@
 		<div class="flex items-center justify-around">
 			<div class="flex items-center justify-center bg-primary-500 rounded-full p-5 w-full">
 				<P weight="bold" size="2xl" color="text-white dark:text-gray-900">
-					{$t('overview.configs', { values: { count: $globalState.configs.length } })}
+					{$t('overview.configs', { values: { count: data.globalState.configs.length } })}
 				</P>
 			</div>
 		</div>
@@ -34,7 +33,7 @@
 		<div class="flex items-center justify-around">
 			<div class="flex items-center justify-center bg-primary-500 rounded-full p-5 w-full">
 				<P weight="bold" size="2xl" color="text-white dark:text-gray-900">
-					{$t('overview.tags', { values: { count: $globalState.tags.length } })}
+					{$t('overview.tags', { values: { count: data.globalState.tags.length } })}
 				</P>
 			</div>
 		</div>

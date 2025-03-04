@@ -11,8 +11,14 @@
 	import { queryParameters } from 'sveltekit-search-params';
 	import TaskbarName from './TaskbarName.svelte';
 	import TaskbarStatus from './TaskbarStatus.svelte';
+	import type { State } from '$lib/state';
 
-	const props: { inPlaywright: boolean } = $props();
+	interface Props {
+		globalState: State;
+		inPlaywright: boolean;
+	}
+
+	let { globalState, inPlaywright }: Props = $props();
 
 	const tasks = $derived(Object.values($taskStatus));
 	const pendingTasks = $derived(tasks.filter((task) => task.state === 'pending'));
@@ -43,7 +49,7 @@
 		<span class="hidden lg:inline">{$t('taskbar.version')}: </span>
 		<span class="lg:hidden">v</span>{versionInfo.version}
 		<span class="font-mono">
-			{#if props.inPlaywright}00000000{:else}{versionInfo.headRev.slice(0, 8)}{/if}
+			{#if inPlaywright}00000000{:else}{versionInfo.headRev.slice(0, 8)}{/if}
 		</span>
 		{versionInfo.dirty ? '-dirty' : ''}
 	</div>
@@ -73,7 +79,7 @@
 				{$t('taskbar.latest-task')}:
 			</span>
 			<span class="text-xs md:text-sm truncate max-w-64">
-				<TaskbarName task={latestTask} />
+				<TaskbarName {globalState} task={latestTask} />
 			</span>
 			<span class="text-xs md:text-sm">
 				<TaskbarStatus task={latestTask} showText={false} showProgress={false} />

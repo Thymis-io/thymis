@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { Config, Module } from '$lib/state';
-	import { globalState } from '$lib/state';
+	import type { Config, Module, State } from '$lib/state';
 	import { Card, Spinner, Toggle, P } from 'flowbite-svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { configVNCPassword, targetShouldShowVNC } from '$lib/vnc/vnc';
@@ -9,21 +8,22 @@
 	import { type DeploymentInfo } from '$lib/deploymentInfo';
 
 	interface Props {
+		globalState: State;
 		config: Config | undefined;
 		deploymentInfo: DeploymentInfo;
 	}
 
-	let { config, deploymentInfo }: Props = $props();
-	let deviceHost: string;
+	let { globalState, config, deploymentInfo }: Props = $props();
+
 	let rfb: any;
 	let connected = $state(false);
 	let connectionFailed = $state(false);
 
 	let control = $state(false);
 
-	let hasVNC = $derived(deploymentInfo && config && targetShouldShowVNC(config, $globalState));
+	let hasVNC = $derived(deploymentInfo && config && targetShouldShowVNC(config, globalState));
 
-	let div: HTMLDivElement = $state();
+	let div: HTMLDivElement | undefined = $state();
 
 	const initVNC = async (deploymentInfo: DeploymentInfo) => {
 		if (!deploymentInfo || !config) {
@@ -38,7 +38,7 @@
 
 		const password = configVNCPassword(
 			config,
-			$globalState,
+			globalState,
 			$page.data.availableModules as Module[]
 		);
 

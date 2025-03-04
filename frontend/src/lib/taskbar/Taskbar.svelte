@@ -9,12 +9,14 @@
 	import TaskbarName from './TaskbarName.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 	import RenderTimeDuration from '$lib/components/RenderTimeDuration.svelte';
+	import type { State } from '$lib/state';
 
 	interface Props {
+		globalState: State;
 		taskbarMinimized: boolean;
 	}
 
-	let { taskbarMinimized = $bindable() }: Props = $props();
+	let { globalState, taskbarMinimized = $bindable() }: Props = $props();
 
 	let taskList = $derived(
 		Object.values($taskStatus).sort((a, b) => (a.start_time < b.start_time ? 1 : -1))
@@ -52,7 +54,7 @@
 			{#each taskList as task}
 				<tr>
 					<td class={tdClass}>
-						<TaskbarName {task} />
+						<TaskbarName {globalState} {task} />
 					</td>
 					<td class={tdClass}>
 						<TaskbarStatus {task} />

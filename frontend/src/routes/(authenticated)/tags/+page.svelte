@@ -190,9 +190,11 @@
 					}}
 				>
 					{#snippet bottom({ value: newTagDisplayName })}
-						{#if nameValidation(newTagDisplayName, 'tag')}
+						{#if nameValidation(data.globalState, newTagDisplayName, 'tag')}
 							{#if newTagDisplayName !== displayName}
-								<Helper color="red">{nameValidation(newTagDisplayName, 'tag')}</Helper>
+								<Helper color="red">
+									{nameValidation(data.globalState, newTagDisplayName, 'tag')}
+								</Helper>
 							{/if}
 						{:else}
 							<Helper color="green">

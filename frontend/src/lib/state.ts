@@ -1,5 +1,4 @@
 import { invalidate } from '$app/navigation';
-import { writable } from 'svelte/store';
 import { fetchWithNotify } from './fetchWithNotify';
 
 export type ModuleSettings = {
@@ -139,14 +138,6 @@ export type State = {
 	configs: Config[];
 	tags: Tag[];
 };
-
-export const globalState = writable<State>();
-
-export let currentState: State;
-
-globalState.subscribe((value) => {
-	currentState = value;
-});
 
 export const saveState = async (state: State) => {
 	const response = await fetchWithNotify(`/api/state`, {
