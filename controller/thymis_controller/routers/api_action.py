@@ -1,7 +1,9 @@
 import logging
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from fastapi.responses import FileResponse, RedirectResponse
+from thymis_agent import agent
 from thymis_controller import crud, dependencies, models
 from thymis_controller.config import global_settings
 from thymis_controller.dependencies import (
@@ -58,11 +60,33 @@ async def deploy(
                 deployment_info.ssh_public_key
             )
         ):
+            config = next(
+                config
+                for config in project.read_state().configs
+                if config.identifier == deployment_info.deployed_config_id
+            )
+            modules = project.get_modules_for_config(config)
+            secrets = []
+            for module, settings in modules:
+                for secret_type, secret in module.register_secret_settings(
+                    settings, project
+                ):
+                    project.get_secret(secret)
+                    secrets.append(
+                        agent.SecretForDevice(
+                            secret_id=secret,
+                            path=secret_type.on_device_path,
+                            owner=secret_type.on_device_owner,
+                            group=secret_type.on_device_group,
+                            mode=secret_type.on_device_mode,
+                        )
+                    )
             devices.append(
                 models.DeployDeviceInformation(
                     identifier=deployment_info.deployed_config_id,
                     deployment_info_id=deployment_info.id,
                     deployment_public_key=deployment_info.ssh_public_key,
+                    secrets=secrets,
                 )
             )
 
@@ -104,6 +128,22 @@ def build_download_image(
         if config.identifier == identifier
     )
 
+    modules = project.get_modules_for_config(project.read_state(), config)
+    secrets = []
+    for module, settings in modules:
+        for secret_type, secret in module.register_secret_settings(settings, project):
+            db_secret = project.get_secret(db_session, uuid.UUID(secret))
+            if db_secret.include_in_image:
+                secrets.append(
+                    agent.SecretForDevice(
+                        secret_id=secret,
+                        path=secret_type.on_device_path,
+                        owner=secret_type.on_device_owner,
+                        group=secret_type.on_device_group,
+                        mode=secret_type.on_device_mode,
+                    )
+                )
+
     task_controller.submit(
         models.BuildDeviceImageTaskSubmission(
             project_path=str(project.path),
@@ -111,6 +151,7 @@ def build_download_image(
             config_state=config.model_dump(mode="json"),
             commit=project.repo.head_commit(),
             controller_ssh_pubkey=project.public_key,
+            secrets=secrets,
         ),
         user_session_id=user_session_id,
         db_session=db_session,

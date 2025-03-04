@@ -74,6 +74,16 @@ def get_by_id(db_session: Session, secret_id: uuid.UUID) -> db_models.Secret | N
     )
 
 
+def get_by_ids(
+    db_session: Session, secret_ids: list[uuid.UUID]
+) -> list[db_models.Secret]:
+    return (
+        db_session.query(db_models.Secret)
+        .filter(db_models.Secret.id.in_(secret_ids), db_models.Secret.delete_at == None)
+        .all()
+    )
+
+
 def update(
     db_session: Session,
     secret_id: uuid.UUID,

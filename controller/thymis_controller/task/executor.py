@@ -3,6 +3,7 @@ import base64
 import concurrent.futures
 import logging
 import os
+import sys
 import threading
 import traceback
 import uuid
@@ -16,6 +17,7 @@ import thymis_agent.agent as agent
 import thymis_controller.crud as crud
 import thymis_controller.crud.task as crud_task
 import thymis_controller.models.task as models_task
+from pyrage import ssh
 from thymis_controller.notifier import Notifier
 from thymis_controller.task.worker import worker_run_task
 
@@ -45,7 +47,14 @@ class TaskWorkerPoolManager:
 
     def submit(self, task_submission: models_task.TaskSubmission):
         executor_side, worker_side = Pipe()
-        future = self.pool.submit(worker_run_task, task_submission, worker_side)
+        try:
+            future = self.pool.submit(worker_run_task, task_submission, worker_side)
+        except concurrent.futures.process.BrokenProcessPool:
+            logger.error("Failed to submit task, process pool is closed")
+            import signal
+
+            os.kill(os.getpid(), signal.SIGINT)
+            sys.exit(1)
         future.add_done_callback(self.finish_task)
         self.futures[task_submission.id] = (future, executor_side)
         self.future_to_id[future] = task_submission.id
@@ -265,6 +274,69 @@ class TaskWorkerPoolManager:
                                     ),
                                     self.controller.network_relay.loop,
                                 )
+                            case models_task.WorkerRequestsSecretsUpdate():
+                                # message.update.secret_ids
+                                with sqlalchemy.orm.Session(
+                                    bind=self.db_engine
+                                ) as db_session:
+                                    secrets = (
+                                        self.controller.project.get_processed_secrets(
+                                            db_session,
+                                            message.update.secret_ids,
+                                            message.update.target_recipient_token,
+                                        )
+                                    )
+                                conn.send(
+                                    models_task.ControllerToRunnerTaskUpdate(
+                                        inner=models_task.SecretsResult(
+                                            secrets=secrets,
+                                        )
+                                    )
+                                )
+                            case models_task.AgentShouldReceiveNewSecretsUpdate():
+                                # message.update.secret_ids
+                                with sqlalchemy.orm.Session(
+                                    bind=self.db_engine
+                                ) as db_session:
+                                    secrets = self.controller.project.get_processed_secrets(
+                                        db_session,
+                                        [s.secret_id for s in message.update.secrets],
+                                        ssh.Recipient.from_str(
+                                            message.update.target_recipient_ssh_pubkey
+                                        ),
+                                    )
+                                # send to agent
+                                relay_con_id = self.controller.network_relay.public_key_to_connection_id[
+                                    message.update.target_recipient_ssh_pubkey
+                                ]
+                                relay_con = self.controller.network_relay.registered_agent_connections[
+                                    relay_con_id
+                                ]
+                                asyncio.run_coroutine_threadsafe(
+                                    relay_con.send_text(
+                                        agent.RelayToAgentMessage(
+                                            inner=agent.RtESendSecretsMessage(
+                                                secrets={
+                                                    k: base64.b64encode(v).decode(
+                                                        "utf-8"
+                                                    )
+                                                    for k, v in secrets.items()
+                                                },
+                                                secret_infos=message.update.secrets,
+                                            )
+                                        ).model_dump_json()
+                                    ),
+                                    self.controller.network_relay.loop,
+                                )
+
+                                conn.send(
+                                    models_task.ControllerToRunnerTaskUpdate(
+                                        inner=models_task.AgentGotNewSecretsResult(
+                                            success=True
+                                        )
+                                    )
+                                )
+
                             case _:
                                 assert_never(message.update)
 
