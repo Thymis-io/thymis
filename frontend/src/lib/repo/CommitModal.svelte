@@ -4,18 +4,27 @@
 	import { type RepoStatus } from '$lib/repo/repo';
 	import FileChanges from './FileChanges.svelte';
 
-	export let repoStatus: RepoStatus;
-	export let title: string | undefined = undefined;
-	export let action: string | undefined = undefined;
-	export let defaultMessage: string = 'commit';
+	let message = $state(defaultMessage);
+	let selectedFile = $state('');
 
-	let message = defaultMessage;
-	let selectedFile = '';
-	$: hasFileChanges = repoStatus.changes.length > 0;
+	interface Props {
+		repoStatus: RepoStatus;
+		title?: string | undefined;
+		action?: string | undefined;
+		defaultMessage?: string;
+		open?: boolean;
+		onAction: (message: string) => Promise<void> | void;
+	}
 
-	export let open = false;
-
-	export let onAction: (message: string) => Promise<void> | void;
+	let {
+		repoStatus,
+		title = undefined,
+		action = undefined,
+		defaultMessage = 'commit',
+		open = $bindable(false),
+		onAction
+	}: Props = $props();
+	let hasFileChanges = $derived(repoStatus.changes.length > 0);
 </script>
 
 <Modal

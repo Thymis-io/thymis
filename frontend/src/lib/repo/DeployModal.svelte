@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { t } from 'svelte-i18n';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
@@ -17,12 +19,16 @@
 	import FileChanges from './FileChanges.svelte';
 	import type { ObjectOption } from 'svelte-multiselect';
 
-	export let repoStatus: RepoStatus;
-	export let open = false;
+	interface Props {
+		repoStatus: RepoStatus;
+		open?: boolean;
+	}
 
-	let message = 'deploy';
-	let selectedFile = '';
-	$: hasFileChanges = repoStatus.changes.length > 0;
+	let { repoStatus, open = $bindable(false) }: Props = $props();
+
+	let message = $state('deploy');
+	let selectedFile = $state('');
+	let hasFileChanges = $derived(repoStatus.changes.length > 0);
 
 	type MyOption = {
 		type: 'tag' | 'config';
@@ -41,16 +47,16 @@
 	};
 	const toOptionList = (options: any[]): MyOption[] => options as MyOption[];
 
-	let selectedOptions: MyOption[] = [];
-	let affectedConfigs: Config[];
-	$: {
+	let selectedOptions: MyOption[] = $state([]);
+	let affectedConfigs: Config[] = $state();
+	run(() => {
 		const configs = selectedOptions.filter((opt) => opt.type === 'config').map((opt) => opt.value);
 		const tags = selectedOptions.filter((opt) => opt.type === 'tag').map((opt) => opt.value);
 
 		affectedConfigs = $globalState.configs.filter((config) => {
 			return configs.includes(config.identifier) || config.tags.some((tag) => tags.includes(tag));
 		});
-	}
+	});
 
 	const commit = async () => {
 		await fetchWithNotify(`/api/action/commit?message=${encodeURIComponent(message)}`, {
@@ -113,12 +119,13 @@
 					)}
 					bind:selected={selectedOptions}
 					outerDivClass="w-full"
-					let:option
 				>
-					<div class="flex gap-1 items-center text-base text-gray-900 dark:text-white">
-						<svelte:component this={option.icon} size={16} />
-						{option.label}
-					</div>
+					{#snippet children({ option })}
+						<div class="flex gap-1 items-center text-base text-gray-900 dark:text-white">
+							<option.icon size={16} />
+							{option.label}
+						</div>
+					{/snippet}
 				</FloatingMultiSelect>
 				<Button
 					color="alternative"

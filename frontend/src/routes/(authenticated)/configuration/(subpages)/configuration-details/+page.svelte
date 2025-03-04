@@ -17,9 +17,13 @@
 	import Section from './Section.svelte';
 	import Terminal from '$lib/terminal/Terminal.svelte';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
 
-	$: currentConfig = $globalNavSelectedConfig;
+	let { data }: Props = $props();
+
+	let currentConfig = $derived($globalNavSelectedConfig);
 </script>
 
 {#if $globalNavSelectedTargetType === 'config' && currentConfig}

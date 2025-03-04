@@ -1,11 +1,15 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Input, Tooltip } from 'flowbite-svelte';
-	export let placeholder: string | null;
-	export let value: unknown;
 
-	export let onChange: (value: string) => void = () => {};
-	export let disabled: boolean;
+	interface Props {
+		placeholder: string | null;
+		value: unknown;
+		onChange?: (value: string) => void;
+		disabled: boolean;
+	}
+
+	let { placeholder, value, onChange = () => {}, disabled }: Props = $props();
 
 	let changeInternal = (e: Event) => {
 		onChange((e.target as HTMLInputElement).value);

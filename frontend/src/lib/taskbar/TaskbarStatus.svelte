@@ -1,18 +1,24 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { t } from 'svelte-i18n';
 	import { type TaskShort } from '$lib/taskstatus';
-	export let task: TaskShort;
 	import { Progressbar } from 'flowbite-svelte';
 	import PendingIcon from 'lucide-svelte/icons/clock';
 	import RunningIcon from 'lucide-svelte/icons/play';
 	import CompletedIcon from 'lucide-svelte/icons/check';
 	import FailedIcon from 'lucide-svelte/icons/ban';
 
-	export let showIcons: boolean = true;
-	export let showText: boolean = true;
-	export let showProgress: boolean = true;
+	interface Props {
+		task: TaskShort;
+		showIcons?: boolean;
+		showText?: boolean;
+		showProgress?: boolean;
+	}
 
-	let progress = 0;
+	let { task, showIcons = true, showText = true, showProgress = true }: Props = $props();
+
+	let progress = $state(0);
 	const progressScalingFunction = (done: number, expected: number) => {
 		const f = (x: number) => x * x + 1;
 		// if both are 0, progress is 0
@@ -22,9 +28,11 @@
 			return (f(done) / f(expected)) * 100;
 		}
 	};
-	$: if (task.nix_status) {
-		progress = progressScalingFunction(task.nix_status.done, task.nix_status.expected);
-	}
+	run(() => {
+		if (task.nix_status) {
+			progress = progressScalingFunction(task.nix_status.done, task.nix_status.expected);
+		}
+	});
 </script>
 
 <div class="flex gap-2 items-center">

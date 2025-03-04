@@ -1,16 +1,19 @@
 <script lang="ts">
 	import { type TaskShort } from '$lib/taskstatus';
 
-	export let tasks: TaskShort[];
-	export let title: string;
+	interface Props {
+		tasks: TaskShort[];
+		title: string;
+		class?: string;
+		icon?: import('svelte').Snippet;
+	}
 
-	let clazz: string = '';
-	export { clazz as class };
+	let { tasks, title, class: clazz = '', icon }: Props = $props();
 </script>
 
 <div class="flex items-center gap-[2px] sm:gap-1 lg:gap-2 {clazz}">
 	<div class="w-[12px] sm:w-[20px]">
-		<slot name="icon" />
+		{@render icon?.()}
 	</div>
 	<span class="text-xs md:text-sm hidden lg:block">
 		{title}: {tasks.length}

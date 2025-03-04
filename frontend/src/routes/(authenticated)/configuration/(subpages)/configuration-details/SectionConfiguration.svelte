@@ -13,10 +13,7 @@
 	import EditTagModal from '$lib/EditTagModal.svelte';
 	import ModuleIcon from '$lib/config/ModuleIcon.svelte';
 
-	export let config: Config;
-	export let availableModules: Module[];
-
-	let currentlyEditingConfig: Config | undefined = undefined;
+	let currentlyEditingConfig: Config | undefined = $state(undefined);
 
 	const getOwnModules = (config: Config, availableModules: Module[]) => {
 		return config.modules
@@ -28,8 +25,13 @@
 		return $globalState.tags.find((t) => t.identifier === identifier);
 	};
 
-	let className = '';
-	export { className as class };
+	interface Props {
+		config: Config;
+		availableModules: Module[];
+		class?: string;
+	}
+
+	let { config, availableModules, class: className = '' }: Props = $props();
 </script>
 
 <EditTagModal bind:currentlyEditingConfig />

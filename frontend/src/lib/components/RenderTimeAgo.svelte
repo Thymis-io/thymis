@@ -1,21 +1,11 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { onMount } from 'svelte';
 	import { t } from 'svelte-i18n';
 
-	export let timestamp: string | undefined | null;
-	export let minSeconds: number = 0;
-
-	let currentDate = new Date();
-	let date: Date | undefined;
-
-	$: {
-		if (timestamp) {
-			const timeZoneAwareTimestamp = timestamp.includes('+') ? timestamp : timestamp + '+0000';
-			date = new Date(Date.parse(timeZoneAwareTimestamp));
-		} else {
-			date = undefined;
-		}
-	}
+	let currentDate = $state(new Date());
+	let date: Date | undefined = $state();
 
 	onMount(() => {
 		const interval = setInterval(() => {
@@ -25,7 +15,23 @@
 		return () => clearInterval(interval);
 	});
 
-	$: timeSince = (date: Date, currentDate: Date) => {
+	interface Props {
+		timestamp: string | undefined | null;
+		minSeconds?: number;
+		class?: string;
+	}
+
+	let { timestamp, minSeconds = 0, class: clazz = '' }: Props = $props();
+
+	run(() => {
+		if (timestamp) {
+			const timeZoneAwareTimestamp = timestamp.includes('+') ? timestamp : timestamp + '+0000';
+			date = new Date(Date.parse(timeZoneAwareTimestamp));
+		} else {
+			date = undefined;
+		}
+	});
+	let timeSince = $derived((date: Date, currentDate: Date) => {
 		const seconds = Math.max(
 			minSeconds,
 			Math.floor((currentDate.getTime() - date.getTime()) / 1000)
@@ -43,9 +49,7 @@
 		interval = seconds / 60;
 		if (interval > 1) return $t('time.ago.minute', { values: { count: Math.floor(interval) } });
 		return $t('time.ago.second', { values: { count: Math.floor(seconds) } });
-	};
-	let clazz = '';
-	export { clazz as class };
+	});
 </script>
 
 {#if date}

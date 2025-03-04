@@ -11,21 +11,27 @@
 		getAllowedImageFormatsForDeviceType
 	} from '$lib/config/configUtils';
 
-	export let open = false;
+	interface Props {
+		open?: boolean;
+	}
 
-	let displayName = '';
+	let { open = $bindable(false) }: Props = $props();
 
-	$: availableModules = $page.data.availableModules as Module[];
-	$: thymisDeviceModule = getThymisDeviceModule(availableModules);
-	$: deviceTypesSelect = Object.entries(getDeviceTypesMap(availableModules)).map(([key, name]) => ({
-		name: name,
-		value: key
-	}));
-	let selectedDeviceType: string | undefined = undefined;
+	let displayName = $state('');
 
-	$: tags = $globalState.tags;
-	$: tagsSelect = tags.map((tag) => ({ value: tag.identifier, label: tag.displayName }));
-	let selectedTags: { value: string; label: string }[] = [];
+	let availableModules = $derived($page.data.availableModules as Module[]);
+	let thymisDeviceModule = $derived(getThymisDeviceModule(availableModules));
+	let deviceTypesSelect = $derived(
+		Object.entries(getDeviceTypesMap(availableModules)).map(([key, name]) => ({
+			name: name,
+			value: key
+		}))
+	);
+	let selectedDeviceType: string | undefined = $state(undefined);
+
+	let tags = $derived($globalState.tags);
+	let tagsSelect = $derived(tags.map((tag) => ({ value: tag.identifier, label: tag.displayName })));
+	let selectedTags: { value: string; label: string }[] = $state([]);
 
 	const submitData = async () => {
 		if (

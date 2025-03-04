@@ -11,7 +11,11 @@
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import { type RepoStatus } from '$lib/repo/repo';
 
-	export let repoStatus: RepoStatus;
+	interface Props {
+		repoStatus: RepoStatus;
+	}
+
+	let { repoStatus }: Props = $props();
 
 	const buttonClass = 'flex-auto sm:flex-[0_1_100px] gap-2 px-2 py-1.5 h-min';
 	const textClass = 'text-base whitespace-nowrap';
@@ -34,8 +38,8 @@
 		);
 	};
 
-	let openDeploy = false;
-	let openCommit = false;
+	let openDeploy = $state(false);
+	let openCommit = $state(false);
 </script>
 
 <div class="flex flex-wrap justify-end align-start ml-2 my-1.5 gap-1 sm:gap-2 w-[38rem]">

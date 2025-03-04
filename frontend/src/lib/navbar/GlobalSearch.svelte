@@ -13,8 +13,8 @@
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
-	let search = '';
-	let open = false;
+	let search = $state('');
+	let open = $state(false);
 
 	const isSearched = (search: string, item: string) => {
 		if (!search) {

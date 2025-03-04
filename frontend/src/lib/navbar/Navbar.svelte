@@ -7,11 +7,13 @@
 	import GlobalSearch from './GlobalSearch.svelte';
 	import GithubIcon from './GithubIcon.svelte';
 
-	export let authenticated = true;
-	export let drawerHidden: boolean;
+	interface Props {
+		authenticated?: boolean;
+		drawerHidden: boolean;
+		class?: string;
+	}
 
-	let clazz = '';
-	export { clazz as class };
+	let { authenticated = true, drawerHidden = $bindable(), class: clazz = '' }: Props = $props();
 </script>
 
 <div class="flex flex-nowrap justify-between mx-2 sm:mx-4 {clazz || ''}" color="default">

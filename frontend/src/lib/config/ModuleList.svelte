@@ -24,14 +24,25 @@
 	import { goto } from '$app/navigation';
 	import ModuleIcon from './ModuleIcon.svelte';
 
-	export let contextType: string | null;
-	export let context: Tag | Config | undefined;
+	interface Props {
+		contextType: string | null;
+		context: Tag | Config | undefined;
+		selfModules: Module[];
+		availableModules?: Module[];
+		configSelectedModule: Module | undefined;
+		icon?: import('svelte').Snippet;
+	}
 
-	export let selfModules: Module[];
-	export let availableModules: Module[] = [];
-	export let configSelectedModule: Module | undefined;
+	let {
+		contextType,
+		context,
+		selfModules,
+		availableModules = [],
+		configSelectedModule,
+		icon
+	}: Props = $props();
 
-	let moduleToRemove: Module | undefined;
+	let moduleToRemove: Module | undefined = $state();
 
 	const goToModule = async (module: Module | undefined) => {
 		await goto(
@@ -63,21 +74,24 @@
 		goToModule(undefined);
 	};
 
-	$: canChangeModules =
+	let canChangeModules = $derived(
 		contextType === $globalNavSelectedTargetType &&
-		context?.identifier === $globalNavSelectedTarget?.identifier;
+			context?.identifier === $globalNavSelectedTarget?.identifier
+	);
 
-	let addModuleModalOpen = false;
+	let addModuleModalOpen = $state(false);
 
-	$: isSelected = (
-		module: Module,
-		selectedConfigModule: Module | undefined,
-		selectedConfigContext: string | null,
-		selectedConfigTarget: Tag | Config | undefined
-	) =>
-		module.type === selectedConfigModule?.type &&
-		contextType === selectedConfigContext &&
-		context?.identifier === selectedConfigTarget?.identifier;
+	let isSelected = $derived(
+		(
+			module: Module,
+			selectedConfigModule: Module | undefined,
+			selectedConfigContext: string | null,
+			selectedConfigTarget: Tag | Config | undefined
+		) =>
+			module.type === selectedConfigModule?.type &&
+			contextType === selectedConfigContext &&
+			context?.identifier === selectedConfigTarget?.identifier
+	);
 </script>
 
 <DeleteConfirm
@@ -87,7 +101,7 @@
 />
 <div class="flex justify-between mb-2">
 	<div class="text-gray-900 dark:text-white font-semibold flex gap-2 items-center">
-		<slot name="icon" />
+		{@render icon?.()}
 		<span>{context?.displayName}</span>
 	</div>
 	{#if $globalNavSelectedTarget?.identifier !== context?.identifier || $globalNavSelectedTargetType !== contextType}
@@ -140,7 +154,7 @@
 				{#if canChangeModules && ($globalNavSelectedTargetType !== 'config' || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}
 					<button
 						class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
-						on:click={() => (moduleToRemove = module)}
+						onclick={() => (moduleToRemove = module)}
 					>
 						<Trash size={20} />
 					</button>
@@ -153,7 +167,7 @@
 		<button
 			id="add-module"
 			class="p-2 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700"
-			on:click={() => (addModuleModalOpen = true)}
+			onclick={() => (addModuleModalOpen = true)}
 		>
 			<Plus />
 		</button>
@@ -163,7 +177,7 @@
 				{#each availableModules as module}
 					<button
 						class="btn m-0 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2"
-						on:click={() => addModule(context, module)}
+						onclick={() => addModule(context, module)}
 					>
 						<ModuleIcon {module} />
 						<P>{module.displayName}</P>

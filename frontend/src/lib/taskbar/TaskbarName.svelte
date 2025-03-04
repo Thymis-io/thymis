@@ -9,7 +9,11 @@
 	import type { TaskShort } from '$lib/taskstatus';
 	import { globalState } from '$lib/state';
 
-	export let task: TaskShort;
+	interface Props {
+		task: TaskShort;
+	}
+
+	let { task }: Props = $props();
 
 	const configToDisplayName = (identifier: string | undefined) => {
 		if (!identifier) return '';

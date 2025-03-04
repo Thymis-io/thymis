@@ -9,9 +9,13 @@
 	import Dropdown from '$lib/components/Dropdown.svelte';
 	import { browser } from '$app/environment';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
 
-	let columns = data.vncDisplaysPerColumn;
+	let { data }: Props = $props();
+
+	let columns = $state(data.vncDisplaysPerColumn);
 </script>
 
 <PageHead title={$t('nav.global-vnc')} repoStatus={data.repoStatus} />
