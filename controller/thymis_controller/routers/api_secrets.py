@@ -29,12 +29,16 @@ async def create_secret(
         raise HTTPException(
             status_code=400, detail="Either value_b64 or value_str must be provided"
         )
+
+    # Pass include_in_image and processing_type to create_secret
     return project.create_secret(
         session,
         secret_create.display_name,
         secret_create.type,
         value,
         secret_create.filename,
+        include_in_image=secret_create.include_in_image,
+        processing_type=secret_create.processing_type,
     )
 
 
@@ -48,12 +52,14 @@ async def update_secret(
     value = None
     if secret_update.value_b64:
         value = base64.b64decode(secret_update.value_b64)
-    if secret_update.value_str:
+    if secret_update.value_str is not None:
         value = secret_update.value_str.encode("utf-8")
-    if not value and not (secret_update.type == "file"):
+    if (value is None) and not (secret_update.type == "file"):
         raise HTTPException(
             status_code=400, detail="Either value_b64 or value_str must be provided"
         )
+
+    # Pass include_in_image and processing_type to update_secret
     return project.update_secret(
         session,
         uuid.UUID(secret_id),
@@ -61,6 +67,8 @@ async def update_secret(
         secret_update.type,
         value,
         secret_update.filename,
+        include_in_image=secret_update.include_in_image,
+        processing_type=secret_update.processing_type,
     )
 
 
@@ -68,8 +76,8 @@ async def update_secret(
 async def download_secret(
     secret_id: uuid.UUID, session: DBSessionAD, project: ProjectAD
 ):
-    # Try to download the file directly
-    res = project.download_secret_file(session, secret_id)
+    # Try to download the file directly - add apply_processing=True
+    res = project.download_secret_file(session, secret_id, apply_processing=True)
     if not res:
         raise HTTPException(status_code=404, detail="Secret not found")
     content, filename = res
@@ -78,3 +86,11 @@ async def download_secret(
         media_type="application/octet-stream",
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
+
+
+@router.delete("/secrets/{secret_id}")
+async def delete_secret(
+    secret_id: str, session: DBSessionAD, project: ProjectAD
+) -> None:
+    project.delete_secret(session, uuid.UUID(secret_id))
+    return None

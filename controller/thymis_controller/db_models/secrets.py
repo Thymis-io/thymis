@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, Enum, Integer, LargeBinary, Text
+from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, LargeBinary, Text
 from sqlalchemy.dialects.postgresql import UUID
 from thymis_controller.database.base import Base
 
@@ -14,6 +14,11 @@ class SecretTypes(enum.Enum):
     FILE = "file"
 
 
+class SecretProcessingTypes(enum.Enum):
+    NONE = "none"
+    MKPASSWD_YESCRYPT = "mkpasswd-yescrypt"
+
+
 class Secret(Base):
     __tablename__ = "secrets"
 
@@ -23,6 +28,10 @@ class Secret(Base):
     value_enc = Column(LargeBinary, nullable=False)
     value_size = Column(Integer, nullable=False)  # bytes
     filename = Column(Text, nullable=True)
+    include_in_image = Column(Boolean, nullable=False, default=False)
+    processing_type = Column(
+        Enum(SecretProcessingTypes), nullable=False, default=SecretProcessingTypes.NONE
+    )
     created_at = Column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
