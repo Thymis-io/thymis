@@ -1,6 +1,7 @@
 from typing import List, Literal, Optional, Tuple, Union
 
 from pydantic import BaseModel, Field, JsonValue
+from thymis_controller import db_models
 
 type ValueTypes = Literal["bool", "string", "path", "package", "textarea", "int"]
 
@@ -19,12 +20,28 @@ class ListType(BaseModel):
     )
 
 
+class SecretType(BaseModel):
+    type: Literal["secret"] = "secret"
+    allowed_types: List[db_models.SecretTypes] = Field(
+        serialization_alias="allowed-types", default_factory=list
+    )
+    default_processing_type: db_models.SecretProcessingTypes = Field(
+        serialization_alias="default-processing-type",
+        default=db_models.SecretProcessingTypes.NONE,
+    )
+    default_save_to_image: bool = Field(
+        serialization_alias="default-save-to-image", default=False
+    )
+
+
 class InlineFileType(BaseModel):
     type: Literal["inline-file"] = "inline-file"
     accept: Optional[str] = None
 
 
-type SettingTypes = Union[ValueTypes, SelectOneType, ListType, InlineFileType]
+type SettingTypes = Union[
+    ValueTypes, SelectOneType, ListType, SecretType, InlineFileType
+]
 
 
 class Setting(BaseModel):
@@ -44,4 +61,11 @@ class Module(BaseModel):
     settings: dict[str, Setting]
 
 
-__all__ = ["Setting", "Module", "SelectOneType", "ListType", "SettingTypes"]
+__all__ = [
+    "Setting",
+    "Module",
+    "SelectOneType",
+    "ListType",
+    "SettingTypes",
+    "SecretType",
+]

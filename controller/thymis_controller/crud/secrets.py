@@ -39,6 +39,8 @@ def create(
     value_enc: bytes,
     value_size: int,
     filename: str | None = None,
+    include_in_image: bool = False,
+    processing_type: db_models.SecretProcessingTypes = db_models.SecretProcessingTypes.NONE,
 ) -> db_models.Secret:
     new_secret = db_models.Secret(
         id=uuid.uuid4(),
@@ -47,6 +49,8 @@ def create(
         value_enc=value_enc,
         value_size=value_size,
         filename=filename,
+        include_in_image=include_in_image,
+        processing_type=processing_type,
         created_at=datetime.now(timezone.utc),
         updated_at=datetime.now(timezone.utc),
     )
@@ -78,6 +82,8 @@ def update(
     value_enc: bytes | None = None,
     value_size: int | None = None,
     filename: str | None = None,
+    include_in_image: bool | None = None,
+    processing_type: db_models.SecretProcessingTypes | None = None,
 ) -> db_models.Secret | None:
     secret = get_by_id(db_session, secret_id)
     if not secret:
@@ -93,6 +99,10 @@ def update(
         secret.value_size = value_size
     if filename:
         secret.filename = filename
+    if include_in_image is not None:
+        secret.include_in_image = include_in_image
+    if processing_type is not None:
+        secret.processing_type = processing_type
     secret.updated_at = datetime.now(timezone.utc)
 
     db_session.commit()
