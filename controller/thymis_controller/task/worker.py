@@ -13,10 +13,13 @@ import subprocess
 import tempfile
 import threading
 import time
+import uuid
 from multiprocessing.connection import Connection
 from typing import IO, AnyStr, List, assert_never
 
 import thymis_controller.models.task as models_task
+from pydantic import BaseModel
+from thymis_agent import agent
 from thymis_controller.nix import NIX_CMD
 from thymis_controller.nix.log_parse import NixParser
 
@@ -64,6 +67,8 @@ def listen_for_executor(conn: Connection, process_list: ProcessList):
                     process_list.kill_all()
                 case models_task.AgentSwitchToNewConfigurationResult():
                     process_list.msg_queue.put(message)
+                case models_task.SecretsResult():
+                    process_list.msg_queue.put(message)
                 case _:
                     print("Received unexpected message %s", message)
                     assert_never(message)
@@ -88,7 +93,10 @@ def worker_run_task(task: models_task.TaskSubmission, conn: Connection):
     try:
         SUPPORTED_TASK_TYPES[task.data.type](task, conn, process_list)
     except Exception as e:
-        report_task_finished(task, conn, False, f"Exception: {e}")
+        import traceback
+
+        exception_str = traceback.format_exc()
+        report_task_finished(task, conn, False, f"Exception: {e}\n{exception_str}")
 
     conn.close()
     executor_thread.join()
@@ -167,6 +175,18 @@ def deploy_device_task(
     task_data = task.data
     assert task_data.type == "deploy_device_task"
     repo_path = (pathlib.Path(task_data.project_path) / "repository").resolve()
+
+    # ask for secrets
+    conn.send(
+        models_task.RunnerToControllerTaskUpdate(
+            id=task.id,
+            update=models_task.AgentShouldReceiveNewSecretsUpdate(
+                secrets=task_data.device.secrets,
+                target_deployment_info_id=task_data.device.deployment_info_id,
+                target_recipient_ssh_pubkey=task_data.device.deployment_public_key,
+            ),
+        )
+    )
 
     # first print verison of `nix` and `nix-copy-closure`
 
@@ -321,6 +341,11 @@ def deploy_devices_task(
     report_task_finished(task, conn, True, "Waiting for child tasks to finish")
 
 
+class SecretsDiskJson(BaseModel):
+    secrets: dict[uuid.UUID, str]
+    secret_infos: list[agent.SecretForDevice]
+
+
 def build_device_image_task(
     task: models_task.TaskSubmission, conn: Connection, process_list: ProcessList
 ):
@@ -384,6 +409,38 @@ def build_device_image_task(
 
     with tempfile.TemporaryDirectory() as tmpdir:
         token = f"thymis-{random.randbytes(64).hex()}"  # see agent/thymis_agent/agent.py `AGENT_TOKEN_EXPECTED_FORMAT =`
+        # get secrets
+        secrets = task_data.secrets
+        conn.send(
+            models_task.RunnerToControllerTaskUpdate(
+                id=task.id,
+                update=models_task.WorkerRequestsSecretsUpdate(
+                    secret_ids=[secret.secret_id for secret in secrets],
+                    target_recipient_token=token,
+                ),
+            )
+        )
+        try:
+            message = process_list.msg_queue.get(timeout=300)
+            if not isinstance(message.inner, models_task.SecretsResult):
+                report_task_finished(
+                    task, conn, False, "Unexpected message from controller"
+                )
+                return
+        except queue.Empty:
+            report_task_finished(task, conn, False, "Timeout waiting for secrets")
+            return
+        except Exception as e:
+            report_task_finished(task, conn, False, f"Exception: {e}")
+            return
+        secrets_disk_json = {
+            "secrets": {
+                k: base64.b64encode(v) for k, v in message.inner.secrets.items()
+            },
+            "secret_infos": secrets,
+        }
+        with open(f"{tmpdir}/thymis-secrets-initial.json", "w", encoding="utf-8") as f:
+            f.write(SecretsDiskJson(**secrets_disk_json).model_dump_json())
         with open(f"{tmpdir}/thymis-token.txt", "w", encoding="utf-8") as f:
             f.write(token)
         with open(f"{tmpdir}/thymis-metadata.json", "w", encoding="utf-8") as f:

@@ -90,12 +90,55 @@ class Module(ABC):
                 print(f"Attribute {attr} not found in {self}")
                 continue
             assert isinstance(my_attr, Setting)
-            if isinstance(my_attr.type, models.ListType):
+            if isinstance(my_attr.type, ListType):
                 continue
             if my_attr.nix_attr_name is not None:
                 f.write(
                     f"  {my_attr.nix_attr_name} = lib.mkOverride {priority} {convert_python_value_to_nix(value)};\n"
                 )
+
+    def register_secret_settings(
+        self,
+        module_settings: "models.ModuleSettings",
+        project: Project,
+    ) -> List[Tuple["SecretType", JsonValue]]:
+        secret_settings = []
+        for attr, value in module_settings.settings.items():
+            try:
+                my_attr = getattr(self, attr)
+            except AttributeError:
+                import traceback
+
+                traceback.print_exc()
+                print(f"Attribute {attr} not found in {self}")
+                continue
+            assert isinstance(my_attr, Setting)
+            if isinstance(my_attr.type, ListType):
+                self._register_secret_settings_list(
+                    my_attr.type, value, project, secret_settings
+                )
+            elif isinstance(my_attr.type, SecretType):
+                secret_settings.append((my_attr.type, value))
+            else:
+                pass
+        return secret_settings
+
+    def _register_secret_settings_list(
+        self,
+        setting: models.ListType,
+        value: JsonValue,
+        project: Project,
+        secret_settings: List[Tuple["Setting", JsonValue]],
+    ):
+        for v in value:
+            # list of objects, iterate over keys
+            if isinstance(v, dict):
+                for k, v in v.items():
+                    try:
+                        if isinstance(setting.settings[k].type, models.SecretType):
+                            secret_settings.append((setting.settings[k].type, v))
+                    except KeyError:
+                        pass
 
 
 class LocalizedString:
