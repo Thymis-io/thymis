@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { t, locale } from 'svelte-i18n';
@@ -45,10 +43,6 @@
 		closeDrawer();
 
 		activeMainSidebar = navigation.to?.url.pathname ?? '';
-
-		// const key = fileDir(activeMainSidebar);
-		// for (const k in dropdowns) dropdowns[k] = false;
-		// dropdowns[key] = true;
 	});
 
 	type NavItem = {
@@ -64,52 +58,49 @@
 			globalState.tags.some((tag) => targetShouldShowVNC(tag, globalState))
 	);
 
-	let navItems: NavItem[] = $state([]);
-	run(() => {
-		navItems = [
-			{
-				name: $t('nav.overview'),
-				icon: ChartBar,
-				href: '/overview'
-			},
-			{
-				name: $t('nav.configurations'),
-				icon: FileCode,
-				href: '/configuration/list'
-			},
-			{
-				name: $t('nav.tags'),
-				icon: TagIcon,
-				href: '/tags'
-			},
-			{
-				name: $t('nav.devices'),
-				icon: Server,
-				href: '/devices'
-			},
-			{
-				name: $t('nav.global-vnc'),
-				icon: ScreenShare,
-				href: '/vnc',
-				hidden: !anyTargetHasVNC
-			},
-			{
-				name: $t('nav.history'),
-				icon: GitBranch,
-				href: '/history'
-			},
-			{
-				name: $t('nav.external-repositories'),
-				icon: Settings,
-				href: '/external-repositories'
-			},
-			{
-				name: $t('nav.secrets'),
-				icon: FileLock,
-				href: '/secrets'
-			}
-		];
-	});
+	let navItems: NavItem[] = $derived([
+		{
+			name: $t('nav.overview'),
+			icon: ChartBar,
+			href: '/overview'
+		},
+		{
+			name: $t('nav.configurations'),
+			icon: FileCode,
+			href: '/configuration/list'
+		},
+		{
+			name: $t('nav.tags'),
+			icon: TagIcon,
+			href: '/tags'
+		},
+		{
+			name: $t('nav.devices'),
+			icon: Server,
+			href: '/devices'
+		},
+		{
+			name: $t('nav.global-vnc'),
+			icon: ScreenShare,
+			href: '/vnc',
+			hidden: !anyTargetHasVNC
+		},
+		{
+			name: $t('nav.history'),
+			icon: GitBranch,
+			href: '/history'
+		},
+		{
+			name: $t('nav.external-repositories'),
+			icon: Settings,
+			href: '/external-repositories'
+		},
+		{
+			name: $t('nav.secrets'),
+			icon: FileLock,
+			href: '/secrets'
+		}
+	]);
 </script>
 
 <Sidebar
