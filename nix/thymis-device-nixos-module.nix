@@ -130,6 +130,11 @@ in
       serviceConfig.Restart = "always";
       serviceConfig.Type = "notify";
     };
+    system.activationScripts.thymis = lib.mkIf (cfg.agent.enable) {
+      text = ''
+        CONTROLLER_HOST=${cfg.agent.controller-url} ${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent --just-place-secrets
+      '';
+    };
 
     documentation = {
       enable = lib.mkDefault false;

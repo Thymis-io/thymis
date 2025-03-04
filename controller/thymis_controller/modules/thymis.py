@@ -1,6 +1,8 @@
 import pathlib
+from typing import List, Tuple
 
 import thymis_controller.modules.modules as modules
+from pydantic import JsonValue
 from thymis_controller import db_models, models
 from thymis_controller.config import global_settings
 from thymis_controller.lib import read_into_base64
@@ -111,17 +113,19 @@ class ThymisDevice(modules.Module):
         order=25,
     )
 
-    password = modules.Setting(
+    password_secret = modules.Setting(
         display_name=modules.LocalizedString(
             en="Root Password",
             de="Root Passwort",
         ),
-        nix_attr_name="thymis.config.password",
         type=modules.SecretType(
             allowed_types=[db_models.SecretTypes.SINGLE_LINE],
             default_processing_type=db_models.SecretProcessingTypes.MKPASSWD_YESCRYPT,
             default_save_to_image=True,
-            on_device_path="/root/.thymis/root_password",
+            on_device_path="/run/thymis/root_password_hash",
+            on_device_owner="root",
+            on_device_group="root",
+            on_device_mode="0400",  # root only, read only, no write, no execute
         ),
         default="",
         description=modules.LocalizedString(
@@ -680,6 +684,36 @@ Secrets sind perfekt für
         order=110,
     )
 
+    def register_secret_settings(
+        self,
+        module_settings: "models.ModuleSettings",
+        project: Project,
+    ) -> List[Tuple["modules.SecretType", JsonValue]]:
+        secret_settings = super().register_secret_settings(module_settings, project)
+        # for each of our list of secrets, add the secret to the secret settings
+        if (
+            "secrets" in module_settings.settings
+            and module_settings.settings["secrets"]
+        ):
+            for secret in module_settings.settings["secrets"]:
+                # modify type before submitting
+                secret_type = self.secrets.type.settings["secret"].type
+                this_secret_type = modules.SecretType(
+                    **{
+                        **secret_type.dict(),
+                        "on_device_path": secret["path"] if "path" in secret else None,
+                        "on_device_owner": (
+                            secret["owner"] if "owner" in secret else None
+                        ),
+                        "on_device_group": (
+                            secret["group"] if "group" in secret else None
+                        ),
+                        "on_device_mode": secret["mode"] if "mode" in secret else None,
+                    }
+                )
+                secret_settings.append((this_secret_type, secret["secret"]))
+        return secret_settings
+
     def write_nix_settings(
         self,
         f,
@@ -745,6 +779,17 @@ Secrets sind perfekt für
             if "security_pki_certificates" in module_settings.settings
             else self.security_pki_certificates.default
         )
+
+        password_secret = (
+            module_settings.settings["password_secret"]
+            if "password_secret" in module_settings.settings
+            else self.password_secret.default
+        )
+
+        if password_secret:
+            f.write(
+                f"  users.users.root.hashedPasswordFile = {convert_python_value_to_nix(self.password_secret.type.on_device_path)};\n"
+            )
 
         f.write("  imports = [\n")
 

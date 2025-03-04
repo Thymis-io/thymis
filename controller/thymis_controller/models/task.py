@@ -3,6 +3,7 @@ import uuid
 from typing import TYPE_CHECKING, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, ValidationError
+from thymis_agent import agent
 from thymis_controller.nix.log_parse import ParsedNixProcess
 
 type TaskState = Literal["pending", "running", "completed", "failed"]
@@ -158,6 +159,7 @@ class DeployDeviceInformation(BaseModel):
     identifier: str
     deployment_info_id: uuid.UUID
     deployment_public_key: str
+    secrets: list[agent.SecretForDevice] = []
 
 
 class DeployDevicesTaskSubmission(BaseModel):
@@ -200,6 +202,7 @@ class BuildDeviceImageTaskSubmission(BaseModel):
     config_state: dict
     commit: str
     controller_ssh_pubkey: str
+    secrets: list[agent.SecretForDevice] = []
 
 
 class SSHCommandTaskSubmission(BaseModel):
@@ -237,6 +240,8 @@ TaskUpdate = Union[
     "CommandRunUpdate",
     "ImageBuiltUpdate",
     "AgentShouldSwitchToNewConfigurationUpdate",
+    "WorkerRequestsSecretsUpdate",
+    "AgentShouldReceiveNewSecretsUpdate",
 ]
 
 
@@ -301,11 +306,29 @@ class AgentSwitchedToNewConfigurationUpdate(BaseModel):
     reason: Optional[str]
 
 
+class WorkerRequestsSecretsUpdate(BaseModel):
+    type: Literal["worker_requests_secrets"] = "worker_requests_secrets"
+    secret_ids: list[uuid.UUID]
+    target_recipient_token: str
+
+
+class AgentShouldReceiveNewSecretsUpdate(BaseModel):
+    type: Literal[
+        "agent_should_receive_new_secrets"
+    ] = "agent_should_receive_new_secrets"
+    secrets: list[agent.SecretForDevice]
+    target_deployment_info_id: uuid.UUID
+    target_recipient_ssh_pubkey: str
+
+
 # sent from controller to task runner
 class ControllerToRunnerTaskUpdate(BaseModel):
-    inner: Union["CancelTask", "AgentSwitchToNewConfigurationResult"] = Field(
-        discriminator="kind"
-    )
+    inner: Union[
+        "CancelTask",
+        "AgentSwitchToNewConfigurationResult",
+        "AgentGotNewSecretsResult",
+        "SecretsResult",
+    ] = Field(discriminator="kind")
 
 
 class CancelTask(BaseModel):
@@ -320,6 +343,16 @@ class AgentSwitchToNewConfigurationResult(BaseModel):
     success: bool
     stdout: str
     stderr: str
+
+
+class AgentGotNewSecretsResult(BaseModel):
+    kind: Literal["agent_got_new_secrets_result"] = "agent_got_new_secrets_result"
+    success: bool
+
+
+class SecretsResult(BaseModel):
+    kind: Literal["secrets_result"] = "secrets_result"
+    secrets: dict[uuid.UUID, bytes]
 
 
 __all__ = [
@@ -350,4 +383,8 @@ __all__ = [
     "ControllerToRunnerTaskUpdate",
     "CancelTask",
     "AgentSwitchToNewConfigurationResult",
+    "WorkerRequestsSecretsUpdate",
+    "AgentShouldReceiveNewSecretsUpdate",
+    "AgentGotNewSecretsResult",
+    "SecretsResult",
 ]

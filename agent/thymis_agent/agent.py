@@ -1,11 +1,14 @@
 import asyncio
+import base64
 import datetime
 import json
 import logging
 import os
 import pathlib
+import shutil
 import socket
 import subprocess
+import sys
 import uuid
 from typing import Dict, List, Literal, Optional, Tuple, Union
 
@@ -15,6 +18,7 @@ import http_network_relay.pydantic_models as pm
 import psutil
 import requests
 from pydantic import BaseModel, Field
+from pyrage import decrypt, passphrase, ssh
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +95,14 @@ def find_agent_token():
     return None
 
 
+def find_data_path():
+    # find the first path in AGENT_DATA_PATHS that exists and contains the token
+    token_path = find_file(AGENT_DATA_PATHS, AGENT_TOKEN_FILENAME)
+    if token_path:
+        return token_path.parent
+    return None
+
+
 def find_agent_metadata():
     val = None
     logger.debug("Looking for agent metadata in %s", AGENT_DATA_PATHS)
@@ -164,6 +176,7 @@ class RelayToAgentMessage(BaseModel):
         "RtEUpdatePublicKeyMessage",
         "RtESwitchToNewConfigMessage",
         "RtESuccesfullySSHConnectedMessage",
+        "RtESendSecretsMessage",
     ] = Field(discriminator="kind")
 
 
@@ -180,6 +193,20 @@ class RtESwitchToNewConfigMessage(BaseModel):
 
 class RtESuccesfullySSHConnectedMessage(BaseModel):
     kind: Literal["successfully_ssh_connected"] = "successfully_ssh_connected"
+
+
+class SecretForDevice(BaseModel):
+    secret_id: uuid.UUID
+    path: str
+    owner: str
+    group: str
+    mode: str
+
+
+class RtESendSecretsMessage(BaseModel):
+    kind: Literal["send_secrets"] = "send_secrets"
+    secrets: Dict[uuid.UUID, str]
+    secret_infos: List[SecretForDevice]
 
 
 class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
@@ -221,6 +248,8 @@ class Agent(ea.EdgeAgent):
                 self.systemd_notifier.status("Connected to controller")
             case RtEUpdatePublicKeyMessage():
                 self.update_public_key()
+            case RtESendSecretsMessage():
+                self.place_secrets_on_message(message.inner)
             case RtESwitchToNewConfigMessage():
                 new_path_to_config = message.inner.new_path_to_config
                 current_config = os.readlink("/run/current-system")
@@ -412,6 +441,91 @@ class Agent(ea.EdgeAgent):
             case _:
                 logger.error("Unknown message: %s", message)
 
+    @classmethod
+    def place_secrets_on_message(cls, message: RtESendSecretsMessage):
+        secrets = message.secrets
+        secret_infos = message.secret_infos
+        # load /etc/ssh/ssh_host_ed25519_key
+        with open("/etc/ssh/ssh_host_ed25519_key", "rb") as f:
+            key = f.read()
+        identity = ssh.Identity(key)
+        for secret_info in secret_infos:
+            secret = secrets[secret_info.secret_id]
+            path = secret_info.path
+            owner = secret_info.owner
+            group = secret_info.group
+            mode = secret_info.mode
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "wb") as f:
+                decoded = base64.b64decode(secret)
+                # use rage to decrypt the secret
+                decrypted = decrypt(decoded, identity)
+                f.write(decrypted)
+
+            if owner or group:
+                shutil.chown(
+                    path,
+                    **{k: v for k, v in {"user": owner, "group": group}.items() if v},
+                )
+            if mode:
+                os.chmod(path, int(mode, 8))
+
+        # store message on disk at data dir / "thymis-secrets-message.json"
+        data_path = find_data_path()
+        if data_path:
+            with open(data_path / "thymis-secrets-message.json", "w") as f:
+                f.write(message.model_dump_json())
+
+    @classmethod
+    def place_secrets_on_start(cls, token: str):
+        # use message if there, if not
+        # try using thymis-secrets-initial.json and decrypting using token,
+
+        data_path = find_data_path()
+        if data_path:
+            secrets_path = data_path / "thymis-secrets-message.json"
+            if secrets_path.exists():
+                with open(secrets_path, "r") as f:
+                    message = RtESendSecretsMessage.model_validate_json(f.read())
+                cls.place_secrets_on_message(message)
+        else:
+            secrets_path = data_path / "thymis-secrets-initial.json"
+            if secrets_path.exists():
+                with open(secrets_path, "r") as f:
+                    s_file = f.read()
+                s_data = json.loads(s_file)
+                secrets = s_data["secrets"]
+                secret_infos = s_data["secret_infos"]
+                # decrypt secrets using token
+
+                for secret_info in secret_infos:
+                    secret = secrets[secret_info["secret_id"]]
+                    path = secret_info["path"]
+                    owner = secret_info["owner"]
+                    group = secret_info["group"]
+                    mode = secret_info["mode"]
+
+                    os.makedirs(os.path.dirname(path), exist_ok=True)
+                    with open(path, "wb") as f:
+                        decoded = base64.b64decode(secret)
+                        # use rage to decrypt the secret
+                        decrypted = passphrase.decrypt(decoded, token)
+                        f.write(decrypted)
+                    if owner or group:
+                        shutil.chown(
+                            path,
+                            **{
+                                k: v
+                                for k, v in {"user": owner, "group": group}.items()
+                                if v
+                            },
+                        )
+                    if mode:
+                        os.chmod(path, int(mode, 8))
+
+    async def on_connected(self):
+        self.systemd_notifier.status("Connected to relay")
+
     async def create_start_message(self, last_error: Optional[str] = None):
         return EdgeAgentToRelayStartMessage(
             token=self.token,
@@ -548,9 +662,14 @@ def main():
 
     load_controller_public_key_into_root_authorized_keys()
     agent_token = find_agent_token()
+    Agent.place_secrets_on_start(agent_token)
     agent = Agent(controller_host, agent_token, agent_metadata, systemd_notifier)
     asyncio.run(agent.async_main())
 
 
 if __name__ == "__main__":
+    # check args: if "--just-place-secrets" is passed, just place secrets and exit
+    if "--just-place-secrets" in sys.argv:
+        Agent.place_secrets_on_start(find_agent_token())
+        sys.exit(0)
     main()
