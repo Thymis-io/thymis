@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
 	import { saveState, globalState, type Config, type Tag } from '$lib/state';
@@ -33,9 +35,13 @@
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 
 	const flipDurationMs = 200;
-	let dragDisabled = true;
+	let dragDisabled = $state(true);
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
+
+	let { data = $bindable() }: Props = $props();
 
 	const findTag = (identifier: string) => {
 		return data.globalState.tags.find((t) => t.identifier === identifier);
@@ -81,7 +87,7 @@
 		return true;
 	};
 
-	let configToDelete: Config | undefined = undefined;
+	let configToDelete: Config | undefined = $state(undefined);
 
 	const deleteConfiguration = async (config: Config) => {
 		const identifier = config.identifier;
@@ -91,12 +97,15 @@
 		await saveState();
 	};
 
-	$: configs = data.globalState.configs.map((config) => {
-		return { id: config.identifier, data: config };
+	let configs;
+	run(() => {
+		configs = data.globalState.configs.map((config) => {
+			return { id: config.identifier, data: config };
+		});
 	});
 
-	let newConfigModalOpen = false;
-	let currentlyEditingConfig: Config | undefined = undefined;
+	let newConfigModalOpen = $state(false);
+	let currentlyEditingConfig: Config | undefined = $state(undefined);
 </script>
 
 <PageHead title={$t('configurations.title')} repoStatus={data.repoStatus}>
@@ -143,8 +152,8 @@
 	</TableHead>
 	<tbody
 		use:dndzone={{ items: configs, dragDisabled, flipDurationMs }}
-		on:consider={handleConsider}
-		on:finalize={handleFinalize}
+		onconsider={handleConsider}
+		onfinalize={handleFinalize}
 	>
 		{#each configs as config (config.id)}
 			<tr
@@ -159,9 +168,9 @@
 							role="button"
 							class="handle"
 							style={dragDisabled ? 'cursor: grab' : 'cursor: grabbing'}
-							on:mousedown={startDrag}
-							on:touchstart={startDrag}
-							on:keydown={handleKeyDown}
+							onmousedown={startDrag}
+							ontouchstart={startDrag}
+							onkeydown={handleKeyDown}
 						>
 							<GripVertical size={'1rem'} class="min-w-4" />
 						</div>
@@ -194,7 +203,7 @@
 								</Button>
 							{/each}
 						</div>
-						<button class="p-0" on:click={() => (currentlyEditingConfig = config.data)}>
+						<button class="p-0" onclick={() => (currentlyEditingConfig = config.data)}>
 							<Pen size={'1rem'} class="min-w-4" />
 						</button>
 					</div>

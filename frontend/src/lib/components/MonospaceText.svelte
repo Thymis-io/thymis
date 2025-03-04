@@ -5,10 +5,14 @@
 	import type { LanguageType } from 'svelte-highlight/languages';
 	import ashes from 'svelte-highlight/styles/ashes';
 
-	export let code: string;
-	export let language: LanguageType<string> | undefined = undefined;
+	interface Props {
+		code: string;
+		language?: LanguageType<string> | undefined;
+	}
 
-	let copied = false;
+	let { code, language = undefined }: Props = $props();
+
+	let copied = $state(false);
 
 	const copy = () => {
 		navigator.clipboard.writeText(code);
@@ -28,18 +32,22 @@
 		<!-- Code highlighting is very expensive, disable it after an arbitrary number of characters -->
 		<LineNumbers highlighted={code} />
 	{:else if language}
-		<Highlight {code} {language} let:highlighted>
-			<LineNumbers {highlighted} />
+		<Highlight {code} {language}>
+			{#snippet children({ highlighted })}
+				<LineNumbers {highlighted} />
+			{/snippet}
 		</Highlight>
 	{:else}
-		<HighlightAuto {code} let:highlighted>
-			<LineNumbers {highlighted} />
+		<HighlightAuto {code}>
+			{#snippet children({ highlighted })}
+				<LineNumbers {highlighted} />
+			{/snippet}
 		</HighlightAuto>
 	{/if}
 	<div class="absolute top-2 right-2">
 		<button
 			class="absolute right-0 flex items-center gap-2 z-20 text-white hover:bg-gray-700 rounded-md p-1 w-max h-max opacity-30 hover:opacity-100"
-			on:click={copy}
+			onclick={copy}
 		>
 			<Copy class="w-5 h-5" />
 			{#if copied}

@@ -3,10 +3,15 @@
 	import { TableBodyCell, Input } from 'flowbite-svelte';
 	import clickOutside from 'svelte-outside-click';
 
-	export let value: string;
-	export let onEnter: ((value: string) => void) | null = null;
+	interface Props {
+		value: string;
+		onEnter?: ((value: string) => void) | null;
+		bottom?: import('svelte').Snippet<[any]>;
+	}
 
-	let isEditing: boolean = false;
+	let { value = $bindable(), onEnter = null, bottom }: Props = $props();
+
+	let isEditing: boolean = $state(false);
 </script>
 
 <TableBodyCell tdClass="p-2 px-2 md:px-4">
@@ -27,9 +32,9 @@
 		{:else}
 			<span class="p-0">{value}</span>
 		{/if}
-		<button on:click={() => (isEditing = !isEditing)}>
+		<button onclick={() => (isEditing = !isEditing)}>
 			<Pen size={'1rem'} class="min-w-4" />
 		</button>
 	</div>
-	<slot name="bottom" {value} />
+	{@render bottom?.({ value })}
 </TableBodyCell>

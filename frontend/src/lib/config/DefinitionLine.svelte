@@ -4,8 +4,12 @@
 	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import type { Origin } from '$lib/state';
 
-	export let origin: Origin;
-	export let value: unknown;
+	interface Props {
+		origin: Origin;
+		value: unknown;
+	}
+
+	let { origin, value }: Props = $props();
 </script>
 
 <div class="flex flex gap-2">

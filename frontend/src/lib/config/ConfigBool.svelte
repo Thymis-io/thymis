@@ -1,10 +1,14 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Toggle, Tooltip } from 'flowbite-svelte';
-	export let name: string;
-	export let value: boolean | undefined = false;
-	export let onChange: (value: boolean) => void = () => {};
-	export let disabled: boolean;
+	interface Props {
+		name: string;
+		value?: boolean | undefined;
+		onChange?: (value: boolean) => void;
+		disabled: boolean;
+	}
+
+	let { name, value = false, onChange = () => {}, disabled }: Props = $props();
 
 	let changeInternal = (e: Event) => {
 		onChange((e.target as HTMLInputElement).checked);

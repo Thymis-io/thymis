@@ -4,12 +4,18 @@
 	import { Button, Modal, Label, P } from 'flowbite-svelte';
 	import MultiSelect from 'svelte-multiselect';
 
-	export let currentlyEditingConfig: Config | undefined;
+	interface Props {
+		currentlyEditingConfig: Config | undefined;
+	}
 
-	$: projectTags = $globalState.tags;
-	$: tagsSelect = projectTags?.map((tag) => ({ value: tag.identifier, label: tag.displayName }));
+	let { currentlyEditingConfig = $bindable() }: Props = $props();
 
-	let selectedTags: { value: string; label: string }[] = [];
+	let projectTags = $derived($globalState.tags);
+	let tagsSelect = $derived(
+		projectTags?.map((tag) => ({ value: tag.identifier, label: tag.displayName }))
+	);
+
+	let selectedTags: { value: string; label: string }[] = $state([]);
 
 	const setSelectedTags = (configTags: string[], projectTags: Tag[]) => {
 		selectedTags = configTags?.map((tag) => ({

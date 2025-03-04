@@ -31,7 +31,12 @@
 	import { derived } from 'svelte/store';
 	import { page } from '$app/stores';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+		children?: import('svelte').Snippet;
+	}
+
+	let { data, children }: Props = $props();
 
 	const configSelectedModule = derived(
 		[page, queryParam('config-selected-module')],
@@ -91,13 +96,13 @@
 			availableModules={data.availableModules}
 			configSelectedModule={$configSelectedModule}
 		>
-			<slot slot="icon">
-				{#if $globalNavSelectedTag}
+			{#snippet icon()}
+				{#if children}{@render children()}{:else if $globalNavSelectedTag}
 					<TagIcon size="20" />
 				{:else if $globalNavSelectedConfig}
 					<FileCode size="20" />
 				{/if}
-			</slot>
+			{/snippet}
 		</ModuleList>
 		{#each $globalNavSelectedConfig?.tags ?? [] as tagIdentifier}
 			{@const usedTag = getTagByIdentifier($globalState, tagIdentifier)}
@@ -108,7 +113,9 @@
 					selfModules={getSelfModules(usedTag)}
 					configSelectedModule={$configSelectedModule}
 				>
-					<TagIcon slot="icon" size="20" />
+					{#snippet icon()}
+						<TagIcon size="20" />
+					{/snippet}
 				</ModuleList>
 			</div>
 		{/each}

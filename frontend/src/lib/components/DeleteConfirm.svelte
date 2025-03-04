@@ -3,7 +3,11 @@
 	import { Button, Modal } from 'flowbite-svelte';
 	import { createEventDispatcher } from 'svelte';
 
-	export let target: string | undefined;
+	interface Props {
+		target: string | undefined;
+	}
+
+	let { target }: Props = $props();
 
 	const dispatch = createEventDispatcher();
 </script>

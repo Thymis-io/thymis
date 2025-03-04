@@ -7,9 +7,7 @@
 	import Trash from 'lucide-svelte/icons/trash-2';
 	import { goto } from '$app/navigation';
 
-	export let config: Config;
-
-	let configToDelete: Config | undefined = undefined;
+	let configToDelete: Config | undefined = $state(undefined);
 
 	const deleteConfiguration = async (config: Config) => {
 		const identifier = config.identifier;
@@ -21,8 +19,12 @@
 		setTimeout(async () => await goto('/configuration/list'), 200);
 	};
 
-	let className = '';
-	export { className as class };
+	interface Props {
+		config: Config;
+		class?: string;
+	}
+
+	let { config, class: className = '' }: Props = $props();
 </script>
 
 <DeleteConfirm

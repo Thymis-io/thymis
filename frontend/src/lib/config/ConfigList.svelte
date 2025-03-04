@@ -6,11 +6,15 @@
 	import type { Setting, ListSettingType, ModuleSettings } from '$lib/state';
 	import ConfigRenderer from './ConfigRenderer.svelte';
 
-	export let values: any[];
-	export let setting: Setting<ListSettingType>;
-	export let moduleSettings: ModuleSettings | undefined;
-	export let onChange: (value: unknown[]) => void = () => {};
-	export let disabled: boolean = false;
+	interface Props {
+		values: any[];
+		setting: Setting<ListSettingType>;
+		moduleSettings: ModuleSettings | undefined;
+		onChange?: (value: unknown[]) => void;
+		disabled?: boolean;
+	}
+
+	let { values, setting, moduleSettings, onChange = () => {}, disabled = false }: Props = $props();
 </script>
 
 <div class="flex flex-col gap-1 w-full">
@@ -39,7 +43,7 @@
 			<button
 				class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 				{disabled}
-				on:click={() => onChange(values.filter((v) => v !== item))}
+				onclick={() => onChange(values.filter((v) => v !== item))}
 			>
 				<X />
 			</button>
@@ -56,7 +60,7 @@
 		<button
 			class="p-1 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 gap-2"
 			{disabled}
-			on:click={() => onChange([...values, {}])}
+			onclick={() => onChange([...values, {}])}
 		>
 			<Plus size="20" />
 			<span class="text-base">

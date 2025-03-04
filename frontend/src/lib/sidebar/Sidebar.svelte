@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { t, locale } from 'svelte-i18n';
@@ -14,8 +16,6 @@
 	import { globalState } from '$lib/state';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
-	export let drawerHidden: boolean;
-
 	const closeDrawer = () => {
 		drawerHidden = true;
 	};
@@ -27,10 +27,15 @@
 	let nonActiveClass =
 		childClass + ' hover:cursor-pointer dark:text-gray-400 hover:text-black dark:hover:text-white';
 	let activeClass = childClass + ' cursor-default text-primary-600 dark:text-primary-400';
-	export let asideClass = '';
+	interface Props {
+		drawerHidden: boolean;
+		asideClass?: string;
+	}
 
-	$: mainSidebarUrl = $page.url.pathname;
-	let activeMainSidebar: string;
+	let { drawerHidden = $bindable(), asideClass = '' }: Props = $props();
+
+	let mainSidebarUrl = $derived($page.url.pathname);
+	let activeMainSidebar: string = $state();
 
 	afterNavigate((navigation) => {
 		// this fixes https://github.com/themesberg/flowbite-svelte/issues/364
@@ -52,54 +57,57 @@
 		children?: Record<string, string>;
 	};
 
-	$: anyTargetHasVNC =
+	let anyTargetHasVNC = $derived(
 		$globalState.configs.some((config) => targetShouldShowVNC(config, $globalState)) ||
-		$globalState.tags.some((tag) => targetShouldShowVNC(tag, $globalState));
+			$globalState.tags.some((tag) => targetShouldShowVNC(tag, $globalState))
+	);
 
-	let navItems: NavItem[] = [];
-	$: navItems = [
-		{
-			name: $t('nav.overview'),
-			icon: ChartBar,
-			href: '/overview'
-		},
-		{
-			name: $t('nav.configurations'),
-			icon: FileCode,
-			href: '/configuration/list'
-		},
-		{
-			name: $t('nav.tags'),
-			icon: TagIcon,
-			href: '/tags'
-		},
-		{
-			name: $t('nav.devices'),
-			icon: Server,
-			href: '/devices'
-		},
-		{
-			name: $t('nav.global-vnc'),
-			icon: ScreenShare,
-			href: '/vnc',
-			hidden: !anyTargetHasVNC
-		},
-		{
-			name: $t('nav.history'),
-			icon: GitBranch,
-			href: '/history'
-		},
-		{
-			name: $t('nav.external-repositories'),
-			icon: Settings,
-			href: '/external-repositories'
-		},
-		{
-			name: $t('nav.secrets'),
-			icon: FileLock,
-			href: '/secrets'
-		}
-	];
+	let navItems: NavItem[] = $state([]);
+	run(() => {
+		navItems = [
+			{
+				name: $t('nav.overview'),
+				icon: ChartBar,
+				href: '/overview'
+			},
+			{
+				name: $t('nav.configurations'),
+				icon: FileCode,
+				href: '/configuration/list'
+			},
+			{
+				name: $t('nav.tags'),
+				icon: TagIcon,
+				href: '/tags'
+			},
+			{
+				name: $t('nav.devices'),
+				icon: Server,
+				href: '/devices'
+			},
+			{
+				name: $t('nav.global-vnc'),
+				icon: ScreenShare,
+				href: '/vnc',
+				hidden: !anyTargetHasVNC
+			},
+			{
+				name: $t('nav.history'),
+				icon: GitBranch,
+				href: '/history'
+			},
+			{
+				name: $t('nav.external-repositories'),
+				icon: Settings,
+				href: '/external-repositories'
+			},
+			{
+				name: $t('nav.secrets'),
+				icon: FileLock,
+				href: '/secrets'
+			}
+		];
+	});
 
 	let dropdowns = Object.fromEntries(Object.keys(navItems).map((x) => [x, false]));
 </script>
@@ -120,13 +128,14 @@
 			>
 				{#each navItems as { name, icon, children, href, hidden } (name)}
 					{#if !hidden}
+						{@const SvelteComponent = icon}
 						<a
 							{href}
 							lang={$locale}
 							class={'flex flex-row lg:flex-col items-center text-center gap-2 text-xs hyphens-auto ' +
 								(activeMainSidebar === href ? activeClass : nonActiveClass)}
 						>
-							<svelte:component this={icon} size={20} />
+							<SvelteComponent size={20} />
 							{name}
 						</a>
 					{/if}

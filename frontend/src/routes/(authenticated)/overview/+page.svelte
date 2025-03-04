@@ -5,7 +5,11 @@
 	import { globalState } from '$lib/state';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
+
+	let { data }: Props = $props();
 </script>
 
 <PageHead title={$t('nav.overview')} repoStatus={data.repoStatus} />

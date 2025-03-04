@@ -38,7 +38,7 @@
 <div
 	class="border-2 dark:border-0 w-full h-full flex px-2 gap-2 sm:gap-4 xl:gap-10 pr-8 md:pr-16 items-center bg-gray-50 dark:bg-gray-700 overflow-y-auto"
 >
-	<!-- svelte-ignore missing-declaration -->
+	<!-- svelte-ignore missing_declaration -->
 	<div class="text-xs md:text-sm playwright-snapshot-unstable">
 		<span class="hidden lg:inline">{$t('taskbar.version')}: </span>
 		<span class="lg:hidden">v</span>{versionInfo.version}
@@ -48,16 +48,24 @@
 		{versionInfo.dirty ? '-dirty' : ''}
 	</div>
 	<TaskbarIcon class="ml-auto" title={$t('taskbar.pending')} tasks={pendingTasks}>
-		<PendingIcon size={20} slot="icon" class="w-full" />
+		{#snippet icon()}
+			<PendingIcon size={20} class="w-full" />
+		{/snippet}
 	</TaskbarIcon>
 	<TaskbarIcon title={$t('taskbar.running')} tasks={runningTasks}>
-		<RunningIcon size={20} slot="icon" class="w-full" />
+		{#snippet icon()}
+			<RunningIcon size={20} class="w-full" />
+		{/snippet}
 	</TaskbarIcon>
 	<TaskbarIcon title={$t('taskbar.completed')} tasks={completedTasks}>
-		<CompletedIcon size={20} slot="icon" class="w-full" />
+		{#snippet icon()}
+			<CompletedIcon size={20} class="w-full" />
+		{/snippet}
 	</TaskbarIcon>
 	<TaskbarIcon title={$t('taskbar.failed')} tasks={failedTasks}>
-		<FailedIcon size={20} slot="icon" class="w-full" />
+		{#snippet icon()}
+			<FailedIcon size={20} class="w-full" />
+		{/snippet}
 	</TaskbarIcon>
 	<div class="flex items-center gap-1 lg:gap-2 lg:ml-2">
 		{#if latestTask}

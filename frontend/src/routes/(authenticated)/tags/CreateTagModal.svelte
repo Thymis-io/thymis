@@ -4,9 +4,13 @@
 	import { type Tag, globalState, saveState } from '$lib/state';
 	import { nameToIdentifier, nameValidation } from '$lib/nameValidation';
 
-	export let open = false;
+	interface Props {
+		open?: boolean;
+	}
 
-	let displayName = '';
+	let { open = $bindable(false) }: Props = $props();
+
+	let displayName = $state('');
 
 	const submitData = async () => {
 		if (nameValidation(displayName, 'tag')) return;

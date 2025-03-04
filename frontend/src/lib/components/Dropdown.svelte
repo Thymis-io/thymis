@@ -3,14 +3,25 @@
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 	import { onDestroy, onMount } from 'svelte';
 
-	export let values: T[] = [];
-	export let selected: T | null = null;
-	export let showBox: boolean = true;
-	export let onSelected: (item: T) => void = () => {};
+	interface Props {
+		values?: T[];
+		selected?: T | null;
+		showBox?: boolean;
+		onSelected?: (item: T) => void;
+		class?: string;
+		children?: import('svelte').Snippet;
+	}
 
-	let divClass: string = 'w-64';
-	let isOpen = false;
-	let highlightedIndex = -1;
+	let {
+		values = [],
+		selected = $bindable(null),
+		showBox = true,
+		onSelected = () => {},
+		class: divClass = 'w-64',
+		children
+	}: Props = $props();
+	let isOpen = $state(false);
+	let highlightedIndex = $state(-1);
 
 	const toggleDropdown = () => {
 		isOpen = !isOpen;
@@ -50,13 +61,11 @@
 	onDestroy(() => {
 		if (browser) document.removeEventListener('click', closeDropdown);
 	});
-
-	export { divClass as class };
 </script>
 
 <div
 	class="relative {divClass}"
-	on:keydown={onKeyDown}
+	onkeydown={onKeyDown}
 	role="combobox"
 	aria-haspopup="listbox"
 	aria-expanded={isOpen}
@@ -66,14 +75,14 @@
 	<button
 		class="w-full flex justify-between items-center p-1 {showBox &&
 			'bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm'}"
-		on:click={(e) => {
+		onclick={(e) => {
 			e.preventDefault();
 			e.stopPropagation();
 			toggleDropdown();
 		}}
 		aria-controls="dropdown-list"
 	>
-		<slot>{selected || 'Select an option'}</slot>
+		{#if children}{@render children()}{:else}{selected || 'Select an option'}{/if}
 		<ChevronDown class="h-4 w-4" />
 	</button>
 
@@ -88,8 +97,8 @@
 				{@const selectedClass = item === selected ? 'text-primary-600 dark:text-primary-400' : ''}
 				<option
 					class="p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 {highlightedClass} {selectedClass}"
-					on:click={() => selectItem(item)}
-					on:keydown={(event) => {
+					onclick={() => selectItem(item)}
+					onkeydown={(event) => {
 						if (event.key === 'Enter') {
 							event.preventDefault();
 							selectItem(item);

@@ -2,18 +2,26 @@
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 	import ChevronRight from 'lucide-svelte/icons/chevron-right';
 
-	export let totalCount: number;
-	export let pageSize: number;
-	export let limit: number = 2;
-	export let page: number;
-	export let onChange: (page: number) => void;
+	interface Props {
+		totalCount: number;
+		pageSize: number;
+		limit?: number;
+		page: number;
+		onChange: (page: number) => void;
+	}
 
-	$: pageCount = Math.max(Math.ceil(totalCount / pageSize), 1);
-	$: visiblePagesCount = limit * 2 + 1;
-	$: visiblePagesStart = Math.max(Math.min(page - limit - 1, pageCount - visiblePagesCount), 0);
-	$: visiblePages = Array.from({ length: pageCount }, (_, i) => i).slice(
-		visiblePagesStart,
-		visiblePagesStart + visiblePagesCount
+	let { totalCount, pageSize, limit = 2, page, onChange }: Props = $props();
+
+	let pageCount = $derived(Math.max(Math.ceil(totalCount / pageSize), 1));
+	let visiblePagesCount = $derived(limit * 2 + 1);
+	let visiblePagesStart = $derived(
+		Math.max(Math.min(page - limit - 1, pageCount - visiblePagesCount), 0)
+	);
+	let visiblePages = $derived(
+		Array.from({ length: pageCount }, (_, i) => i).slice(
+			visiblePagesStart,
+			visiblePagesStart + visiblePagesCount
+		)
 	);
 
 	const handlePageChange = (page: number) => {
@@ -23,19 +31,19 @@
 </script>
 
 <div class="flex items-center paginate">
-	<button on:click={() => handlePageChange(page - 1)} class="page-button">
+	<button onclick={() => handlePageChange(page - 1)} class="page-button">
 		<ChevronLeft class="h-6" />
 	</button>
 	{#each visiblePages as i}
 		<button
-			on:click={() => handlePageChange(i + 1)}
+			onclick={() => handlePageChange(i + 1)}
 			class={'page-button'}
 			class:active={i + 1 === page}
 		>
 			{i + 1}
 		</button>
 	{/each}
-	<button on:click={() => handlePageChange(page + 1)} class="page-button">
+	<button onclick={() => handlePageChange(page + 1)} class="page-button">
 		<ChevronRight class="h-6" />
 	</button>
 </div>
@@ -61,13 +69,13 @@
 		@apply bg-gray-300;
 		@apply text-primary-500;
 	}
-	.page-button.active:is(.dark *) {
+	.page-button.active:is(:global(.dark *)) {
 		@apply bg-gray-500;
 	}
 	.page-button:hover {
 		@apply bg-gray-300;
 	}
-	.page-button:hover:is(.dark *) {
+	.page-button:hover:is(:global(.dark *)) {
 		@apply bg-gray-500;
 	}
 </style>

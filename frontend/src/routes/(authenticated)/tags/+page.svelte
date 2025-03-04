@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
 	import { saveState, globalState, type Tag } from '$lib/state';
@@ -27,17 +29,24 @@
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import type { PageData } from './$types';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
 
-	$: tags = $globalState.tags.map((t) => ({ id: t.identifier, data: t }));
-	$: projectTags = $globalState.tags;
-	$: projectTagIds = projectTags.map((t) => t.identifier);
+	let { data }: Props = $props();
 
-	let deleteTag: Tag | undefined = undefined;
-	let createTagModalOpen = false;
+	let tags;
+	run(() => {
+		tags = $globalState.tags.map((t) => ({ id: t.identifier, data: t }));
+	});
+	let projectTags = $derived($globalState.tags);
+	let projectTagIds = $derived(projectTags.map((t) => t.identifier));
+
+	let deleteTag: Tag | undefined = $state(undefined);
+	let createTagModalOpen = $state(false);
 
 	const flipDurationMs = 200;
-	let dragDisabled = true;
+	let dragDisabled = $state(true);
 
 	const removeTag = (tag: string) => {
 		$globalState.tags = projectTags.filter((t) => t.identifier !== tag);
@@ -140,8 +149,8 @@
 	</TableHead>
 	<tbody
 		use:dndzone={{ items: tags, dragDisabled, flipDurationMs }}
-		on:consider={handleConsider}
-		on:finalize={handleFinalize}
+		onconsider={handleConsider}
+		onfinalize={handleFinalize}
 	>
 		{#each tags as tag (tag.id)}
 			{@const displayName = tag.data.displayName}
@@ -157,9 +166,9 @@
 							role="button"
 							class="handle"
 							style={dragDisabled ? 'cursor: grab' : 'cursor: grabbing'}
-							on:mousedown={startDrag}
-							on:touchstart={startDrag}
-							on:keydown={handleKeyDown}
+							onmousedown={startDrag}
+							ontouchstart={startDrag}
+							onkeydown={handleKeyDown}
 						>
 							<GripVertical size={'1rem'} class="min-w-4" />
 						</div>
@@ -176,7 +185,7 @@
 						}
 					}}
 				>
-					<svelte:fragment slot="bottom" let:value={newTagDisplayName}>
+					{#snippet bottom({ value: newTagDisplayName })}
 						{#if nameValidation(newTagDisplayName, 'tag')}
 							{#if newTagDisplayName !== displayName}
 								<Helper color="red">{nameValidation(newTagDisplayName, 'tag')}</Helper>
@@ -188,7 +197,7 @@
 								})}
 							</Helper>
 						{/if}
-					</svelte:fragment>
+					{/snippet}
 				</TableBodyEditCell>
 				<TableBodyCell tdClass="p-2 px-2 md:px-4">
 					{@const configsWithTag = $globalState.configs.filter((config) =>
