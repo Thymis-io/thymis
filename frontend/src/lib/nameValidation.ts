@@ -1,6 +1,6 @@
 import { t } from 'svelte-i18n';
 import { get } from 'svelte/store';
-import { globalState } from '$lib/state';
+import { type State } from '$lib/state';
 
 export const nameToIdentifier = (displayName: string): string => {
 	// strip string first
@@ -15,7 +15,11 @@ export const nameToIdentifier = (displayName: string): string => {
 	return identifier;
 };
 
-export const nameValidation = (displayName: string, targetType: string): string | undefined => {
+export const nameValidation = (
+	globalState: State,
+	displayName: string,
+	targetType: string
+): string | undefined => {
 	if (displayName.length === 0) {
 		return get(t)('create-configuration.display-name-cannot-be-empty');
 	}
@@ -23,23 +27,23 @@ export const nameValidation = (displayName: string, targetType: string): string 
 	const identifier = nameToIdentifier(displayName);
 
 	if (targetType === 'config') {
-		if (get(globalState).configs.find((config) => config.displayName === displayName)) {
+		if (globalState.configs.find((config) => config.displayName === displayName)) {
 			return get(t)('create-configuration.device-with-display-name-name-exists', {
 				values: { displayName }
 			});
 		}
 
-		if (get(globalState).configs.find((config) => config.identifier === identifier)) {
+		if (globalState.configs.find((config) => config.identifier === identifier)) {
 			return get(t)('create-configuration.identifier-exists');
 		}
 	} else if (targetType === 'tag') {
-		if (get(globalState).tags.find((tag) => tag.displayName === displayName)) {
+		if (globalState.tags.find((tag) => tag.displayName === displayName)) {
 			return get(t)('create-configuration.tag-with-display-name-name-exists', {
 				values: { displayName }
 			});
 		}
 
-		if (get(globalState).tags.find((tag) => tag.identifier === identifier)) {
+		if (globalState.tags.find((tag) => tag.identifier === identifier)) {
 			return get(t)('create-configuration.identifier-exists');
 		}
 	}

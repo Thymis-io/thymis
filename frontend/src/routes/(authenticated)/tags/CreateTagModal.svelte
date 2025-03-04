@@ -14,7 +14,7 @@
 	let displayName = $state('');
 
 	const submitData = async () => {
-		if (nameValidation(displayName, 'tag')) return;
+		if (nameValidation(globalState, displayName, 'tag')) return;
 
 		const identifier = nameToIdentifier(displayName);
 		const tag: Tag = {
@@ -44,8 +44,8 @@
 		<Label for="display-name">
 			{$t('create-configuration.display-name-tag')}
 			<Input id="display-name" bind:value={displayName} />
-			{#if nameValidation(displayName, 'tag')}
-				<Helper color="red">{nameValidation(displayName, 'tag')}</Helper>
+			{#if nameValidation(globalState, displayName, 'tag')}
+				<Helper color="red">{nameValidation(globalState, displayName, 'tag')}</Helper>
 			{:else}
 				<Helper color="green">
 					{$t('create-configuration.name-helper-tag', {
@@ -58,7 +58,7 @@
 			<Button
 				type="button"
 				class="btn btn-primary"
-				disabled={!!nameValidation(displayName, 'tag')}
+				disabled={!!nameValidation(globalState, displayName, 'tag')}
 				on:click={submitData}
 			>
 				{$t('tags.actions.add')}

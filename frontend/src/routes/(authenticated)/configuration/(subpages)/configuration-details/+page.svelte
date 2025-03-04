@@ -42,7 +42,7 @@
 		{#if targetShouldShowVNC(currentConfig, data.globalState)}
 			{#each data.deploymentInfos as deploymentInfo}
 				<Section class="col-span-2" title={$t('nav.device-vnc')}>
-					<VncView config={currentConfig} {deploymentInfo} />
+					<VncView globalState={data.globalState} config={currentConfig} {deploymentInfo} />
 				</Section>
 			{/each}
 		{/if}
