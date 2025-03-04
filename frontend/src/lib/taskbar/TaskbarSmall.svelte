@@ -6,29 +6,26 @@
 	import RunningIcon from 'lucide-svelte/icons/play';
 	import CompletedIcon from 'lucide-svelte/icons/check';
 	import FailedIcon from 'lucide-svelte/icons/ban';
-	import { Tooltip } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import Paginator from '$lib/components/Paginator.svelte';
-	import { queryParam } from 'sveltekit-search-params';
+	import { queryParameters } from 'sveltekit-search-params';
 	import TaskbarName from './TaskbarName.svelte';
 	import TaskbarStatus from './TaskbarStatus.svelte';
 
-	export let inPlaywright: boolean = false;
+	const props: { inPlaywright: boolean } = $props();
 
-	$: pendingTasks = Object.values($taskStatus).filter((task) => task.state === 'pending');
-	$: runningTasks = Object.values($taskStatus).filter((task) => task.state === 'running');
-	$: completedTasks = Object.values($taskStatus).filter((task) => task.state === 'completed');
-	$: failedTasks = Object.values($taskStatus).filter((task) => task.state === 'failed');
-	$: latestTask = Object.values($taskStatus).sort((a, b) =>
-		a.start_time < b.start_time ? 1 : -1
-	)[0];
+	const tasks = $derived(Object.values($taskStatus));
+	const pendingTasks = $derived(tasks.filter((task) => task.state === 'pending'));
+	const runningTasks = $derived(tasks.filter((task) => task.state === 'running'));
+	const completedTasks = $derived(tasks.filter((task) => task.state === 'completed'));
+	const failedTasks = $derived(tasks.filter((task) => task.state === 'failed'));
+	const latestTask = $derived(tasks.sort((a, b) => (a.start_time < b.start_time ? 1 : -1))[0]);
 
-	let currentPageParam = queryParam('task-page');
-	let currentPage = $currentPageParam;
+	const params = queryParameters();
+	let currentPage = $derived(params['task-page']);
 
 	const switchPage = async (page: number) => {
-		currentPage = page.toString();
-		currentPageParam.set(currentPage);
+		params['task-page'] = page.toString();
 	};
 
 	const versionInfo: {
@@ -43,10 +40,12 @@
 >
 	<!-- svelte-ignore missing-declaration -->
 	<div class="text-xs md:text-sm playwright-snapshot-unstable">
-		<span class="hidden lg:inline">{$t('taskbar.version')}: </span><span class="lg:hidden">v</span
-		>{versionInfo.version} (<span class="font-mono"
-			>{#if inPlaywright}00000000{:else}{versionInfo.headRev.slice(0, 8)}{/if}</span
-		>{versionInfo.dirty ? '-dirty' : ''})
+		<span class="hidden lg:inline">{$t('taskbar.version')}: </span>
+		<span class="lg:hidden">v</span>{versionInfo.version}
+		<span class="font-mono">
+			{#if props.inPlaywright}00000000{:else}{versionInfo.headRev.slice(0, 8)}{/if}
+		</span>
+		{versionInfo.dirty ? '-dirty' : ''}
 	</div>
 	<TaskbarIcon class="ml-auto" title={$t('taskbar.pending')} tasks={pendingTasks}>
 		<PendingIcon size={20} slot="icon" class="w-full" />
