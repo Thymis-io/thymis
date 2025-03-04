@@ -8,7 +8,7 @@
 		globalNavSelectedConfig,
 		globalNavSelectedTag,
 		globalNavSelectedTargetType,
-		state
+		globalState
 	} from '$lib/state';
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
@@ -37,13 +37,13 @@
 	id="global-search-dropdown"
 	bind:open
 >
-	{#each $state.tags as tag}
+	{#each $globalState.tags as tag}
 		{@const active =
 			$globalNavSelectedTargetType === 'tag' &&
 			$globalNavSelectedTag?.identifier === tag.identifier}
 		{@const subpage = [
 			'/configuration/edit',
-			targetShouldShowVNC(tag, $state) ? '/configuration/vnc' : undefined
+			targetShouldShowVNC(tag, $globalState) ? '/configuration/vnc' : undefined
 		].includes($page.url.pathname)
 			? $page.url.pathname
 			: '/configuration/edit'}
@@ -58,14 +58,14 @@
 			</DropdownItem>
 		{/if}
 	{/each}
-	{#each $state.configs as config}
+	{#each $globalState.configs as config}
 		{@const active =
 			$globalNavSelectedTargetType === 'config' &&
 			$globalNavSelectedConfig?.identifier === config.identifier}
 		{@const subpage = [
 			'/configuration/configuration-details',
 			'/configuration/edit',
-			targetShouldShowVNC(config, $state) ? '/configuration/vnc' : undefined,
+			targetShouldShowVNC(config, $globalState) ? '/configuration/vnc' : undefined,
 			'/configuration/terminal'
 		].includes($page.url.pathname)
 			? $page.url.pathname

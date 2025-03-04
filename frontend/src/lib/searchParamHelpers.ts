@@ -2,7 +2,7 @@ import { queryParam } from 'sveltekit-search-params';
 import {
 	getConfigByIdentifier,
 	getTagByIdentifier,
-	state,
+	globalState,
 	type ContextType,
 	type Module
 } from './state';
@@ -28,10 +28,10 @@ const hasModule = (
 	moduleType: string | null | undefined
 ) => {
 	if (contextType === 'tag') {
-		const tag = get(state).tags.find((t) => t.identifier === contextIdentifier);
+		const tag = get(globalState).tags.find((t) => t.identifier === contextIdentifier);
 		return tag?.modules.some((m) => m.type === moduleType);
 	} else if (contextType === 'config') {
-		const config = get(state).configs.find((c) => c.identifier === contextIdentifier);
+		const config = get(globalState).configs.find((c) => c.identifier === contextIdentifier);
 		return config?.modules.some((m) => m.type === moduleType);
 	}
 	return false;
@@ -43,10 +43,10 @@ const setFirstSelectedModule = (
 	contextIdentifier: string | null | undefined
 ) => {
 	if (contextType === 'tag') {
-		const tag = get(state).tags.find((t) => t.identifier === contextIdentifier);
+		const tag = get(globalState).tags.find((t) => t.identifier === contextIdentifier);
 		setParam(params, 'config-selected-module', tag?.modules[0]?.type);
 	} else if (contextType === 'config') {
-		const config = get(state).configs.find((c) => c.identifier === contextIdentifier);
+		const config = get(globalState).configs.find((c) => c.identifier === contextIdentifier);
 		setParam(params, 'config-selected-module', config?.modules[0]?.type);
 	}
 };
@@ -95,7 +95,11 @@ export const configSelectedModuleContextType = queryParam<ContextType>(
 );
 
 export const configSelectedModuleContext = derived(
-	[configSelectedModuleContextType, queryParam('config-selected-module-context-identifier'), state],
+	[
+		configSelectedModuleContextType,
+		queryParam('config-selected-module-context-identifier'),
+		globalState
+	],
 	([$contextType, $contextIdentifier, s]) => {
 		if ($contextType === 'tag') {
 			return getTagByIdentifier(s, $contextIdentifier);

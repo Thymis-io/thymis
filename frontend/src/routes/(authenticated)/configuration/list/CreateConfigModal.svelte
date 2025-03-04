@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Button, Helper, Input, Label, Modal, P, Select } from 'flowbite-svelte';
-	import { type Config, type Module, saveState, state } from '$lib/state';
+	import { type Config, type Module, saveState, globalState } from '$lib/state';
 	import { page } from '$app/stores';
 	import { nameToIdentifier, nameValidation, deviceTypeValidation } from '$lib/nameValidation';
 	import MultiSelect from 'svelte-multiselect';
@@ -23,7 +23,7 @@
 	}));
 	let selectedDeviceType: string | undefined = undefined;
 
-	$: tags = $state.tags;
+	$: tags = $globalState.tags;
 	$: tagsSelect = tags.map((tag) => ({ value: tag.identifier, label: tag.displayName }));
 	let selectedTags: { value: string; label: string }[] = [];
 
@@ -52,7 +52,7 @@
 			tags: selectedTags.map((tag) => tag.value),
 			modules: [{ type: thymisDeviceModule?.type, settings: thymisDeviceModuleSettings }]
 		};
-		$state.configs = [...$state.configs, config];
+		$globalState.configs = [...$globalState.configs, config];
 		await saveState();
 
 		open = false;
