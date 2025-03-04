@@ -272,7 +272,8 @@
 			"ssh_command": "SSH Befehl Ausführen",
 			"run_nixos_vm_task": "NixOS VM für {device} ausführen"
 		},
-		"version": "Thymis version"
+		"version": "Thymis Version: {version}",
+		"version-short": "v{version}"
 	},
 	"tags": {
 		"actions": {

@@ -223,7 +223,8 @@
 			"ssh_command": "Run SSH Command",
 			"run_nixos_vm_task": "Run NixOS VM for {device}"
 		},
-		"version": "Thymis version"
+		"version": "Thymis version: {version}",
+		"version-short": "v{version}"
 	},
 	"config": {
 		"header": {
