@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { queryParam } from 'sveltekit-search-params';
 	import '../../app.postcss';
-	import type { Writable } from 'svelte/store';
 	import Navbar from '$lib/navbar/Navbar.svelte';
+	import { page } from '$app/state';
 
-	const redirectString = queryParam('redirect');
-	$: redirectStringDecoded = $redirectString ? decodeURI($redirectString) : null;
-	const authError: Writable<string | null> = queryParam('authError');
+	const redirectString = page.url.searchParams.get('redirect');
+	const redirectStringDecoded = redirectString ? decodeURI(redirectString) : null;
+	const authError = page.url.searchParams.get('authError');
 </script>
 
 <svelte:head>
@@ -33,7 +32,7 @@
 				>
 					Sign in to your account
 				</h1>
-				{#if $authError}
+				{#if authError}
 					<div
 						class="p-4 text-sm text-red-500 bg-red-100 rounded-lg dark:bg-red-700 dark:text-red-200"
 					>
@@ -75,7 +74,7 @@
 						class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
 						>Sign in</button
 					>
-					{#if $redirectString}
+					{#if redirectString}
 						<input type="text" name="redirect" value={redirectStringDecoded} hidden />
 					{/if}
 				</form>
