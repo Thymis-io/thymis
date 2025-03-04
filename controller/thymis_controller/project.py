@@ -11,6 +11,7 @@ import tempfile
 import threading
 import traceback
 import uuid
+from typing import TYPE_CHECKING
 
 import sqlalchemy
 import sqlalchemy.orm
@@ -22,6 +23,9 @@ from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
 from thymis_controller.notifications import NotificationManager
 from thymis_controller.repo import Repo
 from thymis_controller.task import controller as task
+
+if TYPE_CHECKING:
+    from thymis_controller import modules
 
 logger = logging.getLogger(__name__)
 
@@ -220,6 +224,43 @@ class Project:
     def decrypt(self, data: bytes) -> bytes:
         return decrypt(data, [self.controller_age_identity])
 
+    def _process_secret(
+        self, value: bytes, processing_type: db_models.SecretProcessingTypes
+    ) -> bytes:
+        """
+        Process a secret value according to the specified processing type.
+
+        Args:
+            value: The raw secret value to process
+            processing_type: The type of processing to apply
+
+        Returns:
+            Processed secret value as bytes
+        """
+        if processing_type == db_models.SecretProcessingTypes.NONE:
+            return value
+
+        if processing_type == db_models.SecretProcessingTypes.MKPASSWD_YESCRYPT:
+            try:
+                # Use mkpasswd to hash the password with yescrypt
+                result = subprocess.run(
+                    ["mkpasswd", "--method=yescrypt", "--stdin"],
+                    input=value,
+                    capture_output=True,
+                    check=True,
+                    text=False,  # Keep as bytes
+                )
+                return result.stdout.strip()
+            except subprocess.CalledProcessError as e:
+                logger.error(f"mkpasswd failed: {e}")
+                logger.error(f"stderr: {e.stderr}")
+                # Return the original value if processing fails
+                return value
+
+        # Fallback for any unhandled types
+        logger.warning(f"Unhandled processing type: {processing_type}")
+        return value
+
     def create_secret(
         self,
         db_session: sqlalchemy.orm.Session,
@@ -227,6 +268,8 @@ class Project:
         secret_type: db_models.SecretTypes,
         value: bytes,
         filename: str | None = None,
+        include_in_image: bool = False,
+        processing_type: db_models.SecretProcessingTypes = db_models.SecretProcessingTypes.NONE,
     ) -> db_models.Secret:
         # encrypt the value and save it to the database
         value_size = len(value)
@@ -238,6 +281,8 @@ class Project:
             value_enc,
             value_size,
             filename,
+            include_in_image,
+            processing_type,
         )
         return secret
 
@@ -260,6 +305,8 @@ class Project:
         secret_type: db_models.SecretTypes | None = None,
         value: bytes | None = None,
         filename: str | None = None,
+        include_in_image: bool | None = None,
+        processing_type: db_models.SecretProcessingTypes | None = None,
     ) -> models.SecretShort | None:
         # encrypt the value and save it to the database
         if value:
@@ -276,6 +323,8 @@ class Project:
             value_enc,
             value_size,
             filename,
+            include_in_image,
+            processing_type,
         )
         return (
             models.SecretShort.from_orm_secret(secret, self.decrypt) if secret else None
@@ -292,6 +341,7 @@ class Project:
         self,
         db_session: sqlalchemy.orm.Session,
         secret_id: uuid.UUID,
+        apply_processing: bool = True,
     ) -> tuple[bytes, str] | None:
         secret = crud.secrets.get_by_id(db_session, secret_id)
         if not secret:
@@ -301,6 +351,11 @@ class Project:
             return None
         # decrypt the value
         value = self.decrypt(secret.value_enc)
+
+        # Apply processing if requested
+        if apply_processing:
+            value = self._process_secret(value, secret.processing_type)
+
         return value, secret.filename
 
     def read_state(self):
@@ -314,7 +369,6 @@ class Project:
         with self.state_lock:
             with open(self.repo_dir / "state.json", "w", encoding="utf-8") as f:
                 f.write(state.model_dump_json(indent=2))
-        # write a flake.nix
         repositories = BUILTIN_REPOSITORIES | state.repositories
         with open(self.repo_dir / "flake.nix", "w+", encoding="utf-8") as f:
             f.write(render_flake_nix(repositories))
@@ -380,13 +434,38 @@ class Project:
                 )
                 traceback.print_exc()
 
+    def get_modules_for_config(
+        self, state: State, config: models.Config
+    ) -> list[tuple["modules.Module", models.ModuleSettings]]:
+        module_pairs = []  # module, modules_setting pair
+        for module_settings in config.modules:
+            try:
+                module = get_module_class_instance_by_type(module_settings.type)
+                module_pairs.append((module, module_settings))
+            except Exception as e:
+                logger.error(
+                    "Error while getting module %s: %s", module_settings.type, e
+                )
+                traceback.print_exc()
+        for tag in state.tags:
+            if tag.identifier in config.tags:
+                for module_settings in tag.modules:
+                    try:
+                        module = get_module_class_instance_by_type(module_settings.type)
+                        module_pairs.append((module, module_settings))
+                    except Exception as e:
+                        logger.error(
+                            "Error while getting module %s: %s", module_settings.type, e
+                        )
+                        traceback.print_exc()
+        return module_pairs
+
     def set_repositories_in_python_path(self, path: os.PathLike, state: State):
         repositories = BUILTIN_REPOSITORIES | state.repositories
         load_repositories(path, repositories)
 
-    if "RUNNING_IN_PLAYWRIGHT" in os.environ:
-
-        def clear_history(self, db_session: sqlalchemy.orm.Session):
+    def clear_history(self, db_session: sqlalchemy.orm.Session):
+        if "RUNNING_IN_PLAYWRIGHT" in os.environ:
             # reinits the git repo
             if (self.repo_dir / ".git").exists():
                 shutil.rmtree(self.repo_dir / ".git")
@@ -404,9 +483,8 @@ class Project:
             self.known_hosts_path = pathlib.Path(
                 tempfile.NamedTemporaryFile(delete=False).name
             )
-
-        deployment_infos = crud.deployment_info.get_all(db_session)
         with open(self.known_hosts_path, "w", encoding="utf-8") as f:
+            deployment_infos = crud.deployment_info.get_all(db_session)
             for di in deployment_infos:
                 if di.reachable_deployed_host and di.ssh_public_key:
                     f.write(f"{di.reachable_deployed_host} {di.ssh_public_key}\n")
@@ -422,7 +500,7 @@ class Project:
         return task_controller.submit(
             models.task.ProjectFlakeUpdateTaskSubmission(
                 project_path=str(self.path),
+                user_session_id=user_session_id,
+                db_session=db_session,
             ),
-            user_session_id=user_session_id,
-            db_session=db_session,
         )

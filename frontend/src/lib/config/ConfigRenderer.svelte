@@ -1,11 +1,18 @@
 <script lang="ts">
-	import type { ListSettingType, ModuleSettings, SelectOneSettingType, Setting } from '$lib/state';
+	import type {
+		ListSettingType,
+		ModuleSettings,
+		SecretSettingType,
+		SelectOneSettingType,
+		Setting
+	} from '$lib/state';
 	import ConfigString from './ConfigString.svelte';
 	import ConfigBool from './ConfigBool.svelte';
 	import ConfigTextarea from './ConfigTextarea.svelte';
 	import ConfigSelectOne from './ConfigSelectOne.svelte';
 	import ConfigList from './ConfigList.svelte';
 	import ConfigInt from './ConfigInt.svelte';
+	import ConfigSecret from './ConfigSecret.svelte';
 
 	export let setting: Setting;
 	export let value: unknown;
@@ -28,6 +35,13 @@
 		}
 		if (typeof setting.type === 'object' && setting.type.hasOwnProperty('inline-file')) {
 			return 'inline-file';
+		}
+		if (
+			typeof setting.type === 'object' &&
+			setting.type.hasOwnProperty('type') &&
+			setting.type.type === 'secret'
+		) {
+			return 'secret';
 		}
 		console.error(`Unknown setting type: ${setting.type}`);
 	};
@@ -55,6 +69,10 @@
 	const settingIsListOf = (setting: Setting): setting is Setting<ListSettingType> => {
 		return getTypeKeyFromSetting(setting) === 'list-of';
 	};
+
+	const settingIsSecret = (setting: Setting): setting is Setting<SecretSettingType> => {
+		return getTypeKeyFromSetting(setting) === 'secret';
+	};
 </script>
 
 {#if settingIsInt(setting)}
@@ -75,4 +93,6 @@
 		{onChange}
 		{disabled}
 	/>
+{:else if settingIsSecret(setting)}
+	<ConfigSecret {value} {setting} placeholder={setting.example} {onChange} {disabled} />
 {/if}

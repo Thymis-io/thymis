@@ -68,11 +68,20 @@
 
 	const canPaste = (clipboardText: string, setting: Setting<SettingType>) => {
 		if (clipboardText === undefined) return;
-		const parsed = JSON.parse(clipboardText);
-		return (
-			setting.type === typeof parsed.value ||
-			JSON.stringify(parsed.type) === JSON.stringify(setting.type)
-		);
+		try {
+			const parsed = JSON.parse(clipboardText);
+			return (
+				setting.type === typeof parsed.value ||
+				(parsed.type === 'secret' &&
+					typeof setting.type === 'object' &&
+					'type' in setting.type &&
+					setting.type.type === 'secret' &&
+					setting.type['allowed-types'].includes(parsed.secret_type)) ||
+				JSON.stringify(parsed.type) === JSON.stringify(setting.type)
+			);
+		} catch (e) {
+			return false;
+		}
 	};
 </script>
 

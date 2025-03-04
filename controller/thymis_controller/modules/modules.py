@@ -6,7 +6,7 @@ from io import StringIO
 from typing import List, Optional, Tuple, Union
 
 from pydantic import JsonValue
-from thymis_controller import models
+from thymis_controller import db_models, models
 from thymis_controller.models.module import SettingTypes, ValueTypes
 from thymis_controller.nix import convert_python_value_to_nix, format_nix_file
 from thymis_controller.project import Project
@@ -135,13 +135,34 @@ class ListType:
         )
 
 
-type SettingTypes = Union[ValueTypes, SelectOneType, ListType]
+@dataclass
+class SecretType:
+    allowed_types: List[db_models.SecretTypes]
+    default_processing_type: db_models.SecretProcessingTypes
+    default_save_to_image: bool
+
+    on_device_path: Optional[str] = None
+    on_device_owner: Optional[str] = None
+    on_device_group: Optional[str] = None
+    on_device_mode: Optional[str] = None
+
+    def get_model(self, locale: str) -> models.SecretType:
+        return models.SecretType(
+            allowed_types=self.allowed_types,
+            default_processing_type=self.default_processing_type,
+            default_save_to_image=self.default_save_to_image,
+        )
+
+
+type SettingTypes = Union[ValueTypes, SelectOneType, ListType, SecretType]
 
 
 def get_setting_type_model(setting: SettingTypes, locale: str) -> models.SettingTypes:
     if isinstance(setting, SelectOneType):
         return setting.get_model(locale)
     if isinstance(setting, ListType):
+        return setting.get_model(locale)
+    if isinstance(setting, SecretType):
         return setting.get_model(locale)
     return setting
 

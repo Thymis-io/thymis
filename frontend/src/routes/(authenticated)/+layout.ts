@@ -93,6 +93,25 @@ export const load = (async ({ fetch, url, data }) => {
 		console.error('Error fetching repo status', e);
 	}
 
+	// get secrets
+	const secretsResponse = await fetchWithNotify(
+		`/api/secrets`,
+		{
+			method: 'GET',
+			headers: {
+				'content-type': 'application/json'
+			}
+		},
+		{},
+		fetch
+	);
+	if (secretsResponse.status === 401) {
+		redirect(307, '/login');
+	}
+
+	// is uuid -> secret
+	const secrets = (await secretsResponse.json()) as Record<string, unknown>;
+
 	const taskPage = parseInt(url.searchParams.get('task-page') || '1');
 	const tasksPerPage = 20;
 	const { tasks: allTasks, totalCount: totalTaskCount } = await getAllTasks(
@@ -106,6 +125,7 @@ export const load = (async ({ fetch, url, data }) => {
 
 	return {
 		state: state,
+		secrets: secrets,
 		availableModules: availableModules,
 		repoStatus: repoStatus,
 		allTasks: allTasks,
