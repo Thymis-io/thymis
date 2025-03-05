@@ -281,6 +281,8 @@ test('Create moneyshot', async ({ page, request, browser }, testInfo) => {
 	// Create a update task as well as a project build task
 	await page.locator('button').filter({ hasText: 'Update' }).click();
 
+	await page.locator('td', { hasText: 'Update Nix Flake' }).first().waitFor();
+
 	await page.locator('button').filter({ hasText: 'Build' }).click();
 
 	// Take a screenshot
