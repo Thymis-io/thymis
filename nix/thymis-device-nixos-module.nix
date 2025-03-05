@@ -120,7 +120,7 @@ in
       restartIfChanged = false;
       after = [ "network.target" "sshd.service" ];
       wantedBy = [ "multi-user.target" ];
-      script = "${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent";
+      script = "exec ${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent";
       path = [
         "/run/current-system/sw"
       ];
