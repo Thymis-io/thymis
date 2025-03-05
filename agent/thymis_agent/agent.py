@@ -446,6 +446,8 @@ class Agent(ea.EdgeAgent):
                             )
                         ).model_dump_json()
                     )
+                    # wait a few seconds
+                    await asyncio.sleep(2)
                     # restart agent using systemd
                     os.system("systemctl restart thymis-agent")
 
