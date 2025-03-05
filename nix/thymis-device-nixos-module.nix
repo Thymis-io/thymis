@@ -136,6 +136,7 @@ in
       '';
     };
     system.activationScripts.users.deps = lib.mkIf (cfg.agent.enable) [ "thymis" ];
+    users.mutableUsers = lib.mkDefault false;
 
     documentation = {
       enable = lib.mkDefault false;
