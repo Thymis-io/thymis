@@ -43,6 +43,7 @@ async def deploy(
     task_controller: TaskControllerAD,
     network_relay: NetworkRelayAD,
     user_session_id: UserSessionIDAD,
+    db_session: DBSessionAD,
     configs: list[str] = Query(None, alias="config"),
 ):
     if project.repo.is_dirty():
@@ -60,18 +61,19 @@ async def deploy(
                 deployment_info.ssh_public_key
             )
         ):
+            state = project.read_state()
             config = next(
                 config
-                for config in project.read_state().configs
+                for config in state.configs
                 if config.identifier == deployment_info.deployed_config_id
             )
-            modules = project.get_modules_for_config(config)
+            modules = project.get_modules_for_config(state, config)
             secrets = []
             for module, settings in modules:
                 for secret_type, secret in module.register_secret_settings(
                     settings, project
                 ):
-                    project.get_secret(secret)
+                    project.get_secret(db_session, uuid.UUID(secret))
                     secrets.append(
                         agent.SecretForDevice(
                             secret_id=secret,

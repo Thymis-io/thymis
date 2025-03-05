@@ -644,6 +644,9 @@ def set_minimum_time(datetime_str: str):
 
 
 def main():
+    if "--just-place-secrets" in sys.argv:
+        Agent.place_secrets_on_start(find_agent_token())
+        sys.exit(0)
     agent_metadata = find_agent_metadata()
 
     if not agent_metadata:
@@ -668,8 +671,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # check args: if "--just-place-secrets" is passed, just place secrets and exit
-    if "--just-place-secrets" in sys.argv:
-        Agent.place_secrets_on_start(find_agent_token())
-        sys.exit(0)
     main()
