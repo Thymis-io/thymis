@@ -59,6 +59,7 @@ class SystemdNotifier:
 
     def notify(self, message: str):
         if self.NOTIFY_SOCKET is None:
+            logger.warning("NOTIFY_SOCKET is not set")
             return
 
         socket_path = self.NOTIFY_SOCKET
