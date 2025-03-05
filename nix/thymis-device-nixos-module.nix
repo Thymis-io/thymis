@@ -135,6 +135,7 @@ in
         CONTROLLER_HOST=${cfg.agent.controller-url} ${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent --just-place-secrets
       '';
     };
+    system.activationScripts.users.deps = lib.mkIf (cfg.agent.enable) [ "thymis" ];
 
     documentation = {
       enable = lib.mkDefault false;
