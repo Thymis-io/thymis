@@ -210,9 +210,9 @@ class RtESuccesfullySSHConnectedMessage(BaseModel):
 class SecretForDevice(BaseModel):
     secret_id: uuid.UUID
     path: str
-    owner: str
-    group: str
-    mode: str
+    owner: Optional[str]
+    group: Optional[str]
+    mode: Optional[str]
 
 
 class RtESendSecretsMessage(BaseModel):
@@ -488,7 +488,9 @@ class Agent(ea.EdgeAgent):
         # store message on disk at data dir / "thymis-secrets-message.json"
         data_path = find_data_path()
         if data_path:
-            with open(data_path / "thymis-secrets-message.json", "w") as f:
+            with open(
+                data_path / "thymis-secrets-message.json", "w", encoding="utf-8"
+            ) as f:
                 f.write(message.model_dump_json())
 
     @classmethod

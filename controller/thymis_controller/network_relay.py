@@ -15,6 +15,7 @@ import thymis_controller.models.task as models_task
 from fastapi import WebSocket
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
+from pyrage import ssh
 from thymis_controller.config import global_settings
 
 if TYPE_CHECKING:
@@ -352,23 +353,73 @@ class NetworkRelay(nr.NetworkRelay):
                     connection_id,
                 )
 
-        if not self.connection_id_to_start_message[connection_id].last_error or not (
-            "Input tag 'successfully_ssh_connected' found using 'kind' does not match any of the expected tags"
-            in self.connection_id_to_start_message[connection_id].last_error
-            or "Input tag 'keep_alive' found using 'kind' does not match any of the expected tags"
-            in self.connection_id_to_start_message[connection_id].last_error
-        ):
-            logger.info(
-                "Agent %s connected successfully, sending message to agent",
-                connection_id,
-            )
-            await edge_agent_connection.send_text(
-                agent.RelayToAgentMessage(
-                    inner=agent.RtESuccesfullySSHConnectedMessage(
-                        deployment_info_id=deployment_info_id
-                    )
-                ).model_dump_json()
-            )
+            if not self.connection_id_to_start_message[
+                connection_id
+            ].last_error or not (
+                "Input tag 'successfully_ssh_connected' found using 'kind' does not match any of the expected tags"
+                in self.connection_id_to_start_message[connection_id].last_error
+                or "Input tag 'keep_alive' found using 'kind' does not match any of the expected tags"
+                in self.connection_id_to_start_message[connection_id].last_error
+            ):
+                logger.info(
+                    "Agent %s connected successfully, sending message to agent",
+                    connection_id,
+                )
+                secrets = []
+                secret_infos = []
+                state = self.task_controller.project.read_state()
+                config = next(
+                    config
+                    for config in state.configs
+                    if config.identifier
+                    == self.connection_id_to_start_message[
+                        connection_id
+                    ].deployed_config_id
+                )
+                modules = self.task_controller.project.get_modules_for_config(
+                    state, config
+                )
+                for module, settings in modules:
+                    for secret_type, secret in module.register_secret_settings(
+                        settings, self.task_controller.project
+                    ):
+                        secrets.append(uuid.UUID(secret))
+                        secret_infos.append(
+                            agent.SecretForDevice(
+                                secret_id=secret,
+                                path=secret_type.on_device_path,
+                                owner=secret_type.on_device_owner,
+                                group=secret_type.on_device_group,
+                                mode=secret_type.on_device_mode,
+                            )
+                        )
+                processed_secrets = self.task_controller.project.get_processed_secrets(
+                    db_session,
+                    secrets,
+                    ssh.Recipient.from_str(
+                        self.connection_id_to_public_key[connection_id]
+                    ),
+                )
+
+                # await edge_agent_connection.send_text(
+                #     agent.RelayToAgentMessage(
+                #         inner=agent.RtESendSecretsMessage(
+                #             secrets={
+                #                 k: base64.b64encode(v).decode("utf-8")
+                #                 for k, v in processed_secrets.items()
+                #             },
+                #             secret_infos=secret_infos,
+                #         )
+                #     ).model_dump_json()
+                # )
+
+                await edge_agent_connection.send_text(
+                    agent.RelayToAgentMessage(
+                        inner=agent.RtESuccesfullySSHConnectedMessage(
+                            deployment_info_id=deployment_info_id
+                        )
+                    ).model_dump_json()
+                )
 
         async def msg_loop_but_close_connection_at_end():
             try:

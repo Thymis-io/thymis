@@ -700,7 +700,7 @@ Secrets sind perfekt für
                 secret_type = self.secrets.type.settings["secret"].type
                 this_secret_type = modules.SecretType(
                     **{
-                        **secret_type.dict(),
+                        **secret_type.__dict__,
                         "on_device_path": secret["path"] if "path" in secret else None,
                         "on_device_owner": (
                             secret["owner"] if "owner" in secret else None
