@@ -1,3 +1,4 @@
+import base64
 import logging
 import os
 import uuid
@@ -401,17 +402,17 @@ class NetworkRelay(nr.NetworkRelay):
                     ),
                 )
 
-                # await edge_agent_connection.send_text(
-                #     agent.RelayToAgentMessage(
-                #         inner=agent.RtESendSecretsMessage(
-                #             secrets={
-                #                 k: base64.b64encode(v).decode("utf-8")
-                #                 for k, v in processed_secrets.items()
-                #             },
-                #             secret_infos=secret_infos,
-                #         )
-                #     ).model_dump_json()
-                # )
+                await edge_agent_connection.send_text(
+                    agent.RelayToAgentMessage(
+                        inner=agent.RtESendSecretsMessage(
+                            secrets={
+                                k: base64.b64encode(v).decode("utf-8")
+                                for k, v in processed_secrets.items()
+                            },
+                            secret_infos=secret_infos,
+                        )
+                    ).model_dump_json()
+                )
 
                 await edge_agent_connection.send_text(
                     agent.RelayToAgentMessage(
