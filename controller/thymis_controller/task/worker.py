@@ -67,6 +67,8 @@ def listen_for_executor(conn: Connection, process_list: ProcessList):
                     process_list.kill_all()
                 case models_task.AgentSwitchToNewConfigurationResult():
                     process_list.msg_queue.put(message)
+                case models_task.AgentGotNewSecretsResult():
+                    pass
                 case models_task.SecretsResult():
                     process_list.msg_queue.put(message)
                 case _:
