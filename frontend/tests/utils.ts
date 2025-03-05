@@ -160,7 +160,7 @@ export const createConfiguration = async (
 	deviceType: string,
 	tags: string[]
 ) => {
-	await page.goto('/configuration/list');
+	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
 
 	const addConfigurationButton = page
 		.locator('button')
@@ -190,7 +190,7 @@ export const createConfiguration = async (
 };
 
 export const createTag = async (page: Page, name: string) => {
-	await page.goto('/tags');
+	await page.locator('nav:visible').locator('a', { hasText: 'Config-Tags' }).click();
 
 	const addTagButton = page.locator('button').filter({ hasText: 'Create Tag' });
 	await addTagButton.click();

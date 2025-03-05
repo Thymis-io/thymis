@@ -40,7 +40,7 @@ test('overview page shows overview', async ({ page, request }, testInfo) => {
 	await clearState(page, request);
 	await deleteAllTasks(page, request);
 
-	await page.goto('/overview');
+	await page.locator('nav:visible').locator('a', { hasText: 'Overview' }).click();
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 });
@@ -49,10 +49,8 @@ test('shows configuration', async ({ page, request }, testInfo) => {
 	const screenshotCounter = { count: 0 };
 	await clearState(page, request);
 	await deleteAllTasks(page, request);
-	const resp = await page.goto('/configuration/list');
 
-	// 200 OK is expected
-	expect(resp?.status()).toBe(200);
+	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
 	// We can add Configurations
@@ -104,29 +102,23 @@ test('explores more pages', async ({ page, request }, testInfo) => {
 	await deleteAllTasks(page, request);
 
 	// Navigate to the Devices page
-	await page.goto('/configuration/list');
+	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
 	// Naviagte to hardware devices page
-	await page.goto('/devices');
+	await page.locator('nav:visible').locator('a', { hasText: 'Devices' }).click();
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
 	// Navigate to the Tags page
-	const tagsNav = page.locator('a', { hasText: 'Tags' }).locator('visible=true').first();
-	await tagsNav.click();
+	await page.locator('nav:visible').locator('a', { hasText: 'Config-Tags' }).click();
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
 	// Navigate to the History page
-	const historyNav = page.locator('a', { hasText: 'History' }).locator('visible=true').first();
-	await historyNav.click();
+	await page.locator('nav:visible').locator('a', { hasText: 'History' }).click();
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
 	// Navigate to the External Repositories page
-	const externalReposNav = page
-		.locator('a', { hasText: 'External Repositories' })
-		.locator('visible=true')
-		.first();
-	await externalReposNav.click();
+	await page.locator('nav:visible').locator('a', { hasText: 'External Repositories' }).click();
 	await expectScreenshot(page, testInfo, screenshotCounter);
 });
 
@@ -136,7 +128,7 @@ test('create whoami tag', async ({ page, request }, testInfo) => {
 	await deleteAllTasks(page, request);
 
 	// Navigate to the Tags page and create a new tag
-	await page.goto('/tags');
+	await page.locator('nav:visible').locator('a', { hasText: 'Config-Tags' }).click();
 
 	const addTagButton = page.locator('button').filter({ hasText: 'Create Tag' });
 	await expectScreenshotWithHighlight(page, addTagButton, testInfo, screenshotCounter);
@@ -203,7 +195,7 @@ test('create whoami tag', async ({ page, request }, testInfo) => {
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
 	// Assign the tag
-	await page.goto('/configuration/list');
+	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
 
 	await page.locator('button').filter({ hasText: 'Create New Configuration' }).click();
 	await page.locator('#display-name').first().fill('Whoami Device');
@@ -238,7 +230,7 @@ test('Create update tasks', async ({ page, request }, testInfo) => {
 	await deleteAllTasks(page, request);
 
 	// Go to devices page
-	await page.goto('/configuration/list');
+	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
 
 	// Click on "Update" button
 	const updateButton = page.locator('button').filter({ hasText: 'Update' });
@@ -276,7 +268,7 @@ test('Create moneyshot', async ({ page, request, browser }, testInfo) => {
 	}
 
 	// Go to configuration list
-	await page.goto('/configuration/list');
+	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
 
 	// Create a update task as well as a project build task
 	await page.locator('button').filter({ hasText: 'Update' }).click();
@@ -338,7 +330,7 @@ test('Download Raspberry Pi 4 image', async ({ page, request }, testInfo) => {
 	// Create a configuration
 	await createConfiguration(page, 'My Device 1', 'Raspberry Pi 4', []);
 
-	await page.goto('/configuration/list');
+	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
 
 	// find row with 'My Device 1' and click on button 'View Details'
 	await page
@@ -377,7 +369,7 @@ test('VNC View', async ({ page, request }, testInfo) => {
 	await createDeploymentInfo(page, 'my-device-3', '', '127.0.0.4');
 	await createDeploymentInfo(page, 'my-device-4', '', '127.0.0.5');
 
-	await page.goto('/tags');
+	await page.locator('nav:visible').locator('a', { hasText: 'Config-Tags' }).click();
 
 	// add Kiosk module with VNC server to tag
 	const configureTagButton = page
@@ -400,11 +392,11 @@ test('VNC View', async ({ page, request }, testInfo) => {
 		.locator('..');
 	await enableVNCButton.click();
 
-	await page.locator('nav:visible').locator('a').filter({ hasText: 'VNC Devices' }).click();
-	await page.locator('nav:visible').locator('a').filter({ hasText: 'VNC Devices' }).click();
-	await page.locator('nav:visible').locator('a').filter({ hasText: 'VNC Devices' }).click();
-	await page.locator('nav:visible').locator('a').filter({ hasText: 'VNC Devices' }).click();
-	await page.locator('nav:visible').locator('a').filter({ hasText: 'VNC Devices' }).click();
+	await page.locator('nav:visible').locator('a', { hasText: 'VNC Devices' }).click();
+	await page.locator('nav:visible').locator('a', { hasText: 'VNC Devices' }).click();
+	await page.locator('nav:visible').locator('a', { hasText: 'VNC Devices' }).click();
+	await page.locator('nav:visible').locator('a', { hasText: 'VNC Devices' }).click();
+	await page.locator('nav:visible').locator('a', { hasText: 'VNC Devices' }).click();
 
 	// wait for "Displays per Row"
 	await page.getByText('Displays per Row:').waitFor();
@@ -428,7 +420,7 @@ test('Create History Entry', async ({ page, request }, testInfo) => {
 
 	await createConfiguration(page, 'My Device 1', 'Raspberry Pi 4', []);
 
-	await page.goto('/history');
+	await page.locator('nav:visible').locator('a', { hasText: 'History' }).click();
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
@@ -456,7 +448,7 @@ test('Configure Wifi Network', async ({ page, request }, testInfo) => {
 
 	await createConfiguration(page, 'My Device 1', 'Raspberry Pi 4', []);
 
-	await page.goto('/configuration/list');
+	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
 
 	await page.getByRole('button', { name: 'View Details' }).click();
 
