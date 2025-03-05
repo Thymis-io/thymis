@@ -1,12 +1,12 @@
 <script lang="ts">
-	let date: Date = $derived(new Date(Date.parse(timestamp)));
-
 	interface Props {
 		timestamp: string | undefined | null;
 		class?: string;
 	}
 
 	let { timestamp, class: clazz = '' }: Props = $props();
+
+	let date: Date = $derived(new Date(Date.parse(timestamp)));
 </script>
 
 {#if timestamp && date}
