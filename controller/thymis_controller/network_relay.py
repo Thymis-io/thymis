@@ -358,6 +358,10 @@ class NetworkRelay(nr.NetworkRelay):
             or "Input tag 'keep_alive' found using 'kind' does not match any of the expected tags"
             in self.connection_id_to_start_message[connection_id].last_error
         ):
+            logger.info(
+                "Agent %s connected successfully, sending message to agent",
+                connection_id,
+            )
             await edge_agent_connection.send_text(
                 agent.RelayToAgentMessage(
                     inner=agent.RtESuccesfullySSHConnectedMessage(
