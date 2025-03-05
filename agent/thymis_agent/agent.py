@@ -243,6 +243,7 @@ class Agent(ea.EdgeAgent):
         logger.info("Received custom relay message: %s", message)
         match message.inner:
             case RtESuccesfullySSHConnectedMessage():
+                logger.info("Successfully SSH connected")
                 self.signal_ssh_connected.set()
                 self.systemd_notifier.ready()
                 self.systemd_notifier.status("Connected to controller")
@@ -448,7 +449,7 @@ class Agent(ea.EdgeAgent):
         # load /etc/ssh/ssh_host_ed25519_key
         with open("/etc/ssh/ssh_host_ed25519_key", "rb") as f:
             key = f.read()
-        identity = ssh.Identity(key)
+        identity = ssh.Identity.from_buffer(key)
         for secret_info in secret_infos:
             secret = secrets[secret_info.secret_id]
             path = secret_info.path
