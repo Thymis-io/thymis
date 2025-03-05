@@ -252,7 +252,7 @@ class Agent(ea.EdgeAgent):
         self.systemd_notifier = systemd_notifier
 
     async def handle_custom_relay_message(self, message: RelayToAgentMessage):
-        logger.info("Received custom relay message: %s", message)
+        logger.info("Received custom relay message: %s", message.inner.kind)
         match message.inner:
             case RtESuccesfullySSHConnectedMessage():
                 logger.info("Successfully SSH connected")
