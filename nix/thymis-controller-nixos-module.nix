@@ -68,7 +68,7 @@ in
       wantedBy = [ "multi-user.target" ];
       wants = [ "network-online.target" ];
       after = [ "network-online.target" ];
-      script = "${cfg.package}/bin/thymis-controller";
+      script = "exec ${cfg.package}/bin/thymis-controller";
       serviceConfig.Restart = "always";
       path = [
         "/run/current-system/sw"
