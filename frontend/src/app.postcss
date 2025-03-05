@@ -7,3 +7,50 @@ html,
 body {
 	@apply h-full;
 }
+
+div.multiselect {
+	@apply !p-2;
+	@apply !rounded-lg;
+	@apply !bg-gray-50;
+	@apply dark:!bg-gray-600;
+	@apply !border;
+	@apply !border-gray-300;
+	@apply dark:!border-gray-500;
+}
+div.multiselect.open {
+	@apply !border-primary-500;
+	@apply !ring-primary-500;
+	@apply dark:focus:!border-primary-500;
+	@apply dark:focus:!ring-primary-500;
+}
+div.multiselect > svg {
+	width: 18px;
+}
+div.multiselect > button.remove {
+	margin: 0 3pt;
+}
+div.multiselect > ul.options > li {
+	@apply bg-gray-100;
+	@apply dark:bg-gray-800;
+}
+div.multiselect > ul.options > li.active {
+	@apply bg-gray-200;
+	@apply dark:bg-gray-700;
+}
+div.multiselect > ul > input {
+	@apply !p-0;
+	@apply bg-gray-50;
+	@apply dark:bg-gray-600;
+	@apply text-gray-800;
+	@apply dark:text-gray-200;
+	--tw-ring-shadow: none;
+}
+div.multiselect > ul.selected > li {
+	@apply !p-1;
+	@apply !px-2;
+	@apply !m-[1px];
+	@apply !rounded-lg;
+}
+div.multiselect > ul.selected > li > .remove {
+	@apply ml-1;
+}

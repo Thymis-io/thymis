@@ -119,39 +119,4 @@
 	:root {
 		--navbar-height: 50px;
 	}
-	:global(div.multiselect) {
-		@apply !p-2;
-		@apply !rounded-lg;
-		@apply !bg-gray-50;
-		@apply dark:!bg-gray-600;
-		@apply !border;
-		@apply !border-gray-300;
-		@apply dark:!border-gray-500;
-	}
-	:global(div.multiselect.open) {
-		@apply !border-primary-500;
-		@apply !ring-primary-500;
-		@apply dark:focus:!border-primary-500;
-		@apply dark:focus:!ring-primary-500;
-	}
-	:global(div.multiselect > svg) {
-		width: 18px;
-	}
-	:global(div.multiselect > ul.options > li) {
-		@apply bg-gray-100;
-		@apply dark:bg-gray-800;
-	}
-	:global(div.multiselect > ul.options > li.active) {
-		@apply bg-gray-200;
-		@apply dark:bg-gray-700;
-	}
-	:global(div.multiselect > ul > input) {
-		--tw-ring-shadow: none;
-	}
-	:global(div.multiselect > ul.selected > li) {
-		@apply !p-1;
-		@apply !px-2;
-		@apply !m-[1px];
-		@apply !rounded-lg;
-	}
 </style>
