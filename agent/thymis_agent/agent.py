@@ -20,6 +20,10 @@ import requests
 from pydantic import BaseModel, Field
 from pyrage import decrypt, passphrase, ssh
 
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+logging.basicConfig(level=logging.INFO, handlers=[ch])
+
 logger = logging.getLogger(__name__)
 
 HARDWARE_ID_FILE_PATHS = {
