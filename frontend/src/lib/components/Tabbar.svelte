@@ -26,7 +26,7 @@
 	};
 
 	let selectedTargetHasAnyVNCModule = $derived(
-		!nav.selectedTarget && targetShouldShowVNC(nav.selectedTarget, globalState)
+		nav.selectedTarget && targetShouldShowVNC(nav.selectedTarget, globalState)
 	);
 
 	let dynamicNavItems: NavItem[] = $derived([
