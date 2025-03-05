@@ -20,6 +20,6 @@ in
 writeShellApplication {
   name = "thymis-agent";
   text = ''
-    ${pythonEnv}/bin/thymis-agent "$@"
+    exec ${pythonEnv}/bin/thymis-agent "$@"
   '';
 }
