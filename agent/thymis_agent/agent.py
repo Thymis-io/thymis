@@ -470,8 +470,8 @@ class Agent(ea.EdgeAgent):
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, "wb") as f:
                 decoded = base64.b64decode(secret)
-                # use rage to decrypt the secret
-                decrypted = decrypt(decoded, identity)
+                # use rage to decrypt the secretq
+                decrypted = decrypt(decoded, [identity])
                 f.write(decrypted)
 
             if owner or group:
