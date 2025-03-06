@@ -214,6 +214,8 @@
 		"cancel": "Cancel",
 		"retry": "Retry",
 		"details": "View",
+		"minimize": "Minimize Taskbar",
+		"maximize": "Show Taskbar",
 		"task-types": {
 			"project_flake_update": "Update Nix Flake",
 			"build_project": "Build Project",

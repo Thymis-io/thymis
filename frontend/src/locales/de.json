@@ -263,6 +263,8 @@
 		"cancel": "Abbrechen",
 		"retry": "Erneut Versuchen",
 		"details": "Anzeigen",
+		"minimize": "Taskleiste Minimieren",
+		"maximize": "Taskleiste Anzeigen",
 		"task-types": {
 			"project_flake_update": "Nix Flake Updaten",
 			"build_project": "Projekt Bauen",
