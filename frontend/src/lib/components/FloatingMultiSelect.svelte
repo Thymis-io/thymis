@@ -1,17 +1,14 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { MultiSelect, type Option } from 'svelte-multiselect';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, onMount, type Snippet } from 'svelte';
 
 	type T = $$Generic<Option>;
-	const toT = (option: Option): T => option as T;
 
 	interface Props {
 		options: T[];
 		selected: T[];
 		outerDivClass: string;
-		children?: import('svelte').Snippet<[any]>;
+		children?: Snippet<[{ option: T }]>;
 	}
 
 	let { options, selected = $bindable(), outerDivClass, children }: Props = $props();
@@ -42,9 +39,10 @@
 		multiSelectMutationObserver?.disconnect();
 	};
 
-	run(() => {
+	onMount(() => {
 		multiSelectSetupObservers(multiSelectDiv);
 	});
+
 	onDestroy(multiSelectCleanupObservers);
 
 	const children_render = $derived(children);
@@ -57,7 +55,7 @@
 	bind:selected
 	{outerDivClass}
 >
-	{#snippet children({ option })}
-		{@render children_render?.({ option: toT(option) })}
+	{#snippet children({ option }: { option: T })}
+		{@render children_render?.({ option })}
 	{/snippet}
 </MultiSelect>
