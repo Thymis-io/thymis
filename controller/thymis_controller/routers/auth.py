@@ -75,7 +75,7 @@ def login_basic(
         # return 200 with http-equiv refresh
         response.media_type = "text/html"
         response.status_code = status.HTTP_200_OK
-        response.body = f'<!doctype html><meta charset=utf-8><title>Login successful</title><meta http-equiv="refresh" content="0; url=\'{redirect_url}\'"><body>Login successful'.encode(
+        response.body = f'<!doctype html><meta charset=utf-8><title>Login successful</title><meta http-equiv="refresh" content="1; url=\'{redirect_url}\'"><body>Login successful, click <a href="{redirect_url}">here</a> if you are not redirected.</body>'.encode(
             "utf-8"
         )
         return response
