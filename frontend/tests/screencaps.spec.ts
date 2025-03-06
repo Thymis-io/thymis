@@ -475,3 +475,36 @@ test('Configure Wifi Network', async ({ page, request }, testInfo) => {
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 });
+
+test('Drag Taskbar', async ({ page, request }, testInfo) => {
+	const screenshotCounter = { count: 0 };
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
+
+	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
+
+	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	const taskbar = page.locator('#taskbar');
+	const boundingBox = await taskbar.boundingBox();
+
+	if (!boundingBox) {
+		expect(boundingBox).not.toBeNull();
+		return;
+	}
+
+	await page.mouse.move(boundingBox?.width / 2, boundingBox.y);
+	await page.mouse.down();
+	await page.mouse.move(boundingBox?.width / 2, boundingBox.y - 200);
+	await page.mouse.up();
+
+	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	await page.getByTitle('Minimize Taskbar').first().click();
+
+	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	await page.getByTitle('Show Taskbar').first().click();
+
+	await expectScreenshot(page, testInfo, screenshotCounter);
+});

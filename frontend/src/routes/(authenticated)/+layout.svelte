@@ -89,6 +89,7 @@
 					{/snippet}
 					{#snippet b()}
 						<div
+							id="taskbar"
 							class="w-full relative border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900"
 						>
 							<div class="max-h-full overflow-x-hidden overflow-y-auto h-[calc(100%-40px)]">

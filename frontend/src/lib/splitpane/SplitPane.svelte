@@ -1,30 +1,25 @@
-<script>
-	import { run } from 'svelte/legacy';
-
-	import { createEventDispatcher } from 'svelte';
+<script lang="ts">
+	import type { Snippet } from 'svelte';
 	import { constrain } from './utils.js';
+	import type { Length } from './types';
 
-	/** @type {ReturnType<typeof createEventDispatcher<{ change: undefined }>>} */
-	const dispatch = createEventDispatcher();
+	interface Props {
+		id?: string;
+		type: 'horizontal' | 'vertical';
+		pos?: Length;
+		min?: Length;
+		max?: Length;
+		disabled?: boolean;
+		priority?: 'min' | 'max';
+		class?: string;
+		leftPaneClass?: string;
+		rightPaneClass?: string;
+		dividerClass?: string;
+		onchange?: () => void;
+		a?: Snippet;
+		b?: Snippet;
+	}
 
-	/**
-	 * @typedef {Object} Props
-	 * @property {string | undefined} [id]
-	 * @property {'horizontal' | 'vertical'} type
-	 * @property {import('./types').Length} [pos]
-	 * @property {import('./types').Length} [min]
-	 * @property {import('./types').Length} [max]
-	 * @property {boolean} [disabled]
-	 * @property {'min' | 'max'} [priority]
-	 * @property {string} [class]
-	 * @property {string} [leftPaneClass]
-	 * @property {string} [rightPaneClass]
-	 * @property {string} [dividerClass]
-	 * @property {import('svelte').Snippet} [a]
-	 * @property {import('svelte').Snippet} [b]
-	 */
-
-	/** @type {Props} */
 	let {
 		id = undefined,
 		type,
@@ -37,35 +32,28 @@
 		leftPaneClass = '',
 		rightPaneClass = '',
 		dividerClass = '',
+		onchange,
 		a,
 		b
-	} = $props();
+	}: Props = $props();
 
-	/** @type {HTMLElement} */
-	let splitpane_container = $state();
+	let splitpane_container: HTMLElement;
 
 	let dragging = $state(false);
 	let w = $state(0);
 	let h = $state(0);
 
-	let position;
-	run(() => {
-		position = pos;
-	});
+	let position = $state(pos);
 
 	// constrain position
-	run(() => {
+	$effect(() => {
 		if (splitpane_container) {
 			const size = type === 'horizontal' ? w : h;
 			position = constrain(splitpane_container, size, min, max, position, priority);
 		}
 	});
 
-	/**
-	 * @param {number} x
-	 * @param {number} y
-	 */
-	function update(x, y) {
+	function update(x: number, y: number) {
 		if (disabled) return;
 
 		const { top, left } = splitpane_container.getBoundingClientRect();
@@ -75,16 +63,11 @@
 
 		position = pos.endsWith('%') ? `${(100 * pos_px) / size}%` : `${pos_px}px`;
 
-		dispatch('change');
+		onchange?.();
 	}
 
-	/**
-	 * @param {HTMLElement} node
-	 * @param {(event: PointerEvent) => void} callback
-	 */
-	function drag(node, callback) {
-		/** @param {PointerEvent} event */
-		const pointerdown = (event) => {
+	function drag(node: HTMLElement, callback: (event: PointerEvent) => void) {
+		const pointerdown = (event: PointerEvent) => {
 			if (
 				(event.pointerType === 'mouse' && event.button === 2) ||
 				(event.pointerType !== 'mouse' && !event.isPrimary)
