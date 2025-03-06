@@ -2,6 +2,7 @@ import { browser } from '$app/environment';
 import { invalidate } from '$app/navigation';
 import { toast } from '@zerodevx/svelte-toast';
 import { fetchWithNotify } from './fetchWithNotify';
+import { navigating } from '$app/state';
 
 export type Notification = {
 	inner: ShouldInvalidate | FrontendToast | ImageBuiltNotification;
@@ -37,6 +38,20 @@ if (browser && navigator.locks) {
 	);
 }
 
+type InvalidateParams = Parameters<typeof invalidate>;
+type InvalidateReturn = ReturnType<typeof invalidate>;
+const invalidateButDeferUntilNavigation = async (
+	...params: InvalidateParams
+): Promise<InvalidateReturn> => {
+	// wait
+	// navigating.to should be null when we call invalidate
+	while (navigating.to) {
+		await new Promise((r) => setTimeout(r, 100));
+	}
+	// call invalidate
+	return await invalidate(...params);
+};
+
 export const startNotificationSocket = () => {
 	console.log('starting notification socket');
 	const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
@@ -47,7 +62,7 @@ export const startNotificationSocket = () => {
 			toast.push(notification.inner.message, { pausable: true });
 		} else if (notification.inner.kind === 'should_invalidate') {
 			const paths = notification.inner.should_invalidate_paths;
-			await invalidate((url: URL) => {
+			await invalidateButDeferUntilNavigation((url: URL) => {
 				return paths.some((path: string) => url.pathname.startsWith(path));
 			});
 		} else if (notification.inner.kind === 'image_built') {
