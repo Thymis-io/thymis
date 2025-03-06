@@ -75,8 +75,10 @@ def listen_for_executor(conn: Connection, process_list: ProcessList):
                     print("Received unexpected message %s", message)
                     assert_never(message)
         except EOFError:
+            print("Connection closed, EOFError")
             break
         except OSError:
+            print("Connection closed, OSError")
             break
 
 
