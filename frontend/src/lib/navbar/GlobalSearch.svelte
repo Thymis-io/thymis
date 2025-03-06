@@ -35,6 +35,7 @@
 	bind:value={search}
 	placeholder={$t('common.search')}
 />
+<!-- TODO use adjusted $lib/components/Dropdown -->
 <Dropdown
 	class="lg:w-64 xl:w-96 flex flex-col overflow-y-auto h-full w-full text-sm relative gap-1 py-1"
 	id="global-search-dropdown"
