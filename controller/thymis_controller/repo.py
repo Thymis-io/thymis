@@ -8,6 +8,7 @@ import threading
 
 from pydantic import BaseModel
 from thymis_controller.notifications import NotificationManager
+from thymis_controller.routers.frontend import is_running_in_playwright
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
@@ -107,7 +108,9 @@ class Repo:
             )
 
     def add(self, *files: pathlib.Path):
-        logger.info(f"Adding files to git: {', '.join(files)}")
+        self.run_command("git", "add", "--intent-to-add", *files)
+        unstaged_files = self.run_command("git", "diff", "--name-only").splitlines()
+        logger.info(f"Adding changed files to git index: {', '.join(unstaged_files)}")
         self.run_command("git", "add", *files)
 
     def commit(self, message: str):
