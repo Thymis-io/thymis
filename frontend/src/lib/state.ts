@@ -27,15 +27,67 @@ export type ModuleSettingsWithOrigin = {
 	priority: number | undefined;
 };
 
+// type ValueTypes = Literal["bool", "string", "path", "package", "textarea", "int"]
+
+// class SelectOneType(BaseModel):
+//     type: Literal["select-one"] = "select-one"
+//     select_one: List[Tuple[str, str]] = Field(serialization_alias="select-one")
+//     extra_data: Optional[dict[str, JsonValue]] = Field(default=None)
+
+// class ListType(BaseModel):
+//     type: Literal["list"] = "list"
+//     settings: dict[str, "Setting"] = Field(serialization_alias="list-of")
+//     element_name: Optional[str] = Field(
+//         serialization_alias="element-name", default=None
+//     )
+
+// class SecretType(BaseModel):
+//     type: Literal["secret"] = "secret"
+//     allowed_types: List[db_models.SecretTypes] = Field(
+//         serialization_alias="allowed-types", default_factory=list
+//     )
+//     default_processing_type: db_models.SecretProcessingTypes = Field(
+//         serialization_alias="default-processing-type",
+//         default=db_models.SecretProcessingTypes.NONE,
+//     )
+//     default_save_to_image: bool = Field(
+//         serialization_alias="default-save-to-image", default=False
+//     )
+
+// class InlineFileType(BaseModel):
+//     type: Literal["inline-file"] = "inline-file"
+//     accept: Optional[str] = None
+
+// type SettingTypes = Union[ValueTypes, SelectOneType, ListType, SecretType, InlineFileType]
+
+export type SecretType = 'single_line' | 'multi_line' | 'env_list' | 'file';
+export type SecretProcessingType = 'none' | 'mkpasswd-yescrypt';
+
+// A setting can be different types
+export type Setting<T = any> = {
+	displayName: string;
+	description?: string;
+	type: T;
+	order?: number;
+	default?: any;
+	example?: string;
+};
+
 export type SelectOneSettingType = {
-	'select-one': string[][];
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	extra_data?: Record<string, any>;
+	'select-one': [string, string][];
+	'extra-data'?: Record<string, unknown>;
 };
 
 export type ListSettingType = {
-	'list-of': Setting[];
-	'element-name': string | undefined;
+	'list-of': Record<string, Setting>;
+	'element-name'?: string;
+};
+
+export type SecretSettingType = {
+	type: 'secret';
+	'allowed-types'?: SecretType[];
+	'default-processing-type'?: SecretProcessingType;
+	'default-save-to-image'?: boolean;
 };
 
 export type SettingType =
@@ -45,7 +97,8 @@ export type SettingType =
 	| 'textarea'
 	| 'int'
 	| SelectOneSettingType
-	| ListSettingType;
+	| ListSettingType
+	| SecretSettingType;
 
 export type Setting<T extends SettingType = SettingType> = {
 	displayName: string;

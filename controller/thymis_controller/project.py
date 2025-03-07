@@ -11,16 +11,21 @@ import tempfile
 import threading
 import traceback
 import uuid
+from typing import TYPE_CHECKING
 
 import sqlalchemy
 import sqlalchemy.orm
-from thymis_controller import crud, migration, models
+from pyrage import decrypt, encrypt, passphrase, ssh
+from thymis_controller import crud, db_models, migration, models
 from thymis_controller.config import global_settings
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
 from thymis_controller.notifications import NotificationManager
 from thymis_controller.repo import Repo
 from thymis_controller.task import controller as task
+
+if TYPE_CHECKING:
+    from thymis_controller import modules
 
 logger = logging.getLogger(__name__)
 
@@ -145,6 +150,8 @@ class Project:
     public_key: str
     state_lock = threading.Lock()
     repo_dir: pathlib.Path
+    controller_age_identity: ssh.Identity
+    controller_age_recipient: ssh.Recipient
 
     def __init__(
         self,
@@ -171,6 +178,7 @@ class Project:
             ],
             capture_output=True,
             text=True,
+            check=True,
         )
 
         if public_key_process.returncode != 0:
@@ -178,6 +186,14 @@ class Project:
             self.public_key = None
         else:
             self.public_key = public_key_process.stdout.strip()
+
+        # get age identity
+        with open(global_settings.PROJECT_PATH / "id_thymis", "rb") as f:
+            controller_age = ssh.Identity.from_buffer(
+                f.read(),
+            )
+        self.controller_age_identity = controller_age
+        self.controller_age_recipient = ssh.Recipient.from_str(self.public_key)
 
         # create a state, if not exists
         state_path = self.repo_dir / "state.json"
@@ -202,6 +218,176 @@ class Project:
         self.known_hosts_path = None
         self.update_known_hosts(db_session)
 
+    def encrypt(self, data: bytes) -> bytes:
+        return encrypt(data, [self.controller_age_recipient])
+
+    def decrypt(self, data: bytes) -> bytes:
+        return decrypt(data, [self.controller_age_identity])
+
+    def _process_secret(
+        self, value: bytes, processing_type: db_models.SecretProcessingTypes
+    ) -> bytes:
+        """
+        Process a secret value according to the specified processing type.
+
+        Args:
+            value: The raw secret value to process
+            processing_type: The type of processing to apply
+
+        Returns:
+            Processed secret value as bytes
+        """
+        if processing_type == db_models.SecretProcessingTypes.NONE:
+            return value
+
+        if processing_type == db_models.SecretProcessingTypes.MKPASSWD_YESCRYPT:
+            try:
+                # Use mkpasswd to hash the password with yescrypt
+                result = subprocess.run(
+                    ["mkpasswd", "--method=yescrypt", "--stdin"],
+                    input=value,
+                    capture_output=True,
+                    check=True,
+                    text=False,  # Keep as bytes
+                )
+                return result.stdout.strip()
+            except subprocess.CalledProcessError as e:
+                logger.error(f"mkpasswd failed: {e}")
+                logger.error(f"stderr: {e.stderr}")
+                # Return the original value if processing fails
+                return value
+
+        # Fallback for any unhandled types
+        logger.warning(f"Unhandled processing type: {processing_type}")
+        return value
+
+    def get_processed_secrets(
+        self,
+        db_session: sqlalchemy.orm.Session,
+        secret_ids: list[uuid.UUID],
+        recipient: ssh.Recipient | str,
+    ) -> dict[uuid.UUID, bytes]:
+        # decrypt, process, encrypt
+        secrets = crud.secrets.get_by_ids(db_session, secret_ids)
+        processed_secrets = {}
+        for secret in secrets:
+            value = self.decrypt(secret.value_enc)
+            value = self._process_secret(value, secret.processing_type)
+            if isinstance(recipient, str):
+                value = passphrase.encrypt(value, recipient)
+            else:
+                value = encrypt(value, [recipient])
+            processed_secrets[secret.id] = value
+        return processed_secrets
+
+    def create_secret(
+        self,
+        db_session: sqlalchemy.orm.Session,
+        display_name: str,
+        secret_type: db_models.SecretTypes,
+        value: bytes,
+        filename: str | None = None,
+        include_in_image: bool = False,
+        processing_type: db_models.SecretProcessingTypes = db_models.SecretProcessingTypes.NONE,
+    ) -> db_models.Secret:
+        # encrypt the value and save it to the database
+        value_size = len(value)
+        value_enc = self.encrypt(value)
+        secret = crud.secrets.create(
+            db_session,
+            display_name,
+            secret_type,
+            value_enc,
+            value_size,
+            filename,
+            include_in_image,
+            processing_type,
+        )
+        return secret
+
+    def get_all_secrets(
+        self,
+        db_session: sqlalchemy.orm.Session,
+    ) -> dict[uuid.UUID, models.SecretShort]:
+        # get all secrets from the database
+        secrets = crud.secrets.get_all_secrets(db_session)
+        return {
+            secret.id: models.SecretShort.from_orm_secret(secret, self.decrypt)
+            for secret in secrets
+        }
+
+    def get_secret(
+        self,
+        db_session: sqlalchemy.orm.Session,
+        secret_id: uuid.UUID,
+    ) -> models.SecretShort | None:
+        # get a secret from the database
+        secret = crud.secrets.get_by_id(db_session, secret_id)
+        return (
+            models.SecretShort.from_orm_secret(secret, self.decrypt) if secret else None
+        )
+
+    def update_secret(
+        self,
+        db_session: sqlalchemy.orm.Session,
+        secret_id: uuid.UUID,
+        display_name: str | None = None,
+        secret_type: db_models.SecretTypes | None = None,
+        value: bytes | None = None,
+        filename: str | None = None,
+        include_in_image: bool | None = None,
+        processing_type: db_models.SecretProcessingTypes | None = None,
+    ) -> models.SecretShort | None:
+        # encrypt the value and save it to the database
+        if value:
+            value_size = len(value)
+            value_enc = self.encrypt(value)
+        else:
+            value_size = None
+            value_enc = None
+        secret = crud.secrets.update(
+            db_session,
+            secret_id,
+            display_name,
+            secret_type,
+            value_enc,
+            value_size,
+            filename,
+            include_in_image,
+            processing_type,
+        )
+        return (
+            models.SecretShort.from_orm_secret(secret, self.decrypt) if secret else None
+        )
+
+    def delete_secret(
+        self,
+        db_session: sqlalchemy.orm.Session,
+        secret_id: uuid.UUID,
+    ) -> bool:
+        return crud.secrets.delete(db_session, secret_id)
+
+    def download_secret_file(
+        self,
+        db_session: sqlalchemy.orm.Session,
+        secret_id: uuid.UUID,
+        apply_processing: bool = True,
+    ) -> tuple[bytes, str] | None:
+        secret = crud.secrets.get_by_id(db_session, secret_id)
+        if not secret:
+            return None
+        # assert
+        if not secret.filename and (not secret.type == db_models.SecretTypes.FILE):
+            return None
+        # decrypt the value
+        value = self.decrypt(secret.value_enc)
+
+        # Apply processing if requested
+        if apply_processing:
+            value = self._process_secret(value, secret.processing_type)
+
+        return value, secret.filename
+
     def read_state(self):
         with self.state_lock:
             with open(self.repo_dir / "state.json", "r", encoding="utf-8") as f:
@@ -213,7 +399,6 @@ class Project:
         with self.state_lock:
             with open(self.repo_dir / "state.json", "w", encoding="utf-8") as f:
                 f.write(state.model_dump_json(indent=2))
-        # write a flake.nix
         repositories = BUILTIN_REPOSITORIES | state.repositories
         with open(self.repo_dir / "flake.nix", "w+", encoding="utf-8") as f:
             f.write(render_flake_nix(repositories))
@@ -279,6 +464,32 @@ class Project:
                 )
                 traceback.print_exc()
 
+    def get_modules_for_config(
+        self, state: State, config: models.Config
+    ) -> list[tuple["modules.Module", models.ModuleSettings]]:
+        module_pairs = []  # module, modules_setting pair
+        for module_settings in config.modules:
+            try:
+                module = get_module_class_instance_by_type(module_settings.type)
+                module_pairs.append((module, module_settings))
+            except Exception as e:
+                logger.error(
+                    "Error while getting module %s: %s", module_settings.type, e
+                )
+                traceback.print_exc()
+        for tag in state.tags:
+            if tag.identifier in config.tags:
+                for module_settings in tag.modules:
+                    try:
+                        module = get_module_class_instance_by_type(module_settings.type)
+                        module_pairs.append((module, module_settings))
+                    except Exception as e:
+                        logger.error(
+                            "Error while getting module %s: %s", module_settings.type, e
+                        )
+                        traceback.print_exc()
+        return module_pairs
+
     def set_repositories_in_python_path(self, path: os.PathLike, state: State):
         repositories = BUILTIN_REPOSITORIES | state.repositories
         load_repositories(path, repositories)
@@ -302,9 +513,8 @@ class Project:
             self.known_hosts_path = pathlib.Path(
                 tempfile.NamedTemporaryFile(delete=False).name
             )
-
-        deployment_infos = crud.deployment_info.get_all(db_session)
         with open(self.known_hosts_path, "w", encoding="utf-8") as f:
+            deployment_infos = crud.deployment_info.get_all(db_session)
             for di in deployment_infos:
                 if di.reachable_deployed_host and di.ssh_public_key:
                     f.write(f"{di.reachable_deployed_host} {di.ssh_public_key}\n")

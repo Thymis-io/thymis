@@ -6,7 +6,7 @@
 	import { getDeviceTypesMap, getDeviceType } from '$lib/config/configUtils';
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import { page } from '$app/stores';
-	import PageHead from '$lib/components/PageHead.svelte';
+	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 
 	export let data: PageData;

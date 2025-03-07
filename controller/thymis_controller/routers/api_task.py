@@ -66,17 +66,16 @@ async def retry_task(
     return {"message": "Task retried"}
 
 
-@router.post("/tasks/delete_all")
-async def delete_all(
-    task_controller: TaskControllerAD,
-    db_session: DBSessionAD,
-    project: ProjectAD,
-    network_relay: NetworkRelayAD,
-):
-    if is_running_in_playwright():
+if is_running_in_playwright():
+
+    @router.post("/tasks/delete_all")
+    async def delete_all(
+        task_controller: TaskControllerAD,
+        db_session: DBSessionAD,
+        project: ProjectAD,
+        network_relay: NetworkRelayAD,
+    ):
         await network_relay.disconnect_and_ban_all_connections(db_session)
         task_controller.delete_all_tasks(db_session)
         project.clear_history(db_session)
         return {"message": "All tasks deleted"}
-    else:
-        return Response(status_code=403)

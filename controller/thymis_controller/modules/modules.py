@@ -6,7 +6,7 @@ from io import StringIO
 from typing import List, Optional, Tuple, Union
 
 from pydantic import JsonValue
-from thymis_controller import models
+from thymis_controller import db_models, models
 from thymis_controller.models.module import SettingTypes, ValueTypes
 from thymis_controller.nix import convert_python_value_to_nix, format_nix_file
 from thymis_controller.project import Project
@@ -90,12 +90,55 @@ class Module(ABC):
                 print(f"Attribute {attr} not found in {self}")
                 continue
             assert isinstance(my_attr, Setting)
-            if isinstance(my_attr.type, models.ListType):
+            if isinstance(my_attr.type, ListType):
                 continue
             if my_attr.nix_attr_name is not None:
                 f.write(
                     f"  {my_attr.nix_attr_name} = lib.mkOverride {priority} {convert_python_value_to_nix(value)};\n"
                 )
+
+    def register_secret_settings(
+        self,
+        module_settings: "models.ModuleSettings",
+        project: Project,
+    ) -> List[Tuple["SecretType", JsonValue]]:
+        secret_settings = []
+        for attr, value in module_settings.settings.items():
+            try:
+                my_attr = getattr(self, attr)
+            except AttributeError:
+                import traceback
+
+                traceback.print_exc()
+                print(f"Attribute {attr} not found in {self}")
+                continue
+            assert isinstance(my_attr, Setting)
+            if isinstance(my_attr.type, ListType):
+                self._register_secret_settings_list(
+                    my_attr.type, value, project, secret_settings
+                )
+            elif isinstance(my_attr.type, SecretType):
+                secret_settings.append((my_attr.type, value))
+            else:
+                pass
+        return secret_settings
+
+    def _register_secret_settings_list(
+        self,
+        setting: models.ListType,
+        value: JsonValue,
+        project: Project,
+        secret_settings: List[Tuple["Setting", JsonValue]],
+    ):
+        for v in value:
+            # list of objects, iterate over keys
+            if isinstance(v, dict):
+                for k, v in v.items():
+                    try:
+                        if isinstance(setting.settings[k].type, models.SecretType):
+                            secret_settings.append((setting.settings[k].type, v))
+                    except KeyError:
+                        pass
 
 
 class LocalizedString:
@@ -135,13 +178,34 @@ class ListType:
         )
 
 
-type SettingTypes = Union[ValueTypes, SelectOneType, ListType]
+@dataclass
+class SecretType:
+    allowed_types: List[db_models.SecretTypes]
+    default_processing_type: db_models.SecretProcessingTypes
+    default_save_to_image: bool
+
+    on_device_path: Optional[str] = None
+    on_device_owner: Optional[str] = None
+    on_device_group: Optional[str] = None
+    on_device_mode: Optional[str] = None
+
+    def get_model(self, locale: str) -> models.SecretType:
+        return models.SecretType(
+            allowed_types=self.allowed_types,
+            default_processing_type=self.default_processing_type,
+            default_save_to_image=self.default_save_to_image,
+        )
+
+
+type SettingTypes = Union[ValueTypes, SelectOneType, ListType, SecretType]
 
 
 def get_setting_type_model(setting: SettingTypes, locale: str) -> models.SettingTypes:
     if isinstance(setting, SelectOneType):
         return setting.get_model(locale)
     if isinstance(setting, ListType):
+        return setting.get_model(locale)
+    if isinstance(setting, SecretType):
         return setting.get_model(locale)
     return setting
 

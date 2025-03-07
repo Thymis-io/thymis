@@ -120,7 +120,7 @@ in
       restartIfChanged = false;
       after = [ "network.target" "sshd.service" ];
       wantedBy = [ "multi-user.target" ];
-      script = "${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent";
+      script = "exec ${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent";
       path = [
         "/run/current-system/sw"
       ];
@@ -130,6 +130,14 @@ in
       serviceConfig.Restart = "always";
       serviceConfig.Type = "notify";
     };
+    system.activationScripts.thymis = lib.mkIf (cfg.agent.enable) {
+      text = ''
+        CONTROLLER_HOST=${cfg.agent.controller-url} ${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent --just-place-secrets
+      '';
+    };
+    system.activationScripts.users.deps = lib.mkIf (cfg.agent.enable) [ "thymis" ];
+    users.mutableUsers = lib.mkDefault false;
+    users.allowNoPasswordLogin = lib.mkDefault true;
 
     documentation = {
       enable = lib.mkDefault false;
