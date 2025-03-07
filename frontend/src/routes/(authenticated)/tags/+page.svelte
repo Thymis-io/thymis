@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
-	import { saveState, state, type Tag } from '$lib/state';
+	import { saveState, type Tag } from '$lib/state';
 	import {
 		Button,
 		Table,
@@ -27,34 +27,44 @@
 	import PageHead from '$lib/components/PageHead.svelte';
 	import type { PageData } from './$types';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
 
-	$: tags = $state.tags.map((t) => ({ id: t.identifier, data: t }));
-	$: projectTags = $state.tags;
-	$: projectTagIds = projectTags.map((t) => t.identifier);
+	let { data }: Props = $props();
 
-	let deleteTag: Tag | undefined = undefined;
-	let createTagModalOpen = false;
+	type DraggableTag = { id: string; data: Tag };
+	let tags = $state<DraggableTag[]>(
+		data.globalState.tags.map((t) => ({ id: t.identifier, data: t }))
+	);
+	$effect(() => {
+		tags = data.globalState.tags.map((t) => ({ id: t.identifier, data: t }));
+	});
+
+	let projectTags = $derived(data.globalState.tags);
+	let projectTagIds = $derived(projectTags.map((t) => t.identifier));
+
+	let deleteTag: Tag | undefined = $state(undefined);
+	let createTagModalOpen = $state(false);
 
 	const flipDurationMs = 200;
-	let dragDisabled = true;
+	let dragDisabled = $state(true);
 
 	const removeTag = (tag: string) => {
-		$state.tags = projectTags.filter((t) => t.identifier !== tag);
-
-		$state.configs = $state.configs.map((config) => {
+		data.globalState.tags = projectTags.filter((t) => t.identifier !== tag);
+		data.globalState.configs = data.globalState.configs.map((config) => {
 			config.tags = config.tags.filter((t) => t !== tag);
 			return config;
 		});
 
-		saveState();
+		saveState(data.globalState);
 	};
 
 	const renameTag = (oldTagIdentifier: string, newTag: string) => {
 		const newIdentifier = nameToIdentifier(newTag);
 
 		if (newTag && !projectTagIds.includes(newIdentifier)) {
-			$state.tags = projectTags.map((t) => {
+			data.globalState.tags = projectTags.map((t) => {
 				if (t.identifier === oldTagIdentifier) {
 					t.displayName = newTag;
 					t.identifier = newIdentifier;
@@ -62,12 +72,12 @@
 				return t;
 			});
 
-			$state.configs = $state.configs.map((config) => {
+			data.globalState.configs = data.globalState.configs.map((config) => {
 				config.tags = config.tags.map((t) => (t === oldTagIdentifier ? newIdentifier : t));
 				return config;
 			});
 
-			saveState();
+			saveState(data.globalState);
 			return true;
 		}
 
@@ -92,7 +102,7 @@
 			info: { source, trigger }
 		} = e.detail;
 		tags = newItems;
-		$state.tags = tags.map((t) => t.data);
+		data.globalState.tags = tags.map((t) => t.data);
 		// Ensure dragging is stopped on drag finish via keyboard
 		if (source === SOURCES.KEYBOARD && trigger === TRIGGERS.DRAG_STOPPED) {
 			dragDisabled = true;
@@ -110,7 +120,12 @@
 	}) satisfies KeyboardEventHandler<HTMLDivElement>;
 </script>
 
-<PageHead title={$t('nav.tags')} repoStatus={data.repoStatus}>
+<PageHead
+	title={$t('nav.tags')}
+	repoStatus={data.repoStatus}
+	globalState={data.globalState}
+	nav={data.nav}
+>
 	<Button
 		color="alternative"
 		class="whitespace-nowrap gap-2 px-2 py-1 m-1"
@@ -130,7 +145,7 @@
 	}}
 	on:cancel={() => (deleteTag = undefined)}
 />
-<CreateTagModal bind:open={createTagModalOpen} />
+<CreateTagModal globalState={data.globalState} bind:open={createTagModalOpen} />
 <Table shadow>
 	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2 w-12" />
@@ -140,8 +155,8 @@
 	</TableHead>
 	<tbody
 		use:dndzone={{ items: tags, dragDisabled, flipDurationMs }}
-		on:consider={handleConsider}
-		on:finalize={handleFinalize}
+		onconsider={handleConsider}
+		onfinalize={handleFinalize}
 	>
 		{#each tags as tag (tag.id)}
 			{@const displayName = tag.data.displayName}
@@ -157,9 +172,9 @@
 							role="button"
 							class="handle"
 							style={dragDisabled ? 'cursor: grab' : 'cursor: grabbing'}
-							on:mousedown={startDrag}
-							on:touchstart={startDrag}
-							on:keydown={handleKeyDown}
+							onmousedown={startDrag}
+							ontouchstart={startDrag}
+							onkeydown={handleKeyDown}
 						>
 							<GripVertical size={'1rem'} class="min-w-4" />
 						</div>
@@ -176,10 +191,12 @@
 						}
 					}}
 				>
-					<svelte:fragment slot="bottom" let:value={newTagDisplayName}>
-						{#if nameValidation(newTagDisplayName, 'tag')}
+					{#snippet bottom({ value: newTagDisplayName })}
+						{#if nameValidation(data.globalState, newTagDisplayName, 'tag')}
 							{#if newTagDisplayName !== displayName}
-								<Helper color="red">{nameValidation(newTagDisplayName, 'tag')}</Helper>
+								<Helper color="red">
+									{nameValidation(data.globalState, newTagDisplayName, 'tag')}
+								</Helper>
 							{/if}
 						{:else}
 							<Helper color="green">
@@ -188,10 +205,10 @@
 								})}
 							</Helper>
 						{/if}
-					</svelte:fragment>
+					{/snippet}
 				</TableBodyEditCell>
 				<TableBodyCell tdClass="p-2 px-2 md:px-4">
-					{@const configsWithTag = $state.configs.filter((config) =>
+					{@const configsWithTag = data.globalState.configs.filter((config) =>
 						config.tags.includes(tag.data.identifier)
 					)}
 					<div class="flex flex-wrap gap-2">
@@ -199,7 +216,7 @@
 							<Button
 								size="sm"
 								class="p-2 py-0.5 gap-1"
-								href={`/configuration/edit?${buildGlobalNavSearchParam($page.url.search, 'config', config.identifier)}`}
+								href={`/configuration/edit?${buildGlobalNavSearchParam(data.globalState, $page.url.search, 'config', config.identifier)}`}
 							>
 								<FileCode size={'0.75rem'} class="min-w-3" />
 								<span class="text-nowrap">
@@ -214,7 +231,7 @@
 						size="sm"
 						color="alternative"
 						class="p-3 py-1.5 gap-2"
-						href={`/configuration/edit?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.data.identifier)}`}
+						href={`/configuration/edit?${buildGlobalNavSearchParam(data.globalState, $page.url.search, 'tag', tag.data.identifier)}`}
 					>
 						<Pen size={18} />
 						{$t('tags.actions.edit')}

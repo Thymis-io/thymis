@@ -1,10 +1,7 @@
 import { browser } from '$app/environment';
 import { get, writable } from 'svelte/store';
-import { invalidate } from '$app/navigation';
 import { fetchWithNotify } from './fetchWithNotify';
 import { page } from '$app/stores';
-import { currentState, getConfigByIdentifier } from './state';
-import { getConfigImageFormat } from './config/configUtils';
 
 export type TaskState = 'pending' | 'running' | 'completed' | 'failed';
 

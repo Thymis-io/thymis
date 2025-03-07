@@ -1,8 +1,12 @@
 <script lang="ts">
 	import type { Module } from '$lib/state';
 
-	export let module: Module;
-	export let theme: 'auto' | 'dark' | 'light' = 'auto';
+	interface Props {
+		module: Module;
+		theme?: 'auto' | 'dark' | 'light';
+	}
+
+	let { module, theme = 'auto' }: Props = $props();
 
 	let iconLight = module.icon ?? module.iconDark ?? '/ModuleIcon.svg';
 	let iconDark = module.iconDark ?? module.icon ?? '/ModuleIcon_dark.svg';

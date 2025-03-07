@@ -1,26 +1,29 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import Section from './Section.svelte';
-	import { saveState, type Config, state } from '$lib/state';
+	import { saveState, type Config, type State } from '$lib/state';
 	import { Button } from 'flowbite-svelte';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import Trash from 'lucide-svelte/icons/trash-2';
 	import { goto } from '$app/navigation';
 
-	export let config: Config;
+	interface Props {
+		globalState: State;
+		config: Config;
+		class?: string;
+	}
 
-	let configToDelete: Config | undefined = undefined;
+	let { globalState, config, class: className = '' }: Props = $props();
+
+	let configToDelete: Config | undefined = $state(undefined);
 
 	const deleteConfiguration = async (config: Config) => {
 		const identifier = config.identifier;
-		$state.configs = $state.configs.filter((config) => config.identifier !== identifier);
-		await saveState();
+		globalState.configs = globalState.configs.filter((config) => config.identifier !== identifier);
+		await saveState(globalState);
 		// await goto('/configuration/list');
 		setTimeout(async () => await goto('/configuration/list'), 200);
 	};
-
-	let className = '';
-	export { className as class };
 </script>
 
 <DeleteConfirm

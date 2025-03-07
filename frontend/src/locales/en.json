@@ -211,6 +211,8 @@
 		"cancel": "Cancel",
 		"retry": "Retry",
 		"details": "View",
+		"minimize": "Minimize Taskbar",
+		"maximize": "Show Taskbar",
 		"task-types": {
 			"project_flake_update": "Update Nix Flake",
 			"build_project": "Build Project",
@@ -220,7 +222,8 @@
 			"ssh_command": "Run SSH Command",
 			"run_nixos_vm_task": "Run NixOS VM for {device}"
 		},
-		"version": "Thymis version"
+		"version": "Thymis version: {version}",
+		"version-short": "v{version}"
 	},
 	"config": {
 		"header": {

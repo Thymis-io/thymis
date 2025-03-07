@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { state } from '$lib/state';
 	import VncView from '$lib/vnc/VncView.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import type { PageData } from './$types';
@@ -9,12 +8,21 @@
 	import Dropdown from '$lib/components/Dropdown.svelte';
 	import { browser } from '$app/environment';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
 
-	let columns = data.vncDisplaysPerColumn;
+	let { data }: Props = $props();
+
+	let columns = $state(data.vncDisplaysPerColumn);
 </script>
 
-<PageHead title={$t('nav.global-vnc')} repoStatus={data.repoStatus} />
+<PageHead
+	title={$t('nav.global-vnc')}
+	repoStatus={data.repoStatus}
+	globalState={data.globalState}
+	nav={data.nav}
+/>
 <div class="flex items-center mb-2">
 	{$t('vnc.column-count')}
 	<Dropdown
@@ -30,13 +38,13 @@
 </div>
 <DynamicGrid class={columns === 2 ? 'gap-4' : 'gap-2'} {columns}>
 	{#each data.allDeploymentInfos as deploymentInfo}
-		{@const config = data.state.configs.find(
+		{@const config = data.globalState.configs.find(
 			(d) => d.identifier === deploymentInfo.deployed_config_id
 		)}
-		{#if config && targetShouldShowVNC(config, $state)}
+		{#if config && targetShouldShowVNC(config, data.globalState)}
 			<div>
 				<p class=" mb-2 text-center text-gray-900 dark:text-white">{config.displayName}</p>
-				<VncView {config} {deploymentInfo} />
+				<VncView globalState={data.globalState} {config} {deploymentInfo} />
 			</div>
 		{/if}
 	{/each}

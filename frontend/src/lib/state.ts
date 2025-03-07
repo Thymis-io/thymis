@@ -1,6 +1,4 @@
 import { invalidate } from '$app/navigation';
-import { derived, writable } from 'svelte/store';
-import { queryParam } from 'sveltekit-search-params';
 import { fetchWithNotify } from './fetchWithNotify';
 
 export type ModuleSettings = {
@@ -88,22 +86,13 @@ export type State = {
 	tags: Tag[];
 };
 
-export const state = writable<State>();
-
-export let currentState: State;
-
-state.subscribe((value) => {
-	currentState = value;
-});
-
-export const saveState = async () => {
-	state.set(currentState);
+export const saveState = async (state: State) => {
 	const response = await fetchWithNotify(`/api/state`, {
 		method: 'PATCH',
 		headers: {
 			'content-type': 'application/json'
 		},
-		body: JSON.stringify(currentState)
+		body: JSON.stringify(state)
 	});
 	await invalidate((url) => url.pathname === '/api/state');
 	return response.ok;
@@ -113,38 +102,14 @@ export const build = async () => {
 	await fetchWithNotify(`/api/action/build`, { method: 'POST' });
 };
 
-export const getTagByIdentifier = (state: State, identifier: string) => {
+export const getTagByIdentifier = (state: State, identifier: string | null) => {
+	if (!identifier) return undefined;
 	return state.tags.find((tag) => tag.identifier === identifier);
 };
 
-export const getConfigByIdentifier = (state: State, identifier: string) => {
+export const getConfigByIdentifier = (state: State, identifier: string | null) => {
+	if (!identifier) return undefined;
 	return state.configs.find((config) => config.identifier === identifier);
 };
-
-export const globalNavSelectedTag = derived(
-	[state, queryParam('global-nav-target-type'), queryParam('global-nav-target')],
-	([$state, $context, $identifier]) => {
-		if ($context === 'tag') {
-			return getTagByIdentifier($state, $identifier);
-		}
-	}
-);
-
-export const globalNavSelectedConfig = derived(
-	[state, queryParam('global-nav-target-type'), queryParam('global-nav-target')],
-	([$state, $context, $identifier]) => {
-		if ($context === 'config') {
-			return getConfigByIdentifier($state, $identifier);
-		}
-	}
-);
-
-export const globalNavSelectedTarget = derived(
-	[globalNavSelectedConfig, globalNavSelectedTag],
-	([$globalNavSelectedConfig, $globalNavSelectedTag]) =>
-		$globalNavSelectedConfig || $globalNavSelectedTag
-);
-
-export const globalNavSelectedTargetType = queryParam<ContextType>('global-nav-target-type');
 
 export type ContextType = 'tag' | 'config';

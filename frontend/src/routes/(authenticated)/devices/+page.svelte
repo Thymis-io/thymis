@@ -9,25 +9,34 @@
 	import PageHead from '$lib/components/PageHead.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
 
-	$: deviceTypes = getDeviceTypesMap(data.availableModules);
+	let { data }: Props = $props();
+
+	let deviceTypes = $derived(getDeviceTypesMap(data.availableModules));
 
 	const hardwareKeyToDisplayName = {
 		'pi-serial-number': () => $t('hardware-devices.hardware-keys.pi-serial-number')
 	} as Record<string, () => string>;
 
-	let hideOldDevices = true;
+	let hideOldDevices = $state(true);
 
 	// hide after 1 day
 	const hideAfter = 1 * 1000 * 60 * 60 * 24; // 1000ms/s * 60s/m * 60m/h * 24h/d = X ms/d = 1 => 1d = X ms
 
-	$: hardwareDevicesWithoutDeploymentInfo = data.hardwareDevices.filter(
-		(hardwareDevice) => !hardwareDevice.deployment_info_id
+	let hardwareDevicesWithoutDeploymentInfo = $derived(
+		data.hardwareDevices.filter((hardwareDevice) => !hardwareDevice.deployment_info_id)
 	);
 </script>
 
-<PageHead title={$t('nav.devices')} repoStatus={data.repoStatus} />
+<PageHead
+	title={$t('nav.devices')}
+	repoStatus={data.repoStatus}
+	globalState={data.globalState}
+	nav={data.nav}
+/>
 <!-- Add show all devices slider checkbox -->
 <div class="flex items-center justify-between mb-4">
 	<h1 class="text-2xl font-bold">{$t('hardware-devices.known-devices-with-deployment')}</h1>
@@ -50,7 +59,7 @@
 	<tbody>
 		{#each data.deploymentInfos as deploymentInfo (deploymentInfo.id)}
 			{#if !hideOldDevices || (deploymentInfo.last_seen && new Date(deploymentInfo.last_seen) > new Date(data.loadTime - hideAfter))}
-				{@const deployedConfig = data.state.configs.find(
+				{@const deployedConfig = data.globalState.configs.find(
 					(config) => config.identifier === deploymentInfo.deployed_config_id
 				)}
 				{@const deviceType = deployedConfig && getDeviceType(deployedConfig)}
@@ -60,11 +69,11 @@
 					<TableBodyCell tdClass="p-2"></TableBodyCell>
 					<TableBodyCell tdClass="p-2">
 						<a
-							href={`/configuration/configuration-details?${buildGlobalNavSearchParam($page.url.search, 'config', deploymentInfo.deployed_config_id)}`}
+							href={`/configuration/configuration-details?${buildGlobalNavSearchParam(data.globalState, $page.url.search, 'config', deploymentInfo.deployed_config_id)}`}
 							class="underline flex items-center gap-2 w-fit"
 						>
 							<FileCode size={18} />
-							{data.state.configs.find(
+							{data.globalState.configs.find(
 								(config) => config.identifier === deploymentInfo.deployed_config_id
 							)?.displayName}
 						</a>

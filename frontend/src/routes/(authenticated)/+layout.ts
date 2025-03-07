@@ -2,11 +2,31 @@ import { browser } from '$app/environment';
 import '$lib/i18n'; // Import to initialize. Important :)
 import { locale, waitLocale } from 'svelte-i18n';
 import type { LayoutLoad } from './$types';
-import type { State, Module } from '$lib/state';
+import {
+	type State,
+	type Module,
+	type ContextType,
+	type Config,
+	type Tag,
+	getTagByIdentifier,
+	getConfigByIdentifier
+} from '$lib/state';
 import { error, redirect } from '@sveltejs/kit';
 import { getAllTasks } from '$lib/taskstatus';
 import { fetchWithNotify } from '$lib/fetchWithNotify';
 import { type RepoStatus } from '$lib/repo/repo';
+
+export type Nav = {
+	selectedTargetType: ContextType | null;
+	selectedTargetIdentifier: string | null;
+	selectedConfig: Config | undefined;
+	selectedTag: Tag | undefined;
+	selectedTarget: Config | Tag | undefined;
+	selectedModule: Module | undefined;
+	selectedModuleContext: Config | Tag | undefined;
+	selectedModuleContextType: ContextType | null;
+	selectedModuleContextIdentifier: string | null;
+};
 
 export const load = (async ({ fetch, url, data }) => {
 	let lang = 'en';
@@ -45,8 +65,8 @@ export const load = (async ({ fetch, url, data }) => {
 		console.debug(stateResponse);
 		console.debug(await stateResponse.text());
 	}
-	const state = (await stateResponse.json()) as State;
-	if (!state) {
+	const globalState = (await stateResponse.json()) as State;
+	if (!globalState) {
 		error(500, 'Could not fetch state');
 	}
 
@@ -104,8 +124,51 @@ export const load = (async ({ fetch, url, data }) => {
 	const vncDisplaysPerColumn = parseInt(data?.vncDisplaysPerColumn || '3');
 	const inPlaywright = data?.inPlaywright || false;
 
+	const selectedTargetType = url.searchParams.get('global-nav-target-type') as ContextType;
+	const selectedTargetIdentifier = url.searchParams.get('global-nav-target');
+	const selectedConfig =
+		selectedTargetType === 'config'
+			? getConfigByIdentifier(globalState, selectedTargetIdentifier)
+			: undefined;
+	const selectedTag =
+		selectedTargetType === 'tag'
+			? getTagByIdentifier(globalState, selectedTargetIdentifier)
+			: undefined;
+	const selectedTarget = selectedConfig || selectedTag;
+
+	const configSelectedModule = url.searchParams.get('config-selected-module');
+	const selectedModule = availableModules.find((module) => module.type === configSelectedModule);
+	const selectedModuleContextType = url.searchParams.get(
+		'config-selected-module-context-type'
+	) as ContextType;
+	const selectedModuleContextIdentifier = url.searchParams.get(
+		'config-selected-module-context-identifier'
+	);
+	const selectedModuleContextConfig =
+		selectedModuleContextType === 'config'
+			? getConfigByIdentifier(globalState, selectedModuleContextIdentifier)
+			: undefined;
+	const selectedModuleContextTag =
+		selectedModuleContextType === 'tag'
+			? getTagByIdentifier(globalState, selectedModuleContextIdentifier)
+			: undefined;
+	const selectedModuleContext = selectedModuleContextConfig || selectedModuleContextTag;
+
+	const nav: Nav = {
+		selectedTargetType,
+		selectedTargetIdentifier,
+		selectedConfig,
+		selectedTag,
+		selectedTarget,
+		selectedModule,
+		selectedModuleContext,
+		selectedModuleContextType,
+		selectedModuleContextIdentifier
+	};
+
 	return {
-		state: state,
+		globalState: globalState,
+		nav: nav,
 		availableModules: availableModules,
 		repoStatus: repoStatus,
 		allTasks: allTasks,

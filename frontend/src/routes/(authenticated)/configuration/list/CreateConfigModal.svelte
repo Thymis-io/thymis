@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Button, Helper, Input, Label, Modal, P, Select } from 'flowbite-svelte';
-	import { type Config, type Module, saveState, state } from '$lib/state';
+	import { type Config, type Module, saveState, type State } from '$lib/state';
 	import { page } from '$app/stores';
 	import { nameToIdentifier, nameValidation, deviceTypeValidation } from '$lib/nameValidation';
 	import MultiSelect from 'svelte-multiselect';
@@ -11,25 +11,32 @@
 		getAllowedImageFormatsForDeviceType
 	} from '$lib/config/configUtils';
 
-	export let open = false;
+	interface Props {
+		globalState: State;
+		open?: boolean;
+	}
 
-	let displayName = '';
+	let { globalState, open = $bindable(false) }: Props = $props();
 
-	$: availableModules = $page.data.availableModules as Module[];
-	$: thymisDeviceModule = getThymisDeviceModule(availableModules);
-	$: deviceTypesSelect = Object.entries(getDeviceTypesMap(availableModules)).map(([key, name]) => ({
-		name: name,
-		value: key
-	}));
-	let selectedDeviceType: string | undefined = undefined;
+	let displayName = $state('');
 
-	$: tags = $state.tags;
-	$: tagsSelect = tags.map((tag) => ({ value: tag.identifier, label: tag.displayName }));
-	let selectedTags: { value: string; label: string }[] = [];
+	let availableModules = $derived($page.data.availableModules as Module[]);
+	let thymisDeviceModule = $derived(getThymisDeviceModule(availableModules));
+	let deviceTypesSelect = $derived(
+		Object.entries(getDeviceTypesMap(availableModules)).map(([key, name]) => ({
+			name: name,
+			value: key
+		}))
+	);
+	let selectedDeviceType: string | undefined = $state(undefined);
+
+	let tags = $derived(globalState.tags);
+	let tagsSelect = $derived(tags.map((tag) => ({ value: tag.identifier, label: tag.displayName })));
+	let selectedTags: { value: string; label: string }[] = $state([]);
 
 	const submitData = async () => {
 		if (
-			nameValidation(displayName, 'config') ||
+			nameValidation(globalState, displayName, 'config') ||
 			deviceTypeValidation(selectedDeviceType) ||
 			!thymisDeviceModule?.type ||
 			!selectedDeviceType
@@ -52,8 +59,8 @@
 			tags: selectedTags.map((tag) => tag.value),
 			modules: [{ type: thymisDeviceModule?.type, settings: thymisDeviceModuleSettings }]
 		};
-		$state.configs = [...$state.configs, config];
-		await saveState();
+		globalState.configs = [...globalState.configs, config];
+		await saveState(globalState);
 
 		open = false;
 	};
@@ -82,8 +89,8 @@
 			<Label for="display-name"
 				>{$t('create-configuration.display-name')}
 				<Input id="display-name" bind:value={displayName} />
-				{#if nameValidation(displayName, 'config')}
-					<Helper color="red">{nameValidation(displayName, 'config')}</Helper>
+				{#if nameValidation(globalState, displayName, 'config')}
+					<Helper color="red">{nameValidation(globalState, displayName, 'config')}</Helper>
 				{:else}
 					<Helper color="green"
 						>{$t('create-configuration.name-helper', {
@@ -122,7 +129,8 @@
 				type="button"
 				class="btn btn-primary"
 				disabled={!!(
-					nameValidation(displayName, 'config') || deviceTypeValidation(selectedDeviceType)
+					nameValidation(globalState, displayName, 'config') ||
+					deviceTypeValidation(selectedDeviceType)
 				)}
 				on:click={submitData}
 			>

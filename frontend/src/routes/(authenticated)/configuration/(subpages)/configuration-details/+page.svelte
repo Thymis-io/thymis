@@ -2,12 +2,6 @@
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
 	import { Card } from 'flowbite-svelte';
-	import {
-		globalNavSelectedConfig,
-		globalNavSelectedTag,
-		globalNavSelectedTargetType,
-		state
-	} from '$lib/state';
 	import SectionConfiguration from './SectionConfiguration.svelte';
 	import SectionActions from './SectionActions.svelte';
 	import SectionDanger from './SectionDanger.svelte';
@@ -17,29 +11,38 @@
 	import Section from './Section.svelte';
 	import Terminal from '$lib/terminal/Terminal.svelte';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
 
-	$: currentConfig = $globalNavSelectedConfig;
+	let { data }: Props = $props();
+
+	let currentConfig = $derived(data.nav.selectedConfig);
 </script>
 
-{#if $globalNavSelectedTargetType === 'config' && currentConfig}
+{#if data.nav.selectedConfig}
 	<div class="grid grid-cols-4 grid-flow-row gap-x-2 gap-y-6">
 		<SectionDeploymentInfo
 			class="col-span-3"
 			deploymentInfos={data.deploymentInfos}
-			config={currentConfig}
+			config={data.nav.selectedConfig}
 		/>
-		<SectionActions class="col-span-1" config={currentConfig} />
+		<SectionActions class="col-span-1" config={data.nav.selectedConfig} />
 		<SectionConfiguration
+			globalState={data.globalState}
 			class="col-span-3"
-			config={currentConfig}
+			config={data.nav.selectedConfig}
 			availableModules={data.availableModules}
 		/>
-		<SectionDanger class="col-span-1" config={currentConfig} />
-		{#if targetShouldShowVNC(currentConfig, $state)}
+		<SectionDanger
+			class="col-span-1"
+			config={data.nav.selectedConfig}
+			globalState={data.globalState}
+		/>
+		{#if targetShouldShowVNC(currentConfig, data.globalState)}
 			{#each data.deploymentInfos as deploymentInfo}
 				<Section class="col-span-2" title={$t('nav.device-vnc')}>
-					<VncView config={currentConfig} {deploymentInfo} />
+					<VncView globalState={data.globalState} config={currentConfig} {deploymentInfo} />
 				</Section>
 			{/each}
 		{/if}
@@ -51,4 +54,6 @@
 			</Section>
 		{/each}
 	</div>
-{:else if $globalNavSelectedTargetType === 'tag' && $globalNavSelectedTag}{/if}
+{:else if data.nav.selectedTag}
+	<div></div>
+{/if}

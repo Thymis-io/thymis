@@ -3,7 +3,11 @@
 	import { type TaskShort, cancelTask, retryTask } from '$lib/taskstatus';
 	import { page } from '$app/stores';
 	import { Button } from 'flowbite-svelte';
-	export let task: TaskShort;
+	interface Props {
+		task: TaskShort;
+	}
+
+	let { task }: Props = $props();
 </script>
 
 <div class="flex flex-row items-center justify-center space-x-2">

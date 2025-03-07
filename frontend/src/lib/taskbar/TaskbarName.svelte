@@ -7,13 +7,18 @@
 	import Play from 'lucide-svelte/icons/play';
 	import Command from 'lucide-svelte/icons/square-chevron-right';
 	import type { TaskShort } from '$lib/taskstatus';
-	import { state } from '$lib/state';
+	import { type State } from '$lib/state';
 
-	export let task: TaskShort;
+	interface Props {
+		globalState: State;
+		task: TaskShort;
+	}
+
+	let { globalState, task }: Props = $props();
 
 	const configToDisplayName = (identifier: string | undefined) => {
 		if (!identifier) return '';
-		const device = $state.configs.find((config) => config.identifier === identifier);
+		const device = globalState.configs.find((config) => config.identifier === identifier);
 		return device ? device.displayName : identifier;
 	};
 

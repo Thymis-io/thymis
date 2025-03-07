@@ -1,22 +1,16 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { t } from 'svelte-i18n';
-	import { page } from '$app/stores';
-	import { Button } from 'flowbite-svelte';
 	import MonospaceText from '$lib/components/MonospaceText.svelte';
 	import RenderUnixTimestamp from '$lib/components/RenderUnixTimestamp.svelte';
 	import { subscribedTask, subscribeTask, type Task } from '$lib/taskstatus';
 
-	export let data: PageData;
-
-	let task: Task | undefined;
-	$: {
-		if (!$subscribedTask) {
-			task = data.task;
-		} else {
-			task = $subscribedTask;
-		}
+	interface Props {
+		data: PageData;
 	}
+
+	let { data }: Props = $props();
+
+	let task: Task | undefined = $derived(!$subscribedTask ? data.task : $subscribedTask);
 
 	// if task is undefined, go to 404
 	const cleanStdOut = (stdoutorerr: string) => {
@@ -33,9 +27,9 @@
 		return str !== escapeForDoubleQuotes(str) || str.includes(' ');
 	};
 
-	$: {
+	$effect(() => {
 		subscribeTask(data.task_id);
-	}
+	});
 </script>
 
 {#if task}

@@ -5,12 +5,18 @@
 	import FileIcon from 'lucide-svelte/icons/file';
 	import MonospaceText from '$lib/components/MonospaceText.svelte';
 
-	export let selectedFile = '';
-	export let repoStatus: RepoStatus;
+	interface Props {
+		selectedFile?: string;
+		repoStatus: RepoStatus;
+	}
 
-	$: selectedChange = repoStatus.changes.find((change) => change.path === selectedFile);
-	$: stateJson = repoStatus.changes.find((change) => change.path === 'state.json');
-	$: internalChanges = repoStatus.changes.filter((change) => change.path !== 'state.json');
+	let { selectedFile = $bindable(''), repoStatus }: Props = $props();
+
+	let selectedChange = $derived(repoStatus.changes.find((change) => change.path === selectedFile));
+	let stateJson = $derived(repoStatus.changes.find((change) => change.path === 'state.json'));
+	let internalChanges = $derived(
+		repoStatus.changes.filter((change) => change.path !== 'state.json')
+	);
 
 	let textClass = 'text-base text-gray-800 dark:text-gray-100 ';
 	let selectedClass = 'bg-gray-100 dark:bg-gray-600 ';
@@ -24,41 +30,45 @@
 
 <div class="h-full overflow-hidden">
 	<SplitPane type="horizontal" leftPaneClass="pr-2" min="15%" max="60%" pos="20%">
-		<div slot="a" class="flex flex-col">
-			{#if stateJson}
-				<button
-					class={fileClass + (selectedFile === stateJson.path ? selectedClass : '')}
-					on:click={() => (selectedFile = stateJson.path)}
-				>
-					<FileIcon size="18" class="flex-shrink-0" />
-					{stateJson.path}
-				</button>
-			{/if}
-			<div class={textClass + 'flex p-1 mt-4 mb-1'}>
-				{#if internalChanges.length === 0}
-					{$t('history.no-internal-file-changes')}
-				{:else}
-					{$t('history.internal-file-changes', { values: { count: internalChanges.length } })}
+		{#snippet a()}
+			<div class="flex flex-col">
+				{#if stateJson}
+					<button
+						class={fileClass + (selectedFile === stateJson.path ? selectedClass : '')}
+						onclick={() => (selectedFile = stateJson.path)}
+					>
+						<FileIcon size="18" class="flex-shrink-0" />
+						{stateJson.path}
+					</button>
 				{/if}
+				<div class={textClass + 'flex p-1 mt-4 mb-1'}>
+					{#if internalChanges.length === 0}
+						{$t('history.no-internal-file-changes')}
+					{:else}
+						{$t('history.internal-file-changes', { values: { count: internalChanges.length } })}
+					{/if}
+				</div>
+				{#each internalChanges as change}
+					<button
+						class={fileClass + (selectedFile === change.path ? selectedClass : '')}
+						onclick={() => (selectedFile = change.path)}
+						title={change.path}
+					>
+						<FileIcon size="18" class="flex-shrink-0" />
+						<span>{change.file.split('.').slice(-2).join('.')}</span>
+						<span class={overflowClass + 'text-gray-400 dark:text-gray-500'}>{change.dir}</span>
+					</button>
+				{/each}
 			</div>
-			{#each internalChanges as change}
-				<button
-					class={fileClass + (selectedFile === change.path ? selectedClass : '')}
-					on:click={() => (selectedFile = change.path)}
-					title={change.path}
-				>
-					<FileIcon size="18" class="flex-shrink-0" />
-					<span>{change.file.split('.').slice(-2).join('.')}</span>
-					<span class={overflowClass + 'text-gray-400 dark:text-gray-500'}>{change.dir}</span>
-				</button>
-			{/each}
-		</div>
-		<div slot="b">
-			<div class="h-full overflow-y-auto">
-				{#if selectedChange}
-					<MonospaceText code={selectedChange.diff} />
-				{/if}
+		{/snippet}
+		{#snippet b()}
+			<div>
+				<div class="h-full overflow-y-auto">
+					{#if selectedChange}
+						<MonospaceText code={selectedChange.diff} />
+					{/if}
+				</div>
 			</div>
-		</div>
+		{/snippet}
 	</SplitPane>
 </div>

@@ -6,29 +6,32 @@
 	import RunningIcon from 'lucide-svelte/icons/play';
 	import CompletedIcon from 'lucide-svelte/icons/check';
 	import FailedIcon from 'lucide-svelte/icons/ban';
-	import { Tooltip } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import Paginator from '$lib/components/Paginator.svelte';
-	import { queryParam } from 'sveltekit-search-params';
+	import { queryParameters } from 'sveltekit-search-params';
 	import TaskbarName from './TaskbarName.svelte';
 	import TaskbarStatus from './TaskbarStatus.svelte';
+	import type { State } from '$lib/state';
 
-	export let inPlaywright: boolean = false;
+	interface Props {
+		globalState: State;
+		inPlaywright: boolean;
+	}
 
-	$: pendingTasks = Object.values($taskStatus).filter((task) => task.state === 'pending');
-	$: runningTasks = Object.values($taskStatus).filter((task) => task.state === 'running');
-	$: completedTasks = Object.values($taskStatus).filter((task) => task.state === 'completed');
-	$: failedTasks = Object.values($taskStatus).filter((task) => task.state === 'failed');
-	$: latestTask = Object.values($taskStatus).sort((a, b) =>
-		a.start_time < b.start_time ? 1 : -1
-	)[0];
+	let { globalState, inPlaywright }: Props = $props();
 
-	let currentPageParam = queryParam('task-page');
-	let currentPage = $currentPageParam;
+	const tasks = $derived(Object.values($taskStatus));
+	const pendingTasks = $derived(tasks.filter((task) => task.state === 'pending'));
+	const runningTasks = $derived(tasks.filter((task) => task.state === 'running'));
+	const completedTasks = $derived(tasks.filter((task) => task.state === 'completed'));
+	const failedTasks = $derived(tasks.filter((task) => task.state === 'failed'));
+	const latestTask = $derived(tasks.sort((a, b) => (a.start_time < b.start_time ? 1 : -1))[0]);
+
+	const params = queryParameters();
+	let currentPage = $derived(params['task-page']);
 
 	const switchPage = async (page: number) => {
-		currentPage = page.toString();
-		currentPageParam.set(currentPage);
+		params['task-page'] = page.toString();
 	};
 
 	const versionInfo: {
@@ -41,24 +44,36 @@
 <div
 	class="border-2 dark:border-0 w-full h-full flex px-2 gap-2 sm:gap-4 xl:gap-10 pr-8 md:pr-16 items-center bg-gray-50 dark:bg-gray-700 overflow-y-auto"
 >
-	<!-- svelte-ignore missing-declaration -->
 	<div class="text-xs md:text-sm playwright-snapshot-unstable">
-		<span class="hidden lg:inline">{$t('taskbar.version')}: </span><span class="lg:hidden">v</span
-		>{versionInfo.version} (<span class="font-mono"
-			>{#if inPlaywright}00000000{:else}{versionInfo.headRev.slice(0, 8)}{/if}</span
-		>{versionInfo.dirty ? '-dirty' : ''})
+		<span class="hidden lg:inline">
+			{$t('taskbar.version', { values: { version: versionInfo.version } })}
+		</span>
+		<span class="inline lg:hidden">
+			{$t('taskbar.version-short', { values: { version: versionInfo.version } })}
+		</span>
+		(<span class="font-mono">
+			{#if inPlaywright}00000000{:else}{versionInfo.headRev.slice(0, 8)}{/if}
+		</span>{versionInfo.dirty ? '-dirty' : ''})
 	</div>
 	<TaskbarIcon class="ml-auto" title={$t('taskbar.pending')} tasks={pendingTasks}>
-		<PendingIcon size={20} slot="icon" class="w-full" />
+		{#snippet icon()}
+			<PendingIcon size={20} class="w-full" />
+		{/snippet}
 	</TaskbarIcon>
 	<TaskbarIcon title={$t('taskbar.running')} tasks={runningTasks}>
-		<RunningIcon size={20} slot="icon" class="w-full" />
+		{#snippet icon()}
+			<RunningIcon size={20} class="w-full" />
+		{/snippet}
 	</TaskbarIcon>
 	<TaskbarIcon title={$t('taskbar.completed')} tasks={completedTasks}>
-		<CompletedIcon size={20} slot="icon" class="w-full" />
+		{#snippet icon()}
+			<CompletedIcon size={20} class="w-full" />
+		{/snippet}
 	</TaskbarIcon>
 	<TaskbarIcon title={$t('taskbar.failed')} tasks={failedTasks}>
-		<FailedIcon size={20} slot="icon" class="w-full" />
+		{#snippet icon()}
+			<FailedIcon size={20} class="w-full" />
+		{/snippet}
 	</TaskbarIcon>
 	<div class="flex items-center gap-1 lg:gap-2 lg:ml-2">
 		{#if latestTask}
@@ -66,7 +81,7 @@
 				{$t('taskbar.latest-task')}:
 			</span>
 			<span class="text-xs md:text-sm truncate max-w-64">
-				<TaskbarName task={latestTask} />
+				<TaskbarName {globalState} task={latestTask} />
 			</span>
 			<span class="text-xs md:text-sm">
 				<TaskbarStatus task={latestTask} showText={false} showProgress={false} />

@@ -1,15 +1,22 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { type Config, saveState, state, type Tag } from '$lib/state';
+	import { type Config, saveState, type Tag, type State } from '$lib/state';
 	import { Button, Modal, Label, P } from 'flowbite-svelte';
 	import MultiSelect from 'svelte-multiselect';
 
-	export let currentlyEditingConfig: Config | undefined;
+	interface Props {
+		globalState: State;
+		currentlyEditingConfig: Config | undefined;
+	}
 
-	$: projectTags = $state.tags;
-	$: tagsSelect = projectTags?.map((tag) => ({ value: tag.identifier, label: tag.displayName }));
+	let { globalState, currentlyEditingConfig = $bindable() }: Props = $props();
 
-	let selectedTags: { value: string; label: string }[] = [];
+	let projectTags = $derived(globalState.tags);
+	let tagsSelect = $derived(
+		projectTags?.map((tag) => ({ value: tag.identifier, label: tag.displayName }))
+	);
+
+	let selectedTags: { value: string; label: string }[] = $state([]);
 
 	const setSelectedTags = (configTags: string[], projectTags: Tag[]) => {
 		selectedTags = configTags?.map((tag) => ({
@@ -45,13 +52,13 @@
 	<div class="flex justify-end gap-2">
 		<Button
 			on:click={async () => {
-				$state.configs = $state.configs.map((config) => {
+				globalState.configs = globalState.configs.map((config) => {
 					if (config.identifier === currentlyEditingConfig?.identifier) {
 						config.tags = selectedTags.map((tag) => tag.value);
 					}
 					return config;
 				});
-				await saveState();
+				await saveState(globalState);
 				currentlyEditingConfig = undefined;
 			}}
 		>

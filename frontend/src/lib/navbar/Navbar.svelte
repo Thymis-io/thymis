@@ -6,12 +6,24 @@
 	import UserMenu from './UserMenu.svelte';
 	import GlobalSearch from './GlobalSearch.svelte';
 	import GithubIcon from './GithubIcon.svelte';
+	import type { State } from '$lib/state';
+	import type { Nav } from '../../routes/(authenticated)/+layout';
 
-	export let authenticated = true;
-	export let drawerHidden: boolean;
+	interface Props {
+		nav: Nav | undefined;
+		globalState: State | undefined;
+		authenticated?: boolean;
+		drawerHidden: boolean;
+		class?: string;
+	}
 
-	let clazz = '';
-	export { clazz as class };
+	let {
+		nav,
+		globalState,
+		authenticated = true,
+		drawerHidden = $bindable(),
+		class: clazz = ''
+	}: Props = $props();
 </script>
 
 <div class="flex flex-nowrap justify-between mx-2 sm:mx-4 {clazz || ''}" color="default">
@@ -25,9 +37,9 @@
 				Thymis
 			</span>
 		</NavBrand>
-		{#if authenticated}
+		{#if authenticated && globalState && nav}
 			<div class="ms-2 w-2 sm:w-48 lg:w-64 xl:w-96 block">
-				<GlobalSearch />
+				<GlobalSearch {globalState} {nav} />
 			</div>
 		{/if}
 	</div>

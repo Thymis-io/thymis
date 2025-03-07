@@ -1,30 +1,38 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { globalNavSelectedTargetType, globalNavSelectedTarget, saveState } from '$lib/state';
+	import { saveState } from '$lib/state';
 	import Tabbar from '$lib/components/Tabbar.svelte';
 	import PageHead from '$lib/components/PageHead.svelte';
 	import Download from 'lucide-svelte/icons/download';
 	import Play from 'lucide-svelte/icons/play';
-	import { globalNavSelectedConfig, type Config } from '$lib/state';
+	import { type Config } from '$lib/state';
 	import { getConfigImageFormat } from '$lib/config/configUtils';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import { Button } from 'flowbite-svelte';
-	import type { LayoutData } from './$types';
 	import CommitModal from '$lib/repo/CommitModal.svelte';
 	import { invalidate } from '$app/navigation';
+	import type { LayoutData } from './$types';
 
-	export let data: LayoutData;
+	interface Props {
+		data: LayoutData;
+		children?: import('svelte').Snippet;
+	}
 
-	let openCommitModal = false;
+	let { data, children }: Props = $props();
 
-	$: isVM = getConfigImageFormat($globalNavSelectedConfig) == 'nixos-vm';
-	$: selectedTargetName = $globalNavSelectedTarget?.displayName ?? '';
-	$: titleMap = {
-		config: `${$t('configurations.details-title')}: ${selectedTargetName}`,
-		tag: `${$t('tags.details-title')}: ${selectedTargetName}`,
-		null: selectedTargetName
-	};
-	$: title = titleMap[$globalNavSelectedTargetType ?? 'null'];
+	let openCommitModal = $state(false);
+
+	let isVM = $derived(getConfigImageFormat(data.nav.selectedConfig) == 'nixos-vm');
+	let selectedTargetName = $derived(data.nav.selectedTarget?.displayName ?? '');
+	let title = $derived.by(() => {
+		if (data.nav.selectedTargetType === 'config') {
+			return `${$t('configurations.details-title')}: ${selectedTargetName}`;
+		}
+		if (data.nav.selectedTargetType === 'tag') {
+			return `${$t('tags.details-title')}: ${selectedTargetName}`;
+		}
+		return selectedTargetName;
+	});
 
 	const commit = async (message: string) => {
 		await fetchWithNotify(`/api/action/commit?message=${encodeURIComponent(message)}`, {
@@ -37,7 +45,7 @@
 
 	const buildAndDownloadImage = async (config: Config | undefined) => {
 		if (!config) return;
-		await saveState();
+		await saveState(data.globalState);
 		await fetchWithNotify(`/api/action/build-download-image?identifier=${config.identifier}`, {
 			method: 'POST'
 		});
@@ -59,30 +67,30 @@
 	onAction={async (message) => {
 		openCommitModal = false;
 		await commit(message);
-		await buildAndDownloadImage($globalNavSelectedConfig);
+		await buildAndDownloadImage(data.nav.selectedConfig);
 	}}
 />
-<PageHead {title} repoStatus={data.repoStatus}>
-	{#if $globalNavSelectedConfig}
+<PageHead {title} repoStatus={data.repoStatus} globalState={data.globalState} nav={data.nav}>
+	{#if data.nav.selectedConfig}
 		<Button
 			color="alternative"
 			class="whitespace-nowrap gap-2 px-2 py-1 m-1"
 			on:click={async () => {
-				await saveState();
+				await saveState(data.globalState);
 				await invalidate((url) => url.pathname === '/api/repo_status');
 
 				if (data.repoStatus.changes.length > 0) {
 					openCommitModal = true;
 				} else {
-					await buildAndDownloadImage($globalNavSelectedConfig);
+					await buildAndDownloadImage(data.nav.selectedConfig);
 				}
 			}}
 		>
 			{#if isVM}
 				<Play size={'1rem'} class="min-w-4" />
-				<span class="text-base whitespace-nowrap"
-					>{$t('configurations.actions.build-vm-and-start')}</span
-				>
+				<span class="text-base whitespace-nowrap">
+					{$t('configurations.actions.build-vm-and-start')}
+				</span>
 			{:else}
 				<Download size={'1rem'} class="min-w-4" />
 				<span class="text-base whitespace-nowrap">{$t('configurations.actions.download')}</span>
@@ -90,5 +98,5 @@
 		</Button>
 	{/if}
 </PageHead>
-<Tabbar />
-<slot />
+<Tabbar globalState={data.globalState} nav={data.nav} />
+{@render children?.()}

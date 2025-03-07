@@ -5,7 +5,11 @@
 	import type { Commit } from '$lib/history';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 
-	export let commit: Commit | undefined;
+	interface Props {
+		commit: Commit | undefined;
+	}
+
+	let { commit = $bindable() }: Props = $props();
 
 	const revertCommit = async (commitSHA: string | undefined) => {
 		if (commitSHA === undefined) return;
@@ -27,12 +31,14 @@
 			values: { newCommit: commit?.SHA1 + ': ' + commit?.message }
 		})}
 	</p>
-	<div class="flex justify-between w-full" slot="footer">
-		<Button color="alternative" on:click={() => (commit = undefined)}>
-			{$t('common.cancel')}
-		</Button>
-		<Button on:click={() => revertCommit(commit?.SHA1)}>
-			{$t('history.rollback-modal-confirm')}
-		</Button>
-	</div>
+	{#snippet footer()}
+		<div class="flex justify-between w-full">
+			<Button color="alternative" on:click={() => (commit = undefined)}>
+				{$t('common.cancel')}
+			</Button>
+			<Button on:click={() => revertCommit(commit?.SHA1)}>
+				{$t('history.rollback-modal-confirm')}
+			</Button>
+		</div>
+	{/snippet}
 </Modal>

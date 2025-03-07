@@ -10,10 +10,16 @@
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
-	import { state } from '$lib/state';
+	import { type State } from '$lib/state';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
-	export let drawerHidden: boolean;
+	interface Props {
+		globalState: State;
+		drawerHidden: boolean;
+		asideClass?: string;
+	}
+
+	let { globalState, drawerHidden = $bindable(), asideClass = '' }: Props = $props();
 
 	const closeDrawer = () => {
 		drawerHidden = true;
@@ -26,10 +32,9 @@
 	let nonActiveClass =
 		childClass + ' hover:cursor-pointer dark:text-gray-400 hover:text-black dark:hover:text-white';
 	let activeClass = childClass + ' cursor-default text-primary-600 dark:text-primary-400';
-	export let asideClass = '';
 
-	$: mainSidebarUrl = $page.url.pathname;
-	let activeMainSidebar: string;
+	let mainSidebarUrl = $derived($page.url.pathname);
+	let activeMainSidebar: string = $state('');
 
 	afterNavigate((navigation) => {
 		// this fixes https://github.com/themesberg/flowbite-svelte/issues/364
@@ -37,10 +42,6 @@
 		closeDrawer();
 
 		activeMainSidebar = navigation.to?.url.pathname ?? '';
-
-		// const key = fileDir(activeMainSidebar);
-		// for (const k in dropdowns) dropdowns[k] = false;
-		// dropdowns[key] = true;
 	});
 
 	type NavItem = {
@@ -51,12 +52,12 @@
 		children?: Record<string, string>;
 	};
 
-	$: anyTargetHasVNC =
-		$state.configs.some((config) => targetShouldShowVNC(config, $state)) ||
-		$state.tags.some((tag) => targetShouldShowVNC(tag, $state));
+	let anyTargetHasVNC = $derived(
+		globalState.configs.some((config) => targetShouldShowVNC(config, globalState)) ||
+			globalState.tags.some((tag) => targetShouldShowVNC(tag, globalState))
+	);
 
-	let navItems: NavItem[] = [];
-	$: navItems = [
+	let navItems: NavItem[] = $derived([
 		{
 			name: $t('nav.overview'),
 			icon: ChartBar,
@@ -93,9 +94,7 @@
 			icon: Settings,
 			href: '/external-repositories'
 		}
-	];
-
-	let dropdowns = Object.fromEntries(Object.keys(navItems).map((x) => [x, false]));
+	]);
 </script>
 
 <Sidebar
@@ -114,13 +113,14 @@
 			>
 				{#each navItems as { name, icon, children, href, hidden } (name)}
 					{#if !hidden}
+						{@const SvelteComponent = icon}
 						<a
 							{href}
 							lang={$locale}
 							class={'flex flex-row lg:flex-col items-center text-center gap-2 text-xs hyphens-auto ' +
 								(activeMainSidebar === href ? activeClass : nonActiveClass)}
 						>
-							<svelte:component this={icon} size={20} />
+							<SvelteComponent size={20} />
 							{name}
 						</a>
 					{/if}

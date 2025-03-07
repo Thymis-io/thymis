@@ -1,44 +1,53 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import {
-		globalNavSelectedTarget,
 		saveState,
 		type Config,
 		type Module,
 		type ModuleSettings,
-		type Tag,
-		globalNavSelectedTargetType,
-		type ContextType
+		type State,
+		type Tag
 	} from '$lib/state';
-	import { Modal, P, ToolbarButton, Tooltip } from 'flowbite-svelte';
+	import { Modal, P, Tooltip } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import Pen from 'lucide-svelte/icons/pen';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Trash from 'lucide-svelte/icons/trash';
-	import {
-		buildConfigSelectModuleSearchParam,
-		configSelectedModuleContext,
-		configSelectedModuleContextType
-	} from '$lib/searchParamHelpers';
+	import { buildConfigSelectModuleSearchParam } from '$lib/searchParamHelpers';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import { goto } from '$app/navigation';
 	import ModuleIcon from './ModuleIcon.svelte';
+	import type { Nav } from '../../routes/(authenticated)/+layout';
 
-	export let contextType: string | null;
-	export let context: Tag | Config | undefined;
+	interface Props {
+		nav: Nav;
+		globalState: State;
+		contextType: string | null;
+		context: Tag | Config | undefined;
+		selfModules: Module[];
+		availableModules?: Module[];
+		icon?: import('svelte').Snippet;
+	}
 
-	export let selfModules: Module[];
-	export let availableModules: Module[] = [];
-	export let configSelectedModule: Module | undefined;
+	let {
+		nav,
+		globalState,
+		contextType,
+		context,
+		selfModules,
+		availableModules = [],
+		icon
+	}: Props = $props();
 
-	let moduleToRemove: Module | undefined;
+	let moduleToRemove: Module | undefined = $state();
 
 	const goToModule = async (module: Module | undefined) => {
 		await goto(
 			`/configuration/edit?${buildConfigSelectModuleSearchParam(
+				globalState,
 				$page.url.search,
-				$globalNavSelectedTargetType,
-				$globalNavSelectedTarget?.identifier,
+				nav.selectedTargetType,
+				nav.selectedTargetIdentifier,
 				contextType,
 				context?.identifier,
 				module
@@ -49,7 +58,7 @@
 	const addModule = async (target: Tag | Config | undefined, module: Module) => {
 		if (target && !target.modules.find((m) => m.type === module.type)) {
 			target.modules = [...target.modules, { type: module.type, settings: {} }];
-			await saveState();
+			await saveState(globalState);
 		}
 		addModuleModalOpen = false;
 		await goToModule(module);
@@ -59,25 +68,27 @@
 		if (target) {
 			target.modules = target.modules.filter((m) => m.type !== module.type);
 		}
-		saveState();
+		saveState(globalState);
 		goToModule(undefined);
 	};
 
-	$: canChangeModules =
-		contextType === $globalNavSelectedTargetType &&
-		context?.identifier === $globalNavSelectedTarget?.identifier;
+	let canChangeModules = $derived(
+		contextType === nav.selectedTargetType && context?.identifier === nav.selectedTarget?.identifier
+	);
 
-	let addModuleModalOpen = false;
+	let addModuleModalOpen = $state(false);
 
-	$: isSelected = (
-		module: Module,
-		selectedConfigModule: Module | undefined,
-		selectedConfigContext: string | null,
-		selectedConfigTarget: Tag | Config | undefined
-	) =>
-		module.type === selectedConfigModule?.type &&
-		contextType === selectedConfigContext &&
-		context?.identifier === selectedConfigTarget?.identifier;
+	let isSelected = $derived(
+		(
+			module: Module,
+			selectedConfigModule: Module | undefined,
+			selectedConfigContext: string | null,
+			selectedConfigTarget: Tag | Config | undefined
+		) =>
+			module.type === selectedConfigModule?.type &&
+			contextType === selectedConfigContext &&
+			context?.identifier === selectedConfigTarget?.identifier
+	);
 </script>
 
 <DeleteConfirm
@@ -87,19 +98,20 @@
 />
 <div class="flex justify-between mb-2">
 	<div class="text-gray-900 dark:text-white font-semibold flex gap-2 items-center">
-		<slot name="icon" />
+		{@render icon?.()}
 		<span>{context?.displayName}</span>
 	</div>
-	{#if $globalNavSelectedTarget?.identifier !== context?.identifier || $globalNavSelectedTargetType !== contextType}
+	{#if nav.selectedTarget?.identifier !== context?.identifier || nav.selectedTargetType !== contextType}
 		<a
 			class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
 			href="/configuration/edit?{buildConfigSelectModuleSearchParam(
+				globalState,
 				$page.url.search,
 				contextType,
 				context?.identifier,
 				contextType,
 				context?.identifier,
-				configSelectedModule
+				nav.selectedModule
 			)}"
 		>
 			<Pen size="20" />
@@ -114,9 +126,9 @@
 				class={`flex justify-between gap-1 rounded ${
 					isSelected(
 						module,
-						configSelectedModule,
-						$configSelectedModuleContextType,
-						$configSelectedModuleContext
+						nav.selectedModule,
+						nav.selectedModuleContextType,
+						nav.selectedModuleContext
 					)
 						? 'bg-gray-300 dark:bg-gray-600'
 						: 'hover:bg-gray-200 dark:hover:bg-gray-700'
@@ -124,9 +136,10 @@
 			>
 				<a
 					href="/configuration/edit?{buildConfigSelectModuleSearchParam(
+						globalState,
 						$page.url.search,
-						$globalNavSelectedTargetType,
-						$globalNavSelectedTarget?.identifier,
+						nav.selectedTargetType,
+						nav.selectedTarget?.identifier,
 						contextType,
 						context.identifier,
 						module
@@ -137,10 +150,10 @@
 					<ModuleIcon {module} />
 					<P>{module.displayName}</P>
 				</a>
-				{#if canChangeModules && ($globalNavSelectedTargetType !== 'config' || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}
+				{#if canChangeModules && (nav.selectedTargetType !== 'config' || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}
 					<button
 						class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
-						on:click={() => (moduleToRemove = module)}
+						onclick={() => (moduleToRemove = module)}
 					>
 						<Trash size={20} />
 					</button>
@@ -153,7 +166,7 @@
 		<button
 			id="add-module"
 			class="p-2 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700"
-			on:click={() => (addModuleModalOpen = true)}
+			onclick={() => (addModuleModalOpen = true)}
 		>
 			<Plus />
 		</button>
@@ -163,7 +176,7 @@
 				{#each availableModules as module}
 					<button
 						class="btn m-0 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2"
-						on:click={() => addModule(context, module)}
+						onclick={() => addModule(context, module)}
 					>
 						<ModuleIcon {module} />
 						<P>{module.displayName}</P>

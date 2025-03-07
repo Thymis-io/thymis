@@ -1,19 +1,21 @@
 <script lang="ts">
-	import { page } from '$app/stores';
 	import { TabItem, Tabs } from 'flowbite-svelte';
 	import { t } from 'svelte-i18n';
-
 	import Sliders from 'lucide-svelte/icons/sliders-horizontal';
 	import Terminal from 'lucide-svelte/icons/terminal';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import ListCollapse from 'lucide-svelte/icons/list-collapse';
-	import {
-		globalNavSelectedConfig,
-		globalNavSelectedTag,
-		globalNavSelectedTarget,
-		state
-	} from '$lib/state';
+	import { type State } from '$lib/state';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
+	import { page } from '$app/state';
+	import type { Nav } from '../../routes/(authenticated)/+layout';
+
+	interface Props {
+		globalState: State;
+		nav: Nav;
+	}
+
+	let { globalState, nav }: Props = $props();
 
 	type NavItem = {
 		name: string;
@@ -23,28 +25,28 @@
 		children?: Record<string, string>;
 	};
 
-	$: selectedTargetHasAnyVNCModule =
-		$globalNavSelectedTarget && targetShouldShowVNC($globalNavSelectedTarget, $state);
+	let selectedTargetHasAnyVNCModule = $derived(
+		nav.selectedTarget && targetShouldShowVNC(nav.selectedTarget, globalState)
+	);
 
-	let dynamicNavItems: NavItem[] = [];
-	$: dynamicNavItems = [
+	let dynamicNavItems: NavItem[] = $derived([
 		{
 			name: $t(`nav.device-details`),
 			icon: ListCollapse,
 			href: '/configuration/configuration-details',
-			hidden: !$globalNavSelectedConfig
+			hidden: !nav.selectedConfig
 		},
 		{
 			name: $t(`nav.configure`),
 			icon: Sliders,
 			href: '/configuration/edit',
-			hidden: !$globalNavSelectedConfig
+			hidden: !nav.selectedConfig
 		},
 		{
 			name: $t(`nav.config-tag`),
 			icon: Sliders,
 			href: '/configuration/edit',
-			hidden: !$globalNavSelectedTag
+			hidden: !nav.selectedTag
 		},
 		{
 			name: $t('nav.device-vnc'),
@@ -56,9 +58,9 @@
 			name: $t('nav.terminal'),
 			icon: Terminal,
 			href: '/configuration/terminal',
-			hidden: !$globalNavSelectedConfig
+			hidden: !nav.selectedConfig
 		}
-	];
+	]);
 </script>
 
 <Tabs
@@ -69,13 +71,13 @@
 >
 	{#each dynamicNavItems as item}
 		{#if !item.hidden}
-			<a href={item.href + $page.url.search}>
-				<TabItem open={$page.url.pathname === item.href}>
+			<a href={item.href + page.url.search}>
+				<TabItem open={page.url.pathname === item.href}>
 					<div
 						slot="title"
 						class="font-semibold flex items-center px-1 gap-2 md:min-w-32 xl:min-w-48"
 					>
-						<svelte:component this={item.icon} size={18} />
+						<item.icon size={18} />
 						<span>{item.name}</span>
 					</div>
 				</TabItem>

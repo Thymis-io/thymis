@@ -9,9 +9,13 @@
 	import MonospaceText from '$lib/components/MonospaceText.svelte';
 	import { diff } from 'svelte-highlight/languages';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
 
-	let revertCommit: Commit | undefined;
+	let { data }: Props = $props();
+
+	let revertCommit: Commit | undefined = $state();
 
 	const fetchDiff = async (refA: string, refB: string) => {
 		const res = await fetchWithNotify(`/api/history/diff?refA=${refA}&refB=${refB}`);
@@ -19,7 +23,12 @@
 	};
 </script>
 
-<PageHead title={$t('nav.history')} repoStatus={data.repoStatus} />
+<PageHead
+	title={$t('nav.history')}
+	repoStatus={data.repoStatus}
+	globalState={data.globalState}
+	nav={data.nav}
+/>
 <RollbackModal bind:commit={revertCommit} />
 <ul class="list-disc ml-4">
 	{#each data.history as history, index}
@@ -62,7 +71,9 @@
 		</li>
 		<Accordion flush class="mr-4 mb-8">
 			<AccordionItem tag="span" paddingFlush="py-2" transitionType="fly">
-				<span slot="header">{$t('history.open-diff')}</span>
+				{#snippet header()}
+					<span>{$t('history.open-diff')}</span>
+				{/snippet}
 				{#await fetchDiff(index !== data.history.length - 1 ? `${history.SHA1}~1` : '', index !== 0 ? history.SHA1 : '') then diffCode}
 					<MonospaceText language={diff} code={diffCode} />
 				{/await}

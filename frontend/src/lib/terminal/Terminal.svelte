@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import '@xterm/xterm/css/xterm.css';
 	import { onDestroy, onMount } from 'svelte';
 	import type { ITerminalInitOnlyOptions, ITerminalOptions } from '@xterm/xterm';
@@ -26,10 +28,14 @@
 		}
 	});
 
-	export let deploymentInfo: DeploymentInfo;
+	interface Props {
+		deploymentInfo: DeploymentInfo;
+	}
 
-	let terminal: TerminalType;
-	let divElement: HTMLDivElement;
+	let { deploymentInfo }: Props = $props();
+
+	let terminal: TerminalType = $state();
+	let divElement: HTMLDivElement = $state();
 	let ws: WebSocket;
 
 	const options: ITerminalOptions & ITerminalInitOnlyOptions = {
@@ -96,11 +102,11 @@
 		}
 	};
 
-	$: {
+	run(() => {
 		if (browser && deploymentInfo.id && terminal) {
 			reInitTerminal();
 		}
-	}
+	});
 </script>
 
 <div class="w-full h-full" bind:this={divElement}></div>

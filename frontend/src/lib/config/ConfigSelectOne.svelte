@@ -1,16 +1,26 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { t } from 'svelte-i18n';
 	import { Select, Tooltip } from 'flowbite-svelte';
 	import type { ModuleSettings, SelectOneSettingType, Setting } from '$lib/state';
 	import { browser } from '$app/environment';
 
-	export let value: string = '';
-	export let setting: Setting<SelectOneSettingType>;
+	interface Props {
+		value?: string;
+		setting: Setting<SelectOneSettingType>;
+		moduleSettings: ModuleSettings | undefined;
+		onChange?: (value: string) => void;
+		disabled?: boolean;
+	}
 
-	export let moduleSettings: ModuleSettings | undefined;
-
-	export let onChange: (value: string) => void = () => {};
-	export let disabled: boolean = false;
+	let {
+		value = $bindable(''),
+		setting,
+		moduleSettings,
+		onChange = () => {},
+		disabled = false
+	}: Props = $props();
 
 	const changeInternal = (e: Event) => {
 		onChange((e.target as HTMLInputElement).value);
@@ -18,12 +28,12 @@
 
 	// if setting has .extra_data:
 
-	$: extraData = setting.type.extra_data;
+	let extraData = $derived(setting.type.extra_data);
 
-	let available_settings = setting.type['select-one'];
-	let last_available_settings = JSON.stringify(available_settings);
+	let available_settings = $state(setting.type['select-one']);
+	let last_available_settings = $state(JSON.stringify(available_settings));
 
-	$: {
+	run(() => {
 		if (extraData && 'restrict_values_on_other_key' in extraData) {
 			let available_settings_set = new Set<string>(
 				setting.type['select-one'].map((option) => option[1])
@@ -57,7 +67,7 @@
 		} else {
 			available_settings = setting.type['select-one'];
 		}
-	}
+	});
 </script>
 
 <Select

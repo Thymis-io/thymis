@@ -7,13 +7,15 @@
 	import ConfigList from './ConfigList.svelte';
 	import ConfigInt from './ConfigInt.svelte';
 
-	export let setting: Setting;
-	export let value: unknown;
-	export let disabled: boolean;
+	interface Props {
+		setting: Setting;
+		value: unknown;
+		disabled: boolean;
+		moduleSettings: ModuleSettings | undefined;
+		onChange: (value: any) => void;
+	}
 
-	export let moduleSettings: ModuleSettings | undefined;
-
-	export let onChange: (value: any) => void;
+	let { setting, value, disabled, moduleSettings, onChange }: Props = $props();
 
 	const getTypeKeyFromSetting = (setting: Setting): string | undefined => {
 		if (setting.type === 'int') return 'int';

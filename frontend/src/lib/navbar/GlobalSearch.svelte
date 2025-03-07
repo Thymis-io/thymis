@@ -4,17 +4,20 @@
 	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import { Dropdown, DropdownItem, Search } from 'flowbite-svelte';
 	import { page } from '$app/stores';
-	import {
-		globalNavSelectedConfig,
-		globalNavSelectedTag,
-		globalNavSelectedTargetType,
-		state
-	} from '$lib/state';
+	import { type State } from '$lib/state';
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
+	import type { Nav } from '../../routes/(authenticated)/+layout';
 
-	let search = '';
-	let open = false;
+	interface Props {
+		nav: Nav;
+		globalState: State;
+	}
+
+	let { nav, globalState }: Props = $props();
+
+	let search = $state('');
+	let open = $state(false);
 
 	const isSearched = (search: string, item: string) => {
 		if (!search) {
@@ -32,24 +35,24 @@
 	bind:value={search}
 	placeholder={$t('common.search')}
 />
+<!-- TODO use adjusted $lib/components/Dropdown -->
 <Dropdown
 	class="lg:w-64 xl:w-96 flex flex-col overflow-y-auto h-full w-full text-sm relative gap-1 py-1"
 	id="global-search-dropdown"
 	bind:open
 >
-	{#each $state.tags as tag}
+	{#each globalState.tags as tag}
 		{@const active =
-			$globalNavSelectedTargetType === 'tag' &&
-			$globalNavSelectedTag?.identifier === tag.identifier}
+			nav.selectedTargetType === 'tag' && nav.selectedTag?.identifier === tag.identifier}
 		{@const subpage = [
 			'/configuration/edit',
-			targetShouldShowVNC(tag, $state) ? '/configuration/vnc' : undefined
+			targetShouldShowVNC(tag, globalState) ? '/configuration/vnc' : undefined
 		].includes($page.url.pathname)
 			? $page.url.pathname
 			: '/configuration/edit'}
 		{#if isSearched(search, tag.displayName)}
 			<DropdownItem
-				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'tag', tag.identifier)}`}
+				href={`${subpage}?${buildGlobalNavSearchParam(globalState, $page.url.search, 'tag', tag.identifier)}`}
 				class={`flex gap-2 p-1 hover:bg-gray-100 items-center rounded ${active ? 'text-primary-600 dark:text-primary-400 hover:text-primary-600' : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'}`}
 				on:click={() => (open = false)}
 			>
@@ -58,21 +61,20 @@
 			</DropdownItem>
 		{/if}
 	{/each}
-	{#each $state.configs as config}
+	{#each globalState.configs as config}
 		{@const active =
-			$globalNavSelectedTargetType === 'config' &&
-			$globalNavSelectedConfig?.identifier === config.identifier}
+			nav.selectedTargetType === 'config' && nav.selectedConfig?.identifier === config.identifier}
 		{@const subpage = [
 			'/configuration/configuration-details',
 			'/configuration/edit',
-			targetShouldShowVNC(config, $state) ? '/configuration/vnc' : undefined,
+			targetShouldShowVNC(config, globalState) ? '/configuration/vnc' : undefined,
 			'/configuration/terminal'
 		].includes($page.url.pathname)
 			? $page.url.pathname
 			: '/configuration/configuration-details'}
 		{#if isSearched(search, config.displayName)}
 			<DropdownItem
-				href={`${subpage}?${buildGlobalNavSearchParam($page.url.search, 'config', config.identifier)}`}
+				href={`${subpage}?${buildGlobalNavSearchParam(globalState, $page.url.search, 'config', config.identifier)}`}
 				class={`flex gap-2 p-1 hover:bg-gray-100 items-center rounded ${active ? 'text-primary-600 dark:text-primary-400 hover:text-primary-600' : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'}`}
 				on:click={() => (open = false)}
 			>

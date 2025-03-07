@@ -1,25 +1,29 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { Config, Module } from '$lib/state';
-	import { state } from '$lib/state';
+	import type { Config, Module, State } from '$lib/state';
 	import { Card, Spinner, Toggle, P } from 'flowbite-svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { configVNCPassword, targetShouldShowVNC } from '$lib/vnc/vnc';
 	import { page } from '$app/stores';
 	import { type DeploymentInfo } from '$lib/deploymentInfo';
 
-	export let config: Config | undefined;
-	export let deploymentInfo: DeploymentInfo;
-	let deviceHost: string;
+	interface Props {
+		globalState: State;
+		config: Config | undefined;
+		deploymentInfo: DeploymentInfo;
+	}
+
+	let { globalState, config, deploymentInfo }: Props = $props();
+
 	let rfb: any;
-	let connected = false;
-	let connectionFailed = false;
+	let connected = $state(false);
+	let connectionFailed = $state(false);
 
-	let control = false;
+	let control = $state(false);
 
-	$: hasVNC = deploymentInfo && config && targetShouldShowVNC(config, $state);
+	let hasVNC = $derived(deploymentInfo && config && targetShouldShowVNC(config, globalState));
 
-	let div: HTMLDivElement;
+	let div: HTMLDivElement | undefined = $state();
 
 	const initVNC = async (deploymentInfo: DeploymentInfo) => {
 		if (!deploymentInfo || !config) {
@@ -32,7 +36,11 @@
 		const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 		const url = `${scheme}://${window.location.host}/api/vnc/${deploymentInfo.id}`;
 
-		const password = configVNCPassword(config, $state, $page.data.availableModules as Module[]);
+		const password = configVNCPassword(
+			config,
+			globalState,
+			$page.data.availableModules as Module[]
+		);
 
 		if (rfb) {
 			rfb.disconnect();

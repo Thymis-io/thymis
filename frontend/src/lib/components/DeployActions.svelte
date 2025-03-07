@@ -10,8 +10,16 @@
 	import { invalidate } from '$app/navigation';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import { type RepoStatus } from '$lib/repo/repo';
+	import type { Nav } from '../../routes/(authenticated)/+layout';
+	import type { State } from '$lib/state';
 
-	export let repoStatus: RepoStatus;
+	interface Props {
+		nav: Nav;
+		globalState: State;
+		repoStatus: RepoStatus;
+	}
+
+	let { nav, globalState, repoStatus }: Props = $props();
 
 	const buttonClass = 'flex-auto sm:flex-[0_1_100px] gap-2 px-2 py-1.5 h-min';
 	const textClass = 'text-base whitespace-nowrap';
@@ -34,8 +42,8 @@
 		);
 	};
 
-	let openDeploy = false;
-	let openCommit = false;
+	let openDeploy = $state(false);
+	let openCommit = $state(false);
 </script>
 
 <div class="flex flex-wrap justify-end align-start ml-2 my-1.5 gap-1 sm:gap-2 w-[38rem]">
@@ -60,6 +68,6 @@
 		<Boxes size={'1rem'} class="min-w-4" />
 		<span class={textClass}>{$t('deploy.deploy')}</span>
 	</Button>
-	<DeployModal bind:open={openDeploy} {repoStatus} />
+	<DeployModal bind:open={openDeploy} {repoStatus} {globalState} {nav} />
 	<CommitModal bind:open={openCommit} {repoStatus} onAction={commit} />
 </div>

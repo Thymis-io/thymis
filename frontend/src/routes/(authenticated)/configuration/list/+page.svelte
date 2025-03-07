@@ -1,18 +1,9 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
-	import { saveState, state, type Config, type Tag } from '$lib/state';
+	import { saveState, type Config, type Tag } from '$lib/state';
 	import Pen from 'lucide-svelte/icons/pen';
-	import {
-		Button,
-		Helper,
-		Table,
-		TableBodyCell,
-		TableBodyRow,
-		TableHead,
-		TableHeadCell,
-		Tooltip
-	} from 'flowbite-svelte';
+	import { Button, Table, TableBodyCell, TableHead, TableHeadCell, Tooltip } from 'flowbite-svelte';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Search from 'lucide-svelte/icons/search';
@@ -27,18 +18,28 @@
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
 	import { flip } from 'svelte/animate';
-	import { nameToIdentifier, nameValidation } from '$lib/nameValidation';
-	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import PageHead from '$lib/components/PageHead.svelte';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 
 	const flipDurationMs = 200;
-	let dragDisabled = true;
+	let dragDisabled = $state(true);
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
+
+	let { data = $bindable() }: Props = $props();
+
+	type DraggableConfig = { id: string; data: Config };
+	let configs = $state<DraggableConfig[]>(
+		data.globalState.configs.map((config) => ({ id: config.identifier, data: config }))
+	);
+	$effect(() => {
+		configs = data.globalState.configs.map((config) => ({ id: config.identifier, data: config }));
+	});
 
 	const findTag = (identifier: string) => {
-		return data.state.tags.find((t) => t.identifier === identifier);
+		return data.globalState.tags.find((t) => t.identifier === identifier);
 	};
 
 	const handleConsider = (e: CustomEvent<DndEvent<{ id: string; data: Config }>>) => {
@@ -59,8 +60,8 @@
 		} = e.detail;
 		configs = newItems;
 		// also send new config order to backend and reload
-		data.state.configs = configs.map((config) => config.data);
-		saveState();
+		data.globalState.configs = configs.map((config) => config.data);
+		saveState(data.globalState);
 		// Ensure dragging is stopped on drag finish via pointer (mouse, touch)
 		if (source === SOURCES.POINTER) {
 			dragDisabled = true;
@@ -77,27 +78,30 @@
 
 	const renameConfig = async (config: Config, displayName: string) => {
 		config.displayName = displayName;
-		await saveState();
+		await saveState(data.globalState);
 		return true;
 	};
 
-	let configToDelete: Config | undefined = undefined;
+	let configToDelete: Config | undefined = $state(undefined);
 
 	const deleteConfiguration = async (config: Config) => {
 		const identifier = config.identifier;
-		$state.configs = $state.configs.filter((config) => config.identifier !== identifier);
-		await saveState();
+		data.globalState.configs = data.globalState.configs.filter(
+			(config) => config.identifier !== identifier
+		);
+		await saveState(data.globalState);
 	};
 
-	$: configs = data.state.configs.map((config) => {
-		return { id: config.identifier, data: config };
-	});
-
-	let newConfigModalOpen = false;
-	let currentlyEditingConfig: Config | undefined = undefined;
+	let newConfigModalOpen = $state(false);
+	let currentlyEditingConfig: Config | undefined = $state(undefined);
 </script>
 
-<PageHead title={$t('configurations.title')} repoStatus={data.repoStatus}>
+<PageHead
+	title={$t('configurations.title')}
+	repoStatus={data.repoStatus}
+	globalState={data.globalState}
+	nav={data.nav}
+>
 	<Button
 		color="alternative"
 		class="whitespace-nowrap gap-2 px-2 py-1 m-1"
@@ -130,8 +134,8 @@
 	}}
 	on:cancel={() => (configToDelete = undefined)}
 />
-<CreateConfigModal bind:open={newConfigModalOpen} />
-<EditTagModal bind:currentlyEditingConfig />
+<CreateConfigModal globalState={data.globalState} bind:open={newConfigModalOpen} />
+<EditTagModal globalState={data.globalState} bind:currentlyEditingConfig />
 <Table shadow>
 	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2 w-12" />
@@ -141,8 +145,8 @@
 	</TableHead>
 	<tbody
 		use:dndzone={{ items: configs, dragDisabled, flipDurationMs }}
-		on:consider={handleConsider}
-		on:finalize={handleFinalize}
+		onconsider={handleConsider}
+		onfinalize={handleFinalize}
 	>
 		{#each configs as config (config.id)}
 			<tr
@@ -157,9 +161,9 @@
 							role="button"
 							class="handle"
 							style={dragDisabled ? 'cursor: grab' : 'cursor: grabbing'}
-							on:mousedown={startDrag}
-							on:touchstart={startDrag}
-							on:keydown={handleKeyDown}
+							onmousedown={startDrag}
+							ontouchstart={startDrag}
+							onkeydown={handleKeyDown}
 						>
 							<GripVertical size={'1rem'} class="min-w-4" />
 						</div>
@@ -183,7 +187,7 @@
 								<Button
 									size="sm"
 									class="p-2 py-0.5 gap-1"
-									href={`/configuration/edit?${buildGlobalNavSearchParam($page.url.search, 'tag', tag)}`}
+									href={`/configuration/edit?${buildGlobalNavSearchParam(data.globalState, $page.url.search, 'tag', tag)}`}
 								>
 									<TagIcon size={'0.75rem'} class="min-w-3" />
 									<span class="text-nowrap">
@@ -192,7 +196,7 @@
 								</Button>
 							{/each}
 						</div>
-						<button class="p-0" on:click={() => (currentlyEditingConfig = config.data)}>
+						<button class="p-0" onclick={() => (currentlyEditingConfig = config.data)}>
 							<Pen size={'1rem'} class="min-w-4" />
 						</button>
 					</div>
@@ -203,6 +207,7 @@
 							class="px-3 py-1.5 gap-2"
 							color="alternative"
 							href={`/configuration/configuration-details?${buildGlobalNavSearchParam(
+								data.globalState,
 								$page.url.search,
 								'config',
 								config.data.identifier
@@ -215,6 +220,7 @@
 							class="px-3 py-1.5 gap-2"
 							color="alternative"
 							href={`/configuration/edit?${buildGlobalNavSearchParam(
+								data.globalState,
 								$page.url.search,
 								'config',
 								config.data.identifier
