@@ -49,7 +49,7 @@ def del_path(path: os.PathLike):
     if not path.exists():
         return
     if path.is_dir():
-        shutil.rmtree(path)
+        shutil.rmtree(path, ignore_errors=True)
     else:
         path.unlink()
 
@@ -453,7 +453,8 @@ class Project:
     ):
         path = self.repo_dir / base_path / identifier
         path.mkdir(exist_ok=True)
-        os.mknod(path / ".gitkeep")
+        if not (path / ".gitkeep").exists():
+            os.mknod(path / ".gitkeep")
         for module_settings in modules:
             try:
                 module = get_module_class_instance_by_type(module_settings.type)

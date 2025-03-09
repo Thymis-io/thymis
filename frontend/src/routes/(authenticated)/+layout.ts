@@ -15,6 +15,7 @@ import { error, redirect } from '@sveltejs/kit';
 import { getAllTasks } from '$lib/taskstatus';
 import { fetchWithNotify } from '$lib/fetchWithNotify';
 import { type RepoStatus } from '$lib/repo/repo';
+import { GlobalState } from '$lib/state.svelte';
 
 export type Nav = {
 	selectedTargetType: ContextType | null;
@@ -187,6 +188,7 @@ export const load = (async ({ fetch, url, data }) => {
 
 	return {
 		globalState: globalState,
+		classState: new GlobalState(globalState, url.searchParams, availableModules),
 		secrets: secrets,
 		nav: nav,
 		availableModules: availableModules,
