@@ -96,6 +96,7 @@
 		<ModuleCard
 			nav={data.nav}
 			globalState={data.globalState}
+			classState={data.classState}
 			module={data.nav.selectedModule}
 			settings={getOwnModuleSettings(data.nav.selectedModuleContext).find(
 				(s) => s.type === data.nav.selectedModule?.type

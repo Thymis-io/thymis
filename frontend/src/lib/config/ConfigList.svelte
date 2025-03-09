@@ -21,19 +21,19 @@
 	{#each values as item}
 		<Card class="flex flex-row gap-1 p-4 w-full max-w-full drop-shadow" padding={'xs'}>
 			<div class="flex flex-col w-full gap-4">
-				{#each Object.entries(setting.type['list-of']) as [key, setting]}
+				{#each Object.entries(setting.type['list-of']) as [keyEntry, settingEntry]}
 					<div>
-						{#if setting.displayName}
-							<P class="p-0 pb-1">{$t(`${setting.displayName}`)}</P>
+						{#if settingEntry.displayName}
+							<P class="p-0 pb-1">{$t(`${settingEntry.displayName}`)}</P>
 						{/if}
 						<ConfigRenderer
-							{setting}
+							setting={settingEntry}
 							{moduleSettings}
-							value={item[key]}
+							value={item[keyEntry]}
 							{disabled}
 							onChange={(value) => {
 								const newValues = [...values];
-								newValues[values.indexOf(item)] = { ...item, [key]: value };
+								newValues[values.indexOf(item)] = { ...item, [keyEntry]: value };
 								onChange(newValues);
 							}}
 						/>

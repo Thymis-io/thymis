@@ -19,10 +19,12 @@
 	import DefinitionLine from './DefinitionLine.svelte';
 	import ConfigRenderer from './ConfigRenderer.svelte';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
+	import type { GlobalState } from '$lib/state.svelte';
 
 	interface Props {
 		nav: Nav;
 		globalState: State;
+		classState: GlobalState;
 		module: Module;
 		settings: ModuleSettingsWithOrigin | undefined;
 		otherSettings: ModuleSettingsWithOrigin[] | undefined;
@@ -33,6 +35,7 @@
 	let {
 		nav,
 		globalState,
+		classState,
 		module,
 		settings = $bindable(),
 		otherSettings,
@@ -40,16 +43,16 @@
 		canEdit
 	}: Props = $props();
 
-	const setSetting = async (setting: Setting<SettingType>, settingKey: string, value: any) => {
-		if (nav.selectedModuleContext && settings) {
+	const setSetting = async (setting: Setting<SettingType>, key: string, value: any) => {
+		if (classState.selectedModuleSettings) {
 			if (value !== undefined && value !== null) {
-				settings.settings[settingKey] = value;
+				classState.selectedModuleSettings.settings[key] = value;
 			} else {
-				delete settings.settings[settingKey];
+				delete classState.selectedModuleSettings.settings[key];
 			}
 		}
 
-		await saveState(globalState);
+		classState.save();
 	};
 
 	const sameOrigin = (a: Origin | undefined, b: Origin | undefined) => {
@@ -119,7 +122,7 @@
 				<ConfigRenderer
 					{setting}
 					moduleSettings={settings}
-					value={settings?.settings[key]}
+					value={classState.selectedModuleSettings?.settings[key]}
 					disabled={!canReallyEditSetting(canEdit, setting)}
 					onChange={(value) => setSetting(setting, key, value)}
 				/>
