@@ -245,7 +245,8 @@
 						<Button
 							size="xs"
 							on:click={() => copySecretId(id)}
-							title={`Copy \${secrets.${secret.display_name}}`}
+							title={`Copy ${secret.display_name} ID`}
+							aria-label={`Copy ${secret.display_name} ID`}
 						>
 							{$t('secrets.copy-id')}
 						</Button>
@@ -267,7 +268,7 @@
 </Table>
 <div class="flex justify-between mt-4">
 	<Button color="alternative" on:click={() => addSecret()}>
-		+ {$t('secrets.add-secret')}
+		+ {$t('secrets.create')}
 	</Button>
 </div>
 
