@@ -17,7 +17,8 @@
 		"device-vnc": "VNC",
 		"external-repositories": "Externe Repositories",
 		"tags": "Konfig. Tags",
-		"device-details": "Details"
+		"device-details": "Details",
+		"secrets": "Secrets"
 	},
 	"common": {
 		"search": "Suchen...",
@@ -27,7 +28,9 @@
 		"logout": "Abmelden",
 		"documentation": "Dokumentation",
 		"github": "GitHub",
-		"website": "Homepage"
+		"website": "Homepage",
+		"no": "Nein",
+		"yes": "Ja"
 	},
 	"vnc": {
 		"connection-failed": "Verbindungsfehler",
@@ -187,7 +190,8 @@
 		"raw-output": "Vollständige Ausgabe",
 		"summary": "Zusammenfassung der Änderungen",
 		"selected": "Auszurollende Tags/Konfigurationen",
-		"configurations": "Betroffene Konfigurationen"
+		"configurations": "Betroffene Konfigurationen",
+		"commit": "Commit"
 	},
 	"overview": {
 		"configs": "Konfigurationen ({count})",
@@ -336,5 +340,24 @@
 		"scan-public-key-tooltip": "Automatische Suche nach dem Public Key des Geräts im Netzwerk. Verwendet den oben angegebenen Zielhost.\nÜberprüfen Sie anschließend, ob der Public Key korrekt ist",
 		"title": "Hostkey Bearbeiten",
 		"update": "Aktualisieren"
+	},
+	"secrets": {
+		"actions": "Aktionen",
+		"add-variable": "Variable hinzufügen",
+		"confirm-delete": "Bestätigen Sie das Löschen des Secrets:",
+		"create": "Secret erstellen",
+		"copy-id": "ID Kopieren",
+		"file": "Datei",
+		"edit": "Geheimnis bearbeiten",
+		"name": "Name",
+		"name-exists": "Name existiert bereits",
+		"type": "Secret-Typ",
+		"type-single-line": "Einzelzeile",
+		"type-multi-line": "Multi-Zeile",
+		"type-file": "Datei",
+		"type-env-list": "Liste von Umgebungsvariablen",
+		"no-secrets": "Keine Geheimnisse",
+		"processing-description-yescrypt": "Dies wird das Geheimnis unter Verwendung des Yescrypt -Algorithmus haben. \nDer Hash -Wert wird im Geheimnis gespeichert. \t\t\t\t\t\nDies sollte verwendet werden, um Passwörter für Benutzer oder Dienste festzulegen, für die ein Hashed -Passwort erforderlich ist.",
+		"include-in-image": "Im Installationsimage einbauen"
 	}
 }

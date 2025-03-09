@@ -112,8 +112,21 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await page.locator('p', { hasText: 'Freeform Settings' }).waitFor();
 	const freeformSettingsInput = page.locator('textarea').first();
 	await freeformSettingsInput.fill(
-		'programs.bash.promptInit = "PS1=\\"\\[Hello World Custom Prompt\\] \\"";services.openssh.settings.PrintLastLog = "no";'
+		'programs.bash.promptInit = "PS1=\\"\\[`cat /run/thymis/secret.txt`Hello World Custom Prompt\\] \\"";services.openssh.settings.PrintLastLog = "no";'
 	);
+
+	// Edit core device module too
+	await page.locator('p', { hasText: 'Core Device Configuration' }).click();
+	await page.getByRole('button', { name: 'Add Secret' }).click();
+	await page.getByRole('button', { name: 'Create Secret' }).nth(1).click();
+	await page.getByPlaceholder('No name').fill('secret.txt');
+	await page.getByLabel('Value').fill('THIS IS A SECRET');
+	await page.getByRole('button', { name: 'Save' }).click();
+
+	// path
+	await page.getByPlaceholder('Secret Path').fill('/run/thymis/secret.txt');
+
+	// expect(false).toBe(true, 'This test is not finished yet');
 
 	// click on "Deploy" button
 	const deployButton = page.locator('button').filter({ hasText: 'Deploy' });
@@ -138,7 +151,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await page.locator('a', { hasText: 'Details' }).first().click();
 	await page.locator('p', { hasText: 'Deployed:' }).first().waitFor();
 
-	await waitForTerminalText(page, '[Hello World Custom Prompt]');
+	await waitForTerminalText(page, '[THIS IS A SECRETHello World Custom Prompt]');
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: maxDiffPixels
