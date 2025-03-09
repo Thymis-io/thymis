@@ -28,7 +28,9 @@
 		"logout": "Logout",
 		"documentation": "Documentation",
 		"github": "GitHub",
-		"website": "Homepage"
+		"website": "Homepage",
+		"yes": "Yes",
+		"no": "No"
 	},
 	"vnc": {
 		"connection-failed": "Connection failed",
@@ -339,5 +341,38 @@
 		"scan-public-key-tooltip": "Automatically scan for the public key of the device in the network. Uses the specified target host from above.\nVerify if the key is correct afterwards",
 		"update": "Update",
 		"create": "Create"
+	},
+	"secrets": {
+		"edit": "Edit Secret",
+		"create": "Create Secret",
+		"download-error": "Error downloading file",
+		"save-error": "Error saving secret",
+		"type-single-line": "Single Line",
+		"type-multi-line": "Multi Line",
+		"type-env-list": "List of environment variables",
+		"type-file": "File",
+		"name": "Name",
+		"name-placeholder": "No name",
+		"type": "Secret-Type",
+		"processing": "Secret-Processing",
+		"processing-none": "No processing",
+		"processing-mkpasswd-yescrypt": "Processing with mkpasswd yescrypt",
+		"processing-description-yescrypt": "This will hash the secret using the yescrypt algorithm. The hashed value will be stored in the secret. \t\t\t\t\tThis should be used to set passwords for users or services that require a hashed password.",
+		"include-in-image": "Include in image",
+		"security-warning": "Warning: will be available to anyone with access to installation disk",
+		"value": "Value",
+		"add-variable": "Add variable",
+		"env-variables": "Environment variables",
+		"file": "File",
+		"current-file": "Current file",
+		"download-file": "Download file",
+		"new-file": "New file",
+		"name-exists": "Name already exists",
+		"actions": "Actions",
+		"copy-id": "Copy ID",
+		"delete": "Delete Secret",
+		"no-secrets": "No Secrets",
+		"confirm-delete": "Confirm deleting secret:",
+		"delete-error": "Error deleting secret"
 	}
 }

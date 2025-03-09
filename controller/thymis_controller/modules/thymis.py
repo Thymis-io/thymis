@@ -619,8 +619,8 @@ Secrets sind perfekt für
                 ),
                 "path": modules.Setting(
                     display_name=modules.LocalizedString(
-                        en="Path",
-                        de="Pfad",
+                        en="Secret Path",
+                        de="Secret-Pfad",
                     ),
                     type="string",
                     default="",
@@ -628,7 +628,7 @@ Secrets sind perfekt für
                         en="The path where the secret will be placed.",
                         de="Der Pfad, an dem das Secret abgelegt wird.",
                     ),
-                    example="",
+                    example="Secret Path",
                     order=10,
                 ),
                 "owner": modules.Setting(

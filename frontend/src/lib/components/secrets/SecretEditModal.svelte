@@ -145,7 +145,7 @@
 
 <Modal
 	bind:open
-	title={isCreating ? $t('secrets.create-secret') : $t('secrets.edit-secret')}
+	title={isCreating ? $t('secrets.create') : $t('secrets.edit')}
 	size="lg"
 	on:close={onClose}
 	autoclose={false}
@@ -203,14 +203,7 @@
 						name: $t('secrets.processing-mkpasswd-yescrypt')
 					}
 				]}
-			>
-				<!-- <option value="none" selected={editedProcessingType === 'none'}>
-					{$t('secrets.processing-none')}
-				</option>
-				<option value="mkpasswd-yescrypt" selected={editedProcessingType === 'mkpasswd-yescrypt'}>
-					{$t('secrets.processing-mkpasswd-yescrypt')}
-				</option> -->
-			</Select>
+			></Select>
 			{#if editedProcessingType === 'mkpasswd-yescrypt'}
 				<p class="mt-1 text-xs text-gray-500">
 					{$t('secrets.processing-description-yescrypt')}
