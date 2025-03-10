@@ -27,7 +27,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await createConfiguration(page, 'VM Test x64 2', 'Generic x86-64', []);
 
 	// VM tasks can flip order, so we need to allow for some pixel differences
-	const maxDiffPixels = 256;
+	const maxDiffPixels = 220;
 
 	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
 	await page.locator('h1', { hasText: 'Device Configurations' }).waitFor();
