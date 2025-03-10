@@ -45,7 +45,7 @@
 	// Access secrets from $page.data
 	$: secrets = $page.data.secrets;
 
-	const changeSecretName = (id: string, newName: string): void => {
+	const changeSecretName = async (id: string, newName: string) => {
 		const secret = secrets[id];
 		if (!secret || secret.display_name === newName || newName.trim() === '') return;
 
@@ -58,9 +58,10 @@
 			return;
 		}
 
-		// Update the secret name
-		secrets[id] = { ...secret, display_name: newName };
-		secrets = { ...secrets }; // Trigger reactivity
+		// Update the secret using api
+
+		await sendSecretRequest(id, { display_name: newName });
+		await invalidate('/api/secrets');
 	};
 
 	const openEditSecret = async (id: string): Promise<void> => {

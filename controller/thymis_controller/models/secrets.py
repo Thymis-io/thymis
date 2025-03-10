@@ -53,3 +53,13 @@ class SecretCreateRequest(BaseModel):
     processing_type: db_models.SecretProcessingTypes = (
         db_models.SecretProcessingTypes.NONE
     )
+
+
+class SecretUpdateRequest(BaseModel):
+    display_name: Optional[str] = None
+    type: Optional[db_models.SecretTypes] = None
+    value_str: Optional[str] = None
+    value_b64: Optional[str] = None
+    filename: Optional[str] = None
+    include_in_image: bool = False
+    processing_type: Optional[db_models.SecretProcessingTypes] = None
