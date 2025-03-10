@@ -76,7 +76,6 @@ def check_user_session(
 
 def require_valid_user_session(
     db_engine: EngineAD,
-    request: Request,
     user_session_id: UserSessionIDAD = None,
     user_session_token: UserSessionTokenAD = None,
 ) -> bool:
