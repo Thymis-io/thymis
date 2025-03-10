@@ -2,7 +2,7 @@
 	import DeployActions from '$lib/components/layout/DeployActions.svelte';
 	import { type RepoStatus } from '$lib/repo/repo';
 	import type { State } from '$lib/state';
-	import type { Nav } from '../../routes/(authenticated)/+layout';
+	import type { Nav } from '../../../routes/(authenticated)/+layout';
 
 	interface Props {
 		nav: Nav;

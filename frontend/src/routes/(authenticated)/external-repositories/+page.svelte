@@ -78,10 +78,10 @@
 		<TableHeadCell padding="p-2">{$t('settings.repo.actions')}</TableHeadCell>
 	</TableHead>
 	<TableBody>
-		{#each Object.entries(data.globalState.repositories) as [name, repo]}
+		{#each Object.entries(data.classState.repositories) as [name, repo]}
 			<TableBodyRow>
 				<TableBodyEditCell value={name} onEnter={(newName) => changeRepoName(name, newName)} />
-				<TableBodyEditCell bind:value={repo.url} onEnter={() => saveState(data.globalState)} />
+				<TableBodyEditCell bind:value={repo.url} onEnter={() => data.classState.save()} />
 				<TableBodyCell tdClass="p-2">
 					<div class="flex gap-1">
 						<Button on:click={() => deleteRepo(name)}>
