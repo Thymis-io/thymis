@@ -240,14 +240,20 @@
 
 <div class="flex w-full gap-2 items-center">
 	<div class="flex-grow">
-		<Select {value} on:change={internalChange} {disabled} items={selectItems}></Select>
+		<Select
+			{value}
+			on:change={internalChange}
+			{disabled}
+			items={selectItems}
+			class={`h-8 px-2 py-1 ${disabled ? 'opacity-70' : ''}`}
+		/>
 	</div>
 	{#if value}
-		<Button on:click={openEditModal} {disabled} size="sm">
+		<Button on:click={openEditModal} {disabled} size="sm" class="whitespace-nowrap">
 			{$t('secrets.edit')}
 		</Button>
 	{:else}
-		<Button on:click={openCreateModal} {disabled} size="sm">
+		<Button on:click={openCreateModal} {disabled} size="sm" class="whitespace-nowrap">
 			{$t('secrets.create')}
 		</Button>
 	{/if}
