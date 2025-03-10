@@ -96,7 +96,7 @@ def login_basic(
     ):  # TODO replace password check with hash comparison
         apply_user_session(db_session, response)
         return RedirectResponse(
-            f"/auth/redirect_success"
+            "/auth/redirect_success"
             + (f"?redirect={quote(safe_redirect)}" if safe_redirect else ""),
             headers=response.headers,
             status_code=status.HTTP_303_SEE_OTHER,
@@ -115,7 +115,7 @@ def login_basic(
         )
 
 
-@router.get("/auth/redirect_success")
+@router.get("/redirect_success")
 def redirect_success(
     response: Response,
     loggedin: Annotated[bool, Depends(require_valid_user_session)],
@@ -215,7 +215,7 @@ async def callback(code: str, response: Response, db_session: DBSessionAD):
 
     apply_user_session(db_session, response)
     return RedirectResponse(
-        "/redirect_success",
+        "/auth/redirect_success",
         headers=response.headers,
         status_code=status.HTTP_303_SEE_OTHER,
     )
