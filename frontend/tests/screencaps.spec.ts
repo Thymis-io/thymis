@@ -120,6 +120,10 @@ test('explores more pages', async ({ page, request }, testInfo) => {
 	// Navigate to the External Repositories page
 	await page.locator('nav:visible').locator('a', { hasText: 'External Repositories' }).click();
 	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	// Navigate to the Secrets page
+	await page.locator('nav:visible').locator('a', { hasText: 'Secrets' }).click();
+	await expectScreenshot(page, testInfo, screenshotCounter);
 });
 
 test('create whoami tag', async ({ page, request }, testInfo) => {
