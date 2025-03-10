@@ -1,4 +1,4 @@
-import { invalidate } from '$app/navigation';
+import { invalidateButDeferUntilNavigation } from './notification';
 import { fetchWithNotify } from './fetchWithNotify';
 
 export type ModuleSettings = {
@@ -147,7 +147,7 @@ export const saveState = async (state: State) => {
 		},
 		body: JSON.stringify(state)
 	});
-	await invalidate((url) => url.pathname === '/api/state');
+	await invalidateButDeferUntilNavigation((url) => url.pathname === '/api/state');
 	return response.ok;
 };
 
