@@ -165,7 +165,8 @@
 	title={isCreating ? $t('secrets.create') : $t('secrets.edit')}
 	size="lg"
 	on:close={onClose}
-	autoclose={false}
+	autoclose
+	outsideclose
 >
 	<div class="space-y-4">
 		<!-- Secret name -->
@@ -181,27 +182,11 @@
 		<!-- Secret type (only selectable when creating) -->
 		<div>
 			<Label for="secretType">{$t('secrets.type')}</Label>
-			{#if !isCreating}
-				<!-- Type is fixed when editing -->
-				<div class="p-2 border border-gray-300 rounded-lg bg-gray-50">
-					{#if editedSecretType === 'single_line'}
-						{$t('secrets.type-single-line')}
-					{:else if editedSecretType === 'multi_line'}
-						{$t('secrets.type-multi-line')}
-					{:else if editedSecretType === 'env_list'}
-						{$t('secrets.type-env-list')}
-					{:else if editedSecretType === 'file'}
-						{$t('secrets.type-file')}
-					{/if}
-				</div>
-			{:else}
-				<!-- Type can be selected when creating -->
-				<Select id="secretType" bind:value={editedSecretType}>
-					{#each secretTypeOptions as option}
-						<option value={option.value}>{option.name}</option>
-					{/each}
-				</Select>
-			{/if}
+			<Select id="secretType" bind:value={editedSecretType} disabled={!isCreating}>
+				{#each secretTypeOptions as option}
+					<option value={option.value}>{option.name}</option>
+				{/each}
+			</Select>
 		</div>
 
 		<!-- Processing type -->
