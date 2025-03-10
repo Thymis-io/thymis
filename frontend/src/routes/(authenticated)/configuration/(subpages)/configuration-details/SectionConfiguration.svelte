@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import Section from './Section.svelte';
-	import { type Config, type Module, type State } from '$lib/state';
+	import { type Config, type Module } from '$lib/state';
 	import {
 		buildGlobalNavSearchParam,
 		buildConfigSelectModuleSearchParam
@@ -12,9 +12,10 @@
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import EditTagModal from '$lib/EditTagModal.svelte';
 	import ModuleIcon from '$lib/config/ModuleIcon.svelte';
+	import type { GlobalState } from '$lib/state.svelte';
 
 	interface Props {
-		globalState: State;
+		globalState: GlobalState;
 		config: Config;
 		availableModules: Module[];
 		class?: string;

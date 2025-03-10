@@ -9,6 +9,7 @@ import {
 } from './state';
 
 export class GlobalState {
+	version = $state<string>()!;
 	repositories = $state<{ [name: string]: Repo }>()!;
 	configs = $state<Config[]>()!;
 	tags = $state<Tag[]>()!;
@@ -49,6 +50,7 @@ export class GlobalState {
 	);
 
 	constructor(state: State, urlParams: URLSearchParams, availableModules: Module[]) {
+		this.version = state.version;
 		this.repositories = state.repositories;
 		this.configs = state.configs;
 		this.tags = state.tags;
@@ -76,8 +78,9 @@ export class GlobalState {
 		return this.tags.find((tag) => tag.identifier === identifier);
 	};
 
-	save = () => {
-		saveState({
+	save = async () => {
+		await saveState({
+			version: this.version,
 			repositories: this.repositories,
 			configs: this.configs,
 			tags: this.tags

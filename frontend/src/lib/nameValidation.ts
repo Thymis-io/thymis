@@ -1,6 +1,6 @@
 import { t } from 'svelte-i18n';
 import { get } from 'svelte/store';
-import { type State } from '$lib/state';
+import type { GlobalState } from './state.svelte';
 
 export const nameToIdentifier = (displayName: string): string => {
 	// strip string first
@@ -16,7 +16,7 @@ export const nameToIdentifier = (displayName: string): string => {
 };
 
 export const nameValidation = (
-	globalState: State,
+	globalState: GlobalState,
 	displayName: string,
 	targetType: string
 ): string | undefined => {

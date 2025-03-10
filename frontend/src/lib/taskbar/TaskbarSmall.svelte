@@ -11,10 +11,10 @@
 	import { queryParameters } from 'sveltekit-search-params';
 	import TaskbarName from './TaskbarName.svelte';
 	import TaskbarStatus from './TaskbarStatus.svelte';
-	import type { State } from '$lib/state';
+	import type { GlobalState } from '$lib/state.svelte';
 
 	interface Props {
-		globalState: State;
+		globalState: GlobalState;
 		inPlaywright: boolean;
 	}
 

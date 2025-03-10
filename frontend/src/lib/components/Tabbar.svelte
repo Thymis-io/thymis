@@ -5,13 +5,13 @@
 	import Terminal from 'lucide-svelte/icons/terminal';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import ListCollapse from 'lucide-svelte/icons/list-collapse';
-	import { type State } from '$lib/state';
+	import type { GlobalState } from '$lib/state.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import { page } from '$app/state';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
 
 	interface Props {
-		globalState: State;
+		globalState: GlobalState;
 		nav: Nav;
 	}
 

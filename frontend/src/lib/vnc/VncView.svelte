@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { Config, Module, State } from '$lib/state';
+	import type { Config, Module } from '$lib/state';
 	import { Card, Spinner, Toggle, P } from 'flowbite-svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { configVNCPassword, targetShouldShowVNC } from '$lib/vnc/vnc';
 	import { page } from '$app/stores';
 	import { type DeploymentInfo } from '$lib/deploymentInfo';
+	import type { GlobalState } from '$lib/state.svelte';
 
 	interface Props {
-		globalState: State;
+		globalState: GlobalState;
 		config: Config | undefined;
 		deploymentInfo: DeploymentInfo;
 	}

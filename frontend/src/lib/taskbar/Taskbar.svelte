@@ -9,10 +9,10 @@
 	import TaskbarName from './TaskbarName.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 	import RenderTimeDuration from '$lib/components/RenderTimeDuration.svelte';
-	import type { State } from '$lib/state';
+	import type { GlobalState } from '$lib/state.svelte';
 
 	interface Props {
-		globalState: State;
+		globalState: GlobalState;
 		taskbarMinimized: boolean;
 	}
 

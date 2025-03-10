@@ -4,20 +4,20 @@
 	import { t } from 'svelte-i18n';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
-	import { Button, Modal, Input, Tooltip } from 'flowbite-svelte';
-	import { invalidate } from '$app/navigation';
+	import { Button, Modal, Input } from 'flowbite-svelte';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
-	import { type Config, type State, type Tag } from '$lib/state';
+	import { type Config, type Tag } from '$lib/state';
 	import FloatingMultiSelect from '$lib/components/FloatingMultiSelect.svelte';
 	import type { RepoStatus } from '$lib/repo/repo';
 	import FileChanges from './FileChanges.svelte';
 	import type { ObjectOption } from 'svelte-multiselect';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
 	import { invalidateButDeferUntilNavigation } from '$lib/notification';
+	import type { GlobalState } from '$lib/state.svelte';
 
 	interface Props {
 		nav: Nav;
-		globalState: State;
+		globalState: GlobalState;
 		repoStatus: RepoStatus;
 		open?: boolean;
 	}
