@@ -13,22 +13,41 @@
 	} from 'flowbite-svelte';
 	import Download from 'lucide-svelte/icons/download';
 	import type { SecretProcessingType, SecretType } from '$lib/state';
-	import { stringToEnvVars, createSecretRequest, sendSecretRequest } from './secretUtils';
+	import { createSecretRequest, sendSecretRequest } from './secretUtils';
 
-	export let open = false;
-	export let isCreating = false;
-	export let editedSecretName = '';
-	export let editedSecretType: SecretType = 'single_line';
-	export let editedSingleLineValue: string | null = null;
-	export let editedMultiLineValue: string | undefined = undefined;
-	export let editedFileValue: File | null = null;
-	export let editedEnvVarList: [string, string][] | null = null;
-	export let editedFileInfo = { name: '', size: 0 };
-	export let includeInImage = false;
-	export let editedProcessingType: SecretProcessingType = 'none';
-	export let isLoadingFile = false;
-	export let allowedTypes: SecretType[] = ['single_line', 'multi_line', 'env_list', 'file'];
-	export let secretId: string | null = null;
+	interface Props {
+		open?: boolean;
+		isCreating?: boolean;
+		editedSecretName?: string;
+		editedSecretType?: SecretType;
+		editedSingleLineValue?: string | null;
+		editedMultiLineValue?: string | undefined;
+		editedFileValue?: File | null;
+		editedEnvVarList?: [string, string][] | null;
+		editedFileInfo?: any;
+		includeInImage?: boolean;
+		editedProcessingType?: SecretProcessingType;
+		isLoadingFile?: boolean;
+		allowedTypes?: SecretType[];
+		secretId?: string | null;
+	}
+
+	let {
+		open = $bindable(false),
+		isCreating = false,
+		editedSecretName = $bindable(''),
+		editedSecretType = $bindable('single_line'),
+		editedSingleLineValue = $bindable(null),
+		editedMultiLineValue = $bindable(undefined),
+		editedFileValue = $bindable(null),
+		editedEnvVarList = $bindable([['', '']]),
+		editedFileInfo = $bindable({ name: '', size: 0 }),
+		includeInImage = $bindable(false),
+		editedProcessingType = $bindable('none'),
+		isLoadingFile = $bindable(false),
+		allowedTypes = ['single_line', 'multi_line', 'env_list', 'file'],
+		secretId = null
+	}: Props = $props();
 
 	const dispatch = createEventDispatcher<{
 		close: void;
@@ -116,31 +135,29 @@
 		dispatch('close');
 	}
 
-	$: if (editedSecretType === 'env_list' && (!editedEnvVarList || editedEnvVarList.length === 0)) {
-		editedEnvVarList = [['', '']];
-	}
-
 	// Filter the secret types based on allowed types
-	$: secretTypeOptions = [
-		{ value: 'single_line', name: $t('secrets.type-single-line') },
-		{ value: 'multi_line', name: $t('secrets.type-multi-line') },
-		{ value: 'env_list', name: $t('secrets.type-env-list') },
-		{ value: 'file', name: $t('secrets.type-file') }
-	].filter((type) => allowedTypes.includes(type.value as SecretType));
+	let secretTypeOptions = $derived(
+		[
+			{ value: 'single_line', name: $t('secrets.type-single-line') },
+			{ value: 'multi_line', name: $t('secrets.type-multi-line') },
+			{ value: 'env_list', name: $t('secrets.type-env-list') },
+			{ value: 'file', name: $t('secrets.type-file') }
+		].filter((type) => allowedTypes.includes(type.value as SecretType))
+	);
 
 	// Ensure the initially selected type is allowed
-	$: {
+	$effect(() => {
 		if (!allowedTypes.includes(editedSecretType)) {
 			editedSecretType = allowedTypes[0];
 		}
-	}
+	});
 
 	// Make sure the editedProcessingType and includeInImage are properly initialized
-	$: {
+	$effect(() => {
 		if (!editedProcessingType) {
 			editedProcessingType = 'none';
 		}
-	}
+	});
 </script>
 
 <Modal

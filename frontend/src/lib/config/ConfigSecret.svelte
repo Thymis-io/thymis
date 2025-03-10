@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { t } from 'svelte-i18n';
 	import { Button, Select } from 'flowbite-svelte';
 	import { invalidate } from '$app/navigation';
@@ -14,63 +16,83 @@
 	} from '$lib/components/secrets/secretUtils';
 	import { onMount } from 'svelte';
 
-	export let value: string | null = null;
-	export let placeholder: string | undefined = undefined;
-	export let disabled: boolean = false;
-	export let setting: Setting<SecretSettingType>;
-	export let onChange: (value: string | null) => void = () => {};
-	let allowedTypes: SecretType[] = ['single_line', 'multi_line', 'env_list', 'file'];
-	$: allowedTypes = setting['type']['allowed-types'] || allowedTypes;
+	interface Props {
+		value?: string | null;
+		placeholder?: string | undefined;
+		disabled?: boolean;
+		setting: Setting<SecretSettingType>;
+		onChange?: (value: string | null) => void;
+	}
+
+	let {
+		value = $bindable(null),
+		placeholder = undefined,
+		disabled = false,
+		setting,
+		onChange = () => {}
+	}: Props = $props();
+
+	let allowedTypes: SecretType[] = $state(['single_line', 'multi_line', 'env_list', 'file']);
+	run(() => {
+		allowedTypes = setting['type']['allowed-types'] || allowedTypes;
+	});
 
 	// Secret selection/display
-	let secretName: string = '';
-	let showEditModal = false;
-	let isCreating = false;
+	let secretName: string = $state('');
+	let showEditModal = $state(false);
+	let isCreating = $state(false);
 
 	// Secret editing states
-	let editedSecretName = '';
-	let editedSecretType: SecretType = 'single_line';
-	let editedSingleLineValue: string | null = null;
-	let editedMultiLineValue: string | undefined = undefined;
-	let editedFileValue: File | null = null;
-	let editedEnvVarList: [string, string][] | null = null;
-	let editedFileInfo = { name: '', size: 0 };
-	let includeInImage = false;
-	$: console.log('includeInImage', includeInImage);
-	let editedProcessingType: SecretProcessingType = 'none';
-	let isLoadingFile = false;
+	let editedSecretName = $state('');
+	let editedSecretType: SecretType = $state('single_line');
+	let editedSingleLineValue: string | null = $state(null);
+	let editedMultiLineValue: string | undefined = $state(undefined);
+	let editedFileValue: File | null = $state(null);
+	let editedEnvVarList: [string, string][] | null = $state(null);
+	let editedFileInfo = $state({ name: '', size: 0 });
+	let includeInImage = $state(false);
+	let editedProcessingType: SecretProcessingType = $state('none');
+	let isLoadingFile = $state(false);
 
 	// Access secrets from $page.data
-	$: secrets = $page.data?.secrets || {};
-	$: secret = (value && secrets[value]) || null;
-	$: editedSecretType = secret?.type || 'single_line';
-	$: includeInImage =
-		secret && secret.include_in_image !== undefined
-			? secret.include_in_image
-			: setting.type['default-save-to-image'] || false;
-	$: editedProcessingType =
-		secret?.processing_type || setting.type['default-processing-type'] || 'none';
+	let secrets = $derived($page.data?.secrets || {});
+	let secret = $derived((value && secrets[value]) || null);
+	run(() => {
+		editedSecretType = secret?.type || 'single_line';
+	});
+	run(() => {
+		includeInImage =
+			secret && secret.include_in_image !== undefined
+				? secret.include_in_image
+				: setting.type['default-save-to-image'] || false;
+	});
+	run(() => {
+		editedProcessingType =
+			secret?.processing_type || setting.type['default-processing-type'] || 'none';
+	});
 
 	// Filter secrets based on allowed types
-	$: filteredSecrets = Object.entries(secrets)
-		.filter(([_, secret]) => allowedTypes.includes(secret.type))
-		.sort((a, b) => a[1].display_name.localeCompare(b[1].display_name));
+	let filteredSecrets = $derived(
+		Object.entries(secrets)
+			.filter(([_, secret]) => allowedTypes.includes(secret.type))
+			.sort((a, b) => a[1].display_name.localeCompare(b[1].display_name))
+	);
 
 	// Initialize with first allowed type
-	$: {
+	run(() => {
 		if (allowedTypes && allowedTypes.length > 0 && !allowedTypes.includes(editedSecretType)) {
 			editedSecretType = allowedTypes[0] as SecretType;
 		}
-	}
+	});
 
 	// Update secretName when value changes or on page load
-	$: {
+	run(() => {
 		if (value && secrets && secrets[value]) {
 			secretName = secrets[value].display_name;
 		} else {
 			secretName = '';
 		}
-	}
+	});
 
 	const openCreateModal = (): void => {
 		resetEditState();
@@ -207,11 +229,13 @@
 		onChange(value);
 	};
 
-	let selectItems = [];
-	$: selectItems = filteredSecrets.map(([id, secret]) => ({
-		name: `${secret.display_name} (${secret.type})`,
-		value: id
-	}));
+	let selectItems = $state([]);
+	run(() => {
+		selectItems = filteredSecrets.map(([id, secret]) => ({
+			name: `${secret.display_name} (${secret.type})`,
+			value: id
+		}));
+	});
 </script>
 
 <div class="flex w-full gap-2 items-center">

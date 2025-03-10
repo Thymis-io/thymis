@@ -14,36 +14,35 @@
 	import type { PageData } from './$types';
 	import { invalidate } from '$app/navigation';
 	import SecretEditModal from '$lib/components/secrets/SecretEditModal.svelte';
-	import { page } from '$app/stores';
 	import {
-		type SecretShort,
-		type SecretEditState,
-		createSecretRequest,
 		downloadSecretFile,
 		resetFileInputById,
 		sendSecretRequest
 	} from '$lib/components/secrets/secretUtils';
 	import type { SecretProcessingType, SecretType } from '$lib/state';
 
-	export let data: PageData;
+	interface Props {
+		data: PageData;
+	}
+
+	let { data }: Props = $props();
 
 	// State variables using const where appropriate
-	let showCreateModal = false;
-	let showEditModal = false;
-	let currentSecretId: string | null = null;
-	let editedSecretName = '';
-	let editedSecretType: SecretType = 'single_line';
-	let editedSingleLineValue: string | null = null;
-	let editedMultiLineValue: string | undefined = undefined;
-	let editedFileValue: File | null = null;
-	let editedEnvVarList: [string, string][] | null = null;
-	let editedFileInfo = { name: '', size: 0 };
-	let isLoadingFile = false;
-	let includeInImage = false;
-	let editedProcessingType: SecretProcessingType = 'none';
+	let showCreateModal = $state(false);
+	let showEditModal = $state(false);
+	let currentSecretId: string | null = $state(null);
+	let editedSecretName = $state('');
+	let editedSecretType: SecretType = $state('single_line');
+	let editedSingleLineValue: string | null = $state(null);
+	let editedMultiLineValue: string | undefined = $state(undefined);
+	let editedFileValue: File | null = $state(null);
+	let editedEnvVarList: [string, string][] | null = $state(null);
+	let editedFileInfo = $state({ name: '', size: 0 });
+	let isLoadingFile = $state(false);
+	let includeInImage = $state(false);
+	let editedProcessingType: SecretProcessingType = $state('none');
 
-	// Access secrets from $page.data
-	$: secrets = $page.data.secrets;
+	let secrets = $derived(data.secrets);
 
 	const changeSecretName = async (id: string, newName: string) => {
 		const secret = secrets[id];
@@ -199,7 +198,12 @@
 	};
 </script>
 
-<PageHead title={$t('nav.secrets')} repoStatus={data.repoStatus} />
+<PageHead
+	title={$t('nav.secrets')}
+	globalState={data.globalState}
+	nav={data.globalState}
+	repoStatus={data.repoStatus}
+/>
 
 <!-- Table structure remains the same -->
 <Table shadow>
