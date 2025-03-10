@@ -77,10 +77,8 @@ def login_basic(
         response.body = (
             f'<!doctype html><meta charset=utf-8><title>Login successful</title><meta http-equiv="refresh" content="1; url=\'{redirect_url}\'">'
             f'<script>setTimeout(function() {{ window.location.href = "{redirect_url}"; }}, 500);</script>'
-            f'<body>Login successful, click <a href="{redirect_url}">here</a> if you are not redirected.</body>'.encode(
-                "utf-8"
-            )
-        )
+            f'<body>Login successful, click <a href="{redirect_url}">here</a> if you are not redirected.</body>'
+        ).encode("utf-8")
         return response
     else:
         if safe_redirect is not None:
