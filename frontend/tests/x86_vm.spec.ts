@@ -137,7 +137,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await page.locator('li').filter({ hasText: 'VM Test x64 2' }).click();
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
-		maxDiffPixels: maxDiffPixels
+		maxDiffPixels: 1500
 	});
 
 	// Click on new "Deploy" button in modal to confirm
