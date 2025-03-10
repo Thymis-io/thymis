@@ -173,24 +173,37 @@ test('create whoami tag', async ({ page, request }, testInfo) => {
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
-	await page
+	const containerNameInput = page
 		.locator('p', { hasText: 'Container Name' })
 		.locator('..')
 		.locator('input')
-		.first()
-		.fill('Whoami');
-	await page
+		.first();
+
+	const containerImageInput = page
 		.locator('p', { hasText: 'Image' })
 		.locator('..')
 		.locator('input')
-		.first()
-		.fill('traefik/whoami');
+		.first();
+
+	await containerNameInput.fill('Whoami');
+	await containerImageInput.fill('traefik/whoami');
+
 	const portButton = page.locator('button').filter({ hasText: 'Add Port' });
 	await portButton.click();
+
 	const ports = page.locator('p', { hasText: 'Port' }).locator('..').locator('div');
-	await ports.locator('input').nth(0).fill('80');
-	await ports.locator('input').nth(1).fill('80');
-	await ports.locator('input').nth(1).blur();
+	const hostPortInput = ports.locator('input').nth(0);
+	const containerPortInput = ports.locator('input').nth(1);
+
+	await hostPortInput.fill('80');
+	await containerPortInput.fill('80');
+	await containerPortInput.blur();
+
+	// Assert the text values match what was entered
+	expect(await containerNameInput.inputValue()).toBe('Whoami');
+	expect(await containerImageInput.inputValue()).toBe('traefik/whoami');
+	expect(await hostPortInput.inputValue()).toBe('80');
+	expect(await containerPortInput.inputValue()).toBe('80');
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
