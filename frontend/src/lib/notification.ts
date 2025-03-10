@@ -40,7 +40,7 @@ if (browser && navigator.locks) {
 
 type InvalidateParams = Parameters<typeof invalidate>;
 type InvalidateReturn = ReturnType<typeof invalidate>;
-const invalidateButDeferUntilNavigation = async (
+export const invalidateButDeferUntilNavigation = async (
 	...params: InvalidateParams
 ): Promise<InvalidateReturn> => {
 	// wait
