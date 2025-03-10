@@ -190,7 +190,7 @@ export const resetFileInputById = (inputId: string): void => {
 
 export const sendSecretRequest = async (
 	secretId: string | null,
-	secretData: CreateSecretRequest
+	secretData: Partial<CreateSecretRequest>
 ): Promise<{ success: boolean; id?: string; display_name?: string; error?: string }> => {
 	try {
 		// Create or update secret

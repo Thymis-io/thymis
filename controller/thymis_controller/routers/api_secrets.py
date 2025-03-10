@@ -4,7 +4,11 @@ import uuid
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 from thymis_controller.dependencies import DBSessionAD, ProjectAD
-from thymis_controller.models.secrets import SecretCreateRequest, SecretShort
+from thymis_controller.models.secrets import (
+    SecretCreateRequest,
+    SecretShort,
+    SecretUpdateRequest,
+)
 
 router = APIRouter()
 
@@ -45,7 +49,7 @@ async def create_secret(
 @router.patch("/secrets/{secret_id}")
 async def update_secret(
     secret_id: str,
-    secret_update: SecretCreateRequest,
+    secret_update: SecretUpdateRequest,
     session: DBSessionAD,
     project: ProjectAD,
 ) -> SecretShort:
