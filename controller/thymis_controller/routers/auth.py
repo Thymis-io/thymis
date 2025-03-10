@@ -119,7 +119,7 @@ def login_basic(
 def redirect_success(
     response: Response,
     loggedin: Annotated[bool, Depends(require_valid_user_session)],
-    redirect: Annotated[Optional[str], Form()] = None,
+    redirect: Optional[str] = None,
     redirect_cookie: LoginRedirectCookieAD = None,
     user_session_id: UserSessionIDAD = None,
     user_session_token: UserSessionTokenAD = None,
