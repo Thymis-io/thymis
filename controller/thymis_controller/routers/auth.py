@@ -8,12 +8,12 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Response, status
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from thymis_controller.config import global_settings
+from thymis_controller.crud import web_session
 from thymis_controller.dependencies import (
     DBSessionAD,
     LoginRedirectCookieAD,
     UserSessionIDAD,
     UserSessionTokenAD,
-    apply_user_session,
     get_user_session_token,
     invalidate_user_session,
     require_valid_user_session,
@@ -30,6 +30,33 @@ REDIRECT_URI = global_settings.BASE_URL + "/auth/callback"
 router = APIRouter(
     tags=["auth"],
 )
+
+
+def apply_user_session(db_session: DBSessionAD, response: Response):
+    user_session = web_session.create(db_session)
+    is_using_https = (
+        global_settings.BASE_URL.startswith("https")
+        or global_settings.BASE_URL.startswith("http://localhost")
+        or global_settings.BASE_URL.startswith("http://127.0.0.1")
+    )
+    response.set_cookie(
+        key="session-id",
+        value=str(user_session.id),
+        httponly=True,
+        secure=is_using_https,
+        samesite="lax",
+        expires=web_session.SESSION_LIFETIME_SECONDS,
+        max_age=web_session.SESSION_LIFETIME_SECONDS,
+    )
+    response.set_cookie(
+        key="session-token",
+        value=user_session.session_token,
+        httponly=True,
+        secure=is_using_https,
+        samesite="lax",
+        expires=web_session.SESSION_LIFETIME_SECONDS,
+        max_age=web_session.SESSION_LIFETIME_SECONDS,
+    )
 
 
 # only enable basic auth if the flag is set
@@ -68,18 +95,12 @@ def login_basic(
         and password == password_file_content
     ):  # TODO replace password check with hash comparison
         apply_user_session(db_session, response)
-        # return RedirectResponse(
-        #     redirect_url, headers=response.headers, status_code=status.HTTP_303_SEE_OTHER
-        # )
-        # return 200 with http-equiv refresh
-        response.media_type = "text/html"
-        response.status_code = status.HTTP_200_OK
-        response.body = (
-            f'<!doctype html><meta charset=utf-8><title>Login successful</title><meta http-equiv="refresh" content="1; url=\'{redirect_url}\'">'
-            f'<script>setTimeout(function() {{ window.location.href = "{redirect_url}"; }}, 500);</script>'
-            f'<body>Login successful, click <a href="{redirect_url}">here</a> if you are not redirected.</body>'
-        ).encode("utf-8")
-        return response
+
+        return RedirectResponse(
+            f"/auth/redirect_success?redirect={quote(safe_redirect)}",
+            headers=response.headers,
+            status_code=status.HTTP_303_SEE_OTHER,
+        )
     else:
         if safe_redirect is not None:
             return RedirectResponse(
@@ -88,10 +109,58 @@ def login_basic(
                 status_code=status.HTTP_303_SEE_OTHER,
             )
         return RedirectResponse(
-            f"/login?authError=credentials",
+            "/login?authError=credentials",
             headers=response.headers,
             status_code=status.HTTP_303_SEE_OTHER,
         )
+
+
+@router.get("/auth/redirect_success")
+def redirect_success(
+    response: Response,
+    loggedin: Annotated[bool, Depends(require_valid_user_session)],
+    redirect: Annotated[Optional[str], Form()] = None,
+    redirect_cookie: LoginRedirectCookieAD = None,
+    user_session_id: UserSessionIDAD = None,
+    user_session_token: UserSessionTokenAD = None,
+):
+    assert loggedin
+    # check for redirect in cookie
+    redirect_url = None
+    if redirect is not None and redirect_cookie is not None:
+        # look for uuid in cookie[uuid], but first urldecode and jsondecode
+        redirect_cookie = unquote(redirect_cookie)
+        redirect_dict = json.loads(redirect_cookie)
+        redirect_url, _ = ({k: (v, k) for k, v in redirect_dict.items()}).get(
+            redirect, (None, None)
+        )
+    if redirect_url is None:
+        redirect_url = "/overview"
+
+    # set login cookies to strict
+    response.set_cookie(
+        key="session-id",
+        value=str(user_session_id),
+        httponly=True,
+        secure=global_settings.BASE_URL.startswith("https"),
+        samesite="strict",
+        expires=web_session.SESSION_LIFETIME_SECONDS,
+        max_age=web_session.SESSION_LIFETIME_SECONDS,
+    )
+    response.set_cookie(
+        key="session-token",
+        value=user_session_token,
+        httponly=True,
+        secure=global_settings.BASE_URL.startswith("https"),
+        samesite="strict",
+        expires=web_session.SESSION_LIFETIME_SECONDS,
+        max_age=web_session.SESSION_LIFETIME_SECONDS,
+    )
+    return RedirectResponse(
+        redirect_url,
+        status_code=status.HTTP_303_SEE_OTHER,
+        headers=response.headers,
+    )
 
 
 @router.get("/auth/methods", response_model=AuthMethods)
@@ -146,8 +215,10 @@ async def callback(code: str, response: Response, db_session: DBSessionAD):
 
     apply_user_session(db_session, response)
     return RedirectResponse(
-        "/", headers=response.headers, status_code=status.HTTP_303_SEE_OTHER
-    )  # necessary to set the cookies
+        "/redirect_success",
+        headers=response.headers,
+        status_code=status.HTTP_303_SEE_OTHER,
+    )
 
 
 @router.get("/logged_in")

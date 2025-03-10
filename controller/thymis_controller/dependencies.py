@@ -76,6 +76,7 @@ def check_user_session(
 
 def require_valid_user_session(
     db_engine: EngineAD,
+    request: Request,
     user_session_id: UserSessionIDAD = None,
     user_session_token: UserSessionTokenAD = None,
 ) -> bool:
@@ -112,33 +113,6 @@ def invalidate_user_session(
     response.delete_cookie("session-id")
     response.delete_cookie("session-token")
     web_session.delete(db_session, user_session_id)
-
-
-def apply_user_session(db_session: DBSessionAD, response: Response):
-    user_session = web_session.create(db_session)
-    is_using_https = (
-        global_settings.BASE_URL.startswith("https")
-        or global_settings.BASE_URL.startswith("http://localhost")
-        or global_settings.BASE_URL.startswith("http://127.0.0.1")
-    )
-    response.set_cookie(
-        key="session-id",
-        value=str(user_session.id),
-        httponly=True,
-        secure=is_using_https,
-        samesite="strict",
-        expires=web_session.SESSION_LIFETIME_SECONDS,
-        max_age=web_session.SESSION_LIFETIME_SECONDS,
-    )
-    response.set_cookie(
-        key="session-token",
-        value=user_session.session_token,
-        httponly=True,
-        secure=is_using_https,
-        samesite="strict",
-        expires=web_session.SESSION_LIFETIME_SECONDS,
-        max_age=web_session.SESSION_LIFETIME_SECONDS,
-    )
 
 
 def get_task_controller(connection: HTTPConnection) -> "TaskController":
