@@ -13,6 +13,7 @@
 	import FileChanges from './FileChanges.svelte';
 	import type { ObjectOption } from 'svelte-multiselect';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
+	import { invalidateButDeferUntilNavigation } from '$lib/notification';
 
 	interface Props {
 		nav: Nav;
@@ -59,7 +60,7 @@
 		await fetchWithNotify(`/api/action/commit?message=${encodeURIComponent(message)}`, {
 			method: 'POST'
 		});
-		await invalidate(
+		await invalidateButDeferUntilNavigation(
 			(url) => url.pathname === '/api/history' || url.pathname === '/api/repo_status'
 		);
 		message = '';
@@ -70,7 +71,7 @@
 		await fetchWithNotify(`/api/action/deploy?${configs}`, {
 			method: 'POST'
 		});
-		await invalidate((url) => url.pathname === '/api/history');
+		await invalidateButDeferUntilNavigation((url) => url.pathname === '/api/history');
 	};
 </script>
 
