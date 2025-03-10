@@ -1,14 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { saveState } from '$lib/state';
-	import type {
-		Module,
-		ModuleSettingsWithOrigin,
-		Origin,
-		Setting,
-		SettingType,
-		State
-	} from '$lib/state';
+	import type { Module, ModuleSettingsWithOrigin, Origin, Setting, SettingType } from '$lib/state';
 	import { Card, P, Tooltip } from 'flowbite-svelte';
 	import Route from 'lucide-svelte/icons/route';
 	import RouteOff from 'lucide-svelte/icons/route-off';
@@ -23,8 +15,7 @@
 
 	interface Props {
 		nav: Nav;
-		globalState: State;
-		classState: GlobalState;
+		globalState: GlobalState;
 		module: Module;
 		settings: ModuleSettingsWithOrigin | undefined;
 		otherSettings: ModuleSettingsWithOrigin[] | undefined;
@@ -35,7 +26,6 @@
 	let {
 		nav,
 		globalState,
-		classState,
 		module,
 		settings = $bindable(),
 		otherSettings,
@@ -44,15 +34,15 @@
 	}: Props = $props();
 
 	const setSetting = async (setting: Setting<SettingType>, key: string, value: any) => {
-		if (classState.selectedModuleSettings) {
+		if (globalState.selectedModuleSettings) {
 			if (value !== undefined && value !== null) {
-				classState.selectedModuleSettings.settings[key] = value;
+				globalState.selectedModuleSettings.settings[key] = value;
 			} else {
-				delete classState.selectedModuleSettings.settings[key];
+				delete globalState.selectedModuleSettings.settings[key];
 			}
 		}
 
-		classState.save();
+		globalState.save();
 	};
 
 	const sameOrigin = (a: Origin | undefined, b: Origin | undefined) => {
@@ -122,7 +112,7 @@
 				<ConfigRenderer
 					{setting}
 					moduleSettings={settings}
-					value={classState.selectedModuleSettings?.settings[key]}
+					value={globalState.selectedModuleSettings?.settings[key]}
 					disabled={!canReallyEditSetting(canEdit, setting)}
 					onChange={(value) => setSetting(setting, key, value)}
 				/>

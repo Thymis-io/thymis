@@ -63,7 +63,7 @@
 			nav={data.nav}
 			globalState={data.globalState}
 			contextType={data.nav.selectedTargetType}
-			context={data.nav.selectedTarget}
+			context={data.globalState.selectedTarget}
 			selfModules={getSelfModules(data.nav.selectedTarget)}
 			availableModules={data.availableModules}
 		>
@@ -76,14 +76,13 @@
 			{/snippet}
 		</ModuleList>
 		{#each data.nav.selectedConfig?.tags ?? [] as tagIdentifier}
-			{@const usedTag = getTagByIdentifier(data.globalState, tagIdentifier)}
 			<div class="mt-6">
 				<ModuleList
 					nav={data.nav}
 					globalState={data.globalState}
 					contextType="tag"
-					context={usedTag}
-					selfModules={getSelfModules(usedTag)}
+					context={data.globalState.tag(tagIdentifier)}
+					selfModules={getSelfModules(data.globalState.tag(tagIdentifier))}
 				>
 					{#snippet icon()}
 						<TagIcon size="20" />
@@ -96,7 +95,6 @@
 		<ModuleCard
 			nav={data.nav}
 			globalState={data.globalState}
-			classState={data.classState}
 			module={data.nav.selectedModule}
 			settings={getOwnModuleSettings(data.nav.selectedModuleContext).find(
 				(s) => s.type === data.nav.selectedModule?.type

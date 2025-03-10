@@ -6,12 +6,12 @@
 	import UserMenu from './UserMenu.svelte';
 	import GlobalSearch from './GlobalSearch.svelte';
 	import GithubIcon from './GithubIcon.svelte';
-	import type { State } from '$lib/state';
+	import type { GlobalState } from '$lib/state.svelte';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
 
 	interface Props {
-		nav: Nav | undefined;
-		globalState: State | undefined;
+		nav?: Nav;
+		globalState?: GlobalState;
 		authenticated?: boolean;
 		drawerHidden: boolean;
 		class?: string;

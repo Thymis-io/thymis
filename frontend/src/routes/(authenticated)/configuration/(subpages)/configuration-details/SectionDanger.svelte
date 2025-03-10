@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import Section from './Section.svelte';
-	import { saveState, type Config, type State } from '$lib/state';
+	import { saveState, type Config } from '$lib/state';
 	import { Button } from 'flowbite-svelte';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import Trash from 'lucide-svelte/icons/trash-2';
 	import { goto } from '$app/navigation';
+	import type { GlobalState } from '$lib/state.svelte';
 
 	interface Props {
-		globalState: State;
+		globalState: GlobalState;
 		config: Config;
 		class?: string;
 	}

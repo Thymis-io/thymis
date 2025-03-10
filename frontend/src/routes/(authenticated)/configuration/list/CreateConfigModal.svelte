@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Button, Helper, Input, Label, Modal, P, Select } from 'flowbite-svelte';
-	import { type Config, type Module, saveState, type State } from '$lib/state';
+	import { type Config, type Module, saveState } from '$lib/state';
 	import { page } from '$app/stores';
 	import { nameToIdentifier, nameValidation, deviceTypeValidation } from '$lib/nameValidation';
 	import MultiSelect from 'svelte-multiselect';
@@ -10,9 +10,10 @@
 		getDeviceTypesMap,
 		getAllowedImageFormatsForDeviceType
 	} from '$lib/config/configUtils';
+	import type { GlobalState } from '$lib/state.svelte';
 
 	interface Props {
-		globalState: State;
+		globalState: GlobalState;
 		open?: boolean;
 	}
 

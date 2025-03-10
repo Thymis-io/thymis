@@ -4,14 +4,14 @@
 	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import { Dropdown, DropdownItem, Search } from 'flowbite-svelte';
 	import { page } from '$app/stores';
-	import { type State } from '$lib/state';
+	import type { GlobalState } from '$lib/state.svelte';
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
 
 	interface Props {
 		nav: Nav;
-		globalState: State;
+		globalState: GlobalState;
 	}
 
 	let { nav, globalState }: Props = $props();

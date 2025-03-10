@@ -7,10 +7,10 @@
 	import Play from 'lucide-svelte/icons/play';
 	import Command from 'lucide-svelte/icons/square-chevron-right';
 	import type { TaskShort } from '$lib/taskstatus';
-	import { type State } from '$lib/state';
+	import type { GlobalState } from '$lib/state.svelte';
 
 	interface Props {
-		globalState: State;
+		globalState: GlobalState;
 		task: TaskShort;
 	}
 

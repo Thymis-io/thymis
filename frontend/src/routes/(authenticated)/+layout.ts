@@ -187,8 +187,7 @@ export const load = (async ({ fetch, url, data }) => {
 	};
 
 	return {
-		globalState: globalState,
-		classState: new GlobalState(globalState, url.searchParams, availableModules),
+		globalState: new GlobalState(globalState, url.searchParams, availableModules),
 		secrets: secrets,
 		nav: nav,
 		availableModules: availableModules,

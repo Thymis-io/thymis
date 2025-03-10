@@ -1,13 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import {
-		saveState,
-		type Config,
-		type Module,
-		type ModuleSettings,
-		type State,
-		type Tag
-	} from '$lib/state';
+	import { saveState, type Config, type Module, type ModuleSettings, type Tag } from '$lib/state';
 	import { Modal, P, Tooltip } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import Pen from 'lucide-svelte/icons/pen';
@@ -18,10 +11,11 @@
 	import { goto } from '$app/navigation';
 	import ModuleIcon from './ModuleIcon.svelte';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
+	import type { GlobalState } from '$lib/state.svelte';
 
 	interface Props {
 		nav: Nav;
-		globalState: State;
+		globalState: GlobalState;
 		contextType: string | null;
 		context: Tag | Config | undefined;
 		selfModules: Module[];
@@ -58,7 +52,7 @@
 	const addModule = async (target: Tag | Config | undefined, module: Module) => {
 		if (target && !target.modules.find((m) => m.type === module.type)) {
 			target.modules = [...target.modules, { type: module.type, settings: {} }];
-			await saveState(globalState);
+			globalState.save();
 		}
 		addModuleModalOpen = false;
 		await goToModule(module);
@@ -69,7 +63,7 @@
 			target.modules = target.modules.filter((m) => m.type !== module.type);
 		}
 		saveState(globalState);
-		goToModule(undefined);
+		goToModule(globalState.selectedModule);
 	};
 
 	let canChangeModules = $derived(

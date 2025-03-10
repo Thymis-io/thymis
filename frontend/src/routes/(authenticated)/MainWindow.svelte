@@ -1,9 +1,9 @@
 <script lang="ts">
 	import Sidebar from '$lib/sidebar/Sidebar.svelte';
-	import type { State } from '$lib/state';
+	import type { GlobalState } from '$lib/state.svelte';
 
 	interface Props {
-		globalState: State;
+		globalState: GlobalState;
 		drawerHidden?: boolean;
 		children?: import('svelte').Snippet;
 	}

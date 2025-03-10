@@ -134,6 +134,7 @@ export type Repo = {
 };
 
 export type State = {
+	version: string;
 	repositories: { [name: string]: Repo };
 	configs: Config[];
 	tags: Tag[];
@@ -145,7 +146,12 @@ export const saveState = async (state: State) => {
 		headers: {
 			'content-type': 'application/json'
 		},
-		body: JSON.stringify(state)
+		body: JSON.stringify({
+			version: state.version,
+			repositories: state.repositories,
+			configs: state.configs,
+			tags: state.tags
+		})
 	});
 	await invalidateButDeferUntilNavigation((url) => url.pathname === '/api/state');
 	return response.ok;

@@ -10,12 +10,12 @@
 	import { invalidate } from '$app/navigation';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import { type RepoStatus } from '$lib/repo/repo';
-	import type { Nav } from '../../routes/(authenticated)/+layout';
-	import type { State } from '$lib/state';
+	import type { Nav } from '../../../routes/(authenticated)/+layout';
+	import type { GlobalState } from '$lib/state.svelte';
 
 	interface Props {
 		nav: Nav;
-		globalState: State;
+		globalState: GlobalState;
 		repoStatus: RepoStatus;
 	}
 

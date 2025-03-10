@@ -1,4 +1,5 @@
-import { type Module, type State } from './state';
+import { type Module } from './state';
+import type { GlobalState } from './state.svelte';
 
 const setParam = (params: URLSearchParams, key: string, value: string | null | undefined) => {
 	if (value) {
@@ -15,7 +16,7 @@ export const setSearchParam = (search: string, key: string, value: string | null
 };
 
 const hasModule = (
-	globalState: State,
+	globalState: GlobalState,
 	contextType: string | null | undefined,
 	contextIdentifier: string | null | undefined,
 	moduleType: string | null | undefined
@@ -31,7 +32,7 @@ const hasModule = (
 };
 
 const setFirstSelectedModule = (
-	globalState: State,
+	globalState: GlobalState,
 	params: URLSearchParams,
 	contextType: string | null | undefined,
 	contextIdentifier: string | null | undefined
@@ -46,7 +47,7 @@ const setFirstSelectedModule = (
 };
 
 export const buildGlobalNavSearchParam = (
-	globalState: State,
+	globalState: GlobalState,
 	search: string,
 	targetType: string | null | undefined,
 	target: string | null | undefined
@@ -66,7 +67,7 @@ export const buildGlobalNavSearchParam = (
 };
 
 export const buildConfigSelectModuleSearchParam = (
-	globalState: State,
+	globalState: GlobalState,
 	search: string,
 	targetType: string | null | undefined,
 	target: string | null | undefined,

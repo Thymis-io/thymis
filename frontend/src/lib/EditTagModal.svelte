@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { type Config, saveState, type Tag, type State } from '$lib/state';
+	import { type Config, saveState, type Tag } from '$lib/state';
 	import { Button, Modal, Label, P } from 'flowbite-svelte';
 	import MultiSelect from 'svelte-multiselect';
+	import type { GlobalState } from './state.svelte';
 
 	interface Props {
-		globalState: State;
+		globalState: GlobalState;
 		currentlyEditingConfig: Config | undefined;
 	}
 

@@ -1,12 +1,12 @@
 <script lang="ts">
 	import DeployActions from '$lib/components/layout/DeployActions.svelte';
 	import { type RepoStatus } from '$lib/repo/repo';
-	import type { State } from '$lib/state';
+	import type { GlobalState } from '$lib/state.svelte';
 	import type { Nav } from '../../../routes/(authenticated)/+layout';
 
 	interface Props {
 		nav: Nav;
-		globalState: State;
+		globalState: GlobalState;
 		repoStatus: RepoStatus;
 		title: string;
 		children?: import('svelte').Snippet;
