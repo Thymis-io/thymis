@@ -44,25 +44,6 @@
 
 	let secrets = $derived(data.secrets);
 
-	const changeSecretName = async (id: string, newName: string) => {
-		const secret = secrets[id];
-		if (!secret || secret.display_name === newName || newName.trim() === '') return;
-
-		// Check if name already exists for another secret
-		const nameExists = Object.values(secrets).some(
-			(s) => s.display_name === newName && s.id !== id
-		);
-		if (nameExists) {
-			alert($t('secrets.name-exists'));
-			return;
-		}
-
-		// Update the secret using api
-
-		await sendSecretRequest(id, { display_name: newName });
-		await invalidate('/api/secrets');
-	};
-
 	const openEditSecret = async (id: string): Promise<void> => {
 		const secret = secrets[id];
 		if (!secret) return;
@@ -217,10 +198,7 @@
 	<TableBody>
 		{#each Object.entries(secrets) as [id, secret]}
 			<TableBodyRow>
-				<TableBodyEditCell
-					bind:value={secret.display_name}
-					onEnter={(newName) => changeSecretName(id, newName)}
-				/>
+				<TableBodyCell>{secret.display_name}</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					{#if secret.type === 'single_line'}
 						{$t('secrets.type-single-line')}
