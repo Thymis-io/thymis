@@ -95,9 +95,9 @@ def login_basic(
         and password == password_file_content
     ):  # TODO replace password check with hash comparison
         apply_user_session(db_session, response)
-
         return RedirectResponse(
-            f"/auth/redirect_success?redirect={quote(safe_redirect)}",
+            f"/auth/redirect_success"
+            + (f"?redirect={quote(safe_redirect)}" if safe_redirect else ""),
             headers=response.headers,
             status_code=status.HTTP_303_SEE_OTHER,
         )
