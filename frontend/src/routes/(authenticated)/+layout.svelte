@@ -16,6 +16,8 @@
 	import { onMount } from 'svelte';
 	import { startNotificationSocket } from '$lib/notification';
 
+	import { ProgressBar } from '@prgm/sveltekit-progress-bar';
+
 	interface Props {
 		data: LayoutData;
 		children?: import('svelte').Snippet;
@@ -49,6 +51,8 @@
 <svelte:head>
 	<title>Thymis Dashboard</title>
 </svelte:head>
+
+<ProgressBar class="text-primary-500" zIndex={100} />
 
 <div class="contents bg-gray-50 dark:bg-gray-900 dark:text-white">
 	<header

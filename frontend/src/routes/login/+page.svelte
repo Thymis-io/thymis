@@ -2,6 +2,7 @@
 	import '../../app.postcss';
 	import Navbar from '$lib/navbar/Navbar.svelte';
 	import { page } from '$app/state';
+	import { ProgressBar } from '@prgm/sveltekit-progress-bar';
 
 	const redirectString = page.url.searchParams.get('redirect');
 	const redirectStringDecoded = redirectString ? decodeURI(redirectString) : null;
@@ -11,6 +12,8 @@
 <svelte:head>
 	<title>Thymis - Sign in</title>
 </svelte:head>
+
+<ProgressBar class="text-primary-500" zIndex={100} />
 
 <section class="bg-gray-50 dark:bg-gray-900 dark:text-white">
 	<header
