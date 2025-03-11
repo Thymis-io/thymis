@@ -499,46 +499,46 @@ class Agent(ea.EdgeAgent):
         # try using thymis-secrets-initial.json and decrypting using token,
 
         data_path = find_data_path()
-        if data_path:
-            secrets_path = data_path / "thymis-secrets-message.json"
-            if secrets_path.exists():
-                with open(secrets_path, "r") as f:
-                    message = RtESendSecretsMessage.model_validate_json(f.read())
-                cls.place_secrets_on_message(message)
-        else:
-            secrets_path = data_path / "thymis-secrets-initial.json"
-            if secrets_path.exists():
-                with open(secrets_path, "r") as f:
-                    s_file = f.read()
-                s_data = json.loads(s_file)
-                secrets = s_data["secrets"]
-                secret_infos = s_data["secret_infos"]
-                # decrypt secrets using token
+        if not data_path:
+            logger.error("Data path not found")
+            return
+        secrets_path = data_path / "thymis-secrets-message.json"
+        if secrets_path.exists():
+            with open(secrets_path, "r", encoding="utf-8") as f:
+                message = RtESendSecretsMessage.model_validate_json(f.read())
+            cls.place_secrets_on_message(message)
+            return
+        secrets_path = data_path / "thymis-secrets-initial.json"
+        if not secrets_path.exists():
+            logger.error("Secrets not found")
+            return
+        with open(secrets_path, "r", encoding="utf-8") as f:
+            s_file = f.read()
+        s_data = json.loads(s_file)
+        secrets = s_data["secrets"]
+        secret_infos = s_data["secret_infos"]
+        # decrypt secrets using token
 
-                for secret_info in secret_infos:
-                    secret = secrets[secret_info["secret_id"]]
-                    path = secret_info["path"]
-                    owner = secret_info["owner"]
-                    group = secret_info["group"]
-                    mode = secret_info["mode"]
+        for secret_info in secret_infos:
+            secret = secrets[secret_info["secret_id"]]
+            path = secret_info["path"]
+            owner = secret_info["owner"]
+            group = secret_info["group"]
+            mode = secret_info["mode"]
 
-                    os.makedirs(os.path.dirname(path), exist_ok=True)
-                    with open(path, "wb") as f:
-                        decoded = base64.b64decode(secret)
-                        # use rage to decrypt the secret
-                        decrypted = passphrase.decrypt(decoded, token)
-                        f.write(decrypted)
-                    if owner or group:
-                        shutil.chown(
-                            path,
-                            **{
-                                k: v
-                                for k, v in {"user": owner, "group": group}.items()
-                                if v
-                            },
-                        )
-                    if mode:
-                        os.chmod(path, int(mode, 8))
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "wb") as f:
+                decoded = base64.b64decode(secret)
+                # use rage to decrypt the secret
+                decrypted = passphrase.decrypt(decoded, token)
+                f.write(decrypted)
+            if owner or group:
+                shutil.chown(
+                    path,
+                    **{k: v for k, v in {"user": owner, "group": group}.items() if v},
+                )
+            if mode:
+                os.chmod(path, int(mode, 8))
 
     async def on_connected(self):
         self.systemd_notifier.status("Connected to relay")
@@ -590,7 +590,7 @@ class Agent(ea.EdgeAgent):
         return store_path[len("/nix/store/") :].split("-")[0]
 
     def detect_public_key(self):
-        with open("/etc/ssh/ssh_host_ed25519_key.pub", "r") as f:
+        with open("/etc/ssh/ssh_host_ed25519_key.pub", "r", encoding="utf-8") as f:
             public_key = f.read().split(" ")
         return public_key[0] + " " + public_key[1]
 
@@ -604,7 +604,7 @@ class Agent(ea.EdgeAgent):
 
         def extract_file_content(path):
             try:
-                with open(path, "r") as f:
+                with open(path, "r", encoding="utf-8") as f:
                     return f.read().replace("\n", "").strip()
             except FileNotFoundError:
                 logger.debug("File not found: %s", path)
