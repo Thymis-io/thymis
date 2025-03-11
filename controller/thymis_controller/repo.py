@@ -81,7 +81,7 @@ class Repo:
     def start_file_watcher(self):
         state_event_handler = StateEventHandler(self.notification_manager)
         self.state_observer = Observer()
-        self.state_observer.schedule(state_event_handler, str(self.path / "state.json"))
+        self.state_observer.schedule(state_event_handler, str(self.path))
         self.state_observer.start()
 
     def stop_file_watcher(self):
