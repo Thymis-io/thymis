@@ -8,8 +8,8 @@
 
 	let { module, theme = 'auto' }: Props = $props();
 
-	let iconLight = module.icon ?? module.iconDark ?? '/ModuleIcon.svg';
-	let iconDark = module.iconDark ?? module.icon ?? '/ModuleIcon_dark.svg';
+	let iconLight = $derived(module.icon ?? module.iconDark ?? '/ModuleIcon.svg');
+	let iconDark = $derived(module.iconDark ?? module.icon ?? '/ModuleIcon_dark.svg');
 </script>
 
 {#if theme === 'auto'}
