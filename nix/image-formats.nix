@@ -254,11 +254,7 @@ let
             inputs.nixos-generators.nixosModules.sd-aarch64
             "${inputs.raspberry-pi-nix}/sd-image/default.nix"
           ];
-          system.activationScripts.thymis-pre = {
-            text = ''
-              mount /boot/firmware
-            '';
-          };
+          fileSystems."/boot/firmware".neededForBoot = true;
           sdImage.compressImage = false;
           system.build.thymis-image-with-secrets-builder-aarch64 = image-with-secrets-builder {
             pkgs = inputs.nixpkgs.legacyPackages.aarch64-linux;
@@ -314,11 +310,7 @@ let
           # system.build.thymis-image = config.system.build.vm;
           virtualisation.useBootLoader = true;
           virtualisation.useEFIBoot = true;
-          system.activationScripts.thymis-pre = {
-            text = ''
-              mount /boot
-            '';
-          };
+          fileSystems."/boot".neededForBoot = true;
           boot.growPartition = true;
           boot.loader.systemd-boot.enable = true;
           system.build.thymis-image-with-secrets-builder-aarch64 =
@@ -363,11 +355,7 @@ let
                 isoImage.makeUsbBootable = true;
                 isoImage.squashfsCompression = "zstd -Xcompression-level 15"; # xz takes forever
 
-                system.activationScripts.thymis-pre = {
-                  text = ''
-                    mount /iso
-                  '';
-                };
+                fileSystems."/iso".neededForBoot = true;
 
                 isoImage.forceTextMode = true;
                 boot.loader.timeout = lib.mkForce 1;
@@ -480,11 +468,7 @@ let
           boot.loader.systemd-boot.enable = true;
           boot.loader.efi.canTouchEfiVariables = true;
 
-          system.activationScripts.thymis-pre = lib.mkIf (config.disko.devices ? disk) {
-            text = ''
-              mount /boot
-            '';
-          };
+          fileSystems."/boot".neededForBoot = lib.mkIf (config.disko.devices ? disk) true;
 
           system.build.thymis-image-with-secrets-builder-aarch64 = image-with-secrets-builder {
             pkgs = inputs.nixpkgs.legacyPackages.aarch64-linux;
