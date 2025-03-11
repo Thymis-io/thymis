@@ -4,7 +4,7 @@
 	import { t } from 'svelte-i18n';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
-	import { Button, Modal, Input } from 'flowbite-svelte';
+	import { Button, Modal, Input, Tooltip } from 'flowbite-svelte';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import { type Config, type Tag } from '$lib/state';
 	import FloatingMultiSelect from '$lib/components/FloatingMultiSelect.svelte';
@@ -177,6 +177,11 @@
 								{$t('deploy.deploy')}
 							</Button>
 						</div>
+					{/if}
+					{#if affectedConfigs.length === 0}
+						<Tooltip>
+							{$t('deploy.no-affected-configs-tooltip')}
+						</Tooltip>
 					{/if}
 				</div>
 			</div>
