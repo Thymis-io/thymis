@@ -39,8 +39,6 @@ AGENT_DATA_PATHS = list(
         [
             "/boot/firmware",  # raspberry-pi-nix generated sd-cards
             "/boot",  # boot.loader.efi.efiSysMountPoint
-            "/mnt-root/boot/firmware",
-            "/mnt-root/boot",
         ],
     )
 )
@@ -487,6 +485,11 @@ class Agent(ea.EdgeAgent):
             if mode:
                 os.chmod(path, int(mode, 8))
 
+            if path == "/run/thymis/root_password_hash":
+                os.system(
+                    "sh -c 'echo \"root:$(cat /run/thymis/root_password_hash)\" | chpasswd -e'"
+                )
+
         # store message on disk at data dir / "thymis-secrets-message.json"
         data_path = find_data_path()
         if data_path:
@@ -541,6 +544,11 @@ class Agent(ea.EdgeAgent):
                 )
             if mode:
                 os.chmod(path, int(mode, 8))
+
+            if path == "/run/thymis/root_password_hash":
+                os.system(
+                    "sh -c 'echo \"root:$(cat /run/thymis/root_password_hash)\" | chpasswd -e'"
+                )
 
     async def on_connected(self):
         self.systemd_notifier.status("Connected to relay")
