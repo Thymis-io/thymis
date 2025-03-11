@@ -39,8 +39,8 @@ AGENT_DATA_PATHS = list(
         [
             "/boot/firmware",  # raspberry-pi-nix generated sd-cards
             "/boot",  # boot.loader.efi.efiSysMountPoint
-            "/sysroot/boot/firmware",
-            "/sysroot/boot",
+            "/mnt-root/boot/firmware",
+            "/mnt-root/boot",
         ],
     )
 )
