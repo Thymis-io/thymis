@@ -154,9 +154,7 @@ def get_first_device_host_by_config_id(session: Session, config_id: str) -> str 
     return di.reachable_deployed_host if di else None
 
 
-def get_first_by_config_id(
-    session: Session, config_id: str
-) -> db_models.DeploymentInfo | None:
+def get_first_by_config_id(session: Session, config_id: str):
     return (
         session.query(db_models.DeploymentInfo)
         .filter(db_models.DeploymentInfo.deployed_config_id == config_id)
@@ -164,9 +162,7 @@ def get_first_by_config_id(
     )
 
 
-def get_by_config_id(
-    session: Session, config_id: str
-) -> db_models.DeploymentInfo | None:
+def get_by_config_id(session: Session, config_id: str):
     return (
         session.query(db_models.DeploymentInfo)
         .filter(db_models.DeploymentInfo.deployed_config_id == config_id)

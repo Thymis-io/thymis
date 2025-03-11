@@ -1,4 +1,5 @@
 import logging
+import random
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
@@ -6,6 +7,7 @@ from fastapi.responses import FileResponse, RedirectResponse
 from thymis_agent import agent
 from thymis_controller import crud, dependencies, models
 from thymis_controller.config import global_settings
+from thymis_controller.crud.agent_token import create_access_client_token
 from thymis_controller.dependencies import (
     DBSessionAD,
     NetworkRelayAD,
@@ -165,22 +167,36 @@ async def restart_device(
     identifier: str,
     db_session: DBSessionAD,
     task_controller: TaskControllerAD,
-    project: ProjectAD,
+    network_relay: NetworkRelayAD,
     user_session_id: UserSessionIDAD,
 ):
-    for target_host in crud.deployment_info.get_by_config_id(db_session, identifier):
-        task_controller.submit(
-            models.SSHCommandTaskSubmission(
-                target_host=target_host.reachable_deployed_host,
-                target_user="root",
-                target_port=22,
-                command="reboot",
-                ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
-                ssh_known_hosts_path=str(project.known_hosts_path),
-            ),
-            user_session_id=user_session_id,
-            db_session=db_session,
-        )
+    for deployment_info in crud.deployment_info.get_by_config_id(
+        db_session, identifier
+    ):
+        if network_relay.public_key_to_connection_id.get(
+            deployment_info.ssh_public_key
+        ):
+            access_client_token = random.randbytes(32).hex()
+            task = task_controller.submit(
+                models.SSHCommandTaskSubmission(
+                    controller_access_client_endpoint=task_controller.access_client_endpoint,
+                    deployment_info_id=deployment_info.id,
+                    access_client_token=access_client_token,
+                    deployment_public_key=deployment_info.ssh_public_key,
+                    ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
+                    target_user="root",
+                    target_port=22,
+                    command="reboot",
+                ),
+                user_session_id=user_session_id,
+                db_session=db_session,
+            )
+            create_access_client_token(
+                db_session,
+                deployment_info_id=deployment_info.id,
+                token=access_client_token,
+                deploy_device_task_id=task.id,
+            )
 
 
 @router.head("/download-image")
