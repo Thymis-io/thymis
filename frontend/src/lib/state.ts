@@ -61,6 +61,20 @@ export type ModuleSettingsWithOrigin = {
 export type SecretType = 'single_line' | 'multi_line' | 'env_list' | 'file';
 export type SecretProcessingType = 'none' | 'mkpasswd-yescrypt';
 
+export type Secret = {
+	id: string;
+	display_name: string;
+	type: SecretType;
+	value_str: string | null;
+	value_size: number;
+	filename: string | null;
+	include_in_image: boolean;
+	processing_type: SecretProcessingType;
+	created_at: string;
+	updated_at: string;
+	delete_at: string | null;
+};
+
 // A setting can be different types
 export type Setting<T = any> = {
 	displayName: string;

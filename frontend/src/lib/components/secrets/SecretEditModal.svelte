@@ -165,7 +165,6 @@
 	title={isCreating ? $t('secrets.create') : $t('secrets.edit')}
 	size="lg"
 	on:close={onClose}
-	autoclose
 	outsideclose
 >
 	<div class="space-y-4">
