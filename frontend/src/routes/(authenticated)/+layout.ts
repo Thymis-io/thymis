@@ -9,7 +9,8 @@ import {
 	type Config,
 	type Tag,
 	getTagByIdentifier,
-	getConfigByIdentifier
+	getConfigByIdentifier,
+	type Secret
 } from '$lib/state';
 import { error, redirect } from '@sveltejs/kit';
 import { getAllTasks } from '$lib/taskstatus';
@@ -131,7 +132,7 @@ export const load = (async ({ fetch, url, data }) => {
 	}
 
 	// is uuid -> secret
-	const secrets = (await secretsResponse.json()) as Record<string, unknown>;
+	const secrets = (await secretsResponse.json()) as Record<string, Secret>;
 
 	const taskPage = parseInt(url.searchParams.get('task-page') || '1');
 	const tasksPerPage = 20;

@@ -17,7 +17,7 @@
 	import {
 		downloadSecretFile,
 		resetFileInputById,
-		sendSecretRequest
+		stringToEnvVars
 	} from '$lib/components/secrets/secretUtils';
 	import type { SecretProcessingType, SecretType } from '$lib/state';
 
