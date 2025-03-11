@@ -254,6 +254,7 @@ let
             inputs.nixos-generators.nixosModules.sd-aarch64
             "${inputs.raspberry-pi-nix}/sd-image/default.nix"
           ];
+          fileSystems."/boot/firmware".neededForBoot = true;
           sdImage.compressImage = false;
           system.build.thymis-image-with-secrets-builder-aarch64 = image-with-secrets-builder {
             pkgs = inputs.nixpkgs.legacyPackages.aarch64-linux;
@@ -309,6 +310,7 @@ let
           # system.build.thymis-image = config.system.build.vm;
           virtualisation.useBootLoader = true;
           virtualisation.useEFIBoot = true;
+          fileSystems."/boot".neededForBoot = true;
           boot.growPartition = true;
           boot.loader.systemd-boot.enable = true;
           system.build.thymis-image-with-secrets-builder-aarch64 =
@@ -352,6 +354,8 @@ let
                 isoImage.makeEfiBootable = true;
                 isoImage.makeUsbBootable = true;
                 isoImage.squashfsCompression = "zstd -Xcompression-level 15"; # xz takes forever
+
+                fileSystems."/iso".neededForBoot = true;
 
                 isoImage.forceTextMode = true;
                 boot.loader.timeout = lib.mkForce 1;
@@ -464,6 +468,7 @@ let
           boot.loader.systemd-boot.enable = true;
           boot.loader.efi.canTouchEfiVariables = true;
 
+          fileSystems."/boot".neededForBoot = lib.mkIf (config.disko.devices ? disk) true;
 
           system.build.thymis-image-with-secrets-builder-aarch64 = image-with-secrets-builder {
             pkgs = inputs.nixpkgs.legacyPackages.aarch64-linux;
