@@ -525,3 +525,78 @@ test('Drag Taskbar', async ({ page, request }, testInfo) => {
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 });
+
+test('Create Secrets', async ({ page, request }, testInfo) => {
+	const screenshotCounter = { count: 0 };
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
+
+	await page.locator('nav:visible').locator('a', { hasText: 'Secrets' }).click();
+
+	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	await page.locator('button').filter({ hasText: 'Create Secret' }).click();
+
+	const secretName = page.locator('#secretName').first();
+	const secretType = page.locator('#secretType').first();
+	const secretProcessing = page.locator('#processingType').first();
+	const includeInImage = page.locator('#includeInImage').first();
+
+	await secretName.fill('My Secret 1');
+	await secretType.selectOption({ label: 'Single Line' });
+	await secretProcessing.selectOption({ label: 'Processing with mkpasswd yescrypt' });
+	await includeInImage.check();
+	await page.locator('#singleLineValue').first().fill('My Secret Value');
+	await page.locator('#singleLineValue').first().blur();
+
+	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	await page.locator('button').filter({ hasText: 'Save' }).click();
+	await page.locator('button').filter({ hasText: 'Create Secret' }).click();
+
+	await secretName.fill('My Secret 2');
+	await secretType.selectOption({ label: 'Multi Line' });
+	await secretProcessing.selectOption({ label: 'No processing' });
+	await page.locator('#multiLineValue').first().fill('Line 1\nLine 2\nLine 3');
+	await page.locator('#multiLineValue').first().blur();
+
+	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	await page.locator('button').filter({ hasText: 'Save' }).click();
+	await page.locator('button').filter({ hasText: 'Create Secret' }).click();
+
+	await secretName.fill('My Secret 3');
+	await secretType.selectOption({ label: 'List of environment variables' });
+
+	await page.getByPlaceholder('KEY').nth(0).fill('KEY1');
+	await page.getByPlaceholder('VALUE').nth(0).fill('Value');
+	await page.locator('button').filter({ hasText: 'Add variable' }).click();
+	await page.getByPlaceholder('KEY').nth(1).fill('KEY2');
+	await page.getByPlaceholder('VALUE').nth(1).fill('Value');
+	await page.locator('button').filter({ hasText: 'Add variable' }).click();
+	await page.getByPlaceholder('KEY').nth(2).fill('KEY_TO_REMOVE');
+	await page
+		.locator('button')
+		.filter({ has: page.locator('text="X"') })
+		.nth(2)
+		.click();
+
+	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	await page.locator('button').filter({ hasText: 'Save' }).click();
+	await page.locator('button').filter({ hasText: 'Create Secret' }).click();
+
+	await secretName.fill('My Secret 4');
+	await secretType.selectOption({ label: 'File' });
+	const fileInput = page.locator('#fileValue').first();
+	await fileInput.setInputFiles({
+		name: 'file.txt',
+		mimeType: 'text/plain',
+		buffer: Buffer.from('this is test')
+	});
+
+	await expectScreenshot(page, testInfo, screenshotCounter);
+	await page.locator('button').filter({ hasText: 'Save' }).click();
+
+	await expectScreenshot(page, testInfo, screenshotCounter);
+});
