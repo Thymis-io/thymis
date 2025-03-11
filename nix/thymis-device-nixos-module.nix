@@ -135,6 +135,9 @@ in
         CONTROLLER_HOST=${cfg.agent.controller-url} ${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent --just-place-secrets
       '';
     };
+    boot.initrd.postMountCommands = ''
+      CONTROLLER_HOST=${cfg.agent.controller-url} ${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent --just-place-secrets
+    '';
     system.activationScripts.users.deps = lib.mkIf (cfg.agent.enable) [ "thymis" ];
     users.mutableUsers = lib.mkDefault false;
     users.allowNoPasswordLogin = lib.mkDefault true;
