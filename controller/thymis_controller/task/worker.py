@@ -533,26 +533,49 @@ def ssh_command_task(
     task_data = task.data
     assert task_data.type == "ssh_command_task"
 
-    returncode = run_command(
-        task,
-        conn,
-        process_list,
-        [
-            "ssh",
-            f"-o UserKnownHostsFile={task_data.ssh_known_hosts_path}",
-            "-o StrictHostKeyChecking=yes",
-            "-o ConnectTimeout=10",
-            f"-i {task_data.ssh_key_path}",
-            f"-p {task_data.target_port}",
-            f"{task_data.target_user}@{task_data.target_host}",
-            task_data.command,
-        ],
-    )
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # write deployment_public_key to tmpfile
+        hostfile_path = f"{tmpdir}/known_hosts"
+        with open(hostfile_path, "w", encoding="utf-8") as hostfile:
+            hostfile.write(f"localhost {task_data.deployment_public_key}\n")
+            hostfile.flush()
 
-    if returncode == 0:
-        report_task_finished(task, conn)
-    else:
-        report_task_finished(task, conn, False, "SSH command failed")
+        returncode = run_command(
+            task,
+            conn,
+            process_list,
+            [
+                "ssh",
+                "-i",
+                f"{task_data.ssh_key_path}",
+                "-o",
+                f"UserKnownHostsFile={hostfile.name}",
+                "-o",
+                "StrictHostKeyChecking=yes",
+                "-o",
+                "PasswordAuthentication=no",
+                "-o",
+                "KbdInteractiveAuthentication=no",
+                "-o",
+                "ConnectTimeout=10",
+                "-o",
+                "BatchMode=yes",
+                "-o",
+                f"ProxyCommand={(os.getenv('PYTHONENV')+'/bin/python') if ('PYTHONENV' in os.environ) else 'python' } -m thymis_controller.access_client {task_data.controller_access_client_endpoint} {task_data.deployment_info_id}",
+                f"{task_data.target_user}@localhost",
+                task_data.command,
+            ],
+            env={
+                "PATH": os.getenv("PATH"),
+                "HTTP_NETWORK_RELAY_SECRET": task_data.access_client_token,
+            },
+            cwd=tmpdir,
+        )
+
+        if returncode == 0:
+            report_task_finished(task, conn)
+        else:
+            report_task_finished(task, conn, False, "SSH command failed")
 
 
 SUPPORTED_TASK_TYPES = {

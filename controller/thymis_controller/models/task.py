@@ -207,12 +207,14 @@ class BuildDeviceImageTaskSubmission(BaseModel):
 
 class SSHCommandTaskSubmission(BaseModel):
     type: Literal["ssh_command_task"] = "ssh_command_task"
+    controller_access_client_endpoint: str
+    deployment_info_id: uuid.UUID
+    access_client_token: str
+    deployment_public_key: str
+    ssh_key_path: str
     target_user: str
-    target_host: str
     target_port: int
     command: str
-    ssh_key_path: str
-    ssh_known_hosts_path: str
 
 
 class RunNixOSVMTaskSubmission(BaseModel):
