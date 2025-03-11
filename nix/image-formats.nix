@@ -310,7 +310,7 @@ let
           # system.build.thymis-image = config.system.build.vm;
           virtualisation.useBootLoader = true;
           virtualisation.useEFIBoot = true;
-          fileSystems."/boot".neededForBoot = true;
+          fileSystems."/boot".neededForBoot = lib.mkForce true;
           boot.growPartition = true;
           boot.loader.systemd-boot.enable = true;
           system.build.thymis-image-with-secrets-builder-aarch64 =
