@@ -121,8 +121,19 @@ let
 
       else
 
+      # take xorriso from $IMAGE/../nix-support/xorriso-command
+      # edit it: remove last 2 lines
+
+      xorriso=$(cat "$IMAGE/../nix-support/xorriso-command")
+      xorriso=$(echo "$xorriso" | head -n -2)
+
+      echo "xorriso: $xorriso"
+
+
       # now use xorriso to add the files to the iso, and copy the result to the final destination at the same time
       (cd "$secrets_dir_abs" && ${pkgs.xorriso}/bin/xorriso -boot_image "any" "keep" -indev "$IMAGE" -outdev "$FINAL_IMAGE_DESTINATION" -add ./*)
+
+
       fi
 
       echo "Final image: $FINAL_IMAGE_DESTINATION"
