@@ -371,6 +371,12 @@ let
               (modulesPath + "/profiles/all-hardware.nix")
             ];
           };
+          isoImage = variant.config.system.build.isoImage.overrideAttrs (final: prev: {
+            buildCommandPath = pkgs.writeScript "thymis-make-iso9660-image.sh" ((builtins.readFile "${prev.buildCommandPath}") + "\n" + ''
+              echo "$xorriso" > "$out/nix-support/xorriso-command"
+              chmod +x "$out/nix-support/xorriso-command"
+            '');
+          });
           installer = pkgs.writeShellApplication {
             name = "installer";
             runtimeInputs = with pkgs; [
@@ -466,11 +472,11 @@ let
 
           system.build.thymis-image-with-secrets-builder-aarch64 = image-with-secrets-builder {
             pkgs = inputs.nixpkgs.legacyPackages.aarch64-linux;
-            image-path = variant.config.system.build.isoImage;
+            image-path = isoImage;
           };
           system.build.thymis-image-with-secrets-builder-x86_64 = image-with-secrets-builder {
             pkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
-            image-path = variant.config.system.build.isoImage;
+            image-path = isoImage;
           };
           key = "github:thymis-io/thymis/image-formats.nix:usb-stick-installer";
         };
