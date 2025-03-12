@@ -374,7 +374,6 @@ let
           isoImage = variant.config.system.build.isoImage.overrideAttrs (final: prev: {
             buildCommandPath = pkgs.writeScript "thymis-make-iso9660-image.sh" ((builtins.readFile "${prev.buildCommandPath}") + "\n" + ''
               echo "$xorriso" > "$out/nix-support/xorriso-command"
-              chmod +x "$out/nix-support/xorriso-command"
             '');
           });
           installer = pkgs.writeShellApplication {
