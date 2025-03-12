@@ -43,7 +43,9 @@ class StateEventHandler(FileSystemEventHandler):
         self.debounce_lock = threading.Lock()
 
     def on_any_event(self, event: FileSystemEvent) -> None:
-        if event.event_type != "modified":
+        if event.event_type not in ("modified", "created", "deleted"):
+            return
+        if ".git" in event.src_path:
             return
         if self.should_debounce():
             return
@@ -81,7 +83,9 @@ class Repo:
     def start_file_watcher(self):
         state_event_handler = StateEventHandler(self.notification_manager)
         self.state_observer = Observer()
-        self.state_observer.schedule(state_event_handler, str(self.path))
+        self.state_observer.schedule(
+            state_event_handler, str(self.path), recursive=True
+        )
         self.state_observer.start()
 
     def stop_file_watcher(self):
