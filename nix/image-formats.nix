@@ -122,9 +122,11 @@ let
       else
 
       # take xorriso from $IMAGE/../nix-support/xorriso-command
-      # edit it: remove last 2 lines
 
-      xorriso=$(cat "$IMAGE/../nix-support/xorriso-command")
+      # xorriso=$(cat "$IMAGE/../nix-support/xorriso-command")
+      # use dirname to get the directory of the image
+      IMAGE_DIR=$(dirname "$IMAGE")
+      xorriso=$(cat "$IMAGE_DIR/../nix-support/xorriso-command")
       xorriso=$(echo "$xorriso" | head -n -2)
 
       echo "xorriso: $xorriso"
