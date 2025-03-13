@@ -11,7 +11,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		locale.set(lang);
 	}
 	return resolve(event, {
-		filterSerializedResponseHeaders: (name) => ['total-count'].includes(name)
+		filterSerializedResponseHeaders: (name) => ['total-count', 'content-type'].includes(name)
 	});
 };
 
