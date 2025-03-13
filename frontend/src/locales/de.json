@@ -18,7 +18,8 @@
 		"external-repositories": "Externe Repositories",
 		"tags": "Konfig. Tags",
 		"device-details": "Details",
-		"secrets": "Secrets"
+		"secrets": "Secrets",
+		"artifacts": "Artefakte"
 	},
 	"common": {
 		"search": "Suchen...",
@@ -31,6 +32,9 @@
 		"website": "Homepage",
 		"no": "Nein",
 		"yes": "Ja"
+	},
+	"artifacts": {
+		"drag_drop": "Dateien hier ablegen"
 	},
 	"vnc": {
 		"connection-failed": "Verbindungsfehler",

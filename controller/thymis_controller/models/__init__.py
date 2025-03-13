@@ -1,3 +1,4 @@
+from .artifacts import *
 from .device import *
 from .module import *
 from .secrets import *
