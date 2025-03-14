@@ -684,6 +684,98 @@ Secrets sind perfekt für
         order=110,
     )
 
+    artifacts = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Artifacts",
+            de="Artifacts",
+        ),
+        description=modules.LocalizedString(
+            en="Artifacts to be placed on the device.",
+            de="Artifacts, die auf dem Gerät platziert werden",
+        ),
+        type=modules.ListType(
+            settings={
+                "artifact": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Artifact",
+                        de="Artifact",
+                    ),
+                    type=modules.ArtifactType(),
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The artifact.",
+                        de="Das Artifact.",
+                    ),
+                    example="",
+                    order=0,
+                ),
+                "path": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Path",
+                        de="Pfad",
+                    ),
+                    type="string",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The path where the artifact will be placed.",
+                        de="Der Pfad, an dem das Artifact abgelegt wird.",
+                    ),
+                    example="Path",
+                    order=10,
+                ),
+                "owner": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Owner",
+                        de="Besitzer",
+                    ),
+                    type="string",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The owner of the artifact.",
+                        de="Der Besitzer des Artifacts.",
+                    ),
+                    example="",
+                    order=20,
+                ),
+                "group": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Group",
+                        de="Gruppe",
+                    ),
+                    type="string",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The group of the artifact.",
+                        de="Die Gruppe des Artifacts.",
+                    ),
+                    example="",
+                    order=30,
+                ),
+                "mode": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Mode",
+                        de="Modus",
+                    ),
+                    type="string",
+                    default="",
+                    description=modules.LocalizedString(
+                        en="The mode of the artifact, bspw. 0600.",
+                        de="Der Mode des Artifacts, bspw. 0600.",
+                    ),
+                    example="",
+                    order=40,
+                ),
+            },
+            element_name=modules.LocalizedString(
+                en="Artifact",
+                de="Artifact",
+            ),
+        ),
+        default=[],
+        example="",
+        order=120,
+    )
+
     def register_secret_settings(
         self,
         module_settings: "models.ModuleSettings",

@@ -34,13 +34,17 @@ class SecretType(BaseModel):
     )
 
 
+class ArtifactType(BaseModel):
+    type: Literal["artifact"] = "artifact"
+
+
 class InlineFileType(BaseModel):
     type: Literal["inline-file"] = "inline-file"
     accept: Optional[str] = None
 
 
 type SettingTypes = Union[
-    ValueTypes, SelectOneType, ListType, SecretType, InlineFileType
+    ValueTypes, SelectOneType, ListType, SecretType, ArtifactType, InlineFileType
 ]
 
 
@@ -68,4 +72,5 @@ __all__ = [
     "ListType",
     "SettingTypes",
     "SecretType",
+    "ArtifactType",
 ]

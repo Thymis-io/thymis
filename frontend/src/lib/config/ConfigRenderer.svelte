@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type {
+		ArtifactSettingType,
 		ListSettingType,
 		ModuleSettings,
 		SecretSettingType,
@@ -13,6 +14,8 @@
 	import ConfigList from './ConfigList.svelte';
 	import ConfigInt from './ConfigInt.svelte';
 	import ConfigSecret from './ConfigSecret.svelte';
+	import ConfigArtifact from './ConfigArtifact.svelte';
+	import type { Artifact } from '../../routes/(authenticated)/artifacts/[...rest]/+page';
 
 	interface Props {
 		setting: Setting;
@@ -20,9 +23,10 @@
 		disabled: boolean;
 		moduleSettings: ModuleSettings | undefined;
 		onChange: (value: any) => void;
+		artifacts: Artifact[];
 	}
 
-	let { setting, value, disabled, moduleSettings, onChange }: Props = $props();
+	let { setting, value, disabled, moduleSettings, onChange, artifacts }: Props = $props();
 
 	const getTypeKeyFromSetting = (setting: Setting): string | undefined => {
 		if (setting.type === 'int') return 'int';
@@ -44,6 +48,13 @@
 			setting.type.type === 'secret'
 		) {
 			return 'secret';
+		}
+		if (
+			typeof setting.type === 'object' &&
+			setting.type.hasOwnProperty('type') &&
+			setting.type.type === 'artifact'
+		) {
+			return 'artifact';
 		}
 		console.error(`Unknown setting type: ${setting.type}`);
 	};
@@ -75,6 +86,10 @@
 	const settingIsSecret = (setting: Setting): setting is Setting<SecretSettingType> => {
 		return getTypeKeyFromSetting(setting) === 'secret';
 	};
+
+	const settingIsArtifact = (setting: Setting): setting is Setting<ArtifactSettingType> => {
+		return getTypeKeyFromSetting(setting) === 'artifact';
+	};
 </script>
 
 {#if settingIsInt(setting)}
@@ -94,7 +109,10 @@
 		{moduleSettings}
 		{onChange}
 		{disabled}
+		{artifacts}
 	/>
 {:else if settingIsSecret(setting)}
 	<ConfigSecret {value} {setting} placeholder={setting.example} {onChange} {disabled} />
+{:else if settingIsArtifact(setting)}
+	<ConfigArtifact {value} {setting} {onChange} {disabled} {artifacts} />
 {/if}
