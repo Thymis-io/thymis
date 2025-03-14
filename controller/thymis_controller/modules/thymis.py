@@ -878,6 +878,12 @@ Secrets sind perfekt für
             else self.password_secret.default
         )
 
+        artifacts = (
+            module_settings.settings["artifacts"]
+            if "artifacts" in module_settings.settings
+            else self.artifacts.default
+        )
+
         if password_secret:
             f.write(
                 f"  users.users.root.hashedPasswordFile = {convert_python_value_to_nix(self.password_secret.type.on_device_path)};\n"
@@ -974,6 +980,18 @@ Secrets sind perfekt für
                 certificates, ident=1
             )
             f.write(f"  security.pki.certificates = {security_pki_certificates_nix};\n")
+
+        if artifacts:
+            f.write("  systemd.tmpfiles.rules = [\n")
+            for artifact in artifacts:
+                artifact_path = artifact["artifact"] if "artifact" in artifact else None
+                result_path = artifact["path"] if "path" in artifact else "/"
+                if not artifact_path:
+                    continue
+                f.write(
+                    f'    "C+ {result_path} - - - - ${{pkgs.copyPathToStore (inputs.self + "/artifacts/{artifact_path}")}}"\n'
+                )
+            f.write("  ];")
 
         return super().write_nix_settings(f, path, module_settings, priority, project)
 
