@@ -195,7 +195,13 @@ class SecretType:
         )
 
 
-type SettingTypes = Union[ValueTypes, SelectOneType, ListType, SecretType]
+@dataclass
+class ArtifactType:
+    def get_model(self, locale: str) -> models.ArtifactType:
+        return models.ArtifactType()
+
+
+type SettingTypes = Union[ValueTypes, SelectOneType, ListType, SecretType, ArtifactType]
 
 
 def get_setting_type_model(setting: SettingTypes, locale: str) -> models.SettingTypes:
@@ -204,6 +210,8 @@ def get_setting_type_model(setting: SettingTypes, locale: str) -> models.Setting
     if isinstance(setting, ListType):
         return setting.get_model(locale)
     if isinstance(setting, SecretType):
+        return setting.get_model(locale)
+    if isinstance(setting, ArtifactType):
         return setting.get_model(locale)
     return setting
 
@@ -240,4 +248,5 @@ __all__ = [
     "ListType",
     "SettingTypes",
     "LocalizedString",
+    "ArtifactType",
 ]
