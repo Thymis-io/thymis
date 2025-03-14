@@ -1,24 +1,30 @@
 <script lang="ts" generics="T extends string | number">
 	import { browser } from '$app/environment';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount, type Snippet } from 'svelte';
 
 	interface Props {
 		values?: T[];
 		selected?: T | null;
+		disabled?: boolean;
 		showBox?: boolean;
 		onSelected?: (item: T) => void;
 		class?: string;
-		children?: import('svelte').Snippet;
+		innerClass?: string;
+		children?: Snippet;
+		options?: Snippet;
 	}
 
 	let {
 		values = [],
 		selected = $bindable(null),
+		disabled = false,
 		showBox = true,
 		onSelected = () => {},
 		class: divClass = 'w-64',
-		children
+		innerClass = '',
+		children,
+		options
 	}: Props = $props();
 	let isOpen = $state(false);
 	let highlightedIndex = $state(-1);
@@ -73,23 +79,28 @@
 	tabindex="0"
 >
 	<button
-		class="w-full flex justify-between items-center p-1 {showBox &&
-			'bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm'}"
+		class="w-full flex justify-between items-center p-1 disabled:opacity-50 disabled:cursor-not-allowed {showBox &&
+			'bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-500 rounded-lg shadow-sm'} {innerClass}"
 		onclick={(e) => {
 			e.preventDefault();
 			e.stopPropagation();
 			toggleDropdown();
 		}}
+		{disabled}
 		aria-controls="dropdown-list"
 	>
-		{#if children}{@render children()}{:else}{selected || 'Select an option'}{/if}
+		{#if children}
+			{@render children()}
+		{:else}
+			{selected || 'Select an option'}
+		{/if}
 		<ChevronDown class="h-4 w-4" />
 	</button>
 
 	{#if isOpen}
 		<div
 			id="dropdown-list"
-			class="absolute w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md mt-1 z-10"
+			class="absolute w-full max-h-[19rem] overflow-y-auto bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md mt-1 z-10"
 			role="listbox"
 		>
 			{#each values as item, index}
@@ -110,6 +121,9 @@
 					{item}
 				</option>
 			{/each}
+			{#if options}
+				{@render options()}
+			{/if}
 		</div>
 	{/if}
 </div>

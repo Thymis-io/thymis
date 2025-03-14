@@ -5,6 +5,7 @@
 	import X from 'lucide-svelte/icons/x';
 	import type { Setting, ListSettingType, ModuleSettings } from '$lib/state';
 	import ConfigRenderer from './ConfigRenderer.svelte';
+	import type { Artifact } from '../../routes/(authenticated)/artifacts/[...rest]/+page';
 
 	interface Props {
 		values: any[];
@@ -12,9 +13,17 @@
 		moduleSettings: ModuleSettings | undefined;
 		onChange?: (value: unknown[]) => void;
 		disabled?: boolean;
+		artifacts: Artifact[];
 	}
 
-	let { values, setting, moduleSettings, onChange = () => {}, disabled = false }: Props = $props();
+	let {
+		values,
+		setting,
+		moduleSettings,
+		onChange = () => {},
+		disabled = false,
+		artifacts
+	}: Props = $props();
 </script>
 
 <div class="flex flex-col gap-1 w-full">
@@ -36,6 +45,7 @@
 								newValues[values.indexOf(item)] = { ...item, [keyEntry]: value };
 								onChange(newValues);
 							}}
+							{artifacts}
 						/>
 					</div>
 				{/each}

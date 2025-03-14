@@ -88,6 +88,7 @@
 			otherSettings={getOtherSettings(data.nav.selectedTarget, data.nav.selectedModule)}
 			showRouting={data.nav.selectedTargetType === 'config'}
 			canEdit={data.nav.selectedTarget === data.nav.selectedModuleContext}
+			artifacts={data.artifacts}
 		/>
 	{/if}
 </div>
