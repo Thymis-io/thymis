@@ -12,6 +12,7 @@
 	import ConfigRenderer from './ConfigRenderer.svelte';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
 	import type { GlobalState } from '$lib/state.svelte';
+	import type { Artifact } from '../../routes/(authenticated)/artifacts/[...rest]/+page';
 
 	interface Props {
 		nav: Nav;
@@ -21,6 +22,7 @@
 		otherSettings: ModuleSettingsWithOrigin[] | undefined;
 		showRouting: boolean;
 		canEdit: boolean;
+		artifacts: Artifact[];
 	}
 
 	let {
@@ -30,7 +32,8 @@
 		settings = $bindable(),
 		otherSettings,
 		showRouting,
-		canEdit
+		canEdit,
+		artifacts
 	}: Props = $props();
 
 	const setSetting = async (setting: Setting<SettingType>, key: string, value: any) => {
@@ -115,6 +118,7 @@
 					value={globalState.selectedModuleSettings?.settings[key]}
 					disabled={!canReallyEditSetting(canEdit, setting)}
 					onChange={(value) => setSetting(setting, key, value)}
+					{artifacts}
 				/>
 				<div class="ml-auto"></div>
 				<button
