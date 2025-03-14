@@ -5,7 +5,7 @@
 	import { Button, Select } from 'flowbite-svelte';
 	import { invalidate } from '$app/navigation';
 	import SecretEditModal from '$lib/components/secrets/SecretEditModal.svelte';
-	import type { SecretProcessingType, SecretSettingType, SecretType } from '$lib/state';
+	import type { SecretProcessingType, SecretSettingType, SecretType, Setting } from '$lib/state';
 	import { page } from '$app/stores';
 	import {
 		type SecretEditState,
