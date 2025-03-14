@@ -31,6 +31,10 @@
 
 		const formData = new FormData();
 
+		if (event.dataTransfer?.files?.length === 0) {
+			return;
+		}
+
 		for (const file of event.dataTransfer?.files || []) {
 			formData.append('files', file);
 		}
@@ -69,7 +73,9 @@
 
 {#each artifacts as artifact}
 	{#if artifact.type === 'folder'}
-		<button
+		<div
+			role="button"
+			tabindex="0"
 			class={elementClass +
 				'drop-zone ' +
 				(drag?.name === artifact?.name ? 'bg-gray-100 dark:bg-gray-700 ' : ' ')}
@@ -77,6 +83,13 @@
 				hidden = hidden.includes(artifact.name)
 					? hidden.filter((a) => a !== artifact.name)
 					: [...hidden, artifact.name];
+			}}
+			onkeydown={(event) => {
+				if (event.key === 'Enter') {
+					hidden = hidden.includes(artifact.name)
+						? hidden.filter((a) => a !== artifact.name)
+						: [...hidden, artifact.name];
+				}
 			}}
 			ondrop={dropHandler}
 			ondragover={dragOverHandler}
@@ -91,16 +104,23 @@
 			{/if}
 			<FolderIcon class="w-4 h-4 shrink-0" />
 			<span>{artifact.name}</span>
-		</button>
+		</div>
 		{#if !hidden.includes(artifact.name)}
 			<Tree artifacts={artifact.children} depth={depth + 1} />
 		{/if}
 	{:else}
-		<button
+		<div
+			role="button"
+			tabindex="0"
 			class={elementClass +
 				'drop-zone ' +
 				(drag?.name === artifact?.name ? 'bg-gray-100 dark:bg-gray-700 ' : ' ')}
 			onclick={() => goto(`/artifacts/${artifact.path}`)}
+			onkeydown={(event) => {
+				if (event.key === 'Enter') {
+					goto(`/artifacts/${artifact.path}`);
+				}
+			}}
 			ondrop={dropHandler}
 			ondragover={dragOverHandler}
 			ondragenter={(event) => dragEnterHandler(event, artifact)}
@@ -110,7 +130,7 @@
 			<div class="w-4 h-4 shrink-0"></div>
 			<FileIcon class="w-4 h-4 shrink-0" />
 			<span>{artifact.name}</span>
-		</button>
+		</div>
 	{/if}
 {/each}
 
