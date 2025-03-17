@@ -211,9 +211,9 @@ class NixParser:
     @classmethod
     def take_complete_lines(cls, buffer: bytearray):
         output = bytearray()
-        if b"\n" not in buffer:
-            return output
         last_newline = buffer.rfind(b"\n")
+        if last_newline == -1:
+            return output
         output[:] = buffer[: last_newline + 1].copy()
         buffer[:] = buffer[last_newline + 1 :]
         return output
@@ -223,7 +223,17 @@ class NixParser:
         has_handled_nix_lines = False
         for line in buffer.splitlines(keepends=True):
             if line.startswith(b"@nix "):
-                self.handle_line(line)
+                try:
+                    self.handle_line(line)
+                except json.JSONDecodeError as e:
+                    logger.error(
+                        "Failed to parse line: %s, error: %s",
+                        line,
+                        e,
+                    )
+                    # Ignore this line
+                    normal_stderr += line
+                    continue
                 has_handled_nix_lines = True
             else:
                 normal_stderr += line
