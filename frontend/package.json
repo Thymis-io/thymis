@@ -16,7 +16,7 @@
 		"test:unit": "vitest"
 	},
 	"devDependencies": {
-		"@novnc/novnc": "^1.5.0",
+		"@novnc/novnc": "npm:@elikoga/novnc@^1.6.0",
 		"@playwright/test": "1.47.0",
 		"@prgm/sveltekit-progress-bar": "^3.0.2",
 		"@sveltejs/adapter-node": "^5.2.9",
