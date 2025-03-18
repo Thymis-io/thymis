@@ -487,7 +487,7 @@ class Agent(ea.EdgeAgent):
 
             if path == "/run/thymis/root_password_hash":
                 os.system(
-                    "sh -c 'echo \"root:$(cat /run/thymis/root_password_hash)\" | chpasswd -e'"
+                    "/bin/sh -c 'echo \"root:$(cat /run/thymis/root_password_hash)\" | chpasswd -e'"
                 )
 
         # store message on disk at data dir / "thymis-secrets-message.json"
@@ -547,7 +547,7 @@ class Agent(ea.EdgeAgent):
 
             if path == "/run/thymis/root_password_hash":
                 os.system(
-                    "sh -c 'echo \"root:$(cat /run/thymis/root_password_hash)\" | chpasswd -e'"
+                    "/bin/sh -c 'echo \"root:$(cat /run/thymis/root_password_hash)\" | chpasswd -e'"
                 )
 
     async def on_connected(self):
