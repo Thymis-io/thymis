@@ -1,7 +1,7 @@
 { poetry2nix
 , writeShellApplication
 , python313
-,
+, shadow
 }:
 let
   pythonEnv = (poetry2nix.mkPoetryApplication {
@@ -19,6 +19,7 @@ let
 in
 writeShellApplication {
   name = "thymis-agent";
+  runtimeInputs = [ shadow ];
   text = ''
     exec ${pythonEnv}/bin/thymis-agent "$@"
   '';
