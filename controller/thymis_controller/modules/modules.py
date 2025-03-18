@@ -90,8 +90,6 @@ class Module(ABC):
                 print(f"Attribute {attr} not found in {self}")
                 continue
             assert isinstance(my_attr, Setting)
-            if isinstance(my_attr.type, ListType):
-                continue
             if my_attr.nix_attr_name is not None:
                 f.write(
                     f"  {my_attr.nix_attr_name} = lib.mkOverride {priority} {convert_python_value_to_nix(value)};\n"
