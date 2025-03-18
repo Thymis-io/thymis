@@ -32,5 +32,8 @@ export default defineConfig({
 	},
 	define: {
 		__THYMIS_PACKAGE_VERSION__: JSON.stringify(versionInfo)
+	},
+	build: {
+		target: ['es2024', 'chrome122', 'edge122', 'safari17', 'firefox127', 'opera108']
 	}
 });
