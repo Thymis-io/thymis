@@ -14,6 +14,7 @@
 	let { data }: Props = $props();
 
 	const dropHandler = async (event: DragEvent) => {
+		console.log('dropHandler', event);
 		event.preventDefault();
 
 		const formData = new FormData();
