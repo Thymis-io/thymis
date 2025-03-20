@@ -137,7 +137,7 @@ def build_download_image(
     for module, settings in modules:
         for secret_type, secret in module.register_secret_settings(settings, project):
             db_secret = project.get_secret(db_session, uuid.UUID(secret))
-            if db_secret.include_in_image:
+            if db_secret.include_in_image and secret_type.on_device_path:
                 secrets.append(
                     agent.SecretForDevice(
                         secret_id=secret,
