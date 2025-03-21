@@ -102,6 +102,10 @@ export type SecretSettingType = {
 	'default-save-to-image'?: boolean;
 };
 
+export type ArtifactSettingType = {
+	type: 'artifact';
+};
+
 export type SettingType =
 	| 'string'
 	| 'number'

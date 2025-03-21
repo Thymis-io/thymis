@@ -11,6 +11,7 @@
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import FileLock from 'lucide-svelte/icons/file-lock-2';
+	import FolderOpen from 'lucide-svelte/icons/folder-open';
 	import type { GlobalState } from '$lib/state.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
@@ -99,6 +100,11 @@
 			name: $t('nav.secrets'),
 			icon: FileLock,
 			href: '/secrets'
+		},
+		{
+			name: $t('nav.artifacts'),
+			icon: FolderOpen,
+			href: '/artifacts'
 		}
 	]);
 </script>
