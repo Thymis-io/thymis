@@ -67,3 +67,11 @@ def get_all(db_session: Session) -> list[db_models.HardwareDevice]:
         .order_by(db_models.HardwareDevice.last_seen.desc())
         .all()
     )
+
+
+def get_by_id(db_session: Session, id: str) -> db_models.HardwareDevice | None:
+    return (
+        db_session.query(db_models.HardwareDevice)
+        .filter(db_models.HardwareDevice.id == id)
+        .first()
+    )

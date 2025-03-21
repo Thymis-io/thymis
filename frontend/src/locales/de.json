@@ -86,7 +86,11 @@
 			"last-seen": "Zuletzt gesehen",
 			"no-hardware-ids": "Keine Hardware -IDs gefunden",
 			"unknown-device-type": "Unbekannter Gerätetyp",
-			"never-seen": "Nie"
+			"never-seen": "Nie",
+			"property": "Eigenschaft",
+			"value": "Wert",
+			"key": "Schlüssel",
+			"id": "ID"
 		},
 		"hardware-keys": {
 			"pi-serial-number": "Pi Seriennummer"
@@ -94,7 +98,14 @@
 		"known-devices-with-deployment": "Derzeit deployed",
 		"known-devices-without-deployment": "Bekannte Geräte ohne aktuelles deployment",
 		"hide-old-devices": "Alte Geräte verstecken",
-		"no-known-hardware-devices-without-known-deployment": "Keine bekannten Hardware-Geräte ohne Deployment"
+		"no-known-hardware-devices-without-known-deployment": "Keine bekannten Hardware-Geräte ohne Deployment",
+		"back-to-list": "Zurück zur Geräteliste",
+		"device-information": "Geräteinformationen",
+		"hardware-ids": "Hardware-IDs",
+		"associated-configuration": "Zugehörige Konfiguration",
+		"no-associated-config": "Keine Konfiguration mit diesem Gerät verbunden",
+		"unknown-configuration": "Unbekannte Konfiguration",
+		"device-not-found": "Gerät nicht gefunden"
 	},
 	"create-configuration": {
 		"title": "Neue Gerätekonfiguration Erstellen",

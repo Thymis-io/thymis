@@ -64,13 +64,19 @@
 				)}
 				{@const deviceType = deployedConfig && getDeviceType(deployedConfig)}
 				<tr
-					class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
+					class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+					on:click={() => {
+						if (deploymentInfo.hardware_devices.length === 1) {
+							window.location.href = `/devices/${deploymentInfo.hardware_devices[0].id}`;
+						}
+					}}
 				>
 					<TableBodyCell tdClass="p-2"></TableBodyCell>
 					<TableBodyCell tdClass="p-2">
 						<a
 							href={`/configuration/configuration-details?${buildGlobalNavSearchParam(data.globalState, $page.url.search, 'config', deploymentInfo.deployed_config_id)}`}
 							class="underline flex items-center gap-2 w-fit"
+							on:click|stopPropagation={() => {}}
 						>
 							<FileCode size={18} />
 							{data.globalState.configs.find(
@@ -96,13 +102,19 @@
 					</TableBodyCell>
 					<TableBodyCell tdClass="p-2">
 						{#if deploymentInfo.hardware_devices.length === 1}
-							{#each Object.entries(deploymentInfo.hardware_devices[0].hardware_ids) as [hardwareIdKey, hardwareValue]}
-								<div class="flex gap-2">
-									{hardwareIdKey in hardwareKeyToDisplayName
-										? hardwareKeyToDisplayName[hardwareIdKey]()
-										: hardwareIdKey}: {hardwareValue}
-								</div>
-							{/each}
+							<a
+								href={`/devices/${deploymentInfo.hardware_devices[0].id}`}
+								class="block text-primary-600 hover:underline"
+								on:click|stopPropagation={() => {}}
+							>
+								{#each Object.entries(deploymentInfo.hardware_devices[0].hardware_ids) as [hardwareIdKey, hardwareValue]}
+									<div class="flex gap-2">
+										{hardwareIdKey in hardwareKeyToDisplayName
+											? hardwareKeyToDisplayName[hardwareIdKey]()
+											: hardwareIdKey}: {hardwareValue}
+									</div>
+								{/each}
+							</a>
 						{:else}
 							<span>{$t('hardware-devices.table.no-hardware-ids')}</span>
 						{/if}
@@ -143,17 +155,26 @@
 		<tbody>
 			{#each hardwareDevicesWithoutDeploymentInfo as hardwareDevice (hardwareDevice.id)}
 				<tr
-					class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
+					class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+					on:click={() => {
+						window.location.href = `/devices/${hardwareDevice.id}`;
+					}}
 				>
 					<TableBodyCell tdClass="p-2"></TableBodyCell>
 					<TableBodyCell tdClass="p-2">
-						{#each Object.entries(hardwareDevice.hardware_ids) as [hardwareIdKey, hardwareValue]}
-							<div class="flex gap-2">
-								{hardwareIdKey in hardwareKeyToDisplayName
-									? hardwareKeyToDisplayName[hardwareIdKey]()
-									: hardwareIdKey}: {hardwareValue}
-							</div>
-						{/each}
+						<a
+							href={`/devices/${hardwareDevice.id}`}
+							class="block text-primary-600 hover:underline"
+							on:click|stopPropagation={() => {}}
+						>
+							{#each Object.entries(hardwareDevice.hardware_ids) as [hardwareIdKey, hardwareValue]}
+								<div class="flex gap-2">
+									{hardwareIdKey in hardwareKeyToDisplayName
+										? hardwareKeyToDisplayName[hardwareIdKey]()
+										: hardwareIdKey}: {hardwareValue}
+								</div>
+							{/each}
+						</a>
 					</TableBodyCell>
 					<TableBodyCell tdClass="p-2">
 						<RenderTimeAgo timestamp={hardwareDevice.last_seen} />

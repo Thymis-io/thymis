@@ -144,6 +144,22 @@ if "RUNNING_IN_PLAYWRIGHT" in os.environ:
         project.update_known_hosts(db_session)
         return models.DeploymentInfo.from_deployment_info(result)
 
+    @router.post("/hardware_device", response_model=models.HardwareDevice)
+    def create_hardware_device(
+        db_session: DBSessionAD,
+        data: dict,
+    ):
+        """
+        Create a hardware device for testing
+        """
+        hardware_ids = data.get("hardware_ids", {})
+        deployment_info_id = data.get("deployment_info_id")
+
+        result = crud.hardware_device.create(
+            db_session, hardware_ids=hardware_ids, deployment_info_id=deployment_info_id
+        )
+        return result
+
 
 @router.get("/hardware_device", response_model=list[models.HardwareDevice])
 def get_hardware_devices(db_session: DBSessionAD):
@@ -151,3 +167,17 @@ def get_hardware_devices(db_session: DBSessionAD):
     Get all hardware devices
     """
     return crud.hardware_device.get_all(db_session)
+
+
+@router.get(
+    "/hardware_device/{id}",
+    response_model=models.HardwareDevice,
+)
+def get_hardware_device(db_session: DBSessionAD, id: uuid.UUID):
+    """
+    Get a specific hardware device by id
+    """
+    hardware_device = crud.hardware_device.get_by_id(db_session, id)
+    if not hardware_device:
+        raise HTTPException(status_code=404, detail="Hardware device not found")
+    return hardware_device

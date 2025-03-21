@@ -11,3 +11,11 @@ export const getAllHardwareDevices = async (fetch: typeof window.fetch = window.
 	const response = await fetchWithNotify('/api/hardware_device', undefined, {}, fetch);
 	return (await response.json()) as HardwareDevice[];
 };
+
+export const getHardwareDeviceById = async (
+	id: string,
+	fetch: typeof window.fetch = window.fetch
+) => {
+	const response = await fetchWithNotify(`/api/hardware_device/${id}`, undefined, {}, fetch);
+	return (await response.json()) as HardwareDevice;
+};
