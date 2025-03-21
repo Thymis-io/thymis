@@ -14,13 +14,28 @@ const createDeploymentInfo = async (
 	sshPublicKey: string,
 	host: string
 ) => {
-	await page.request.post('/api/create_deployment_info', {
+	const response = await page.request.post('/api/create_deployment_info', {
 		data: {
 			deployed_config_id: configId,
 			ssh_public_key: sshPublicKey,
 			reachable_deployed_host: host
 		}
 	});
+	return await response.json();
+};
+
+const createHardwareDevice = async (
+	page: Page,
+	hardwareIds: Record<string, string>,
+	deploymentInfoId?: string
+) => {
+	const response = await page.request.post('/api/hardware_device', {
+		data: {
+			hardware_ids: hardwareIds,
+			deployment_info_id: deploymentInfoId
+		}
+	});
+	return await response.json();
 };
 
 const deleteDeploymentInfos = async (page: Page, configIds: string[]) => {
@@ -124,6 +139,139 @@ test('explores more pages', async ({ page, request }, testInfo) => {
 	// Navigate to the Secrets page
 	await page.locator('nav:visible').locator('a', { hasText: 'Secrets' }).click();
 	await expectScreenshot(page, testInfo, screenshotCounter);
+});
+
+test('device details page shows device information', async ({ page, request }, testInfo) => {
+	const screenshotCounter = { count: 0 };
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
+
+	// Create a test configuration
+	await createTag(page, 'TestDeviceTag');
+	await createConfiguration(page, 'TestDeviceConfig', 'VM (x86_64)', ['TestDeviceTag']);
+
+	// Get the config ID
+	const stateRequest = await page.request.get('/api/state');
+	const state = await stateRequest.json();
+	const config = state.configs.find((c) => c.displayName === 'TestDeviceConfig');
+	expect(config).toBeTruthy();
+	const configId = config.identifier;
+
+	// Create a deployment info
+	const deploymentInfo = await createDeploymentInfo(
+		page,
+		configId,
+		'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC5C7MdmOFSLbwjQ7GqSmjBF3KXQYkEtJL/XrtHDzZ5AR8F0Z0C9xGtQSDY+5eBDVeSO+fjwY+/m6PZRs7zCx4hH3ZDVW0uoVXLxfnIEqjZeOvs+GNo1ocrIoYtXldR7GmIjUcXn7ON8d1FlFO5UF5IPu6xIPJFSXT5s4FHLrpjlbMwu5iUzHmVzLHSGLqGSP45PtbLpQsEyXq+7aL3I1LD8wUTRYvV0kJA5PcGfZV4LKuYC3UzLdZvDRXsF/pSUC6rXJZvU9waDOAn5zcUYEMjTMnwCrAHxeVHcCImK9r3NThgr2ZbIfQNz0G3GUU8gWOAIzV1OCjnRYPACrMAOBL8QNJ8yIwvW74frfmmOsnSIfLy2ZkB4/kFfJzBJyxuUttKkrDaCHMYKFzH5T1wDR1Rl4CjHiMVBxR52n8MgV3ZGXfNlcTKAwtdDgWYZ8nSjiBMyPqi9BpGwZJvtqJvN5eLpCh2vsFSgev3HX/NSXfOUakgGcVQm9SsFpXn9mk= user@host',
+		'localhost'
+	);
+
+	// Create a hardware device with the deployment info
+	const hardwareDevice = await createHardwareDevice(
+		page,
+		{ 'pi-serial-number': '12345ABC', 'test-id': 'test-value' },
+		deploymentInfo.id
+	);
+
+	// Navigate to the Devices page
+	await page.locator('nav:visible').locator('a', { hasText: 'Devices' }).click();
+
+	// Take a screenshot of the devices page showing our device
+	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	// Click on the device to navigate to details page
+	await page.locator(`a[href="/devices/${hardwareDevice.id}"]`).first().click();
+	await page.waitForURL(`http://localhost:8000/devices/${hardwareDevice.id}`);
+
+	// Wait for the page content to load
+	await page.waitForSelector('h1:has-text("Device Information")');
+
+	// Take screenshots of device details page
+	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	// Verify device information is displayed correctly
+	const deviceIdElement = page
+		.locator('text="ID"')
+		.first()
+		.locator('xpath=../following-sibling::td');
+	await expect(deviceIdElement).toContainText(hardwareDevice.id);
+
+	// Verify hardware IDs are displayed correctly
+	const piSerialElement = page.locator('text="Pi Serial Number"').first();
+	await expect(piSerialElement).toBeVisible();
+
+	const testIdElement = page.locator('text="test-id"').first();
+	await expect(testIdElement).toBeVisible();
+
+	// Verify configuration information is displayed
+	const configNameElement = page
+		.locator('text="Deployed Configuration"')
+		.first()
+		.locator('xpath=../following-sibling::td');
+	await expect(configNameElement).toContainText('TestDeviceConfig');
+
+	// Navigate back to devices list via back link
+	await page.locator('text="Back to Devices List"').click();
+	await page.waitForURL('http://localhost:8000/devices');
+	await expect(page).toHaveURL('http://localhost:8000/devices');
+});
+
+test('device details page shows device without deployment', async ({ page, request }, testInfo) => {
+	const screenshotCounter = { count: 0 };
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
+
+	// Create a hardware device without deployment info
+	const hardwareDevice = await createHardwareDevice(page, {
+		'pi-serial-number': '98765XYZ',
+		'test-id': 'no-deployment'
+	});
+
+	// Navigate to the Devices page
+	await page.locator('nav:visible').locator('a', { hasText: 'Devices' }).click();
+
+	// Take a screenshot of the devices page showing our device
+	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	// Click on the device to navigate to details page
+	await page.locator(`a[href="/devices/${hardwareDevice.id}"]`).first().click();
+	await page.waitForURL(`http://localhost:8000/devices/${hardwareDevice.id}`);
+
+	// Wait for the page content to load
+	await page.waitForSelector('h1:has-text("Device Information")');
+
+	// Take screenshots of device details page
+	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	// Verify device information is displayed correctly
+	const deviceIdElement = page
+		.locator('text="ID"')
+		.first()
+		.locator('xpath=../following-sibling::td');
+	await expect(deviceIdElement).toContainText(hardwareDevice.id);
+
+	// Verify hardware IDs are displayed correctly
+	const piSerialElement = page.locator('text="Pi Serial Number"').first();
+	await expect(piSerialElement).toBeVisible();
+	await expect(piSerialElement.locator('xpath=../..').locator('text="98765XYZ"')).toBeVisible();
+
+	const testIdElement = page.locator('text="test-id"').first();
+	await expect(testIdElement).toBeVisible();
+	await expect(testIdElement.locator('xpath=../..').locator('text="no-deployment"')).toBeVisible();
+
+	// Verify "No configuration associated" message is displayed
+	const noConfigMessage = page.locator('text="No configuration associated with this device"');
+	await expect(noConfigMessage).toBeVisible();
+
+	// Verify no VNC or terminal sections are present
+	const vncSection = page.locator('h1:has-text("VNC")');
+	const terminalSection = page.locator('h1:has-text("Terminal")');
+	await expect(vncSection).not.toBeVisible();
+	await expect(terminalSection).not.toBeVisible();
+
+	// Navigate back to devices list via back link
+	await page.locator('text="Back to Devices List"').click();
+	await page.waitForURL('http://localhost:8000/devices');
+	await expect(page).toHaveURL('http://localhost:8000/devices');
 });
 
 test('create whoami tag', async ({ page, request }, testInfo) => {
