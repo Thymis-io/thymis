@@ -43,7 +43,7 @@
 />
 
 <div>
-	<SplitPane type="horizontal" pos="16rem" min="12rem" max="80%">
+	<SplitPane type="horizontal" pos="20rem" min="10rem" max="80%">
 		{#snippet a()}
 			<div
 				class="rounded bg-gray-100 dark:bg-gray-800"
