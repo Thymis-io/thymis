@@ -69,7 +69,7 @@ class StateEventHandler(FileSystemEventHandler):
 
     def broadcast_update(self):
         self.notification_manager.broadcast_invalidate_notification(
-            ["/api/repo_status", "/api/state"]
+            ["/api/repo_status", "/api/state", "/api/artifacts"]
         )
 
 
