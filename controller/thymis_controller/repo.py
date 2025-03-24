@@ -74,7 +74,7 @@ class StateEventHandler(FileSystemEventHandler):
         if self.paused:
             return
         self.notification_manager.broadcast_invalidate_notification(
-            ["/api/repo_status", "/api/state"]
+            ["/api/repo_status", "/api/state", "/api/artifacts"]
         )
 
 
