@@ -5,9 +5,10 @@
 
 	interface Props {
 		target: string | undefined;
+		description?: string;
 	}
 
-	let { target }: Props = $props();
+	let { target, description }: Props = $props();
 
 	const dispatch = createEventDispatcher();
 </script>
@@ -19,8 +20,8 @@
 	outsideclose
 	on:close={() => dispatch('cancel')}
 >
-	<div class="text-lg">
-		{$t('deleteConfirm.text', { values: { target } })}
+	<div class="text-lg whitespace-pre-line">
+		{description || $t('deleteConfirm.text', { values: { target } })}
 	</div>
 	<div class="flex justify-end mt-4">
 		<Button on:click={() => dispatch('cancel')} color="alternative">
