@@ -19,8 +19,9 @@
 	let drag = $state<Artifact>();
 
 	let elementClass =
-		'flex items-center gap-1 w-full ' +
-		'hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded p-1 text-start whitespace-nowrap overflow-x-hidden text-ellipsis ';
+		'flex items-center gap-1 w-full text-base ' +
+		'hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded p-1 text-start whitespace-nowrap ';
+	let overflowClass = 'overflow-hidden text-ellipsis ';
 
 	const dropHandler = async (event: DragEvent) => {
 		event.preventDefault();
@@ -103,7 +104,7 @@
 				<ChevronDown class="w-4 h-4 shrink-0" />
 			{/if}
 			<FolderIcon class="w-4 h-4 shrink-0" />
-			<span>{artifact.name}</span>
+			<span class={overflowClass}>{artifact.name}</span>
 		</div>
 		{#if !hidden.includes(artifact.name)}
 			<Tree artifacts={artifact.children} depth={depth + 1} />
@@ -129,7 +130,7 @@
 			<div class="shrink-0" style="width: {depth * 1.5}rem"></div>
 			<div class="w-4 h-4 shrink-0"></div>
 			<FileIcon class="w-4 h-4 shrink-0" />
-			<span>{artifact.name}</span>
+			<span class={overflowClass}>{artifact.name}</span>
 		</div>
 	{/if}
 {/each}
