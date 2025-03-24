@@ -82,6 +82,7 @@
 	outsideclose
 	on:open={() => {
 		selectedFile = 'state.json';
+		message = 'deploy';
 		if (nav.selectedTarget && nav.selectedTargetType) {
 			selectedOptions = [toOption(nav.selectedTarget, nav.selectedTargetType)];
 		} else {
