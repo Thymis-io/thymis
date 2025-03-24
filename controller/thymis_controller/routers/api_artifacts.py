@@ -75,3 +75,23 @@ def create_artifact(location: str, files: list[UploadFile], project: ProjectAD):
             f.write(file.file.read())
 
     return {"message": "Artifact created"}
+
+
+@router.delete("/artifacts/{location:path}")
+def delete_artifact(location: str, project: ProjectAD):
+    path = project.repo_dir / "artifacts" / location
+
+    if not path.is_relative_to(project.repo_dir / "artifacts"):
+        raise HTTPException(status_code=403, detail="Invalid path")
+
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Artifact not found")
+
+    if path.is_dir():
+        for child in path.rglob("*"):
+            child.unlink()
+        path.rmdir()
+    else:
+        path.unlink()
+
+    return {"message": "Artifact deleted"}
