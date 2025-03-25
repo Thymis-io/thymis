@@ -18,22 +18,12 @@ NotificationDataInner = Union[
 class Notification:
     data: "NotificationData"
     creation_time: datetime.datetime
-    last_try: datetime.datetime
     sent_to: list[WebSocket]
 
     def __init__(self, message: NotificationDataInner):
         self.data = NotificationData(inner=message)
         self.creation_time = datetime.datetime.now()
-        self.last_try = datetime.datetime.max
         self.sent_to = []
-
-    def recently_tried(self):
-        now = datetime.datetime.now()
-        return now - self.last_try < datetime.timedelta(seconds=1)
-
-    def can_retry(self):
-        now = datetime.datetime.now()
-        return now - self.creation_time < datetime.timedelta(seconds=5)
 
 
 class NotificationData(BaseModel):
@@ -59,13 +49,9 @@ class ImageBuiltNotification(BaseModel):
 
 class NotificationManager:
     queue: Queue[Notification] = Queue()
-    retry_queue: Queue[Notification] = Queue()
     alive: bool
 
     def __init__(self):
-        # self.active_connections: list[
-        #     (WebSocket, uuid.UUID)
-        # ] = []  # connection, user_session_id
         self.active_connections: dict[WebSocket, uuid.UUID] = {}
 
     def start(self):
@@ -78,32 +64,10 @@ class NotificationManager:
     def start_send_queue(self):
         asyncio.run(self.send_queue())
 
-    def next_notification(self) -> Notification | None:
-        if self.queue.qsize() > 0:
-            return self.queue.get()
-        if self.retry_queue.qsize() > 0:
-            notification = self.retry_queue.get()
-
-            if notification.can_retry():
-                return notification
-        return None
-
     async def send_queue(self):
         while self.alive:
-            notification = self.next_notification()
-
-            if not notification:
-                await asyncio.sleep(0.5)
-                continue
-
-            if notification.recently_tried():
-                await asyncio.sleep(0.5)
-
+            notification = self.queue.get()
             await self._broadcast(notification)
-            notification.last_try = datetime.datetime.now()
-
-            if notification.can_retry():
-                self.retry_queue.put(notification)
 
     async def connect(self, websocket: WebSocket, user_session_id: uuid.UUID):
         await websocket.accept()

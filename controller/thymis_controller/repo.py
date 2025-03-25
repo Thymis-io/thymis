@@ -8,7 +8,6 @@ import threading
 
 from pydantic import BaseModel
 from thymis_controller.notifications import NotificationManager
-from thymis_controller.routers.frontend import is_running_in_playwright
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
@@ -35,36 +34,43 @@ class RepoStatus(BaseModel):
 
 
 class StateEventHandler(FileSystemEventHandler):
-    def __init__(self, notification_manager: NotificationManager):
+    def __init__(
+        self, base_path: pathlib.Path, notification_manager: NotificationManager
+    ):
+        self.base_path = base_path
         self.notification_manager = notification_manager
         self.last_event = datetime.datetime.min
         self.event_loop = asyncio.get_event_loop()
         self.debounce_task = None
-        self.debounce_lock = threading.Lock()
         self.paused = False
+        self.lock = threading.Lock()
+        self.update_paths = set()
 
     def on_any_event(self, event: FileSystemEvent) -> None:
         if self.paused:
             return
         if event.event_type not in ("modified", "created", "deleted"):
             return
-        if ".git" in event.src_path:
+        relative = pathlib.Path(event.src_path).relative_to(self.base_path)
+        if str(relative).startswith(".git"):
             return
-        if self.should_debounce():
-            return
+        with self.lock:
+            self.update_paths.add("/api/repo_status")
+            if str(relative).startswith("artifacts"):
+                self.update_paths.add("/api/artifacts")
+            else:
+                self.update_paths.add("/api/state")
 
-        self.last_event = datetime.datetime.now()
-        self.broadcast_update()
+            if self.should_debounce():
+                if not self.debounce_task or self.debounce_task.done():
+                    self.debounce_task = self.event_loop.create_task(self.debounce())
+            else:
+                self.last_event = datetime.datetime.now()
+                self.broadcast_update()
 
     def should_debounce(self):
         delta = datetime.datetime.now() - self.last_event
-        if delta > datetime.timedelta(seconds=0.2):
-            return False
-
-        with self.debounce_lock:
-            if not self.debounce_task or self.debounce_task.done():
-                self.debounce_task = self.event_loop.create_task(self.debounce())
-        return True
+        return delta < datetime.timedelta(seconds=0.2)
 
     async def debounce(self):
         await asyncio.sleep(0.2)
@@ -73,9 +79,8 @@ class StateEventHandler(FileSystemEventHandler):
     def broadcast_update(self):
         if self.paused:
             return
-        self.notification_manager.broadcast_invalidate_notification(
-            ["/api/repo_status", "/api/state", "/api/artifacts"]
-        )
+        self.notification_manager.broadcast_invalidate_notification(self.update_paths)
+        self.update_paths.clear()
 
 
 class Repo:
@@ -87,7 +92,7 @@ class Repo:
         self.init()
 
     def start_file_watcher(self):
-        self.state_event_handler = StateEventHandler(self.notification_manager)
+        self.state_event_handler = StateEventHandler(self.path, self.notification_manager)
         self.state_observer = Observer()
         self.state_observer.schedule(
             self.state_event_handler, str(self.path), recursive=True
