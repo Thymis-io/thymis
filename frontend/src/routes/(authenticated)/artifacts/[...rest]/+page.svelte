@@ -45,15 +45,15 @@
 <div>
 	<SplitPane type="horizontal" pos="20rem" min="10rem" max="80%">
 		{#snippet a()}
-			<div
-				class="rounded bg-gray-100 dark:bg-gray-800"
-				role="button"
-				tabindex="0"
-				ondrop={dropHandler}
-				ondragover={dragOverHandler}
-			>
+			<div class="rounded bg-gray-100 dark:bg-gray-800">
 				<Tree artifacts={data.artifacts} />
-				<div class="p-4 text-center text-gray-500 dark:text-gray-400">
+				<div
+					role="button"
+					tabindex="0"
+					ondrop={dropHandler}
+					ondragover={dragOverHandler}
+					class="p-4 text-center text-gray-500 dark:text-gray-400"
+				>
 					{$t('artifacts.drag_drop')}
 				</div>
 			</div>

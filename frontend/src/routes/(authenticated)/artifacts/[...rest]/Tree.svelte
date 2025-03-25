@@ -18,6 +18,7 @@
 	let { artifacts, depth = 0 }: Props = $props();
 
 	let hidden = $state<string[]>([]);
+	let drop = $state<Artifact>();
 	let drag = $state<Artifact>();
 
 	let pressedKeys = $state<{ [key: string]: boolean }>({});
@@ -49,35 +50,62 @@
 	const dropHandler = async (event: DragEvent) => {
 		event.preventDefault();
 
-		if (!drag) {
-			return;
+		try {
+			if (!drop) {
+				return;
+			}
+
+			let dragPath: string;
+
+			if (drop.type === 'folder') {
+				dragPath = drop.path;
+			} else {
+				dragPath = drop.path.split('/').slice(0, -1).join('/');
+			}
+
+			if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+				const formData = new FormData();
+
+				for (const file of event.dataTransfer?.files || []) {
+					formData.append('files', file);
+				}
+
+				await fetch(`/api/artifacts/upload/${dragPath}`, {
+					method: 'POST',
+					body: formData
+				});
+			} else if (event.dataTransfer?.items !== undefined && event.dataTransfer.items.length > 0) {
+				if (
+					event.dataTransfer.items.length !== 1 ||
+					event.dataTransfer.items[0].type !== 'text/plain'
+				) {
+					return;
+				}
+
+				event.dataTransfer.items[0].getAsString((artifact) => {
+					const data = JSON.parse(artifact);
+					fetch(`/api/artifacts/move/${dragPath}`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify(data)
+					});
+				});
+			}
+		} finally {
+			drop = undefined;
+			drag = undefined;
 		}
+	};
 
-		const formData = new FormData();
+	const dragStartHandler = (event: DragEvent, artifact: Artifact) => {
+		drag = artifact;
 
-		if (event.dataTransfer?.files?.length === 0) {
-			return;
+		if (event.dataTransfer) {
+			event.dataTransfer.setData('text/plain', JSON.stringify({ artifact: artifact.path }));
+			event.dataTransfer.dropEffect = 'move';
 		}
-
-		for (const file of event.dataTransfer?.files || []) {
-			formData.append('files', file);
-		}
-
-		let dragPath: string;
-
-		if (drag.type === 'folder') {
-			dragPath = drag.path;
-		} else {
-			dragPath = drag.path.split('/').slice(0, -1).join('/');
-		}
-
-		await fetch(`/api/artifacts/${dragPath}`, {
-			method: 'POST',
-			body: formData
-		});
-
-		await invalidate((url) => url.pathname.startsWith('/api/artifacts'));
-		drag = undefined;
 	};
 
 	const dragOverHandler = (event: DragEvent) => {
@@ -85,12 +113,12 @@
 	};
 
 	const dragEnterHandler = (event: DragEvent, artifact: Artifact) => {
-		drag = artifact;
+		drop = artifact;
 	};
 
 	const dragLeaveHandler = (event: DragEvent, artifact: Artifact) => {
-		if (drag?.name === artifact?.name) {
-			drag = undefined;
+		if (drop?.name === artifact?.name) {
+			drop = undefined;
 		}
 	};
 
@@ -126,7 +154,7 @@
 			tabindex="0"
 			class={elementClass +
 				'drop-zone hover-visible-parent ' +
-				(drag?.name === artifact?.name ? 'bg-gray-100 dark:bg-gray-700 ' : ' ')}
+				(drop?.name === artifact?.name ? 'bg-gray-100 dark:bg-gray-700 ' : ' ')}
 			onclick={() => {
 				hidden = hidden.includes(artifact.name)
 					? hidden.filter((a) => a !== artifact.name)
@@ -139,6 +167,8 @@
 						: [...hidden, artifact.name];
 				}
 			}}
+			draggable="true"
+			ondragstart={(event) => dragStartHandler(event, artifact)}
 			ondrop={dropHandler}
 			ondragover={dragOverHandler}
 			ondragenter={(event) => dragEnterHandler(event, artifact)}
@@ -154,7 +184,8 @@
 			<span class={overflowClass}>{artifact.name}</span>
 			<button
 				class={'ml-auto hover-visible-child rounded bg-gray-100 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-500 ' +
-					(pressedKeys['Shift'] ? 'text-red-500 ' : '')}
+					(pressedKeys['Shift'] ? 'text-red-500 ' : ' ') +
+					(drag?.path === artifact.path ? '!hidden ' : '')}
 				onclick={(e) => clickDelete(e, artifact)}
 			>
 				<Trash size="20" />
@@ -169,13 +200,15 @@
 			tabindex="0"
 			class={elementClass +
 				'drop-zone hover-visible-parent ' +
-				(drag?.name === artifact?.name ? 'bg-gray-100 dark:bg-gray-700 ' : ' ')}
+				(drop?.name === artifact?.name ? 'bg-gray-100 dark:bg-gray-700 ' : ' ')}
 			onclick={() => goto(`/artifacts/${artifact.path}`)}
 			onkeydown={(event) => {
 				if (event.key === 'Enter') {
 					goto(`/artifacts/${artifact.path}`);
 				}
 			}}
+			draggable="true"
+			ondragstart={(event) => dragStartHandler(event, artifact)}
 			ondrop={dropHandler}
 			ondragover={dragOverHandler}
 			ondragenter={(event) => dragEnterHandler(event, artifact)}
@@ -187,7 +220,8 @@
 			<span class={overflowClass}>{artifact.name}</span>
 			<button
 				class={'ml-auto hover-visible-child rounded bg-gray-100 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-500 ' +
-					(pressedKeys['Shift'] ? 'text-red-500 ' : '')}
+					(pressedKeys['Shift'] ? 'text-red-500 ' : ' ') +
+					(drag?.path === artifact.path ? '!hidden ' : '')}
 				onclick={(e) => clickDelete(e, artifact)}
 			>
 				<Trash size="18" />
