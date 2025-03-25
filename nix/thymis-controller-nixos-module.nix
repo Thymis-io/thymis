@@ -74,6 +74,7 @@ in
         "/run/current-system/sw"
         pkgs.git
         pkgs.nixpkgs-fmt
+        pkgs.file
       ];
       environment = {
         THYMIS_PROJECT_PATH = cfg.project-path;
