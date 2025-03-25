@@ -2,6 +2,7 @@ import subprocess
 
 from fastapi import APIRouter, HTTPException, UploadFile
 from fastapi.responses import Response
+from pydantic import BaseModel
 from thymis_controller import models
 from thymis_controller.dependencies import ProjectAD
 
@@ -62,7 +63,7 @@ def get_artifact(location: str, project: ProjectAD):
         return Response(content=b"", media_type="folder")
 
 
-@router.post("/artifacts/{location:path}")
+@router.post("/artifacts/upload/{location:path}")
 def create_artifact(location: str, files: list[UploadFile], project: ProjectAD):
     path = project.repo_dir / "artifacts" / location
 
@@ -95,3 +96,41 @@ def delete_artifact(location: str, project: ProjectAD):
         path.unlink()
 
     return {"message": "Artifact deleted"}
+
+
+class MoveArtifact(BaseModel):
+    artifact: str
+
+
+# move an artifact to a folder
+@router.post("/artifacts/move/{location:path}")
+def move_artifact(location: str, move: MoveArtifact, project: ProjectAD):
+    src = project.repo_dir / "artifacts" / move.artifact
+    dst = project.repo_dir / "artifacts" / location
+
+    while dst.exists() and dst.is_file():
+        dst = dst.parent
+
+    print(src, dst)
+
+    if not src.is_relative_to(project.repo_dir / "artifacts") or not dst.is_relative_to(
+        project.repo_dir / "artifacts"
+    ):
+        raise HTTPException(status_code=403, detail="Invalid path")
+
+    if not src.exists():
+        raise HTTPException(status_code=404, detail="Source artifact not found")
+
+    if src == dst:
+        raise HTTPException(
+            status_code=400, detail="Source and destination are the same"
+        )
+
+    if src in dst.parents:
+        raise HTTPException(
+            status_code=400, detail="Destination cannot be a subfolder of source"
+        )
+
+    src.rename(dst / src.name)
+
+    return {"message": "Artifact moved"}
