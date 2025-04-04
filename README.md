@@ -125,21 +125,27 @@ The controller takes care of running the frontend for you. You can access thymis
   - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.1.1)
 
 - [x] `Release 0.2.0`
-  - New features and bug fixes, possibly containing breaking changes.
+  - New features and bug fixes, possibly containing breaking changes
   - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.2.0)
 
 - [x] `Release 0.3.0`
   - Task persistence using the database
   - Update to nixpkgs/NixOS 24.11
-  - New features and bug fixes, possibly containing breaking changes.
+  - New features and bug fixes, possibly containing breaking changes
   - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.3.0)
 
-- [ ] `Release 0.4.0`
-  - Rework module system for outside developers
+- [x] `Release 0.4.0`
   - Automatic rollback if OTA update fails or condition is met
-  - Secrets management
-  - New features and bug fixes, possibly containing breaking changes.
+  - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.4.0)
 
+- [x] `Release 0.5.0`
+  - Secrets management
+  - Fixed unresponsive navigation when the page invalidates data at the same time, see sveltejs/kit#9354
+  - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.5.0)
+
+- [ ] `Release 0.6.0`
+  - Rework module system for outside developers
+  - New features and bug fixes, possibly containing breaking changes
 
 ---
 
