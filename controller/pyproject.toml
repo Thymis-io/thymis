@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "thymis-controller"
-version = "0.5.0.dev"
+version = "0.5.0"
 description = ""
 authors = ["Adrian Block <adrian.block@thymis.io>", "Eli Kogan-Wang <eli.kogan-wang@thymis.io", "Maximilian Schmöcker <maximilian.schmoecker@thymis.io>", "Florian Schönlau <florian.schoenlau@thymis.io"]
 license = "AGPLv3"
