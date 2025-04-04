@@ -14,15 +14,21 @@
 	let changeInternal = (e: Event) => {
 		onChange((e.target as HTMLInputElement).value);
 	};
+
+	const className =
+		'block w-full disabled:cursor-not-allowed disabled:opacity-50 rtl:text-right p-2.5 ' +
+		'focus:border-primary-500 focus:ring-primary-500 dark:focus:border-primary-500 dark:focus:ring-primary-500 ' +
+		'bg-gray-50 text-gray-900 dark:bg-gray-600 dark:text-white dark:placeholder-gray-400 border border-gray-300 dark:border-gray-500 ' +
+		'text-sm rounded-lg px-2 py-1';
 </script>
 
-<Input
+<input
 	type="text"
-	class="px-2 py-1"
+	class={className}
 	{placeholder}
 	value={value || ''}
 	{disabled}
-	on:change={changeInternal}
+	onchange={changeInternal}
 />
 {#if disabled}
 	<Tooltip type="auto" placement={'top'}>{$t('config.editDisabled')}</Tooltip>
