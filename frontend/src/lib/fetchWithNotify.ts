@@ -32,7 +32,7 @@ export const fetchWithNotify = async (
 				url + ': ' + response.status + ' ' + response.statusText + '\n' + (await response.text());
 		}
 
-		if (message !== null) {
+		if (message !== null && browser) {
 			toast.push(message);
 		}
 	}

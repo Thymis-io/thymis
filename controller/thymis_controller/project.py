@@ -452,9 +452,9 @@ class Project:
         self, base_path: str, identifier: str, modules, priority
     ):
         path = self.repo_dir / base_path / identifier
-        path.mkdir(exist_ok=True)
-        if not (path / ".gitkeep").exists():
-            os.mknod(path / ".gitkeep")
+        path.mkdir(exist_ok=True, parents=True)
+        with open(path / ".gitkeep", mode="a", encoding="utf-8"):
+            pass
         for module_settings in modules:
             try:
                 module = get_module_class_instance_by_type(module_settings.type)
