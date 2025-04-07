@@ -41,8 +41,11 @@ class StateEventHandler(FileSystemEventHandler):
         self.event_loop = asyncio.get_event_loop()
         self.debounce_task = None
         self.debounce_lock = threading.Lock()
+        self.paused = False
 
     def on_any_event(self, event: FileSystemEvent) -> None:
+        if self.paused:
+            return
         if event.event_type not in ("modified", "created", "deleted"):
             return
         if ".git" in event.src_path:
@@ -68,6 +71,8 @@ class StateEventHandler(FileSystemEventHandler):
         self.broadcast_update()
 
     def broadcast_update(self):
+        if self.paused:
+            return
         self.notification_manager.broadcast_invalidate_notification(
             ["/api/repo_status", "/api/state"]
         )
@@ -77,20 +82,29 @@ class Repo:
     def __init__(self, path: pathlib.Path, notification_manager: NotificationManager):
         self.path = path
         self.notification_manager = notification_manager
+        self.state_event_handler = None
         self.state_observer = None
         self.init()
 
     def start_file_watcher(self):
-        state_event_handler = StateEventHandler(self.notification_manager)
+        self.state_event_handler = StateEventHandler(self.notification_manager)
         self.state_observer = Observer()
         self.state_observer.schedule(
-            state_event_handler, str(self.path), recursive=True
+            self.state_event_handler, str(self.path), recursive=True
         )
         self.state_observer.start()
 
     def stop_file_watcher(self):
         if self.state_observer:
             self.state_observer.stop()
+
+    def pause_file_watcher(self):
+        if self.state_observer:
+            self.state_event_handler.paused = True
+
+    def resume_file_watcher(self):
+        if self.state_observer:
+            self.state_event_handler.paused = False
 
     def run_command(self, *args: str) -> str:
         return subprocess.run(
