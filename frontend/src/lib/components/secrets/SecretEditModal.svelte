@@ -279,7 +279,12 @@
 					</div>
 				{/if}
 
-				<Input id="fileValue" type="file" on:change={handleFileChange} />
+				<Input
+					id="fileValue"
+					type="file"
+					on:change={handleFileChange}
+					class="playwright-snapshot-unstable"
+				/>
 
 				{#if editedFileValue}
 					<div class="mt-2 text-sm bg-green-100 p-2 rounded">
