@@ -149,6 +149,7 @@ class Project:
     known_hosts_path: pathlib.Path
     public_key: str
     state_lock = threading.Lock()
+    write_repo_lock = threading.Lock()
     repo_dir: pathlib.Path
     controller_age_identity: ssh.Identity
     controller_age_recipient: ssh.Recipient
@@ -396,54 +397,60 @@ class Project:
             return state
 
     def write_state_and_reload(self, state: State):
-        with self.state_lock:
-            with open(self.repo_dir / "state.json", "w", encoding="utf-8") as f:
-                f.write(state.model_dump_json(indent=2))
-        repositories = BUILTIN_REPOSITORIES | state.repositories
-        with open(self.repo_dir / "flake.nix", "w+", encoding="utf-8") as f:
-            f.write(render_flake_nix(repositories))
-        self.repo.add(".")
-        # write missing flake.lock entries using nix flake lock
-        error = None
-        try:
-            subprocess.run(
-                ["nix", *NIX_CMD[1:], "flake", "lock", "--allow-dirty-locks"],
-                cwd=self.repo_dir,
-                capture_output=True,
-                check=True,
+        with self.write_repo_lock:
+            self.repo.pause_file_watcher()
+            with self.state_lock:
+                with open(self.repo_dir / "state.json", "w", encoding="utf-8") as f:
+                    f.write(state.model_dump_json(indent=2))
+            repositories = BUILTIN_REPOSITORIES | state.repositories
+            with open(self.repo_dir / "flake.nix", "w+", encoding="utf-8") as f:
+                f.write(render_flake_nix(repositories))
+            self.repo.add(".")
+            # write missing flake.lock entries using nix flake lock
+            error = None
+            try:
+                subprocess.run(
+                    ["nix", *NIX_CMD[1:], "flake", "lock", "--allow-dirty-locks"],
+                    cwd=self.repo_dir,
+                    capture_output=True,
+                    check=True,
+                )
+            except subprocess.CalledProcessError as e:
+                logger.error("Error while running nix flake lock: %s", e)
+                logger.error("stdout: %s", e.stdout)
+                logger.error("stderr: %s", e.stderr)
+                traceback.print_exc()
+                error = e
+            self.set_repositories_in_python_path(self.repo_dir, state)
+            # create modules folder if not exists
+            modules_path = self.repo_dir / "modules"
+            del_path(modules_path)
+            modules_path.mkdir(exist_ok=True)
+            # create and empty hosts, tags folder
+            del_path(self.repo_dir / "hosts")
+            del_path(self.repo_dir / "tags")
+            (self.repo_dir / "hosts").mkdir(exist_ok=True)
+            (self.repo_dir / "tags").mkdir(exist_ok=True)
+            # for each host create its own folder
+            for config in state.configs:
+                # assert device.identifier, "identifier cannot be empty"
+                if not config.identifier:
+                    logger.info("Device with empty identifier found, skipping")
+                    continue
+                self.create_folder_and_write_modules(
+                    "hosts", config.identifier, config.modules, HOST_PRIORITY
+                )
+            for tag in state.tags:
+                self.create_folder_and_write_modules(
+                    "tags", tag.identifier, tag.modules, tag.priority
+                )
+            self.repo.add(".")
+            self.repo.resume_file_watcher()
+            self.notification_manager.broadcast_invalidate_notification(
+                ["/api/repo_status", "/api/state"]
             )
-        except subprocess.CalledProcessError as e:
-            logger.error("Error while running nix flake lock: %s", e)
-            logger.error("stdout: %s", e.stdout)
-            logger.error("stderr: %s", e.stderr)
-            traceback.print_exc()
-            error = e
-        self.set_repositories_in_python_path(self.repo_dir, state)
-        # create modules folder if not exists
-        modules_path = self.repo_dir / "modules"
-        del_path(modules_path)
-        modules_path.mkdir(exist_ok=True)
-        # create and empty hosts, tags folder
-        del_path(self.repo_dir / "hosts")
-        del_path(self.repo_dir / "tags")
-        (self.repo_dir / "hosts").mkdir(exist_ok=True)
-        (self.repo_dir / "tags").mkdir(exist_ok=True)
-        # for each host create its own folder
-        for config in state.configs:
-            # assert device.identifier, "identifier cannot be empty"
-            if not config.identifier:
-                logger.info("Device with empty identifier found, skipping")
-                continue
-            self.create_folder_and_write_modules(
-                "hosts", config.identifier, config.modules, HOST_PRIORITY
-            )
-        for tag in state.tags:
-            self.create_folder_and_write_modules(
-                "tags", tag.identifier, tag.modules, tag.priority
-            )
-        self.repo.add(".")
-        if error:
-            raise error
+            if error:
+                raise error
 
     def reload_from_disk(self):
         self.write_state_and_reload(self.read_state())
