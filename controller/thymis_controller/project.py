@@ -511,8 +511,8 @@ class Project:
     def clear_history(self, db_session: sqlalchemy.orm.Session):
         if "RUNNING_IN_PLAYWRIGHT" in os.environ:
             # reinits the git repo
-            shutil.rmtree(self.repo_dir)
             self.repo.stop_file_watcher()
+            shutil.rmtree(self.repo_dir)
             self.repo = Repo(self.repo_dir, self.notification_manager)
             self.write_state_and_reload(State())
             if not self.repo.has_root_commit():
