@@ -396,12 +396,18 @@ class Project:
             state = State.model_validate_json(state_json)
             return state
 
+    def write_state(self, state: State):
+        with self.state_lock:
+            with open(self.repo_dir / "state.json", "w", encoding="utf-8") as f:
+                f.write(state.model_dump_json(indent=2))
+
     def write_state_and_reload(self, state: State):
+        self.write_state(state)
+        self.reload_state(state)
+
+    def reload_state(self, state: State):
         with self.write_repo_lock:
             self.repo.pause_file_watcher()
-            with self.state_lock:
-                with open(self.repo_dir / "state.json", "w", encoding="utf-8") as f:
-                    f.write(state.model_dump_json(indent=2))
             repositories = BUILTIN_REPOSITORIES | state.repositories
             with open(self.repo_dir / "flake.nix", "w+", encoding="utf-8") as f:
                 f.write(render_flake_nix(repositories))
@@ -447,7 +453,7 @@ class Project:
             self.repo.add(".")
             self.repo.resume_file_watcher()
             self.notification_manager.broadcast_invalidate_notification(
-                ["/api/repo_status", "/api/state"]
+                ["/api/repo_status"]
             )
             if error:
                 raise error

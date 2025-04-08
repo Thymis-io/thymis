@@ -1,3 +1,4 @@
+import threading
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Body, Depends, Request
@@ -16,7 +17,9 @@ def get_state(state: State = Depends(dependencies.get_state)):
 @router.patch("/state")
 def update_state(payload: Annotated[dict, Body()], project: ProjectAD):
     new_state = State.model_validate(payload)
-    project.write_state_and_reload(new_state)
+    project.write_state(new_state)
+    reload_thread = threading.Thread(target=project.reload_state, args=(new_state,))
+    reload_thread.start()
     return new_state
 
 
