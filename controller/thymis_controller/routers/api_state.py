@@ -1,7 +1,6 @@
-import threading
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Body, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, Request
 from thymis_controller import dependencies, models, modules
 from thymis_controller.dependencies import ProjectAD
 from thymis_controller.models.state import State
@@ -15,11 +14,14 @@ def get_state(state: State = Depends(dependencies.get_state)):
 
 
 @router.patch("/state")
-def update_state(payload: Annotated[dict, Body()], project: ProjectAD):
+def update_state(
+    payload: Annotated[dict, Body()],
+    project: ProjectAD,
+    background_tasks: BackgroundTasks,
+):
     new_state = State.model_validate(payload)
     project.write_state(new_state)
-    reload_thread = threading.Thread(target=project.reload_state, args=(new_state,))
-    reload_thread.start()
+    background_tasks.add_task(project.reload_state, new_state)
     return new_state
 
 

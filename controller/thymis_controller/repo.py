@@ -97,13 +97,14 @@ class Repo:
     def stop_file_watcher(self):
         if self.state_observer:
             self.state_observer.stop()
+            self.state_observer.join()
 
     def pause_file_watcher(self):
-        if self.state_observer:
+        if self.state_event_handler:
             self.state_event_handler.paused = True
 
     def resume_file_watcher(self):
-        if self.state_observer:
+        if self.state_event_handler:
             self.state_event_handler.paused = False
 
     def run_command(self, *args: str) -> str:
