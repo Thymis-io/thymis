@@ -181,9 +181,9 @@ def login():
 @router.get("/logout")
 def logout(
     response: Response,
-    user_session_id: UserSessionIDAD,
-    user_session_token: UserSessionTokenAD,
     db_session: DBSessionAD,
+    user_session_id: UserSessionIDAD = None,
+    user_session_token: UserSessionTokenAD = None,
 ):
     invalidate_user_session(db_session, response, user_session_id, user_session_token)
     return RedirectResponse(
