@@ -58,7 +58,7 @@ jobs:
               BRANCH_NAME=update-flake-lock
               git switch -c update-flake-lock
             fi
-            git push origin HEAD
+            git push origin HEAD --force
             # create a PR if not exists for this branch
             if ! gh pr list --state open --head $BRANCH_NAME; then
               gh pr create --fill
