@@ -131,7 +131,7 @@ jobs:
         run: |
           if [ -f "tests/x86_vm.spec.ts" ]; then
             export THYMIS_FLAKE_ROOT='..'
-            nix develop .#forNpmTesting --command npm run test:integration -- --update-snapshots "tests/x86_vm.spec.ts"
+            nix develop .#forNpmTesting --command npm run test:integration -- "tests/x86_vm.spec.ts" --update-snapshots
           fi
         working-directory: frontend
       - name: Upload Playwright report
