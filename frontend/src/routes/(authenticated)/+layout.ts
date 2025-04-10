@@ -31,7 +31,9 @@ export type Nav = {
 };
 
 export const load = (async ({ fetch, url, data }) => {
-	window.toast = toast;
+	if (browser) {
+		window.toast = toast;
+	}
 	let lang = 'en';
 	if (browser) {
 		lang = window.navigator.language;
