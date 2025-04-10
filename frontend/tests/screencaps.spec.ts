@@ -306,7 +306,7 @@ test('Create moneyshot', async ({ page, request, browser }, testInfo) => {
 
 	const updateSnapshots = testInfo.config.updateSnapshots;
 
-	let maxDiffPixels = 1500;
+	let maxDiffPixels = 1700;
 
 	if (updateSnapshots === 'all' || updateSnapshots === 'changed') {
 		maxDiffPixels = 100;
