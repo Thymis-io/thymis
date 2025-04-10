@@ -146,6 +146,12 @@ export const clearState = async (page: Page, request: APIRequestContext) => {
 	state['tags'] = [];
 	state['devices'] = [];
 	await page.request.patch('/api/state', { data: state });
+	await page.evaluate(() => {
+		if (window.toast) {
+			window.toast.pop(0);
+		}
+	});
+	await page.reload();
 };
 
 export const deleteAllTasks = async (page: Page, request: APIRequestContext) => {
