@@ -17,6 +17,7 @@ import { getAllTasks } from '$lib/taskstatus';
 import { fetchWithNotify } from '$lib/fetchWithNotify';
 import { type RepoStatus } from '$lib/repo/repo';
 import { GlobalState } from '$lib/state.svelte';
+import { toast } from '@zerodevx/svelte-toast';
 
 export type Nav = {
 	selectedTargetType: ContextType | null;
