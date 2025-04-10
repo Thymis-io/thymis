@@ -252,6 +252,7 @@ test('Create update tasks', async ({ page, request }, testInfo) => {
 	// Click on "Update" button
 	const updateButton = page.locator('button').filter({ hasText: 'Update' });
 	await updateButton.click();
+	await updateButton.blur();
 
 	await page.locator('td', { hasText: 'completed' }).first().waitFor();
 
@@ -442,6 +443,8 @@ test('Create History Entry', async ({ page, request }, testInfo) => {
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
 	await page.locator('button').filter({ hasText: 'Commit' }).click();
+
+	await page.locator('div').filter({ hasText: '2 internal file changes' }).first().waitFor();
 
 	const messageInput = page.getByPlaceholder('Summary of the changes');
 	await messageInput.fill('Commiting changes');
