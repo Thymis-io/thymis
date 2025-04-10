@@ -113,7 +113,6 @@ in
     networking.firewall = {
       allowedTCPPorts = [ 22 ];
     };
-    networking.timeServers = options.networking.timeServers.default ++ [ "time.uni-paderborn.de" ];
     thymis.config.agent.enable = lib.mkDefault true;
     systemd.services.thymis-agent = lib.mkIf cfg.agent.enable {
       description = "Thymis agent";
