@@ -3,7 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
-    nixpkgs-for-playwright-browsers.url = "github:NixOS/nixpkgs/e24b4c09e963677b1beea49d411cd315a024ad3a";
     nix.url = "github:NixOS/nix/2.26.1";
     home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -121,9 +120,6 @@
         };
       }).config.system.build.thymis-image-with-secrets-builder-x86_64;
 
-      frontendPlaywrightVersion = (nixpkgs.lib.importJSON ./frontend/package-lock.json).packages."node_modules/playwright-core".version;
-
-      removeRecurseForDerivations = nixpkgs.lib.filterAttrsRecursive (k: v: k != "recurseForDerivations");
     in
     {
       inputs = inputs;
@@ -131,10 +127,6 @@
       devShells = forAllSystems (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          pkgsWithPlayWrightOverlays = import inputs.nixpkgs-for-playwright-browsers {
-            inherit system;
-            overlays = self.overlays;
-          };
         in
         {
           default = pkgs.mkShell {
@@ -143,13 +135,13 @@
               pkgs.python313
               pkgs.nodejs_22
               pkgs.pre-commit
-              pkgsWithPlayWrightOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers
+              pkgs.playwright-driver.browsers
               pkgs.mdbook
               pkgs.nixpkgs-fmt
               (inputs.nix.packages."${system}".nix)
             ];
             shellHook = ''
-              export PLAYWRIGHT_BROWSERS_PATH=${pkgsWithPlayWrightOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers}
+              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
               export THYMIS_DEV_SHELL=true
               export THYMIS_FLAKE_ROOT=$(git rev-parse --show-toplevel)
@@ -167,28 +159,20 @@
           };
           forNpmTesting = pkgs.mkShell {
             packages = [
-              pkgsWithPlayWrightOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers
+              pkgs.playwright-driver.browsers
               pkgs.nodejs_22
             ];
             shellHook = ''
-              export PLAYWRIGHT_BROWSERS_PATH=${pkgsWithPlayWrightOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers}
+              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
             '';
-            PLAYWRIGHT_BROWSERS_PATH = pkgsWithPlayWrightOverlays.playwright-driver-by-version."${frontendPlaywrightVersion}".browsers;
+            PLAYWRIGHT_BROWSERS_PATH = pkgs.playwright-driver.browsers;
             PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = "true";
           };
         });
-
-      overlays = [
-        (import ./nix/playwright-by-version/playwright-driver-overlay.nix inputs.nixpkgs-for-playwright-browsers)
-      ];
       packages = forAllSystems (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          pkgsWithPlayWrightOverlays = import inputs.nixpkgs-for-playwright-browsers {
-            inherit system;
-            overlays = self.overlays;
-          };
           thymis-frontend = pkgs.callPackage ./frontend {
             git-rev = inputs.self.rev or inputs.self.dirtyRev or null;
           };
@@ -209,12 +193,6 @@
           thymis-frontend = thymis-frontend;
           thymis-controller = thymis-controller;
           thymis-agent = thymis-agent;
-          playwright-driver-all = pkgs.writeText "playwright-driver-all.json"
-            (builtins.toJSON (
-              builtins.mapAttrs
-                (name: driver: [ driver driver.browsers ])
-                pkgsWithPlayWrightOverlays.playwright-driver-by-version
-            ));
         }
       );
       nixosModules = nixosModules;
