@@ -382,7 +382,7 @@ test('VNC View', async ({ page, request }, testInfo) => {
 	await createConfiguration(page, 'My Device 3', 'Raspberry Pi 4', ['Display']);
 	await createConfiguration(page, 'My Device 4', 'Raspberry Pi 4', ['Display']);
 
-	await createDeploymentInfo(page, 'my-device-2', '', '127.0.0.2');
+	await createDeploymentInfo(page, 'my-device-1', '', '127.0.0.2');
 	await createDeploymentInfo(page, 'my-device-2', '', '127.0.0.3');
 	await createDeploymentInfo(page, 'my-device-3', '', '127.0.0.4');
 	await createDeploymentInfo(page, 'my-device-4', '', '127.0.0.5');
