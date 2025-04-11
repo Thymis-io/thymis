@@ -8,7 +8,7 @@ on:
 
 jobs:
   changes:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     permissions:
       pull-requests: read
     outputs:
@@ -22,7 +22,7 @@ jobs:
             package-lock-json:
               - 'frontend/package-lock.json'
   test-controller:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
@@ -58,7 +58,7 @@ jobs:
         working-directory: controller
 
   test-frontend-integration:
-    runs-on: ubuntu-22.04-arm
+    runs-on: [self-hosted, Linux, X64]
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
@@ -150,7 +150,7 @@ jobs:
           fi
 
   test-frontend-integration-stable-input:
-    runs-on: ubuntu-22.04-arm
+    runs-on: [self-hosted, Linux, X64]
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
@@ -197,7 +197,7 @@ jobs:
           comment-tag: playwright-snapshots
 
   test-frontend-integration-x64:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
@@ -248,7 +248,7 @@ jobs:
           comment-tag: playwright-snapshots
 
   test-frontend-integration-stable-input-x64:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
@@ -299,7 +299,7 @@ jobs:
           comment-tag: playwright-snapshots
 
   test-pre-commit:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
