@@ -155,6 +155,10 @@
               pkgs.python313
               pkgs.nodejs_22
               pkgs.nixpkgs-fmt
+              pkgs.pre-commit
+              pkgs.which
+              pkgs.curl
+              pkgs.rustup
             ];
           };
           forNpmTesting = pkgs.mkShell {
