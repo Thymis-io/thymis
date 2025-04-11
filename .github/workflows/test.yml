@@ -81,7 +81,7 @@ jobs:
       - name: Run tests
         run: |
           export THYMIS_FLAKE_ROOT='..'
-          ../.github/npm_test_integration.sh
+          nix develop .#ci --command ../.github/npm_test_integration.sh
         working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload
@@ -169,7 +169,7 @@ jobs:
       - name: Run tests
         run: |
           # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
-          ../.github/npm_test_integration.sh
+          nix develop .#ci --command ../.github/npm_test_integration.sh
         working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload
@@ -193,10 +193,6 @@ jobs:
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
-      - name: Delete huge unnecessary tools folder
-        run: |
-          cd /opt
-          find . -maxdepth 1 -mindepth 1 '!' -path ./containerd '!' -path ./actionarchivecache '!' -path ./runner '!' -path ./runner-cache -exec rm -rf '{}' ';'
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
         with:
@@ -216,7 +212,7 @@ jobs:
       - name: Run tests
         run: |
           export THYMIS_FLAKE_ROOT='..'
-          ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
+          nix develop .#ci --command ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
         working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload
@@ -240,10 +236,6 @@ jobs:
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
-      - name: Delete huge unnecessary tools folder
-        run: |
-          cd /opt
-          find . -maxdepth 1 -mindepth 1 '!' -path ./containerd '!' -path ./actionarchivecache '!' -path ./runner '!' -path ./runner-cache -exec rm -rf '{}' ';'
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
         with:
@@ -263,7 +255,7 @@ jobs:
       - name: Run tests
         run: |
           # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
-          ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
+          nix develop .#ci --command ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
         working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload
@@ -286,9 +278,6 @@ jobs:
     runs-on: [self-hosted, Linux, X64]
     steps:
       - uses: actions/checkout@v4
-      - name: Install pre-commit
-        run: |
-          nix develop .#ci --command python -m pip install pre-commit
       - name: Install node dependencies
         run: |
           nix develop .#ci --command npm ci
