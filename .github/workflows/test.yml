@@ -67,13 +67,9 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
       - name: Install dependencies
         run: |
-          npm ci
+          nix develop .#ci --command npm ci
         working-directory: frontend
       - name: Build application
         uses: ./.github/actions/run-command-with-nix-cache-upload
@@ -159,13 +155,9 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
       - name: Install dependencies
         run: |
-          npm ci
+          nix develop .#ci --command npm ci
         working-directory: frontend
       - name: Build application
         uses: ./.github/actions/run-command-with-nix-cache-upload
@@ -210,13 +202,9 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
       - name: Install dependencies
         run: |
-          npm ci
+          nix develop .#ci --command npm ci
         working-directory: frontend
       - name: Build application
         uses: ./.github/actions/run-command-with-nix-cache-upload
@@ -261,13 +249,9 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
       - name: Install dependencies
         run: |
-          npm ci
+          nix develop .#ci --command npm ci
         working-directory: frontend
       - name: Build application
         uses: ./.github/actions/run-command-with-nix-cache-upload
@@ -302,17 +286,13 @@ jobs:
     runs-on: [self-hosted, Linux, X64]
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.13
       - name: Install pre-commit
         run: |
-          python -m pip install pre-commit
+          nix develop .#ci --command python -m pip install pre-commit
       - name: Install node dependencies
         run: |
-          npm ci
+          nix develop .#ci --command npm ci
         working-directory: frontend
       - name: Run pre-commit
         run: |
-          pre-commit run --all-files
+          nix develop .#ci --command pre-commit run --all-files
