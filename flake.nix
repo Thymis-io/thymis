@@ -158,6 +158,7 @@
               pkgs.pre-commit
               pkgs.which
               pkgs.curl
+              pkgs.rustup
             ];
           };
           forNpmTesting = pkgs.mkShell {
