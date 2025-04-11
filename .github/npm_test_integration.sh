@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 OUR_NIX=$(readlink -f $(which nix))
 OUR_NIX_PARENT=$(dirname $OUR_NIX)
 TEE=$(which tee)
