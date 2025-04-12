@@ -3,9 +3,11 @@ set -euo pipefail
 OUR_NIX=$(readlink -f $(which nix))
 OUR_NIX_PARENT=$(dirname $OUR_NIX)
 TEE=$(which tee)
+PYTHON=$(which python)
 OLD_PATH=$PATH
 export PATH=$OUR_NIX_PARENT
-$OUR_NIX develop .#forNpmTesting --command npm run test:integration "$@" 2>&1 | $TEE output.log
+UVICORN_PORT=$($PYTHON -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
+UVICORN_PORT=$UVICORN_PORT $OUR_NIX develop .#forNpmTesting --command npm run test:integration "$@" 2>&1 | $TEE output.log
 export PATH=$OLD_PATH
 PLAYWRIGHT_EXIT_CODE=$?
 if grep -q -e "Error: A snapshot doesn't exist at" -e "Screenshot comparison failed" output.log; then
