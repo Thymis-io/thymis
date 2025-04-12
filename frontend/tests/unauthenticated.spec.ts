@@ -3,23 +3,23 @@ import { expectScreenshot, expectScreenshotWithHighlight } from './utils';
 // Reset storage state for this file to avoid being authenticated
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test('index page redirects to login', async ({ page }) => {
+test('index page redirects to login', async ({ page, baseURL }) => {
 	const resp = await page.goto('/');
 	expect(resp?.status()).toBe(200);
-	expect(resp?.url()).toBe('http://localhost:8000/login');
+	expect(resp?.url()).toBe(`${baseURL}/login`);
 });
 
-test('toolbar links work', async ({ page }, testInfo) => {
+test('toolbar links work', async ({ page, baseURL }, testInfo) => {
 	const screenshotCounter = { count: 0 };
 	await page.goto('/');
 
-	await expect(page.url()).toBe('http://localhost:8000/login');
+	await expect(page.url()).toBe(`${baseURL}/login`);
 
 	const rootLink = page.locator('a').filter({ hasText: 'Thymis' });
 	await expectScreenshotWithHighlight(page, rootLink, testInfo, screenshotCounter);
 	await rootLink.click();
 
-	await expect(page.url()).toBe('http://localhost:8000/login');
+	await expect(page.url()).toBe(`${baseURL}/login`);
 
 	const homepageLink = page.locator('a').filter({ hasText: 'Homepage' });
 	await expectScreenshotWithHighlight(page, homepageLink, testInfo, screenshotCounter);
@@ -29,7 +29,7 @@ test('toolbar links work', async ({ page }, testInfo) => {
 
 	await page.goBack();
 	await page.mouse.click(0, 0);
-	await expect(page.url()).toBe('http://localhost:8000/login');
+	await expect(page.url()).toBe(`${baseURL}/login`);
 
 	const docsLink = page.locator('a').filter({ hasText: 'Documentation' });
 	await expectScreenshotWithHighlight(page, docsLink, testInfo, screenshotCounter);
@@ -38,7 +38,7 @@ test('toolbar links work', async ({ page }, testInfo) => {
 	await expect(page.url()).toBe('https://docs.thymis.io/');
 
 	await page.goBack();
-	await expect(page.url()).toBe('http://localhost:8000/login');
+	await expect(page.url()).toBe(`${baseURL}/login`);
 });
 
 test('login page shows login form', async ({ page }, testInfo) => {
@@ -53,37 +53,37 @@ test('login page shows login form', async ({ page }, testInfo) => {
 	await expectScreenshot(page, testInfo, screenshotCounter);
 });
 
-test('can login with testadminpassword and redirect to login', async ({ page }) => {
+test('can login with testadminpassword and redirect to login', async ({ page, baseURL }) => {
 	await page.goto('/login');
 
 	await page.fill('input[name="username"]', 'admin');
 	await page.fill('input[name="password"]', 'testadminpassword');
 	await page.click('button[type="submit"]');
 
-	await page.waitForURL('http://localhost:8000/overview');
+	await page.waitForURL('/overview');
 
-	expect(page.url()).toBe('http://localhost:8000/overview');
+	expect(page.url()).toBe(`${baseURL}/overview`);
 });
 
-test('can redirect to page after login', async ({ page }) => {
+test('can redirect to page after login', async ({ page, baseURL }) => {
 	await page.goto('/devices');
 
-	await page.waitForURL(/http:\/\/localhost:8000\/login\?redirect=.+\/devices/);
+	await page.waitForURL(new RegExp(baseURL + '/login\\?redirect=.+/devices'));
 
 	await page.fill('input[name="username"]', 'admin');
 	await page.fill('input[name="password"]', 'testadminpassword');
 	await page.click('button[type="submit"]');
 
-	await page.waitForURL('http://localhost:8000/devices');
+	await page.waitForURL('/devices');
 
-	expect(page.url()).toBe('http://localhost:8000/devices');
+	expect(page.url()).toBe(`${baseURL}/devices`);
 });
 
-test('visiting overview page without login redirects to login', async ({ page }) => {
+test('visiting overview page without login redirects to login', async ({ page, baseURL }) => {
 	const resp = await page.goto('/overview');
 
 	expect(resp?.status()).toBe(200);
-	expect(resp?.url()).toMatch(/http:\/\/localhost:8000\/login\?redirect=.+\/overview/);
+	expect(resp?.url()).toMatch(new RegExp(`${baseURL}/login\\?redirect=.+/overview`));
 });
 
 test('highlight login button', async ({ page }, testInfo) => {

@@ -141,7 +141,7 @@ export const expectScreenshotWithHighlight = async (
 
 export const clearState = async (page: Page, request: APIRequestContext) => {
 	await page.reload();
-	await page.goto('http://localhost:8000/overview');
+	await page.goto('/overview');
 	const stateRequest = await page.request.get('/api/state');
 	const state = await stateRequest.json();
 	state['tags'] = [];
