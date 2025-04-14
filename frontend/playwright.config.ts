@@ -2,7 +2,7 @@ import { devices, type PlaywrightTestConfig } from '@playwright/test';
 
 // if env THYMIS_DEV_SHELL is set, use poetry run uvicorn reload stuff, else use nix run
 
-let command = `nix run .#thymis-controller`;
+let command = `nix run --show-trace .#thymis-controller`;
 
 if (process.env.THYMIS_DEV_SHELL) {
 	console.log('Using poetry run uvicorn reload');
