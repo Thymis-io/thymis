@@ -165,6 +165,11 @@
             packages = [
               pkgs.playwright-driver.browsers
               pkgs.nodejs_22
+              pkgs.poetry
+              pkgs.python313
+              pkgs.nixpkgs-fmt
+              pkgs.git
+              pkgs.openssh
             ];
             shellHook = ''
               export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
