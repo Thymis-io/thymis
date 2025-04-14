@@ -166,6 +166,7 @@
               pkgs.playwright-driver.browsers
               pkgs.nodejs_22
               pkgs.poetry
+              pkgs.python313
             ];
             shellHook = ''
               export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
