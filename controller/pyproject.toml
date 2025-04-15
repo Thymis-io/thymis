@@ -28,6 +28,7 @@ http-network-relay = {git = "https://git@github.com/Thymis-io/http-network-relay
 thymis-agent = {path = "../agent", develop = true}
 watchdog = "^6.0.0"
 pyrage = "^1.2.4"
+pyjwt = "^2.10.1"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.2"

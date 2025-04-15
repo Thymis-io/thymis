@@ -20,6 +20,16 @@ export const load = (async ({ cookies, url, fetch }) => {
 			}
 			redirect(303, redirectUrl);
 		}
+	} else {
+		console.log('no session, redirecting to login');
+		const authmethod = await fetch('/auth/auth/methods');
+		if (authmethod.ok) {
+			const methods = await authmethod.json();
+			console.log('methods', methods);
+			if (!methods.oauth2.basic && methods.oauth2) {
+				redirect(307, `/auth/login/oauth2`);
+			}
+		}
 	}
 	return {};
 }) satisfies PageServerLoad;
