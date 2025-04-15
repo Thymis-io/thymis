@@ -211,6 +211,7 @@ def deploy_device_task(
             f"-o 'ProxyCommand {(os.getenv('PYTHONENV')+'/bin/python') if ('PYTHONENV' in os.environ) else 'python' } -m thymis_controller.access_client {task_data.controller_access_client_endpoint} {task_data.device.deployment_info_id}' "
             "-T",
             "PATH": os.getenv("PATH"),
+            "HOME": os.getenv("HOME"),
             "HTTP_NETWORK_RELAY_SECRET": task_data.access_client_token,
             **(
                 {"DBUS_SESSION_BUS_ADDRESS": os.getenv("DBUS_SESSION_BUS_ADDRESS")}
