@@ -81,7 +81,7 @@ jobs:
       - name: Run tests
         run: |
           export THYMIS_FLAKE_ROOT='..'
-          nix develop .#ci --command ../.github/npm_test_integration.sh -- -g "Create a x64 vm"
+          nix develop .#ci --command ../.github/npm_test_integration.sh
         working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload
