@@ -54,7 +54,8 @@ def get_diff(
 
 @router.get("/repo_status", tags=["history"])
 def get_repo_status(project: ProjectAD):
-    return project.repo.status()
+    with project.write_repo_lock:
+        return project.repo.status()
 
 
 @router.get("/available_modules")
