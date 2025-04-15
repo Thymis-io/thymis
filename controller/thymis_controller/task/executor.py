@@ -446,6 +446,11 @@ class TaskWorkerPoolManager:
                     logger.error(task.nix_status)
                 else:
                     logger.error("No nix status")
+                logger.error("Nix errors for task %s:", task_id)
+                if task.nix_errors:
+                    logger.error(task.nix_errors)
+                else:
+                    logger.error("No nix errors")
                 logger.error("Nix error logs for task %s:", task_id)
                 if task.nix_error_logs:
                     logger.error(task.nix_error_logs)
