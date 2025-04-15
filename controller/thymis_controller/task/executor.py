@@ -202,6 +202,7 @@ class TaskWorkerPoolManager:
                                 task.state = "failed"
                                 task.add_exception(reason)
                                 task.end_time = datetime.now(timezone.utc)
+                                logger.error("Task %s failed: %s", task_id, reason)
                                 db_session.commit()
                                 conn.close()
                                 break
