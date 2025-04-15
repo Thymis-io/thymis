@@ -19,6 +19,7 @@ const waitForTerminalText = async (page: Page, text: string) => {
 };
 
 const goToDevicesPage = async (page: Page, baseURL?: string) => {
+	await page.reload();
 	for (let i = 0; i < 5; i++) {
 		await page.locator('nav:visible').locator('a', { hasText: 'Devices' }).click();
 		await page.waitForURL(new RegExp(baseURL + '/devices'), { timeout: 3000 }).catch(() => {});
