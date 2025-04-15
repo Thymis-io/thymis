@@ -101,6 +101,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await expect(page.locator('td', { hasText: 'running' }).nth(1)).toBeVisible();
 
 	// go to "Devices" page and wait until "Connected" is shown twice
+	await page.waitForTimeout(1000); // try to prevent invalidate timing issues
 	await goToDevicesPage(page, baseURL);
 	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 90000 });
 
@@ -180,6 +181,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	});
 
 	// Now, navigate to "Devices" page using sidebar and take a screenshot
+	await page.waitForTimeout(1000); // try to prevent invalidate timing issues
 	await goToDevicesPage(page, baseURL);
 
 	// Wait for 2 "Connected" statuses
