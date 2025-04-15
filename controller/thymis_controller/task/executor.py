@@ -332,11 +332,12 @@ class TaskWorkerPoolManager:
 
                             case _:
                                 assert_never(message.update)
-
+                        db_session.commit()
                         self.on_task_update.notify(task)
                 except Exception as e:
                     traceback.print_exc()
                     logger.error("Error processing message from worker: %s", e)
+                    db_session.close()
         except EOFError:
             logger.info("Worker connection closed")
         except OSError as e:
