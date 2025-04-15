@@ -156,9 +156,10 @@ export const clearState = async (page: Page, request: APIRequestContext) => {
 };
 
 export const deleteAllTasks = async (page: Page, request: APIRequestContext) => {
-	const tasksRequest = await request.post('/api/tasks/delete_all');
+	await page.goto('about:blank');
+	const tasksRequest = await request.post(`/api/tasks/delete_all`);
 	await tasksRequest.json();
-	await page.reload();
+	await page.goto('/overview');
 };
 
 export const createConfiguration = async (
