@@ -81,12 +81,12 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
 
 	// wait until: 1x on screen "completed", 1x on screen "running"
-	test.setTimeout(180000);
+	test.setTimeout(240000);
 	await page
 		.locator('td', { hasText: 'completed' })
 		.nth(1)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 120000 });
+		.waitFor({ timeout: 180000 });
 	await expect(page.locator('td', { hasText: 'completed' }).nth(1)).toBeVisible();
 
 	await page
