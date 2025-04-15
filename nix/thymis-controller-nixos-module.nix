@@ -43,6 +43,36 @@ in
         default = "/var/lib/thymis/auth-basic-password";
         description = "File containing the password for basic authentication";
       };
+      auth-oauth = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Whether to enable authentication using OAuth";
+      };
+      auth-oauth-client-id = lib.mkOption {
+        type = lib.types.str;
+        default = "thymis";
+        description = "Client ID for OAuth authentication";
+      };
+      auth-oauth-client-secret = lib.mkOption {
+        type = lib.types.str;
+        default = "thymis";
+        description = "Client secret for OAuth authentication";
+      };
+      auth-oauth-authentication-endpoint = lib.mkOption {
+        type = lib.types.str;
+        default = "https://thymis.example.com/protocol/openid-connect/auth";
+        description = "Authentication endpoint for OAuth authentication";
+      };
+      auth-oauth-token-endpoint = lib.mkOption {
+        type = lib.types.str;
+        default = "https://thymis.example.com/protocol/openid-connect/token";
+        description = "Token endpoint for OAuth authentication";
+      };
+      auth-oauth-client-role-login = lib.mkOption {
+        type = lib.types.str;
+        default = "thymis-login";
+        description = "Client role for OAuth authentication";
+      };
       listen-host = lib.mkOption {
         type = lib.types.str;
         default = "127.0.0.1";
@@ -82,6 +112,12 @@ in
         THYMIS_AUTH_BASIC = lib.boolToString cfg.auth-basic;
         THYMIS_AUTH_BASIC_USERNAME = cfg.auth-basic-username;
         THYMIS_AUTH_BASIC_PASSWORD_FILE = cfg.auth-basic-password-file;
+        THYMIS_AUTH_OAUTH = lib.boolToString cfg.auth-oauth;
+        THYMIS_AUTH_OAUTH_CLIENT_ID = cfg.auth-oauth-client-id;
+        THYMIS_AUTH_OAUTH_CLIENT_SECRET = cfg.auth-oauth-client-secret;
+        THYMIS_AUTH_OAUTH_AUTHENTICATION_ENDPOINT = cfg.auth-oauth-authentication-endpoint;
+        THYMIS_AUTH_OAUTH_TOKEN_ENDPOINT = cfg.auth-oauth-token-endpoint;
+        THYMIS_AUTH_OAUTH_CLIENT_ROLE_LOGIN = cfg.auth-oauth-client-role-login;
         UVICORN_HOST = cfg.listen-host;
         UVICORN_PORT = builtins.toString cfg.listen-port;
       };
