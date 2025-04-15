@@ -277,16 +277,11 @@ class TaskWorkerPoolManager:
                                 )
                             case models_task.WorkerRequestsSecretsUpdate():
                                 # message.update.secret_ids
-                                with sqlalchemy.orm.Session(
-                                    bind=self.db_engine
-                                ) as db_session:
-                                    secrets = (
-                                        self.controller.project.get_processed_secrets(
-                                            db_session,
-                                            message.update.secret_ids,
-                                            message.update.target_recipient_token,
-                                        )
-                                    )
+                                secrets = self.controller.project.get_processed_secrets(
+                                    db_session,
+                                    message.update.secret_ids,
+                                    message.update.target_recipient_token,
+                                )
                                 conn.send(
                                     models_task.ControllerToRunnerTaskUpdate(
                                         inner=models_task.SecretsResult(
@@ -296,16 +291,13 @@ class TaskWorkerPoolManager:
                                 )
                             case models_task.AgentShouldReceiveNewSecretsUpdate():
                                 # message.update.secret_ids
-                                with sqlalchemy.orm.Session(
-                                    bind=self.db_engine
-                                ) as db_session:
-                                    secrets = self.controller.project.get_processed_secrets(
-                                        db_session,
-                                        [s.secret_id for s in message.update.secrets],
-                                        ssh.Recipient.from_str(
-                                            message.update.target_recipient_ssh_pubkey
-                                        ),
-                                    )
+                                secrets = self.controller.project.get_processed_secrets(
+                                    db_session,
+                                    [s.secret_id for s in message.update.secrets],
+                                    ssh.Recipient.from_str(
+                                        message.update.target_recipient_ssh_pubkey
+                                    ),
+                                )
                                 # send to agent
                                 relay_con_id = self.controller.network_relay.public_key_to_connection_id[
                                     message.update.target_recipient_ssh_pubkey
