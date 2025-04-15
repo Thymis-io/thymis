@@ -4,6 +4,7 @@ from typing import Annotated, Optional
 from urllib.parse import quote, unquote
 
 import httpx
+import jwt
 from fastapi import APIRouter, Depends, Form, HTTPException, Response, status
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
@@ -14,7 +15,6 @@ from thymis_controller.dependencies import (
     LoginRedirectCookieAD,
     UserSessionIDAD,
     UserSessionTokenAD,
-    get_user_session_token,
     invalidate_user_session,
     require_valid_user_session,
 )
@@ -211,13 +211,41 @@ async def callback(code: str, response: Response, db_session: DBSessionAD):
             status_code=status.HTTP_400_BAD_REQUEST, detail="Token exchange failed"
         )
 
-    # token_data = token_response.json() to be used in the future
+    token_data = token_response.json()
+
+    access_token = token_data.get("access_token")
+    jwt_token = jwt.decode(
+        access_token, options={"verify_signature": False}
+    )  # TODO verify signature
+
+    if not jwt_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token"
+        )
+
+    if global_settings.AUTH_OAUTH_CLIENT_ROLE_LOGIN:
+        client_roles = jwt_token.get("resource_access").get(
+            global_settings.AUTH_OAUTH_CLIENT_ID
+        )
+        if (
+            not client_roles
+            or global_settings.AUTH_OAUTH_CLIENT_ROLE_LOGIN
+            not in client_roles.get("roles", [])
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User does not have the required role",
+            )
 
     apply_user_session(db_session, response)
-    return RedirectResponse(
-        "/auth/redirect_success",
+    return Response(
+        content="""<!DOCTYPE html>
+<html>
+<head><meta http-equiv="refresh" content="0; url='/auth/redirect_success'"></head>
+<body></body>
+</html>""",
+        media_type="text/html",
         headers=response.headers,
-        status_code=status.HTTP_303_SEE_OTHER,
     )
 
 
