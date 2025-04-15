@@ -10,8 +10,8 @@
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import { Button } from 'flowbite-svelte';
 	import CommitModal from '$lib/repo/CommitModal.svelte';
-	import { invalidate } from '$app/navigation';
 	import type { LayoutData } from './$types';
+	import { invalidateButDeferUntilNavigation } from '$lib/notification';
 
 	interface Props {
 		data: LayoutData;
@@ -38,7 +38,7 @@
 		await fetchWithNotify(`/api/action/commit?message=${encodeURIComponent(message)}`, {
 			method: 'POST'
 		});
-		await invalidate(
+		await invalidateButDeferUntilNavigation(
 			(url) => url.pathname === '/api/history' || url.pathname === '/api/repo_status'
 		);
 	};
@@ -77,7 +77,7 @@
 			class="whitespace-nowrap gap-2 px-2 py-1 m-1"
 			on:click={async () => {
 				await saveState(data.globalState);
-				await invalidate((url) => url.pathname === '/api/repo_status');
+				await invalidateButDeferUntilNavigation((url) => url.pathname === '/api/repo_status');
 
 				if (data.repoStatus.changes.length > 0) {
 					openCommitModal = true;

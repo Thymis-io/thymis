@@ -48,6 +48,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 
 	// select button "Build and start VM"
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
+	await page.locator('div').filter({ hasText: '4 internal file changes' }).first().waitFor();
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: maxDiffPixels
 	});
@@ -65,22 +66,23 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 		.click();
 
 	// select button "Build and start VM"
+	await page.locator('div').filter({ hasText: '0 commit' }).first().waitFor();
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
 
 	// wait until: 1x on screen "completed", 1x on screen "running"
-	test.setTimeout(360000);
+	test.setTimeout(180000);
 	await page
 		.locator('td', { hasText: 'completed' })
 		.nth(1)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 360000 });
+		.waitFor({ timeout: 60000 });
 	await expect(page.locator('td', { hasText: 'completed' }).nth(1)).toBeVisible();
 
 	await page
 		.locator('td', { hasText: 'running' })
 		.nth(1)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 360000 });
+		.waitFor({ timeout: 60000 });
 	await expect(page.locator('td', { hasText: 'running' }).nth(1)).toBeVisible();
 
 	// go to "Devices" page and wait until "Connected" is shown twice
@@ -151,7 +153,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await deployButtonModal.click();
 
 	// Wait for a fifth "completed" status
-	await page.locator('td', { hasText: 'completed' }).nth(4).waitFor({ timeout: 360000 });
+	await page.locator('td', { hasText: 'completed' }).nth(4).waitFor({ timeout: 60000 });
 
 	// Navigate back to "Details" tab
 	await page.locator('a', { hasText: 'Details' }).first().click();
@@ -185,11 +187,11 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await page.getByRole('combobox').nth(1).selectOption({ value: 'usb-stick-installer' });
 	// find download button and click on it
 	await page.locator('button').filter({ hasText: 'Download Device Image' }).first().click();
+	await page.locator('div').filter({ hasText: '1 internal file changes' }).first().waitFor();
 	await page
 		.locator('button')
 		.filter({ hasText: 'Commit & Download Device Image' })
 		.first()
 		.click();
-	test.setTimeout(360000);
 	await page.waitForEvent('download');
 });
