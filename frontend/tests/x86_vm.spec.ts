@@ -85,24 +85,24 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
 
 	// wait until: 1x on screen "completed", 1x on screen "running"
-	test.setTimeout(360000);
+	test.setTimeout(240000);
 	await page
 		.locator('td', { hasText: 'completed' })
 		.nth(1)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 360000 });
+		.waitFor({ timeout: 180000 });
 	await expect(page.locator('td', { hasText: 'completed' }).nth(1)).toBeVisible();
 
 	await page
 		.locator('td', { hasText: 'running' })
 		.nth(1)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 360000 });
+		.waitFor({ timeout: 120000 });
 	await expect(page.locator('td', { hasText: 'running' }).nth(1)).toBeVisible();
 
 	// go to "Devices" page and wait until "Connected" is shown twice
 	await goToDevicesPage(page, baseURL);
-	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 60000 });
+	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 90000 });
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: maxDiffPixels
@@ -167,7 +167,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await deployButtonModal.click();
 
 	// Wait for a fifth "completed" status
-	await page.locator('td', { hasText: 'completed' }).nth(4).waitFor({ timeout: 360000 });
+	await page.locator('td', { hasText: 'completed' }).nth(4).waitFor({ timeout: 60000 });
 
 	// Navigate back to "Details" tab
 	await page.locator('a', { hasText: 'Details' }).first().click();
@@ -183,7 +183,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await goToDevicesPage(page, baseURL);
 
 	// Wait for 2 "Connected" statuses
-	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 60000 });
+	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 90000 });
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: maxDiffPixels
@@ -207,6 +207,5 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 		.filter({ hasText: 'Commit & Download Device Image' })
 		.first()
 		.click();
-	test.setTimeout(360000);
 	await page.waitForEvent('download');
 });
