@@ -68,7 +68,7 @@ const config: PlaywrightTestConfig = {
 		},
 		video: {
 			mode: 'retain-on-failure',
-			size: { width: 1920, height: 1080 }
+			size: { width: 1280, height: 720 }
 		},
 		trace: 'retain-on-failure',
 		baseURL: `http://localhost:${port}`
