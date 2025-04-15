@@ -30,7 +30,6 @@ runs:
       shell: bash
       run: |
         echo "$HOME/.nix-profile/bin" >> $GITHUB_PATH
-        echo "XDG_CACHE_HOME=$HOME/.cache" >> $GITHUB_ENV
         mkdir -p $HOME/.config/nix
         echo "access-tokens = github.com=${{ inputs.GITHUB_TOKEN }}" >> $HOME/.config/nix/nix.conf
     - if: ${{ inputs.ATTIC_TOKEN != '' }}

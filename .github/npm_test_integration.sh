@@ -7,7 +7,6 @@ PYTHON=$(which python)
 OLD_PATH=$PATH
 export PATH=$OUR_NIX_PARENT
 UVICORN_PORT=$($PYTHON -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
-echo "XDG_CACHE_HOME is set to $XDG_CACHE_HOME"
 UVICORN_PORT=$UVICORN_PORT $OUR_NIX develop .#forNpmTesting --command npm run test:integration "$@" 2>&1 | $TEE output.log
 export PATH=$OLD_PATH
 PLAYWRIGHT_EXIT_CODE=$?
