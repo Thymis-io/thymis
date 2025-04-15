@@ -126,34 +126,28 @@ class TaskWorkerPoolManager:
                 task = crud_task.get_task_by_id(db_session, task_id)
                 self.on_new_task.notify(task)
 
-            while True:
-                message_avail = conn.poll(0.5)
-                if not message_avail:
-                    if not task_id in self.futures:
-                        logger.info("Task %s no longer in futures", task_id)
-                        break
-                    if not self.futures[task_id][0].running():
-                        logger.error(
-                            "Task %s future is not running, no message available, but future is not popped",
-                            task_id,
-                        )
-                    continue
-                message = conn.recv()
-                try:
-                    if not isinstance(
-                        message, models_task.RunnerToControllerTaskUpdate
-                    ):
-                        logger.error(
-                            "Received invalid message from worker: %s", message
-                        )
-                        continue
-                    with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
-                        task = crud_task.get_task_by_id(db_session, message.id)
-                        if task is None:
+                while True:
+                    message_avail = conn.poll(0.5)
+                    if not message_avail:
+                        if not task_id in self.futures:
+                            logger.info("Task %s no longer in futures", task_id)
+                            break
+                        if not self.futures[task_id][0].running():
                             logger.error(
-                                "Received message for unknown task: %s", message
+                                "Task %s future is not running, no message available, but future is not popped",
+                                task_id,
+                            )
+                        continue
+                    message = conn.recv()
+                    try:
+                        if not isinstance(
+                            message, models_task.RunnerToControllerTaskUpdate
+                        ):
+                            logger.error(
+                                "Received invalid message from worker: %s", message
                             )
                             continue
+
                         # logger.info("Received message from worker: %s", message)
                         match message.update:
                             case models_task.TaskPickedUpdate():
@@ -334,10 +328,9 @@ class TaskWorkerPoolManager:
                                 assert_never(message.update)
                         db_session.commit()
                         self.on_task_update.notify(task)
-                except Exception as e:
-                    traceback.print_exc()
-                    logger.error("Error processing message from worker: %s", e)
-                    db_session.close()
+                    except Exception as e:
+                        traceback.print_exc()
+                        logger.error("Error processing message from worker: %s", e)
         except EOFError:
             logger.info("Worker connection closed")
         except OSError as e:
