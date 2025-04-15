@@ -18,7 +18,19 @@ const waitForTerminalText = async (page: Page, text: string) => {
 	}, text);
 };
 
-test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
+const goToDevicesPage = async (page: Page, baseURL?: string) => {
+	await page.reload();
+	for (let i = 0; i < 5; i++) {
+		await page.locator('nav:visible').locator('a', { hasText: 'Devices' }).click();
+		await page.waitForURL(new RegExp(baseURL + '/devices'), { timeout: 3000 }).catch(() => {});
+
+		if (page.url() === `${baseURL}/devices`) {
+			return;
+		}
+	}
+};
+
+test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) => {
 	const screenshotCounter = { count: 0 };
 	await clearState(page, request);
 	await deleteAllTasks(page, request);
@@ -86,8 +98,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await expect(page.locator('td', { hasText: 'running' }).nth(1)).toBeVisible();
 
 	// go to "Devices" page and wait until "Connected" is shown twice
-	// await page.goto('/devices');
-	await page.locator('a', { hasText: 'Devices' }).locator('visible=true').first().click();
+	await goToDevicesPage(page, baseURL);
 	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 60000 });
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
@@ -166,7 +177,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	});
 
 	// Now, navigate to "Devices" page using sidebar and take a screenshot
-	await page.locator('a', { hasText: 'Devices' }).locator('visible=true').first().click();
+	await goToDevicesPage(page, baseURL);
 
 	// Wait for 2 "Connected" statuses
 	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 60000 });
