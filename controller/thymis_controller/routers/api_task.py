@@ -28,7 +28,7 @@ async def task_status(
 
 
 @router.get("/tasks")
-async def get_tasks(
+def get_tasks(
     task_controller: TaskControllerAD,
     session: DBSessionAD,
     response: Response,
