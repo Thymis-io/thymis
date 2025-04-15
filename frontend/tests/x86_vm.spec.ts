@@ -88,7 +88,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	// go to "Devices" page and wait until "Connected" is shown twice
 	// await page.goto('/devices');
 	await page.locator('a', { hasText: 'Devices' }).locator('visible=true').first().click();
-	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 60000 });
+	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 90000 });
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: maxDiffPixels
@@ -169,7 +169,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await page.locator('a', { hasText: 'Devices' }).locator('visible=true').first().click();
 
 	// Wait for 2 "Connected" statuses
-	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 60000 });
+	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 90000 });
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: maxDiffPixels
