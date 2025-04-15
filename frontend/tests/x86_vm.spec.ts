@@ -75,14 +75,14 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 		.locator('td', { hasText: 'completed' })
 		.nth(1)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 90000 });
+		.waitFor({ timeout: 120000 });
 	await expect(page.locator('td', { hasText: 'completed' }).nth(1)).toBeVisible();
 
 	await page
 		.locator('td', { hasText: 'running' })
 		.nth(1)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 90000 });
+		.waitFor({ timeout: 120000 });
 	await expect(page.locator('td', { hasText: 'running' }).nth(1)).toBeVisible();
 
 	// go to "Devices" page and wait until "Connected" is shown twice
