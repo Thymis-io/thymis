@@ -277,12 +277,10 @@ class TaskWorkerPoolManager:
                                 )
                             case models_task.WorkerRequestsSecretsUpdate():
                                 # message.update.secret_ids
-                                secrets = (
-                                    self.controller.project.get_processed_secrets(
-                                        db_session,
-                                        message.update.secret_ids,
-                                        message.update.target_recipient_token,
-                                    )
+                                secrets = self.controller.project.get_processed_secrets(
+                                    db_session,
+                                    message.update.secret_ids,
+                                    message.update.target_recipient_token,
                                 )
                                 conn.send(
                                     models_task.ControllerToRunnerTaskUpdate(
