@@ -202,7 +202,6 @@ class TaskWorkerPoolManager:
                                 task.state = "failed"
                                 task.add_exception(reason)
                                 task.end_time = datetime.now(timezone.utc)
-                                logger.error("Task %s failed: %s", task_id, reason)
                                 db_session.commit()
                                 conn.close()
                                 break
@@ -277,11 +276,16 @@ class TaskWorkerPoolManager:
                                 )
                             case models_task.WorkerRequestsSecretsUpdate():
                                 # message.update.secret_ids
-                                secrets = self.controller.project.get_processed_secrets(
-                                    db_session,
-                                    message.update.secret_ids,
-                                    message.update.target_recipient_token,
-                                )
+                                with sqlalchemy.orm.Session(
+                                    bind=self.db_engine
+                                ) as db_session:
+                                    secrets = (
+                                        self.controller.project.get_processed_secrets(
+                                            db_session,
+                                            message.update.secret_ids,
+                                            message.update.target_recipient_token,
+                                        )
+                                    )
                                 conn.send(
                                     models_task.ControllerToRunnerTaskUpdate(
                                         inner=models_task.SecretsResult(
@@ -291,13 +295,16 @@ class TaskWorkerPoolManager:
                                 )
                             case models_task.AgentShouldReceiveNewSecretsUpdate():
                                 # message.update.secret_ids
-                                secrets = self.controller.project.get_processed_secrets(
-                                    db_session,
-                                    [s.secret_id for s in message.update.secrets],
-                                    ssh.Recipient.from_str(
-                                        message.update.target_recipient_ssh_pubkey
-                                    ),
-                                )
+                                with sqlalchemy.orm.Session(
+                                    bind=self.db_engine
+                                ) as db_session:
+                                    secrets = self.controller.project.get_processed_secrets(
+                                        db_session,
+                                        [s.secret_id for s in message.update.secrets],
+                                        ssh.Recipient.from_str(
+                                            message.update.target_recipient_ssh_pubkey
+                                        ),
+                                    )
                                 # send to agent
                                 relay_con_id = self.controller.network_relay.public_key_to_connection_id[
                                     message.update.target_recipient_ssh_pubkey
@@ -332,12 +339,11 @@ class TaskWorkerPoolManager:
 
                             case _:
                                 assert_never(message.update)
-                        db_session.commit()
+
                         self.on_task_update.notify(task)
                 except Exception as e:
                     traceback.print_exc()
                     logger.error("Error processing message from worker: %s", e)
-                    db_session.close()
         except EOFError:
             logger.info("Worker connection closed")
         except OSError as e:
@@ -439,11 +445,6 @@ class TaskWorkerPoolManager:
                     logger.error(task.nix_status)
                 else:
                     logger.error("No nix status")
-                logger.error("Nix errors for task %s:", task_id)
-                if task.nix_errors:
-                    logger.error(task.nix_errors)
-                else:
-                    logger.error("No nix errors")
                 logger.error("Nix error logs for task %s:", task_id)
                 if task.nix_error_logs:
                     logger.error(task.nix_error_logs)
