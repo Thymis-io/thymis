@@ -60,7 +60,7 @@
 					message = defaultMessage;
 					open = false;
 				}}
-				disabled={repoStatus.changes.length === 0 || message.length === 0}
+				disabled={(!action && repoStatus.changes.length === 0) || message.length === 0}
 				class="w-48"
 			>
 				{action ?? $t('deploy.commit')}
