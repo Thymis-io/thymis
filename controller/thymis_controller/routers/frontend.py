@@ -19,7 +19,7 @@ from thymis_controller.config import global_settings
 logger = logging.getLogger(__name__)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
-FRONTEND_PORT = 33100 + (int(os.environ.get("UVICORN_PORT", 0)) % 1000)
+FRONTEND_PORT = 33100 + (int(os.environ.get("UVICORN_PORT", 0)) % 10000)
 
 
 def is_reload_enabled():
