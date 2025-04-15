@@ -21,6 +21,7 @@ class GlobalSettings(BaseSettings):
     AUTH_OAUTH_CLIENT_SECRET: str | None = None
     AUTH_OAUTH_AUTHORIZATION_ENDPOINT: str | None = None
     AUTH_OAUTH_TOKEN_ENDPOINT: str | None = None
+    AUTH_OAUTH_CLIENT_ROLE_LOGIN: str | None = None
 
     model_config = ConfigDict(
         env_prefix="THYMIS_", env_file=".env", env_file_encoding="utf-8"
