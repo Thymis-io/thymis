@@ -248,8 +248,17 @@ def deploy_device_task(
             systemd_run = "/bin/systemd-run"
         if shutil.which(systemd_run) is None:
             systemd_run = "/run/current-system/sw/bin/systemd-run"
-        if not os.path.exists(systemd_run):
+        if shutil.which(systemd_run) is None:
             report_task_finished(task, conn, False, "systemd-run not found")
+            return
+
+        sudo = "sudo"
+        if shutil.which(sudo) is None:
+            sudo = "/bin/sudo"
+        if shutil.which(sudo) is None:
+            sudo = "/run/current-system/sw/bin/sudo"
+        if shutil.which(sudo) is None:
+            report_task_finished(task, conn, False, "sudo not found")
             return
 
         returncode = run_command(
@@ -258,7 +267,7 @@ def deploy_device_task(
             process_list,
             [
                 *(
-                    ["/bin/sudo", "-n", "-E"]
+                    [sudo, "-n", "-E"]
                     if "RUNNING_IN_PLAYWRIGHT" in os.environ
                     and not "DBUS_SESSION_BUS_ADDRESS" in os.environ
                     else []
