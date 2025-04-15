@@ -244,11 +244,12 @@ def deploy_device_task(
 
         systemd_run = "systemd-run"
         if shutil.which(systemd_run) is None:
-            # check for "/bin/systemd-run" as well
             systemd_run = "/bin/systemd-run"
-            if not os.path.exists(systemd_run):
-                report_task_finished(task, conn, False, "systemd-run not found")
-                return
+        if shutil.which(systemd_run) is None:
+            systemd_run = "/run/current-system/sw/bin/systemd-run"
+        if not os.path.exists(systemd_run):
+            report_task_finished(task, conn, False, "systemd-run not found")
+            return
 
         returncode = run_command(
             task,
