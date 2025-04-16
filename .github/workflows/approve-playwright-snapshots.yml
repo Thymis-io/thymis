@@ -5,7 +5,7 @@ on:
 jobs:
   comment-action-start:
     name: Comment action started
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     if: github.event.issue.pull_request && contains(github.event.comment.body, '/approve-snapshots') && github.event.comment.author_association == 'MEMBER'
     outputs:
       pr_head: ${{ steps.comment-branch.outputs.head_ref }}
@@ -34,7 +34,7 @@ jobs:
   update-snapshots-aarch64:
     name: Update Snapshots aarch64
     if: github.event.issue.pull_request && contains(github.event.comment.body, '/approve-snapshots') && github.event.comment.author_association == 'MEMBER'
-    runs-on: ubuntu-22.04-arm
+    runs-on: [self-hosted, Linux, X64]
     permissions:
       contents: write
       pull-requests: write
@@ -56,13 +56,9 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
       - name: Install dependencies
         run: |
-          npm ci
+          nix develop .#ci --command npm ci
         working-directory: frontend
       - name: Build application
         run: |
@@ -70,7 +66,7 @@ jobs:
       - name: Run tests
         run: |
           export THYMIS_FLAKE_ROOT='..'
-          nix develop .#forNpmTesting --command npm run test:integration -- --update-snapshots
+          nix develop .#ci --command ../.github/npm_test_integration.sh -- --update-snapshots
         working-directory: frontend
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
@@ -94,7 +90,7 @@ jobs:
   update-snapshots-x86_64:
     name: Update Snapshots x86_64
     if: github.event.issue.pull_request && contains(github.event.comment.body, '/approve-snapshots') && github.event.comment.author_association == 'MEMBER'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     permissions:
       contents: write
       pull-requests: write
@@ -116,13 +112,9 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
       - name: Install dependencies
         run: |
-          npm ci
+          nix develop .#ci --command npm ci
         working-directory: frontend
       - name: Build application
         run: |
@@ -131,7 +123,7 @@ jobs:
         run: |
           if [ -f "tests/x86_vm.spec.ts" ]; then
             export THYMIS_FLAKE_ROOT='..'
-            nix develop .#forNpmTesting --command npm run test:integration -- "tests/x86_vm.spec.ts" --update-snapshots
+            nix develop .#ci --command ../.github/npm_test_integration.sh -- "tests/x86_vm.spec.ts" --update-snapshots
           fi
         working-directory: frontend
       - name: Upload Playwright report
@@ -150,7 +142,7 @@ jobs:
 
   upload-artifacts:
     name: Upload Artifacts
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     needs: [comment-action-start, update-snapshots-aarch64, update-snapshots-x86_64]
     steps:
       - name: Get Thymis App Token
