@@ -8,6 +8,7 @@
 	import Command from 'lucide-svelte/icons/square-chevron-right';
 	import type { TaskShort } from '$lib/taskstatus';
 	import type { GlobalState } from '$lib/state.svelte';
+	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
 	interface Props {
 		globalState: GlobalState;
@@ -36,20 +37,38 @@
 		<Boxes size="18" class={iconClass} />
 		{$t('taskbar.task-types.deploy_devices')}
 	{:else if task.task_type === 'deploy_device_task'}
-		{@const displayName = configToDisplayName(task.task_submission_data?.device?.identifier)}
 		<Box size="18" class={iconClass} />
-		{$t('taskbar.task-types.deploy_device', { values: { device: displayName } })}
+		{@const [before, after] = $t('taskbar.task-types.deploy_device').split('{device}')}
+		{before}
+		<IdentifierLink
+			{globalState}
+			identifier={task.task_submission_data?.device?.identifier}
+			context="config"
+		/>
+		{after}
 	{:else if task.task_type === 'build_device_image_task'}
-		{@const displayName = configToDisplayName(task.task_submission_data?.configuration_id)}
 		<Hammer size="18" class={iconClass} />
-		{$t('taskbar.task-types.build_device_image', { values: { device: displayName } })}
+		{@const [before, after] = $t('taskbar.task-types.build_device_image').split('{device}')}
+		{before}
+		<IdentifierLink
+			{globalState}
+			identifier={task.task_submission_data?.configuration_id}
+			context="config"
+		/>
+		{after}
 	{:else if task.task_type === 'ssh_command_task'}
 		<Command size="18" class={iconClass} />
 		{$t('taskbar.task-types.ssh_command')}
 	{:else if task.task_type === 'run_nixos_vm_task'}
-		{@const displayName = configToDisplayName(task.task_submission_data?.configuration_id)}
 		<Play size="18" class={iconClass} />
-		{$t('taskbar.task-types.run_nixos_vm_task', { values: { device: displayName } })}
+		{@const [before, after] = $t('taskbar.task-types.run_nixos_vm_task').split('{device}')}
+		{before}
+		<IdentifierLink
+			{globalState}
+			identifier={task.task_submission_data?.configuration_id}
+			context="config"
+		/>
+		{after}
 	{:else}
 		{task.task_type}
 	{/if}

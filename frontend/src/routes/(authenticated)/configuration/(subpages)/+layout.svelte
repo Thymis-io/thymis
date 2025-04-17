@@ -12,6 +12,7 @@
 	import CommitModal from '$lib/repo/CommitModal.svelte';
 	import { invalidate } from '$app/navigation';
 	import type { LayoutData } from './$types';
+	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
 	interface Props {
 		data: LayoutData;
@@ -70,7 +71,16 @@
 		await buildAndDownloadImage(data.nav.selectedConfig);
 	}}
 />
-<PageHead {title} repoStatus={data.repoStatus} globalState={data.globalState} nav={data.nav}>
+<PageHead repoStatus={data.repoStatus} globalState={data.globalState} nav={data.nav}>
+	<h1 class="flex text-3xl font-bold dark:text-white items-center">
+		<IdentifierLink
+			identifier={data.globalState.selectedTargetIdentifier}
+			context={data.globalState.selectedTargetType}
+			globalState={data.globalState}
+			showLinkHover={false}
+			iconSize={26}
+		/>
+	</h1>
 	{#if data.nav.selectedConfig}
 		<Button
 			color="alternative"

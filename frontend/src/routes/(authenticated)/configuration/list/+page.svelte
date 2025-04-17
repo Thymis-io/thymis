@@ -4,7 +4,6 @@
 	import { saveState, type Config, type Tag } from '$lib/state';
 	import Pen from 'lucide-svelte/icons/pen';
 	import { Button, Table, TableBodyCell, TableHead, TableHeadCell, Tooltip } from 'flowbite-svelte';
-	import TagIcon from 'lucide-svelte/icons/tag';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Search from 'lucide-svelte/icons/search';
 	import Trash from 'lucide-svelte/icons/trash-2';
@@ -20,6 +19,7 @@
 	import { flip } from 'svelte/animate';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
+	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
 	const flipDurationMs = 200;
 	let dragDisabled = $state(true);
@@ -179,21 +179,24 @@
 							config.data.displayName = config.data.displayName;
 						}
 					}}
-				/>
+				>
+					<IdentifierLink
+						identifier={config.data.identifier}
+						context="config"
+						globalState={data.globalState}
+					/>
+				</TableBodyEditCell>
 				<TableBodyCell tdClass="p-2 px-2 md:px-4">
 					<div class="flex gap-4">
 						<div class="flex gap-2">
 							{#each config.data.tags as tag, i}
-								<Button
-									size="sm"
-									class="p-2 py-0.5 gap-1"
-									href={`/configuration/edit?${buildGlobalNavSearchParam(data.globalState, $page.url.search, 'tag', tag)}`}
-								>
-									<TagIcon size={'0.75rem'} class="min-w-3" />
-									<span class="text-nowrap">
-										{findTag(tag)?.displayName ?? tag}
-									</span>
-								</Button>
+								<IdentifierLink
+									identifier={tag}
+									context="tag"
+									globalState={data.globalState}
+									solidBackground
+									iconSize={16}
+								/>
 							{/each}
 						</div>
 						<button class="p-0" onclick={() => (currentlyEditingConfig = config.data)}>
