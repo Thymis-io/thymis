@@ -2,14 +2,16 @@
 	import Pen from 'lucide-svelte/icons/pen';
 	import { TableBodyCell, Input } from 'flowbite-svelte';
 	import clickOutside from 'svelte-outside-click';
+	import type { Snippet } from 'svelte';
 
 	interface Props {
 		value: string;
 		onEnter?: ((value: string) => void) | null;
 		bottom?: import('svelte').Snippet<[any]>;
+		children?: Snippet;
 	}
 
-	let { value = $bindable(), onEnter = null, bottom }: Props = $props();
+	let { value = $bindable(), onEnter = null, bottom, children }: Props = $props();
 
 	let isEditing: boolean = $state(false);
 </script>
@@ -29,6 +31,8 @@
 					}
 				}}
 			/>
+		{:else if children}
+			{@render children?.()}
 		{:else}
 			<span class="p-0">{value}</span>
 		{/if}
