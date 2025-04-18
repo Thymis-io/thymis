@@ -2,19 +2,10 @@
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
 	import { saveState, type Tag } from '$lib/state';
-	import {
-		Button,
-		Table,
-		TableBodyCell,
-		TableHead,
-		TableHeadCell,
-		Helper,
-		Tooltip
-	} from 'flowbite-svelte';
+	import { Button, Table, TableBodyCell, TableHead, TableHeadCell, Helper } from 'flowbite-svelte';
 	import Trash from 'lucide-svelte/icons/trash';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Pen from 'lucide-svelte/icons/pen';
-	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import GripVertical from 'lucide-svelte/icons/grip-vertical';
 	import { dndzone, SOURCES, TRIGGERS, type DndEvent } from 'svelte-dnd-action';
 	import { flip } from 'svelte/animate';
@@ -26,6 +17,7 @@
 	import CreateTagModal from './CreateTagModal.svelte';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import type { PageData } from './$types';
+	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
 	interface Props {
 		data: PageData;
@@ -206,6 +198,13 @@
 							</Helper>
 						{/if}
 					{/snippet}
+					{#snippet children()}
+						<IdentifierLink
+							identifier={tag.data.identifier}
+							context="tag"
+							globalState={data.globalState}
+						/>
+					{/snippet}
 				</TableBodyEditCell>
 				<TableBodyCell tdClass="p-2 px-2 md:px-4">
 					{@const configsWithTag = data.globalState.configs.filter((config) =>
@@ -213,16 +212,13 @@
 					)}
 					<div class="flex flex-wrap gap-2">
 						{#each configsWithTag as config}
-							<Button
-								size="sm"
-								class="p-2 py-0.5 gap-1"
-								href={`/configuration/edit?${buildGlobalNavSearchParam(data.globalState, $page.url.search, 'config', config.identifier)}`}
-							>
-								<FileCode size={'0.75rem'} class="min-w-3" />
-								<span class="text-nowrap">
-									{config.displayName}
-								</span>
-							</Button>
+							<IdentifierLink
+								identifier={config.identifier}
+								context="config"
+								globalState={data.globalState}
+								solidBackground
+								iconSize={16}
+							/>
 						{/each}
 					</div>
 				</TableBodyCell>

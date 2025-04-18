@@ -2,17 +2,14 @@
 	import { t } from 'svelte-i18n';
 	import Section from './Section.svelte';
 	import { type Config, type Module } from '$lib/state';
-	import {
-		buildGlobalNavSearchParam,
-		buildConfigSelectModuleSearchParam
-	} from '$lib/searchParamHelpers';
+	import { buildConfigSelectModuleSearchParam } from '$lib/searchParamHelpers';
 	import { page } from '$app/stores';
 	import { Button } from 'flowbite-svelte';
 	import Pen from 'lucide-svelte/icons/pen';
-	import TagIcon from 'lucide-svelte/icons/tag';
 	import EditTagModal from '$lib/EditTagModal.svelte';
 	import ModuleIcon from '$lib/config/ModuleIcon.svelte';
 	import type { GlobalState } from '$lib/state.svelte';
+	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
 	interface Props {
 		globalState: GlobalState;
@@ -51,31 +48,19 @@
 					config.identifier,
 					module
 				)}`}
+				class={'text-nowrap min-h-6 flex items-center gap-1 w-fit hover:underline p-1 px-2 bg-primary-700 hover:bg-primary-800 dark:bg-primary-600 dark:hover:bg-primary-700 rounded'}
 			>
-				<Button pill size="sm" class="flex p-2 py-1 gap-2 text-nowrap text-base items-center">
-					<ModuleIcon {module} theme="dark" />
-					{module.displayName}
-					<Pen size="16" />
-				</Button>
+				<ModuleIcon {module} theme="dark" />
+				{module.displayName}
+				<Pen size="16" />
 			</a>
 		{/each}
 	</div>
 	<p class="text-base">{$t('configuration-details.tags')}</p>
-	<div class="flex gap-2 items-center">
+	<div class="flex gap-2 items-center text-base">
 		<div class="flex gap-2 flex-wrap">
 			{#each config.tags as tag, i}
-				<Button
-					pill
-					size="sm"
-					class="flex p-2 py-1 gap-2 text-nowrap text-base items-center"
-					href={`/configuration/edit?${buildGlobalNavSearchParam(globalState, $page.url.search, 'tag', tag)}`}
-				>
-					<TagIcon size="16" />
-					<span class="text-nowrap">
-						{findTag(tag)?.displayName ?? tag}
-					</span>
-					<Pen size="16" />
-				</Button>
+				<IdentifierLink identifier={tag} context="tag" {globalState} solidBackground />
 			{/each}
 		</div>
 		<Button

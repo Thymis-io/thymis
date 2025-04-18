@@ -7,6 +7,7 @@
 	import DynamicGrid from '$lib/components/DynamicGrid.svelte';
 	import Dropdown from '$lib/components/Dropdown.svelte';
 	import { browser } from '$app/environment';
+	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
 	interface Props {
 		data: PageData;
@@ -43,7 +44,12 @@
 		)}
 		{#if config && targetShouldShowVNC(config, data.globalState)}
 			<div>
-				<p class=" mb-2 text-center text-gray-900 dark:text-white">{config.displayName}</p>
+				<IdentifierLink
+					identifier={deploymentInfo.deployed_config_id}
+					context="config"
+					globalState={data.globalState}
+					class="flex justify-center my-2"
+				/>
 				<VncView globalState={data.globalState} {config} {deploymentInfo} />
 			</div>
 		{/if}

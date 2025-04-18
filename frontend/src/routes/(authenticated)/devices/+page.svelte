@@ -2,12 +2,10 @@
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
 	import { Table, TableBodyCell, TableHead, TableHeadCell, Toggle } from 'flowbite-svelte';
-	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import { getDeviceTypesMap, getDeviceType } from '$lib/config/configUtils';
-	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
-	import { page } from '$app/stores';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
+	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
 	interface Props {
 		data: PageData;
@@ -68,15 +66,11 @@
 				>
 					<TableBodyCell tdClass="p-2"></TableBodyCell>
 					<TableBodyCell tdClass="p-2">
-						<a
-							href={`/configuration/configuration-details?${buildGlobalNavSearchParam(data.globalState, $page.url.search, 'config', deploymentInfo.deployed_config_id)}`}
-							class="underline flex items-center gap-2 w-fit"
-						>
-							<FileCode size={18} />
-							{data.globalState.configs.find(
-								(config) => config.identifier === deploymentInfo.deployed_config_id
-							)?.displayName}
-						</a>
+						<IdentifierLink
+							identifier={deploymentInfo.deployed_config_id}
+							context="config"
+							globalState={data.globalState}
+						/>
 					</TableBodyCell>
 					<TableBodyCell tdClass="p-2">
 						{#if deploymentInfo.deployed_config_commit}
