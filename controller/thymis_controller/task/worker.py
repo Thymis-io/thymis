@@ -211,6 +211,7 @@ def deploy_device_task(
             f"-o 'ProxyCommand {(os.getenv('PYTHONENV')+'/bin/python') if ('PYTHONENV' in os.environ) else 'python' } -m thymis_controller.access_client {task_data.controller_access_client_endpoint} {task_data.device.deployment_info_id}' "
             "-T",
             "PATH": os.getenv("PATH"),
+            "HOME": os.getenv("HOME"),
             "HTTP_NETWORK_RELAY_SECRET": task_data.access_client_token,
             **(
                 {"DBUS_SESSION_BUS_ADDRESS": os.getenv("DBUS_SESSION_BUS_ADDRESS")}
@@ -244,11 +245,21 @@ def deploy_device_task(
 
         systemd_run = "systemd-run"
         if shutil.which(systemd_run) is None:
-            # check for "/bin/systemd-run" as well
             systemd_run = "/bin/systemd-run"
-            if not os.path.exists(systemd_run):
-                report_task_finished(task, conn, False, "systemd-run not found")
-                return
+        if shutil.which(systemd_run) is None:
+            systemd_run = "/run/current-system/sw/bin/systemd-run"
+        if shutil.which(systemd_run) is None:
+            report_task_finished(task, conn, False, "systemd-run not found")
+            return
+
+        sudo = "sudo"
+        if shutil.which(sudo) is None:
+            sudo = "/bin/sudo"
+        if shutil.which(sudo) is None:
+            sudo = "/run/current-system/sw/bin/sudo"
+        if shutil.which(sudo) is None:
+            report_task_finished(task, conn, False, "sudo not found")
+            return
 
         returncode = run_command(
             task,
@@ -256,7 +267,7 @@ def deploy_device_task(
             process_list,
             [
                 *(
-                    ["/bin/sudo", "-n", "-E"]
+                    [sudo, "-n", "-E"]
                     if "RUNNING_IN_PLAYWRIGHT" in os.environ
                     and not "DBUS_SESSION_BUS_ADDRESS" in os.environ
                     else []

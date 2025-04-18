@@ -18,7 +18,19 @@ const waitForTerminalText = async (page: Page, text: string) => {
 	}, text);
 };
 
-test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
+const goToDevicesPage = async (page: Page, baseURL?: string) => {
+	await page.reload();
+	for (let i = 0; i < 5; i++) {
+		await page.locator('nav:visible').locator('a', { hasText: 'Devices' }).click();
+		await page.waitForURL(new RegExp(baseURL + '/devices'), { timeout: 3000 }).catch(() => {});
+
+		if (page.url() === `${baseURL}/devices`) {
+			return;
+		}
+	}
+};
+
+test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) => {
 	const screenshotCounter = { count: 0 };
 	await clearState(page, request);
 	await deleteAllTasks(page, request);
@@ -48,6 +60,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 
 	// select button "Build and start VM"
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
+	await page.locator('div').filter({ hasText: '4 internal file changes' }).first().waitFor();
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: maxDiffPixels
 	});
@@ -65,28 +78,28 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 		.click();
 
 	// select button "Build and start VM"
+	await page.locator('div').filter({ hasText: '0 commit' }).first().waitFor();
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
 
 	// wait until: 1x on screen "completed", 1x on screen "running"
-	test.setTimeout(360000);
+	test.setTimeout(240000);
 	await page
 		.locator('td', { hasText: 'completed' })
 		.nth(1)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 360000 });
+		.waitFor({ timeout: 180000 });
 	await expect(page.locator('td', { hasText: 'completed' }).nth(1)).toBeVisible();
 
 	await page
 		.locator('td', { hasText: 'running' })
 		.nth(1)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 360000 });
+		.waitFor({ timeout: 120000 });
 	await expect(page.locator('td', { hasText: 'running' }).nth(1)).toBeVisible();
 
 	// go to "Devices" page and wait until "Connected" is shown twice
-	// await page.goto('/devices');
-	await page.locator('a', { hasText: 'Devices' }).locator('visible=true').first().click();
-	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 60000 });
+	await goToDevicesPage(page, baseURL);
+	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 90000 });
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: maxDiffPixels
@@ -151,7 +164,7 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await deployButtonModal.click();
 
 	// Wait for a fifth "completed" status
-	await page.locator('td', { hasText: 'completed' }).nth(4).waitFor({ timeout: 360000 });
+	await page.locator('td', { hasText: 'completed' }).nth(4).waitFor({ timeout: 60000 });
 
 	// Navigate back to "Details" tab
 	await page.locator('a', { hasText: 'Details' }).first().click();
@@ -164,10 +177,11 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	});
 
 	// Now, navigate to "Devices" page using sidebar and take a screenshot
-	await page.locator('a', { hasText: 'Devices' }).locator('visible=true').first().click();
+	await page.waitForTimeout(1000); // try to prevent invalidate timing issues
+	await goToDevicesPage(page, baseURL);
 
 	// Wait for 2 "Connected" statuses
-	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 60000 });
+	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 90000 });
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: maxDiffPixels
@@ -185,11 +199,11 @@ test('Create a x64 vm and run it', async ({ page, request }, testInfo) => {
 	await page.getByRole('combobox').nth(1).selectOption({ value: 'usb-stick-installer' });
 	// find download button and click on it
 	await page.locator('button').filter({ hasText: 'Download Device Image' }).first().click();
+	await page.locator('div').filter({ hasText: '1 internal file changes' }).first().waitFor();
 	await page
 		.locator('button')
 		.filter({ hasText: 'Commit & Download Device Image' })
 		.first()
 		.click();
-	test.setTimeout(360000);
 	await page.waitForEvent('download');
 });

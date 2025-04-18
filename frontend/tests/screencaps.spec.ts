@@ -80,7 +80,7 @@ test('shows configuration', async ({ page, request }, testInfo) => {
 	// go to device details page, delete device
 	await page.getByRole('button', { name: 'View Details' }).first().click();
 
-	await page.waitForURL('http://localhost:8000/configuration/configuration-details*');
+	await page.waitForURL('/configuration/configuration-details*');
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
@@ -331,7 +331,7 @@ test('Create moneyshot', async ({ page, request, browser }, testInfo) => {
 			viewport: resolution
 		});
 		const zoomedPage = await zoomedContext.newPage();
-		await zoomedPage.goto('http://localhost:8000/configuration/list');
+		await zoomedPage.goto('/configuration/list');
 		await expectScreenshot(zoomedPage, testInfo, screenshotCounter, {
 			maxDiffPixels: maxDiffPixels,
 			mask: []
@@ -472,7 +472,7 @@ test('Configure Wifi Network', async ({ page, request }, testInfo) => {
 
 	await page.getByRole('button', { name: 'View Details' }).click();
 
-	await page.waitForURL('http://localhost:8000/configuration/configuration-details*');
+	await page.waitForURL('/configuration/configuration-details*');
 
 	const configureTagButton = page.locator('a', { hasText: 'Configure' }).first();
 	await configureTagButton.click();

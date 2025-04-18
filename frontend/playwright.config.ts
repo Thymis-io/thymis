@@ -2,12 +2,14 @@ import { devices, type PlaywrightTestConfig } from '@playwright/test';
 
 // if env THYMIS_DEV_SHELL is set, use poetry run uvicorn reload stuff, else use nix run
 
-let command = `nix run .#thymis-controller`;
+let command = `nix run --show-trace .#thymis-controller`;
 
 if (process.env.THYMIS_DEV_SHELL) {
 	console.log('Using poetry run uvicorn reload');
 	command = `poetry run uvicorn thymis_controller.main:app --reload`;
 }
+
+const port = process.env.UVICORN_PORT || 8000;
 
 const runInShell = (cmd) => `sh -c '${cmd}'`;
 
@@ -32,8 +34,10 @@ const commandFrame = (cmd) =>
 						THYMIS_PROJECT_PATH: '$TMPDIR',
 						THYMIS_AUTH_BASIC_PASSWORD_FILE: '$TMPDIR/auth-basic-password',
 						RUNNING_IN_PLAYWRIGHT: 'true',
-						THYMIS_AGENT_ACCESS_URL: 'http://10.0.2.2:8000',
-						UVICORN_HOST: '0.0.0.0'
+						THYMIS_AGENT_ACCESS_URL: `http://10.0.2.2:${port}`,
+						THYMIS_BASE_URL: `http://localhost:${port}`,
+						UVICORN_HOST: '0.0.0.0',
+						UVICORN_PORT: `${port}`
 					},
 					withContentInFile('testadminpassword', '$THYMIS_AUTH_BASIC_PASSWORD_FILE', cmd)
 				)
@@ -47,7 +51,7 @@ const config: PlaywrightTestConfig = {
 	webServer: {
 		command: commandFrame(command),
 		cwd: `../controller`,
-		port: 8000,
+		port: port,
 		stdout: 'pipe'
 	},
 	testDir: 'tests',
@@ -62,8 +66,12 @@ const config: PlaywrightTestConfig = {
 		launchOptions: {
 			args: ['--disable-lcd-text']
 		},
-		video: 'retain-on-failure',
-		trace: 'retain-on-failure'
+		video: {
+			mode: 'retain-on-failure',
+			size: { width: 1280, height: 720 }
+		},
+		trace: 'retain-on-failure',
+		baseURL: `http://localhost:${port}`
 	},
 	reporter: [['list'], ['html']],
 	expect: {

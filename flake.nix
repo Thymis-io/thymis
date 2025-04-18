@@ -155,12 +155,21 @@
               pkgs.python313
               pkgs.nodejs_22
               pkgs.nixpkgs-fmt
+              pkgs.pre-commit
+              pkgs.which
+              pkgs.curl
+              pkgs.rustup
             ];
           };
           forNpmTesting = pkgs.mkShell {
             packages = [
               pkgs.playwright-driver.browsers
               pkgs.nodejs_22
+              pkgs.poetry
+              pkgs.python313
+              pkgs.nixpkgs-fmt
+              pkgs.git
+              pkgs.openssh
             ];
             shellHook = ''
               export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}

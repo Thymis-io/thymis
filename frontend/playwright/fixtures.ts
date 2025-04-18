@@ -14,6 +14,7 @@ export const test = baseTest.extend<{}, { workerStorageState: string }>({
 			// Use parallelIndex as a unique identifier for each worker.
 			const id = test.info().parallelIndex;
 			const fileName = path.resolve(test.info().project.outputDir, `.auth/${id}.json`);
+			const baseURL = test.info().project.use.baseURL;
 
 			if (fs.existsSync(fileName)) {
 				// Reuse existing authentication state if any.
@@ -22,26 +23,9 @@ export const test = baseTest.extend<{}, { workerStorageState: string }>({
 			}
 
 			// Important: make sure we authenticate in a clean environment by unsetting storage state.
-			const page = await browser.newPage({ storageState: undefined });
+			const page = await browser.newPage({ storageState: undefined, baseURL: baseURL });
 
-			// // Acquire a unique account, for example create a new one.
-			// // Alternatively, you can have a list of precreated accounts for testing.
-			// // Make sure that accounts are unique, so that multiple team members
-			// // can run tests at the same time without interference.
-			// // const account = await acquireAccount(id);
-
-			// // Perform authentication steps. Replace these actions with your own.
-
-			// await page.goto('http://localhost:8000/auth/logout', { waitUntil: 'domcontentloaded' });
-			// await page.goto('http://localhost:8000/login', { waitUntil: 'domcontentloaded' });
-
-			// await page.waitForSelector('input[name="username"]');
-
-			// await page.fill('input[name="username"]', 'admin');
-			// await page.fill('input[name="password"]', 'testadminpassword');
-			// await page.click('button[type="submit"]');
-
-			await login(page);
+			await login(page, baseURL);
 
 			// End of authentication steps.
 
@@ -53,15 +37,13 @@ export const test = baseTest.extend<{}, { workerStorageState: string }>({
 	]
 });
 
-export const login = async (page: Page) => {
-	await page.goto('http://localhost:8000/auth/logout', { waitUntil: 'domcontentloaded' });
-	await page.goto('http://localhost:8000/login', { waitUntil: 'domcontentloaded' });
-
+export const login = async (page: Page, baseURL?: string) => {
+	await page.goto('/auth/logout', { waitUntil: 'domcontentloaded' });
+	await page.goto('/login', { waitUntil: 'domcontentloaded' });
 	await page.waitForSelector('input[name="username"]');
-
 	await page.fill('input[name="username"]', 'admin');
 	await page.fill('input[name="password"]', 'testadminpassword');
 	await page.click('button[type="submit"]');
-	await page.waitForURL('http://localhost:8000/overview');
-	expect(page.url()).toBe('http://localhost:8000/overview');
+	await page.waitForURL('/overview');
+	expect(page.url()).toBe(`${baseURL}/overview`);
 };
