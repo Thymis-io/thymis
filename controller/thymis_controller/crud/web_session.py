@@ -51,7 +51,7 @@ def validate(db_session: Session, session_id: uuid.UUID, session_token: str) -> 
     expiration_time = web_session.created_at.astimezone(timezone.utc) + SESSION_LIFETIME
     is_expired = expiration_time < datetime.now(timezone.utc)
     if is_expired:
-        delete(db_session, session_token)
+        delete(db_session, uuid.UUID(session_token))
     return not is_expired
 
 
