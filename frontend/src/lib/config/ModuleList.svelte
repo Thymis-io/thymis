@@ -12,6 +12,7 @@
 	import ModuleIcon from './ModuleIcon.svelte';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
 	import type { GlobalState } from '$lib/state.svelte';
+	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
 	interface Props {
 		nav: Nav;
@@ -20,7 +21,6 @@
 		context: Tag | Config | undefined;
 		selfModules: Module[];
 		availableModules?: Module[];
-		icon?: import('svelte').Snippet;
 	}
 
 	let {
@@ -29,8 +29,7 @@
 		contextType,
 		context,
 		selfModules,
-		availableModules = [],
-		icon
+		availableModules = []
 	}: Props = $props();
 
 	let moduleToRemove: Module | undefined = $state();
@@ -92,8 +91,14 @@
 />
 <div class="flex justify-between mb-2">
 	<div class="text-gray-900 dark:text-white font-semibold flex gap-2 items-center">
-		{@render icon?.()}
-		<span>{context?.displayName}</span>
+		<IdentifierLink
+			identifier={context?.identifier}
+			{globalState}
+			context={contextType}
+			iconSize="1.25rem"
+		>
+			{context?.displayName}
+		</IdentifierLink>
 	</div>
 	{#if nav.selectedTarget?.identifier !== context?.identifier || nav.selectedTargetType !== contextType}
 		<a

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { run } from 'svelte/legacy';
-
 	import { t } from 'svelte-i18n';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
@@ -14,6 +13,7 @@
 	import type { Nav } from '../../routes/(authenticated)/+layout';
 	import { invalidateButDeferUntilNavigation } from '$lib/notification';
 	import type { GlobalState } from '$lib/state.svelte';
+	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
 	interface Props {
 		nav: Nav;
@@ -144,12 +144,12 @@
 				<div class="mb-1">{$t('deploy.configurations')}</div>
 				<div class="flex flex-wrap flex-row gap-2">
 					{#each affectedConfigs as config}
-						<div
-							class={'flex items-center text-white bg-primary-700 dark:bg-primary-600 rounded p-2 py-0.5 gap-1'}
-						>
-							<FileCode size={'0.8rem'} class="min-w-3" />
-							{config.displayName}
-						</div>
+						<IdentifierLink
+							identifier={config.identifier}
+							context="config"
+							{globalState}
+							solidBackground
+						/>
 					{/each}
 				</div>
 				<div class="mt-auto ml-auto">

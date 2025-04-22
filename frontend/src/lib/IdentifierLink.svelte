@@ -9,8 +9,8 @@
 
 	interface Props {
 		globalState: GlobalState;
-		identifier: string | null;
-		context: ContextType | null;
+		identifier?: string | null;
+		context?: ContextType | null;
 		showLinkHover?: boolean;
 		solidBackground?: boolean;
 		iconSize?: number | string;

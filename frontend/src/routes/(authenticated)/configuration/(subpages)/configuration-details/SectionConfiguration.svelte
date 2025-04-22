@@ -36,7 +36,7 @@
 <EditTagModal {globalState} bind:currentlyEditingConfig />
 <Section class={className} title={$t('configuration-details.config')}>
 	<p class="text-base">{$t('configuration-details.modules')}</p>
-	<div class="flex gap-2 items-center flex-wrap">
+	<div class="flex gap-2 items-center flex-wrap text-base">
 		{#each getOwnModules(config, availableModules) as module}
 			<a
 				href={`/configuration/edit?${buildConfigSelectModuleSearchParam(
