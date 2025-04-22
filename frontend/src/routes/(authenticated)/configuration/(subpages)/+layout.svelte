@@ -78,7 +78,7 @@
 			context={data.globalState.selectedTargetType}
 			globalState={data.globalState}
 			showLinkHover={false}
-			iconSize={26}
+			iconSize={'1.75rem'}
 		/>
 	</h1>
 	{#if data.nav.selectedConfig}

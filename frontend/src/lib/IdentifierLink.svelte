@@ -13,7 +13,7 @@
 		context: ContextType | null;
 		showLinkHover?: boolean;
 		solidBackground?: boolean;
-		iconSize?: number;
+		iconSize?: number | string;
 		class?: string;
 	}
 
@@ -23,7 +23,7 @@
 		globalState,
 		showLinkHover = true,
 		solidBackground = false,
-		iconSize = 18,
+		iconSize = '1rem',
 		class: className
 	}: Props = $props();
 
