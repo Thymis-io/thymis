@@ -47,7 +47,7 @@
 				class={'min-h-6 flex items-center gap-1 w-fit ' +
 					(showLinkHover ? 'hover:underline ' : '') +
 					(solidBackground
-						? 'p-1 px-2 bg-primary-700 hover:bg-primary-800 dark:bg-primary-600 dark:hover:bg-primary-700 rounded '
+						? 'p-1 px-2 bg-primary-700 hover:bg-primary-800 dark:bg-primary-600 dark:hover:bg-primary-700 rounded text-white '
 						: '')}
 			>
 				<TagIcon size={iconSize} />
@@ -59,7 +59,7 @@
 				class={'min-h-6 flex items-center gap-1 w-fit ' +
 					(showLinkHover ? 'hover:underline ' : '') +
 					(solidBackground
-						? 'p-1 2px-2 bg-primary-700 hover:bg-primary-800 dark:bg-primary-600 dark:hover:bg-primary-700 rounded '
+						? 'p-1 2px-2 bg-primary-700 hover:bg-primary-800 dark:bg-primary-600 dark:hover:bg-primary-700 rounded text-white '
 						: '')}
 			>
 				<FileCode size={iconSize} />
