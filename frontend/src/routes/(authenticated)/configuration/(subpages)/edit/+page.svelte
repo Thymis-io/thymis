@@ -6,8 +6,6 @@
 	import type { ModuleSettingsWithOrigin, Tag, Config, Module, Origin } from '$lib/state';
 	import type { PageData } from './$types';
 	import ModuleCard from '$lib/config/ModuleCard.svelte';
-	import FileCode from 'lucide-svelte/icons/file-code-2';
-	import TagIcon from 'lucide-svelte/icons/tag';
 
 	interface Props {
 		data: PageData;
@@ -66,15 +64,7 @@
 			context={data.globalState.selectedTarget}
 			selfModules={getSelfModules(data.nav.selectedTarget)}
 			availableModules={data.availableModules}
-		>
-			{#snippet icon()}
-				{#if children}{@render children()}{:else if data.nav.selectedTag}
-					<TagIcon size="20" />
-				{:else if data.nav.selectedConfig}
-					<FileCode size="20" />
-				{/if}
-			{/snippet}
-		</ModuleList>
+		/>
 		{#each data.nav.selectedConfig?.tags ?? [] as tagIdentifier}
 			<div class="mt-6">
 				<ModuleList
@@ -83,11 +73,7 @@
 					contextType="tag"
 					context={data.globalState.tag(tagIdentifier)}
 					selfModules={getSelfModules(data.globalState.tag(tagIdentifier))}
-				>
-					{#snippet icon()}
-						<TagIcon size="20" />
-					{/snippet}
-				</ModuleList>
+				/>
 			</div>
 		{/each}
 	</Card>
