@@ -217,7 +217,6 @@
 								context="config"
 								globalState={data.globalState}
 								solidBackground
-								iconSize={16}
 							/>
 						{/each}
 					</div>
