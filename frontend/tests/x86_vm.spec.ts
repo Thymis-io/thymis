@@ -77,6 +77,9 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 		.first()
 		.click();
 
+	// wait a few seconds, so the first VM is more likely to finish first
+	await page.waitForTimeout(20000);
+
 	// select button "Build and start VM"
 	await page.locator('div').filter({ hasText: '0 commit' }).first().waitFor();
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
