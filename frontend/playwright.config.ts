@@ -66,7 +66,10 @@ const config: PlaywrightTestConfig = {
 		launchOptions: {
 			args: ['--disable-lcd-text']
 		},
-		video: 'retain-on-failure',
+		video: {
+			mode: 'retain-on-failure',
+			size: { width: 1280, height: 720 }
+		},
 		trace: 'retain-on-failure',
 		baseURL: `http://localhost:${port}`
 	},
