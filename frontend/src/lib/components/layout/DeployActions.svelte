@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Button, Tooltip } from 'flowbite-svelte';
+	import { Button } from 'flowbite-svelte';
 	import Hammer from 'lucide-svelte/icons/hammer';
 	import Refresh from 'lucide-svelte/icons/refresh-ccw';
 	import Boxes from 'lucide-svelte/icons/boxes';
 	import GitCommitVertical from 'lucide-svelte/icons/git-commit-vertical';
 	import DeployModal from '$lib/repo/DeployModal.svelte';
 	import CommitModal from '$lib/repo/CommitModal.svelte';
-	import { invalidate } from '$app/navigation';
+	import { invalidateButDeferUntilNavigation } from '$lib/notification';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import { type RepoStatus } from '$lib/repo/repo';
 	import type { Nav } from '../../../routes/(authenticated)/+layout';
@@ -30,14 +30,14 @@
 
 	const update = async () => {
 		await fetchWithNotify(`/api/action/update`, { method: 'POST' });
-		invalidate((url) => url.pathname === '/api/available_modules');
+		invalidateButDeferUntilNavigation((url) => url.pathname === '/api/available_modules');
 	};
 
 	const commit = async (message: string) => {
 		await fetchWithNotify(`/api/action/commit?message=${encodeURIComponent(message)}`, {
 			method: 'POST'
 		});
-		await invalidate(
+		await invalidateButDeferUntilNavigation(
 			(url) => url.pathname === '/api/history' || url.pathname === '/api/repo_status'
 		);
 	};
