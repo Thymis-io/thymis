@@ -17,6 +17,7 @@
 	import { startNotificationSocket } from '$lib/notification';
 
 	import { ProgressBar } from '@prgm/sveltekit-progress-bar';
+	import { beforeNavigate } from '$app/navigation';
 
 	interface Props {
 		data: LayoutData;
@@ -45,6 +46,13 @@
 
 	onMount(() => {
 		startNotificationSocket();
+	});
+
+	beforeNavigate((navigation) => {
+		navigation.complete.catch((reason) => {
+			// log reason
+			console.error('Navigation failed:', reason);
+		});
 	});
 </script>
 
