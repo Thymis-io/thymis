@@ -24,6 +24,12 @@
 
 	let hasVNC = $derived(deploymentInfo && config && targetShouldShowVNC(config, globalState));
 
+	$effect(() => {
+		if (hasVNC && deploymentInfo.deployed_config_id) {
+			initVNC(deploymentInfo);
+		}
+	});
+
 	let div: HTMLDivElement | undefined = $state();
 
 	const initVNC = async (deploymentInfo: DeploymentInfo) => {
