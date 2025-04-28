@@ -67,9 +67,13 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install dependencies
         run: |
-          nix develop .#ci --command npm ci
+          npm ci
         working-directory: frontend
       - name: Build application
         uses: ./.github/actions/run-command-with-nix-cache-upload
@@ -81,7 +85,7 @@ jobs:
       - name: Run tests
         run: |
           export THYMIS_FLAKE_ROOT='..'
-          nix develop .#ci --command ../.github/npm_test_integration.sh
+          ../.github/npm_test_integration.sh
         working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload
@@ -155,9 +159,13 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install dependencies
         run: |
-          nix develop .#ci --command npm ci
+          npm ci
         working-directory: frontend
       - name: Build application
         uses: ./.github/actions/run-command-with-nix-cache-upload
@@ -169,7 +177,7 @@ jobs:
       - name: Run tests
         run: |
           # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
-          nix develop .#ci --command ../.github/npm_test_integration.sh
+          ../.github/npm_test_integration.sh
         working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload
@@ -202,9 +210,13 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install dependencies
         run: |
-          nix develop .#ci --command npm ci
+          npm ci
         working-directory: frontend
       - name: Build application
         uses: ./.github/actions/run-command-with-nix-cache-upload
@@ -216,7 +228,7 @@ jobs:
       - name: Run tests
         run: |
           export THYMIS_FLAKE_ROOT='..'
-          nix develop .#ci --command  ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
+          ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
         working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload
@@ -249,9 +261,13 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install dependencies
         run: |
-          nix develop .#ci --command npm ci
+          npm ci
         working-directory: frontend
       - name: Build application
         uses: ./.github/actions/run-command-with-nix-cache-upload
@@ -263,7 +279,7 @@ jobs:
       - name: Run tests
         run: |
           # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
-          nix develop .#ci --command ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
+          ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
         working-directory: frontend
       - uses: actions/upload-artifact@v4
         id: artifact-upload
@@ -286,14 +302,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-nix
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          python-version: 3.13
+      - name: Install pre-commit
+        run: |
+          python -m pip install pre-commit
       - name: Install node dependencies
         run: |
-          nix develop .#ci --command npm ci
+          npm ci
         working-directory: frontend
       - name: Run pre-commit
         run: |
-          nix develop .#ci --command pre-commit run --all-files
+          pre-commit run --all-files
