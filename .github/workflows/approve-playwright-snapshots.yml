@@ -56,9 +56,13 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install dependencies
         run: |
-          nix develop .#ci --command npm ci
+          npm ci
         working-directory: frontend
       - name: Build application
         run: |
@@ -66,7 +70,7 @@ jobs:
       - name: Run tests
         run: |
           export THYMIS_FLAKE_ROOT='..'
-          nix develop .#ci --command ../.github/npm_test_integration.sh -- --update-snapshots
+          nix develop .#forNpmTesting --command npm run test:integration -- --update-snapshots
         working-directory: frontend
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
@@ -112,9 +116,13 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Install dependencies
         run: |
-          nix develop .#ci --command npm ci
+          npm ci
         working-directory: frontend
       - name: Build application
         run: |
@@ -123,7 +131,7 @@ jobs:
         run: |
           if [ -f "tests/x86_vm.spec.ts" ]; then
             export THYMIS_FLAKE_ROOT='..'
-            nix develop .#ci --command ../.github/npm_test_integration.sh -- "tests/x86_vm.spec.ts" --update-snapshots
+            nix develop .#forNpmTesting --command npm run test:integration -- "tests/x86_vm.spec.ts" --update-snapshots
           fi
         working-directory: frontend
       - name: Upload Playwright report
