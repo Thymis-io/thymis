@@ -1,5 +1,6 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
+import tailwindcss from '@tailwindcss/vite';
 import pkg from './package.json' with { type: 'json' };
 import { execSync } from 'child_process';
 
@@ -23,7 +24,7 @@ const versionInfo = {
 const target = ['es2024', 'chrome122', 'edge122', 'safari17', 'firefox127', 'opera108'];
 
 export default defineConfig({
-	plugins: [sveltekit()],
+	plugins: [sveltekit(), tailwindcss()],
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}']
 	},
