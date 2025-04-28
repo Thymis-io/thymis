@@ -60,7 +60,7 @@ jobs:
             fi
             git push origin HEAD --force
             # create a PR if not exists for this branch
-            if ! gh pr list --state open --head $BRANCH_NAME; then
+            if [ "$(gh pr list --state open --head $BRANCH_NAME --json id -q '. | length')" -eq 0 ]; then
               gh pr create --fill
             fi
         env:
