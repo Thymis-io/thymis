@@ -166,6 +166,8 @@
 	size="lg"
 	on:close={onClose}
 	outsideclose
+	classBackdrop="z-0"
+	dialogClass="max-h-full"
 >
 	<div class="space-y-4">
 		<!-- Secret name -->

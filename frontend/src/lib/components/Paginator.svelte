@@ -65,17 +65,4 @@
 	.paginate :last-child {
 		border-radius: 0 0.3rem 0.3rem 0;
 	}
-	.page-button.active {
-		@apply bg-gray-300;
-		@apply text-primary-500;
-	}
-	.page-button.active:is(:global(.dark *)) {
-		@apply bg-gray-500;
-	}
-	.page-button:hover {
-		@apply bg-gray-300;
-	}
-	.page-button:hover:is(:global(.dark *)) {
-		@apply bg-gray-500;
-	}
 </style>
