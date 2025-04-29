@@ -498,10 +498,70 @@ class Agent(ea.EdgeAgent):
             ) as f:
                 f.write(message.model_dump_json())
 
-    @classmethod
-    def place_secrets_on_start(cls, token: str):
+    def place_secrets_on_start(self, token: str):
         # use message if there, if not
         # try using thymis-secrets-initial.json and decrypting using token,
+
+        # Create and write rsyslog config
+        rsyslog_config = f"""
+        module(load="imuxsock")
+        module(load="imklog")
+        module(load="omhttp")
+        template(name="tpl_omhttp_json" type="list") {{
+            constant(value="{{")   property(name="msg"           outname="message"   format="jsonfr")
+            constant(value=",")   property(name="syslogfacility" outname="facility" format="jsonfr" datatype="number")
+            constant(value=",")   property(name="syslogseverity" outname="severity" format="jsonfr" datatype="number")
+            constant(value=",")   property(name="syslogtag"     outname="syslogtag" format="jsonfr")
+            constant(value=",")   property(name="programname"   outname="programname" format="jsonfr")
+            constant(value=",")   property(name="hostname"      outname="host"      format="jsonfr")
+            constant(value=",")   property(name="timereported"  outname="timestamp" format="jsonfr" dateFormat="rfc3339")
+            constant(value=",")   property(name="uuid"         outname="uuid"      format="jsonfr")
+            constant(value="}}")
+        }}
+        template(name="tpl_echo" type="string" string="%msg%")
+        ruleset(name="rs_retry_forever") {{
+            action(
+                type="omhttp"
+                template="tpl_omhttp_json"
+                httpheaders=[
+                    "X-Thymis-Ssh-Pubkey: {self.detect_public_key()}",
+                    "X-Thymis-Token: {token}",
+                    "X-Thymis-Hostname: {self.detect_hostname()}"
+                ]
+                server="{self.controller_host}/agent/logs"
+                batch="on"
+                batch.format="jsonarray"
+                retry="on"
+                retry.ruleset="rs_omhttp_retry"
+                restpathtimeout="5000"
+            )
+        }}
+        ruleset(name="rs_omhttp_retry") {{
+            action(
+                type="omhttp"
+                template="tpl_echo"
+                httpheaders=[
+                    "X-Thymis-Ssh-Pubkey: {self.detect_public_key()}",
+                    "X-Thymis-Token: {token}",
+                    "X-Thymis-Hostname: {self.detect_hostname()}"
+                ]
+                server="{self.controller_host}/agent/logs"
+                batch="on"
+                batch.format="jsonarray"
+                batch.maxsize="1"
+                action.resumeRetryCount="3"
+                action.resumeInterval="20"
+                errorfile="/var/log/rsyslog-error.log"
+                restpathtimeout="5000"
+            )
+        }}
+
+        call rs_retry_forever
+        """
+
+        os.makedirs("/etc/rsyslog.d", exist_ok=True, mode=0o755)
+        with open("/etc/rsyslog.d/thymis.conf", "w", encoding="utf-8") as f:
+            f.write(rsyslog_config)
 
         data_path = find_data_path()
         if not data_path:
@@ -511,7 +571,7 @@ class Agent(ea.EdgeAgent):
         if secrets_path.exists():
             with open(secrets_path, "r", encoding="utf-8") as f:
                 message = RtESendSecretsMessage.model_validate_json(f.read())
-            cls.place_secrets_on_message(message)
+            self.place_secrets_on_message(message)
             return
         secrets_path = data_path / "thymis-secrets-initial.json"
         if not secrets_path.exists():
@@ -671,9 +731,6 @@ def set_minimum_time(datetime_str: str):
 
 
 def main():
-    if "--just-place-secrets" in sys.argv:
-        Agent.place_secrets_on_start(find_agent_token())
-        sys.exit(0)
     agent_metadata = find_agent_metadata()
 
     if not agent_metadata:
@@ -692,9 +749,10 @@ def main():
 
     load_controller_public_key_into_root_authorized_keys()
     agent_token = find_agent_token()
-    Agent.place_secrets_on_start(agent_token)
     agent = Agent(controller_host, agent_token, agent_metadata, systemd_notifier)
-    asyncio.run(agent.async_main())
+    agent.place_secrets_on_start(agent_token)
+    if "--just-place-secrets" not in sys.argv:
+        asyncio.run(agent.async_main())
 
 
 if __name__ == "__main__":
