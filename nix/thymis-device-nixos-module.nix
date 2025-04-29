@@ -129,6 +129,23 @@ in
       serviceConfig.Restart = "always";
       serviceConfig.Type = "notify";
     };
+    systemd.services.thymis-agent-place-secrets = lib.mkIf cfg.agent.enable {
+      description = "Thymis agent - place secrets";
+      after = [ "sshd.service" ];
+      wantedBy = [ "multi-user.target" ];
+      script = "exec ${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent --just-place-secrets";
+      path = [
+        "/run/current-system/sw"
+      ];
+      environment = {
+        CONTROLLER_HOST = cfg.agent.controller-url;
+      };
+    };
+    services.rsyslogd.enable = true;
+    services.rsyslogd.defaultConfig = ''
+      include(file="/etc/rsyslog.d/thymis.conf")
+    '';
+    systemd.services.syslog.after = [ "thymis-agent-place-secrets.service" ];
     system.activationScripts.thymis = lib.mkIf (cfg.agent.enable) {
       text = ''
         CONTROLLER_HOST=${cfg.agent.controller-url} ${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent --just-place-secrets

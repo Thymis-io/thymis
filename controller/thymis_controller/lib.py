@@ -14,6 +14,32 @@ logging.basicConfig(level=logging.INFO, handlers=[ch])
 logger = logging.getLogger(__name__)
 
 
+class StringFilter(logging.Filter):
+    def __init__(self, endpoint: str, summary_after_n: int = 100):
+        super().__init__()
+        self.endpoint = endpoint
+        self.summary_after_n = summary_after_n
+        self.count = 0
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if record.getMessage().find(self.endpoint) != -1:
+            self.count += 1
+            if self.count % self.summary_after_n == 0:
+                logger.info(
+                    "Received %d logs containing %s: %s",
+                    self.count,
+                    self.endpoint,
+                    record.getMessage(),
+                )
+            return False
+        return True
+
+
+logging.getLogger("uvicorn.access").addFilter(
+    StringFilter('"POST /agent/logs/ HTTP/1.1" 200')
+)
+
+
 def read_into_base64(path: str):
     try:
         with open(path, "rb") as f:
