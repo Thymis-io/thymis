@@ -57,9 +57,18 @@
 		connectionFailed = false;
 
 		rfb = new RFB.default(div, url, { credentials: { password: password } });
-		rfb.addEventListener('connect', () => (connected = true));
-		rfb.addEventListener('disconnect', () => (connectionFailed = true));
-		rfb.addEventListener('securityfailure', () => (connectionFailed = true));
+		rfb.addEventListener('connect', () => {
+			connected = true;
+			connectionFailed = false;
+		});
+		rfb.addEventListener('disconnect', () => {
+			connected = false;
+			connectionFailed = true;
+		});
+		rfb.addEventListener('securityfailure', () => {
+			connected = false;
+			connectionFailed = true;
+		});
 
 		rfb.viewOnly = !control;
 		rfb.scaleViewport = true;
