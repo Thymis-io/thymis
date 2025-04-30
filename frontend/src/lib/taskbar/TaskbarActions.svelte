@@ -28,7 +28,7 @@
 			{$t('taskbar.retry')}
 		</Button>
 	{/if}
-	<a data-sveltekit-preload-data="tap" href="/tasks/{task.id}{$page.url.search}">
+	<a href="/tasks/{task.id}{$page.url.search}">
 		<Button class="px-4 py-2 whitespace-nowrap">
 			{$t('taskbar.details')}
 		</Button>

@@ -166,8 +166,7 @@
 	size="lg"
 	on:close={onClose}
 	outsideclose
-	classBackdrop="z-0"
-	dialogClass="max-h-full"
+	classDialog="secret-modal-dialog"
 >
 	<div class="space-y-4">
 		<!-- Secret name -->
@@ -305,3 +304,9 @@
 		<Button color="alternative" on:click={onClose}>{$t('common.cancel')}</Button>
 	</svelte:fragment>
 </Modal>
+
+<style>
+	:global(.secret-modal-dialog > div) {
+		max-height: 100% !important;
+	}
+</style>
