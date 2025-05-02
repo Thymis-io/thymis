@@ -1,10 +1,14 @@
 import os
 import uuid
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
 from sqlalchemy import nullslast
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
+
+if TYPE_CHECKING:
+    from thymis_controller.network_relay import NetworkRelay
 
 
 def create(
@@ -168,6 +172,14 @@ def get_by_config_id(session: Session, config_id: str):
         .filter(db_models.DeploymentInfo.deployed_config_id == config_id)
         .all()
     )
+
+
+def get_connected_deployment_infos(db_session: Session, network_relay: "NetworkRelay"):
+    return [
+        deployment_info
+        for deployment_info in get_all_stable(db_session)
+        if network_relay.public_key_to_connection_id.get(deployment_info.ssh_public_key)
+    ]
 
 
 if "RUNNING_IN_PLAYWRIGHT" in os.environ:

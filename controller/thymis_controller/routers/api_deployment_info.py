@@ -80,16 +80,9 @@ def get_connected_deployment_infos(
     """
     Get all connected deployment_infos
     """
-    all_deployment_infos = crud.deployment_info.get_all_stable(db_session)
-    connected_deployment_infos = []
-    for deployment_info in all_deployment_infos:
-        if network_relay.public_key_to_connection_id.get(
-            deployment_info.ssh_public_key
-        ):
-            connected_deployment_infos.append(deployment_info)
     return map(
         models.DeploymentInfo.from_deployment_info,
-        connected_deployment_infos,
+        crud.deployment_info.get_connected_deployment_infos(db_session, network_relay),
     )
 
 
