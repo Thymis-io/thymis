@@ -24,8 +24,11 @@
 
 	let hasVNC = $derived(deploymentInfo && config && targetShouldShowVNC(config, globalState));
 
+	let lastDeploymentInfoId = deploymentInfo.id;
+
 	$effect(() => {
-		if (hasVNC && deploymentInfo.deployed_config_id) {
+		if (hasVNC && deploymentInfo.id !== lastDeploymentInfoId) {
+			lastDeploymentInfoId = deploymentInfo.id;
 			initVNC(deploymentInfo);
 		}
 	});
