@@ -38,7 +38,7 @@ class Task(BaseModel):
 
     process_program: Optional[str]
     process_args: Optional[list[str]]
-    process_env: Optional[dict[str, str]]
+    process_env: Optional[dict[str, str | None]]
     process_stdout: Optional[str]
     process_stderr: Optional[str]
 
@@ -279,7 +279,7 @@ class TaskFailedUpdate(BaseModel):
 class CommandRunUpdate(BaseModel):
     type: Literal["command_run"] = "command_run"
     args: list[str]
-    env: Optional[dict[str, str]] = None
+    env: Optional[dict[str, str | None]] = None
     cwd: Optional[str] = None
 
 
