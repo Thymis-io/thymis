@@ -117,15 +117,8 @@ def load_repositories(flake_path: os.PathLike, repositories: dict[str, models.Re
                     logger.debug("Found class %s", cls)
                     if issubclass(cls, modules.Module) and cls != modules.Module:
                         module_obj = cls()
-                        if "display_name" in module_obj.__dict__:
-                            modules_found.append(module_obj)
-                            logger.info("Found module %s", module_obj.type)
-                        else:
-                            logger.debug(
-                                "Module %s does not have a display_name, skipping",
-                                module_obj.type,
-                            )
-                            continue
+                        modules_found.append(module_obj)
+                        logger.info("Found module %s", module_obj.type)
             except Exception as e:  # pylint: disable=broad-except
                 traceback.print_exc()
                 logger.error("Error while importing module %s: %s", module.name, e)
