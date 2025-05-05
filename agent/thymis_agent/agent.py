@@ -503,6 +503,12 @@ class Agent(ea.EdgeAgent):
         # try using thymis-secrets-initial.json and decrypting using token,
 
         # Create and write rsyslog config
+        controller_host_port = (
+            "443" if self.controller_host.startswith("https") else "80"
+        )
+        controller_host_domain = self.controller_host.split("://")[1].split("/")[0]
+        controller_host_path = self.controller_host.split("://")[1].split("/", 1)[1]
+        self.controller_host.startswith("https")
         rsyslog_config = f"""
         module(load="imuxsock")
         module(load="imklog")
@@ -528,7 +534,9 @@ class Agent(ea.EdgeAgent):
                     "X-Thymis-Token: {token}",
                     "X-Thymis-Hostname: {self.detect_hostname()}"
                 ]
-                server="{self.controller_host}/agent/logs"
+                server="{controller_host_domain}"
+                serverport="{controller_host_port}"
+                restpath="{controller_host_path}/agent/logs"
                 batch="on"
                 batch.format="jsonarray"
                 retry="on"
@@ -545,7 +553,9 @@ class Agent(ea.EdgeAgent):
                     "X-Thymis-Token: {token}",
                     "X-Thymis-Hostname: {self.detect_hostname()}"
                 ]
-                server="{self.controller_host}/agent/logs"
+                server="{controller_host_domain}"
+                serverport="{controller_host_port}"
+                restpath="{controller_host_path}/agent/logs"
                 batch="on"
                 batch.format="jsonarray"
                 batch.maxsize="1"

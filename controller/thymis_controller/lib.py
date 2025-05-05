@@ -36,7 +36,7 @@ class StringFilter(logging.Filter):
 
 
 logging.getLogger("uvicorn.access").addFilter(
-    StringFilter('"POST /agent/logs/ HTTP/1.1" 200')
+    StringFilter('"POST /agent/logs HTTP/1.1" 200')
 )
 
 
