@@ -612,16 +612,22 @@ def run_command(
     if process_list.terminated:
         return -1
 
+    env_without_none = {k: v for k, v in env.items() if v is not None}
+
     conn.send(
         models_task.RunnerToControllerTaskUpdate(
             id=task.id,
-            update=models_task.CommandRunUpdate(args=args, env=env, cwd=str(cwd)),
+            update=models_task.CommandRunUpdate(
+                args=args,
+                env=env_without_none,
+                cwd=str(cwd),
+            ),
         )
     )
 
     proc = subprocess.Popen(
         args,
-        env=env,
+        env=env_without_none,
         cwd=cwd,
         stdin=(subprocess.PIPE if input else None),
         stdout=subprocess.PIPE,
