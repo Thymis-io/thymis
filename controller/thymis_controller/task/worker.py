@@ -612,7 +612,7 @@ def run_command(
     if process_list.terminated:
         return -1
 
-    env_without_none = {k: v for k, v in env.items() if v is not None}
+    env_without_none = {k: v for k, v in env.items() if v is not None} if env else None
 
     conn.send(
         models_task.RunnerToControllerTaskUpdate(
