@@ -79,7 +79,7 @@ async def relay_for_clients(
     await network_relay.ws_for_access_clients(websocket)
 
 
-@router.post("/logs/")
+@router.post("/logs")
 async def logs(
     request: Request,
     network_relay: NetworkRelayAD,
