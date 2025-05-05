@@ -508,7 +508,7 @@ class Agent(ea.EdgeAgent):
         )
         controller_host_domain = self.controller_host.split("://")[1].split("/")[0]
         controller_host_path = self.controller_host.split("://")[1].split("/", 1)[1]
-        self.controller_host.startswith("https")
+        use_https = "on" if self.controller_host.startswith("https") else "off"
         rsyslog_config = f"""
         module(load="imuxsock")
         module(load="imklog")
@@ -537,6 +537,7 @@ class Agent(ea.EdgeAgent):
                 server="{controller_host_domain}"
                 serverport="{controller_host_port}"
                 restpath="{controller_host_path}/agent/logs"
+                useHttps="{use_https}"
                 batch="on"
                 batch.format="jsonarray"
                 retry="on"
@@ -556,6 +557,7 @@ class Agent(ea.EdgeAgent):
                 server="{controller_host_domain}"
                 serverport="{controller_host_port}"
                 restpath="{controller_host_path}/agent/logs"
+                useHttps="{use_https}"
                 batch="on"
                 batch.format="jsonarray"
                 batch.maxsize="1"
