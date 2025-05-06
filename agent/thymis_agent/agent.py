@@ -247,6 +247,8 @@ class Agent(ea.EdgeAgent):
         )
         self.controller_host = controller_host
         self.token = token
+        if not agent_metadata:
+            agent_metadata = {}
         self.agent_metadata = agent_metadata
         self.signal_ssh_connected = asyncio.Event()
         self.systemd_notifier = systemd_notifier
@@ -507,7 +509,11 @@ class Agent(ea.EdgeAgent):
             "443" if self.controller_host.startswith("https") else "80"
         )
         controller_host_domain = self.controller_host.split("://")[1].split("/")[0]
-        controller_host_path = self.controller_host.split("://")[1].split("/", 1)[1]
+        # controller_host_path = self.controller_host.split("://")[1].split("/", 1)[1]
+        controller_host_path = (
+            self.controller_host.split("://")[1].split("/", 1).get(1, "")
+        )
+        restpath = f"{controller_host_path}/agent/logs".lstrip("/")
         use_https = "on" if self.controller_host.startswith("https") else "off"
         rsyslog_config = f"""
         module(load="imuxsock")
@@ -536,7 +542,7 @@ class Agent(ea.EdgeAgent):
                 ]
                 server="{controller_host_domain}"
                 serverport="{controller_host_port}"
-                restpath="{controller_host_path}/agent/logs"
+                restpath="{restpath}"
                 useHttps="{use_https}"
                 batch="on"
                 batch.format="jsonarray"
@@ -556,7 +562,7 @@ class Agent(ea.EdgeAgent):
                 ]
                 server="{controller_host_domain}"
                 serverport="{controller_host_port}"
-                restpath="{controller_host_path}/agent/logs"
+                restpath="{restpath}"
                 useHttps="{use_https}"
                 batch="on"
                 batch.format="jsonarray"
@@ -754,8 +760,8 @@ def main():
         raise ValueError("CONTROLLER_HOST environment variable is required")
 
     logger.setLevel(logging.INFO)
-
-    set_minimum_time(agent_metadata["datetime"])
+    if agent_metadata:
+        set_minimum_time(agent_metadata["datetime"])
 
     systemd_notifier = SystemdNotifier()
 
