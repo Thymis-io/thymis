@@ -196,8 +196,8 @@ class Kiosk(modules.Module):
             system.activationScripts.restart-display-manager-thymis = {{
                 supportsDryActivation = true;
                 text = ''
+                    mkdir -p /run/nixos
                     if [ "$NIXOS_ACTION" != dry-activate ]; then
-                        touch /activation-was-run
                         echo display-manager.service > /run/nixos/activation-restart-list
                     else
                         echo display-manager.service > /run/nixos/dry-activation-restart-list
