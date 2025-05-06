@@ -3,7 +3,7 @@ from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from thymis_controller import crud
+from thymis_controller import crud, models
 from thymis_controller.dependencies import DBSessionAD, NetworkRelayAD, ProjectAD
 
 router = APIRouter()
@@ -49,9 +49,12 @@ def thymis_statistics(
 ):
     date_from = params.get_date_from()
     date_to = params.get_date_to()
-    currently_connected = crud.deployment_info.get_connected_deployment_infos(
-        db_session, network_relay
-    )
+    currently_connected = [
+        models.DeploymentInfo.from_deployment_info(deployment_info_db)
+        for deployment_info_db in crud.deployment_info.get_connected_deployment_infos(
+            db_session, network_relay
+        )
+    ]
     max_concurrent_connected = crud.agent_connection.get_max_concurrent_connections(
         db_session, date_from, date_to
     )
