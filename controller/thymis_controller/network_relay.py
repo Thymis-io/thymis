@@ -9,6 +9,7 @@ import http_network_relay.network_relay as nr
 import paramiko
 import sqlalchemy.orm
 import thymis_agent.agent as agent
+import thymis_controller.crud.agent_connection as crud_agent_connection
 import thymis_controller.crud.agent_token as crud_agent_token
 import thymis_controller.crud.deployment_info as crud_deployment_info
 import thymis_controller.crud.hardware_device as crud_hardware_device
@@ -342,6 +343,12 @@ class NetworkRelay(nr.NetworkRelay):
 
             deployment_info_id = deployment_info.id
 
+            crud_agent_connection.create(
+                db_session,
+                connection_type="connect",
+                deployment_info_id=deployment_info_id,
+            )
+
             if len(self.connection_id_to_start_message[connection_id].hardware_ids) > 0:
                 hardware_device = crud_hardware_device.create_or_update(
                     db_session,
@@ -472,6 +479,26 @@ class NetworkRelay(nr.NetworkRelay):
             if public_key not in self.public_key_to_connection_id:
                 raise ValueError("No connection found for public key")
             return self.public_key_to_connection_id[public_key]
+
+    async def edge_agent_connection_close(self, edge_agent_connection_id: str):
+        with sqlalchemy.orm.Session(self.db_engine) as db_session:
+            deployment_info = crud_deployment_info.get_by_ssh_public_key(
+                db_session, self.connection_id_to_public_key[edge_agent_connection_id]
+            )
+            if deployment_info and len(deployment_info) == 1:
+                crud_agent_connection.create(
+                    db_session,
+                    connection_type="disconnect",
+                    deployment_info_id=deployment_info[0].id,
+                )
+            else:
+                logger.error(
+                    "No valid deployment info found for public key %s: %s",
+                    self.connection_id_to_public_key[edge_agent_connection_id],
+                    deployment_info,
+                )
+
+        return await super().edge_agent_connection_close(edge_agent_connection_id)
 
     if "RUNNING_IN_PLAYWRIGHT" in os.environ:
 

@@ -1,3 +1,4 @@
+from .agent_connection import AgentConnection
 from .agent_token import AccessClientToken, AgentToken
 from .deployment_info import DeploymentInfo
 from .hardware_device import HardwareDevice

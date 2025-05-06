@@ -1,4 +1,5 @@
 from . import (
+    agent_connection,
     agent_token,
     deployment_info,
     hardware_device,
