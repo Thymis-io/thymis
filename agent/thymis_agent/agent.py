@@ -509,10 +509,7 @@ class Agent(ea.EdgeAgent):
             "443" if self.controller_host.startswith("https") else "80"
         )
         controller_host_domain = self.controller_host.split("://")[1].split("/")[0]
-        # controller_host_path = self.controller_host.split("://")[1].split("/", 1)[1]
-        controller_host_path = (
-            self.controller_host.split("://")[1].split("/", 1).get(1, "")
-        )
+        controller_host_path = self.controller_host.split("://")[1].partition("/")[2]
         restpath = f"{controller_host_path}/agent/logs".lstrip("/")
         use_https = "on" if self.controller_host.startswith("https") else "off"
         rsyslog_config = f"""
