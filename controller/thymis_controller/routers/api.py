@@ -5,9 +5,9 @@ from thymis_controller.dependencies import require_valid_user_session
 from thymis_controller.routers import (
     api_action,
     api_deployment_info,
-    api_metrics,
     api_secrets,
     api_state,
+    api_statistics,
     api_task,
     api_ui_sockets,
 )
@@ -24,4 +24,4 @@ router.include_router(api_state.router)
 router.include_router(api_action.router)
 router.include_router(api_deployment_info.router)
 router.include_router(api_ui_sockets.router)
-router.include_router(api_metrics.router)
+router.include_router(api_statistics.router)
