@@ -1,5 +1,7 @@
 import os
 import uuid
+from datetime import datetime
+from typing import Literal
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, load_only
@@ -67,10 +69,18 @@ def get_task_by_id(db_session, task_id: uuid.UUID) -> db_models.Task:
     return task
 
 
-def get_pending_tasks(db_session):
-    return (
-        db_session.query(db_models.Task).filter(db_models.Task.state == "pending").all()
-    )
+def get_tasks_with_state(
+    db_session: Session,
+    state: Literal["pending", "running", "completed", "failed"],
+    from_date: datetime = None,
+    to_date: datetime = None,
+) -> db_models.Task:
+    query = db_session.query(db_models.Task).filter(db_models.Task.state == state)
+    if from_date:
+        query = query.filter(db_models.Task.start_time >= from_date)
+    if to_date:
+        query = query.filter(db_models.Task.start_time <= to_date)
+    return query.all()
 
 
 def fail_running_tasks(db_session):

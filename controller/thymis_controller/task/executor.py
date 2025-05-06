@@ -74,7 +74,7 @@ class TaskWorkerPoolManager:
                 "Failed %d tasks that were running when the controller shut down",
                 amount_running_when_shut_down,
             )
-            pending_tasks = crud_task.get_pending_tasks(db_session)
+            pending_tasks = crud_task.get_tasks_with_state(db_session, "pending")
             for task in pending_tasks:
                 self.submit(models_task.TaskSubmission.from_orm_task(task))
             logger.info(
