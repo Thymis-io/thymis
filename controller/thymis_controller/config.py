@@ -18,7 +18,7 @@ class GlobalSettings(BaseSettings):
 
     AUTH_OAUTH: bool = False
     AUTH_OAUTH_CLIENT_ID: str | None = None
-    AUTH_OAUTH_CLIENT_SECRET: str | None = None
+    AUTH_OAUTH_CLIENT_SECRET_FILE: str | None = None
     AUTH_OAUTH_AUTHORIZATION_ENDPOINT: str | None = None
     AUTH_OAUTH_TOKEN_ENDPOINT: str | None = None
     AUTH_OAUTH_CLIENT_ROLE_LOGIN: str | None = None

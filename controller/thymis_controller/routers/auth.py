@@ -194,6 +194,8 @@ def logout(
 # Route to handle the OAuth2 provider's callback
 @router.get("/callback")
 async def callback(code: str, response: Response, db_session: DBSessionAD):
+    secret_file = pathlib.Path(global_settings.AUTH_OAUTH_CLIENT_SECRET_FILE)
+    secret_file_content = secret_file.read_text(encoding="utf-8").strip()
     async with httpx.AsyncClient() as client:
         token_response = await client.post(
             global_settings.AUTH_OAUTH_TOKEN_ENDPOINT,
@@ -202,7 +204,7 @@ async def callback(code: str, response: Response, db_session: DBSessionAD):
                 "code": code,
                 "redirect_uri": REDIRECT_URI,
                 "client_id": global_settings.AUTH_OAUTH_CLIENT_ID,
-                "client_secret": global_settings.AUTH_OAUTH_CLIENT_SECRET,
+                "client_secret": secret_file_content,
             },
         )
 
