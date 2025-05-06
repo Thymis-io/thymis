@@ -81,6 +81,17 @@ class TaskWorkerPoolManager:
                 "TaskWorkerPoolManager started, %d pending tasks submitted",
                 len(pending_tasks),
             )
+            connected_agents = crud.agent_connection.get_all_connected(db_session)
+            for connected_agent in connected_agents:
+                crud.agent_connection.create(
+                    db_session,
+                    connection_type="disconnect",
+                    deployment_info_id=connected_agent.deployment_info_id,
+                )
+            logger.info(
+                "%d connected agents marked as disconnected",
+                len(connected_agents),
+            )
 
     def stop(self):
         logger.info("Stopping TaskWorkerPoolManager")
