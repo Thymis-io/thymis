@@ -15,6 +15,7 @@ from alembic.script import ScriptDirectory
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from thymis_controller import crud
 from thymis_controller.config import global_settings
 from thymis_controller.database.connection import create_sqlalchemy_engine
 from thymis_controller.network_relay import NetworkRelay
@@ -181,6 +182,17 @@ async def lifespan(app: FastAPI):
             "host": host,
             "port": port,
         }
+    connected_agents = crud.agent_connection.get_all_connected(db_session)
+    for connected_agent in connected_agents:
+        crud.agent_connection.create(
+            db_session,
+            connection_type="disconnect",
+            deployment_info_id=connected_agent.deployment_info_id,
+        )
+    logger.info(
+        "%d connected agents marked as disconnected",
+        len(connected_agents),
+    )
     notification_manager.stop()
     logger.info("stopping frontend")
     await frontend.frontend.stop()
