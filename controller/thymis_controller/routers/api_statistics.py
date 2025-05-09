@@ -49,6 +49,7 @@ def thymis_statistics(
 ):
     date_from = params.get_date_from()
     date_to = params.get_date_to()
+    current_time = datetime.datetime.now(datetime.timezone.utc)
     currently_connected = [
         models.DeploymentInfo.from_deployment_info(deployment_info_db)
         for deployment_info_db in crud.deployment_info.get_connected_deployment_infos(
@@ -66,49 +67,49 @@ def thymis_statistics(
     )
     state = project.read_state()
 
-    return {
-        "date_from": date_from,
-        "date_to": date_to,
-        "metrics": [
-            {
-                "name": "currently_connected_devices_count",
-                "value": len(currently_connected),
-                "respect_time_frame": False,
-            },
-            {
-                "name": "max_concurrent_connected_devices_count",
-                "value": len(max_concurrent_connected),
-                "respect_time_frame": True,
-            },
-            {
-                "name": "currently_connected_devices",
-                "value": currently_connected,
-                "respect_time_frame": False,
-            },
-            {
-                "name": "max_concurrent_connected_devices",
-                "value": max_concurrent_connected,
-                "respect_time_frame": True,
-            },
-            {
-                "name": "tasks_completed_count",
-                "value": len(tasks_completed),
-                "respect_time_frame": True,
-            },
-            {
-                "name": "tasks_failed_count",
-                "value": len(tasks_failed),
-                "respect_time_frame": True,
-            },
-            {
-                "name": "project_tags_count",
-                "value": len(state.tags),
-                "respect_time_frame": False,
-            },
-            {
-                "name": "project_configs_count",
-                "value": len(state.configs),
-                "respect_time_frame": False,
-            },
-        ],
-    }
+    return [
+        {
+            "name": "currently_connected_devices_count",
+            "value": len(currently_connected),
+            "time": current_time,
+        },
+        {
+            "name": "max_concurrent_connected_devices_count",
+            "value": len(max_concurrent_connected),
+            "date_from": date_from,
+            "date_to": date_to,
+        },
+        {
+            "name": "currently_connected_devices",
+            "value": currently_connected,
+            "time": current_time,
+        },
+        {
+            "name": "max_concurrent_connected_devices",
+            "value": max_concurrent_connected,
+            "date_from": date_from,
+            "date_to": date_to,
+        },
+        {
+            "name": "tasks_completed_count",
+            "value": len(tasks_completed),
+            "date_from": date_from,
+            "date_to": date_to,
+        },
+        {
+            "name": "tasks_failed_count",
+            "value": len(tasks_failed),
+            "date_from": date_from,
+            "date_to": date_to,
+        },
+        {
+            "name": "project_tags_count",
+            "value": len(state.tags),
+            "time": current_time,
+        },
+        {
+            "name": "project_configs_count",
+            "value": len(state.configs),
+            "time": current_time,
+        },
+    ]
