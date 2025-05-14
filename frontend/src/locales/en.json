@@ -107,7 +107,8 @@
 			"last-seen": "Last seen",
 			"no-hardware-ids": "No hardware ids detected",
 			"unknown-device-type": "Unknown device type",
-			"never-seen": "Never"
+			"never-seen": "Never",
+			"actions": "Actions"
 		},
 		"hardware-keys": {
 			"pi-serial-number": "Pi Serial Number"
