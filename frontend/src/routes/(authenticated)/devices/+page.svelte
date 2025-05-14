@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
-	import { Table, TableBodyCell, TableHead, TableHeadCell, Toggle } from 'flowbite-svelte';
+	import { Button, Table, TableBodyCell, TableHead, TableHeadCell, Toggle } from 'flowbite-svelte';
 	import { getDeviceTypesMap, getDeviceType } from '$lib/config/configUtils';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
@@ -53,6 +53,7 @@
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.device-type')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.hardware-ids')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.connected')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('hardware-devices.table.actions')}</TableHeadCell>
 	</TableHead>
 	<tbody>
 		{#each data.deploymentInfos as deploymentInfo (deploymentInfo.id)}
@@ -117,6 +118,14 @@
 								<span>{$t('hardware-devices.table.never-seen')}</span>
 							{/if}
 						{/if}
+					</TableBodyCell>
+					<TableBodyCell tdClass="p-2">
+						<!-- View Logs button -->
+						<a href={`/deployment_info/${deploymentInfo.id}/logs`}>
+							<Button>
+								{$t('hardware-devices.table.view-logs')}
+							</Button>
+						</a>
 					</TableBodyCell>
 				</tr>
 			{/if}
