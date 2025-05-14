@@ -505,10 +505,18 @@ class Agent(ea.EdgeAgent):
         # try using thymis-secrets-initial.json and decrypting using token,
 
         # Create and write rsyslog config
-        controller_host_port = (
-            "443" if self.controller_host.startswith("https") else "80"
-        )
-        controller_host_domain = self.controller_host.split("://")[1].split("/")[0]
+        controller_host_domain_and_maybe_port = self.controller_host.split("://")[
+            1
+        ].split("/")[0]
+        # split domain and port
+        controller_host_domain = controller_host_domain_and_maybe_port.split(":")[0]
+        # if port is not present, use 443 or 80
+        if ":" in controller_host_domain_and_maybe_port:
+            controller_host_port = controller_host_domain_and_maybe_port.split(":")[1]
+        else:
+            controller_host_port = (
+                "443" if self.controller_host.startswith("https") else "80"
+            )
         controller_host_path = self.controller_host.split("://")[1].partition("/")[2]
         restpath = f"{controller_host_path}/agent/logs".lstrip("/")
         use_https = "on" if self.controller_host.startswith("https") else "off"
