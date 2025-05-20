@@ -586,6 +586,8 @@ class Agent(ea.EdgeAgent):
         with open("/etc/rsyslog.d/thymis.conf", "w", encoding="utf-8") as f:
             f.write(rsyslog_config)
 
+        os.system("systemctl kill -s HUP rsyslog")
+
         data_path = find_data_path()
         if not data_path:
             logger.error("Data path not found")
