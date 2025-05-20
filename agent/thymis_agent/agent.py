@@ -523,7 +523,7 @@ class Agent(ea.EdgeAgent):
             constant(value=",")   property(name="syslogtag"     outname="syslogtag" format="jsonfr")
             constant(value=",")   property(name="programname"   outname="programname" format="jsonfr")
             constant(value=",")   property(name="hostname"      outname="host"      format="jsonfr")
-            constant(value=",")   property(name="timereported"  outname="timestamp" format="jsonfr" dateFormat="rfc3339")
+            constant(value=",")   property(name="timereported"  outname="timestamp" format="jsonfr" dateFormat="rfc3339" date.inUTC="on")
             constant(value=",")   property(name="uuid"         outname="uuid"      format="jsonfr")
             constant(value="}}")
         }}
