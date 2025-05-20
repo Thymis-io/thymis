@@ -89,9 +89,12 @@ async def logs(
     x_thymis_token: Annotated[str | None, Header()] = None,
 ):
     # if token is invalid, reject
-    if x_thymis_ssh_pubkey is None or x_thymis_token is None:
-        logger.warning(f"Invalid token from {request.client.host}")
+    if x_thymis_ssh_pubkey is None:
+        logger.warning(f"No SSH public key from {request.client.host}")
         raise HTTPException(status_code=404)  # don't leak information
+    if x_thymis_token is None:
+        logger.warning(f"No token from {request.client.host}")
+        raise HTTPException(status_code=404)
     # check if token is valid
     if not check_token_validity(db_session, x_thymis_token):
         logger.warning(f"Invalid token from {request.client.host}: {x_thymis_token}")
