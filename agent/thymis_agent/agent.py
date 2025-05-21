@@ -588,8 +588,11 @@ class Agent(ea.EdgeAgent):
 
             os.makedirs("/etc/rsyslog.d", exist_ok=True, mode=0o755)
             # compare with existing config
-            with open("/etc/rsyslog.d/thymis.conf", "r", encoding="utf-8") as f:
-                existing_config = f.read()
+            if os.path.exists("/etc/rsyslog.d/thymis.conf"):
+                with open("/etc/rsyslog.d/thymis.conf", "r", encoding="utf-8") as f:
+                    existing_config = f.read()
+            else:
+                existing_config = None
             if existing_config == rsyslog_config:
                 config_diff = False
             else:
