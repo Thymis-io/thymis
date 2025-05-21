@@ -583,10 +583,29 @@ class Agent(ea.EdgeAgent):
         """
 
         os.makedirs("/etc/rsyslog.d", exist_ok=True, mode=0o755)
-        with open("/etc/rsyslog.d/thymis.conf", "w", encoding="utf-8") as f:
-            f.write(rsyslog_config)
+        # compare with existing config
+        with open("/etc/rsyslog.d/thymis.conf", "r", encoding="utf-8") as f:
+            existing_config = f.read()
+        if existing_config == rsyslog_config:
+            config_diff = False
+        else:
+            config_diff = True
+        if config_diff:
+            logger.info("Rsyslog config changed, reloading")
+            with open("/etc/rsyslog.d/thymis.conf", "w", encoding="utf-8") as f:
+                f.write(rsyslog_config)
 
-        os.system("systemctl kill -s HUP rsyslog")
+            if "--just-place-secrets" in sys.argv:
+                # make directory + parents /run/nixos
+                os.makedirs("/run/nixos", exist_ok=True, mode=0o755)
+                # write /activation-reload-list
+                with open(
+                    "/run/nixos/activation-reload-list", "a+", encoding="utf-8"
+                ) as f:
+                    f.write("syslog.service\n")
+            else:
+                # restart rsyslog
+                os.system("systemctl reload syslog.service")
 
         data_path = find_data_path()
         if not data_path:
