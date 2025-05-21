@@ -146,6 +146,7 @@ in
       include(file="/etc/rsyslog.d/thymis.conf")
     '';
     systemd.services.syslog.after = [ "thymis-agent-place-secrets.service" ];
+    systemd.services.syslog.serviceConfig.ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
     system.activationScripts.thymis = lib.mkIf (cfg.agent.enable) {
       text = ''
         CONTROLLER_HOST=${cfg.agent.controller-url} ${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent --just-place-secrets
