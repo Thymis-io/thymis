@@ -503,109 +503,113 @@ class Agent(ea.EdgeAgent):
     def place_secrets_on_start(self, token: str):
         # use message if there, if not
         # try using thymis-secrets-initial.json and decrypting using token,
-
-        # Create and write rsyslog config
-        controller_host_domain_and_maybe_port = self.controller_host.split("://")[
-            1
-        ].split("/")[0]
-        # split domain and port
-        controller_host_domain = controller_host_domain_and_maybe_port.split(":")[0]
-        # if port is not present, use 443 or 80
-        if ":" in controller_host_domain_and_maybe_port:
-            controller_host_port = controller_host_domain_and_maybe_port.split(":")[1]
-        else:
-            controller_host_port = (
-                "443" if self.controller_host.startswith("https") else "80"
-            )
-        controller_host_path = self.controller_host.split("://")[1].partition("/")[2]
-        restpath = f"{controller_host_path}/agent/logs".lstrip("/")
-        use_https = "on" if self.controller_host.startswith("https") else "off"
-        rsyslog_config = f"""
-        module(load="imuxsock")
-        module(load="imklog")
-        module(load="omhttp")
-        template(name="tpl_omhttp_json" type="list") {{
-            constant(value="{{")   property(name="msg"           outname="message"   format="jsonfr")
-            constant(value=",")   property(name="syslogfacility" outname="facility" format="jsonfr" datatype="number")
-            constant(value=",")   property(name="syslogseverity" outname="severity" format="jsonfr" datatype="number")
-            constant(value=",")   property(name="syslogtag"     outname="syslogtag" format="jsonfr")
-            constant(value=",")   property(name="programname"   outname="programname" format="jsonfr")
-            constant(value=",")   property(name="hostname"      outname="host"      format="jsonfr")
-            constant(value=",")   property(name="timereported"  outname="timestamp" format="jsonfr" dateFormat="rfc3339" date.inUTC="on")
-            constant(value=",")   property(name="uuid"         outname="uuid"      format="jsonfr")
-            constant(value="}}")
-        }}
-        template(name="tpl_echo" type="string" string="%msg%")
-        ruleset(name="rs_retry_forever") {{
-            action(
-                type="omhttp"
-                template="tpl_omhttp_json"
-                httpheaders=[
-                    "X-Thymis-Ssh-Pubkey: {self.detect_public_key()}",
-                    "X-Thymis-Token: {token}",
-                    "X-Thymis-Hostname: {self.detect_hostname()}"
+        if token is not None:
+            # Create and write rsyslog config
+            controller_host_domain_and_maybe_port = self.controller_host.split("://")[
+                1
+            ].split("/")[0]
+            # split domain and port
+            controller_host_domain = controller_host_domain_and_maybe_port.split(":")[0]
+            # if port is not present, use 443 or 80
+            if ":" in controller_host_domain_and_maybe_port:
+                controller_host_port = controller_host_domain_and_maybe_port.split(":")[
+                    1
                 ]
-                server="{controller_host_domain}"
-                serverport="{controller_host_port}"
-                restpath="{restpath}"
-                useHttps="{use_https}"
-                batch="on"
-                batch.format="jsonarray"
-                retry="on"
-                retry.ruleset="rs_omhttp_retry"
-                restpathtimeout="5000"
-            )
-        }}
-        ruleset(name="rs_omhttp_retry") {{
-            action(
-                type="omhttp"
-                template="tpl_echo"
-                httpheaders=[
-                    "X-Thymis-Ssh-Pubkey: {self.detect_public_key()}",
-                    "X-Thymis-Token: {token}",
-                    "X-Thymis-Hostname: {self.detect_hostname()}"
-                ]
-                server="{controller_host_domain}"
-                serverport="{controller_host_port}"
-                restpath="{restpath}"
-                useHttps="{use_https}"
-                batch="on"
-                batch.format="jsonarray"
-                batch.maxsize="1"
-                action.resumeRetryCount="3"
-                action.resumeInterval="20"
-                errorfile="/var/log/rsyslog-error.log"
-                restpathtimeout="5000"
-            )
-        }}
-
-        call rs_retry_forever
-        """
-
-        os.makedirs("/etc/rsyslog.d", exist_ok=True, mode=0o755)
-        # compare with existing config
-        with open("/etc/rsyslog.d/thymis.conf", "r", encoding="utf-8") as f:
-            existing_config = f.read()
-        if existing_config == rsyslog_config:
-            config_diff = False
-        else:
-            config_diff = True
-        if config_diff:
-            logger.info("Rsyslog config changed, reloading")
-            with open("/etc/rsyslog.d/thymis.conf", "w", encoding="utf-8") as f:
-                f.write(rsyslog_config)
-
-            if "--just-place-secrets" in sys.argv:
-                # make directory + parents /run/nixos
-                os.makedirs("/run/nixos", exist_ok=True, mode=0o755)
-                # write /activation-reload-list
-                with open(
-                    "/run/nixos/activation-reload-list", "a+", encoding="utf-8"
-                ) as f:
-                    f.write("syslog.service\n")
             else:
-                # restart rsyslog
-                os.system("systemctl reload syslog.service")
+                controller_host_port = (
+                    "443" if self.controller_host.startswith("https") else "80"
+                )
+            controller_host_path = self.controller_host.split("://")[1].partition("/")[
+                2
+            ]
+            restpath = f"{controller_host_path}/agent/logs".lstrip("/")
+            use_https = "on" if self.controller_host.startswith("https") else "off"
+            rsyslog_config = f"""
+            module(load="imuxsock")
+            module(load="imklog")
+            module(load="omhttp")
+            template(name="tpl_omhttp_json" type="list") {{
+                constant(value="{{")   property(name="msg"           outname="message"   format="jsonfr")
+                constant(value=",")   property(name="syslogfacility" outname="facility" format="jsonfr" datatype="number")
+                constant(value=",")   property(name="syslogseverity" outname="severity" format="jsonfr" datatype="number")
+                constant(value=",")   property(name="syslogtag"     outname="syslogtag" format="jsonfr")
+                constant(value=",")   property(name="programname"   outname="programname" format="jsonfr")
+                constant(value=",")   property(name="hostname"      outname="host"      format="jsonfr")
+                constant(value=",")   property(name="timereported"  outname="timestamp" format="jsonfr" dateFormat="rfc3339" date.inUTC="on")
+                constant(value=",")   property(name="uuid"         outname="uuid"      format="jsonfr")
+                constant(value="}}")
+            }}
+            template(name="tpl_echo" type="string" string="%msg%")
+            ruleset(name="rs_retry_forever") {{
+                action(
+                    type="omhttp"
+                    template="tpl_omhttp_json"
+                    httpheaders=[
+                        "X-Thymis-Ssh-Pubkey: {self.detect_public_key()}",
+                        "X-Thymis-Token: {token}",
+                        "X-Thymis-Hostname: {self.detect_hostname()}"
+                    ]
+                    server="{controller_host_domain}"
+                    serverport="{controller_host_port}"
+                    restpath="{restpath}"
+                    useHttps="{use_https}"
+                    batch="on"
+                    batch.format="jsonarray"
+                    retry="on"
+                    retry.ruleset="rs_omhttp_retry"
+                    restpathtimeout="5000"
+                )
+            }}
+            ruleset(name="rs_omhttp_retry") {{
+                action(
+                    type="omhttp"
+                    template="tpl_echo"
+                    httpheaders=[
+                        "X-Thymis-Ssh-Pubkey: {self.detect_public_key()}",
+                        "X-Thymis-Token: {token}",
+                        "X-Thymis-Hostname: {self.detect_hostname()}"
+                    ]
+                    server="{controller_host_domain}"
+                    serverport="{controller_host_port}"
+                    restpath="{restpath}"
+                    useHttps="{use_https}"
+                    batch="on"
+                    batch.format="jsonarray"
+                    batch.maxsize="1"
+                    action.resumeRetryCount="3"
+                    action.resumeInterval="20"
+                    errorfile="/var/log/rsyslog-error.log"
+                    restpathtimeout="5000"
+                )
+            }}
+
+            call rs_retry_forever
+            """
+
+            os.makedirs("/etc/rsyslog.d", exist_ok=True, mode=0o755)
+            # compare with existing config
+            with open("/etc/rsyslog.d/thymis.conf", "r", encoding="utf-8") as f:
+                existing_config = f.read()
+            if existing_config == rsyslog_config:
+                config_diff = False
+            else:
+                config_diff = True
+            if config_diff:
+                logger.info("Rsyslog config changed, reloading")
+                with open("/etc/rsyslog.d/thymis.conf", "w", encoding="utf-8") as f:
+                    f.write(rsyslog_config)
+
+                if "--just-place-secrets" in sys.argv:
+                    # make directory + parents /run/nixos
+                    os.makedirs("/run/nixos", exist_ok=True, mode=0o755)
+                    # write /activation-reload-list
+                    with open(
+                        "/run/nixos/activation-reload-list", "a+", encoding="utf-8"
+                    ) as f:
+                        f.write("syslog.service\n")
+                else:
+                    # restart rsyslog
+                    os.system("systemctl reload syslog.service")
 
         data_path = find_data_path()
         if not data_path:
