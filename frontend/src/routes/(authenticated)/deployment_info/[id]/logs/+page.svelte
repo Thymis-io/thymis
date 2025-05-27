@@ -97,13 +97,13 @@
 	];
 
 	// Quick time range presets
-	const timePresets = [
-		{ label: 'Last 15 minutes', minutes: 15 },
-		{ label: 'Last hour', minutes: 60 },
-		{ label: 'Last 4 hours', minutes: 240 },
-		{ label: 'Last 24 hours', minutes: 1440 },
-		{ label: 'Last 7 days', minutes: 10080 }
-	];
+	const timePresets = $derived([
+		{ label: $t('logs.presets.last-15-minutes'), minutes: 15 },
+		{ label: $t('logs.presets.last-hour'), minutes: 60 },
+		{ label: $t('logs.presets.last-4-hours'), minutes: 240 },
+		{ label: $t('logs.presets.last-24-hours'), minutes: 1440 },
+		{ label: $t('logs.presets.last-7-days'), minutes: 10080 }
+	]);
 
 	// Apply filters and navigate
 	const applyFilters = () => {
@@ -291,7 +291,7 @@
 	nav={data.nav}
 	globalState={data.globalState}
 	repoStatus={data.repoStatus}
-	title="Deployment Logs"
+	title={$t('logs.title')}
 />
 
 <div class="flex flex-col gap-4 px-0 py-4 w-full">
@@ -299,7 +299,7 @@
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4">
 		<div>
 			<p class="text-sm text-gray-600 dark:text-gray-400">
-				Viewing logs for deployment: {deploymentId}
+				{$t('logs.viewing-logs-for', { values: { deploymentId } })}
 			</p>
 		</div>
 
@@ -310,7 +310,7 @@
 				{:else}
 					<RefreshCcw class="mr-2 h-4 w-4" />
 				{/if}
-				Refresh
+				{$t('logs.refresh')}
 			</Button>
 
 			<Button
@@ -320,7 +320,7 @@
 				disabled={!data.logs || data.logs.length === 0}
 			>
 				<Download class="mr-2 h-4 w-4" />
-				Download
+				{$t('logs.download')}
 			</Button>
 		</div>
 	</div>
@@ -330,7 +330,7 @@
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 			<!-- Time Range -->
 			<div class="space-y-2">
-				<Label class="text-sm font-medium">Time Range</Label>
+				<Label class="text-sm font-medium">{$t('logs.time-range')}</Label>
 				<div class="flex flex-col gap-2">
 					<div class="flex items-center gap-2">
 						<Calendar class="h-4 w-4 text-gray-500" />
@@ -338,19 +338,24 @@
 							type="datetime-local"
 							bind:value={fromDateTime}
 							class="text-sm"
-							placeholder="From"
+							placeholder={$t('logs.from-placeholder')}
 						/>
 					</div>
 					<div class="flex items-center gap-2">
 						<Clock class="h-4 w-4 text-gray-500" />
-						<Input type="datetime-local" bind:value={toDateTime} class="text-sm" placeholder="To" />
+						<Input
+							type="datetime-local"
+							bind:value={toDateTime}
+							class="text-sm"
+							placeholder={$t('logs.to-placeholder')}
+						/>
 					</div>
 				</div>
 			</div>
 
 			<!-- Quick Time Presets -->
 			<div class="space-y-2">
-				<Label class="text-sm font-medium">Quick Select</Label>
+				<Label class="text-sm font-medium">{$t('logs.quick-select')}</Label>
 				<div class="grid grid-cols-1 gap-1">
 					{#each timePresets as preset}
 						<Button size="xs" color="light" on:click={() => setTimePreset(preset.minutes)}>
@@ -362,12 +367,16 @@
 
 			<!-- Search -->
 			<div class="space-y-2">
-				<Label class="text-sm font-medium">Search</Label>
+				<Label class="text-sm font-medium">{$t('logs.search')}</Label>
 				<div class="relative">
 					<Search
 						class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500"
 					/>
-					<Input bind:value={searchQuery} placeholder="Search logs..." class="pl-10 text-sm" />
+					<Input
+						bind:value={searchQuery}
+						placeholder={$t('logs.search-placeholder')}
+						class="pl-10 text-sm"
+					/>
 				</div>
 			</div>
 		</div>
@@ -379,24 +388,24 @@
 			<div class="flex flex-wrap items-center gap-4">
 				<div class="flex items-center gap-2">
 					<Toggle bind:checked={showTimestamps} size="small" />
-					<Label class="text-sm">Show timestamps</Label>
+					<Label class="text-sm">{$t('logs.show-timestamps')}</Label>
 				</div>
 				<div class="flex items-center gap-2">
 					<Toggle bind:checked={wrapLines} size="small" />
-					<Label class="text-sm">Wrap lines</Label>
+					<Label class="text-sm">{$t('logs.wrap-lines')}</Label>
 				</div>
 				<div class="flex items-center gap-2">
 					<Toggle bind:checked={reverseOrder} size="small" />
-					<Label class="text-sm">Reverse order</Label>
+					<Label class="text-sm">{$t('logs.reverse-order')}</Label>
 				</div>
 				<div class="flex items-center gap-2">
 					<Toggle bind:checked={autoRefresh} size="small" />
-					<Label class="text-sm">Auto-refresh ({refreshInterval}s)</Label>
+					<Label class="text-sm">{$t('logs.auto-refresh', { values: { refreshInterval } })}</Label>
 				</div>
 			</div>
 
 			<div class="flex items-center gap-2">
-				<Label class="text-sm">Per page:</Label>
+				<Label class="text-sm">{$t('logs.per-page')}</Label>
 				<Select bind:value={limit} items={limitOptions} size="sm" class="w-20" />
 			</div>
 		</div>
@@ -407,7 +416,7 @@
 				{#if isLoading}
 					<Spinner class="mr-2" size="4" />
 				{/if}
-				Apply Filters
+				{$t('logs.apply-filters')}
 			</Button>
 		</div>
 	</div>
@@ -419,20 +428,22 @@
 		{#if isLoading}
 			<div class="flex items-center justify-center p-8">
 				<Spinner size="8" />
-				<span class="ml-3 text-gray-600 dark:text-gray-400">Loading logs...</span>
+				<span class="ml-3 text-gray-600 dark:text-gray-400">{$t('logs.loading')}</span>
 			</div>
 		{:else if !data.logs || data.logs.length === 0}
 			<div class="flex flex-col items-center justify-center p-8 text-center">
 				<div class="text-gray-400 dark:text-gray-500 mb-4">
 					<Search class="h-12 w-12 mx-auto" />
 				</div>
-				<h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No logs found</h3>
+				<h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+					{$t('logs.no-logs-found')}
+				</h3>
 				<p class="text-gray-600 dark:text-gray-400 mb-4">
-					No logs were found for the selected time range and filters.
+					{$t('logs.no-logs-message')}
 				</p>
 				<Button color="light" on:click={applyFilters}>
 					<RefreshCcw class="mr-2 h-4 w-4" />
-					Refresh
+					{$t('logs.refresh')}
 				</Button>
 			</div>
 		{:else}
@@ -442,12 +453,12 @@
 					class="flex flex-wrap items-center justify-between gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
 				>
 					<div class="text-sm text-gray-600 dark:text-gray-400">
-						Showing {processedLogs.length} logs
+						{$t('logs.showing-logs', { values: { count: processedLogs.length } })}
 					</div>
 					<div class="text-sm text-gray-600 dark:text-gray-400">
 						{#if processedLogs.length > 0}
 							<RenderTimeAgo timestamp={processedLogs[0]?.timestamp} class="inline" />
-							to
+							{$t('logs.time-range-to')}
 							<RenderTimeAgo
 								timestamp={processedLogs[processedLogs.length - 1]?.timestamp}
 								class="inline"
@@ -462,8 +473,8 @@
 						<MonospaceText code={formatLogsForDisplay(processedLogs)} language={undefined} />
 					{:else}
 						<Alert color="yellow">
-							<span class="font-medium">No logs match your filters.</span>
-							Try adjusting your search query or time range.
+							<span class="font-medium">{$t('logs.no-logs-match')}</span>
+							{$t('logs.adjust-filters')}
 						</Alert>
 					{/if}
 				</div>
@@ -474,15 +485,15 @@
 						<div class="flex items-center gap-2">
 							{#if urlOffset > 0}
 								<Button size="sm" color="light" on:click={() => handlePageChange(currentPage - 1)}>
-									Previous
+									{$t('logs.previous')}
 								</Button>
 							{/if}
 							<span class="text-sm text-gray-600 dark:text-gray-400">
-								Page {currentPage}
+								{$t('logs.page', { values: { currentPage } })}
 							</span>
 							{#if hasMorePages}
 								<Button size="sm" color="light" on:click={() => handlePageChange(currentPage + 1)}>
-									Next
+									{$t('logs.next')}
 								</Button>
 							{/if}
 						</div>
