@@ -1,8 +1,8 @@
 import subprocess
+from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, UploadFile
 from fastapi.responses import Response
-from pydantic import BaseModel
 from thymis_controller import models
 from thymis_controller.dependencies import ProjectAD
 
@@ -12,36 +12,43 @@ router = APIRouter()
 @router.get("/artifacts")
 def get_artifacts(project: ProjectAD):
     root_path = project.repo_dir / "artifacts"
+
     if not root_path.exists():
         return []
 
-    result = []
-    stack = [(root_path, result)]
+    return [
+        models.Artifact(
+            name=path.name,
+            media_type=get_media_type(path),
+            size=path.stat().st_size,
+            created_at=path.stat().st_ctime,
+            modified_at=path.stat().st_mtime,
+        )
+        for path in sorted(root_path.iterdir(), key=lambda e: (e.is_file(), e.name))
+        if path.is_file()
+    ]
 
-    while stack:
-        current_path, current_children = stack.pop()
-        entries = sorted(current_path.iterdir(), key=lambda e: (e.is_file(), e.name))
 
-        for entry in entries:
-            relative_path = entry.relative_to(root_path)
-            if entry.is_dir():
-                folder = models.Folder(
-                    name=entry.name, path=str(relative_path), children=[]
-                )
-                current_children.append(folder)
-                stack.append((entry, folder.children))
-            else:
-                file = models.File(name=entry.name, path=str(relative_path))
-                current_children.append(file)
-
-    return result
+def get_media_type(path: Path) -> str | None:
+    try:
+        return (
+            subprocess.run(
+                ["file", "--mime-type", "--brief", path],
+                stdout=subprocess.PIPE,
+                check=True,
+            )
+            .stdout.strip()
+            .decode("utf-8")
+        )
+    except subprocess.CalledProcessError:
+        return None
 
 
 @router.get("/artifacts/{location:path}")
 def get_artifact(location: str, project: ProjectAD):
     path = project.repo_dir / "artifacts" / location
 
-    if not path.is_relative_to(project.repo_dir / "artifacts"):
+    if path.parent != project.repo_dir / "artifacts" or not path.is_file():
         raise HTTPException(status_code=403, detail="Invalid path")
 
     if not path.exists():
@@ -63,74 +70,48 @@ def get_artifact(location: str, project: ProjectAD):
         return Response(content=b"", media_type="folder")
 
 
-@router.post("/artifacts/upload/{location:path}")
-def create_artifact(location: str, files: list[UploadFile], project: ProjectAD):
-    path = project.repo_dir / "artifacts" / location
+@router.post("/artifacts/")
+def create_artifact(files: list[UploadFile], project: ProjectAD):
+    path = project.repo_dir / "artifacts"
 
-    if not path.is_relative_to(project.repo_dir / "artifacts"):
-        raise HTTPException(status_code=403, detail="Invalid path")
-
-    path.mkdir(parents=True, exist_ok=True)
     for file in files:
         with open(path / file.filename, "wb") as f:
             f.write(file.file.read())
 
-    return {"message": "Artifact created"}
+    return {"message": "Artifacts created"}
 
 
 @router.delete("/artifacts/{location:path}")
 def delete_artifact(location: str, project: ProjectAD):
     path = project.repo_dir / "artifacts" / location
 
-    if not path.is_relative_to(project.repo_dir / "artifacts"):
+    if path.parent != project.repo_dir / "artifacts" or not path.is_file():
         raise HTTPException(status_code=403, detail="Invalid path")
 
     if not path.exists():
         raise HTTPException(status_code=404, detail="Artifact not found")
 
-    if path.is_dir():
-        for child in path.rglob("*"):
-            child.unlink()
-        path.rmdir()
-    else:
-        path.unlink()
+    path.unlink()
 
     return {"message": "Artifact deleted"}
 
 
-class MoveArtifact(BaseModel):
-    artifact: str
+@router.post("/artifacts/rename/{location:path}")
+def rename_artifact(location: str, new_name: str, project: ProjectAD):
+    path = project.repo_dir / "artifacts" / location
 
-
-# move an artifact to a folder
-@router.post("/artifacts/move/{location:path}")
-def move_artifact(location: str, move: MoveArtifact, project: ProjectAD):
-    src = project.repo_dir / "artifacts" / move.artifact
-    dst = project.repo_dir / "artifacts" / location
-
-    while dst.exists() and dst.is_file():
-        dst = dst.parent
-
-    print(src, dst)
-
-    if not src.is_relative_to(project.repo_dir / "artifacts") or not dst.is_relative_to(
-        project.repo_dir / "artifacts"
-    ):
+    if path.parent != project.repo_dir / "artifacts" or not path.is_file():
         raise HTTPException(status_code=403, detail="Invalid path")
 
-    if not src.exists():
-        raise HTTPException(status_code=404, detail="Source artifact not found")
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Artifact not found")
 
-    if src == dst:
+    new_path = path.parent / new_name
+    if new_path.exists():
         raise HTTPException(
-            status_code=400, detail="Source and destination are the same"
+            status_code=400, detail="Artifact with new name already exists"
         )
 
-    if src in dst.parents:
-        raise HTTPException(
-            status_code=400, detail="Destination cannot be a subfolder of source"
-        )
+    path.rename(new_path)
 
-    src.rename(dst / src.name)
-
-    return {"message": "Artifact moved"}
+    return {"message": "Artifact renamed"}
