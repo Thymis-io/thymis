@@ -1,14 +1,11 @@
+import datetime
+
 from pydantic import BaseModel
 
 
-class Folder(BaseModel):
-    type: str = "folder"
+class Artifact(BaseModel):
     name: str
-    path: str
-    children: list["Folder | File"] = []
-
-
-class File(BaseModel):
-    type: str = "file"
-    name: str
-    path: str
+    media_type: str | None = None
+    size: int
+    created_at: datetime.datetime
+    modified_at: datetime.datetime

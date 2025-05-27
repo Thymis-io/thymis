@@ -2,7 +2,7 @@
 	import Dropdown from '$lib/components/Dropdown.svelte';
 	import type { ArtifactSettingType, Setting } from '$lib/state';
 	import type { Artifact } from '../../routes/(authenticated)/artifacts/[...rest]/+page';
-	import ArtifactTreeOptions from './ArtifactTreeOptions.svelte';
+	import FileIcon from 'lucide-svelte/icons/file';
 
 	interface Props {
 		value?: string | null;
@@ -26,12 +26,15 @@
 	innerClass="px-2 py-1"
 >
 	{#snippet options()}
-		<ArtifactTreeOptions
-			{artifacts}
-			onSelect={(artifact) => {
-				console.log(artifact.path);
-				onChange?.(artifact.path);
-			}}
-		/>
+		{#each artifacts as artifact}
+			<option
+				value={artifact.name}
+				class="flex items-center px-1 gap-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+				onclick={() => onChange?.(artifact.name)}
+			>
+				<FileIcon class="w-4 h-4 shrink-0" />
+				{artifact.name}
+			</option>
+		{/each}
 	{/snippet}
 </Dropdown>

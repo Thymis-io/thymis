@@ -1,36 +1,16 @@
 import type { PageLoad } from './$types';
 
-export type Folder = {
-	type: 'folder';
+export type Artifact = {
 	name: string;
-	path: string;
-	children: Artifact[];
+	media_type?: string | null;
+	size: number;
+	created_at: string;
+	modified_at: string;
 };
 
-export type File = {
-	type: 'file';
-	name: string;
-	path: string;
-};
-
-export type Artifact = Folder | File;
-
-export const load = (async ({ fetch, params }) => {
+export const load = (async ({ fetch }) => {
 	const artifactsResponse = await fetch(`/api/artifacts`, { method: 'GET' });
-	const selectedArtifactResponse = await fetch(`/api/artifacts/${params.rest}`, { method: 'GET' });
-	const hasSelectedArtifact = selectedArtifactResponse.status === 200;
-	const selectedArtifactBlob = hasSelectedArtifact
-		? await selectedArtifactResponse.blob()
-		: undefined;
 	return {
-		artifacts: (await artifactsResponse.json()) as Artifact[],
-		selectedArtifact: hasSelectedArtifact
-			? {
-					blob: selectedArtifactBlob,
-					text: await selectedArtifactBlob?.text(),
-					path: params.rest,
-					mediaType: selectedArtifactResponse.headers.get('content-type')
-				}
-			: undefined
+		artifacts: (await artifactsResponse.json()) as Artifact[]
 	};
 }) satisfies PageLoad;

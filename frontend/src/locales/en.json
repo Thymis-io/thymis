@@ -34,7 +34,18 @@
 		"no": "No"
 	},
 	"artifacts": {
-		"drag_drop": "Drag and drop files here"
+		"table": {
+			"name": "Name",
+			"type": "Media Type",
+			"unknown-type": "Unknown Type",
+			"size": "Size",
+			"created-at": "Created At",
+			"modified-at": "Modified At",
+			"actions": "Actions",
+			"download": "Download",
+			"delete": "Delete"
+		},
+		"upload-file": "Upload File"
 	},
 	"vnc": {
 		"connection-failed": "Connection failed",
