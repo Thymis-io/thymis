@@ -55,14 +55,11 @@
 	let urlLimit = $derived(parseInt($page.url.searchParams.get('limit') || '100'));
 	let urlOffset = $derived(parseInt($page.url.searchParams.get('offset') || '0'));
 	let urlSearchQuery = $derived($page.url.searchParams.get('search') || '');
-	let urlLogLevel = $derived($page.url.searchParams.get('level') || 'all');
-
 	// Form input state - initialized with defaults, synced with URL via effect
 	let fromDateTime = $state('');
 	let toDateTime = $state('');
-	let limit = $state(100);
+	let limit = $state('100'); // Changed to string to match Select component
 	let searchQuery = $state('');
-	let logLevel = $state('all');
 
 	// UI state that doesn't come from URL
 	let autoRefresh = $state(false);
@@ -85,20 +82,10 @@
 		if (!isApplyingFilters) {
 			fromDateTime = urlFromDateTime;
 			toDateTime = urlToDateTime;
-			limit = urlLimit;
+			limit = urlLimit.toString(); // Convert to string for Select component
 			searchQuery = urlSearchQuery;
-			logLevel = urlLogLevel;
 		}
 	});
-
-	// Available log levels
-	const logLevels = [
-		{ value: 'all', name: 'All Levels' },
-		{ value: 'error', name: 'Error' },
-		{ value: 'warn', name: 'Warning' },
-		{ value: 'info', name: 'Info' },
-		{ value: 'debug', name: 'Debug' }
-	];
 
 	// Pagination settings
 	const limitOptions = [
@@ -130,28 +117,22 @@
 		const currentLimit = urlLimit.toString();
 		const currentOffset = urlOffset.toString();
 		const currentSearch = urlSearchQuery;
-		const currentLevel = urlLogLevel !== 'all' ? urlLogLevel : '';
-
-		const newLevel = logLevel !== 'all' ? logLevel : '';
 
 		const hasParamChanges =
 			currentFromDateTime !== fromDateTime ||
 			currentToDateTime !== toDateTime ||
-			currentLimit !== limit.toString() ||
+			currentLimit !== limit ||
 			currentOffset !== '0' || // Always reset offset when applying filters
-			currentSearch !== searchQuery ||
-			currentLevel !== newLevel;
+			currentSearch !== searchQuery;
 
 		if (hasParamChanges) {
 			// Parameters changed, use goto to update URL
 			url.searchParams.set('fromDateTime', toISOString(fromDateTime));
 			url.searchParams.set('toDateTime', toISOString(toDateTime));
-			url.searchParams.set('limit', limit.toString());
+			url.searchParams.set('limit', limit);
 			url.searchParams.set('offset', '0'); // Reset offset when applying filters
 			if (searchQuery) url.searchParams.set('search', searchQuery);
 			else url.searchParams.delete('search');
-			if (logLevel !== 'all') url.searchParams.set('level', logLevel);
-			else url.searchParams.delete('level');
 
 			goto(url.toString(), { replaceState: false, noScroll: true }).then(() => {
 				isApplyingFilters = false;
@@ -189,9 +170,12 @@
 	};
 
 	const handleLimitChange = () => {
+		// Don't proceed if we're already applying filters to avoid race conditions
+		if (isApplyingFilters) return;
+
 		isApplyingFilters = true;
 		const url = new URL($page.url);
-		url.searchParams.set('limit', limit.toString());
+		url.searchParams.set('limit', limit);
 		url.searchParams.set('offset', '0'); // Reset to first page when changing limit
 		goto(url.toString(), { replaceState: false, noScroll: true }).then(() => {
 			isApplyingFilters = false;
@@ -262,6 +246,14 @@
 		}
 	});
 
+	// Handle limit changes reactively
+	$effect(() => {
+		// Only trigger limit change if the limit differs from URL and we're not currently applying filters
+		if (!isApplyingFilters && limit !== urlLimit.toString()) {
+			handleLimitChange();
+		}
+	});
+
 	// Process logs for display (server already handles filtering)
 	const processedLogs = $derived(reverseOrder ? [...(data.logs || [])].reverse() : data.logs || []);
 
@@ -289,7 +281,10 @@
 
 	// Current page calculation
 	const currentPage = $derived(Math.floor(urlOffset / urlLimit) + 1);
-	const totalPages = $derived(Math.ceil((data.logs?.length || 0) / urlLimit));
+	// Note: We don't have total count from server, so pagination is based on current results
+	// This means we can only show pagination controls when we have a full page of results
+	const hasMorePages = $derived(data.logs && data.logs.length === urlLimit);
+	const showPagination = $derived(urlOffset > 0 || hasMorePages);
 </script>
 
 <PageHead
@@ -365,17 +360,14 @@
 				</div>
 			</div>
 
-			<!-- Search and Filters -->
+			<!-- Search -->
 			<div class="space-y-2">
-				<Label class="text-sm font-medium">Search & Filter</Label>
-				<div class="flex flex-col gap-2">
-					<div class="relative">
-						<Search
-							class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500"
-						/>
-						<Input bind:value={searchQuery} placeholder="Search logs..." class="pl-10 text-sm" />
-					</div>
-					<Select bind:value={logLevel} items={logLevels} size="sm" placeholder="Log Level" />
+				<Label class="text-sm font-medium">Search</Label>
+				<div class="relative">
+					<Search
+						class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500"
+					/>
+					<Input bind:value={searchQuery} placeholder="Search logs..." class="pl-10 text-sm" />
 				</div>
 			</div>
 		</div>
@@ -405,13 +397,7 @@
 
 			<div class="flex items-center gap-2">
 				<Label class="text-sm">Per page:</Label>
-				<Select
-					bind:value={limit}
-					items={limitOptions}
-					size="sm"
-					on:change={handleLimitChange}
-					class="w-20"
-				/>
+				<Select bind:value={limit} items={limitOptions} size="sm" class="w-20" />
 			</div>
 		</div>
 
@@ -477,20 +463,29 @@
 					{:else}
 						<Alert color="yellow">
 							<span class="font-medium">No logs match your filters.</span>
-							Try adjusting your search query or log level filter.
+							Try adjusting your search query or time range.
 						</Alert>
 					{/if}
 				</div>
 
 				<!-- Pagination -->
-				{#if processedLogs.length > urlLimit}
-					<div class="flex justify-center mt-6">
-						<Paginator
-							totalCount={processedLogs.length}
-							pageSize={urlLimit}
-							page={currentPage}
-							onChange={handlePageChange}
-						/>
+				{#if showPagination}
+					<div class="flex justify-center items-center gap-4 mt-6">
+						<div class="flex items-center gap-2">
+							{#if urlOffset > 0}
+								<Button size="sm" color="light" on:click={() => handlePageChange(currentPage - 1)}>
+									Previous
+								</Button>
+							{/if}
+							<span class="text-sm text-gray-600 dark:text-gray-400">
+								Page {currentPage}
+							</span>
+							{#if hasMorePages}
+								<Button size="sm" color="light" on:click={() => handlePageChange(currentPage + 1)}>
+									Next
+								</Button>
+							{/if}
+						</div>
 					</div>
 				{/if}
 			</div>
