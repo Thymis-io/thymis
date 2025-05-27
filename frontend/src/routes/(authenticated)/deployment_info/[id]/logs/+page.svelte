@@ -67,6 +67,7 @@
 	// UI state that doesn't come from URL
 	let autoRefresh = $state(false);
 	let refreshInterval = $state(5); // seconds
+	let reverseOrder = $state(false); // Toggle for reversing log order
 
 	// Loading state
 	let isLoading = $state(false);
@@ -221,7 +222,10 @@
 	const downloadLogs = () => {
 		// Create download link for current log data
 		if (data.logs && data.logs.length > 0) {
-			const logText = data.logs
+			// Always use chronological order for downloads (oldest first)
+			// Since data.logs arrives newest first, reverse it for chronological order
+			const logText = [...data.logs]
+				.reverse()
 				.map((log: any) => {
 					const timestamp = new Date(log.timestamp).toISOString();
 					return `[${timestamp}] ${log.level || 'INFO'}: ${log.message || JSON.stringify(log)}`;
@@ -259,7 +263,7 @@
 	});
 
 	// Process logs for display (server already handles filtering)
-	const processedLogs = $derived(data.logs || []);
+	const processedLogs = $derived(reverseOrder ? [...(data.logs || [])].reverse() : data.logs || []);
 
 	// Format logs for display
 	const formatLogsForDisplay = (logs: any[]) => {
@@ -388,6 +392,10 @@
 				<div class="flex items-center gap-2">
 					<Toggle bind:checked={wrapLines} size="small" />
 					<Label class="text-sm">Wrap lines</Label>
+				</div>
+				<div class="flex items-center gap-2">
+					<Toggle bind:checked={reverseOrder} size="small" />
+					<Label class="text-sm">Reverse order</Label>
 				</div>
 				<div class="flex items-center gap-2">
 					<Toggle bind:checked={autoRefresh} size="small" />
