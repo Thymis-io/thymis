@@ -34,7 +34,18 @@
 		"yes": "Ja"
 	},
 	"artifacts": {
-		"drag_drop": "Dateien hier ablegen"
+		"table": {
+			"name": "Name",
+			"type": "Media Type",
+			"unknown-type": "Unbekannter Typ",
+			"size": "Größe",
+			"created-at": "Erstellt",
+			"modified-at": "Geändert",
+			"actions": "Aktionen",
+			"download": "Herunterladen",
+			"delete": "Löschen"
+		},
+		"upload-file": "Datei Hochladen"
 	},
 	"vnc": {
 		"connection-failed": "Verbindungsfehler",
