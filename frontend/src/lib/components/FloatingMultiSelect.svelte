@@ -9,9 +9,10 @@
 		selected: T[];
 		outerDivClass: string;
 		children?: Snippet<[{ option: T }]>;
+		key?: (option: T) => string | number;
 	}
 
-	let { options, selected = $bindable(), outerDivClass, children }: Props = $props();
+	let { options, selected = $bindable(), outerDivClass, children, key }: Props = $props();
 
 	let multiSelectDiv: HTMLDivElement | null = $state(null);
 	let multiSelectRect: DOMRect | null = $state(null);
@@ -53,6 +54,7 @@
 	ulOptionsStyle={`position: fixed; top: ${multiSelectRect?.bottom}px; left: ${multiSelectRect?.left}px; width: ${multiSelectRect?.width}px; max-height: var(--sms-options-max-height);`}
 	{options}
 	bind:selected
+	{key}
 	{outerDivClass}
 >
 	{#snippet children({ option }: { option: T })}

@@ -116,6 +116,7 @@
 							globalState.configs.map((config) => toOption(config, 'config'))
 						)
 					)}
+					key={(option: MyOption) => option.type + option.value}
 					bind:selected={selectedOptions}
 					outerDivClass="w-full"
 				>
