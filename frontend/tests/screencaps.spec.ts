@@ -603,3 +603,28 @@ test('Create Secrets', async ({ page, request }, testInfo) => {
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 });
+
+test('Open Deploy With Identical Config And Tag Identifier', async ({
+	page,
+	request
+}, testInfo) => {
+	const screenshotCounter = { count: 0 };
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
+
+	// Create a configuration
+	await createConfiguration(page, 'My Device 1', 'Raspberry Pi 4', []);
+
+	// Create a tag with the same identifier as the configuration
+	await createTag(page, 'My Device 1');
+
+	const deployButton = page.locator('button').filter({ hasText: 'Deploy' });
+	await deployButton.click();
+
+	const searchbox = page.getByRole('searchbox').filter({ hasText: 'My Device 1' });
+	await searchbox.click();
+	await searchbox.getByText('My Device 1').nth(0).click();
+	await searchbox.getByText('My Device 1').nth(1).click();
+
+	await expectScreenshot(page, testInfo, screenshotCounter);
+});
