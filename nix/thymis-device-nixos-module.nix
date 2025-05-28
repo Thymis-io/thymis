@@ -140,6 +140,7 @@ in
       environment = {
         CONTROLLER_HOST = cfg.agent.controller-url;
       };
+      serviceConfig.Type = "oneshot";
     };
     services.rsyslogd.enable = true;
     services.rsyslogd.defaultConfig = ''
