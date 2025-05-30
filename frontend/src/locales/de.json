@@ -46,7 +46,12 @@
 			"download": "Herunterladen",
 			"delete": "Löschen"
 		},
-		"upload-file": "Datei Hochladen"
+		"upload-file": "Datei Hochladen",
+		"replace-file-title": "Datei Ersetzen",
+		"replace-file-description": "Sie sind dabei, die Datei {name} durch eine neue Datei zu ersetzen. Dadurch wird die vorhandene Datei überschrieben.",
+		"replace-file-confirm": "Ersetzen",
+		"replace-file-cancel": "Abbrechen",
+		"name-already-used": "Name bereits verwendet"
 	},
 	"vnc": {
 		"connection-failed": "Verbindungsfehler",

@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, UploadFile
 from fastapi.responses import Response
 from thymis_controller import models
 from thymis_controller.dependencies import ProjectAD
+from thymis_controller.models.state import State
 
 router = APIRouter()
 
@@ -112,6 +113,16 @@ def rename_artifact(location: str, new_name: str, project: ProjectAD):
             status_code=400, detail="Artifact with new name already exists"
         )
 
+    if new_path.parent != path.parent:
+        raise HTTPException(
+            status_code=403, detail="Cannot move artifact to another directory"
+        )
+
     path.rename(new_path)
+
+    state = project.read_state()
+    json = state.model_dump_json()
+    json = json.replace(f'"artifact":"{location}"', f'"artifact":"{new_name}"')
+    project.write_state(State.model_validate_json(json))
 
     return {"message": "Artifact renamed"}
