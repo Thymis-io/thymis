@@ -39,6 +39,7 @@
 			"type": "Media Type",
 			"unknown-type": "Unbekannter Typ",
 			"size": "Größe",
+			"usage": "Verwendung",
 			"created-at": "Erstellt",
 			"modified-at": "Geändert",
 			"actions": "Aktionen",

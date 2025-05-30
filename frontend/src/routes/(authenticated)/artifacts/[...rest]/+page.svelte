@@ -9,6 +9,8 @@
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import type { Artifact } from './+page';
 	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
+	import type { ModuleSettings } from '$lib/state';
+	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
 	interface Props {
 		data: PageData;
@@ -60,6 +62,26 @@
 
 		await invalidate((url) => url.pathname.startsWith('/api/artifacts'));
 	};
+
+	const hasArtifactUsages = (artifact: Artifact, module: ModuleSettings): boolean => {
+		const isArtifact = (key: string, value: unknown): boolean => {
+			if (key === 'artifact' && value === artifact.name) {
+				return true;
+			}
+			if (key === 'artifacts' && Array.isArray(value) && value.includes(artifact.name)) {
+				return true;
+			}
+			if (value !== null && typeof value === 'object') {
+				return Object.entries(value).some(([subKey, subValue]) => isArtifact(subKey, subValue));
+			}
+			if (value !== null && Array.isArray(value)) {
+				return value.some((element) => isArtifact(key, element));
+			}
+			return false;
+		};
+
+		return Object.entries(module.settings).some(([key, value]) => isArtifact(key, value));
+	};
 </script>
 
 <PageHead
@@ -81,6 +103,7 @@
 		<TableHeadCell padding="p-2">{$t('artifacts.table.name')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('artifacts.table.type')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('artifacts.table.size')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('artifacts.table.usage')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('artifacts.table.created-at')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('artifacts.table.modified-at')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('artifacts.table.actions')}</TableHeadCell>
@@ -100,6 +123,30 @@
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					{bytesToHumanReadable(artifact.size)}
+				</TableBodyCell>
+				<TableBodyCell tdClass="p-2 ">
+					<div class="flex flex-row flex-wrap gap-2 items-center">
+						{#each data.globalState.configs as config}
+							{#if config.modules.some((module) => hasArtifactUsages(artifact, module))}
+								<IdentifierLink
+									identifier={config.identifier}
+									context="config"
+									globalState={data.globalState}
+									solidBackground
+								/>
+							{/if}
+						{/each}
+						{#each data.globalState.tags as tag}
+							{#if tag.modules.some((module) => hasArtifactUsages(artifact, module))}
+								<IdentifierLink
+									identifier={tag.identifier}
+									context="tag"
+									globalState={data.globalState}
+									solidBackground
+								/>
+							{/if}
+						{/each}
+					</div>
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					{new Date(artifact.created_at).toLocaleString()}
