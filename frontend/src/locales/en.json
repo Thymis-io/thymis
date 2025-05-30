@@ -46,7 +46,12 @@
 			"download": "Download",
 			"delete": "Delete"
 		},
-		"upload-file": "Upload File"
+		"upload-file": "Upload File",
+		"replace-file-title": "Replace File",
+		"replace-file-description": "You are about to replace the file {name} with a new file. This will overwrite the existing file.",
+		"replace-file-confirm": "Replace",
+		"replace-file-cancel": "Cancel",
+		"name-already-used": "Name already used"
 	},
 	"vnc": {
 		"connection-failed": "Connection failed",

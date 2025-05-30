@@ -3,7 +3,15 @@
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import type { PageData } from './$types';
 	import { invalidate } from '$app/navigation';
-	import { Button, Table, TableBodyCell, TableHead, TableHeadCell } from 'flowbite-svelte';
+	import {
+		Button,
+		Helper,
+		Modal,
+		Table,
+		TableBodyCell,
+		TableHead,
+		TableHeadCell
+	} from 'flowbite-svelte';
 	import Trash from 'lucide-svelte/icons/trash-2';
 	import Download from 'lucide-svelte/icons/download';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
@@ -19,6 +27,7 @@
 	let { data }: Props = $props();
 
 	let files = $state<FileList>();
+	let uploadReplaceFile = $state<File | null>(null);
 	let deleteConfirmTarget = $state<Artifact | undefined>();
 
 	const uploadFiles = async () => {
@@ -43,6 +52,11 @@
 		if (bytes < 1000000) return `${(bytes / 1000).toFixed(2)} KB`;
 		if (bytes < 1000000000) return `${(bytes / 1000000).toFixed(2)} MB`;
 		return `${(bytes / 1000000000).toFixed(2)} GB`;
+	};
+
+	const isUnusedName = (artifact: Artifact | null, newName: string): boolean => {
+		if (!newName || newName.trim() === '') return false;
+		return !data.artifacts.some((a) => a != artifact && a.name === newName);
 	};
 
 	const renameArtifact = async (artifact: Artifact, newName: string) => {
@@ -97,6 +111,28 @@
 	on:confirm={() => deleteConfirmTarget && deleteArtifact(deleteConfirmTarget)}
 />
 
+<Modal
+	open={!!uploadReplaceFile}
+	title={$t('artifacts.replace-file-title')}
+	autoclose
+	outsideclose
+	on:close={() => (uploadReplaceFile = null)}
+>
+	<div class="text-lg whitespace-pre-line">
+		{$t('artifacts.replace-file-description', {
+			values: { name: uploadReplaceFile?.name }
+		})}
+	</div>
+	<div class="flex justify-end mt-4">
+		<Button on:click={() => (uploadReplaceFile = null)} color="alternative">
+			{$t('artifacts.replace-file-cancel')}
+		</Button>
+		<Button on:click={uploadFiles} color="red" class="ml-2">
+			{$t('artifacts.replace-file-confirm')}
+		</Button>
+	</div>
+</Modal>
+
 <Table shadow>
 	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2 w-12" />
@@ -116,8 +152,23 @@
 				<TableBodyCell tdClass="p-2"></TableBodyCell>
 				<TableBodyEditCell
 					value={artifact.name}
-					onEnter={(value) => renameArtifact(artifact, value)}
-				/>
+					onEnter={async (value) => {
+						if (isUnusedName(artifact, value)) {
+							renameArtifact(artifact, value);
+						}
+
+						// Reset the input field after renaming
+						await invalidate((url) => url.pathname.startsWith('/api/artifacts'));
+					}}
+				>
+					{#snippet bottom({ value: newName })}
+						{#if !isUnusedName(artifact, newName)}
+							<Helper color="red">
+								{$t('artifacts.name-already-used')}
+							</Helper>
+						{/if}
+					{/snippet}
+				</TableBodyEditCell>
 				<TableBodyCell tdClass="p-2">
 					{artifact.media_type || $t('artifacts.table.unknown-type')}
 				</TableBodyCell>
@@ -189,7 +240,14 @@
 		class="whitespace-nowrap"
 		color="alternative"
 		disabled={!files || files.length === 0}
-		on:click={uploadFiles}
+		on:click={() => {
+			if (!files) return;
+			if (isUnusedName(null, files[0].name)) {
+				uploadFiles();
+			} else {
+				uploadReplaceFile = files[0];
+			}
+		}}
 	>
 		{$t('artifacts.upload-file')}
 	</Button>
