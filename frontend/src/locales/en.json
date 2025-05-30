@@ -18,7 +18,8 @@
 		"external-repositories": "External Repositories",
 		"tags": "Config-Tags",
 		"device-details": "Details",
-		"secrets": "Secrets"
+		"secrets": "Secrets",
+		"artifacts": "Artifacts"
 	},
 	"common": {
 		"search": "Search...",
@@ -31,6 +32,26 @@
 		"website": "Homepage",
 		"yes": "Yes",
 		"no": "No"
+	},
+	"artifacts": {
+		"table": {
+			"name": "Name",
+			"type": "Media Type",
+			"unknown-type": "Unknown Type",
+			"size": "Size",
+			"usage": "Usage",
+			"created-at": "Created At",
+			"modified-at": "Modified At",
+			"actions": "Actions",
+			"download": "Download",
+			"delete": "Delete"
+		},
+		"upload-file": "Upload File",
+		"replace-file-title": "Replace File",
+		"replace-file-description": "You are about to replace the file {name} with a new file. This will overwrite the existing file.",
+		"replace-file-confirm": "Replace",
+		"replace-file-cancel": "Cancel",
+		"name-already-used": "Name already used"
 	},
 	"vnc": {
 		"connection-failed": "Connection failed",
