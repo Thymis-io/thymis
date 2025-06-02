@@ -983,14 +983,17 @@ Secrets sind perfekt für
 
         if artifacts:
             f.write("  systemd.tmpfiles.rules = [\n")
+            artifact: dict
             for artifact in artifacts:
-                artifact_path = artifact["artifact"] if "artifact" in artifact else None
-                result_path = artifact["path"] if "path" in artifact else "/"
-                if not artifact_path:
-                    continue
-                f.write(
-                    f'    "C+ {result_path} - - - - ${{pkgs.copyPathToStore (inputs.self + "/artifacts/{artifact_path}")}}"\n'
-                )
+                artifact_path = artifact.get("artifact", None)
+                result_path = artifact.get("path", "/") or "/"
+                mode = artifact.get("mode", "-") or "-"
+                user = artifact.get("owner", "-") or "-"
+                group = artifact.get("group", "-") or "-"
+                if artifact_path:
+                    f.write(
+                        f'    "C+ {result_path} {mode} {user} {group} - ${{pkgs.copyPathToStore (inputs.self + "/artifacts/{artifact_path}")}}"\n'
+                    )
             f.write("  ];")
 
         return super().write_nix_settings(f, path, module_settings, priority, project)
