@@ -39,6 +39,10 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - name: Delete huge unnecessary tools folder
+        run: |
+          cd /opt
+          find . -maxdepth 1 -mindepth 1 '!' -path ./containerd '!' -path ./actionarchivecache '!' -path ./runner '!' -path ./runner-cache -exec rm -rf '{}' ';'
       - name: Get branch of PR
         uses: xt0rted/pull-request-comment-branch@v3
         id: comment-branch
@@ -99,6 +103,10 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - name: Delete huge unnecessary tools folder
+        run: |
+          cd /opt
+          find . -maxdepth 1 -mindepth 1 '!' -path ./containerd '!' -path ./actionarchivecache '!' -path ./runner '!' -path ./runner-cache -exec rm -rf '{}' ';'
       - name: Get branch of PR
         uses: xt0rted/pull-request-comment-branch@v3
         id: comment-branch
