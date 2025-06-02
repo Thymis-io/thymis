@@ -505,12 +505,16 @@ class NetworkRelay(nr.NetworkRelay):
         async def disconnect_and_ban_all_connections(self, db_session):
             agent_connections = self.registered_agent_connections.copy()
             for connection_id, connection in agent_connections.items():
-                start_message = self.connection_id_to_start_message[connection_id]
-                # ban the token
-                crud_agent_token.revoke_access_client_token(
-                    db_session, start_message.token
-                )
-                await connection.close()
+                if connection_id in self.connection_id_to_start_message:
+                    start_message = self.connection_id_to_start_message[connection_id]
+                    # ban the token
+                    crud_agent_token.revoke_access_client_token(
+                        db_session, start_message.token
+                    )
+                try:
+                    await connection.close()
+                except RuntimeError:
+                    pass
                 if connection_id in self.connection_id_to_public_key:
                     public_key = self.connection_id_to_public_key[connection_id]
                     del self.public_key_to_connection_id[public_key]
