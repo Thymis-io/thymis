@@ -18,6 +18,13 @@ const waitForTerminalText = async (page: Page, text: string) => {
 	}, text);
 };
 
+const enterTextInTerminal = async (page: Page, text: string) => {
+	const terminalElement = await page.$('.xterm-helper-textarea');
+	await terminalElement?.focus();
+	await page.keyboard.type(text);
+	await page.keyboard.press('Enter');
+};
+
 const goToDevicesPage = async (page: Page, baseURL?: string) => {
 	await page.reload();
 	for (let i = 0; i < 5; i++) {
@@ -209,4 +216,68 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 		.click();
 	test.setTimeout(360000);
 	await page.waitForEvent('download');
+});
+
+test('Create and use artifacts', async ({ page, request }, testInfo) => {
+	const screenshotCounter = { count: 0 };
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
+
+	// Create a configuration
+	await createConfiguration(page, 'My Device 1', 'Generic x86-64', []);
+
+	await page.locator('nav:visible').locator('a', { hasText: 'Artifacts' }).click();
+
+	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	// Upload a file
+	const fileInput = page.locator('input[type="file"]').first();
+	await fileInput.setInputFiles({
+		name: 'test.txt',
+		mimeType: 'text/plain',
+		buffer: Buffer.from('This is a test file')
+	});
+	await page.locator('button').filter({ hasText: 'Upload' }).click();
+
+	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
+	await page
+		.locator('tr')
+		.filter({ hasText: 'My Device 1' })
+		.getByRole('button', { name: 'View Details' })
+		.first()
+		.click();
+	await page.getByRole('tab', { name: 'Configure' }).click();
+	await page.locator('button').filter({ hasText: 'Add Artifact' }).click();
+	await page.locator('button', { hasText: 'Add Artifact' }).scrollIntoViewIfNeeded();
+	await page.locator("button:near(:text('Artifact')):text('Select an option')").click();
+	await page.locator('option', { hasText: 'test.txt' }).click();
+	await page.locator("input:near(:text('Path'))").fill('/root/test-file.txt');
+	await page.locator("input:near(:text('Path'))").blur();
+
+	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	test.setTimeout(360000);
+	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
+	await page.locator('button').filter({ hasText: 'Commit & Build and start VM' }).first().click();
+	await page
+		.locator('td', { hasText: 'completed' })
+		.nth(0)
+		.or(page.locator('td', { hasText: 'failed' }).first())
+		.waitFor({ timeout: 360000 });
+	await expect(page.locator('td', { hasText: 'completed' }).nth(0)).toBeVisible();
+	await page
+		.locator('td', { hasText: 'running' })
+		.nth(0)
+		.or(page.locator('td', { hasText: 'failed' }).first())
+		.waitFor({ timeout: 360000 });
+	await expect(page.locator('td', { hasText: 'running' }).nth(0)).toBeVisible();
+
+	await page.getByRole('tab', { name: 'Details' }).click();
+	await waitForTerminalText(page, '[root@my-device-1:~]#');
+	await enterTextInTerminal(page, 'cat /root/test-file.txt');
+	await waitForTerminalText(page, 'This is a test file');
+
+	await expectScreenshot(page, testInfo, screenshotCounter);
 });
