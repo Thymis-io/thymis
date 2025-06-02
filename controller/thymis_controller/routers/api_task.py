@@ -79,6 +79,7 @@ if is_running_in_playwright():
         await network_relay.disconnect_and_ban_all_connections(db_session)
         task_controller.delete_all_tasks(db_session)
         project.clear_history(db_session)
+        project.clear_images()
         db_session.query(db_models.Secret).delete()
         db_session.commit()
         return {"message": "All tasks deleted"}

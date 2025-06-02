@@ -530,6 +530,11 @@ class Project:
                 self.repo.start_file_watcher()
                 self.update_known_hosts(db_session)
 
+    def clear_images(self):
+        logger.info("Clearing images and image-builders directories")
+        del_path(self.path / "images")
+        del_path(self.path / "image-builders")
+
     def update_known_hosts(self, db_session: sqlalchemy.orm.Session):
         if not self.known_hosts_path or not self.known_hosts_path.exists():
             self.known_hosts_path = pathlib.Path(
