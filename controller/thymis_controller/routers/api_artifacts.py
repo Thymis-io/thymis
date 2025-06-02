@@ -1,3 +1,4 @@
+import os
 import subprocess
 from pathlib import Path
 
@@ -74,6 +75,7 @@ def get_artifact(location: str, project: ProjectAD):
 @router.post("/artifacts/")
 def create_artifact(files: list[UploadFile], project: ProjectAD):
     path = project.repo_dir / "artifacts"
+    os.makedirs(path, exist_ok=True)
 
     for file in files:
         with open(path / file.filename, "wb") as f:
