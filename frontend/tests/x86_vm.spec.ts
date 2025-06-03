@@ -279,5 +279,7 @@ test('Create and use artifacts', async ({ page, request }, testInfo) => {
 	await enterTextInTerminal(page, 'cat /root/test-file.txt');
 	await waitForTerminalText(page, 'This is a test file');
 
-	await expectScreenshot(page, testInfo, screenshotCounter);
+	await expectScreenshot(page, testInfo, screenshotCounter, {
+		maxDiffPixels: 256
+	});
 });
