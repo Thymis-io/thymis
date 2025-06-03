@@ -1,3 +1,4 @@
+import datetime
 import importlib
 import json
 import logging
@@ -413,26 +414,40 @@ class Project:
         """
         This method must always be called within a write_repo_lock to prevent race conidtions
         """
+        error = None
         self.repo.pause_file_watcher()
         repositories = BUILTIN_REPOSITORIES | state.repositories
-        with open(self.repo_dir / "flake.nix", "w+", encoding="utf-8") as f:
-            f.write(render_flake_nix(repositories))
-        self.repo.add(".")
-        # write missing flake.lock entries using nix flake lock
-        error = None
-        try:
-            subprocess.run(
-                ["nix", *NIX_CMD[1:], "flake", "lock", "--allow-dirty-locks"],
-                cwd=self.repo_dir,
-                capture_output=True,
-                check=True,
-            )
-        except subprocess.CalledProcessError as e:
-            logger.error("Error while running nix flake lock: %s", e)
-            logger.error("stdout: %s", e.stdout)
-            logger.error("stderr: %s", e.stderr)
-            traceback.print_exc()
-            error = e
+        if (self.repo_dir / "flake.nix").exists():
+            with open(self.repo_dir / "flake.nix", "r", encoding="utf-8") as f:
+                flake_nix_content = f.read()
+        else:
+            flake_nix_content = ""
+        new_flake_nix_content = render_flake_nix(repositories)
+        if flake_nix_content != new_flake_nix_content:
+            logger.info("Updating flake.nix content")
+            with open(self.repo_dir / "flake.nix", "w+", encoding="utf-8") as f:
+                f.write(new_flake_nix_content)
+            self.repo.add(".")
+            # write missing flake.lock entries using nix flake lock
+            try:
+                logger.info("Running nix flake lock...")
+                start_time = datetime.datetime.now()
+                subprocess.run(
+                    ["nix", *NIX_CMD[1:], "flake", "lock", "--allow-dirty-locks"],
+                    cwd=self.repo_dir,
+                    capture_output=True,
+                    check=True,
+                )
+                logger.info(
+                    "Successfully ran nix flake lock in %s",
+                    datetime.datetime.now() - start_time,
+                )
+            except subprocess.CalledProcessError as e:
+                logger.error("Error while running nix flake lock: %s", e)
+                logger.error("stdout: %s", e.stdout)
+                logger.error("stderr: %s", e.stderr)
+                traceback.print_exc()
+                error = e
         self.set_repositories_in_python_path(self.repo_dir, state)
         # create modules folder if not exists
         modules_path = self.repo_dir / "modules"
