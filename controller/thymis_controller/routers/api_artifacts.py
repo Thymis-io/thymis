@@ -1,19 +1,34 @@
 import os
-import subprocess
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, UploadFile
 from fastapi.responses import Response
 from thymis_controller import models
+from thymis_controller.crud.artifacts import get_media_type
 from thymis_controller.dependencies import ProjectAD
 from thymis_controller.models.state import State
 
 router = APIRouter()
 
 
+def get_root_path(project: ProjectAD) -> Path:
+    return project.repo_dir / "artifacts"
+
+
+def validate_file_path(root: Path, file_name: str, should_exist: bool):
+    path = (root / file_name).resolve()
+    if not path.is_relative_to(root.resolve()) or not path.parent == root.resolve():
+        raise HTTPException(status_code=403, detail="Invalid path")
+    if should_exist and not path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    if should_exist and not path.is_file():
+        raise HTTPException(status_code=400, detail="Path is not a file")
+    return path
+
+
 @router.get("/artifacts")
 def get_artifacts(project: ProjectAD):
-    root_path = project.repo_dir / "artifacts"
+    root_path = get_root_path(project)
 
     if not root_path.exists():
         return []
@@ -31,93 +46,39 @@ def get_artifacts(project: ProjectAD):
     ]
 
 
-def get_media_type(path: Path) -> str | None:
-    try:
-        return (
-            subprocess.run(
-                ["file", "--mime-type", "--brief", path],
-                stdout=subprocess.PIPE,
-                check=True,
-            )
-            .stdout.strip()
-            .decode("utf-8")
-        )
-    except subprocess.CalledProcessError:
-        return None
-
-
-@router.get("/artifacts/{location:path}")
+@router.get("/artifacts/{location}")
 def get_artifact(location: str, project: ProjectAD):
-    path = project.repo_dir / "artifacts" / location
-
-    if path.parent != project.repo_dir / "artifacts" or not path.is_file():
-        raise HTTPException(status_code=403, detail="Invalid path")
-
-    if not path.exists():
-        raise HTTPException(status_code=404, detail="Artifact not found")
-
-    media_type = (
-        subprocess.run(
-            ["file", "--mime-type", "--brief", str(path)],
-            stdout=subprocess.PIPE,
-            check=True,
-        )
-        .stdout.strip()
-        .decode("utf-8")
-    )
-
-    if path.is_file():
-        return Response(content=path.read_bytes(), media_type=media_type)
-    else:
-        return Response(content=b"", media_type="folder")
+    path = validate_file_path(get_root_path(project), location, should_exist=True)
+    return Response(content=path.read_bytes(), media_type=get_media_type(path))
 
 
 @router.post("/artifacts/")
 def create_artifact(files: list[UploadFile], project: ProjectAD):
-    path = project.repo_dir / "artifacts"
-    os.makedirs(path, exist_ok=True)
-
     for file in files:
-        with open(path / file.filename, "wb") as f:
+        path = validate_file_path(
+            get_root_path(project), file.filename, should_exist=False
+        )
+        os.makedirs(path.parent, exist_ok=True)
+        with open(path, "wb") as f:
             f.write(file.file.read())
-
     return {"message": "Artifacts created"}
 
 
-@router.delete("/artifacts/{location:path}")
+@router.delete("/artifacts/{location}")
 def delete_artifact(location: str, project: ProjectAD):
-    path = project.repo_dir / "artifacts" / location
-
-    if path.parent != project.repo_dir / "artifacts" or not path.is_file():
-        raise HTTPException(status_code=403, detail="Invalid path")
-
-    if not path.exists():
-        raise HTTPException(status_code=404, detail="Artifact not found")
-
+    path = validate_file_path(get_root_path(project), location, should_exist=True)
     path.unlink()
-
     return {"message": "Artifact deleted"}
 
 
-@router.post("/artifacts/rename/{location:path}")
+@router.post("/artifacts/rename/{location}")
 def rename_artifact(location: str, new_name: str, project: ProjectAD):
-    path = project.repo_dir / "artifacts" / location
+    path = validate_file_path(get_root_path(project), location, should_exist=True)
+    new_path = validate_file_path(get_root_path(project), new_name, should_exist=False)
 
-    if path.parent != project.repo_dir / "artifacts" or not path.is_file():
-        raise HTTPException(status_code=403, detail="Invalid path")
-
-    if not path.exists():
-        raise HTTPException(status_code=404, detail="Artifact not found")
-
-    new_path = path.parent / new_name
     if new_path.exists():
         raise HTTPException(
             status_code=400, detail="Artifact with new name already exists"
-        )
-
-    if new_path.parent != path.parent:
-        raise HTTPException(
-            status_code=403, detail="Cannot move artifact to another directory"
         )
 
     path.rename(new_path)
