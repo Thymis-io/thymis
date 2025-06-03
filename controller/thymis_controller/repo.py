@@ -92,7 +92,9 @@ class Repo:
         self.init()
 
     def start_file_watcher(self):
-        self.state_event_handler = StateEventHandler(self.path, self.notification_manager)
+        self.state_event_handler = StateEventHandler(
+            self.path, self.notification_manager
+        )
         self.state_observer = Observer()
         self.state_observer.schedule(
             self.state_event_handler, str(self.path), recursive=True
