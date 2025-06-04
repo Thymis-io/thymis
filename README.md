@@ -143,7 +143,14 @@ The controller takes care of running the frontend for you. You can access thymis
   - Fixed unresponsive navigation when the page invalidates data at the same time, see sveltejs/kit#9354
   - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.5.0)
 
-- [ ] `Release 0.6.0`
+- [x] `Release 0.6.0`
+  - artifact management
+  - logs are now collected into the database
+  - bug fixes and minor improvements
+  - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.6.0)
+
+- [ ] `Release 0.7.0`
+  - Update to nixpkgs/NixOS 25.05
   - Rework module system for outside developers
   - New features and bug fixes, possibly containing breaking changes
 
