@@ -92,15 +92,9 @@ div.multiselect > ul.selected > li > .remove {
 }
 
 .page-button.active {
-	@apply bg-gray-300;
+	@apply bg-gray-300 dark:bg-gray-500;
 	@apply text-primary-500;
 }
-.page-button.active:is(:global(.dark *)) {
-	@apply bg-gray-500;
-}
 .page-button:hover {
-	@apply bg-gray-300;
-}
-.page-button:hover:is(:global(.dark *)) {
-	@apply bg-gray-500;
+	@apply bg-gray-300 dark:bg-gray-500;
 }
