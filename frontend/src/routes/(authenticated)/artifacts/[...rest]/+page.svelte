@@ -199,10 +199,10 @@
 						{/each}
 					</div>
 				</TableBodyCell>
-				<TableBodyCell tdClass="p-2 w-32 playwright-snapshot-unstable">
+				<TableBodyCell tdClass="p-2 w-[10rem] playwright-snapshot-unstable">
 					{new Date(artifact.created_at).toLocaleString()}
 				</TableBodyCell>
-				<TableBodyCell tdClass="p-2 w-32 playwright-snapshot-unstable">
+				<TableBodyCell tdClass="p-2 w-[10rem] playwright-snapshot-unstable">
 					{new Date(artifact.modified_at).toLocaleString()}
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
