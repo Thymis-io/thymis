@@ -107,9 +107,7 @@
 			"last-seen": "Last seen",
 			"no-hardware-ids": "No hardware ids detected",
 			"unknown-device-type": "Unknown device type",
-			"never-seen": "Never",
-			"actions": "Actions",
-			"view-logs": "VIew logs"
+			"never-seen": "Never"
 		},
 		"hardware-keys": {
 			"pi-serial-number": "Pi Serial Number"
@@ -400,40 +398,5 @@
 		"no-secrets": "No Secrets",
 		"confirm-delete": "Confirm deleting secret:",
 		"delete-error": "Error deleting secret"
-	},
-	"logs": {
-		"title": "Deployment Logs",
-		"viewing-logs-for": "Viewing logs for deployment: {deploymentId}",
-		"refresh": "Refresh",
-		"download": "Download",
-		"time-range": "Time Range",
-		"quick-select": "Quick Select",
-		"search": "Search",
-		"search-placeholder": "Search logs...",
-		"from-placeholder": "From",
-		"to-placeholder": "To",
-		"show-timestamps": "Show timestamps",
-		"wrap-lines": "Wrap lines",
-		"reverse-order": "Reverse order",
-		"auto-refresh": "Auto-refresh ({refreshInterval}s)",
-		"per-page": "Per page:",
-		"apply-filters": "Apply Filters",
-		"loading": "Loading logs...",
-		"no-logs-found": "No logs found",
-		"no-logs-message": "No logs were found for the selected time range and filters.",
-		"showing-logs": "Showing {count} logs",
-		"time-range-to": "to",
-		"no-logs-match": "No logs match your filters.",
-		"adjust-filters": "Try adjusting your search query or time range.",
-		"previous": "Previous",
-		"page": "Page {currentPage}",
-		"next": "Next",
-		"presets": {
-			"last-15-minutes": "Last 15 minutes",
-			"last-hour": "Last hour",
-			"last-4-hours": "Last 4 hours",
-			"last-24-hours": "Last 24 hours",
-			"last-7-days": "Last 7 days"
-		}
 	}
 }

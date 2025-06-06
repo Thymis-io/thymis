@@ -107,8 +107,7 @@
 			"last-seen": "Zuletzt gesehen",
 			"no-hardware-ids": "Keine Hardware -IDs gefunden",
 			"unknown-device-type": "Unbekannter Gerätetyp",
-			"never-seen": "Nie",
-			"view-logs": "Logs ansehen"
+			"never-seen": "Nie"
 		},
 		"hardware-keys": {
 			"pi-serial-number": "Pi Seriennummer"
@@ -384,40 +383,5 @@
 		"no-secrets": "Keine Geheimnisse",
 		"processing-description-yescrypt": "Dies wird das Geheimnis unter Verwendung des Yescrypt -Algorithmus haben. \nDer Hash -Wert wird im Geheimnis gespeichert. \t\t\t\t\t\nDies sollte verwendet werden, um Passwörter für Benutzer oder Dienste festzulegen, für die ein Hashed -Passwort erforderlich ist.",
 		"include-in-image": "Im Installationsimage einbauen"
-	},
-	"logs": {
-		"title": "Deployment Logs",
-		"viewing-logs-for": "Logs anzeigen für Deployment: {deploymentId}",
-		"refresh": "Aktualisieren",
-		"download": "Herunterladen",
-		"time-range": "Zeitraum",
-		"quick-select": "Schnellauswahl",
-		"search": "Suchen",
-		"search-placeholder": "Logs durchsuchen...",
-		"from-placeholder": "Von",
-		"to-placeholder": "Bis",
-		"show-timestamps": "Zeitstempel anzeigen",
-		"wrap-lines": "Zeilen umbrechen",
-		"reverse-order": "Reihenfolge umkehren",
-		"auto-refresh": "Auto-Aktualisierung ({refreshInterval}s)",
-		"per-page": "Pro Seite:",
-		"apply-filters": "Filter Anwenden",
-		"loading": "Logs werden geladen...",
-		"no-logs-found": "Keine Logs gefunden",
-		"no-logs-message": "Für den ausgewählten Zeitraum und die Filter wurden keine Logs gefunden.",
-		"showing-logs": "{count} Logs angezeigt",
-		"time-range-to": "bis",
-		"no-logs-match": "Keine Logs entsprechen Ihren Filtern.",
-		"adjust-filters": "Versuchen Sie, Ihre Suchanfrage oder den Zeitbereich anzupassen.",
-		"previous": "Zurück",
-		"page": "Seite {currentPage}",
-		"next": "Weiter",
-		"presets": {
-			"last-15-minutes": "Letzte 15 Minuten",
-			"last-hour": "Letzte Stunde",
-			"last-4-hours": "Letzte 4 Stunden",
-			"last-24-hours": "Letzte 24 Stunden",
-			"last-7-days": "Letzte 7 Tage"
-		}
 	}
 }
