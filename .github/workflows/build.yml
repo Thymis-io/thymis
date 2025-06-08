@@ -76,7 +76,7 @@ jobs:
       - name: Get Thymis App Token
         id: generate-token
         if: failure()
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ vars.THYMIS_APP_ID }}
           private-key: ${{ secrets.THYMIS_APP_PRIVATE_KEY }}
