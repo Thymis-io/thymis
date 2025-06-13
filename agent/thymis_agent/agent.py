@@ -17,7 +17,7 @@ import http_network_relay.edge_agent as ea
 import http_network_relay.pydantic_models as pm
 import psutil
 import requests
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from pyrage import decrypt, passphrase, ssh
 
 ch = logging.StreamHandler()
@@ -620,9 +620,12 @@ class Agent(ea.EdgeAgent):
             return
         secrets_path = data_path / "thymis-secrets-message.json"
         if secrets_path.exists():
-            with open(secrets_path, "r", encoding="utf-8") as f:
-                message = RtESendSecretsMessage.model_validate_json(f.read())
-            self.place_secrets_on_message(message)
+            try:
+                with open(secrets_path, "r", encoding="utf-8") as f:
+                    message = RtESendSecretsMessage.model_validate_json(f.read())
+                self.place_secrets_on_message(message)
+            except ValidationError as e:
+                logger.error("Failed to validate secrets message: %s", e)
             return
         secrets_path = data_path / "thymis-secrets-initial.json"
         if not secrets_path.exists():
