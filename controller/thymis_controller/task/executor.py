@@ -202,7 +202,20 @@ class TaskWorkerPoolManager:
                                 db_session.commit()
                                 self.on_task_output.notify(task)
                             case models_task.TaskCompletedUpdate():
-                                # task.state = "completed"
+                                # if task is a flake update task, re-generate the configs
+                                if (
+                                    task.task_submission_data is not None
+                                    and ("type" in task.task_submission_data)
+                                    and (
+                                        task.task_submission_data["type"]
+                                        == "project_flake_update_task"
+                                    )
+                                ):
+                                    logger.info(
+                                        "Task %s is a flake update task, re-generating configs",
+                                        task_id,
+                                    )
+                                    self.controller.project.reload_from_disk()
                                 if not task.children:
                                     task.state = "completed"
                                     task.end_time = datetime.now(timezone.utc)
