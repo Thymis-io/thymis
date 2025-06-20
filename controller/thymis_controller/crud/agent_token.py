@@ -1,4 +1,6 @@
+import random
 import uuid
+from typing import Optional
 
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
@@ -60,6 +62,32 @@ def check_access_client_token_validity(
         .count()
         > 0
     )
+
+
+def get_or_create_access_client_token(
+    session: Session,
+    deployment_info_id: uuid.UUID,
+    deploy_device_task_id: Optional[uuid.UUID] = None,
+) -> db_models.AccessClientToken:
+    token = (
+        session.query(db_models.AccessClientToken)
+        .filter_by(
+            for_deployment_info_id=deployment_info_id,
+            deploy_device_task_id=deploy_device_task_id,
+            revoked=False,
+        )
+        .first()
+    )
+
+    if token is None:
+        token = create_access_client_token(
+            session,
+            deployment_info_id,
+            random.randbytes(32).hex(),
+            deploy_device_task_id,
+        )
+
+    return token
 
 
 def revoke_access_client_token(session: Session, token: str):

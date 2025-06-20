@@ -1,7 +1,6 @@
 import contextlib
 import logging
 import os
-import random
 import time
 import uuid
 from datetime import datetime, timezone
@@ -10,7 +9,7 @@ from typing import TYPE_CHECKING
 import sqlalchemy
 from sqlalchemy.orm import Session
 from thymis_controller import crud, db_models, models
-from thymis_controller.crud.agent_token import create_access_client_token
+from thymis_controller.crud.agent_token import get_or_create_access_client_token
 from thymis_controller.crud.task import create as task_create
 from thymis_controller.crud.task import get_tasks_short
 from thymis_controller.models.task import (
@@ -76,7 +75,10 @@ class TaskController:
         if task.type == "deploy_devices_task":
             children_uids = []
             for device in task.devices:
-                access_client_token = random.randbytes(32).hex()
+                access_client_token = get_or_create_access_client_token(
+                    db_session,
+                    deployment_info_id=device.deployment_info_id,
+                )
                 submission_data = DeployDeviceTaskSubmission(
                     device=device,
                     project_path=task.project_path,
@@ -85,7 +87,7 @@ class TaskController:
                     controller_access_client_endpoint=self.access_client_endpoint,
                     controller_ssh_pubkey=task.controller_ssh_pubkey,
                     parent_task_id=task_db.id,
-                    access_client_token=access_client_token,
+                    access_client_token=access_client_token.token,
                     config_commit=task.config_commit,
                 )
                 subtask = task_create(
@@ -97,12 +99,9 @@ class TaskController:
                     task_submission_data=submission_data.model_dump(mode="json"),
                     parent_task_id=task_db.id,
                 )
-                access_client_token_db = create_access_client_token(
-                    db_session,
-                    deployment_info_id=device.deployment_info_id,
-                    token=access_client_token,
-                    deploy_device_task_id=subtask.id,
-                )
+                access_client_token.deploy_device_task_id = subtask.id
+                db_session.add(access_client_token)
+                db_session.commit()
                 children_uids.append(str(subtask.id))
                 subtasks.append(subtask)
             task_db.children = children_uids

@@ -1,5 +1,4 @@
 import logging
-import random
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
@@ -7,7 +6,7 @@ from fastapi.responses import FileResponse, RedirectResponse
 from thymis_agent import agent
 from thymis_controller import crud, dependencies, models
 from thymis_controller.config import global_settings
-from thymis_controller.crud.agent_token import create_access_client_token
+from thymis_controller.crud.agent_token import get_or_create_access_client_token
 from thymis_controller.dependencies import (
     DBSessionAD,
     NetworkRelayAD,
@@ -176,12 +175,15 @@ async def restart_device(
         if network_relay.public_key_to_connection_id.get(
             deployment_info.ssh_public_key
         ):
-            access_client_token = random.randbytes(32).hex()
+            access_client_token = get_or_create_access_client_token(
+                db_session, deployment_info_id=deployment_info.id
+            )
+
             task = task_controller.submit(
                 models.SSHCommandTaskSubmission(
                     controller_access_client_endpoint=task_controller.access_client_endpoint,
                     deployment_info_id=deployment_info.id,
-                    access_client_token=access_client_token,
+                    access_client_token=access_client_token.token,
                     deployment_public_key=deployment_info.ssh_public_key,
                     ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
                     target_user="root",
@@ -191,12 +193,9 @@ async def restart_device(
                 user_session_id=user_session_id,
                 db_session=db_session,
             )
-            create_access_client_token(
-                db_session,
-                deployment_info_id=deployment_info.id,
-                token=access_client_token,
-                deploy_device_task_id=task.id,
-            )
+            access_client_token.deploy_device_task_id = task.id
+            db_session.add(access_client_token)
+            db_session.commit()
 
 
 @router.head("/download-image")
