@@ -47,7 +47,7 @@ class AccessClientToken(Base):
     )
 
     deploy_device_task_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("tasks.id"), nullable=False, index=True
+        ForeignKey("tasks.id"), nullable=True, index=True
     )
 
     deploy_device_task: Mapped["Task"] = relationship(

@@ -168,3 +168,23 @@ def connect_to_ssh_shell(
         timeout=30,
     )
     return client.invoke_shell()
+
+
+@router.post("/access_client_token/{deployment_info_id}")
+async def get_access_client_token(
+    deployment_info_id: uuid.UUID,
+    db_engine: EngineAD,
+    user_session_id: UserSessionIDAD,
+):
+    with Session(db_engine) as db_session:
+        access_client_token = crud.agent_token.get_or_create_access_client_token(
+            db_session, deployment_info_id=deployment_info_id
+        )
+        if access_client_token is None:
+            return {"error": "Access client token not found"}
+
+        return {
+            "token": access_client_token.token,
+            "deployment_info_id": str(deployment_info_id),
+            "deploy_device_task_id": str(access_client_token.deploy_device_task_id),
+        }
