@@ -37,7 +37,7 @@
 	{#each visiblePages as i}
 		<button
 			onclick={() => handlePageChange(i + 1)}
-			class={'page-button'}
+			class="page-button"
 			class:active={i + 1 === page}
 		>
 			{i + 1}
@@ -52,7 +52,6 @@
 	.page-button {
 		border: 1px solid rgb(128, 128, 128);
 		padding: 0.1rem;
-		min-width: 1.5rem;
 		height: 1.6rem;
 		width: 1.6rem;
 		display: flex;

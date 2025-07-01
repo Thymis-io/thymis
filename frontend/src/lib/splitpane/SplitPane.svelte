@@ -6,6 +6,7 @@
 	interface Props {
 		id?: string;
 		type: 'horizontal' | 'vertical';
+		reverse?: boolean;
 		pos?: Length;
 		min?: Length;
 		max?: Length;
@@ -15,7 +16,7 @@
 		leftPaneClass?: string;
 		rightPaneClass?: string;
 		dividerClass?: string;
-		onchange?: () => void;
+		onchange?: (position: Length) => void;
 		a?: Snippet;
 		b?: Snippet;
 	}
@@ -23,6 +24,7 @@
 	let {
 		id = undefined,
 		type,
+		reverse = false,
 		pos = '50%',
 		min = '0%',
 		max = '100%',
@@ -57,13 +59,13 @@
 		if (disabled) return;
 
 		const { top, left } = splitpane_container.getBoundingClientRect();
-
-		const pos_px = type === 'horizontal' ? x - left : y - top;
 		const size = type === 'horizontal' ? w : h;
+		const offset = type === 'horizontal' ? x - left : y - top;
+		const pos_px = reverse ? size - offset : offset;
 
 		position = pos.endsWith('%') ? `${(100 * pos_px) / size}%` : `${pos_px}px`;
 
-		onchange?.();
+		onchange?.(position);
 	}
 
 	function drag(node: HTMLElement, callback: (event: PointerEvent) => void) {
@@ -105,7 +107,7 @@
 
 <div
 	data-pane={id}
-	class="splitpane_container {type} {clazz || ''}"
+	class="splitpane_container {type} {reverse ? 'reverse' : ''} {clazz || ''}"
 	bind:this={splitpane_container}
 	bind:clientWidth={w}
 	bind:clientHeight={h}
@@ -150,6 +152,14 @@
 		grid-template-columns: var(--pos) 1fr;
 	}
 
+	.splitpane_container.horizontal.reverse {
+		grid-template-columns: 1fr var(--pos);
+	}
+
+	.splitpane_container.vertical.reverse {
+		grid-template-rows: 1fr var(--pos);
+	}
+
 	.pane {
 		width: 100%;
 		height: 100%;
@@ -191,6 +201,12 @@
 		transform: translate(calc(-0.5 * var(--sp-thickness)), 0);
 	}
 
+	.horizontal.reverse > .divider {
+		left: auto;
+		right: var(--pos);
+		transform: translate(calc(0.5 * var(--sp-thickness)), 0);
+	}
+
 	.horizontal > .divider.disabled {
 		cursor: default;
 	}
@@ -209,6 +225,12 @@
 		cursor: ns-resize;
 		top: var(--pos);
 		transform: translate(0, calc(-0.5 * var(--sp-thickness)));
+	}
+
+	.vertical.reverse > .divider {
+		top: auto;
+		bottom: var(--pos);
+		transform: translate(0, calc(0.5 * var(--sp-thickness)));
 	}
 
 	.vertical > .divider.disabled {

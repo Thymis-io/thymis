@@ -18,6 +18,7 @@
 
 	import { ProgressBar } from '@prgm/sveltekit-progress-bar';
 	import { beforeNavigate } from '$app/navigation';
+	import type { Length } from '$lib/splitpane/types';
 
 	interface Props {
 		data: LayoutData;
@@ -27,6 +28,29 @@
 	let { data, children }: Props = $props();
 
 	let taskbarMinimized = $state(data.minimizeTaskbar ?? false);
+
+	const convertLengthToPixels = (rem: string) => {
+		if (rem.endsWith('rem')) {
+			const remValue = parseFloat(rem.slice(0, -3));
+			return remValue * parseFloat(getComputedStyle(document.documentElement).fontSize);
+		} else if (rem.endsWith('%')) {
+			const percentageValue = parseFloat(rem.slice(0, -1));
+			const parentHeight = document.documentElement.clientHeight;
+			return (percentageValue / 100) * parentHeight;
+		} else if (rem.endsWith('px')) {
+			return parseFloat(rem.slice(0, -2));
+		}
+		return parseFloat(rem);
+	};
+
+	const onSplitpaneChange = (pos: Length) => {
+		if (!taskbarMinimized && convertLengthToPixels(pos) < convertLengthToPixels('50px')) {
+			taskbarMinimized = true;
+		}
+		if (taskbarMinimized && convertLengthToPixels(pos) > convertLengthToPixels('50px')) {
+			taskbarMinimized = false;
+		}
+	};
 
 	run(() => {
 		if (browser) {
@@ -82,39 +106,36 @@
 	</div>
 	<div class="{drawerHidden ? '' : 'hidden'} lg:block pt-[calc(var(--navbar-height))] h-full">
 		<div class="flex flex-row h-full">
-			{#if taskbarMinimized}
-				<div class="w-full relative dark:border-gray-600 bg-gray-50 dark:bg-gray-900 mb-[40px]">
+			<SplitPane
+				type="vertical"
+				reverse={true}
+				pos={taskbarMinimized ? '40px' : '30%'}
+				min={taskbarMinimized ? '40px' : '12rem'}
+				max={taskbarMinimized ? '40px' : '80%'}
+				onchange={onSplitpaneChange}
+			>
+				{#snippet a()}
 					<MainWindow globalState={data.globalState} bind:drawerHidden>
 						{@render children?.()}
 					</MainWindow>
-					<div class="relative h-[40px]">
-						<TaskbarMinimize bind:taskbarMinimized class="mt-2" />
-						<TaskbarSmall globalState={data.globalState} inPlaywright={data.inPlaywright} />
-					</div>
-				</div>
-			{:else}
-				<SplitPane type="vertical" pos="70%" min="12rem" max="80%">
-					{#snippet a()}
-						<MainWindow globalState={data.globalState} bind:drawerHidden>
-							{@render children?.()}
-						</MainWindow>
-					{/snippet}
-					{#snippet b()}
-						<div
-							id="taskbar"
-							class="w-full relative border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900"
-						>
-							<div class="max-h-full overflow-x-hidden overflow-y-auto h-[calc(100%-40px)]">
+				{/snippet}
+				{#snippet b()}
+					<div class="flex flex-col">
+						{#if !taskbarMinimized}
+							<div
+								id="taskbar"
+								class="flex-1 overflow-y-auto border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900"
+							>
 								<Taskbar globalState={data.globalState} bind:taskbarMinimized />
 							</div>
-							<div class="w-full h-[40px]">
-								<TaskbarMinimize bind:taskbarMinimized class="mt-2" />
-								<TaskbarSmall globalState={data.globalState} inPlaywright={data.inPlaywright} />
-							</div>
+						{/if}
+						<div class="h-[40px]">
+							<TaskbarMinimize bind:taskbarMinimized class="mt-2" />
+							<TaskbarSmall globalState={data.globalState} inPlaywright={data.inPlaywright} />
 						</div>
-					{/snippet}
-				</SplitPane>
-			{/if}
+					</div>
+				{/snippet}
+			</SplitPane>
 		</div>
 	</div>
 </div>
