@@ -3,7 +3,7 @@ import pathlib
 import thymis_controller.modules.modules as modules
 from thymis_controller import models
 from thymis_controller.lib import read_into_base64
-from thymis_controller.nix import template_env
+from thymis_controller.nix.templating import template_env
 from thymis_controller.project import Project
 
 

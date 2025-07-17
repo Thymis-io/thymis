@@ -20,7 +20,8 @@ from pyrage import decrypt, encrypt, passphrase, ssh
 from thymis_controller import crud, db_models, migration, models
 from thymis_controller.config import global_settings
 from thymis_controller.models.state import State
-from thymis_controller.nix import NIX_CMD, get_input_out_path, render_flake_nix
+from thymis_controller.nix import NIX_CMD, get_input_out_path
+from thymis_controller.nix.templating import render_flake_nix
 from thymis_controller.notifications import NotificationManager
 from thymis_controller.repo import Repo
 from thymis_controller.task import controller as task

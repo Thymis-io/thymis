@@ -9,7 +9,6 @@ from fastapi import APIRouter, Header, HTTPException, Request, WebSocket
 from pydantic import BaseModel, TypeAdapter
 from sqlalchemy.orm import Session
 from thymis_controller import crud, models
-from thymis_controller.config import global_settings
 from thymis_controller.crud.agent_token import check_token_validity
 from thymis_controller.dependencies import (
     DBSessionAD,
@@ -17,8 +16,6 @@ from thymis_controller.dependencies import (
     NetworkRelayAD,
     ProjectAD,
 )
-from thymis_controller.nix import check_device_reference
-from thymis_controller.utils import determine_first_host_with_key
 
 logger = logging.getLogger(__name__)
 

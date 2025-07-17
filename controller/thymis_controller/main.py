@@ -169,9 +169,9 @@ async def lifespan(app: FastAPI):
         project,
     )
     async with task_controller.start(db_engine):
-        logger.debug("starting frontend")
+        logger.info("starting frontend")
         await frontend.frontend.run()
-        logger.debug("frontend started")
+        logger.info("frontend started")
         logger.info("Starting controller at \033[1m%s\033[0m", global_settings.BASE_URL)
         yield {
             "notification_manager": notification_manager,
