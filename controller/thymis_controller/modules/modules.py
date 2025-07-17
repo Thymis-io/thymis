@@ -8,7 +8,10 @@ from typing import List, Optional, Tuple, Union
 from pydantic import JsonValue
 from thymis_controller import db_models, models
 from thymis_controller.models.module import SettingTypes, ValueTypes
-from thymis_controller.nix import convert_python_value_to_nix, format_nix_file
+from thymis_controller.nix.templating import (
+    convert_python_value_to_nix,
+    format_nix_file,
+)
 from thymis_controller.project import Project
 
 

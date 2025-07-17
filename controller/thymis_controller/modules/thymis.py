@@ -6,7 +6,7 @@ from pydantic import JsonValue
 from thymis_controller import db_models, models
 from thymis_controller.config import global_settings
 from thymis_controller.lib import read_into_base64
-from thymis_controller.nix import convert_python_value_to_nix, template_env
+from thymis_controller.nix.templating import convert_python_value_to_nix, template_env
 from thymis_controller.project import Project
 
 

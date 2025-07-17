@@ -1,4 +1,4 @@
-from thymis_controller.nix import convert_python_value_to_nix
+from thymis_controller.nix.templating import convert_python_value_to_nix
 
 
 def test_write_nix_value():

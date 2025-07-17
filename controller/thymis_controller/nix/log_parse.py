@@ -5,10 +5,7 @@ import re
 from enum import IntEnum
 from typing import Annotated, Any, List, Literal, Optional, Union
 
-import jinja2
-from pydantic import BaseModel, Discriminator, Tag, ValidationError
-from thymis_controller import models
-from thymis_controller.nix import NIX_CMD
+from pydantic import BaseModel, Discriminator, Tag
 
 logger = logging.getLogger(__name__)
 
@@ -198,6 +195,8 @@ class NixParser:
         self.corrupted_paths = 0
         self.untrusted_paths = 0
 
+        self.msg_output = ""
+
     def get_log_by_level(self, level):
         if level < 4:
             return {
@@ -224,7 +223,9 @@ class NixParser:
         for line in buffer.splitlines(keepends=True):
             if line.startswith(b"@nix "):
                 try:
-                    self.handle_line(line)
+                    parsed = self.handle_line(line)
+                    if hasattr(parsed.nix_line, "msg") and parsed.nix_line.msg:
+                        self.msg_output += str(parsed.nix_line.msg) + "\n"
                 except json.JSONDecodeError as e:
                     logger.error(
                         "Failed to parse line: %s, error: %s",
