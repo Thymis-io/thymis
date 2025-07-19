@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import pathlib
@@ -17,7 +18,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from thymis_controller import crud
 from thymis_controller.config import global_settings
-from thymis_controller.database.connection import create_sqlalchemy_engine
+from thymis_controller.database.connection import (
+    create_sqlalchemy_engine,
+    periodic_cleanup_loop,
+)
 from thymis_controller.network_relay import NetworkRelay
 from thymis_controller.notifications import NotificationManager
 from thymis_controller.project import Project
@@ -70,6 +74,8 @@ def peform_db_upgrade():
         logger.info("Performing database upgrade")
         command.upgrade(alembic_config, "head")
         logger.info("Database upgrade complete")
+        connection.execute(sqlalchemy.text("PRAGMA wal_checkpoint(TRUNCATE)"))
+        logger.info("WAL checkpoint completed")
 
 
 def init_password_file():
@@ -157,6 +163,7 @@ async def lifespan(app: FastAPI):
     notification_manager.start()
     host, port = detect_host_port()
     db_engine = create_sqlalchemy_engine()
+    db_cleanup_task = asyncio.create_task(periodic_cleanup_loop(db_engine))
     network_relay = NetworkRelay(db_engine, notification_manager)
     with sqlalchemy.orm.Session(db_engine) as db_session:
         project = Project(
@@ -193,6 +200,7 @@ async def lifespan(app: FastAPI):
         "%d connected agents marked as disconnected",
         len(connected_agents),
     )
+    db_cleanup_task.cancel()
     notification_manager.stop()
     logger.info("stopping frontend")
     await frontend.frontend.stop()

@@ -1,10 +1,15 @@
+import asyncio
+import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
+import sqlalchemy
 from sqlalchemy import nullslast, or_
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
+
+logger = logging.getLogger(__name__)
 
 
 def create(
@@ -88,3 +93,52 @@ def get_logs(
     stmt = stmt.order_by(nullslast(db_models.LogEntry.timestamp.desc()))
     stmt = stmt.limit(limit).offset(offset)
     return stmt.all()
+
+
+def delete_expired_log_batch(
+    session: Session, cutoff_date: datetime, limit: int
+) -> int:
+    result = session.execute(
+        sqlalchemy.text(
+            """
+            DELETE FROM log_entries
+            WHERE rowid IN (
+                SELECT rowid FROM log_entries
+                WHERE timestamp < :cutoff
+                LIMIT :limit
+            );
+            """
+        ),
+        {"cutoff": cutoff_date, "limit": limit},
+    )
+    session.commit()
+    return result.rowcount
+
+
+async def remove_expired_logs(session: Session) -> int:
+    days = 7
+    cutoff_date = datetime.now() - timedelta(days=days)
+    delete_count = (
+        session.query(db_models.LogEntry)
+        .filter(db_models.LogEntry.timestamp < cutoff_date)
+        .count()
+    )
+    if delete_count == 0:
+        return 0
+    logger.info(
+        "Removing %d logs older than %d days, cutoff date: %s...",
+        delete_count,
+        days,
+        cutoff_date,
+    )
+    total_deleted = 0
+    while True:
+        await asyncio.sleep(0.1)
+        deleted = delete_expired_log_batch(session, cutoff_date, limit=10_000)
+        total_deleted += deleted
+        if deleted == 0:
+            break
+        logger.info(
+            "Deleted %d (%d/%d) log entries", deleted, total_deleted, delete_count
+        )
+    logger.info("Deleted a total of %d expired log entries", total_deleted)
