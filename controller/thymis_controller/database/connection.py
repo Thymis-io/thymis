@@ -1,10 +1,17 @@
+import asyncio
+import logging
 import os
 import pathlib
 from urllib.parse import urlparse
 
+import sqlalchemy
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session
+from thymis_controller import crud
 from thymis_controller.config import global_settings
+
+logger = logging.getLogger(__name__)
 
 
 def get_db_url():
@@ -34,3 +41,35 @@ def set_sqlite_pragma(dbapi_connection, _connection_record):
     cursor.execute("PRAGMA journal_mode=WAL")
     cursor.execute("PRAGMA synchronous=normal")
     cursor.close()
+
+
+def enable_auto_vacuum(db_session: Session):
+    auto_vacuum = db_session.execute(sqlalchemy.text("PRAGMA auto_vacuum")).scalar()
+    if auto_vacuum == 0:
+        db_session.execute(sqlalchemy.text("PRAGMA auto_vacuum = 1"))
+        db_session.commit()
+        logger.info("Enabled auto_vacuum for the database")
+
+
+def compact_database(db_session: Session):
+    logger.info("Running VACUUM to compact the database...")
+    db_session.execute(sqlalchemy.text("VACUUM"))
+    db_session.execute(sqlalchemy.text("PRAGMA wal_checkpoint(TRUNCATE)"))
+    db_session.commit()
+    logger.info("Vacuum and WAL checkpoint completed")
+
+
+async def initialize_cleanup(db_engine: Engine):
+    with Session(db_engine) as session:
+        enable_auto_vacuum(session)
+        await crud.logs.remove_expired_logs(session)
+        compact_database(session)
+
+
+async def periodic_cleanup_loop(db_engine: Engine):
+    await initialize_cleanup(db_engine)
+
+    while True:
+        with Session(db_engine) as session:
+            await crud.logs.remove_expired_logs(session)
+        await asyncio.sleep(60 * 60)
