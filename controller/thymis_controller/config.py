@@ -23,6 +23,9 @@ class GlobalSettings(BaseSettings):
     AUTH_OAUTH_TOKEN_ENDPOINT: str | None = None
     AUTH_OAUTH_CLIENT_ROLE_LOGIN: str | None = None
 
+    LOG_RETENTION_DAYS: int = 7
+    LOG_CLEANUP_INTERVAL_SECONDS: int = 60 * 60  # 1 hour
+
     model_config = ConfigDict(
         env_prefix="THYMIS_", env_file=".env", env_file_encoding="utf-8"
     )

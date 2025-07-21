@@ -8,6 +8,7 @@ from sqlalchemy import nullslast, or_
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
+from thymis_controller.config import global_settings
 
 logger = logging.getLogger(__name__)
 
@@ -116,8 +117,7 @@ def delete_expired_log_batch(
 
 
 async def remove_expired_logs(session: Session) -> int:
-    days = 7
-    cutoff_date = datetime.now() - timedelta(days=days)
+    cutoff_date = datetime.now() - timedelta(days=global_settings.LOG_RETENTION_DAYS)
     delete_count = (
         session.query(db_models.LogEntry)
         .filter(db_models.LogEntry.timestamp < cutoff_date)
@@ -128,7 +128,7 @@ async def remove_expired_logs(session: Session) -> int:
     logger.info(
         "Removing %d logs older than %d days, cutoff date: %s...",
         delete_count,
-        days,
+        global_settings.LOG_RETENTION_DAYS,
         cutoff_date,
     )
     total_deleted = 0
