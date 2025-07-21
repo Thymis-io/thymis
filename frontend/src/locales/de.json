@@ -375,6 +375,7 @@
 		"edit": "Geheimnis bearbeiten",
 		"name": "Name",
 		"name-exists": "Name existiert bereits",
+		"issues": "Probleme",
 		"type": "Secret-Typ",
 		"type-single-line": "Einzelzeile",
 		"type-multi-line": "Multi-Zeile",
