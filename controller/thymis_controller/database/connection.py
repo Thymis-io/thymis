@@ -70,6 +70,6 @@ async def periodic_cleanup_loop(db_engine: Engine):
     await initialize_cleanup(db_engine)
 
     while True:
+        await asyncio.sleep(global_settings.LOG_CLEANUP_INTERVAL_SECONDS)
         with Session(db_engine) as session:
             await crud.logs.remove_expired_logs(session)
-        await asyncio.sleep(60 * 60)
