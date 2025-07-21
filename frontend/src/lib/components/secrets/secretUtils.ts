@@ -9,6 +9,7 @@ export type SecretShort = {
 	filename?: string;
 	include_in_image: boolean;
 	processing_type: SecretProcessingType;
+	error?: string | null;
 	created_at: string;
 	updated_at: string;
 	delete_at?: string | null;

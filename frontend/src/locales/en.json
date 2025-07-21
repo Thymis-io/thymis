@@ -392,6 +392,7 @@
 		"download-file": "Download file",
 		"new-file": "New file",
 		"name-exists": "Name already exists",
+		"issues": "Issues",
 		"actions": "Actions",
 		"copy-id": "Copy ID",
 		"delete": "Delete Secret",

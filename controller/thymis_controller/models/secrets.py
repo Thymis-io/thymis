@@ -1,9 +1,13 @@
+import logging
 from datetime import datetime
 from typing import Callable, Optional
 from uuid import UUID
 
 from pydantic import BaseModel
+from pyrage import DecryptError
 from thymis_controller import db_models
+
+logger = logging.getLogger(__name__)
 
 
 class SecretShort(BaseModel):
@@ -15,6 +19,7 @@ class SecretShort(BaseModel):
     filename: Optional[str] = None
     include_in_image: bool
     processing_type: db_models.SecretProcessingTypes
+    error: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     delete_at: Optional[datetime] = None
@@ -23,9 +28,20 @@ class SecretShort(BaseModel):
     def from_orm_secret(
         cls, secret: db_models.Secret, decryption_fn: Callable[[bytes], bytes]
     ) -> "SecretShort":
+        error = None
         # only include value if type is not file
         if secret.type != db_models.SecretTypes.FILE:
-            value_str = decryption_fn(secret.value_enc).decode("utf-8")
+            try:
+                value_str = decryption_fn(secret.value_enc).decode("utf-8")
+            except DecryptError as e:
+                logger.error(
+                    "Failed to decrypt secret %s (%s): %s",
+                    secret.id,
+                    secret.display_name,
+                    e,
+                )
+                error = "Failed to decrypt secret: " + str(e)
+                value_str = None
         else:
             value_str = None
         return cls(
@@ -37,6 +53,7 @@ class SecretShort(BaseModel):
             filename=secret.filename,
             include_in_image=secret.include_in_image,
             processing_type=secret.processing_type,
+            error=error,
             created_at=secret.created_at,
             updated_at=secret.updated_at,
             delete_at=secret.delete_at,

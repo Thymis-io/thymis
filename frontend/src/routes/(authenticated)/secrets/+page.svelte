@@ -20,6 +20,7 @@
 		stringToEnvVars
 	} from '$lib/components/secrets/secretUtils';
 	import type { SecretProcessingType, SecretType } from '$lib/state';
+	import Alert from 'lucide-svelte/icons/triangle-alert';
 
 	interface Props {
 		data: PageData;
@@ -193,6 +194,7 @@
 		<TableHeadCell padding="p-2">{$t('secrets.type')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('secrets.processing')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('secrets.include-in-image')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('secrets.issues')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('secrets.actions')}</TableHeadCell>
 	</TableHead>
 	<TableBody>
@@ -221,6 +223,14 @@
 					{secret.include_in_image ? $t('common.yes') : $t('common.no')}
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
+					{#if secret.error}
+						<div class="flex items-center gap-1 text-yellow-600">
+							<Alert size="16" />
+							{secret.error}
+						</div>
+					{/if}
+				</TableBodyCell>
+				<TableBodyCell tdClass="p-2">
 					<div class="flex gap-1">
 						<Button size="xs" on:click={() => openEditSecret(id)}>
 							{$t('secrets.edit')}
@@ -242,7 +252,7 @@
 			</TableBodyRow>
 		{:else}
 			<TableBodyRow>
-				<TableBodyCell colspan={5} class="text-center p-4">
+				<TableBodyCell colspan={6} class="text-center p-4">
 					{$t('secrets.no-secrets')}
 				</TableBodyCell>
 			</TableBodyRow>
