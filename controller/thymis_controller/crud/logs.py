@@ -118,6 +118,7 @@ def delete_expired_log_batch(
 
 async def remove_expired_logs(session: Session) -> int:
     cutoff_date = datetime.now() - timedelta(days=global_settings.LOG_RETENTION_DAYS)
+    batch_count = 10_000
     delete_count = (
         session.query(db_models.LogEntry)
         .filter(db_models.LogEntry.timestamp < cutoff_date)
@@ -133,12 +134,13 @@ async def remove_expired_logs(session: Session) -> int:
     )
     total_deleted = 0
     while True:
-        await asyncio.sleep(0.1)
-        deleted = delete_expired_log_batch(session, cutoff_date, limit=10_000)
+        await asyncio.sleep(0.1)  # avoid blocking the database and event loop
+        deleted = delete_expired_log_batch(session, cutoff_date, limit=batch_count)
         total_deleted += deleted
         if deleted == 0:
             break
-        logger.info(
-            "Deleted %d (%d/%d) log entries", deleted, total_deleted, delete_count
-        )
+        if total_deleted % (batch_count * 10) == 0:
+            logger.info(
+                "Deleted %d/%d expired log entries", total_deleted, delete_count
+            )
     logger.info("Deleted a total of %d expired log entries", total_deleted)
