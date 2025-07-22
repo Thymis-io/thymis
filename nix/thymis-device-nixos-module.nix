@@ -82,6 +82,12 @@ in
   };
   config = {
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
+    nix.gc = {
+      automatic = true;
+      dates = "03:15";
+      randomizedDelaySec = "15min";
+      options = "--delete-older-than 14d";
+    };
     users.users.root.password = lib.mkIf (cfg.password != null) cfg.password;
     services.openssh = {
       enable = true;
