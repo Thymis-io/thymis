@@ -770,14 +770,14 @@ files = [
 
 [[package]]
 name = "pyrage-stubs"
-version = "1.3.0"
+version = "1.3.1"
 description = "A PEP 561 stub package for pyrage's types"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "pyrage_stubs-1.3.0-py3-none-any.whl", hash = "sha256:611afa5ada3448225c66706f1aab7ac363c1e459ee131a306e277a7218f8c824"},
-    {file = "pyrage_stubs-1.3.0.tar.gz", hash = "sha256:0acf4cc36d9aa8cde205851c34f696b70635387046fd47db1ac7bcf69c6b4002"},
+    {file = "pyrage_stubs-1.3.1-py3-none-any.whl", hash = "sha256:4e38b7ec6d89977147b7d213f931b0a0198918369144eec6df03c5eb83aabf1c"},
+    {file = "pyrage_stubs-1.3.1.tar.gz", hash = "sha256:cf1a4473eee584314d396b87550c0a5d84e4b0e3f0ec54e4cae6d896ae50c2ba"},
 ]
 
 [package.dependencies]
