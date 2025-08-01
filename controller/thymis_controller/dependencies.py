@@ -1,6 +1,6 @@
 import datetime
-import json
 import logging
+import pathlib
 import uuid
 from typing import Annotated, Generator, Optional, Union
 
@@ -16,6 +16,7 @@ from fastapi import (
     status,
 )
 from fastapi.requests import HTTPConnection
+from fastapi.security import HTTPBearer
 from pydantic import Json
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
@@ -72,8 +73,6 @@ UserSessionIDAD = Annotated[Optional[uuid.UUID], Cookie(alias="session-id")]
 
 UserSessionTokenAD = Annotated[Optional[str], Cookie(alias="session-token")]
 
-AccessTokenAD = Annotated[Optional[str], Header(alias="access-token")]
-
 LoginRedirectCookieAD = Annotated[Optional[str], Cookie(alias="login-redirect")]
 
 
@@ -107,13 +106,12 @@ def require_valid_user_session(
 
 
 async def require_valid_access_token(
-    access_token: AccessTokenAD = None,
+    access_token: str = Depends(HTTPBearer()),
 ) -> bool:
     """
     Check if the access token is valid
     """
-    print(access_token)
-    if not access_token:
+    if not access_token.credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="No valid access token"
         )
@@ -127,14 +125,20 @@ async def require_valid_access_token(
             detail="OAuth introspection endpoint is not configured",
         )
 
+    secret_file = pathlib.Path(global_settings.AUTH_OAUTH_CLIENT_SECRET_FILE)
+    secret_file_content = secret_file.read_text(encoding="utf-8").strip()
+
     async with httpx.AsyncClient() as client:
         response = await client.post(
             global_settings.AUTH_OAUTH_INTROSPECTION_ENDPOINT,
-            data={"token": access_token},
+            data={
+                "token": access_token.credentials,
+                "client_id": global_settings.AUTH_OAUTH_CLIENT_ID,
+                "client_secret": secret_file_content,
+            },
             headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
-        print(response.status_code, response.text)
-        print(json.dumps(response.json(), indent=2))
+
         if response.status_code != 200:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
