@@ -4,9 +4,14 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from thymis_controller import crud, models
-from thymis_controller.dependencies import DBSessionAD, NetworkRelayAD, ProjectAD
+from thymis_controller.dependencies import (
+    DBSessionAD,
+    NetworkRelayAD,
+    ProjectAD,
+    require_valid_access_token,
+)
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_valid_access_token)])
 
 
 class StatisticParameters(BaseModel):
@@ -40,7 +45,7 @@ class StatisticParameters(BaseModel):
         )
 
 
-@router.get("/statistics", tags=["metrics"])
+@router.get("/statistics")
 def thymis_statistics(
     params: Annotated[StatisticParameters, Depends()],
     db_session: DBSessionAD,
