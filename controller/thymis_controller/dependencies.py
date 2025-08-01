@@ -1,9 +1,20 @@
 import datetime
+import json
 import logging
 import uuid
 from typing import Annotated, Generator, Optional, Union
 
-from fastapi import Cookie, Depends, HTTPException, Request, Response, WebSocket, status
+import httpx
+from fastapi import (
+    Cookie,
+    Depends,
+    Header,
+    HTTPException,
+    Request,
+    Response,
+    WebSocket,
+    status,
+)
 from fastapi.requests import HTTPConnection
 from pydantic import Json
 from sqlalchemy import Engine
@@ -61,6 +72,8 @@ UserSessionIDAD = Annotated[Optional[uuid.UUID], Cookie(alias="session-id")]
 
 UserSessionTokenAD = Annotated[Optional[str], Cookie(alias="session-token")]
 
+AccessTokenAD = Annotated[Optional[str], Header(alias="access-token")]
+
 LoginRedirectCookieAD = Annotated[Optional[str], Cookie(alias="login-redirect")]
 
 
@@ -93,10 +106,54 @@ def require_valid_user_session(
     return True
 
 
+async def require_valid_access_token(
+    access_token: AccessTokenAD = None,
+) -> bool:
+    """
+    Check if the access token is valid
+    """
+    print(access_token)
+    if not access_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="No valid access token"
+        )
+
+    if (
+        not global_settings.AUTH_OAUTH
+        or not global_settings.AUTH_OAUTH_INTROSPECTION_ENDPOINT
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="OAuth introspection endpoint is not configured",
+        )
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            global_settings.AUTH_OAUTH_INTROSPECTION_ENDPOINT,
+            data={"token": access_token},
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        print(response.status_code, response.text)
+        print(json.dumps(response.json(), indent=2))
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid access token",
+            )
+        token_info = response.json()
+        if not token_info.get("active", False):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Access token is not active",
+            )
+
+    return True
+
+
 def get_user_session_token(
     user_session_token: Annotated[
         Union[uuid.UUID, None], Cookie(alias="session-token")
-    ] = None
+    ] = None,
 ) -> Optional[str]:
     return user_session_token
 

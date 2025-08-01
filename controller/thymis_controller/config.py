@@ -22,6 +22,7 @@ class GlobalSettings(BaseSettings):
     AUTH_OAUTH_AUTHORIZATION_ENDPOINT: str | None = None
     AUTH_OAUTH_TOKEN_ENDPOINT: str | None = None
     AUTH_OAUTH_CLIENT_ROLE_LOGIN: str | None = None
+    AUTH_OAUTH_INTROSPECTION_ENDPOINT: str | None = None
 
     LOG_RETENTION_DAYS: int = 7
     LOG_CLEANUP_INTERVAL_SECONDS: int = 60 * 60  # 1 hour

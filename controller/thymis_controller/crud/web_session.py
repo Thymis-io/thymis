@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 # conclusion: to set the expiration time of a cookie, just set the "expires" key
 # as well as max_age to the same amount of seconds
 # ==============================================================================
-SESSION_LIFETIME = timedelta(days=1)
+SESSION_LIFETIME = timedelta(minutes=1)
 SESSION_LIFETIME_SECONDS = SESSION_LIFETIME.total_seconds()
 
 
@@ -48,10 +48,12 @@ def validate(db_session: Session, session_id: uuid.UUID, session_token: str) -> 
     if web_session is None:
         return False
 
-    expiration_time = web_session.created_at.astimezone(timezone.utc) + SESSION_LIFETIME
+    expiration_time = (
+        web_session.created_at.replace(tzinfo=timezone.utc) + SESSION_LIFETIME
+    )
     is_expired = expiration_time < datetime.now(timezone.utc)
     if is_expired:
-        delete(db_session, uuid.UUID(session_token))
+        delete(db_session, session_id)
     return not is_expired
 
 
