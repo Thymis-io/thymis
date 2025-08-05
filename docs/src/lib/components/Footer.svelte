@@ -15,28 +15,6 @@
     // Cast metadata to the proper type
     const typedMetadata = metadata as unknown as Metadata;
 
-    console.log('Metadata:', metadata);
-//     Metadata: {
-//   layout: 'summary',
-//   toc: [],
-//   links: [
-//     { href: '/', text: 'Introduction' },
-//     { href: '/getting_started/', text: 'Getting Started' },
-//     { href: '/getting_started/nixos', text: 'Thymis NixOS module' },
-//     { href: '/usage/', text: 'Usage' },
-//     { href: '/usage/provisioning', text: 'Provisioning a new device' },
-//     {
-//       href: '/usage/system_configuration',
-//       text: 'System Configuration'
-//     },
-//     { href: '/usage/terminal', text: 'Terminal Usage' },
-//     { href: '/usage/vnc', text: 'VNC Usage' },
-//     { href: '/architecture', text: 'Architecture' },
-//     { href: '/extensions', text: 'Extensions (Under Development)' },
-//     { href: '/api', text: 'API' }
-//   ]
-// }
-
     const currentYear = new Date().getFullYear();
 
     let { resolvedFilePath }: { resolvedFilePath?: string } = $props();
