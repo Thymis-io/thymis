@@ -38,7 +38,4 @@
 	});
 </script>
 
-<!-- {@debug path} -->
-Hii I am Docscontent1
 <ContentModule />
-Hii I am Docscontent2
