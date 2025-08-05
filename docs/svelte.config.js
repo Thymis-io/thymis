@@ -5,6 +5,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import rehypeSlug from 'rehype-slug';
 import relativeImages from "mdsvex-relative-images";
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import {fromHtmlIsomorphic} from 'hast-util-from-html-isomorphic'
+
 
 
 const remarkExtractToc = (options) => {
@@ -43,7 +46,13 @@ const config = {
 		mdsvex({
 			extensions: ['.svx', '.md'],
 			remarkPlugins: [remarkExtractToc, relativeImages],
-			rehypePlugins: [rehypeSlug],
+			rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings,{
+				behavior: 'append',
+				headingProperties: {
+					class:'group'
+				},
+				content: fromHtmlIsomorphic('<span class="fa-solid fa-link ml-2 !hidden group-hover:!inline-block"></span>', {fragment: true}).children,
+			}]],
 			layout: {
 				// github.com/pngwn/MDsveX/issues/556
 				summary: dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/SummaryLayout.svelte',

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import "prismjs/themes/prism.css";
+	import "@fortawesome/fontawesome-free/css/all.css";
 	import Footer from '$lib/components/Footer.svelte';
 	import NavigationSidebar from '$lib/components/NavigationSidebar.svelte';
 	import TableOfContents from '$lib/components/TableOfContents.svelte';
@@ -99,7 +100,7 @@
 		<main class="flex-1 min-w-0 overflow-y-auto">
 			<div class="p-4 lg:p-8">
 				<div class="max-w-4xl">
-					<article class="prose max-w-none">
+					<article class="prose prose-headings:group max-w-none">
 						<contentModule.default />
 					</article>
 

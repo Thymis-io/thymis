@@ -1,7 +1,6 @@
 ---
 layout: summary
 ---
-# Summary
 
 [Introduction](/)
 
