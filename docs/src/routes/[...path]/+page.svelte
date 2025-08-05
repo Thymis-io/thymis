@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Footer from '$lib/components/Footer.svelte';
 	import NavigationSidebar from '$lib/components/NavigationSidebar.svelte';
-	import DocsContent from '$lib/components/DocsContent.svelte';
 	import TableOfContents from '$lib/components/TableOfContents.svelte';
+	import getModuleForPath from '$lib/docs/getModuleForPath.js';
 
 	let { data } = $props();
 
@@ -10,6 +10,8 @@
 	const path = $derived(data.path);
 
 	let mobileMenuOpen = $state(false);
+
+	const module = $derived(getModuleForPath(path));
 </script>
 
 <!-- Modern Documentation Layout -->
@@ -91,7 +93,7 @@
 		<main class="flex-1 min-w-0 p-4 lg:p-8">
 			<div class="max-w-4xl">
 				<article class="prose prose-lg max-w-none">
-					<DocsContent {path} />
+					<module.default />
 				</article>
 
 				<Footer />
@@ -103,7 +105,7 @@
 			class="sticky top-0 hidden min-h-screen w-64 overflow-y-auto xl:block"
 		>
 			<div class="p-6">
-				<TableOfContents />
+				<TableOfContents toc={module.metadata?.toc} />
 			</div>
 		</aside>
 	</div>
