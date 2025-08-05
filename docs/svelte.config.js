@@ -47,7 +47,7 @@ const config = {
 			layout: {
 				// github.com/pngwn/MDsveX/issues/556
 				summary: dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/SummaryLayout.svelte',
-				_: dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/MarkdownLayout.svelte'
+				_: dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/DefaultMarkdownLayout.svelte'
 			}
 		})
 	],
