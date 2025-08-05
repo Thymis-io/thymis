@@ -37,15 +37,17 @@
 		<span class="ml-2 text-lg font-semibold text-gray-900">Thymis Documentation</span>
 	</div>
 
-	<div class="mx-auto flex max-w-screen-2xl">
+	<div class="mx-auto flex max-w-screen-2xl h-screen">
 		<!-- Left Sidebar -->
 		<aside
-			class="sticky top-0 hidden min-h-screen w-64 overflow-y-auto border-r border-gray-200 bg-white shadow-sm lg:block"
+			class="sticky top-0 hidden w-64 border-r border-gray-200 bg-white shadow-sm lg:flex lg:flex-col"
 		>
-			<div class="p-6">
-				<h1 class="mb-6 text-xl font-bold text-gray-900">Thymis Documentation</h1>
+			<div class="flex-1 overflow-y-auto">
+				<div class="p-6">
+					<h1 class="mb-6 text-xl font-bold text-gray-900">Thymis Documentation</h1>
 
-				<NavigationSidebar />
+					<NavigationSidebar />
+				</div>
 			</div>
 		</aside>
 
@@ -90,22 +92,26 @@
 		{/if}
 
 		<!-- Main Content -->
-		<main class="flex-1 min-w-0 p-4 lg:p-8">
-			<div class="max-w-4xl">
-				<article class="prose prose-lg max-w-none">
-					<module.default />
-				</article>
+		<main class="flex-1 min-w-0 overflow-y-auto">
+			<div class="p-4 lg:p-8">
+				<div class="max-w-4xl">
+					<article class="prose prose-lg max-w-none">
+						<module.default />
+					</article>
 
-				<Footer />
+					<Footer />
+				</div>
 			</div>
 		</main>
 
 		<!-- Right Sidebar - Table of Contents -->
 		<aside
-			class="sticky top-0 hidden h-screen w-64 overflow-y-auto xl:block"
+			class="sticky top-0 hidden w-64 xl:flex xl:flex-col"
 		>
-			<div class="p-6">
-				<TableOfContents toc={module.metadata?.toc} />
+			<div class="flex-1 overflow-y-auto">
+				<div class="p-6">
+					<TableOfContents toc={module.metadata?.toc} />
+				</div>
 			</div>
 		</aside>
 	</div>
