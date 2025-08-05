@@ -1,5 +1,4 @@
 <script lang="ts">
-	import TableOfContents from '$lib/components/TableOfContents.svelte';
 	import PageNavigation from '$lib/components/PageNavigation.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import NavigationSidebar from '$lib/components/NavigationSidebar.svelte';
@@ -93,7 +92,6 @@
 		<!-- Main Content -->
 		<main class="flex-1 p-4 lg:p-8">
 			<div class="max-w-4xl">
-				<TableOfContents />
 				<article class="prose prose-lg max-w-none">
 					<DocsContent {path} />
 				</article>
