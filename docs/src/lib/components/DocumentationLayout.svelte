@@ -34,14 +34,7 @@
 			aria-label="Toggle menu"
 			class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
 		>
-			<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M4 6h16M4 12h16M4 18h16"
-				/>
-			</svg>
+			<i class="fas fa-bars h-6 w-6"></i>
 		</button>
 		<span class="ml-2 text-lg font-semibold text-gray-900">Thymis Documentation</span>
 	</div>
@@ -79,14 +72,7 @@
 							aria-label="Close menu"
 							class="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
 						>
-							<svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M6 18L18 6M6 6l12 12"
-								/>
-							</svg>
+							<i class="fas fa-times h-6 w-6 text-white"></i>
 						</button>
 					</div>
 					<div class="flex h-full flex-1 flex-col overflow-hidden">
