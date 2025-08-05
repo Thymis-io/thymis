@@ -1,5 +1,4 @@
 <script lang="ts">
-	import PageNavigation from '$lib/components/PageNavigation.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import NavigationSidebar from '$lib/components/NavigationSidebar.svelte';
 	import DocsContent from '$lib/components/DocsContent.svelte';
@@ -95,7 +94,6 @@
 				<article class="prose prose-lg max-w-none">
 					<DocsContent {path} />
 				</article>
-				<PageNavigation {allModules} {currentPath} />
 
 				<Footer />
 			</div>
