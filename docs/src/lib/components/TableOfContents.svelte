@@ -3,19 +3,18 @@
 
 	let { toc } = $props();
 
-	const slugger = new GithubSlugger();
-
 	// Transform the toc data to include generated IDs
-	const tocItems = $derived(
-		toc.map(item => ({
+	const tocItems = $derived.by(() => {
+		const slugger = new GithubSlugger();
+		return toc.map((item) => ({
 			...item,
 			id: item.id || slugger.slug(item.text)
-		}))
-	);
+		}));
+	});
 </script>
 
 <div class="sticky top-8">
-	<h3 class="mb-4 text-sm font-semibold text-gray-900 uppercase tracking-wide">On this page</h3>
+	<h3 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-900">On this page</h3>
 
 	{#if tocItems.length > 0}
 		<nav>
@@ -24,7 +23,7 @@
 					<li>
 						<a
 							href="#{item.id}"
-							class="block text-gray-600 hover:text-gray-900 transition-colors duration-200 py-1"
+							class="block py-1 text-gray-600 transition-colors duration-200 hover:text-gray-900"
 							class:font-medium={item.level === 1}
 							class:pl-0={item.level === 1}
 							class:pl-3={item.level === 2}
@@ -37,8 +36,6 @@
 			</ul>
 		</nav>
 	{:else}
-		<div class="text-sm text-gray-500">
-			Table of contents will be populated automatically
-		</div>
+		<div class="text-sm text-gray-500">Table of contents will be populated automatically</div>
 	{/if}
 </div>
