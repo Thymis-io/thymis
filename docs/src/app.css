@@ -98,3 +98,19 @@ nav.prose a {
 nav.prose a:hover {
   background-color: #f3f4f6;
 }
+
+/* Summary component specific styles */
+.summary-nav ul ul {
+  margin-left: 1rem;
+  margin-top: 0.5rem;
+}
+
+.summary-nav ul ul a {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.summary-nav ul ul a:hover {
+  background-color: #f9fafb;
+  color: #111827;
+}
