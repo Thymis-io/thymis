@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { metadata} from '../docs/SUMMARY.md';
     import { page } from '$app/stores';
+    const metadata = import.meta.glob('../docs/SUMMARY.md', { eager: true })['../docs/SUMMARY.md'].metadata;
 
     // Type definitions for the metadata structure
     interface Link {
