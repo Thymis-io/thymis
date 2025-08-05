@@ -78,7 +78,15 @@ const config = {
 			fallback: 'index.html'
 		})
 	},
-	extensions: ['.svelte', '.svx', '.md']
+	extensions: ['.svelte', '.svx', '.md'],
+	compilerOptions: {
+		warningFilter: (warning) => {
+			if (warning.code === 'a11y_img_redundant_alt') {
+				return false;
+			}
+			return true;
+		}
+	}
 };
 
 export default config;
