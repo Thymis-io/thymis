@@ -1,3 +1,100 @@
 @import 'tailwindcss';
-@plugin '@tailwindcss/forms';
-@plugin '@tailwindcss/typography';
+
+/* Custom styles for documentation */
+.prose {
+  color: #374151;
+}
+
+.prose h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.prose h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.prose h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.prose a:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.prose code {
+  background-color: #f3f4f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.prose pre {
+  background-color: #111827;
+  color: #f9fafb;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+}
+
+.prose blockquote {
+  border-left: 4px solid #93c5fd;
+  background-color: #eff6ff;
+  padding: 1rem;
+  font-style: italic;
+}
+
+/* Sidebar specific styles */
+.prose ul {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.prose li {
+  line-height: 1.625;
+}
+
+/* Make sidebar links more navigation-like */
+nav.prose ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+nav.prose ul ul {
+  margin-left: 1rem;
+  margin-top: 0.5rem;
+}
+
+nav.prose li {
+  margin-bottom: 0.25rem;
+}
+
+nav.prose a {
+  display: block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.15s ease-in-out;
+}
+
+nav.prose a:hover {
+  background-color: #f3f4f6;
+}

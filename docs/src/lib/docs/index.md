@@ -1,3 +1,7 @@
+---
+title: Introduction
+---
+
 # Introduction
 
 Welcome to the Thymis documentation! This documentation is intended to help you get started with Thymis on your devices.
