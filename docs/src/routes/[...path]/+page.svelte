@@ -2,12 +2,11 @@
 	import Footer from '$lib/components/Footer.svelte';
 	import NavigationSidebar from '$lib/components/NavigationSidebar.svelte';
 	import DocsContent from '$lib/components/DocsContent.svelte';
+	import TableOfContents from '$lib/components/TableOfContents.svelte';
 
 	let { data } = $props();
 
 	// Cast the content as a Svelte component constructor
-	const currentPath = $derived(data.currentPath);
-	const allModules = $derived(data.allModules);
 	const path = $derived(data.path);
 
 	let mobileMenuOpen = $state(false);
@@ -36,8 +35,8 @@
 		<span class="ml-2 text-lg font-semibold text-gray-900">Thymis Documentation</span>
 	</div>
 
-	<div class="mx-auto flex max-w-7xl">
-		<!-- Sidebar -->
+	<div class="mx-auto flex max-w-screen-2xl">
+		<!-- Left Sidebar -->
 		<aside
 			class="sticky top-0 hidden min-h-screen w-64 overflow-y-auto border-r border-gray-200 bg-white shadow-sm lg:block"
 		>
@@ -89,7 +88,7 @@
 		{/if}
 
 		<!-- Main Content -->
-		<main class="flex-1 p-4 lg:p-8">
+		<main class="flex-1 min-w-0 p-4 lg:p-8">
 			<div class="max-w-4xl">
 				<article class="prose prose-lg max-w-none">
 					<DocsContent {path} />
@@ -98,5 +97,14 @@
 				<Footer />
 			</div>
 		</main>
+
+		<!-- Right Sidebar - Table of Contents -->
+		<aside
+			class="sticky top-0 hidden min-h-screen w-64 overflow-y-auto xl:block"
+		>
+			<div class="p-6">
+				<TableOfContents />
+			</div>
+		</aside>
 	</div>
 </div>
