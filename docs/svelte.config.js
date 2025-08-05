@@ -53,6 +53,7 @@ const config = {
 			extensions: ['.svx', '.md'],
 			remarkPlugins: [remarkPluginAAA],
 			layout: {
+				summary: dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/SummaryLayout.svelte',
 				_: dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/MarkdownLayout.svelte'
 			}
 		})

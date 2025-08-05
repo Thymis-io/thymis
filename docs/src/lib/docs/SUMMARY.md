@@ -1,10 +1,13 @@
+---
+layout: summary
+---
 # Summary
 
-[Introduction](/index)
+[Introduction](/)
 
-- [Getting Started](/getting_started/index)
+- [Getting Started](/getting_started/)
     - [Thymis NixOS module](/getting_started/nixos)
-- [Usage](/usage/index)
+- [Usage](/usage/)
     - [Provisioning a new device](/usage/provisioning)
     <!-- - [Adding an existing NixOS device](/usage/existing_device) -->
     - [System Configuration](/usage/system_configuration)
