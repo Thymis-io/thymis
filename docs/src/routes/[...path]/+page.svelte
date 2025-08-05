@@ -11,7 +11,10 @@
 
 	let mobileMenuOpen = $state(false);
 
-	const module = $derived(getModuleForPath(path));
+	const {
+		contentModule,
+		resolvedFilePath
+	} = $derived(getModuleForPath(path));
 </script>
 
 <!-- Modern Documentation Layout -->
@@ -96,10 +99,10 @@
 			<div class="p-4 lg:p-8">
 				<div class="max-w-4xl">
 					<article class="prose prose-lg max-w-none">
-						<module.default />
+						<contentModule.default />
 					</article>
 
-					<Footer />
+					<Footer {resolvedFilePath} />
 				</div>
 			</div>
 		</main>
@@ -110,7 +113,7 @@
 		>
 			<div class="flex-1 overflow-y-auto">
 				<div class="p-6">
-					<TableOfContents toc={module.metadata?.toc} />
+					<TableOfContents toc={contentModule.metadata?.toc} />
 				</div>
 			</div>
 		</aside>
