@@ -3,6 +3,7 @@ import adapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
+import rehypeSlug from 'rehype-slug';
 
 const remarkPluginAAA = (options) => {
 	return (tree, vFile) => {
@@ -52,6 +53,7 @@ const config = {
 		mdsvex({
 			extensions: ['.svx', '.md'],
 			remarkPlugins: [remarkPluginAAA],
+			rehypePlugins: [rehypeSlug],
 			layout: {
 				summary: dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/SummaryLayout.svelte',
 				_: dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/MarkdownLayout.svelte'

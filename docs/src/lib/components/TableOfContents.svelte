@@ -1,6 +1,17 @@
 <script lang="ts">
-	// TOC will be populated with data in a future step
-	let tocItems: Array<{id: string, text: string, level: number}> = $state([]);
+	import GithubSlugger from 'github-slugger';
+
+	let { toc } = $props();
+
+	const slugger = new GithubSlugger();
+
+	// Transform the toc data to include generated IDs
+	const tocItems = $derived(
+		toc.map(item => ({
+			...item,
+			id: item.id || slugger.slug(item.text)
+		}))
+	);
 </script>
 
 <div class="sticky top-8">
