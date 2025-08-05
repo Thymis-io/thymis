@@ -14,7 +14,8 @@
 		"lint": "prettier --check . && eslint .",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
-		"test:e2e": "playwright test"
+		"test:e2e": "playwright test",
+		"prepack": "svelte-kit sync && svelte-package && publint"
 	},
 	"dependencies": {
 		"@eslint/compat": "^1.2.5",
