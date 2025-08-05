@@ -11,7 +11,7 @@ There are two places where you can interact with the device's screen:
 1. Select your device or tag in the sidebar.
 2. Click on the **VNC** tab in the sidebar.
 
-![VNC Tab](vnc-tab.png)
+![VNC Tab](./vnc-tab.png)
 
 You will be presented with a VNC interface to interact with your device or all devices with the selected tag.
 
@@ -22,4 +22,4 @@ You will be presented with a VNC interface to interact with your device or all d
 
 On the device details page, a VNC interface is available at the bottom of the page.
 
-![Device Details VNC](device-details-terminal.png)
+![Device Details VNC](./device-details-terminal.png)

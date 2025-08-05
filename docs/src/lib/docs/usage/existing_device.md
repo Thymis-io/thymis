@@ -19,7 +19,7 @@ To add an existing NixOS device to Thymis, follow these steps:
 1. Open your web browser and navigate to the Thymis dashboard.
 2. Log in with your credentials.
 
-![Thymis Login-Screen](thymis-login-screen.png)
+![Thymis Login-Screen](./thymis-login-screen.png)
 
 ### Step 2: Add a New Device
 
@@ -27,7 +27,7 @@ To add an existing NixOS device to Thymis, follow these steps:
 2. Select **Create New Configuration**.
 3. Fill in the required details, such as the device name, hardware model, as well as tags to associate with the device.
 
-![Thymis create device screen](thymis-create-device.png)
+![Thymis create device screen](./thymis-create-device.png)
 
 ### Step 3: Configure your device to accept connections from the Thymis controller
 
@@ -53,7 +53,7 @@ Deploy the new configuration to the device.
 3. Click **Scan For Public Key** to retrieve and save the device's public key.
 4. Click **Create** to associate the device with the Thymis controller.
 
-![Edit Hostkey](edit-hostkey.png)
+![Edit Hostkey](./edit-hostkey.png)
 
 ### Step 5: Deploy Thymis-managed configuration to the device
 

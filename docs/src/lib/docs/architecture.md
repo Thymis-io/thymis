@@ -33,4 +33,4 @@ Devices can run user-specified applications, such as Docker containers, or any o
 - **FastAPI**: Backend framework for managing device configurations and data.
 - **NixOS**: Declarative system configuration tool for ensuring consistency and stability in deployments.
 
-![Thymis Architecture Diagram](architecture.jpg)
+![Thymis Architecture Diagram](./architecture.jpg)

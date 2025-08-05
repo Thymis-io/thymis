@@ -10,7 +10,7 @@ There are two ways to interact with your devices via the terminal:
 1. Select your device in the sidebar.
 2. Click on the **Terminal** tab in the sidebar.
 
-![Terminal Tab](terminal-tab.png)
+![Terminal Tab](./terminal-tab.png)
 
 You will be presented with a terminal interface to interact with your device.
 
@@ -21,4 +21,4 @@ You will be presented with a terminal interface to interact with your device.
 
 On the device details page, a small terminal interface is available at the bottom of the page.
 
-![Device Details Terminal](device-details-terminal.png)
+![Device Details Terminal](./device-details-terminal.png)

@@ -4,18 +4,11 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import rehypeSlug from 'rehype-slug';
+import relativeImages from "mdsvex-relative-images";
 
-const remarkPluginAAA = (options) => {
+
+const remarkExtractToc = (options) => {
 	return (tree, vFile) => {
-		// assert: tree type is root
-		if (tree.type !== 'root') {
-			throw new Error('Expected root node');
-		}
-
-		// console.log('Remark Plugin AAA - Processing tree:', tree);
-		// console.log('Remark Plugin AAA - vFile:', vFile);
-
-		// editing yaml was the wrong approach. instead, modify vFile.data.fm
 		if (!vFile.data) {
 			vFile.data = {};
 		}
@@ -38,9 +31,6 @@ const remarkPluginAAA = (options) => {
 			}
 		});
 		vFile.data.fm.toc = headings;
-		// console.log('Remark Plugin AAA - vFile data.fm updated:', vFile.data.fm);
-
-		// console.log('Remark Plugin AAA', tree, options);
 	};
 };
 
@@ -52,9 +42,10 @@ const config = {
 		vitePreprocess(),
 		mdsvex({
 			extensions: ['.svx', '.md'],
-			remarkPlugins: [remarkPluginAAA],
+			remarkPlugins: [remarkExtractToc, relativeImages],
 			rehypePlugins: [rehypeSlug],
 			layout: {
+				// github.com/pngwn/MDsveX/issues/556
 				summary: dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/SummaryLayout.svelte',
 				_: dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/MarkdownLayout.svelte'
 			}
