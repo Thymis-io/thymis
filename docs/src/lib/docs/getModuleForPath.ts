@@ -11,17 +11,17 @@ export default (path: string | string[]) => {
 			splitPath && Array.isArray(splitPath) && splitPath.length > 0 ? splitPath.join('/') : 'index';
 		let resolvedFilePath;
 
-		let contentModule = modules[`/src/lib/docs/${filePath}.md`];
-		resolvedFilePath = `/src/lib/docs/${filePath}.md`;
+		let contentModule = modules[`./${filePath}.md`];
+		resolvedFilePath = `./${filePath}.md`;
 		// If not found, try with index.md appended (for directory-style paths)
 		if (!contentModule && !filePath.endsWith('.md')) {
-			contentModule = modules[`/src/lib/docs/${filePath}/index.md`];
-			resolvedFilePath = `/src/lib/docs/${filePath}/index.md`;
+			contentModule = modules[`./${filePath}/index.md`];
+			resolvedFilePath = `./${filePath}/index.md`;
 		}
 
 		// If still not found, fallback to index
 		if (!contentModule) {
-			contentModule = modules['/src/lib/docs/index.md'];
+			contentModule = modules['./index.md'];
 		}
 
 		return {
