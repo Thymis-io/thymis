@@ -19,6 +19,7 @@
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
 		"@eslint/js": "^9.18.0",
+		"@fortawesome/fontawesome-free": "^7.0.0",
 		"@playwright/test": "^1.49.1",
 		"@sveltejs/adapter-static": "^3.0.8",
 		"@sveltejs/kit": "^2.22.0",
@@ -32,6 +33,7 @@
 		"eslint-plugin-svelte": "^3.0.0",
 		"github-slugger": "^2.0.0",
 		"globals": "^16.0.0",
+		"hast-util-from-html-isomorphic": "^2.0.0",
 		"mdsvex": "^0.12.3",
 		"mdsvex-relative-images": "^2.0.0",
 		"playwright": "^1.53.0",
@@ -39,6 +41,7 @@
 		"prettier-plugin-svelte": "^3.3.3",
 		"prettier-plugin-tailwindcss": "^0.6.11",
 		"prismjs": "^1.30.0",
+		"rehype-autolink-headings": "^7.1.0",
 		"rehype-slug": "^6.0.0",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",

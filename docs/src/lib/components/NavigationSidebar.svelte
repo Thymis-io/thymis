@@ -2,6 +2,6 @@
     import Summary from "$lib/docs/SUMMARY.md";
 </script>
 
-<nav class="prose summary-nav">
+<nav class="summary-nav">
     <Summary/>
 </nav>
