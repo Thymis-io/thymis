@@ -115,7 +115,7 @@
 						</div>
 					</div>
 
-					<article class="prose prose-headings:group max-w-none">
+					<article class="mt-4 prose max-w-none">
 						<contentModule.default />
 					</article>
 
