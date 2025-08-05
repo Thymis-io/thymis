@@ -1,15 +1,15 @@
 # Summary
 
-[Introduction](index.md)
+[Introduction](/index)
 
-- [Getting Started](getting_started/index.md)
-    - [Thymis NixOS module](getting_started/nixos.md)
-- [Usage](usage/index.md)
-    - [Provisioning a new device](usage/provisioning.md)
-    <!-- - [Adding an existing NixOS device](usage/existing_device.md) -->
-    - [System Configuration](usage/system_configuration.md)
-    - [Terminal Usage](usage/terminal.md)
-    - [VNC Usage](usage/vnc.md)
-- [Architecture](architecture.md)
-- [Extensions (Under Development)](extensions.md)
-- [API](api.md)
+- [Getting Started](/getting_started/index)
+    - [Thymis NixOS module](/getting_started/nixos)
+- [Usage](/usage/index)
+    - [Provisioning a new device](/usage/provisioning)
+    <!-- - [Adding an existing NixOS device](/usage/existing_device) -->
+    - [System Configuration](/usage/system_configuration)
+    - [Terminal Usage](/usage/terminal)
+    - [VNC Usage](/usage/vnc)
+- [Architecture](/architecture)
+- [Extensions (Under Development)](/extensions)
+- [API](/api)
