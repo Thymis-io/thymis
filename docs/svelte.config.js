@@ -7,7 +7,7 @@ import rehypeSlug from 'rehype-slug';
 import relativeImages from "mdsvex-relative-images";
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import {fromHtmlIsomorphic} from 'hast-util-from-html-isomorphic'
-
+import { visit } from 'unist-util-visit';
 
 
 const remarkExtractToc = (options) => {
@@ -34,6 +34,18 @@ const remarkExtractToc = (options) => {
 			}
 		});
 		vFile.data.fm.toc = headings;
+
+		// Now, recursively visit
+		// to get all links
+		let links = [];
+		visit(tree, 'link', (node) => {
+			// get all links in the document
+			links.push({
+				href: node.url,
+				text: node.children.map((child) => child.value).join('')
+			});
+		});
+		vFile.data.fm.links = links;
 	};
 };
 

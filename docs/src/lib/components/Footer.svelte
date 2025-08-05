@@ -1,9 +1,68 @@
 <script lang="ts">
+    import { metadata} from '$lib/docs/SUMMARY.md';
     import { page } from '$app/stores';
+
+    // Type definitions for the metadata structure
+    interface Link {
+        href: string;
+        text: string;
+    }
+
+    interface Metadata {
+        links: Link[];
+    }
+
+    // Cast metadata to the proper type
+    const typedMetadata = metadata as unknown as Metadata;
+
+    console.log('Metadata:', metadata);
+//     Metadata: {
+//   layout: 'summary',
+//   toc: [],
+//   links: [
+//     { href: '/', text: 'Introduction' },
+//     { href: '/getting_started/', text: 'Getting Started' },
+//     { href: '/getting_started/nixos', text: 'Thymis NixOS module' },
+//     { href: '/usage/', text: 'Usage' },
+//     { href: '/usage/provisioning', text: 'Provisioning a new device' },
+//     {
+//       href: '/usage/system_configuration',
+//       text: 'System Configuration'
+//     },
+//     { href: '/usage/terminal', text: 'Terminal Usage' },
+//     { href: '/usage/vnc', text: 'VNC Usage' },
+//     { href: '/architecture', text: 'Architecture' },
+//     { href: '/extensions', text: 'Extensions (Under Development)' },
+//     { href: '/api', text: 'API' }
+//   ]
+// }
 
     const currentYear = new Date().getFullYear();
 
     let { resolvedFilePath }: { resolvedFilePath?: string } = $props();
+
+    // Navigation logic
+    const currentPageIndex = $derived.by(() => {
+        const currentPath = $page.url.pathname === '/' ? '/' : $page.url.pathname.replace(/\/$/, '');
+        return typedMetadata.links.findIndex((link: Link) => {
+            const linkPath = link.href === '/' ? '/' : link.href.replace(/\/$/, '');
+            return linkPath === currentPath;
+        });
+    });
+
+    const previousPage = $derived.by(() => {
+        if (currentPageIndex > 0) {
+            return typedMetadata.links[currentPageIndex - 1];
+        }
+        return null;
+    });
+
+    const nextPage = $derived.by(() => {
+        if (currentPageIndex >= 0 && currentPageIndex < typedMetadata.links.length - 1) {
+            return typedMetadata.links[currentPageIndex + 1];
+        }
+        return null;
+    });
 
     const githubEditUrl = $derived.by(() => {
         if (!resolvedFilePath) return null;
@@ -14,6 +73,47 @@
 </script>
 
 <footer class="border-t border-gray-200 mt-16 pt-8 pb-8">
+    <!-- Page Navigation -->
+    {#if previousPage || nextPage}
+        <div class="max-w-4xl mb-8">
+            <div class="flex justify-between items-center">
+                <div class="flex-1">
+                    {#if previousPage}
+                        <a
+                            href={previousPage.href}
+                            class="group flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                        >
+                            <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                            <div class="text-left">
+                                <div class="text-xs text-gray-400 uppercase tracking-wide">Previous</div>
+                                <div class="font-medium">{previousPage.text}</div>
+                            </div>
+                        </a>
+                    {/if}
+                </div>
+
+                <div class="flex-1 text-right">
+                    {#if nextPage}
+                        <a
+                            href={nextPage.href}
+                            class="group flex items-center justify-end space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                        >
+                            <div class="text-right">
+                                <div class="text-xs text-gray-400 uppercase tracking-wide">Next</div>
+                                <div class="font-medium">{nextPage.text}</div>
+                            </div>
+                            <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    {/if}
+                </div>
+            </div>
+        </div>
+    {/if}
+
     <div class="max-w-4xl">
         <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-600">
             <div class="flex items-center space-x-4 mb-4 md:mb-0">
