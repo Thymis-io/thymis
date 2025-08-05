@@ -51,7 +51,7 @@ const config = {
 				headingProperties: {
 					class:'group'
 				},
-				content: fromHtmlIsomorphic('<span class="fa-solid fa-link ml-2 !hidden group-hover:!inline-block"></span>', {fragment: true}).children,
+				content: fromHtmlIsomorphic('<span class="fa-solid fa-link ml-3 lg:!hidden group-hover:!inline-block"></span>', {fragment: true}).children,
 			}]],
 			layout: {
 				// github.com/pngwn/MDsveX/issues/556
