@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Breadcrumb from '$lib/components/Breadcrumb.svelte';
-	import Search from '$lib/components/Search.svelte';
 	import TableOfContents from '$lib/components/TableOfContents.svelte';
 	import PageNavigation from '$lib/components/PageNavigation.svelte';
 	import Footer from '$lib/components/Footer.svelte';
@@ -48,9 +47,7 @@
 			<div class="p-6">
 				<h1 class="mb-6 text-xl font-bold text-gray-900">Thymis Documentation</h1>
 
-				<Search {allModules} />
-
-				<NavigationSidebar {allModules} />
+				<NavigationSidebar />
 			</div>
 		</aside>
 
@@ -86,8 +83,6 @@
 					<div class="h-0 flex-1 overflow-y-auto pb-4 pt-5">
 						<div class="px-6">
 							<h1 class="mb-6 text-xl font-bold text-gray-900">Thymis Documentation</h1>
-
-							<Search {allModules} />
 
 							<NavigationSidebar />
 						</div>
