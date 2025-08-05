@@ -1,7 +1,11 @@
 <script lang="ts">
     import { page } from '$app/stores';
+    import { getContext } from 'svelte';
 
     let { href, children } = $props();
+
+    // Get the navigation context if it exists
+    const navigationContext = getContext<{ onNavigate?: () => void }>('navigation');
 
     function isCurrentPage(linkHref: string): boolean {
         // Remove trailing slash and compare with current pathname
@@ -23,9 +27,17 @@
         // Check if current path starts with the link href (making it a parent)
         return cleanPathname.startsWith(cleanHref + '/') || cleanPathname === cleanHref;
     }
+
+    function handleClick() {
+        // Call the onNavigate function if it exists
+        if (navigationContext?.onNavigate) {
+            navigationContext.onNavigate();
+        }
+    }
 </script>
 <a
     {href}
+    onclick={handleClick}
     class="block px-3 py-2 text-sm rounded-md transition-colors no-underline {
         isCurrentPage(href)
             ? 'bg-blue-50 text-blue-700 font-medium'

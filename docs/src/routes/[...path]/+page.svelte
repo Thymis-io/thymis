@@ -23,7 +23,7 @@
 
 <div class="min-h-screen bg-gray-50">
 	<!-- Mobile menu button -->
-	<div class="border-b border-gray-200 bg-white px-4 py-3 lg:hidden">
+	<div class="sticky top-0 border-b border-gray-200 bg-white px-4 py-3 lg:hidden">
 		<button
 			type="button"
 			onclick={() => (mobileMenuOpen = !mobileMenuOpen)}
@@ -67,7 +67,7 @@
 					onkeydown={(e) => e.key === 'Escape' && (mobileMenuOpen = false)}
 					aria-label="Close menu"
 				></div>
-				<div class="relative flex w-full max-w-xs flex-1 flex-col bg-white">
+				<div class="relative flex h-full w-80 max-w-sm flex-col bg-white shadow-xl">
 					<div class="absolute right-0 top-0 -mr-12 pt-2">
 						<button
 							type="button"
@@ -85,11 +85,12 @@
 							</svg>
 						</button>
 					</div>
-					<div class="h-0 flex-1 overflow-y-auto pb-4 pt-5">
-						<div class="px-6">
-							<h1 class="mb-6 text-xl font-bold text-gray-900">Thymis Documentation</h1>
-
-							<NavigationSidebar />
+					<div class="flex h-full flex-1 flex-col overflow-hidden">
+						<div class="flex-shrink-0 border-b border-gray-200 px-6 py-4">
+							<h1 class="text-xl font-bold text-gray-900">Thymis Documentation</h1>
+						</div>
+						<div class="flex-1 overflow-y-auto px-6 py-4">
+							<NavigationSidebar onNavigate={() => (mobileMenuOpen = false)} />
 						</div>
 					</div>
 				</div>
