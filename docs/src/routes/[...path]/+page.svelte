@@ -102,7 +102,7 @@
 
 		<!-- Right Sidebar - Table of Contents -->
 		<aside
-			class="sticky top-0 hidden min-h-screen w-64 overflow-y-auto xl:block"
+			class="sticky top-0 hidden h-screen w-64 overflow-y-auto xl:block"
 		>
 			<div class="p-6">
 				<TableOfContents toc={module.metadata?.toc} />
