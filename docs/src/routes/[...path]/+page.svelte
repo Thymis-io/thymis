@@ -1,5 +1,4 @@
 <script lang="ts">
-	import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 	import TableOfContents from '$lib/components/TableOfContents.svelte';
 	import PageNavigation from '$lib/components/PageNavigation.svelte';
 	import Footer from '$lib/components/Footer.svelte';
@@ -94,8 +93,6 @@
 		<!-- Main Content -->
 		<main class="flex-1 p-4 lg:p-8">
 			<div class="max-w-4xl">
-				<Breadcrumb {currentPath} />
-
 				<TableOfContents />
 				<article class="prose prose-lg max-w-none">
 					<DocsContent {path} />
