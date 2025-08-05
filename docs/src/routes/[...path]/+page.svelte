@@ -101,6 +101,13 @@
 		<main class="flex-1 min-w-0 overflow-y-auto">
 			<div class="p-4 lg:p-8">
 				<div class="max-w-4xl">
+					<!-- Mobile Table of Contents -->
+					<div class="mb-4 xl:hidden">
+						<div class="rounded-lg border border-gray-200 bg-white p-3">
+							<TableOfContents toc={contentModule.metadata?.toc} />
+						</div>
+					</div>
+
 					<article class="prose prose-headings:group max-w-none">
 						<contentModule.default />
 					</article>
