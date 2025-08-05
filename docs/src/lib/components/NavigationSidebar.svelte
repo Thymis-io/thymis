@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Summary from "$lib/docs/SUMMARY.md";
+    import Summary from "../docs/SUMMARY.md";
     import { setContext } from 'svelte';
 
     interface Props {

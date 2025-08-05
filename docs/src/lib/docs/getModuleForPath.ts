@@ -1,6 +1,6 @@
 import type { SvelteComponent } from 'svelte';
 
-const modules = import.meta.glob('$lib/docs/**/*.md', { eager: true }) as Record<
+const modules = import.meta.glob('./**/*.md', { eager: true }) as Record<
     string,
     { default: typeof SvelteComponent; metadata?: Record<string, unknown> }
 >;

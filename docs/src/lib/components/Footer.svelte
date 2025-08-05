@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { metadata} from '$lib/docs/SUMMARY.md';
+    import { metadata} from '../docs/SUMMARY.md';
     import { page } from '$app/stores';
 
     // Type definitions for the metadata structure

@@ -5,7 +5,7 @@
 	import NavigationSidebar from './NavigationSidebar.svelte';
 	import TableOfContents from './TableOfContents.svelte';
 	import Breadcrumbs from './Breadcrumbs.svelte';
-	import getModuleForPath from '$lib/docs/getModuleForPath';
+	import getModuleForPath from '../docs/getModuleForPath';
 
 	let { path }: {
 		path: string | string[];
