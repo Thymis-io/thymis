@@ -1,53 +1,54 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
     import { page } from '$app/stores';
+    import Summary from "$lib/docs/SUMMARY.md";
 
-    interface NavItem {
-        label: string;
-        href: string;
-        children?: NavItem[];
-    }
+    // interface NavItem {
+    //     label: string;
+    //     href: string;
+    //     children?: NavItem[];
+    // }
 
-    // Navigation items structure
-    const navigationItems: NavItem[] = [
-        { label: 'Introduction', href: '/index' },
-        {
-            label: 'Getting Started',
-            href: '/getting_started/index',
-            children: [
-                { label: 'Thymis NixOS module', href: '/getting_started/nixos' }
-            ]
-        },
-        {
-            label: 'Usage',
-            href: '/usage/index',
-            children: [
-                { label: 'Provisioning a new device', href: '/usage/provisioning' },
-                { label: 'System Configuration', href: '/usage/system_configuration' },
-                { label: 'Terminal Usage', href: '/usage/terminal' },
-                { label: 'VNC Usage', href: '/usage/vnc' }
-            ]
-        },
-        { label: 'Architecture', href: '/architecture' },
-        { label: 'Extensions (Under Development)', href: '/extensions' },
-        { label: 'API', href: '/api' }
-    ];
+    // // Navigation items structure
+    // const navigationItems: NavItem[] = [
+    //     { label: 'Introduction', href: '/index' },
+    //     {
+    //         label: 'Getting Started',
+    //         href: '/getting_started/index',
+    //         children: [
+    //             { label: 'Thymis NixOS module', href: '/getting_started/nixos' }
+    //         ]
+    //     },
+    //     {
+    //         label: 'Usage',
+    //         href: '/usage/index',
+    //         children: [
+    //             { label: 'Provisioning a new device', href: '/usage/provisioning' },
+    //             { label: 'System Configuration', href: '/usage/system_configuration' },
+    //             { label: 'Terminal Usage', href: '/usage/terminal' },
+    //             { label: 'VNC Usage', href: '/usage/vnc' }
+    //         ]
+    //     },
+    //     { label: 'Architecture', href: '/architecture' },
+    //     { label: 'Extensions (Under Development)', href: '/extensions' },
+    //     { label: 'API', href: '/api' }
+    // ];
 
-    function handleNavigation(href: string, event: Event) {
-        event.preventDefault();
-        goto(href);
-    }
+    // function handleNavigation(href: string, event: Event) {
+    //     event.preventDefault();
+    //     goto(href);
+    // }
 
-    function isCurrentPage(href: string): boolean {
-        return $page.url.pathname === href;
-    }
+    // function isCurrentPage(href: string): boolean {
+    //     return $page.url.pathname === href;
+    // }
 
-    function isParentOfCurrentPage(item: NavItem): boolean {
-        if (!item.children) return false;
-        return item.children.some((child) => isCurrentPage(child.href));
-    }
+    // function isParentOfCurrentPage(item: NavItem): boolean {
+    //     if (!item.children) return false;
+    //     return item.children.some((child) => isCurrentPage(child.href));
+    // }
 </script>
-
+<!--
 <nav class="space-y-1">
     <h2 class="text-sm font-semibold text-gray-900 mb-4">Documentation</h2>
 
@@ -84,4 +85,8 @@
             {/if}
         </div>
     {/each}
+</nav> -->
+
+<nav class="prose summary-nav">
+    <Summary/>
 </nav>
