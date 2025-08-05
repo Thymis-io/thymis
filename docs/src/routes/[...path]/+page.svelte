@@ -4,6 +4,7 @@
 	import Footer from '$lib/components/Footer.svelte';
 	import NavigationSidebar from '$lib/components/NavigationSidebar.svelte';
 	import TableOfContents from '$lib/components/TableOfContents.svelte';
+	import Breadcrumbs from '$lib/components/Breadcrumbs.svelte';
 	import getModuleForPath from '$lib/docs/getModuleForPath.js';
 
 	let { data } = $props();
@@ -101,6 +102,9 @@
 		<main class="flex-1 min-w-0 overflow-y-auto">
 			<div class="p-4 lg:p-8">
 				<div class="max-w-4xl">
+					<!-- Breadcrumbs -->
+					<Breadcrumbs {path} />
+
 					<!-- Mobile Table of Contents -->
 					<div class="mb-4 xl:hidden">
 						<div class="rounded-lg border border-gray-200 bg-white p-3">
