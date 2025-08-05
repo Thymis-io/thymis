@@ -21,7 +21,6 @@ export default (path: string | string[]) => {
 
 		// If still not found, fallback to index
 		if (!contentModule) {
-			console.warn(`Content module not found for path: ${filePath}. Falling back to index.md.`);
 			contentModule = modules['/src/lib/docs/index.md'];
 		}
 
