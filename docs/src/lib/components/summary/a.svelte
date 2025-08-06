@@ -30,12 +30,15 @@
         const cleanHref = prefixedHref === '/' ? '/' : prefixedHref.replace(/\/$/, '');
         const cleanPathname = $currentPathStore === '/' ? '/' : $currentPathStore.replace(/\/$/, '');
 
-        // Don't highlight root for non-root pages
-        if (cleanHref === '/' && cleanPathname !== '/') {
-            return false;
+        // Special handling for root path
+        if (linkHref === '/') {
+            // If we're dealing with the root link, only highlight if we're exactly on the root page
+            // When there's a prefix, the root page would be at the prefix path
+            const rootPath = prefix ? (prefix === '/' ? '/' : prefix.replace(/\/$/, '')) : '/';
+            return cleanPathname === rootPath;
         }
 
-        // Check if current path starts with the link href (making it a parent)
+        // For non-root links, check if current path starts with the link href (making it a parent)
         return cleanPathname.startsWith(cleanHref + '/') || cleanPathname === cleanHref;
     }
 
