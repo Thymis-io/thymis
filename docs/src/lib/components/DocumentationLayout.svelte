@@ -49,7 +49,7 @@
 	<div class="mx-auto flex max-w-screen-2xl">
 		<!-- Left Sidebar -->
 		<aside
-			class="sticky top-0 hidden w-72 border-r border-gray-200 bg-white shadow-sm lg:flex lg:flex-col self-start"
+			class="z-10 sticky top-0 hidden w-72 border-r border-gray-200 bg-white shadow-sm lg:flex lg:flex-col self-start"
 		>
 			<div class="p-6">
 				<h1 class="mb-6 text-xl font-bold text-gray-900">Thymis Documentation</h1>
