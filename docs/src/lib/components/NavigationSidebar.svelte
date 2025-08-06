@@ -133,7 +133,6 @@
 
     // Open search modal
     function openSearchModal() {
-        console.log('Opening search modal...'); // Debug log
         showSearchModal = true;
         // Focus the search input after modal opens
         setTimeout(() => {
