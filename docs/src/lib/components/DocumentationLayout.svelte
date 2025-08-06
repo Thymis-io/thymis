@@ -45,17 +45,15 @@
 		<span class="ml-2 text-lg font-semibold text-gray-900">Thymis Documentation</span>
 	</div>
 
-	<div class="mx-auto flex max-w-screen-2xl h-screen">
+	<div class="mx-auto flex max-w-screen-2xl min-h-screen">
 		<!-- Left Sidebar -->
 		<aside
-			class="sticky top-0 hidden w-64 border-r border-gray-200 bg-white shadow-sm lg:flex lg:flex-col"
+			class="sticky top-0 hidden w-64 border-r border-gray-200 bg-white shadow-sm lg:flex lg:flex-col self-start"
 		>
-			<div class="flex-1 overflow-y-auto">
-				<div class="p-6">
-					<h1 class="mb-6 text-xl font-bold text-gray-900">Thymis Documentation</h1>
+			<div class="p-6">
+				<h1 class="mb-6 text-xl font-bold text-gray-900">Thymis Documentation</h1>
 
-					<NavigationSidebar {currentPath} />
-				</div>
+				<NavigationSidebar {currentPath} />
 			</div>
 		</aside>
 
@@ -94,7 +92,7 @@
 		{/if}
 
 		<!-- Main Content -->
-		<main class="flex-1 min-w-0 overflow-y-auto">
+		<main class="flex-1 min-w-0">
 			<div class="p-4 lg:p-8">
 				<div class="max-w-4xl">
 					<!-- Breadcrumbs -->
@@ -118,12 +116,10 @@
 
 		<!-- Right Sidebar - Table of Contents -->
 		<aside
-			class="sticky top-0 hidden w-64 xl:flex xl:flex-col"
+			class="sticky top-0 hidden w-64 xl:flex xl:flex-col self-start"
 		>
-			<div class="flex-1 overflow-y-auto">
-				<div class="p-6">
-					<TableOfContents toc={contentModule.metadata?.toc} />
-				</div>
+			<div class="p-6">
+				<TableOfContents toc={contentModule.metadata?.toc} />
 			</div>
 		</aside>
 	</div>
