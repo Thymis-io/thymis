@@ -14,8 +14,7 @@
 		"lint": "prettier --check . && eslint .",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
-		"test:e2e": "playwright test",
-		"postinstall": "npm install --ignore-scripts"
+		"test:e2e": "playwright test"
 	},
 	"svelte": "./src/lib/index.ts",
 	"exports": {
