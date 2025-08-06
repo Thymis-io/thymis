@@ -196,6 +196,23 @@
         }
     }
 
+    // Handle global keyboard shortcuts
+    function handleGlobalKeydown(e: KeyboardEvent) {
+        // Ctrl+K or Cmd+K to open search modal
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            openSearchModal();
+        }
+    }
+
+    // Add/remove global keyboard listener
+    onMount(() => {
+        document.addEventListener('keydown', handleGlobalKeydown);
+        return () => {
+            document.removeEventListener('keydown', handleGlobalKeydown);
+        };
+    });
+
     // Add/remove click outside listener when modal opens/closes
     $effect(() => {
         if (showSearchModal) {
@@ -245,7 +262,10 @@
             class="w-full px-4 py-3 text-left border border-gray-200 rounded-lg bg-white hover:border-gray-300 transition-colors duration-200 flex items-center gap-3 cursor-text"
         >
             <i class="fas fa-search text-gray-400 text-sm"></i>
-            <span class="text-sm text-gray-500">Search documentation...</span>
+            <span class="text-sm text-gray-500 flex-1">Search documentation...</span>
+            <kbd class="hidden sm:inline-flex items-center px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded border border-gray-200">
+                <span class="text-xs">⌘</span>K
+            </kbd>
         </button>
     </div>
 
