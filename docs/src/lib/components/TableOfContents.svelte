@@ -17,32 +17,69 @@
 	let activeId = $state('');
 
 	onMount(() => {
-		const observerOptions = {
-			rootMargin: '-20% 0px -35% 0px',
-			threshold: 0
+		// Function to determine which section is currently active
+		const updateActiveSection = () => {
+			const sections = tocItems.map(item => {
+				const element = document.getElementById(item.id);
+				return element ? { id: item.id, element } : null;
+			}).filter(Boolean);
+
+			if (sections.length === 0) return;
+
+			// If we're at the very top of the page, always select the first section
+			if (window.scrollY <= 1) {
+				activeId = sections[0].id;
+				return;
+			}
+
+			// Find the section that should be highlighted
+			let bestMatch = sections[0].id; // Default to first section
+
+			// Calculate 40% line from top of viewport
+			const viewportHeight = window.innerHeight;
+			const fortyPercentFromTop = viewportHeight * 0.4;
+
+			// Go through sections and find the one that should be active
+			for (let i = 0; i < sections.length; i++) {
+				const { id, element } = sections[i];
+				const rect = element.getBoundingClientRect();
+
+				// A section is "active" if its top has reached the 40% line from top
+				if (rect.top <= fortyPercentFromTop) {
+					bestMatch = id;
+				}
+			}
+
+			activeId = bestMatch;
 		};
 
-		const observer = new IntersectionObserver((entries) => {
-			// Find the first visible entry with the highest position on screen
-			const visibleEntries = entries.filter(entry => entry.isIntersecting);
+		// Initial update
+		updateActiveSection();
 
-			if (visibleEntries.length > 0) {
-				// Sort by position on screen (top to bottom)
-				visibleEntries.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-				activeId = visibleEntries[0].target.id;
+		// Listen for scroll events with throttling
+		let ticking = false;
+		const handleScroll = () => {
+			if (!ticking) {
+				requestAnimationFrame(() => {
+					updateActiveSection();
+					ticking = false;
+				});
+				ticking = true;
 			}
-		}, observerOptions);
+		};
 
-		// Observe all elements that have IDs matching our TOC items
-		tocItems.forEach(item => {
-			const element = document.getElementById(item.id);
-			if (element) {
-				observer.observe(element);
-			}
-		});
+		// Listen for hash changes (when clicking TOC links)
+		const handleHashChange = () => {
+			// Small delay to ensure scroll has completed
+			setTimeout(updateActiveSection, 100);
+		};
+
+		window.addEventListener('scroll', handleScroll);
+		window.addEventListener('hashchange', handleHashChange);
 
 		return () => {
-			observer.disconnect();
+			window.removeEventListener('scroll', handleScroll);
+			window.removeEventListener('hashchange', handleHashChange);
 		};
 	});
 </script>
