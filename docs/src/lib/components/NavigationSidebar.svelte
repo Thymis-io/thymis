@@ -30,8 +30,9 @@
     onMount(() => {
         searchIndex = new Index({
             preset: 'performance',
-            tokenize: 'forward',
-            resolution: 9
+            tokenize: 'full',
+            encoder: 'LatinExtra',
+            resolution: 9,
         });
 
         // Index all modules' markdown content and build cache
@@ -101,7 +102,7 @@
             return;
         }
 
-        const results = searchIndex.search(query, { limit: 8 });
+        const results = searchIndex.search(query, { limit: 8, suggest:true });
         const searchResultsData = results.map((id) => {
             const idString = String(id);
             const cached = moduleCache.get(idString);
