@@ -16,8 +16,6 @@
     // Cast metadata to the proper type
     const typedMetadata = metadata as unknown as Metadata;
 
-    console.log('Metadata links:', typedMetadata.links);
-
     const prefix = getContext<string>('prefix') || '';
 
     const currentYear = new Date().getFullYear();
@@ -36,13 +34,6 @@
             }
             return prefixedLinkPath === cleanCurrentPath;
         });
-    });
-
-    $effect(() => {
-        console.log('Current page index:', currentPageIndex);
-        console.log('Current path:', currentPath);
-        console.log('Resolved file path:', resolvedFilePath);
-        console.log('Metadata links:', typedMetadata.links);
     });
 
     const previousPage = $derived.by(() => {
