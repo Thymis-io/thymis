@@ -29,14 +29,21 @@
         const cleanCurrentPath = currentPath === '/' ? '/' : currentPath.replace(/\/$/, '');
         return typedMetadata.links.findIndex((link: Link) => {
             const linkPath = link.href === '/' ? '/' : link.href.replace(/\/$/, '');
-            const prefixedLinkPath = prefix + linkPath;
+            let prefixedLinkPath = prefix + linkPath;
+            // Handle the case where linkPath is '/' and we have a prefix
+            if (linkPath === '/' && prefix) {
+                prefixedLinkPath = prefix === '/' ? '/' : prefix.replace(/\/$/, '');
+            }
             return prefixedLinkPath === cleanCurrentPath;
         });
     });
 
-    console.log('Current page index:', currentPageIndex);
-    console.log('Current path:', currentPath);
-    console.log('Resolved file path:', resolvedFilePath);
+    $effect(() => {
+        console.log('Current page index:', currentPageIndex);
+        console.log('Current path:', currentPath);
+        console.log('Resolved file path:', resolvedFilePath);
+        console.log('Metadata links:', typedMetadata.links);
+    });
 
     const previousPage = $derived.by(() => {
         if (currentPageIndex > 0) {
