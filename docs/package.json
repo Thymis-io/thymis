@@ -20,6 +20,9 @@
 	"exports": {
 		".": {
 			"svelte": "./src/lib/index.ts"
+		},
+		"./svelte.config.js": {
+			"default": "./svelte.config.js"
 		}
 	},
 	"dependencies": {
