@@ -4,12 +4,13 @@
 
     interface Props {
         onNavigate?: () => void;
+        currentPath?: string;
     }
 
-    let { onNavigate }: Props = $props();
+    let { onNavigate, currentPath = '' }: Props = $props();
 
-    // Set context so child components can access the onNavigate function
-    setContext('navigation', { onNavigate });
+    // Set context so child components can access the onNavigate function and currentPath
+    setContext('navigation', { onNavigate, currentPath });
 </script>
 
 <nav class="summary-nav">

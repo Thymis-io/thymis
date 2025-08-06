@@ -7,8 +7,9 @@
 	import Breadcrumbs from './Breadcrumbs.svelte';
 	import getModuleForPath from '../docs/getModuleForPath';
 
-	let { path }: {
+	let { path, currentPath = '' }: {
 		path: string | string[];
+		currentPath?: string;
 	} = $props();
 
 	let mobileMenuOpen = $state(false);
@@ -48,7 +49,7 @@
 				<div class="p-6">
 					<h1 class="mb-6 text-xl font-bold text-gray-900">Thymis Documentation</h1>
 
-					<NavigationSidebar />
+					<NavigationSidebar {currentPath} />
 				</div>
 			</div>
 		</aside>
@@ -80,7 +81,7 @@
 							<h1 class="text-xl font-bold text-gray-900">Thymis Documentation</h1>
 						</div>
 						<div class="flex-1 overflow-y-auto px-6 py-4">
-							<NavigationSidebar onNavigate={() => (mobileMenuOpen = false)} />
+							<NavigationSidebar onNavigate={() => (mobileMenuOpen = false)} {currentPath} />
 						</div>
 					</div>
 				</div>
@@ -105,7 +106,7 @@
 						<contentModule.default />
 					</article>
 
-					<Footer {resolvedFilePath} />
+					<Footer {resolvedFilePath} {currentPath} />
 				</div>
 			</div>
 		</main>

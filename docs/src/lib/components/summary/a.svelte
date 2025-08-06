@@ -1,23 +1,23 @@
 <script lang="ts">
-    import { page } from '$app/stores';
     import { getContext } from 'svelte';
 
     let { href, children } = $props();
 
     // Get the navigation context if it exists
-    const navigationContext = getContext<{ onNavigate?: () => void }>('navigation');
+    const navigationContext = getContext<{ onNavigate?: () => void; currentPath?: string }>('navigation');
+    const currentPath = navigationContext?.currentPath || '';
 
     function isCurrentPage(linkHref: string): boolean {
         // Remove trailing slash and compare with current pathname
         const cleanHref = linkHref === '/' ? '/' : linkHref.replace(/\/$/, '');
-        const cleanPathname = $page.url.pathname === '/' ? '/' : $page.url.pathname.replace(/\/$/, '');
+        const cleanPathname = currentPath === '/' ? '/' : currentPath.replace(/\/$/, '');
         return cleanPathname === cleanHref;
     }
 
     function isInHierarchy(linkHref: string): boolean {
         // Check if current page is within this link's hierarchy
         const cleanHref = linkHref === '/' ? '/' : linkHref.replace(/\/$/, '');
-        const cleanPathname = $page.url.pathname === '/' ? '/' : $page.url.pathname.replace(/\/$/, '');
+        const cleanPathname = currentPath === '/' ? '/' : currentPath.replace(/\/$/, '');
 
         // Don't highlight root for non-root pages
         if (cleanHref === '/' && cleanPathname !== '/') {

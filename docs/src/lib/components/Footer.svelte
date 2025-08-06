@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { page } from '$app/stores';
     const metadata = import.meta.glob('../docs/SUMMARY.md', { eager: true })['../docs/SUMMARY.md'].metadata;
 
     // Type definitions for the metadata structure
@@ -17,14 +16,14 @@
 
     const currentYear = new Date().getFullYear();
 
-    let { resolvedFilePath }: { resolvedFilePath?: string } = $props();
+    let { resolvedFilePath, currentPath = '' }: { resolvedFilePath?: string; currentPath?: string } = $props();
 
     // Navigation logic
     const currentPageIndex = $derived.by(() => {
-        const currentPath = $page.url.pathname === '/' ? '/' : $page.url.pathname.replace(/\/$/, '');
+        const cleanCurrentPath = currentPath === '/' ? '/' : currentPath.replace(/\/$/, '');
         return typedMetadata.links.findIndex((link: Link) => {
             const linkPath = link.href === '/' ? '/' : link.href.replace(/\/$/, '');
-            return linkPath === currentPath;
+            return linkPath === cleanCurrentPath;
         });
     });
 

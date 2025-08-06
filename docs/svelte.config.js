@@ -10,7 +10,7 @@ import {fromHtmlIsomorphic} from 'hast-util-from-html-isomorphic'
 import { visit } from 'unist-util-visit';
 
 
-const remarkExtractToc = (options) => {
+export const remarkExtractToc = (options) => {
 	return (tree, vFile) => {
 		if (!vFile.data) {
 			vFile.data = {};
