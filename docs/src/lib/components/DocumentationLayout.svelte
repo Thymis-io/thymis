@@ -6,11 +6,16 @@
 	import TableOfContents from './TableOfContents.svelte';
 	import Breadcrumbs from './Breadcrumbs.svelte';
 	import getModuleForPath from '../docs/getModuleForPath';
+	import { setContext } from "svelte";
 
-	let { path, currentPath = '' }: {
+	let { path, prefix = '', currentPath = '' }: {
+		prefix?: string;
 		path: string | string[];
 		currentPath?: string;
 	} = $props();
+
+	// set context for prefix
+	setContext('prefix', prefix);
 
 	let mobileMenuOpen = $state(false);
 
