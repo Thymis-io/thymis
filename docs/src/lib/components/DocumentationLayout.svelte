@@ -25,7 +25,8 @@
 	// Get content module and resolved file path
 	const {
 		contentModule,
-		resolvedFilePath
+		resolvedFilePath,
+		breadcrumbs
 	} = $derived(getModuleForPath(path));
 </script>
 
@@ -96,7 +97,7 @@
 			<div class="p-4 lg:p-8">
 				<div class="max-w-4xl">
 					<!-- Breadcrumbs -->
-					<Breadcrumbs path={pathString} />
+					<Breadcrumbs path={pathString} {breadcrumbs} />
 
 					<!-- Mobile Table of Contents -->
 					<div class="mb-4 xl:hidden">

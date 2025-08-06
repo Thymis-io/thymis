@@ -23,8 +23,48 @@ export default (path: string | string[]) => {
 			resolvedFilePath = './index.md';
 		}
 
+		// we will also build breadcrumbs. To go up a path, remove last segment so from a/b/c we get a/b and look at a/b.md
+		// when doing a.md, we look at index.md afterwards
+		// for each of them, we will use .metadata.toc
+		const breadcrumbs = [];
+		const ancestorAndSelf = [];
+		// Insert index always
+		ancestorAndSelf.push(modules['./index.md']);
+		// if we are not index (nothing), add more
+		if (cleanFilePath !== 'index') {
+			const segments = cleanFilePath.split('/');
+			for (let i = 0; i <= segments.length; i++) {
+				const parentPath = segments.slice(0, i).join('/');
+				const parentModule = modules[`./${parentPath}.md`];
+				if (parentModule) {
+					ancestorAndSelf.push(parentModule);
+				}
+			}
+		}
+
+		console.log('Parent modules:', ancestorAndSelf);
+
+		// collect breadcrumbs from parent modules like this:
+		// module.metadata.toc
+		// in the toc, console.log for debug
+		for (const parentModule of ancestorAndSelf) {
+			if (parentModule.metadata && parentModule.metadata.toc) {
+				console.log('Breadcrumbs for module:', parentModule.metadata.toc);
+				//Breadcrumbs for module: [ { level: 1, text: 'Introduction', id: null } ]
+				// select the first item in the toc
+				const firstItem = parentModule.metadata.toc[0] || null;
+				if (firstItem) {
+					breadcrumbs.push(firstItem.text);
+				}
+			}
+		}
+
+		console.log('Resolved file path:', resolvedFilePath);
+		console.log('Breadcrumbs:', breadcrumbs);
+
 		return {
 			contentModule: contentModule,
-			resolvedFilePath: resolvedFilePath
+			resolvedFilePath: resolvedFilePath,
+			breadcrumbs: breadcrumbs,
 		};
 	}
