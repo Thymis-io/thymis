@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { setContext, onMount } from 'svelte';
+    import { setContext, onMount, getContext } from 'svelte';
     import Summary from '../docs/SUMMARY.md';
 	import { writable } from 'svelte/store';
     import { Index } from 'flexsearch';
@@ -11,6 +11,9 @@
     }
 
     let { onNavigate, currentPath = '', allModules = {} }: Props = $props();
+
+    // Get prefix from context if available
+    const prefix = getContext<string>('prefix') || '';
 
     // Create FlexSearch index
     let searchIndex: Index;
@@ -37,7 +40,8 @@
                 const cleanPath = path.replace(/^\.\//, '').replace(/\.md$/, '');
                 const fullContent = module?.metadata?.contents || module?.metadata?.fm?.contents || '';
 
-                if (fullContent) {
+                // Exclude SUMMARY.md from search indexing
+                if (fullContent && !cleanPath.includes('SUMMARY') && !path.includes('SUMMARY.md')) {
                     searchIndex.add(cleanPath, fullContent);
 
                     // Pre-process and cache module data
@@ -57,7 +61,8 @@
             Object.entries(allModules).forEach(([path, module]) => {
                 const fullContent = module?.metadata?.contents || module?.metadata?.fm?.contents || '';
 
-                if (fullContent) {
+                // Exclude SUMMARY.md from search indexing
+                if (fullContent && !path.includes('SUMMARY') && !path.includes('SUMMARY.md')) {
                     searchIndex.add(path, fullContent);
 
                     // Pre-process and cache module data
@@ -107,10 +112,18 @@
 
             const excerpt = generateExcerpt(cached.cleanContent, query);
 
+            // Construct proper path with prefix
+            let resultPath;
+            if (idString === 'index') {
+                resultPath = prefix ? `${prefix}/` : '/';
+            } else {
+                resultPath = prefix ? `${prefix}/${idString}` : `/${idString}`;
+            }
+
             return {
                 id: idString,
                 title: cached.title,
-                path: idString === 'index' ? '/' : `/${idString}`,
+                path: resultPath,
                 excerpt: excerpt
             };
         }).filter(Boolean); // Remove null entries
