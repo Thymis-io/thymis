@@ -1,26 +1,309 @@
 <script lang="ts">
-    import { setContext } from 'svelte';
+    import { setContext, onMount } from 'svelte';
     import Summary from '../docs/SUMMARY.md';
 	import { writable } from 'svelte/store';
+    import { Index } from 'flexsearch';
 
     interface Props {
         onNavigate?: () => void;
         currentPath?: string;
+        allModules?: Record<string, any> | Array<{path: string, module: any}>; // Support both formats
     }
 
-    let { onNavigate, currentPath = '' }: Props = $props();
+    let { onNavigate, currentPath = '', allModules = {} }: Props = $props();
+
+    // Create FlexSearch index
+    let searchIndex: Index;
+    let searchResults = writable<Array<{ id: string; title: string; path: string; excerpt: string }>>([]);
+    let searchQuery = $state('');
+    let showSearchModal = $state(false);
+    let searchInputRef: HTMLInputElement;
+    let searchModalRef: HTMLDivElement;
+
+    // Cache for processed modules to avoid repeated lookups and processing
+    let moduleCache = new Map<string, { moduleData: any; cleanContent: string; title: string }>();
+
+    // Initialize FlexSearch and index modules
+    onMount(() => {
+        searchIndex = new Index({
+            preset: 'performance',
+            tokenize: 'forward',
+            resolution: 9
+        });
+
+        // Index all modules' markdown content and build cache
+        if (Array.isArray(allModules)) {
+            allModules.forEach(({ path, module }) => {
+                const cleanPath = path.replace(/^\.\//, '').replace(/\.md$/, '');
+                const fullContent = module?.metadata?.contents || module?.metadata?.fm?.contents || '';
+
+                if (fullContent) {
+                    searchIndex.add(cleanPath, fullContent);
+
+                    // Pre-process and cache module data
+                    const cleanContent = preprocessContent(fullContent);
+                    const title = module?.metadata?.toc?.[0]?.text ||
+                                cleanPath.split('/').pop()?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) ||
+                                cleanPath;
+
+                    moduleCache.set(cleanPath, {
+                        moduleData: module,
+                        cleanContent,
+                        title
+                    });
+                }
+            });
+        } else {
+            Object.entries(allModules).forEach(([path, module]) => {
+                const fullContent = module?.metadata?.contents || module?.metadata?.fm?.contents || '';
+
+                if (fullContent) {
+                    searchIndex.add(path, fullContent);
+
+                    // Pre-process and cache module data
+                    const cleanContent = preprocessContent(fullContent);
+                    const title = module?.metadata?.toc?.[0]?.text ||
+                                path.split('/').pop()?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) ||
+                                path;
+
+                    moduleCache.set(path, {
+                        moduleData: module,
+                        cleanContent,
+                        title
+                    });
+                }
+            });
+        }
+    });
+
+    // Pre-process content to remove markdown syntax (done once during initialization)
+    function preprocessContent(content: string): string {
+        return content
+            .replace(/#{1,6}\s+/g, '') // Remove markdown headers
+            .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold markdown
+            .replace(/\*([^*]+)\*/g, '$1') // Remove italic markdown
+            .replace(/`([^`]+)`/g, '$1') // Remove inline code markdown
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Convert links to just text
+            .replace(/\n\s*\n/g, ' ') // Replace multiple newlines with space
+            .replace(/\s+/g, ' ') // Normalize whitespace
+            .trim();
+    }
+
+    // Search function
+    function performSearch(query: string) {
+        if (!searchIndex || !query.trim()) {
+            searchResults.set([]);
+            return;
+        }
+
+        const results = searchIndex.search(query, { limit: 8 });
+        const searchResultsData = results.map((id) => {
+            const idString = String(id);
+            const cached = moduleCache.get(idString);
+
+            if (!cached) {
+                return null; // Skip if not found in cache
+            }
+
+            const excerpt = generateExcerpt(cached.cleanContent, query);
+
+            return {
+                id: idString,
+                title: cached.title,
+                path: idString === 'index' ? '/' : `/${idString}`,
+                excerpt: excerpt
+            };
+        }).filter(Boolean); // Remove null entries
+
+        searchResults.set(searchResultsData);
+    }
+
+    // Open search modal
+    function openSearchModal() {
+        console.log('Opening search modal...'); // Debug log
+        showSearchModal = true;
+        // Focus the search input after modal opens
+        setTimeout(() => {
+            searchInputRef?.focus();
+        }, 100);
+    }
+
+    // Close search modal
+    function closeSearchModal() {
+        showSearchModal = false;
+        searchQuery = '';
+        searchResults.set([]);
+    }
+
+    // Generate excerpt with context around search term (optimized)
+    function generateExcerpt(cleanContent: string, searchTerm: string): string {
+        if (!cleanContent || !searchTerm) return '';
+
+        const lowerContent = cleanContent.toLowerCase();
+        const lowerSearchTerm = searchTerm.toLowerCase();
+        const index = lowerContent.indexOf(lowerSearchTerm);
+
+        if (index === -1) {
+            // If search term not found, return first part of content
+            const excerpt = cleanContent.substring(0, 200);
+            return excerpt.length < cleanContent.length ? excerpt + '...' : excerpt;
+        }
+
+        const start = Math.max(0, index - 100);
+        const end = Math.min(cleanContent.length, index + searchTerm.length + 100);
+
+        let excerpt = cleanContent.substring(start, end);
+        if (start > 0) excerpt = '...' + excerpt;
+        if (end < cleanContent.length) excerpt = excerpt + '...';
+
+        // Highlight the search term (case insensitive) - only operation left here
+        const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        excerpt = excerpt.replace(regex, '<mark class="bg-yellow-200 px-1 rounded">$1</mark>');
+
+        return excerpt;
+    }
+
+    // Handle keydown events
+    function handleKeydown(e: KeyboardEvent) {
+        if (e.key === 'Escape') {
+            closeSearchModal();
+        } else if (e.key === 'Enter' && $searchResults.length > 0) {
+            // Navigate to first result on Enter
+            const firstResult = $searchResults[0];
+            if (onNavigate) onNavigate();
+            window.location.href = firstResult.path;
+            closeSearchModal();
+        }
+    }
+
+    // Handle click outside to close modal
+    function handleClickOutside(e: MouseEvent) {
+        if (showSearchModal && searchModalRef && !searchModalRef.contains(e.target as Node)) {
+            closeSearchModal();
+        }
+    }
+
+    // Add/remove click outside listener when modal opens/closes
+    $effect(() => {
+        if (showSearchModal) {
+            // Add a small delay to prevent the initial click from immediately closing the modal
+            const timeoutId = setTimeout(() => {
+                document.addEventListener('click', handleClickOutside);
+            }, 100);
+
+            return () => {
+                clearTimeout(timeoutId);
+                document.removeEventListener('click', handleClickOutside);
+            };
+        }
+    });
+
+    // React to search query changes
+    $effect(() => {
+        if (searchQuery.trim()) {
+            const timeoutId = setTimeout(() => {
+                performSearch(searchQuery);
+            }, 100); // Reduced from 200ms to 100ms for faster response
+            return () => clearTimeout(timeoutId);
+        } else {
+            searchResults.set([]);
+        }
+    });
 
     // Set context so child components can access the onNavigate function and currentPath
     setContext('onNavigate', onNavigate);
+    setContext('searchQuery', { get: () => searchQuery, set: (v: string) => searchQuery = v });
+    setContext('searchResults', searchResults);
+    setContext('showSearchModal', { get: () => showSearchModal, set: (v: boolean) => showSearchModal = v });
 
     let currentPathStore = writable(currentPath);
     // Update the currentPath store whenever currentPath changes
     $effect(() => {
         currentPathStore.set(currentPath);
     });
-    setContext('currentPath', currentPathStore);
+        setContext('currentPath', currentPathStore);
 </script>
 
 <nav class="summary-nav max-h-[calc(100vh-8rem)] overflow-y-auto pb-8">
+    <!-- Search Button -->
+    <div class="mb-6 p-2">
+        <button
+            onclick={openSearchModal}
+            class="w-full px-4 py-3 text-left border border-gray-200 rounded-lg bg-white hover:border-gray-300 transition-colors duration-200 flex items-center gap-3"
+        >
+            <i class="fas fa-search text-gray-400 text-sm"></i>
+            <span class="text-sm text-gray-500">Search documentation...</span>
+        </button>
+    </div>
+
+    <!-- Always show Summary Navigation -->
     <Summary/>
 </nav>
+
+<!-- Search Modal -->
+{#if showSearchModal}
+    <div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-2xl mx-4" bind:this={searchModalRef}>
+        <div class="bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden">
+            <!-- Modal Header -->
+            <div class="border-b border-gray-200 p-4">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-search text-gray-400"></i>
+                    <input
+                        bind:value={searchQuery}
+                        bind:this={searchInputRef}
+                        onkeydown={handleKeydown}
+                        placeholder="Search documentation..."
+                        class="flex-1 bg-transparent text-lg outline-none text-gray-900 placeholder-gray-500"
+                    />
+                    <button onclick={closeSearchModal} class="text-gray-400 hover:text-gray-600" aria-label="Close search">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search Results -->
+            <div class="max-h-96 overflow-y-auto">
+                {#if searchQuery.trim() && $searchResults.length > 0}
+                    <div class="p-2">
+                        {#each $searchResults as result}
+                            <a
+                                href={result.path}
+                                onclick={() => { if (onNavigate) onNavigate(); closeSearchModal(); }}
+                                class="block p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
+                            >
+                                <div class="flex items-start gap-3">
+                                    <i class="fas fa-file-text text-blue-500 text-sm mt-1"></i>
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="font-medium text-gray-900 mb-1">
+                                            {result.title}
+                                        </h4>
+                                        <p class="text-sm text-gray-500 mb-2">
+                                            {result.path === '/' ? 'Home' : result.path.replace(/^\//, '').replace(/\//g, ' › ')}
+                                        </p>
+                                        {#if result.excerpt}
+                                            <div class="text-sm text-gray-600 leading-relaxed">
+                                                {@html result.excerpt}
+                                            </div>
+                                        {/if}
+                                    </div>
+                                </div>
+                            </a>
+                        {/each}
+                    </div>
+                {:else if searchQuery.trim() && $searchResults.length === 0}
+                    <div class="p-8 text-center">
+                        <i class="fas fa-search text-gray-300 text-2xl mb-3 block"></i>
+                        <p class="text-gray-500 mb-1">No results found for "{searchQuery}"</p>
+                        <p class="text-sm text-gray-400">Try different keywords</p>
+                    </div>
+                {:else}
+                    <div class="p-8 text-center">
+                        <i class="fas fa-search text-gray-300 text-2xl mb-3 block"></i>
+                        <p class="text-gray-500 mb-1">Start typing to search</p>
+                        <p class="text-sm text-gray-400">Press <kbd class="px-2 py-1 bg-gray-100 rounded text-xs">Enter</kbd> to select first result</p>
+                    </div>
+                {/if}
+            </div>
+        </div>
+    </div>
+{/if}

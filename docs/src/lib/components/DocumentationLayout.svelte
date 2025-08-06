@@ -5,7 +5,7 @@
 	import NavigationSidebar from './NavigationSidebar.svelte';
 	import TableOfContents from './TableOfContents.svelte';
 	import Breadcrumbs from './Breadcrumbs.svelte';
-	import getModuleForPath from '../docs/getModuleForPath';
+	import getModuleForPath, {allModules} from '../docs/getModuleForPath';
 	import { setContext } from "svelte";
 
 	let { path, prefix = '', currentPath = '' }: {
@@ -54,7 +54,7 @@
 			<div class="p-6">
 				<h1 class="mb-6 text-xl font-bold text-gray-900">Thymis Documentation</h1>
 
-				<NavigationSidebar {currentPath} />
+				<NavigationSidebar {currentPath} {allModules} />
 			</div>
 		</aside>
 
@@ -85,7 +85,7 @@
 							<h1 class="text-xl font-bold text-gray-900">Thymis Documentation</h1>
 						</div>
 						<div class="flex-1 overflow-y-auto px-6 py-4">
-							<NavigationSidebar onNavigate={() => (mobileMenuOpen = false)} {currentPath} />
+							<NavigationSidebar onNavigate={() => (mobileMenuOpen = false)} {currentPath} {allModules} />
 						</div>
 					</div>
 				</div>
