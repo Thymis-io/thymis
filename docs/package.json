@@ -67,6 +67,7 @@
 		"yaml": "^2.8.0"
 	},
 	"devDependencies": {
+		"flexsearch": "^0.8.205",
 		"publint": "^0.3.12"
 	}
 }

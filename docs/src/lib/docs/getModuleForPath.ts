@@ -68,3 +68,11 @@ export default (path: string | string[]) => {
 			breadcrumbs: breadcrumbs,
 		};
 	}
+
+// index of all
+export const allModules = Object.entries(modules).map(([path, module]) => {
+	return {
+		path,
+		module
+	};
+});
