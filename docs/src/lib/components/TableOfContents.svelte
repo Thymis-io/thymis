@@ -47,6 +47,21 @@
 			return;
 		}
 
+		// Check if we recently navigated to a hash and that element is still fully visible
+		const currentHash = window.location.hash.slice(1);
+		if (currentHash) {
+			const hashElement = document.getElementById(currentHash);
+			if (hashElement) {
+				const rect = hashElement.getBoundingClientRect();
+				// Only keep hash target active if it's completely within viewport
+				// (top is visible and hasn't started leaving the viewport)
+				if (rect.top >= 0 && rect.top <= window.innerHeight * 0.4) {
+					activeId = currentHash;
+					return;
+				}
+			}
+		}
+
 		// Find the section that should be highlighted
 		let bestMatch = sections[0].id; // Default to first section
 
@@ -92,13 +107,16 @@
 			}
 		};
 
-		// Listen for hash changes (when clicking TOC links)
-		const handleHashChange = () => {
-			// Small delay to ensure scroll has completed
-			setTimeout(updateActiveSection, 100);
-		};
-
-		window.addEventListener('scroll', handleScroll);
+	// Listen for hash changes (when clicking TOC links)
+	const handleHashChange = () => {
+		// Get the hash and immediately set it as active
+		const hash = window.location.hash.slice(1); // Remove the #
+		if (hash && tocItems.some((item: any) => item.id === hash)) {
+			activeId = hash;
+		}
+		// Also schedule an update after scroll completes to handle any edge cases
+		setTimeout(updateActiveSection, 150);
+	};		window.addEventListener('scroll', handleScroll);
 		window.addEventListener('hashchange', handleHashChange);
 
 		return () => {
