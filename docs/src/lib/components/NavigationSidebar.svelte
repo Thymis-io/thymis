@@ -1,6 +1,6 @@
 <script lang="ts">
     import { setContext } from 'svelte';
-    import Summary from './summary/Summary.svelte';
+    import Summary from '../docs/SUMMARY.md';
 
     interface Props {
         onNavigate?: () => void;
