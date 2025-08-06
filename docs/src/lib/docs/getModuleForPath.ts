@@ -42,14 +42,11 @@ export default (path: string | string[]) => {
 			}
 		}
 
-		console.log('Parent modules:', ancestorAndSelf);
 
 		// collect breadcrumbs from parent modules like this:
 		// module.metadata.toc
-		// in the toc, console.log for debug
 		for (const parentModule of ancestorAndSelf) {
 			if (parentModule.metadata && parentModule.metadata.toc) {
-				console.log('Breadcrumbs for module:', parentModule.metadata.toc);
 				//Breadcrumbs for module: [ { level: 1, text: 'Introduction', id: null } ]
 				// select the first item in the toc
 				const firstItem = parentModule.metadata.toc[0] || null;
@@ -58,9 +55,6 @@ export default (path: string | string[]) => {
 				}
 			}
 		}
-
-		console.log('Resolved file path:', resolvedFilePath);
-		console.log('Breadcrumbs:', breadcrumbs);
 
 		return {
 			contentModule: contentModule,
