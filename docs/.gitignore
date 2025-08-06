@@ -24,3 +24,4 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 dist
+package-lock.json
