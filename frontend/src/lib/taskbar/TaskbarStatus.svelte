@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	import { t } from 'svelte-i18n';
 	import { type TaskShort } from '$lib/taskstatus';
 	import { Progressbar } from 'flowbite-svelte';
@@ -22,13 +20,13 @@
 	const progressScalingFunction = (done: number, expected: number) => {
 		const f = (x: number) => x * x + 1;
 		// if both are 0, progress is 0
-		if (done === 0) {
+		if (done === 0 || expected === 0) {
 			return 0;
 		} else {
-			return (f(done) / f(expected)) * 100;
+			return Math.min(1, f(done) / f(expected)) * 100;
 		}
 	};
-	run(() => {
+	$effect(() => {
 		if (task.nix_status) {
 			progress = progressScalingFunction(task.nix_status.done, task.nix_status.expected);
 		}
