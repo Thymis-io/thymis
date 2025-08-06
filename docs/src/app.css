@@ -25,7 +25,7 @@ h6:target {
     border-left-color: rgba(59, 130, 246, 0.3);
   }
   100% {
-    background-color: transparent;
-    border-left-color: transparent;
+    background-color: rgba(59, 130, 246, 0.03);
+    border-left-color: rgba(59, 130, 246, 0.2);
   }
 }
