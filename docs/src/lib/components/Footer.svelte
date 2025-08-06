@@ -1,5 +1,6 @@
 <script lang="ts">
     import { metadata } from '../docs/SUMMARY.md';
+    import A from './defaultMarkdown/a.svelte';
 
     // Type definitions for the metadata structure
     interface Link {
@@ -56,7 +57,7 @@
             <div class="flex justify-between items-center">
                 <div class="flex-1">
                     {#if previousPage}
-                        <a
+                        <A
                             href={previousPage.href}
                             class="group flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
                         >
@@ -65,13 +66,13 @@
                                 <div class="text-xs text-gray-400 uppercase tracking-wide">Previous</div>
                                 <div class="font-medium">{previousPage.text}</div>
                             </div>
-                        </a>
+                        </A>
                     {/if}
                 </div>
 
                 <div class="flex-1 text-right">
                     {#if nextPage}
-                        <a
+                        <A
                             href={nextPage.href}
                             class="group flex items-center justify-end space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
                         >
@@ -80,7 +81,7 @@
                                 <div class="font-medium">{nextPage.text}</div>
                             </div>
                             <i class="fas fa-chevron-right w-4 h-4 transform group-hover:translate-x-1 transition-transform"></i>
-                        </a>
+                        </A>
                     {/if}
                 </div>
             </div>
