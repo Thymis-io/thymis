@@ -24,19 +24,19 @@
     }
 
     function isInHierarchy(linkHref: string): boolean {
+        // For root links, we don't want hierarchy highlighting - they should only be highlighted via isCurrentPage
+        if (linkHref === '/') {
+            return false;
+        }
+
         // Apply prefix to linkHref for comparison
         const prefixedHref = shouldGetPrefixed ? `${prefix}${linkHref}` : linkHref;
         // Check if current page is within this link's hierarchy
         const cleanHref = prefixedHref === '/' ? '/' : prefixedHref.replace(/\/$/, '');
         const cleanPathname = $currentPathStore === '/' ? '/' : $currentPathStore.replace(/\/$/, '');
 
-        // For root links, we don't want hierarchy highlighting - they should only be highlighted via isCurrentPage
-        if (linkHref === '/') {
-            return false;
-        }
-
         // For non-root links, check if current path starts with the link href (making it a parent)
-        return cleanPathname.startsWith(cleanHref + '/') || cleanPathname === cleanHref;
+        return cleanPathname.startsWith(cleanHref + '/');
     }
 
     function handleClick() {
