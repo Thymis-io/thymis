@@ -1,4 +1,5 @@
 <script lang="ts">
+	import A from './defaultMarkdown/a.svelte';
 	type BreadcrumbItem = {
 		label: string;
 		href: string;
@@ -40,12 +41,12 @@
 						{item.label}
 					</span>
 				{:else}
-					<a
+					<A
 						href={item.href}
 						class="font-medium text-gray-500 hover:text-gray-700 transition-colors duration-150"
 					>
 						{item.label}
-					</a>
+					</A>
 				{/if}
 			</li>
 		{/each}
