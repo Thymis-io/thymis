@@ -46,6 +46,9 @@ export const remarkExtractToc = (options) => {
 			});
 		});
 		vFile.data.fm.links = links;
+
+		// also save vFile.contents
+		vFile.data.fm.contents = vFile.contents;
 	};
 };
 
