@@ -12,5 +12,20 @@ h6:target {
   background-color: rgba(59, 130, 246, 0.05);
   border-left: 2px solid rgba(59, 130, 246, 0.3);
   padding-left: 0.5rem;
-  transition: all 0.3s ease;
+  animation: highlight-fade 3s ease-out forwards;
+}
+
+@keyframes highlight-fade {
+  0% {
+    background-color: rgba(59, 130, 246, 0.15);
+    border-left-color: rgba(59, 130, 246, 0.6);
+  }
+  70% {
+    background-color: rgba(59, 130, 246, 0.05);
+    border-left-color: rgba(59, 130, 246, 0.3);
+  }
+  100% {
+    background-color: transparent;
+    border-left-color: transparent;
+  }
 }
