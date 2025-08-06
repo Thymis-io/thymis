@@ -21,6 +21,6 @@
     setContext('currentPath', currentPathStore);
 </script>
 
-<nav class="summary-nav">
+<nav class="summary-nav max-h-[calc(100vh-8rem)] overflow-y-auto pb-8">
     <Summary/>
 </nav>
