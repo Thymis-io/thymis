@@ -242,7 +242,7 @@
     <div class="mb-6 p-2">
         <button
             onclick={openSearchModal}
-            class="w-full px-4 py-3 text-left border border-gray-200 rounded-lg bg-white hover:border-gray-300 transition-colors duration-200 flex items-center gap-3"
+            class="w-full px-4 py-3 text-left border border-gray-200 rounded-lg bg-white hover:border-gray-300 transition-colors duration-200 flex items-center gap-3 cursor-text"
         >
             <i class="fas fa-search text-gray-400 text-sm"></i>
             <span class="text-sm text-gray-500">Search documentation...</span>
@@ -255,6 +255,16 @@
 
 <!-- Search Modal -->
 {#if showSearchModal}
+    <!-- Background overlay -->
+    <div
+        class="fixed inset-0 bg-black/25 z-40"
+        onclick={closeSearchModal}
+        onkeydown={(e) => { if (e.key === 'Escape') closeSearchModal(); }}
+        role="button"
+        tabindex="-1"
+        aria-label="Close search modal"
+    ></div>
+
     <div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-2xl mx-4" bind:this={searchModalRef}>
         <div class="bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden">
             <!-- Modal Header -->
