@@ -1,5 +1,5 @@
 <script lang="ts">
-    const metadata = import.meta.glob('../docs/SUMMARY.md', { eager: true })['../docs/SUMMARY.md'].metadata;
+    import { metadata } from '../docs/SUMMARY.md';
 
     // Type definitions for the metadata structure
     interface Link {

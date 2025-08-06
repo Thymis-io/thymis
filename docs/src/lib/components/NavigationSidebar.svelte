@@ -1,6 +1,6 @@
 <script lang="ts">
     import { setContext } from 'svelte';
-    const Summary = import.meta.glob('../docs/SUMMARY.md', { eager: true })['../docs/SUMMARY.md'].default;
+    import Summary from './summary/Summary.svelte';
 
     interface Props {
         onNavigate?: () => void;
