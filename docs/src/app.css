@@ -1,2 +1,16 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
+/* style h1 to h6 here */
+
+/* Subtle highlight for headers when targeted by anchor links */
+h1:target,
+h2:target,
+h3:target,
+h4:target,
+h5:target,
+h6:target {
+  background-color: rgba(59, 130, 246, 0.05);
+  border-left: 2px solid rgba(59, 130, 246, 0.3);
+  padding-left: 0.5rem;
+  transition: all 0.3s ease;
+}

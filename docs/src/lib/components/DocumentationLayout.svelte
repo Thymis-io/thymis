@@ -31,7 +31,7 @@
 
 <!-- Modern Documentation Layout -->
 
-<div class="min-h-screen bg-gray-50">
+<div class="bg-gray-50">
 	<!-- Mobile menu button -->
 	<div class="sticky top-0 z-50 border-b border-gray-200 bg-white px-4 py-3 lg:hidden">
 		<button
@@ -45,7 +45,7 @@
 		<span class="ml-2 text-lg font-semibold text-gray-900">Thymis Documentation</span>
 	</div>
 
-	<div class="mx-auto flex max-w-screen-2xl min-h-screen">
+	<div class="mx-auto flex max-w-screen-2xl">
 		<!-- Left Sidebar -->
 		<aside
 			class="sticky top-0 hidden w-64 border-r border-gray-200 bg-white shadow-sm lg:flex lg:flex-col self-start"
