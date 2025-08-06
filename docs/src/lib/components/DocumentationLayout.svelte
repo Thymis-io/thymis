@@ -34,7 +34,7 @@
 
 <div class="bg-gray-50">
 	<!-- Mobile menu button -->
-	<div class="sticky top-0 z-50 border-b border-gray-200 bg-white px-4 py-3 lg:hidden">
+	<div class="sticky top-0 z-50 border-b border-gray-200 bg-white px-4 py-3 lg:hidden" class:hidden={mobileMenuOpen}>
 		<button
 			type="button"
 			onclick={() => (mobileMenuOpen = !mobileMenuOpen)}
