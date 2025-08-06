@@ -16,11 +16,6 @@ export default (path: string | string[]) => {
 
 		let contentModule = modules[`./${cleanFilePath}.md`];
 		resolvedFilePath = `./${cleanFilePath}.md`;
-		// If not found, try with index.md appended (for directory-style paths)
-		if (!contentModule && !cleanFilePath.endsWith('.md')) {
-			contentModule = modules[`./${cleanFilePath}/index.md`];
-			resolvedFilePath = `./${cleanFilePath}/index.md`;
-		}
 
 		// If still not found, fallback to index
 		if (!contentModule) {
