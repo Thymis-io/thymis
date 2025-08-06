@@ -1,6 +1,7 @@
 <script lang="ts">
     import { metadata } from '../docs/SUMMARY.md';
     import A from './defaultMarkdown/a.svelte';
+    import { getContext } from 'svelte';
 
     // Type definitions for the metadata structure
     interface Link {
@@ -15,6 +16,10 @@
     // Cast metadata to the proper type
     const typedMetadata = metadata as unknown as Metadata;
 
+    console.log('Metadata links:', typedMetadata.links);
+
+    const prefix = getContext<string>('prefix') || '';
+
     const currentYear = new Date().getFullYear();
 
     let { resolvedFilePath, currentPath = '' }: { resolvedFilePath?: string; currentPath?: string } = $props();
@@ -24,9 +29,14 @@
         const cleanCurrentPath = currentPath === '/' ? '/' : currentPath.replace(/\/$/, '');
         return typedMetadata.links.findIndex((link: Link) => {
             const linkPath = link.href === '/' ? '/' : link.href.replace(/\/$/, '');
-            return linkPath === cleanCurrentPath;
+            const prefixedLinkPath = prefix + linkPath;
+            return prefixedLinkPath === cleanCurrentPath;
         });
     });
+
+    console.log('Current page index:', currentPageIndex);
+    console.log('Current path:', currentPath);
+    console.log('Resolved file path:', resolvedFilePath);
 
     const previousPage = $derived.by(() => {
         if (currentPageIndex > 0) {
