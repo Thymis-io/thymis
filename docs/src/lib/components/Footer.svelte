@@ -108,10 +108,6 @@
     <div class="max-w-4xl">
         <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-600">
             <div class="flex items-center space-x-4 mb-4 md:mb-0">
-                <span>&copy; {currentYear} Thymis Documentation</span>
-                <a href="https://thymis.io" class="hover:text-gray-900 transition-colors">
-                    Visit thymis.io
-                </a>
             </div>
 
             <div class="flex items-center space-x-4">
