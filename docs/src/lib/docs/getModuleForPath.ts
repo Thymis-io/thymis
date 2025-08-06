@@ -11,17 +11,21 @@ export default (path: string | string[]) => {
 			splitPath && Array.isArray(splitPath) && splitPath.length > 0 ? splitPath.join('/') : 'index';
 		let resolvedFilePath;
 
-		let contentModule = modules[`./${filePath}.md`];
-		resolvedFilePath = `./${filePath}.md`;
+		// Clean up the filePath to avoid double slashes
+		const cleanFilePath = filePath.replace(/\/+/g, '/').replace(/^\/|\/$/g, '') || 'index';
+
+		let contentModule = modules[`./${cleanFilePath}.md`];
+		resolvedFilePath = `./${cleanFilePath}.md`;
 		// If not found, try with index.md appended (for directory-style paths)
-		if (!contentModule && !filePath.endsWith('.md')) {
-			contentModule = modules[`./${filePath}/index.md`];
-			resolvedFilePath = `./${filePath}/index.md`;
+		if (!contentModule && !cleanFilePath.endsWith('.md')) {
+			contentModule = modules[`./${cleanFilePath}/index.md`];
+			resolvedFilePath = `./${cleanFilePath}/index.md`;
 		}
 
 		// If still not found, fallback to index
 		if (!contentModule) {
 			contentModule = modules['./index.md'];
+			resolvedFilePath = './index.md';
 		}
 
 		return {
