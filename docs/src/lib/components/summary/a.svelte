@@ -38,8 +38,6 @@
         // get prefix from context
     const prefix = getContext<string>('prefix') || '';
 
-    let { href, children } = $props();
-
     let shouldGetPrefixed = $derived(href.startsWith('/') || href.startsWith('./'));
 
     let finalHref = $derived(
