@@ -34,9 +34,20 @@
             navigationContext.onNavigate();
         }
     }
+
+        // get prefix from context
+    const prefix = getContext<string>('prefix') || '';
+
+    let { href, children } = $props();
+
+    let shouldGetPrefixed = $derived(href.startsWith('/') || href.startsWith('./'));
+
+    let finalHref = $derived(
+        shouldGetPrefixed ? `${prefix}${href}` : href
+    );
 </script>
 <a
-    {href}
+    href={finalHref}
     onclick={handleClick}
     class="block px-3 py-2 text-sm rounded-md transition-colors no-underline {
         isCurrentPage(href)
