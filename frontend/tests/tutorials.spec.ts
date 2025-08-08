@@ -19,6 +19,8 @@ test('initial device provisioning', async ({ page, request }, testInfo) => {
 	const screenshotCounter = { count: 0 };
 	const configName = 'Test Configuration';
 
+	page.setViewportSize({ width: 1600, height: 900 });
+
 	await clearState(page, request);
 	await deleteAllTasks(page, request);
 
@@ -51,6 +53,44 @@ test('initial device provisioning', async ({ page, request }, testInfo) => {
 	await expectScreenshotWithHighlight(
 		page,
 		configureButton,
+		testInfo,
+		screenshotCounter,
+		screenshotOptions
+	);
+
+	await configureButton.click();
+	await page.waitForURL('/configuration/edit*');
+
+	const wifiSSID = page.locator('p', { hasText: 'WiFi SSID' }).first();
+	await wifiSSID.hover();
+	await page.mouse.wheel(0, 50);
+
+	const wifiSSIDInput = wifiSSID.locator('..').locator('input').first();
+	const wifiPassword = page
+		.locator('p', { hasText: 'WiFi Password' })
+		.locator('..')
+		.locator('input')
+		.first();
+
+	await expectScreenshotWithHighlight(
+		page,
+		[wifiSSIDInput, wifiPassword],
+		testInfo,
+		screenshotCounter,
+		screenshotOptions
+	);
+
+	await wifiSSIDInput.fill('MyWifi');
+	await wifiPassword.fill('MyPassword');
+	await wifiPassword.blur();
+
+	await expectScreenshot(page, testInfo, screenshotCounter, screenshotOptions);
+
+	const saveConfigButton = page.locator('button').filter({ hasText: 'Download Device Image' });
+	await page.mouse.wheel(0, -500);
+	await expectScreenshotWithHighlight(
+		page,
+		saveConfigButton,
 		testInfo,
 		screenshotCounter,
 		screenshotOptions
