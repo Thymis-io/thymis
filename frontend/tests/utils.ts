@@ -10,10 +10,10 @@ import {
 export const colorSchemes = ['light', 'dark'] as const;
 
 type MyHighlightOptions = {
-	highlight: boolean;
-	screenshotHighlightedElement: boolean;
-	marginHighlight: number;
-	marginScreenshot: number;
+	highlight?: boolean;
+	screenshotHighlightedElement?: boolean;
+	marginHighlight?: number;
+	marginScreenshot?: number;
 };
 
 export const highlightLocator = async (
@@ -54,10 +54,10 @@ export const highlightLocator = async (
 		highlightDiv.className = 'playwright-highlight';
 		highlightDiv.style.position = 'absolute';
 		highlightDiv.style.border = '2px solid red';
-		highlightDiv.style.top = '${boundingBox.y - myOptions.marginHighlight}px';
-		highlightDiv.style.left = '${boundingBox.x - myOptions.marginHighlight}px';
-		highlightDiv.style.width = '${boundingBox.width + 2 * myOptions.marginHighlight}px';
-		highlightDiv.style.height = '${boundingBox.height + 2 * myOptions.marginHighlight}px';
+		highlightDiv.style.top = '${boundingBox.y - myOptions.marginHighlight!}px';
+		highlightDiv.style.left = '${boundingBox.x - myOptions.marginHighlight!}px';
+		highlightDiv.style.width = '${boundingBox.width + 2 * myOptions.marginHighlight!}px';
+		highlightDiv.style.height = '${boundingBox.height + 2 * myOptions.marginHighlight!}px';
 		highlightDiv.style.zIndex = '999999';
 		document.body.appendChild(highlightDiv);
 	`);
@@ -71,10 +71,10 @@ export const highlightLocator = async (
 		screenshotDiv.id = '${myId}';
 		screenshotDiv.className = 'playwright-highlight';
 		screenshotDiv.style.position = 'absolute';
-		screenshotDiv.style.top = '${boundingBox.y - myOptions.marginScreenshot}px';
-		screenshotDiv.style.left = '${boundingBox.x - myOptions.marginScreenshot}px';
-		screenshotDiv.style.width = '${boundingBox.width + 2 * myOptions.marginScreenshot}px';
-		screenshotDiv.style.height = '${boundingBox.height + 2 * myOptions.marginScreenshot}px';
+		screenshotDiv.style.top = '${boundingBox.y - myOptions.marginScreenshot!}px';
+		screenshotDiv.style.left = '${boundingBox.x - myOptions.marginScreenshot!}px';
+		screenshotDiv.style.width = '${boundingBox.width + 2 * myOptions.marginScreenshot!}px';
+		screenshotDiv.style.height = '${boundingBox.height + 2 * myOptions.marginScreenshot!}px';
 		screenshotDiv.style.zIndex = '999999';
 		document.body.appendChild(screenshotDiv);
 	`
