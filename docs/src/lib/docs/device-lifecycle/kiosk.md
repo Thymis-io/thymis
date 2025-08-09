@@ -1,1 +1,1 @@
-# Setting up a Kiosk (with VNC)
+# Setting up a Kiosk with VNC

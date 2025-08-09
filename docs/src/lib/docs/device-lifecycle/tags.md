@@ -1,1 +1,1 @@
-# Sharing Device Config via a tag
+# Sharing settings via a tag

@@ -1,1 +1,1 @@
-# OCI-Container (like Docker) (coming soon)
+# OCI-Container / Docker (coming soon)

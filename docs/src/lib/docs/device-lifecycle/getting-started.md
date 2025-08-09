@@ -1,4 +1,4 @@
-# Getting started: From Nothing to First Device
+# Getting started
 
 In this tutorial we will cover how to provision a Raspberry Pi, setup WiFi settings and flash the device.
 
