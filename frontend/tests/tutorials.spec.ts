@@ -1,9 +1,4 @@
-import {
-	test,
-	expect,
-	type Page,
-	type PageAssertionsToHaveScreenshotOptions
-} from '../playwright/fixtures';
+import { test, type PageAssertionsToHaveScreenshotOptions } from '../playwright/fixtures';
 import {
 	clearState,
 	deleteAllTasks,
@@ -86,11 +81,22 @@ test('initial device provisioning', async ({ page, request }, testInfo) => {
 
 	await expectScreenshot(page, testInfo, screenshotCounter, screenshotOptions);
 
-	const saveConfigButton = page.locator('button').filter({ hasText: 'Download Device Image' });
+	const downloadImageButton = page.locator('button').filter({ hasText: 'Download Device Image' });
 	await page.mouse.wheel(0, -500);
 	await expectScreenshotWithHighlight(
 		page,
-		saveConfigButton,
+		downloadImageButton,
+		testInfo,
+		screenshotCounter,
+		screenshotOptions
+	);
+
+	await downloadImageButton.click();
+	const commitButton = page.locator('button').filter({ hasText: 'Commit & Download Device Image' });
+
+	await expectScreenshotWithHighlight(
+		page,
+		commitButton,
 		testInfo,
 		screenshotCounter,
 		screenshotOptions

@@ -222,3 +222,24 @@ export const createTag = async (page: Page, name: string) => {
 	const saveButton = page.locator('button').filter({ hasText: 'Add tag' });
 	await saveButton.click();
 };
+
+export const waitForTerminalText = async (page: Page, text: string) => {
+	return await page.waitForFunction((text: string) => {
+		// window.terminals[].buffer.active.getLine(0 up to .length-1).translateToString()
+		window.terminals = window.terminals || [];
+		let all_buffers = '';
+		for (const terminal of window.terminals) {
+			for (let i = 0; i < terminal.buffer.active.length; i++) {
+				all_buffers += terminal.buffer.active.getLine(i).translateToString();
+			}
+		}
+		return all_buffers.includes(text);
+	}, text);
+};
+
+export const enterTextInTerminal = async (page: Page, text: string) => {
+	const terminalElement = await page.$('.xterm-helper-textarea');
+	await terminalElement?.focus();
+	await page.keyboard.type(text);
+	await page.keyboard.press('Enter');
+};

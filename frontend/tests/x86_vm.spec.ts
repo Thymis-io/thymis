@@ -1,29 +1,15 @@
 import { test, expect, type Page } from '../playwright/fixtures';
-import { clearState, createConfiguration, deleteAllTasks, expectScreenshot } from './utils';
+import {
+	clearState,
+	createConfiguration,
+	deleteAllTasks,
+	enterTextInTerminal,
+	expectScreenshot,
+	waitForTerminalText
+} from './utils';
 import * as os from 'os';
 
 test.skip(os.arch() !== 'x64', 'You can only run this suite in an x86 VM');
-
-const waitForTerminalText = async (page: Page, text: string) => {
-	return await page.waitForFunction((text: string) => {
-		// window.terminals[].buffer.active.getLine(0 up to .length-1).translateToString()
-		window.terminals = window.terminals || [];
-		let all_buffers = '';
-		for (const terminal of window.terminals) {
-			for (let i = 0; i < terminal.buffer.active.length; i++) {
-				all_buffers += terminal.buffer.active.getLine(i).translateToString();
-			}
-		}
-		return all_buffers.includes(text);
-	}, text);
-};
-
-const enterTextInTerminal = async (page: Page, text: string) => {
-	const terminalElement = await page.$('.xterm-helper-textarea');
-	await terminalElement?.focus();
-	await page.keyboard.type(text);
-	await page.keyboard.press('Enter');
-};
 
 const goToDevicesPage = async (page: Page, baseURL?: string) => {
 	await page.reload();

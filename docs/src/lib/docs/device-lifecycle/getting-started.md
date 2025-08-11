@@ -4,7 +4,7 @@ In this tutorial we will cover how to provision a Raspberry Pi, setup WiFi setti
 
 ## Create a new Configuration
 
-Navigate to the **Config** page and click the **Create Device Configuration button at the top**.
+Navigate to the **Config** page in the sidebar and click the **Create Device Configuration** button at the top.
 
 ![Config Page](./Color-scheme-light-initial-device-provisioning-1-linux.png)
 
@@ -27,4 +27,32 @@ On the Core Device Settings we can set the WiFi SSID and Password.
 
 ## Downloading the System Image
 
+Click on **Download Device Image** at the top to generate the system image.
+
 ![Config Page](./Color-scheme-light-initial-device-provisioning-6-linux.png)
+
+Commit all open changes.
+
+![Config Page](./Color-scheme-light-initial-device-provisioning-7-linux.png)
+
+A new task to generate the image will be started.
+Wait for the task to complete.
+
+The first build might take a few minutes, subsequent builds will be faster because previous build steps are cached.
+
+## Flash the Image
+
+Insert your SD card and use a tool like **[USBImager](https://bztsrc.gitlab.io/usbimager/)** or **dd** to write the downloaded image onto your target SD card.
+
+![USBImager](./flashing-image.png)
+
+## Power the Device
+
+Insert the disk or SD card into your device and power it on.
+
+It should shortly connect to the Thymis Controller and be visible under the Configuration and Devices page.
+
+![Running Device](./device-deployed.png)
+
+If the device doesn't connect, make sure to check the networking settings or use a LAN connection for debugging.
+See [Troubleshooting](./troubleshooting) for more help.
