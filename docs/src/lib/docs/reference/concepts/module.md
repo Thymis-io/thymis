@@ -1,1 +1,1 @@
-# Module
+# Thymis module

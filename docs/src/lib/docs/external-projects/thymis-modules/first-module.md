@@ -1,1 +1,1 @@
-# Creating your first Thymis Module
+# Creating your first Thymis module

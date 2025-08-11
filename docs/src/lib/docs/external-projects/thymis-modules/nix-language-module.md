@@ -1,6 +1,6 @@
-# Using the Nix Language Module
+# Using the Nix language module
 
-The Nix Language Module allows you to write Nix expressions to configure devices directly in Thymis. This is particularly useful when you are testing out some options or want to quickly prototype a configuration without creating a full Thymis Module.
+The Nix language module allows you to write Nix expressions to configure devices directly in Thymis. This is particularly useful when you are testing out some options or want to quickly prototype a configuration without creating a full Thymis module.
 
 Start by adding a "Custom Module" to your device or tag. You can do this by clicking on the **Plus** button in the **Modules** section of the device or tag configuration page.
 

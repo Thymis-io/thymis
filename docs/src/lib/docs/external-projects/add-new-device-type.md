@@ -1,10 +1,10 @@
-# Adding a new Type of Device
+# Adding a new type of device
 
 Thymis supports various device types, including Raspberry Pi and generic x86 devices. If you want to add support for a new device type, you can do so by writing Nix code.
 
 ## Using Generic Device Types and Custom Modules
 
-You can add support for new device types by writing Nix code in a [Custom NixOS Module](./thymis-modules/nix-language-module.md) in combination with selecting a generic device type in the UI.
+You can add support for new device types by writing Nix code in a [Custom NixOS Module](thymis-modules/nix-language-module.md) in combination with selecting a generic device type in the UI.
 
 ![Select Generic Device Type](./select_generic_device_type.png)
 

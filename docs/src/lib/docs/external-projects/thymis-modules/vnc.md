@@ -1,1 +1,1 @@
-# How to add VNC to my (custom) Modules and application
+# How to add VNC to my (custom) modules and applications

@@ -1,1 +1,1 @@
-# Thymis Modules with Templates
+# Thymis modules with templates
