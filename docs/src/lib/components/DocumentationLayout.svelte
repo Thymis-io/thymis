@@ -121,7 +121,9 @@
 						</div>
 					</div>
 
-					<article class="prose mt-4 max-w-none">
+					<article
+						class="prose prose-code:before:hidden prose-code:after:hidden prose-code:p-1 prose-code:rounded prose-code:font-normal prose-code:bg-gray-200 mt-4 max-w-none"
+					>
 						<contentModule.default />
 					</article>
 
