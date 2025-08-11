@@ -45,10 +45,14 @@ def print_ascii_motivation(percentage):
 def count_docs_with_min_words(directory, min_words=10):
     count = 0
     total_files = 0
+    filled_files = []
+    unfilled_files = []
 
     # Use glob to find all .md files in the directory and subdirectories
-    for filepath in glob.glob(os.path.join(directory, "**", "*.md"), recursive=True):
-        total_files += 1
+    md_files = list(glob.glob(os.path.join(directory, "**", "*.md"), recursive=True))
+    total_files = len(md_files)
+
+    for idx, filepath in enumerate(md_files, start=1):
         try:
             with open(filepath, "r", encoding="utf-8") as file:
                 content = file.read()
@@ -56,8 +60,19 @@ def count_docs_with_min_words(directory, min_words=10):
                 words = re.findall(r"\b\w+\b", content)
                 if len(words) >= min_words:
                     count += 1
+                    filled_files.append(filepath)
+                else:
+                    unfilled_files.append(filepath)
         except Exception as e:
             print(f"Error reading {filepath}: {e}")
+
+    print("\nFiles meeting the word count requirement:")
+    for file in filled_files:
+        print(f"  - {file}")
+
+    print("\nFiles needing more words:")
+    for file in unfilled_files:
+        print(f"  - {file}")
 
     return count, total_files
 
