@@ -5,8 +5,11 @@
 
 	// get prefix from context
 	const prefix = getContext<string>('prefix') || '';
-	// get current path
-	const prefixedPath = getContext<writable<string>>('prefixedPath') || '';
+		// get current path
+		const prefixedPath = getContext<writable<string>>('prefixedPath') || '';
+	const thymisSite = "https://thymis.io";
+    // get localized href function from context, can be undefined but then just prepend thymisSite
+	const localizeHref = getContext<(href: string) => string>('localizeHref') || ((href: string) => `${thymisSite}${href}`);
 
 	// let { href, children,  } = $props();
 	let props = $props();
@@ -16,7 +19,12 @@
 		props.href.startsWith('/') ||
 			props.href.startsWith('./') ||
 			props.href.starts ||
-			(prefix && $prefixedPath === prefix)
+			(prefix &&
+				$prefixedPath === prefix &&
+				// and should start with alphanum
+				/^[a-zA-Z0-9]/.test(props.href) &&
+				// and should not start with http(s)://
+				!/^https?:\/\//.test(props.href))
 	);
 
 	let processedHref = $derived(
@@ -36,11 +44,17 @@
 		shouldGetPrefixed && /^[a-zA-Z0-9]/.test(relativeHref) && !relativeHref.startsWith('/')
 	);
 
+	let isInternalNonDocsLink = $derived(props.href.startsWith(thymisSite));
+	let isExternalLink = $derived(
+		(props.href.startsWith('http://') || props.href.startsWith('https://')) && !isInternalNonDocsLink
+	);
+
 	// let finalHref = $derived(shouldGetPrefixed ? `${prefix}${relativeHref}` : relativeHref);
 	let finalHref = $derived(
-		shouldGetPrefixed
-			? `${prefix}${addSlash ? '/' : ''}${relativeHref}`
-			: relativeHref
+		isExternalLink ? props.href : isInternalNonDocsLink ? (
+			// remove thymisSite and localize href using localizeHref function
+			localizeHref(props.href.slice(thymisSite.length))
+		) : shouldGetPrefixed ? `${prefix}${addSlash ? '/' : ''}${relativeHref}` : relativeHref
 	);
 </script>
 

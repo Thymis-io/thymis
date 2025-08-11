@@ -22,11 +22,22 @@
 
     let { resolvedFilePath, prefixedPath = '' }: { resolvedFilePath?: string; prefixedPath?: string } = $props();
 
+    const normalizeHref = (href: string) => {
+        // Remove .md
+        const hrefWithoutMd = href.endsWith('.md') ? href.slice(0, -3) : href;
+        // Remove index.md
+        const hrefWithoutIndex = hrefWithoutMd.endsWith('index') ? hrefWithoutMd.slice(0, -5) : hrefWithoutMd;
+        // Remove trailing slash
+        const cleanHref = hrefWithoutIndex === '/' ? '/' : hrefWithoutIndex.replace(/\/$/, '');
+        // add leading slash if not present
+        return cleanHref.startsWith('/') ? cleanHref : `/${cleanHref}`;
+    };
+
     // Navigation logic
     const currentPageIndex = $derived.by(() => {
         const cleanPrefixedPath = prefixedPath === '/' ? '/' : prefixedPath.replace(/\/$/, '');
         return typedMetadata.links.findIndex((link: Link) => {
-            const linkPath = link.href === '/' ? '/' : link.href.replace(/\/$/, '');
+            const linkPath = normalizeHref(link.href);
             let prefixedLinkPath = prefix + linkPath;
             // Handle the case where linkPath is '/' and we have a prefix
             if (linkPath === '/' && prefix) {
@@ -66,7 +77,7 @@
                 <div class="flex-1">
                     {#if previousPage}
                         <A
-                            href={previousPage.href}
+                            href={normalizeHref(previousPage.href)}
                             class="group flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
                         >
                             <i class="fas fa-chevron-left w-4 h-4 transform group-hover:-translate-x-1 transition-transform"></i>
@@ -81,7 +92,7 @@
                 <div class="flex-1 text-right">
                     {#if nextPage}
                         <A
-                            href={nextPage.href}
+                            href={normalizeHref(nextPage.href)}
                             class="group flex items-center justify-end space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
                         >
                             <div class="text-right">

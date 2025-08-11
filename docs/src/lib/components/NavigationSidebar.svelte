@@ -4,6 +4,7 @@
 	import { writable } from 'svelte/store';
     import { Index } from 'flexsearch';
 
+
     interface Props {
         onNavigate?: () => void;
         allModules?: Record<string, any> | Array<{path: string, module: any}>; // Support both formats
@@ -19,8 +20,8 @@
     let searchResults = writable<Array<{ id: string; title: string; path: string; excerpt: string }>>([]);
     let searchQuery = $state('');
     let showSearchModal = $state(false);
-    let searchInputRef: HTMLInputElement;
-    let searchModalRef: HTMLDivElement;
+    let searchInputRef: HTMLInputElement|null = $state(null);
+    let searchModalRef: HTMLDivElement|null = $state(null);
 
     // Cache for processed modules to avoid repeated lookups and processing
     let moduleCache = new Map<string, { moduleData: any; cleanContent: string; title: string }>();
