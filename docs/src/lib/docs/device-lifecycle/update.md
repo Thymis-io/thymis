@@ -1,6 +1,6 @@
 # Deploy an Update
 
-Updates and config changes can be [deployed](../reference/concepts/deployment.md) to already connected devices.
+Updates and config changes can be [deployed](../reference/ui/deploy.md) to already connected devices.
 
 If an update fails or the device cannot reconnect to the Thymis Controller, the previous configuration will be rolled back automatically.
 

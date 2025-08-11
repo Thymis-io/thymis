@@ -48,6 +48,7 @@ def count_docs_with_min_words(directory, min_words=10):
     total_files = 0
     filled_files = []
     unfilled_files = []
+    word_counts = []
 
     # Use glob to find all .md files in the directory and subdirectories
     md_files = list(glob.glob(os.path.join(directory, "**", "*.md"), recursive=True))
@@ -59,7 +60,9 @@ def count_docs_with_min_words(directory, min_words=10):
                 content = file.read()
                 # Count words using regex to match word characters
                 words = re.findall(r"\b\w+\b", content)
-                if len(words) >= min_words:
+                word_count = len(words)
+                word_counts.append((filepath, word_count))
+                if word_count >= min_words:
                     count += 1
                     filled_files.append(filepath)
                 else:
@@ -67,13 +70,25 @@ def count_docs_with_min_words(directory, min_words=10):
         except Exception as e:
             print(f"Error reading {filepath}: {e}")
 
-    print("\nFiles meeting the word count requirement:")
-    for file in filled_files:
-        print(f"  - {file}")
+    # Sort files by word count (descending)
+    filled_sorted = sorted(
+        [(f, wc) for f, wc in word_counts if f in filled_files],
+        key=lambda x: x[1],
+        reverse=True,
+    )
+    unfilled_sorted = sorted(
+        [(f, wc) for f, wc in word_counts if f in unfilled_files],
+        key=lambda x: x[1],
+        reverse=True,
+    )
 
-    print("\nFiles needing more words:")
-    for file in unfilled_files:
-        print(f"  - {file}")
+    print(f"\nFiles meeting the word count requirement (>= {min_words} words):")
+    for file, wc in filled_sorted:
+        print(f"  {wc:4d} words - {file}")
+
+    print(f"\nFiles needing more words (< {min_words} words):")
+    for file, wc in unfilled_sorted:
+        print(f"  {wc:4d} words - {file}")
 
     return count, total_files, unfilled_files
 
