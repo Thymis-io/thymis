@@ -3,6 +3,7 @@
     import Summary from '../docs/SUMMARY.md';
 	import { writable } from 'svelte/store';
     import { Index } from 'flexsearch';
+	import { afterNavigate } from '$app/navigation';
 
 
     interface Props {
@@ -24,7 +25,7 @@
     let searchModalRef: HTMLDivElement|null = $state(null);
 
     // Cache for processed modules to avoid repeated lookups and processing
-    let moduleCache = new Map<string, { moduleData: any; cleanContent: string; title: string }>();
+    let moduleCache = $state(new Map<string, { moduleData: any; cleanContent: string; title: string }>());
 
     // Initialize FlexSearch and index modules
     onMount(() => {
@@ -246,7 +247,42 @@
     setContext('searchResults', searchResults);
     setContext('showSearchModal', { get: () => showSearchModal, set: (v: boolean) => showSearchModal = v });
 
+    let randomIndex = $state(Math.random());
+    afterNavigate(() => {
+        // Generate a new random index on navigation
+        randomIndex = Math.random();
+    });
+    let randomLink = $derived.by(() => {
+        const keys = Array.from(moduleCache.keys());
+        const randomKey = keys[Math.floor(randomIndex * keys.length)];
+        console.log('randomLink data', { randomIndex, keys, randomKey });
+        return randomKey;
+    });
 </script>
+
+<!-- button to go to random page -->
+<!-- <button
+    onclick={() => {
+        const keys = Array.from(moduleCache.keys());
+        const randomKey = keys[Math.floor(Math.random() * keys.length)];
+        if (onNavigate) onNavigate();
+        window.location.href = prefix ? `${prefix}/${randomKey}` : `/${randomKey}`;
+    }}
+    aria-label="Go to random documentation page"
+>
+    <i class="fas fa-random"></i>
+</button> -->
+<a
+    href={prefix ? `${prefix}/${randomLink}` : `/${randomLink}`}
+    onclick={() => {
+        if (onNavigate) onNavigate();
+    }}
+    class="text-blue-500 hover:underline"
+    aria-label="Go to random documentation page"
+>
+    <i class="fas fa-random"></i> Random Page
+</a>
+
 
 <nav class="summary-nav max-h-[calc(100vh-8rem)] overflow-y-auto pb-8">
     <!-- Search Button -->

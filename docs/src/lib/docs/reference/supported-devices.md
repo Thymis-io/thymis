@@ -5,7 +5,6 @@ Thymis comes with built-in support for the following devices:
 - Raspberry Pi 4
 - Raspberry Pi 5
 - Generic x86 devices
-- Generic ARM devices
 
 Adding support for additional devices is straightforward and can be done by writing Nix code. Thymis leverages NixOS options, making it easy to target both `aarch64` (ARM 64-bit) and `x86_64` (Intel/AMD 64-bit) architectures.
 
