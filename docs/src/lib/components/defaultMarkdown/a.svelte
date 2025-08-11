@@ -19,16 +19,6 @@
 			(prefix && $prefixedPath === prefix)
 	);
 
-	console.log(
-		'Link prefix:',
-		prefix,
-		'Href:',
-		props.href,
-		'Should get prefixed:',
-		shouldGetPrefixed
-	);
-	console.log('Current prefixed path:', $prefixedPath);
-
 	let processedHref = $derived(
 		props.href.endsWith('.md')
 			? props.href.slice(0, -3) // Remove '.md' (3 characters)
