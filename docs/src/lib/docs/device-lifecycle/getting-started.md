@@ -8,7 +8,7 @@ Navigate to the **Config** page in the sidebar and click the **Create Device Con
 
 ![Config Page](./Color-scheme-light-initial-device-provisioning-1-linux.png)
 
-A dialog will appear where you can enter a name for the configuration and select the appropriate hardware type.
+A dialogue will appear where you can enter a name for the configuration and select the appropriate hardware type.
 
 ![Config Page](./Color-scheme-light-initial-device-provisioning-2-linux.png)
 

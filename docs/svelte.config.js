@@ -57,7 +57,6 @@ const config = {
 	// Consult https://svelte.dev/docs/kit/integrations
 	// for more information about preprocessors
 	preprocess: [
-		vitePreprocess(),
 		mdsvex({
 			extensions: ['.svx', '.md'],
 			remarkPlugins: [remarkExtractToc, relativeImages],
@@ -73,7 +72,8 @@ const config = {
 				summary: dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/SummaryLayout.svelte',
 				_: dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/DefaultMarkdownLayout.svelte'
 			}
-		})
+		}),
+		vitePreprocess()
 	],
 	kit: {
 		adapter: adapter({

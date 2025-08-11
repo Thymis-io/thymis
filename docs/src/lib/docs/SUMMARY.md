@@ -32,7 +32,7 @@ layout: summary
     - [Setting up Nix](external-projects/packaging-software/setting-up-nix.md)
     - [Nix 101](external-projects/packaging-software/nix-101.md)
     - [Languages](external-projects/packaging-software/languages.md)
-  - [Adding a new Type of Device (coming soon)](external-projects/add-new-device-type.md)
+  - [Adding a new Type of Device](external-projects/add-new-device-type.md)
 - [Reference](reference.md)
   - [Administration](reference/administration.md)
     - [Firewall Rules](reference/administration/firewall.md)

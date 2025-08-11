@@ -1,1 +1,1 @@
-# Adding a new Type of Device (coming soon)
+# Adding a new Type of Device
