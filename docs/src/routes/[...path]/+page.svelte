@@ -5,4 +5,4 @@
 	let { data } = $props();
 </script>
 
-<DocumentationLayout path={data.path} currentPath={$page.url.pathname} />
+<DocumentationLayout shortPath={data.path} prefixedPath={$page.url.pathname} />
