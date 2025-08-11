@@ -27,11 +27,19 @@
 				!/^https?:\/\//.test(props.href))
 	);
 
-	let processedHref = $derived(
-		props.href.endsWith('.md')
-			? props.href.slice(0, -3) // Remove '.md' (3 characters)
-			: props.href
-	);
+	// let processedHref = $derived(
+	// 	props.href.endsWith('.md')
+	// 		? props.href.slice(0, -3) // Remove '.md' (3 characters)
+	// 		: props.href
+	// );
+	// URL can contain a hash, remove .md before the hash
+	let processedHref = $derived.by(() => {
+		// remove and re-add hash
+		const hashIndex = props.href.indexOf('#');
+		const hrefWithoutHash = hashIndex !== -1 ? props.href.slice(0, hashIndex) : props.href;
+		const hash = hashIndex !== -1 ? props.href.slice(hashIndex) : '';
+		return hrefWithoutHash.endsWith('.md') ? hrefWithoutHash.slice(0, -3) + hash : hrefWithoutHash + hash;
+	});
 
 	let relativeHref = $derived(
 		processedHref.startsWith('./')

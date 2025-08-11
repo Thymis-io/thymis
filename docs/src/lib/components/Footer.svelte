@@ -69,16 +69,16 @@
     });
 </script>
 
-<footer class="border-t border-gray-200 mt-16 pt-8 pb-8">
+<footer class="border-t border-gray-200 mt-16">
     <!-- Page Navigation -->
     {#if previousPage || nextPage}
-        <div class="max-w-4xl mb-8">
+        <div class="max-w-4xl mb-4">
             <div class="flex justify-between items-center">
                 <div class="flex-1">
                     {#if previousPage}
                         <A
                             href={normalizeHref(previousPage.href)}
-                            class="group flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                            class="group flex items-center space-x-2 py-4 text-sm text-gray-600 hover:text-gray-900 transition-colors"
                         >
                             <i class="fas fa-chevron-left w-4 h-4 transform group-hover:-translate-x-1 transition-transform"></i>
                             <div class="text-left">
@@ -93,7 +93,7 @@
                     {#if nextPage}
                         <A
                             href={normalizeHref(nextPage.href)}
-                            class="group flex items-center justify-end space-x-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                            class="group flex items-center justify-end space-x-2 py-4 text-sm text-gray-600 hover:text-gray-900 transition-colors"
                         >
                             <div class="text-right">
                                 <div class="text-xs text-gray-400 uppercase tracking-wide">Next</div>
