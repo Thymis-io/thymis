@@ -15,4 +15,4 @@ Thymis Enterprise is a commercial version of Thymis that allows you to generate,
 Getting started with Thymis Enterprise is similar to getting started with Thymis, but there are some additional steps that you need to take.
 If you are interested in Thymis Enterprise, please contact us at [https://thymis.io](https://thymis.io).
 
-Get started with Thymis by following the instructions in the [Getting Started](getting_started) section.
+Get started with Thymis by following the instructions in the [Getting Started](getting_started.md) section.
