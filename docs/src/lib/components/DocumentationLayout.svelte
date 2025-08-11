@@ -122,7 +122,7 @@
 					</div>
 
 					<article
-						class="prose prose-code:before:hidden prose-code:after:hidden prose-code:p-1 prose-code:rounded prose-code:font-normal prose-code:bg-gray-200 mt-4 max-w-none"
+						class="prose prose-a:text-blue-600 prose-a:visited:text-purple-600 prose-code:before:hidden prose-code:after:hidden prose-code:p-1 prose-code:rounded prose-code:font-normal prose-code:bg-gray-200 mt-4 max-w-none"
 					>
 						<contentModule.default />
 					</article>

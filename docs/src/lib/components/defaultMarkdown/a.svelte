@@ -59,5 +59,7 @@
 </script>
 
 <a href={finalHref} class={props.class}>
-	{@render props.children()}
+	{@render props.children()}{#if isExternalLink}
+		<i class="fas fa-external-link-alt ml-1 text-gray-400 text-sm"></i>
+	{/if}
 </a>
