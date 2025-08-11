@@ -1,1 +1,48 @@
-# Setting up external Repositories (coming soon)
+# Setting up external repositories
+
+In Thymis, you can set up external repositories to manage your projects and modules. This allows you to package your software and integrate it with Thymis for deployment on IoT devices.
+
+## Steps to Set Up an External Repository
+
+### 1. Create a Git Repository
+Create a Git repository for your project. This repository will contain the Nix expressions and Thymis Modules that define how to build and deploy your software.
+You can use any Git hosting service, such as GitHub, GitLab, or Bitbucket.
+Make sure your repository is available to Thymis, either by making it public or by providing access credentials if it is private.
+
+Currently, using access credentials requires access to the host where Thymis is running, as Thymis does not yet support providing access credentials through the UI. If you are using a self-hosted Thymis instance, you can set up SSH keys or access tokens to allow Thymis to access your private repositories. If you are using Thymis Cloud, you can request the Thymis team to set up access to your private repositories.
+
+### 2. Structure Your Repository
+Your repository should follow a specific structure to be compatible with Thymis. The recommended structure is as follows:
+```
+my-project/
+├── README.md # Project readme, has to contain "contains thymis modules" string to be recognized by Thymis as a Thymis module repository
+├── flake.nix # Nix flake file, entry-point for your nix expressions
+└── python_module_name_for_your_project/ # (optional) Directory for thymis python modules, make sure to make this unique across different projects
+    ├── __init__.py # Python module init file, can be empty
+    └── module.py # Python module file, contains the Thymis module code
+```
+The `python_module_name_for_your_project` directory should contain the Python module code that defines your Thymis module. It will be mounted into the module path of the Thymis Python interpreter, allowing you to import and these python modules in your Thymis modules.
+
+Since the code from the external repository is mounted into the Thymis Python interpreter, make sure to only use trusted code in your external repository, as it will have access to all the projects and devices in Thymis.
+
+Ensure that your `README.md` file contains the string `contains thymis modules` to indicate that this repository contains Thymis modules. This is required for Thymis to recognize your repository as a valid Thymis module repository. **If you do not include this string, Thymis will not be able to access the modules in your repository.**
+
+The flake.nix file needs to be a valid Nix flake file that defines the inputs and outputs of your project. It should include the necessary Nix expressions to build and deploy your software. You can refer to the [Nix Wiki on Flakes](https://wiki.nixos.org/wiki/Flakes) for more information on how to create a Nix flake file. The flakes outputs will be mounted into the NixOS modules used by your devices under `inputs.<input-name>`.
+
+The `module.py` file should contain the Thymis module code that defines how to deploy and manage your software on the devices. This can include configurations, dependencies, and any other necessary parameters for your project. It should contain sub-classes of the `thymis_controller.modules.Module` class, which will be used by Thymis to manage your project. See the [Thymis Modules page](thymis-modules.md) for more information on how to create Thymis modules.
+
+### 3. Add the Repository to Thymis
+
+In the Thymis UI, navigate to the "External Repositories" section and click on "Add Repository". You can then enter the URL of your Git repository and provide a name for the repository. Thymis will fetch the repository and make its modules available for use in your Thymis projects.
+
+![External repository page](./external-repo-screenshot.png)
+
+You can also override the nix code of the built-in thymis modules by overriding the `thymis` input by naming one of your inputs `thymis`. This allows you to customize the behavior of Thymis modules and add your own functionality.
+
+### 4. Use the Modules in Your Projects
+
+Once your external repository is added, you can use the modules from your repository in your Thymis projects. You can add the modules to your device configurations or tags, allowing you to apply your project configurations to devices managed by Thymis.
+
+## See also
+
+[Reference: External repositories/Inputs](../reference/concepts/repositories.md) for more information on how Thymis uses external repositories and inputs.

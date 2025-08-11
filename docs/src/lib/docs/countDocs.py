@@ -1,6 +1,7 @@
 # count which % of .md files in this directory tree have 10 or more words
 import glob
 import os
+import random  # Add this import for random selection
 import re
 
 
@@ -74,13 +75,21 @@ def count_docs_with_min_words(directory, min_words=10):
     for file in unfilled_files:
         print(f"  - {file}")
 
-    return count, total_files
+    return count, total_files, unfilled_files
+
+
+def pick_random_empty_file(unfilled_files):
+    """Pick a random file from the list of unfilled files."""
+    if not unfilled_files:
+        print("No empty files to pick from.")
+        return None
+    return random.choice(unfilled_files)
 
 
 if __name__ == "__main__":
     directory = os.path.dirname(os.path.abspath(__file__))
     min_words = 20  # Set the minimum number of words to check
-    count, total_files = count_docs_with_min_words(directory, min_words)
+    count, total_files, unfilled_files = count_docs_with_min_words(directory, min_words)
 
     if total_files > 0:
         percentage = (count / total_files) * 100
@@ -93,6 +102,13 @@ if __name__ == "__main__":
             f"{Colors.OKGREEN}Files with {min_words} or more words: {Colors.BOLD}{count}{Colors.ENDC}"
         )
         print(f"{Colors.OKCYAN}Percentage: {Colors.BOLD}{percentage:.2f}%{Colors.ENDC}")
+
+        # Pick a random empty file
+        random_empty_file = pick_random_empty_file(unfilled_files)
+        if random_empty_file:
+            print(
+                f"{Colors.WARNING}Random file to work on: {random_empty_file}{Colors.ENDC}"
+            )
     else:
         print(
             f"{Colors.FAIL}{Colors.BOLD}No .md files found in the directory.{Colors.ENDC}"

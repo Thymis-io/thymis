@@ -1,1 +1,1 @@
-# Configuring the Thymis Git Repository (coming soon)
+# Accessing the Thymis project git repository

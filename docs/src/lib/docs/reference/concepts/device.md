@@ -1,4 +1,4 @@
-# Device
+# Hardware Device
 
 ## System Images
 
