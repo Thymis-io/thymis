@@ -10,16 +10,16 @@
     let shouldGetPrefixed = $derived(href.startsWith('/') || href.startsWith('./'));
 
     // Get the navigation context if it exists
-    // const navigationContext = getContext<{ onNavigate?: () => void; currentPath?: string }>('navigation');
+    // const navigationContext = getContext<{ onNavigate?: () => void; prefixedPath?: string }>('navigation');
     const onNavigate = getContext<() => void|undefined>('onNavigate');
-    const currentPathStore = $derived(getContext<Writable<string>>('currentPath') || '');
+    const prefixedPathStore = $derived(getContext<Writable<string>>('prefixedPath') || '');
 
     function isCurrentPage(linkHref: string): boolean {
         // Apply prefix to linkHref for comparison
         const prefixedHref = shouldGetPrefixed ? `${prefix}${linkHref}` : linkHref;
         // Remove trailing slash and compare with current pathname
         const cleanHref = prefixedHref === '/' ? '/' : prefixedHref.replace(/\/$/, '');
-        const cleanPathname = $currentPathStore === '/' ? '/' : $currentPathStore.replace(/\/$/, '');
+        const cleanPathname = $prefixedPathStore === '/' ? '/' : $prefixedPathStore.replace(/\/$/, '');
         return cleanPathname === cleanHref;
     }
 
@@ -33,7 +33,7 @@
         const prefixedHref = shouldGetPrefixed ? `${prefix}${linkHref}` : linkHref;
         // Check if current page is within this link's hierarchy
         const cleanHref = prefixedHref === '/' ? '/' : prefixedHref.replace(/\/$/, '');
-        const cleanPathname = $currentPathStore === '/' ? '/' : $currentPathStore.replace(/\/$/, '');
+        const cleanPathname = $prefixedPathStore === '/' ? '/' : $prefixedPathStore.replace(/\/$/, '');
 
         // For non-root links, check if current path starts with the link href (making it a parent)
         return cleanPathname.startsWith(cleanHref + '/');

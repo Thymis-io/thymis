@@ -1,17 +1,22 @@
 <script lang="ts">
-	import "prismjs/themes/prism.css";
-	import "@fortawesome/fontawesome-free/css/all.css";
+	import 'prismjs/themes/prism.css';
+	import '@fortawesome/fontawesome-free/css/all.css';
 	import Footer from './Footer.svelte';
 	import NavigationSidebar from './NavigationSidebar.svelte';
 	import TableOfContents from './TableOfContents.svelte';
 	import Breadcrumbs from './Breadcrumbs.svelte';
-	import getModuleForPath, {allModules} from '../docs/getModuleForPath';
-	import { setContext } from "svelte";
+	import getModuleForPath, { allModules } from '../docs/getModuleForPath';
+	import { setContext } from 'svelte';
+	import { writable } from 'svelte/store';
 
-	let { path, prefix = '', currentPath = '' }: {
+	let {
+		shortPath,
+		prefix = '',
+		prefixedPath = ''
+	}: {
 		prefix?: string;
-		path: string | string[];
-		currentPath?: string;
+		shortPath: string | string[];
+		prefixedPath?: string;
 	} = $props();
 
 	// set context for prefix
@@ -20,21 +25,27 @@
 	let mobileMenuOpen = $state(false);
 
 	// Convert path to string for components that expect string type
-	const pathString = $derived(typeof path === 'string' ? path : path.join('/'));
+	const pathString = $derived(typeof shortPath === 'string' ? shortPath : shortPath.join('/'));
 
 	// Get content module and resolved file path
-	const {
-		contentModule,
-		resolvedFilePath,
-		breadcrumbs
-	} = $derived(getModuleForPath(path));
+	const { contentModule, resolvedFilePath, breadcrumbs } = $derived(getModuleForPath(shortPath));
+	// set context for resolved file path
+	let prefixedPathStore = writable(prefixedPath);
+    // Update the prefixedPath store whenever prefixedPath changes
+    $effect(() => {
+        prefixedPathStore.set(prefixedPath);
+    });
+	setContext('prefixedPath', prefixedPathStore);
 </script>
 
 <!-- Modern Documentation Layout -->
 
 <div class="bg-gray-50">
 	<!-- Mobile menu button -->
-	<div class="sticky top-0 z-50 border-b border-gray-200 bg-white px-4 py-3 lg:hidden" class:hidden={mobileMenuOpen}>
+	<div
+		class="sticky top-0 z-50 border-b border-gray-200 bg-white px-4 py-3 lg:hidden"
+		class:hidden={mobileMenuOpen}
+	>
 		<button
 			type="button"
 			onclick={() => (mobileMenuOpen = !mobileMenuOpen)}
@@ -49,12 +60,12 @@
 	<div class="mx-auto flex max-w-screen-2xl">
 		<!-- Left Sidebar -->
 		<aside
-			class="z-10 sticky top-0 hidden w-72 border-r border-gray-200 bg-white shadow-sm lg:flex lg:flex-col self-start"
+			class="sticky top-0 z-10 hidden w-72 self-start border-r border-gray-200 bg-white shadow-sm lg:flex lg:flex-col"
 		>
 			<div class="p-6">
 				<h1 class="mb-6 text-xl font-bold text-gray-900">Thymis Documentation</h1>
 
-				<NavigationSidebar {currentPath} {allModules} />
+				<NavigationSidebar prefixedPath={prefixedPath} {allModules} />
 			</div>
 		</aside>
 
@@ -85,7 +96,11 @@
 							<h1 class="text-xl font-bold text-gray-900">Thymis Documentation</h1>
 						</div>
 						<div class="flex-1 overflow-y-auto px-6 py-4">
-							<NavigationSidebar onNavigate={() => (mobileMenuOpen = false)} {currentPath} {allModules} />
+							<NavigationSidebar
+								onNavigate={() => (mobileMenuOpen = false)}
+								prefixedPath={prefixedPath}
+								{allModules}
+							/>
 						</div>
 					</div>
 				</div>
@@ -93,7 +108,7 @@
 		{/if}
 
 		<!-- Main Content -->
-		<main class="flex-1 min-w-0">
+		<main class="min-w-0 flex-1">
 			<div class="p-4 lg:p-8">
 				<div class="max-w-4xl">
 					<!-- Breadcrumbs -->
@@ -106,19 +121,17 @@
 						</div>
 					</div>
 
-					<article class="mt-4 prose max-w-none">
+					<article class="prose mt-4 max-w-none">
 						<contentModule.default />
 					</article>
 
-					<Footer {resolvedFilePath} {currentPath} />
+					<Footer {resolvedFilePath} prefixedPath={prefixedPath} />
 				</div>
 			</div>
 		</main>
 
 		<!-- Right Sidebar - Table of Contents -->
-		<aside
-			class="sticky top-0 hidden w-64 xl:flex xl:flex-col self-start"
-		>
+		<aside class="sticky top-0 hidden w-64 self-start xl:flex xl:flex-col">
 			<div class="p-6">
 				<TableOfContents toc={contentModule.metadata?.toc} />
 			</div>

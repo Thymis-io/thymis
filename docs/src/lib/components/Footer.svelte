@@ -20,11 +20,11 @@
 
     const currentYear = new Date().getFullYear();
 
-    let { resolvedFilePath, currentPath = '' }: { resolvedFilePath?: string; currentPath?: string } = $props();
+    let { resolvedFilePath, prefixedPath = '' }: { resolvedFilePath?: string; prefixedPath?: string } = $props();
 
     // Navigation logic
     const currentPageIndex = $derived.by(() => {
-        const cleanCurrentPath = currentPath === '/' ? '/' : currentPath.replace(/\/$/, '');
+        const cleanPrefixedPath = prefixedPath === '/' ? '/' : prefixedPath.replace(/\/$/, '');
         return typedMetadata.links.findIndex((link: Link) => {
             const linkPath = link.href === '/' ? '/' : link.href.replace(/\/$/, '');
             let prefixedLinkPath = prefix + linkPath;
@@ -32,7 +32,7 @@
             if (linkPath === '/' && prefix) {
                 prefixedLinkPath = prefix === '/' ? '/' : prefix.replace(/\/$/, '');
             }
-            return prefixedLinkPath === cleanCurrentPath;
+            return prefixedLinkPath === cleanPrefixedPath;
         });
     });
 

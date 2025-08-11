@@ -1,14 +1,33 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
 	import type { ClassValue } from 'svelte/elements';
+	import type { writable } from 'svelte/store';
 
 	// get prefix from context
 	const prefix = getContext<string>('prefix') || '';
+	// get current path
+	const prefixedPath = getContext<writable<string>>('prefixedPath') || '';
 
 	// let { href, children,  } = $props();
 	let props = $props();
 
-	let shouldGetPrefixed = $derived(props.href.startsWith('/') || props.href.startsWith('./'));
+	// if prefix is prefixedPath <=> we are in index
+	let shouldGetPrefixed = $derived(
+		props.href.startsWith('/') ||
+			props.href.startsWith('./') ||
+			props.href.starts ||
+			(prefix && $prefixedPath === prefix)
+	);
+
+	console.log(
+		'Link prefix:',
+		prefix,
+		'Href:',
+		props.href,
+		'Should get prefixed:',
+		shouldGetPrefixed
+	);
+	console.log('Current prefixed path:', $prefixedPath);
 
 	let processedHref = $derived(
 		props.href.endsWith('.md')
@@ -22,7 +41,17 @@
 			: processedHref
 	);
 
-	let finalHref = $derived(shouldGetPrefixed ? `${prefix}${relativeHref}` : relativeHref);
+	// if should get prefixed and also begins with alphanum, add a slash
+	let addSlash = $derived(
+		shouldGetPrefixed && /^[a-zA-Z0-9]/.test(relativeHref) && !relativeHref.startsWith('/')
+	);
+
+	// let finalHref = $derived(shouldGetPrefixed ? `${prefix}${relativeHref}` : relativeHref);
+	let finalHref = $derived(
+		shouldGetPrefixed
+			? `${prefix}${addSlash ? '/' : ''}${relativeHref}`
+			: relativeHref
+	);
 </script>
 
 <a href={finalHref} class={props.class}>

@@ -6,11 +6,10 @@
 
     interface Props {
         onNavigate?: () => void;
-        currentPath?: string;
         allModules?: Record<string, any> | Array<{path: string, module: any}>; // Support both formats
     }
 
-    let { onNavigate, currentPath = '', allModules = {} }: Props = $props();
+    let { onNavigate, allModules = {} }: Props = $props();
 
     // Get prefix from context if available
     const prefix = getContext<string>('prefix') || '';
@@ -240,18 +239,12 @@
         }
     });
 
-    // Set context so child components can access the onNavigate function and currentPath
+    // Set context so child components can access the onNavigate function
     setContext('onNavigate', onNavigate);
     setContext('searchQuery', { get: () => searchQuery, set: (v: string) => searchQuery = v });
     setContext('searchResults', searchResults);
     setContext('showSearchModal', { get: () => showSearchModal, set: (v: boolean) => showSearchModal = v });
 
-    let currentPathStore = writable(currentPath);
-    // Update the currentPath store whenever currentPath changes
-    $effect(() => {
-        currentPathStore.set(currentPath);
-    });
-        setContext('currentPath', currentPathStore);
 </script>
 
 <nav class="summary-nav max-h-[calc(100vh-8rem)] overflow-y-auto pb-8">
