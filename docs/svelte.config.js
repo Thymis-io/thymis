@@ -1,4 +1,4 @@
-import { mdsvex } from 'mdsvex';
+import { mdsvex, code_highlighter } from 'mdsvex';
 import adapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { fileURLToPath } from 'node:url';
@@ -8,6 +8,7 @@ import relativeImages from "mdsvex-relative-images";
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import {fromHtmlIsomorphic} from 'hast-util-from-html-isomorphic'
 import { visit } from 'unist-util-visit';
+import { escape } from 'node:querystring';
 
 
 export const remarkExtractToc = (options) => {
@@ -71,6 +72,17 @@ const config = {
 				// github.com/pngwn/MDsveX/issues/556
 				summary: dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/SummaryLayout.svelte',
 				_: dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/DefaultMarkdownLayout.svelte'
+			},
+			highlight:{
+				highlighter: async (code, lang, _meta, _filename, optimise) => {
+					const result = await code_highlighter(code, lang, _meta, _filename, optimise);
+					if (_filename.includes('src/lib/docs') && !_filename.includes('SUMMARY.md')) {
+						return result
+							.replace(/^<pre/g, `<Components.pre code={"${encodeURIComponent(code).replace(/\%([0-9A-F]{2})/g, "\\x$1")}"}`)
+							.replace(/pre>$/g, 'Components.pre>');
+					}
+					return result;
+				}
 			}
 		}),
 		vitePreprocess()

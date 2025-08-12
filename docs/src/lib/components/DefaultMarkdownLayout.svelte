@@ -4,9 +4,9 @@
 
 <script context="module">
   import a from './defaultMarkdown/a.svelte';
-  export { a };
   import img from './defaultMarkdown/img.svelte';
-  export { img };
+  import pre from './defaultMarkdown/pre.svelte';
+  export { a, img, pre };
 </script>
 
 <slot>
