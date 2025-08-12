@@ -1,6 +1,5 @@
 <script lang="ts">
 	let props = $props();
-	console.log('code', props.code);
 
    let copied = $state(false);
    let timeout: ReturnType<typeof setTimeout> | null = null;
