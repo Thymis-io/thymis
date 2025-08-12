@@ -179,17 +179,35 @@
         return excerpt;
     }
 
-    // Handle keydown events
+    // Keyboard navigation for search results
+    let selectedIndex = $state(0);
     function handleKeydown(e: KeyboardEvent) {
         if (e.key === 'Escape') {
             closeSearchModal();
+        } else if (e.key === 'ArrowDown') {
+            if ($searchResults.length > 0) {
+                selectedIndex = (selectedIndex + 1) % $searchResults.length;
+                scrollSelectedIntoView();
+            }
+        } else if (e.key === 'ArrowUp') {
+            if ($searchResults.length > 0) {
+                selectedIndex = (selectedIndex - 1 + $searchResults.length) % $searchResults.length;
+                scrollSelectedIntoView();
+            }
         } else if (e.key === 'Enter' && $searchResults.length > 0) {
-            // Navigate to first result on Enter
-            const firstResult = $searchResults[0];
+            const selected = $searchResults[selectedIndex] || $searchResults[0];
             if (onNavigate) onNavigate();
-            window.location.href = firstResult.path;
+            window.location.href = selected.path;
             closeSearchModal();
         }
+    }
+
+    // Scroll selected result into view
+    function scrollSelectedIntoView() {
+        setTimeout(() => {
+            const el = document.querySelector('.search-result.selected');
+            el?.scrollIntoView({ block: 'nearest' });
+        }, 0);
     }
 
     // Handle click outside to close modal
@@ -236,10 +254,12 @@
         if (searchQuery.trim()) {
             const timeoutId = setTimeout(() => {
                 performSearch(searchQuery);
+                selectedIndex = 0;
             }, 100); // Reduced from 200ms to 100ms for faster response
             return () => clearTimeout(timeoutId);
         } else {
             searchResults.set([]);
+            selectedIndex = 0;
         }
     });
 
@@ -330,11 +350,13 @@
             <div class="max-h-96 overflow-y-auto">
                 {#if searchQuery.trim() && $searchResults.length > 0}
                     <div class="p-2">
-                        {#each $searchResults as result}
+                        {#each $searchResults as result, i}
                             <a
                                 href={result.path}
                                 onclick={() => { if (onNavigate) onNavigate(); closeSearchModal(); }}
-                                class="block p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
+                                class="search-result block p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 {i === selectedIndex ? 'selected bg-blue-50 border-blue-200' : ''}"
+                                tabindex="-1"
+                                aria-selected={i === selectedIndex}
                             >
                                 <div class="flex items-start gap-3">
                                     <i class="fas fa-file-text text-blue-500 text-sm mt-1"></i>
