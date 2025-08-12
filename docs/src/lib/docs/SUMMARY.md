@@ -54,6 +54,3 @@ layout: summary
     - [Deploy](reference/ui/deploy.md)
     - [Tasks](reference/ui/tasks.md)
   - [Supported Devices](reference/supported-devices.md)
-  - [Packaging Modules](reference/port-application.md)
-    - [Packaging](reference/port-application/packaging.md)
-    - [Exposing Module Options](reference/port-application/module-options.md)
