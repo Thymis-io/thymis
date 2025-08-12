@@ -16,4 +16,11 @@ You can refresh the display by either:
 
 ## Resolution is wrong
 
-- use display mode with format `1920x1080_60`
+- use display mode with format `1920x1080_60` or `1920x1080`
+
+## External Module are not being detected
+
+If you change [external modules](../reference/concepts/repositories.md) or adjust their url, changes may not be picked up by the hot-reload.
+
+- Restart the Thymis Controller
+- Ensure the Controller has access to the external module
