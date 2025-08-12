@@ -15,8 +15,9 @@ To open a web terminal:
 2. Select the device configuration that contains the devices you want to access.
 3. Click the **Terminal** tab.
 
-You will see a list of devices using this configuration.
-Select a device to open an interactive shell directly in your browser.
+You will see a list of devices using this configuration, along with their current terminal sessions.
+
+![Terminal Sessions](./terminal-sessions.png)
 
 ## 2. Direct SSH from your own terminal
 
