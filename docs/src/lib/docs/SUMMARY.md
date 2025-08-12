@@ -17,7 +17,7 @@ layout: summary
   - [Troubleshooting](device-lifecycle/troubleshooting.md)
   - [Deploying Secrets to devices](device-lifecycle/secrets.md)
   - [Deploying Files using Artifacts](device-lifecycle/artifacts.md)
-  - [How to access SSH using your own Terminal](device-lifecycle/ssh-terminal.md)
+  - [Accessing the Terminal](device-lifecycle/ssh-terminal.md)
   - [Test your configuration with VMs](device-lifecycle/vms.md)
 - [Your Project in Thymis](external-projects.md)
   - [Setting up external repositories](external-projects/external-repositories.md)
