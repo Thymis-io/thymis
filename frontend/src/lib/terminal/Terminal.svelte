@@ -132,7 +132,7 @@
 				console.log('Token:', token);
 				const command =
 					`ssh -o 'ProxyCommand nix shell github:thymis-io/http-network-relay --command access-client ` +
-					`--relay-url ${window.location.protocol == 'https' ? 'wss' : 'ws'}://${window.location.host}/agent/relay_for_clients ` +
+					`--relay-url ${window.location.protocol == 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/agent/relay_for_clients ` +
 					`--secret ${token.token} ${token.deployment_info_id} localhost %p tcp' root@${token.deployment_info_id}.thymis.cloud.internal`;
 				await navigator.clipboard.writeText(command);
 				toast.push('SSH command copied to clipboard', {
