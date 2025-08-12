@@ -32,3 +32,6 @@ For guidance on how to write NixOS modules, you can refer to the [Nix 101 - Conf
 You can consult different resource online, such as the [NixOS wiki](https://wiki.nixos.org/wiki/NixOS_modules) or the [NixOS manual](https://nixos.org/manual/nixos/stable/) to learn more about how to write NixOS modules and what options are available.
 
 We recommend using the [Nixpkgs search](https://search.nixos.org/packages) to find available packages and the [NixOS options search](https://search.nixos.org/options) to find available configuration options.
+
+**Tip:** Want to run Python code on your devices?
+See [Using the Python language module (coming soon)](python-language-module.md) for a workaround using `pkgs.writers.writePython3`.
