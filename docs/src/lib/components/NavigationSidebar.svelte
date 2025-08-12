@@ -1,9 +1,11 @@
 <script lang="ts">
+  import WordCountDistributionDocs from './WordCountDistributionDocs.svelte';
+
     import { setContext, onMount, getContext } from 'svelte';
     import Summary from '../docs/SUMMARY.md';
-	import { writable } from 'svelte/store';
+    import { writable } from 'svelte/store';
     import { Index } from 'flexsearch';
-	import { afterNavigate } from '$app/navigation';
+    import { afterNavigate } from '$app/navigation';
 
 
     interface Props {
@@ -49,7 +51,7 @@
                     // Pre-process and cache module data
                     const cleanContent = preprocessContent(fullContent);
                     const title = module?.metadata?.toc?.[0]?.text ||
-                                cleanPath.split('/').pop()?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) ||
+                                cleanPath.split('/').pop()?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) ||
                                 cleanPath;
 
                     moduleCache.set(cleanPath, {
@@ -70,7 +72,7 @@
                     // Pre-process and cache module data
                     const cleanContent = preprocessContent(fullContent);
                     const title = module?.metadata?.toc?.[0]?.text ||
-                                path.split('/').pop()?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) ||
+                                path.split('/').pop()?.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) ||
                                 path;
 
                     moduleCache.set(path, {
@@ -128,7 +130,7 @@
                 path: resultPath,
                 excerpt: excerpt
             };
-        }).filter(Boolean); // Remove null entries
+        }).filter((result): result is { id: string; title: string; path: string; excerpt: string } => result !== null);
 
         searchResults.set(searchResultsData);
     }
@@ -247,31 +249,20 @@
     setContext('searchResults', searchResults);
     setContext('showSearchModal', { get: () => showSearchModal, set: (v: boolean) => showSearchModal = v });
 
-    let randomIndex = $state(Math.random());
+    let randomValue = $state(Math.random());
     afterNavigate(() => {
         // Generate a new random index on navigation
-        randomIndex = Math.random();
+        randomValue = Math.random();
     });
     let randomLink = $derived.by(() => {
         const keys = Array.from(moduleCache.keys());
-        const randomKey = keys[Math.floor(randomIndex * keys.length)];
-        console.log('randomLink data', { randomIndex, keys, randomKey });
+        const randomKey = keys[Math.floor(randomValue * keys.length)];
+        console.log('randomLink data', { randomIndex: randomValue, keys, randomKey });
         return randomKey;
     });
 </script>
 
 <!-- button to go to random page -->
-<!-- <button
-    onclick={() => {
-        const keys = Array.from(moduleCache.keys());
-        const randomKey = keys[Math.floor(Math.random() * keys.length)];
-        if (onNavigate) onNavigate();
-        window.location.href = prefix ? `${prefix}/${randomKey}` : `/${randomKey}`;
-    }}
-    aria-label="Go to random documentation page"
->
-    <i class="fas fa-random"></i>
-</button> -->
 <a
     href={prefix ? `${prefix}/${randomLink}` : `/${randomLink}`}
     onclick={() => {
@@ -283,6 +274,7 @@
     <i class="fas fa-random"></i> Random Page
 </a>
 
+<WordCountDistributionDocs {allModules} {randomValue}></WordCountDistributionDocs>
 
 <nav class="summary-nav max-h-[calc(100vh-8rem)] overflow-y-auto pb-8">
     <!-- Search Button -->
