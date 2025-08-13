@@ -4,7 +4,7 @@ To avoid copying the same settings to multiple [configurations](../reference/con
 
 ## Creating and Assigning a Tag
 
-Navigate to the **Configs-Tags** and click the **Create Tag** button.
+Navigate to the **Config-Tags** and click the **Create Tag** button.
 Enter a name and press apply.
 
 ![Create a tag](./create-tag.png)
@@ -22,10 +22,10 @@ Any settings defined in the tag will be applied to all configurations that share
 ## Adding Settings to a Tag
 
 Click on the tag to edit the settings.
-We can add any module to the tag, here we add the **Core Device Settings**.
+We can add any module to the tag, here we add the **Core Device Configuration**.
 
 ![Add module to tag](./add-module-to-tag.png)
-![Add Core Device Settings](./add-core-device-settings-module.png)
+![Add Core Device Configuration](./add-core-device-configuration-module.png)
 
 For example, we can set the WiFi SSID and password to be applied to all devices.
 When adding a new device you only need a assign the tag and are done.
@@ -42,4 +42,4 @@ When moving a setting from a device configuration to a tag, remove any existing 
 An empty value is still treated as a set value.
 Click the x button on the right to clear the field:
 
-![Add Core Device Settings](./overwritten-setting.png)
+![Overwritten setting](./overwritten-setting.png)

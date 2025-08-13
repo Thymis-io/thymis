@@ -19,7 +19,7 @@ Select **Configure** to open the settings.
 
 ## Setting up WiFi
 
-On the Core Device Settings we can set the WiFi SSID and Password.
+On the Core Device Configuration we can set the WiFi SSID and Password.
 
 ![Config Page](./Color-scheme-light-initial-device-provisioning-4-linux.png)
 
