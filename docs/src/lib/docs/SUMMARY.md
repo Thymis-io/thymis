@@ -47,7 +47,7 @@ layout: summary
     - [Project repository](reference/concepts/project-repository.md)
     - [External repositories/Inputs](reference/concepts/repositories.md)
   - [Buttons and Fields in the UI](reference/ui.md)
-    - [Configuration](reference/ui/configuration.md)
+    - [Configuring Device Modules](reference/ui/configuring.md)
     - [Build](reference/ui/build.md)
     - [Update](reference/ui/update.md)
     - [Commit](reference/ui/commit.md)
