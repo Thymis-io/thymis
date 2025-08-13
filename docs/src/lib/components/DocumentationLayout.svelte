@@ -6,8 +6,17 @@
 	import TableOfContents from './TableOfContents.svelte';
 	import Breadcrumbs from './Breadcrumbs.svelte';
 	import getModuleForPath, { allModules } from '../docs/getModuleForPath';
-	import { setContext } from 'svelte';
+	import { onMount, setContext } from 'svelte';
 	import { writable } from 'svelte/store';
+	import mermaid from 'mermaid';
+	import { afterNavigate } from '$app/navigation';
+
+	onMount(() => {
+		mermaid.initialize({});
+	});
+	afterNavigate(() => {
+		mermaid.run();
+	});
 
 	let {
 		shortPath,
@@ -31,10 +40,10 @@
 	const { contentModule, resolvedFilePath, breadcrumbs } = $derived(getModuleForPath(shortPath));
 	// set context for resolved file path
 	let prefixedPathStore = writable(prefixedPath);
-    // Update the prefixedPath store whenever prefixedPath changes
-    $effect(() => {
-        prefixedPathStore.set(prefixedPath);
-    });
+	// Update the prefixedPath store whenever prefixedPath changes
+	$effect(() => {
+		prefixedPathStore.set(prefixedPath);
+	});
 	setContext('prefixedPath', prefixedPathStore);
 </script>
 
@@ -65,7 +74,7 @@
 			<div class="p-6">
 				<h1 class="mb-6 text-xl font-bold text-gray-900">Thymis Documentation</h1>
 
-				<NavigationSidebar prefixedPath={prefixedPath} {allModules} />
+				<NavigationSidebar {prefixedPath} {allModules} />
 			</div>
 		</aside>
 
@@ -98,7 +107,7 @@
 						<div class="flex-1 overflow-y-auto px-6 py-4">
 							<NavigationSidebar
 								onNavigate={() => (mobileMenuOpen = false)}
-								prefixedPath={prefixedPath}
+								{prefixedPath}
 								{allModules}
 							/>
 						</div>
@@ -127,7 +136,7 @@
 						<contentModule.default />
 					</article>
 
-					<Footer {resolvedFilePath} prefixedPath={prefixedPath} />
+					<Footer {resolvedFilePath} {prefixedPath} />
 				</div>
 			</div>
 		</main>

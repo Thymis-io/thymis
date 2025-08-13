@@ -4,12 +4,10 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import rehypeSlug from 'rehype-slug';
-import relativeImages from "mdsvex-relative-images";
+import relativeImages from 'mdsvex-relative-images';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
-import {fromHtmlIsomorphic} from 'hast-util-from-html-isomorphic'
+import { fromHtmlIsomorphic } from 'hast-util-from-html-isomorphic';
 import { visit } from 'unist-util-visit';
-import { escape } from 'node:querystring';
-
 
 export const remarkExtractToc = (options) => {
 	return (tree, vFile) => {
@@ -61,24 +59,42 @@ const config = {
 		mdsvex({
 			extensions: ['.svx', '.md'],
 			remarkPlugins: [remarkExtractToc, relativeImages],
-			rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings,{
-				behavior: 'append',
-				headingProperties: {
-					class:'group'
-				},
-				content: fromHtmlIsomorphic('<span class="fa-solid fa-link ml-3 lg:!hidden group-hover:!inline-block !text-black"></span>', {fragment: true}).children,
-			}]],
+			rehypePlugins: [
+				rehypeSlug,
+				[
+					rehypeAutolinkHeadings,
+					{
+						behavior: 'append',
+						headingProperties: {
+							class: 'group'
+						},
+						content: fromHtmlIsomorphic(
+							'<span class="fa-solid fa-link ml-3 lg:!hidden group-hover:!inline-block !text-black"></span>',
+							{ fragment: true }
+						).children
+					}
+				]
+			],
 			layout: {
 				// github.com/pngwn/MDsveX/issues/556
-				summary: dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/SummaryLayout.svelte',
-				_: dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/DefaultMarkdownLayout.svelte'
+				summary:
+					dirname(fileURLToPath(import.meta.url)) + '/src/lib/components/SummaryLayout.svelte',
+				_:
+					dirname(fileURLToPath(import.meta.url)) +
+					'/src/lib/components/DefaultMarkdownLayout.svelte'
 			},
-			highlight:{
+			highlight: {
 				highlighter: async (code, lang, _meta, _filename, optimise) => {
 					const result = await code_highlighter(code, lang, _meta, _filename, optimise);
+					if (lang === 'mermaid') {
+						return `<div class="not-prose"><pre class="mermaid">${code}</pre></div>`;
+					}
 					if (_filename.includes('src/lib/docs') && !_filename.includes('SUMMARY.md')) {
 						return result
-							.replace(/^<pre/g, `<Components.pre code={"${encodeURIComponent(code).replace(/\%([0-9A-F]{2})/g, "\\x$1")}"}`)
+							.replace(
+								/^<pre/g,
+								`<Components.pre lang={"${lang}"} code={"${encodeURIComponent(code).replace(/\%([0-9A-F]{2})/g, '\\x$1')}"}`
+							)
 							.replace(/pre>$/g, 'Components.pre>');
 					}
 					return result;
@@ -94,7 +110,7 @@ const config = {
 		}),
 		prerender: {
 			entries: ['*', '/']
-		},
+		}
 	},
 	extensions: ['.svelte', '.svx', '.md'],
 	compilerOptions: {

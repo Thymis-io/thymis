@@ -67,6 +67,7 @@
 	},
 	"devDependencies": {
 		"flexsearch": "^0.8.205",
+		"mermaid": "^11.9.0",
 		"publint": "^0.3.12",
 		"scroll-into-view-if-needed": "^3.1.0"
 	}
