@@ -103,7 +103,7 @@ If secrets aren't deployed correctly:
    - Monitor system logs for any secret-related errors
 
 ## See also
-- [Secrets concept](../../reference/concepts/secret.md)
-- [Device Configuration](../../external-projects/thymis-modules/first-module.md)
-- [Deploying Files using Artifacts](./artifacts.md)
-- [Deploy an Update](./update.md)
+- [Secrets concept](../reference/concepts/secrets.md)
+- [Device Configuration](../external-projects/thymis-modules/first-module.md)
+- [Deploying Files using Artifacts](artifacts.md)
+- [Deploy an Update](update.md)

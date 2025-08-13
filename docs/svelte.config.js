@@ -91,7 +91,10 @@ const config = {
 		adapter: adapter({
 			// Enable SPA mode with fallback
 			fallback: 'index.html'
-		})
+		}),
+		prerender: {
+			entries: ['*', '/']
+		},
 	},
 	extensions: ['.svelte', '.svx', '.md'],
 	compilerOptions: {

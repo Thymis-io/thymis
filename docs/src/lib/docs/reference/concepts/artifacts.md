@@ -13,4 +13,4 @@ To include an artifact in your device's file system, you can use the **Artifacts
 
 ![Artifacts configuration](./artifacts-configuration.png)
 
-Artifacts should not be used for secrets or sensitive data. For sensitive data, use the [Secrets](secret.md) feature instead, which provides secure storage and access control.
+Artifacts should not be used for secrets or sensitive data. For sensitive data, use the [Secrets](secrets.md) feature instead, which provides secure storage and access control.

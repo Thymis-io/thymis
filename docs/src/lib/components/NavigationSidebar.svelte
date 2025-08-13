@@ -6,6 +6,7 @@
     import { writable } from 'svelte/store';
     import { Index } from 'flexsearch';
     import { afterNavigate } from '$app/navigation';
+	import { dev } from '$app/environment';
 
 
     interface Props {
@@ -280,8 +281,9 @@
         console.log('randomLink data', { randomIndex: randomValue, keys, randomKey });
         return randomKey;
     });
-</script>
 
+</script>
+{#if dev}
 <!-- button to go to random page -->
 <a
     href={prefix ? `${prefix}/${randomLink}` : `/${randomLink}`}
@@ -295,6 +297,7 @@
 </a>
 
 <WordCountDistributionDocs {allModules} {randomValue}></WordCountDistributionDocs>
+{/if}
 
 <nav class="summary-nav max-h-[calc(100vh-8rem)] overflow-y-auto pb-8">
     <!-- Search Button -->

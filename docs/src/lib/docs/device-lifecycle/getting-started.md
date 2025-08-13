@@ -55,4 +55,4 @@ It should shortly connect to the Thymis Controller and be visible under the Conf
 ![Running Device](./device-deployed.png)
 
 If the device doesn't connect, make sure to check the networking settings or use a LAN connection for debugging.
-See [Troubleshooting](./troubleshooting) for more help.
+See [Troubleshooting](troubleshooting.md) for more help.

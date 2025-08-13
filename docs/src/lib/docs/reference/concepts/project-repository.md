@@ -58,7 +58,7 @@ Every time you make changes to the project in the Thymis UI, the `flake.nix` fil
 
 The `flake.lock` file is a Nix flake lock file that contains the state of the inputs for your project.
 It is generated from the `flake.nix` file and is used to ensure that the inputs for your project are consistent across different deployments.
-This file is updated using the [**Update**](../reference/ui/update.md) button in the Thymis UI, which fetches the latest changes from the inputs and updates the `flake.lock` file accordingly.
+This file is updated using the [**Update**](../ui/update.md) button in the Thymis UI, which fetches the latest changes from the inputs and updates the `flake.lock` file accordingly.
 
 The `hosts/` directory contains the device configurations, with one sub-directory per device.
 Each sub-directory contains the device configuration file, which is a Thymis module that defines the configuration for the device.
