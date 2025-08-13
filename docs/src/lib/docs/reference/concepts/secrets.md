@@ -47,6 +47,13 @@ Secrets can be managed through the Secrets page in the Thymis UI or created dire
 - Monitor secret usage for any anomalies
 - Consider the security implications when including secrets in device images
 
+## Troubleshooting
+
+For advanced troubleshooting, you can use the terminal to verify secret deployment:
+- Check if secrets are properly decrypted at their specified paths using `cat /run/your-secret-path`
+- Verify permissions and ownership of secret files
+- Monitor system logs for any secret-related errors
+
 ## See also
 - [Deploying Secrets to devices](../../device-lifecycle/secrets.md)
 - [Creating Your First Thymis Module](../../external-projects/thymis-modules/first-module.md)

@@ -99,7 +99,10 @@ If secrets aren't deployed correctly:
 1. Check that the secret exists and is correctly configured
 2. Verify the deployment path exists and has appropriate permissions
 3. Check the logs in the Tasks view for error messages
-4. Ensure the secret is referenced correctly in your modules
+4. Use the terminal to verify secret deployment:
+   - Check if secrets are properly decrypted at their specified paths using `cat /run/your-secret-path`
+   - Verify permissions and ownership of secret files
+   - Monitor system logs for any secret-related errors
 
 ## See also
 - [Secrets concept](../../reference/concepts/secret.md)
