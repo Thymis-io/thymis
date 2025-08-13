@@ -33,14 +33,27 @@ The affected device configurations and their devices are shown in the preview se
 
 ## Deployment Process
 
-Deploying follows a three-phase approach for each device:
+Deploying can be done in different ways:
+
+### Over-the-Air (OTA) updates
+- Incremental updates that only transfer modified system changes
+- Atomic switching to new configurations after successful update
+- Minimal downtime and bandwidth usage
+- Automatic rollback on failure detection
+
+### Full Image Replacement
+- Complete system replacement for air-gapped environments or recovery scenarios
+- Manual installation process
+
+## Three-Phase Deployment
+In Thymis, deployment follows a three-phase approach for each device:
 
 ### 1. Build Phase
 - The device's unique configuration is built into a deployable system closure
 - This is optimized for incremental changes to minimize bandwidth usage
 - Based on your current project state (either committed or included in the commit)
 
-### 2. Copy/Transfer Phase
+#### 2. Copy/Transfer Phase
 - The new system closure is transferred to the device
 - Only new paths are sent, minimizing data transfer
 - Secured via the established WebSocket connection
@@ -49,6 +62,15 @@ Deploying follows a three-phase approach for each device:
 - The device atomically switches to the new system closure
 - Previous configuration is preserved as a rollback point
 - Device reboots or activates the new configuration
+
+## Reliability and Recovery
+
+Thymis implements several mechanisms to ensure reliability:
+
+- **Automatic rollback** occurs if:
+  - A deployment fails during the switch phase and the device loses connection
+  - The device cannot reconnect to the controller after deployment
+- Previous configuration is preserved as a rollback point to ensure device stability
 
 ## Task Management
 
@@ -60,14 +82,6 @@ During deployment, Thymis creates two levels of tasks:
 You can monitor progress in the **Tasks** view, where each device's deployment status is tracked separately. Tasks show current phase, progress, and any error messages.
 
 ![Deployment Tasks](./deployment-tasks.png)
-
-## Rollback Behavior
-
-Currently, Thymis has the following rollback mechanisms:
-
-- **Automatic rollback** occurs if:
-  - A deployment fails during the switch phase and the device loses connection
-  - The device cannot reconnect to the controller after deployment
 
 ## Current Limitations
 
