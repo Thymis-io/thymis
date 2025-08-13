@@ -72,8 +72,6 @@ export const allModules = Object.entries(modules).map(([path, module]) => {
 });
 
 export const should404 = (path: string) => {
-	console.log('should404', path);
-	console.log('modules', Object.keys(modules));
 	if (path === '') {
 		return !modules['./index.md'];
 	}
