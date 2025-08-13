@@ -20,7 +20,6 @@ To create a secret through the Secrets page:
 4. Click **Create**
 
 ![Creating a Secret](./secret-creation-form.png)
-
 ## Using Secrets in Configurations
 
 To use secrets in your device configurations:
@@ -42,8 +41,6 @@ To share secrets across multiple devices:
 3. Add the **Core Device Configuration** module to the tag
 4. In the module's settings, add secrets as described above
 5. Apply the tag to device configurations that need these secrets
-
-![Secrets in Tags](./secrets-in-tags.png)
 
 ## Secret Types and Use Cases
 
