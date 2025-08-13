@@ -28,9 +28,6 @@ For self-hosted controllers, ensure **outbound** access to:
 | cache.thymis.io         | 443  | TCP      | Thymis package cache                                                   |
 | github.com              | 443  | TCP      | Fetch external repositories                                            |
 | Git hosting services    | 443  | TCP      | Access project repositories (GitLab, etc.)                             |
-| Devices                 | Any  | TCP†     | Connect to device SSH ports† for terminal access                        |
-
-> † Requires port access *only* when using [SSH Terminal](../device-lifecycle/ssh-terminal.md)
 
 ```mermaid
 graph LR

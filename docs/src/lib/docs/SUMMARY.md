@@ -24,7 +24,6 @@ layout: summary
   - [Accessing the Thymis project git repository](external-projects/git-repository.md)
   - [Thymis modules](external-projects/thymis-modules.md)
     - [Creating your first Thymis module](external-projects/thymis-modules/first-module.md)
-    - [Thymis modules with templates](external-projects/thymis-modules/templates.md)
     - [Using the Nix language module](external-projects/thymis-modules/nix-language-module.md)
     - [Using the Python language module (coming soon)](external-projects/thymis-modules/python-language-module.md)
     - [How to add VNC to my (custom) modules and applications](external-projects/thymis-modules/vnc.md)
