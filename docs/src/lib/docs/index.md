@@ -16,4 +16,4 @@ Thymis is an open-source platform for managing IoT devices using the declarative
 
 Thymis is developed by Udysseus GmbH and is available under AGPL-3.0. For updates, source code, and community discussions, visit [GitHub](https://github.com/thymis-io) or [NixOS Discourse](https://discourse.nixos.org/t/thymis-web-based-dashboard-and-device-provisioning-for-nixos/).
 
-Ready to get started? Head to [Getting Started](setting-up-thymis.md) or explore the sidebar for guides and
+Ready to get started? Head to [Getting Started](setting-up-thymis.md) or explore the sidebar for guides and resources.

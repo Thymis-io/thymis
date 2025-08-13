@@ -1,4 +1,4 @@
-# Artifact
+# Artifacts
 
 Artifacts are managed in the Thymis UI under the "Artifacts" tab. They are used to deploy files to devices, such as configuration files, scripts, or any other necessary files that need to be present on the device.
 
