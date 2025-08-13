@@ -57,4 +57,4 @@ For advanced troubleshooting, you can use the terminal to verify secret deployme
 ## See also
 - [Deploying Secrets to devices](../../device-lifecycle/secrets.md)
 - [Creating Your First Thymis Module](../../external-projects/thymis-modules/first-module.md)
-- [Accessing the Terminal](../device-lifecycle/ssh-terminal.md)
+- [Accessing the Terminal](../../device-lifecycle/ssh-terminal.md)

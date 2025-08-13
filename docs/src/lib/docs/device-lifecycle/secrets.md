@@ -17,7 +17,7 @@ To create a secret through the Secrets page:
    - **Type**: Choose from single-line, multi-line, environment variables, or files
    - **Post-processing**: Select appropriate processing (None or mkpasswd-yescrypt for passwords)
    - **Content**: Enter the secret value
-4. Click **Create**
+4. Click **Save**
 
 ![Creating a Secret](./secret-creation-form.png)
 ## Using Secrets in Configurations
@@ -30,7 +30,6 @@ To use secrets in your device configurations:
 4. In the module's settings, find the **Secrets** section
 5. Click **Add Secret**
 6. Select the secret you want to use and specify where it should be deployed on the device
-7. Click **Apply**
 
 ## Using Secrets with Tags
 
@@ -88,7 +87,6 @@ Once you've configured secrets for your devices:
 
 ## Security Considerations
 
-- Secrets are decrypted to `/run/` directories by default, which are in RAM and not persisted
 - When including secrets in device images, they're encrypted with a symmetric key during image creation and then re-encrypted per device
 - Regularly review which devices have access to which secrets
 - Consider using different secrets for different environments or device types
