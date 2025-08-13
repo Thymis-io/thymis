@@ -53,7 +53,7 @@ In Thymis, deployment follows a three-phase approach for each device:
 - This is optimized for incremental changes to minimize bandwidth usage
 - Based on your current project state (either committed or included in the commit)
 
-#### 2. Copy/Transfer Phase
+### 2. Copy/Transfer Phase
 - The new system closure is transferred to the device
 - Only new paths are sent, minimizing data transfer
 - Secured via the established WebSocket connection
