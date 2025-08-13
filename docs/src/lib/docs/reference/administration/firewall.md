@@ -38,6 +38,8 @@ graph LR
     D2[Device] -->|WebSocket, for deployments, remote access| B
 ```
 
+Ensure the controller is reachable from devices via HTTPs on port 443.
+
 ## Network Scenarios
 ### Standard Deployment
 ```mermaid
