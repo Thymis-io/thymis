@@ -5,6 +5,7 @@
 	import NavigationSidebar from './NavigationSidebar.svelte';
 	import TableOfContents from './TableOfContents.svelte';
 	import Breadcrumbs from './Breadcrumbs.svelte';
+	import VersionSelector from './VersionSelector.svelte';
 	import getModuleForPath, { allModules } from '../docs/getModuleForPath';
 	import { onMount, setContext } from 'svelte';
 	import { writable } from 'svelte/store';
@@ -55,15 +56,20 @@
 		class="sticky top-0 z-50 border-b border-gray-200 bg-white px-4 py-3 lg:hidden"
 		class:hidden={mobileMenuOpen}
 	>
-		<button
-			type="button"
-			onclick={() => (mobileMenuOpen = !mobileMenuOpen)}
-			aria-label="Toggle menu"
-			class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-		>
-			<i class="fas fa-bars h-6 w-6"></i>
-		</button>
-		<span class="ml-2 text-lg font-semibold text-gray-900">Thymis Documentation</span>
+		<div class="flex items-center justify-between">
+			<div class="flex items-center">
+				<button
+					type="button"
+					onclick={() => (mobileMenuOpen = !mobileMenuOpen)}
+					aria-label="Toggle menu"
+					class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+				>
+					<i class="fas fa-bars h-6 w-6"></i>
+				</button>
+				<span class="ml-2 text-lg font-semibold text-gray-900">Thymis Documentation</span>
+			</div>
+			<VersionSelector />
+		</div>
 	</div>
 
 	<div class="mx-auto flex max-w-screen-2xl">
@@ -72,7 +78,10 @@
 			class="sticky top-0 z-10 hidden w-72 self-start border-r border-gray-200 bg-white shadow-sm lg:flex lg:flex-col"
 		>
 			<div class="p-6">
-				<h1 class="mb-6 text-xl font-bold text-gray-900">Thymis Documentation</h1>
+				<h1 class="mb-2 text-xl font-bold text-gray-900">Thymis Documentation</h1>
+				<div class="mb-6">
+					<VersionSelector />
+				</div>
 
 				<NavigationSidebar {prefixedPath} {allModules} />
 			</div>
