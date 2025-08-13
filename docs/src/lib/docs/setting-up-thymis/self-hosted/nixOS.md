@@ -46,8 +46,7 @@ In your `configuration.nix`, you can configure the Thymis controller like this:
     system-binfmt-aarch64-enable = true; # Enables emulation of aarch64 binaries
     system-binfmt-x86_64-enable = false; # Enables emulation of x86_64 binaries
     recommended-nix-gc-settings-enable = true; # Enables recommended Nix garbage collection settings
-    repo-path = "/var/lib/thymis/repository"; # Directory for the project repository
-    database-url = "sqlite:////var/lib/thymis/thymis.sqlite"; # Database URL
+    project-path = "/var/lib/thymis"; # Directory for the project
     base-url = "https://my-thymis-controller/"; # Base URL of the controller
     agent-access-url = "https://my-thymis-controller/"; # URL for agents to access the controller
     auth-basic = true; # Enable basic authentication

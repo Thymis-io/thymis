@@ -1,5 +1,3 @@
-Here's the `firewall.md` documentation with cross-references:
-
 # Firewall Rules
 
 ## Device Requirements
