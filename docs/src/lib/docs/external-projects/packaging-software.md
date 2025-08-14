@@ -12,7 +12,7 @@ When your software isn't available or requires customizations, you'll need to cr
 
 ## Next steps
 
-1. **[Set up Nix](./setting-up-nix.md)** locally for development and testing
+1. **[Set up Nix](packaging-software/setting-up-nix.md)** locally for development and testing
 2. **Learn Nix basics** with our [Nix 101 guide](packaging-software/nix-101.md)
 3. **Check language-specific guides**:
    - [Python](packaging-software/languages.md#python)

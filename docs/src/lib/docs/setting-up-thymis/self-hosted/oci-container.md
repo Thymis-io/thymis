@@ -19,7 +19,7 @@ This module is production-ready and can be added directly to your device configu
 ## See Also
 
 - [Self-hosted setup](../self-hosted.md) for alternative deployment options
-- [NixOS self-hosting](./nixOS.md) for the current recommended setup
+- [NixOS self-hosting](nixOS.md) for the current recommended setup
 - [OCI-Containers module](../../external-projects/thymis-modules.md#oci-containers) for deploying Docker on devices
 - [Administration](../../reference/administration.md) for managing a running Thymis instance
 

@@ -28,7 +28,7 @@ See [Troubleshooting](device-lifecycle/troubleshooting.md) for common issues and
 ### Decomissioning / Replacement
 When a device reaches the end of its lifecycle, you may need to decommission it or replace it with a new device. Thymis allows you to manage the decommissioning process, ensuring that a new device can be provisioned and configured to take over the role of the old device.
 This includes transferring configurations, applications, and any necessary data to the new device.
-Simply follow the [Getting Started guide from the downloading the system image step](device-lifecycle/getting-started.md#downloading-the-system-image) to provision a new device and apply the necessary configurations.
+Simply follow the [Getting Started guide from the downloading the system image step](device-lifecycle/getting-started.md#3-download-the-system-image) to provision a new device and apply the necessary configurations.
 
 ## See also
 - [Accessing the Terminal](device-lifecycle/ssh-terminal.md)

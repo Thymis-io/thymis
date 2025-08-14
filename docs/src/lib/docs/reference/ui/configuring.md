@@ -61,6 +61,6 @@ Each module exposes settings of specific types:
 - [Modules: Core Concepts](../concepts/module.md) – Structure of Thymis modules
 - [Artifact Management](../concepts/artifacts.md) – Store reusable files
 - [Secret Handling](../concepts/secrets.md) – Secure credential patterns
-- [Tag Inheritance Flow](../device-lifecycle/tags.md) – Settings priority explained
+- [Tag Inheritance Flow](../../device-lifecycle/tags.md) – Settings priority explained
 
-> **Pro Tip**: Use Nix Language Module when UI controls are insufficient – [Custom Nix Configuration](../external-projects/thymis-modules/nix-language-module.md) offers full flexibility.
+> **Pro Tip**: Use Nix Language Module when UI controls are insufficient – [Custom Nix Configuration](../../external-projects/thymis-modules/nix-language-module.md) offers full flexibility.
