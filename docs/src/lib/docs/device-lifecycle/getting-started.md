@@ -4,7 +4,6 @@ This guide walks you through **provisioning a Raspberry Pi**, configuring networ
 
 > ℹ️ The same process applies to other supported hardware — just select the correct device type in step 1.
 
-
 ## Prerequisites
 
 Before you begin, ensure you have:
@@ -14,12 +13,11 @@ Before you begin, ensure you have:
 - An **SD card** (8 GB minimum recommended) or device‑specific storage.
 - An **SD card reader** connected to your workstation.
 - A **stable network connection** for your device:
-  - Wi‑Fi SSID and password, *or*
+  - Wi‑Fi SSID and password, _or_
   - Ethernet LAN connection.
 - A tool for flashing images — we recommend:
   - **[USBImager](https://bztsrc.gitlab.io/usbimager/)** (GUI, cross‑platform), or
   - `dd` (CLI, Linux/macOS).
-
 
 ## 1. Create a New Device Configuration
 
@@ -32,7 +30,6 @@ Before you begin, ensure you have:
 
 Once created, click **Configure** to open its settings.
 
-
 ## 2. Set Networking (Wi‑Fi)
 
 1. In the **Core Device Configuration** section, find the **Wi‑Fi** options.
@@ -43,7 +40,6 @@ Once created, click **Configure** to open its settings.
 
 > 💡 If you’re planning to use Ethernet (LAN), you can skip Wi‑Fi settings for now.
 
-
 ## 3. Download the System Image
 
 1. At the top of the configuration page, click **Download Device Image**.
@@ -52,17 +48,17 @@ Once created, click **Configure** to open its settings.
 ![Download Device Image](./Color-scheme-light-initial-device-provisioning-6-linux.png)
 
 Thymis will start a **Build Image for Device** task.
+
 - First builds may take several minutes.
 - Subsequent builds are faster thanks to caching.
 
 When complete, a download link for the image will appear in the task output.
 
-
 ## 4. Flash the Image to Your Device’s Storage
 
 Insert your SD card and use:
 
-- **USBImager**: Select the downloaded image file and the SD card, then click *Write*.
+- **USBImager**: Select the downloaded image file and the SD card, then click _Write_.
 - **`dd`** (Linux/macOS CLI):
   ```bash
   sudo dd if=/path/to/device-image.img of=/dev/sdX bs=4M status=progress conv=fsync
@@ -71,7 +67,6 @@ Insert your SD card and use:
 
 ![USBImager Screenshot](./flashing-image.png)
 
-
 ## 5. Boot the Device
 
 1. Insert the flashed SD card into your Raspberry Pi.
@@ -79,15 +74,16 @@ Insert your SD card and use:
 3. Power on the device.
 
 Within a couple of minutes, it should connect to the Thymis Controller and appear in:
+
 - **Configs** → current configuration
 - **Devices** tab, showing live status
 
 ![Running Device](./device-deployed.png)
 
-
 ## Troubleshooting
 
 If the device does not appear:
+
 - Double‑check **SSID/password** in **Core Device Configuration**.
 - Try connecting via **Ethernet** for initial onboarding.
 - Connect a keyboard/mouse/monitor to the device and log in as `root`
@@ -100,7 +96,6 @@ If the device does not appear:
 
 See [Troubleshooting Guide](troubleshooting.md) for more help.
 
-
 ## Next Steps
 
 Once your device is online, you can:
@@ -110,8 +105,8 @@ Once your device is online, you can:
 - [Set up a Kiosk with VNC](kiosk.md)
 - [Access the Terminal](ssh-terminal.md)
 
-
 ## See also
+
 - [Supported Devices](../reference/supported-devices.md)
 - [Device Configuration Concept](../reference/concepts/configuration.md)
 - [Deploy an Update](update.md)

@@ -4,82 +4,77 @@ In the main toolbar, you will find the **Deploy** button, which is central to pu
 
 ![Deploy Button](./deploy-button.png)
 
+> **Terminology Tip:**
+> In Thymis, **Update**, **Commit**, and **Deploy** are distinct steps:
+>
+> 1. **[Update](update.md)** (toolbar) — refreshes your project’s _external inputs_ (nixpkgs, modules, external repos). This does **not** immediately change devices.
+> 2. **Commit** — saves project changes (including updated inputs) into the repository so they can be built/deployed.
+> 3. **Deploy** — builds and sends the committed configuration to devices.
+>    For instructions on applying new versions of software or configuration to already‑connected devices, see [Deploy an Update](../../device-lifecycle/update.md).
+
 Clicking **Deploy** opens the Deploy Modal, which allows you to commit changes and deploy to selected devices or tags in a single workflow.
+
+![Deploy Modal](./deploy-modal.png)
 
 ## The Deploy Modal
 
 The Deploy Modal shows you the current state of your project and lets you commit and deploy in one unified process.
 
-![Deploy Modal](./deploy-modal.png)
-
-### Viewing and Committing Changes
-
 If you have uncommitted changes, the modal displays them with:
+
 - A list of modified files
-- A commit message field with a pre-filled message that you can edit
+- A commit message field with a pre‑filled message you can edit
 - Two options based on your changes:
-  - **Commit & Deploy**: Button when you have uncommitted changes
-  - **Deploy**: Button when your repository is clean (committed previously)
+  - **Commit & Deploy** — when there are uncommitted changes
+  - **Deploy** — when your repo is clean (already committed)
 
-Selecting options will commit your changes (if needed) before deploying.
-
-### Selecting Targets
+## Selecting Targets
 
 You can deploy to:
-- **Specific device configurations** by selecting them in the list
-- **Tags** by clicking on them, and all associated device configurations will be included
 
-The affected device configurations and their devices are shown in the preview section, so you can confirm where your changes will be applied.
+- **Specific Device Configurations** by selecting them in the list
+- **Tags** — deploys to all configurations/devices associated with that tag
+
+A preview shows the affected configurations/devices before you confirm.
 
 ## Deployment Process
 
 Deploying can be done in different ways:
 
-### Over-the-Air (OTA) updates
-- Incremental updates that only transfer modified system changes
-- Atomic switching to new configurations after successful update
-- Minimal downtime and bandwidth usage
-- Automatic rollback on failure detection
+### Over‑the‑Air (OTA) Updates
+
+- Incrementally transfers only changed parts of the system
+- Atomic switch to new configuration after verification
+- Automatic rollback if the device fails to reconnect
 
 ### Full Image Replacement
-- Complete system replacement for air-gapped environments or recovery scenarios
-- Manual installation process
 
-## Three-Phase Deployment
-In Thymis, deployment follows a three-phase approach for each device:
+- Builds a complete disk image for manual installation
+- Useful for air‑gapped or recovery cases
 
-### 1. Build Phase
-- The device's unique configuration is built into a deployable system closure
-- This is optimized for incremental changes to minimize bandwidth usage
-- Based on your current project state (either committed or included in the commit)
+## Three‑Phase Deployment
 
-### 2. Copy/Transfer Phase
-- The new system closure is transferred to the device
-- Only new paths are sent, minimizing data transfer
-- Secured via the established WebSocket connection
-
-### 3. Switch/Activate Phase
-- The device atomically switches to the new system closure
-- Previous configuration is preserved as a rollback point
-- Device reboots or activates the new configuration
+1. **Build** — unique device configuration → system closure
+2. **Transfer** — send only new/changed paths to the device
+3. **Switch** — atomically activate the new configuration
 
 ## Reliability and Recovery
 
-Thymis implements several mechanisms to ensure reliability:
+Thymis automatically rolls back if:
 
-- **Automatic rollback** occurs if:
-  - A deployment fails during the switch phase and the device loses connection
-  - The device cannot reconnect to the controller after deployment
-- Previous configuration is preserved as a rollback point to ensure device stability
+- The device fails during the switch phase and can’t reconnect
+- The connection to the controller fails before activation completes
+
+Previous configurations remain available as rollback points.
 
 ## Task Management
 
-During deployment, Thymis creates two levels of tasks:
+Deployment creates two levels of tasks:
 
-- **Deployment Task**: Overall task for the entire deployment operation
-- **Per-Device Tasks**: Individual tasks for each device being deployed
+- **Deployment Task** — overall operation
+- **Per‑Device Tasks** — track status for each target device
 
-You can monitor progress in the **Tasks** view, where each device's deployment status is tracked separately. Tasks show current phase, progress, and any error messages.
+Monitor with the **Tasks** view.
 
 ![Deployment Tasks](./deployment-tasks.png)
 
@@ -94,21 +89,25 @@ Thymis has some limitations in deployment error handling:
 
 This limitation will be addressed in future UI improvements for better deployment status visibility.
 
+
 ## Best Practices
 
-Before deploying:
-1. **Review changes** carefully in the modal to ensure you're deploying to the right devices
-2. **Test critical changes** on a single device first using the **Build** button
-3. **Deploy during maintenance windows** for large-scale changes
+**Before Deployment:**
 
-After deployment:
-- Monitor the **Tasks** view for any failures
-- Check device connectivity in the **Devices** view
-- Use the **Terminal** to verify services are running correctly
+1. Review target devices carefully.
+2. Use **Build** to validate large or complex changes.
+3. Test on one device before deploying fleet‑wide.
+
+**After Deployment:**
+
+- Check **Tasks** for failures.
+- Verify device connectivity in the **Devices** view.
+- Use the **Terminal** to confirm services are running.
 
 ## Related Pages
 
-- [Build](build.md): Verify configurations before deploying
-- [Tasks](tasks.md): Monitor deployment progress
-- [Accessing the Terminal](../../device-lifecycle/ssh-terminal.md): Check device status after deployment
-- [Troubleshooting](../../device-lifecycle/troubleshooting.md): Resolve common deployment issues
+- [Build](build.md) — verify configurations before deploying
+- [Update](update.md) — fetch new input versions
+- [Deploy an Update](../../device-lifecycle/update.md) — push updated packages/configurations to devices
+- [Tasks](tasks.md)
+- [Troubleshooting](../../device-lifecycle/troubleshooting.md)

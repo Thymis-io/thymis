@@ -2,13 +2,11 @@
 
 In Thymis there are **two different kinds of “update”**:
 
-1. **Toolbar “Update” button** — updates your *project’s external inputs* (Nix Flake dependencies such as nixpkgs, Thymis modules, and external repositories).
+1. **Toolbar “Update” button** — updates your _project’s external inputs_ (Nix Flake dependencies such as nixpkgs, Thymis modules, and external repositories).
    It does **not** directly update the software running on devices — it just refreshes the versions available to your project. See [Update in the UI Reference](../reference/ui/update.md).
 2. **Deploying updated configurations/packages to devices** — what this page describes: pushing newer versions of software and configuration changes to devices that are already provisioned.
 
-
 If an OTA (over‑the‑air) deployment fails or a device cannot reconnect to the Thymis Controller, the previous configuration will be rolled back automatically.
-
 
 ## Updating Packages in a Device Configuration
 
@@ -19,7 +17,6 @@ If an OTA (over‑the‑air) deployment fails or a device cannot reconnect to th
 2. Wait until this task completes before proceeding.
 
 ![Update Config Packages](./Color-scheme-light-deploy-update-1-linux.png)
-
 
 ## Deploy the Changes
 
@@ -35,12 +32,12 @@ If an OTA (over‑the‑air) deployment fails or a device cannot reconnect to th
 ![Deploy Modal](./Color-scheme-light-deploy-update-3-linux.png)
 
 Thymis will:
+
 - Build the updated system closure for each target device.
 - Transfer only changes (incremental OTA update).
 - Atomically switch devices to the new configuration.
 
 If the deployment fails, see [Troubleshooting](troubleshooting.md).
-
 
 ## Best Practices
 
@@ -50,8 +47,8 @@ If the deployment fails, see [Troubleshooting](troubleshooting.md).
 - Use **Build** before Deploy to validate changes.
 - When doing large version jumps, test on a single device before rolling out fleet‑wide.
 
-
 ## See also
+
 - [UI Reference — Update](../reference/ui/update.md) (Flake Inputs)
 - [Build](../reference/ui/build.md)
 - [Deploy](../reference/ui/deploy.md)
