@@ -65,7 +65,7 @@
         if (!resolvedFilePath) return null;
         // Remove leading slash and convert to full GitHub edit URL
         const cleanPath = resolvedFilePath.startsWith('/') ? resolvedFilePath.slice(1) : resolvedFilePath;
-        return `https://github.com/Thymis-io/thymis/edit/docs-new/docs/src/lib/docs/${cleanPath}`;
+        return `https://github.com/Thymis-io/thymis/edit/master/docs/src/lib/docs/${cleanPath}`;
     });
 </script>
 

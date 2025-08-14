@@ -278,7 +278,6 @@
     let randomLink = $derived.by(() => {
         const keys = Array.from(moduleCache.keys());
         const randomKey = keys[Math.floor(randomValue * keys.length)];
-        console.log('randomLink data', { randomIndex: randomValue, keys, randomKey });
         return randomKey;
     });
 
