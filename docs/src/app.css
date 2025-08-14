@@ -29,3 +29,15 @@ h6:target {
     border-left-color: rgba(59, 130, 246, 0.2);
   }
 }
+
+@utility prose {
+    blockquote {
+        /* Disable adding quote marks to block-quotes: https://github.com/tailwindlabs/tailwindcss-typography/issues/66 */
+        p {
+            &:first-of-type::before,
+            &:last-of-type::after {
+                content: none;
+            }
+        }
+    }
+}
