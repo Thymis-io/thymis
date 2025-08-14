@@ -1,6 +1,6 @@
 # Creating your first Thymis module
 
-This guide walks you through creating your first custom Thymis module—a temperature logger that simulates sensor readings and writes them to a log file.
+This guide walks you through creating your first custom Thymis module — a temperature logger that simulates sensor readings and writes them to a log file.
 
 ## Step 1: Create the Module File
 
@@ -77,18 +77,17 @@ class TemperatureLoggerModule(Module):
             "  };\n"
             "};\n"
         )
-
 ```
 
 ## Part Breakdown
 
 ### Module Structure
 
-- **Imports**: Required base classes and helper functions
-- **Settings**: Exposed configurations in Thymis UI
-- **write_nix_settings**: Generates:
-  1. Python logger script
-  2. systemd service configuration
+- **Imports** — required base classes and helper functions.
+- **Settings** — exposed configurations in the Thymis UI.
+- **`write_nix_settings`** — generates:
+  1. Python logger script.
+  2. `systemd` service configuration.
 
 ### Setting Types
 
@@ -101,28 +100,27 @@ class TemperatureLoggerModule(Module):
 ### Generated Infrastructure
 
 - Persistent **systemd service** using [`writePython3`](https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/writers/scripts.nix)
-- Random temperature simulation (20-30° range)
-- ISO-timestamped log entries
+- Random temperature simulation (20‑30 °C range)
+- ISO‑timestamped log entries
 
-## Step 2: Add Repository to Thymis
+## Step 2: Add the Repository to Thymis
 
-1. Upload your module repository to GitHub/GitLab
-2. In Thymis UI: **External Repositories → Add Repository**
-3. Enter your repository URL
+1. Upload your module repository to GitHub/GitLab.
+2. In Thymis UI: **External Repositories → Add Repository**.
+3. Enter your repository URL.
 
-## Step 3: Add Module to Devices
+## Step 3: Add the Module to Devices
 
-1. Create new configuration or edit existing one
-2. **+ Add Module → Select "Temperature Logger"**
+1. Create a new configuration or edit an existing one.
+2. **+ Add Module → Select "Temperature Logger"**.
 3. Configure settings:
    - Set log file path (`/var/log/temps.log`)
-   - Adjust interval (e.g., 120 seconds)
+   - Adjust interval (e.g., 120 seconds)
 4. **Commit → Deploy**
-
 
 ## Step 4: Verify Operation
 
-Access device via [terminal](../device-lifecycle/ssh-terminal.md):
+Access the device via [terminal](../../device-lifecycle/ssh-terminal.md):
 
 ```bash
 # Check service status
@@ -134,11 +132,11 @@ tail -f /var/log/temp.log
 # 2025-03-15T14:32:18.12345 Temperature: 24.71°C
 ```
 
-
 ## Next Steps
 
-- Make parameters configurable via [tags](../../device-lifecycle/tags.md)
-- Add [secret authentication](../../device-lifecycle/secrets.md) for remote APIs
-- Create [dashboard integrations](python-language-module.md)
+- Make parameters configurable via [tags](../../device-lifecycle/tags.md).
+- Add [secret authentication](../../device-lifecycle/secrets.md) for remote APIs.
+- Create [dashboard integrations](python-language-module.md).
+- Review the **[Full Module Class API Reference](../../reference/concepts/module.md)** for advanced capabilities like `register_secret_settings`, custom setting types, and icon embedding.
 
-> **Tip**: For physical sensors, replace the random number generator with hardware interface libraries like `gpiozero` or `Adafruit_DHT` in your Python script. Just add required packages to your NixOS configuration!
+> **Tip:** For physical sensors, replace the random number generator with hardware interface libraries like `gpiozero` or `Adafruit_DHT` in your Python script. Just add required packages to your NixOS configuration!
