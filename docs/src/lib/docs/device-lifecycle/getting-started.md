@@ -4,7 +4,6 @@ This guide walks you through **provisioning a Raspberry Pi**, configuring networ
 
 > ℹ️ The same process applies to other supported hardware — just select the correct device type in step 1.
 
----
 
 ## Prerequisites
 
@@ -21,7 +20,6 @@ Before you begin, ensure you have:
   - **[USBImager](https://bztsrc.gitlab.io/usbimager/)** (GUI, cross‑platform), or
   - `dd` (CLI, Linux/macOS).
 
----
 
 ## 1. Create a New Device Configuration
 
@@ -34,7 +32,6 @@ Before you begin, ensure you have:
 
 Once created, click **Configure** to open its settings.
 
----
 
 ## 2. Set Networking (Wi‑Fi)
 
@@ -46,7 +43,6 @@ Once created, click **Configure** to open its settings.
 
 > 💡 If you’re planning to use Ethernet (LAN), you can skip Wi‑Fi settings for now.
 
----
 
 ## 3. Download the System Image
 
@@ -61,7 +57,6 @@ Thymis will start a **Build Image for Device** task.
 
 When complete, a download link for the image will appear in the task output.
 
----
 
 ## 4. Flash the Image to Your Device’s Storage
 
@@ -76,7 +71,6 @@ Insert your SD card and use:
 
 ![USBImager Screenshot](./flashing-image.png)
 
----
 
 ## 5. Boot the Device
 
@@ -90,7 +84,6 @@ Within a couple of minutes, it should connect to the Thymis Controller and appea
 
 ![Running Device](./device-deployed.png)
 
----
 
 ## Troubleshooting
 
@@ -107,7 +100,6 @@ If the device does not appear:
 
 See [Troubleshooting Guide](troubleshooting.md) for more help.
 
----
 
 ## Next Steps
 
@@ -118,7 +110,6 @@ Once your device is online, you can:
 - [Set up a Kiosk with VNC](kiosk.md)
 - [Access the Terminal](ssh-terminal.md)
 
----
 
 ## See also
 - [Supported Devices](../reference/supported-devices.md)
