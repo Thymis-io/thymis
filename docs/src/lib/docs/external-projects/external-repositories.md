@@ -18,17 +18,15 @@ Your repository should follow a specific structure to be compatible with Thymis.
 The recommended structure is:
 
 ```
-
 my-project/
-├── README.md # Project readme — **must contain the string:** "contains thymis modules"
+├── README.md # Project readme — must contain the string: "contains thymis modules"
 ├── flake.nix # Nix flake file, entry point for your Nix expressions
 └── python_module_name_for_your_project/ # (optional) Directory for Thymis Python modules — make unique across projects
     ├── __init__.py # Python module init file
     └── module.py # Python module file — contains the Thymis module code
-
 ```
 
-> ⚠️ **Security Note:** External modules run with **full privileges inside the Thymis Controller environment**.
+> ⚠️ **Security Note:** External modules run with full privileges inside the Thymis Controller environment.
 > They can read/write project data, access connected devices, and execute arbitrary Nix/Python code.
 > Only add external repositories from trusted sources — review their code before use.
 
@@ -38,10 +36,10 @@ Since the code from the external repository is mounted into the Thymis Python in
 
 **Ensure that your `README.md` file contains the string:**
 
-> **`contains thymis modules`**
+> `contains thymis modules`
 
 This exact text is required for Thymis to recognize your repository as a Thymis module repository.
-**If you do not include this string, Thymis will not be able to access the modules in your repository.**
+If you do not include this string, Thymis will not be able to access the modules in your repository.
 
 The `flake.nix` file needs to be a valid Nix flake file that defines the inputs and outputs of your project. It should include the necessary Nix expressions to build and deploy your software. You can refer to the [Nix Wiki on Flakes](https://wiki.nixos.org/wiki/Flakes) for more information on how to create a Nix flake file. The flake outputs will be mounted into the NixOS modules used by your devices under `inputs.<input-name>`.
 

@@ -3,12 +3,13 @@
 Welcome to the **Thymis** documentation.
 
 Thymis is an open‑source platform for managing IoT devices using the declarative power of [NixOS](https://nixos.org).
-It enables you to **provision**, **configure**, **update**, and **monitor** fleets of devices with full reproducibility and reliability — whether they’re in the cloud, on‑premises, or behind NAT.
+It enables you to provision, configure, update, and monitor fleets of devices with full reproducibility and reliability — whether they’re in the cloud, on‑premises, or behind NAT.
 
 ## Who This Is For
-- **IoT solution vendors** deploying and maintaining large device fleets.
-- **Developers** creating custom applications for embedded Linux devices.
-- **Ops/IT teams** needing reproducible, version‑controlled device configurations.
+
+- IoT solution vendors deploying and maintaining large device fleets.
+- Developers creating custom applications for embedded Linux devices.
+- Ops/IT teams needing reproducible, version‑controlled device configurations.
 
 If you need a secure, infrastructure‑as‑code‑style way to manage devices — from Raspberry Pi kiosks to generic x86 gateways — Thymis provides the tooling.
 
@@ -35,5 +36,6 @@ For updates, source code, and community discussions:
 - [GitHub — Thymis repositories](https://github.com/thymis-io)
 - [NixOS Discourse: Thymis announcement](https://discourse.nixos.org/t/thymis-web-based-dashboard-and-device-provisioning-for-nixos/)
 
-**Ready to begin?**
+## Ready to begin?
+
 Start with [Setting Up Thymis](setting-up-thymis.md) or use the sidebar to explore guides, module references, and lifecycle workflows for your devices.

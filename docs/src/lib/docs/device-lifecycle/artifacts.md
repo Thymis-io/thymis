@@ -48,18 +48,20 @@ systemd.services.my-service = {
 ## Best Practices
 
 - Use descriptive names for artifacts to easily identify their purpose
-- Organize related artifacts into directories using artifact prefixes (e.g., `configs/app.conf`)
+- Organize related artifacts into directories using prefixes (e.g., `configs/app.conf`)
 - Set appropriate file permissions based on security requirements
 - Keep artifact sizes reasonable for efficient deployment
 
 ## Security Considerations
 
 Artifacts are stored in plain text in the project repository. For sensitive files:
+
 - Use [Secrets](secrets.md) instead of artifacts for passwords, API keys, or certificates
 - Encrypt sensitive files before adding them as artifacts
 - Restrict access to the project repository if it contains sensitive artifacts
 
 ## Related Pages
+
 - [Deploying Secrets to devices](secrets.md)
 - [Creating your first Thymis module](../external-projects/thymis-modules/first-module.md)
 - [Accessing the Terminal](ssh-terminal.md)

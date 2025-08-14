@@ -26,7 +26,7 @@ For example, in your `flake.nix`, you can define your NixOS system like this:
           system = "x86_64-linux";
           specialArgs = { inherit inputs; };
           modules = [
-             YOUR_MODULES_HERE
+             # your other modules
              ./configuration.nix
              inputs.thymis.nixosModules.thymis-controller
           ];
@@ -52,10 +52,10 @@ In your `configuration.nix`, you can configure the Thymis controller like this:
     auth-basic = true; # Enable basic authentication
     auth-basic-username = "admin"; # Username for basic authentication
     auth-basic-password-file = "/var/lib/thymis/auth-basic-password"; # File containing the password for basic authentication
-    listen-host = "127.0.0.1"; # host on which the controller listens for incoming connections
-    listen-port = 8000; # port on which the controller listens for incoming connections
-    nginx-vhost-enable = true; # whether to enable the Nginx virtual host
-    nginx-vhost-name = "thymis"; # name of the Nginx virtual host
+    listen-host = "127.0.0.1"; # Host on which the controller listens for incoming connections
+    listen-port = 8000; # Port on which the controller listens for incoming connections
+    nginx-vhost-enable = true; # Whether to enable the Nginx virtual host
+    nginx-vhost-name = "thymis"; # Name of the Nginx virtual host
   };
   # Configure the Nginx virtual host
   services.nginx = {
@@ -69,7 +69,7 @@ In your `configuration.nix`, you can configure the Thymis controller like this:
 }
 ```
 
-Don't forget to replace `MY_SYSTEM_HERE` with the name of your system and `YOUR_MODULES_HERE` with the modules you want to include in your system, and to replace `my-thymis-controller` with the actual domain name of your controller.
+Don't forget to replace `MY_SYSTEM_HERE` with the name of your system and `./configuration.nix`/other modules with the modules you want to include in your system, and to replace `my-thymis-controller` with the actual domain name of your controller.
 
 ### 4. Build and deploy your system
 
@@ -90,6 +90,6 @@ The password for basic authentication is stored in the file `/var/lib/thymis/aut
 ## Additional Notes
 
 - Thymis requires sufficient storage space for device images and artifacts, so ensure that your NixOS system has enough disk space allocated.
-- Update your thymis controller regularly to benefit from the latest features and security updates.
+- Update your Thymis controller regularly to benefit from the latest features and security updates.
 
 See also [Administration](../../reference/administration.md) for more information on how to manage Thymis in a self-hosted environment.

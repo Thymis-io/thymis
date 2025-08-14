@@ -6,7 +6,7 @@ In the main toolbar, you will find the **Commit** button.
 
 The number of files changed is shown as the number in the button.
 
-Clicking this button will open the **Commit** dialogue, where you can review your changes and commit them to the repository backing your project holding your devices configuration.
+Clicking this button will open the **Commit** dialog, where you can review your changes and commit them to the repository backing your project, which holds your device configurations.
 
 ![Commit Dialogue](./commit-dialogue.png)
 

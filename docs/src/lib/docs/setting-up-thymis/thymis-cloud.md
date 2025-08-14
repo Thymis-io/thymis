@@ -1,6 +1,6 @@
 # Thymis Cloud
 
-Thymis Cloud is the easiest way to getting started with Thymis.
+Thymis Cloud is the easiest way to get started with Thymis.
 Check out [Pricing](https://thymis.io/pricing) for available plans.
 
 Your devices don't need full internet access.
