@@ -59,13 +59,12 @@ When complete, a download link for the image will appear in the task output.
 Insert your SD card and use:
 
 - **USBImager**: Select the downloaded image file and the SD card, then click _Write_.
+  ![USBImager Screenshot](./flashing-image.png)
 - **`dd`** (Linux/macOS CLI):
   ```bash
   sudo dd if=/path/to/device-image.img of=/dev/sdX bs=4M status=progress conv=fsync
   ```
   > Replace `/dev/sdX` with your SD card’s device path — careful, this will erase it.
-
-![USBImager Screenshot](./flashing-image.png)
 
 ## 5. Boot the Device
 
