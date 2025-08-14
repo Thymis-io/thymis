@@ -29,7 +29,7 @@ If you need a secure, infrastructure‑as‑code‑style way to manage devices �
 
 ## Community & Support
 
-Thymis is developed by **Udysseus GmbH** and released under [AGPL‑3.0](https://www.gnu.org/licenses/agpl-3.0.html).
+Thymis is developed by **Udysseus GmbH** and released under [AGPL‑3.0](https://github.com/Thymis-io/thymis/blob/master/LICENSE).
 
 For updates, source code, and community discussions:
 
