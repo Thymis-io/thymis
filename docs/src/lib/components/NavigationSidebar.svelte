@@ -34,7 +34,7 @@
     onMount(() => {
         searchIndex = new Index({
             preset: 'performance',
-            tokenize: 'full',
+            tokenize: 'bidirectional',
             encoder: 'LatinExtra',
             resolution: 9,
         });
@@ -283,7 +283,7 @@
     });
 
 </script>
-{#if dev}
+{#if dev && false}
 <!-- button to go to random page -->
 <a
     href={prefix ? `${prefix}/${randomLink}` : `/${randomLink}`}
