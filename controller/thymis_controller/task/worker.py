@@ -56,6 +56,8 @@ class ProcessList:
 def listen_for_executor(conn: Connection, process_list: ProcessList):
     while not conn.closed:
         try:
+            if not conn.poll(1):
+                continue
             message = conn.recv()
             if not isinstance(message, models_task.ControllerToRunnerTaskUpdate):
                 print("Received unexpected message type %s", type(message))
