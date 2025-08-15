@@ -57,7 +57,7 @@
 		<ToolbarButton
 			size="lg"
 			class="flex items-center gap-1 text-base"
-			href="https://docs.thymis.io/"
+			href="https://thymis.io/docs/"
 			ariaLabel="Thymis Documentation"
 			title={$t('common.documentation')}
 		>

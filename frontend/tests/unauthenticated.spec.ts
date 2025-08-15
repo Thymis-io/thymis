@@ -35,7 +35,7 @@ test('toolbar links work', async ({ page, baseURL }, testInfo) => {
 	await expectScreenshotWithHighlight(page, docsLink, testInfo, screenshotCounter);
 	await docsLink.click();
 
-	await expect(page.url()).toBe('https://docs.thymis.io/');
+	await expect(page.url()).toBe('https://thymis.io/en/docs');
 
 	await page.goBack();
 	await expect(page.url()).toBe(`${baseURL}/login`);
