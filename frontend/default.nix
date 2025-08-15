@@ -9,7 +9,7 @@ buildNpmPackage {
   pname = "thymis-frontend";
   version = (builtins.fromJSON (builtins.readFile ./package.json)).version;
   src = ./.;
-  npmDepsHash = "sha256-4lWvYbQWP4Y6k3M6EycLKgSMfImZSmc89DBD32a/SaA=";
+  npmDepsHash = "sha256-ZJC2yhSzBivDYgtcVnUS5aL9T6svydtxl6tL/2U4b9Q=";
   dontNpmInstall = true;
   installPhase = ''
     runHook preInstall
