@@ -107,9 +107,9 @@ in
     };
     nix = lib.mkIf cfg.recommended-nix-gc-settings-enable (lib.mkDefault {
       settings = {
-        keep-outputs = "true";
+        keep-outputs = true;
         min-free = "12G"; # should be enough for 2x image
-        auto-optimise-store = "true";
+        auto-optimise-store = true;
       };
       gc = {
         options = "--keep-outputs";
