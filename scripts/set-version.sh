@@ -8,14 +8,14 @@ set -e
 MY_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 PROJECT_DIR="$(dirname "$MY_DIR")"
 
-# if "--no-dev-version" is passed, then the version will not have .dev, or -dev appended to it.
-NO_DEV_VERSION=false
+# if "--dev" is passed, then the version will have .dev, or -dev appended to it.
+DEV_VERSION=false
 VERSION=""
 
 for arg in "$@"
 do
-    if [ "$arg" == "--no-dev-version" ]; then
-        NO_DEV_VERSION=true
+    if [ "$arg" == "--dev" ]; then
+        DEV_VERSION=true
     else
         VERSION=$arg
     fi
@@ -30,7 +30,7 @@ fi
 
 # Get the version from the args
 
-if [ "$NO_DEV_VERSION" = true ]; then
+if [ "$DEV_VERSION" = false ]; then
     PY_VERSION=$VERSION
     NPM_VERSION=$VERSION
 else

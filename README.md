@@ -21,7 +21,7 @@
 
 Thymis is an open-source platform designed for managing and configuring IoT devices. Built on the robust NixOS operating system, Thymis ensures consistency, reliability, and ease of management across diverse IoT landscapes. Whether you're managing a few devices or a large-scale deployment, Thymis provides the tools needed to streamline your operations.
 
-The documentation is available at [docs.thymis.io](https://docs.thymis.io).
+The documentation is available at [thymis.io/docs](https://thymis.io/docs/).
 
 ---
 
@@ -57,8 +57,6 @@ Key features of Thymis include:
 ## Architecture
 
 The project uses SvelteKit for the frontend and FastAPI for a device controller. The frontend communicates with the controller using a REST API. The controller is responsible for managing device and module data.
-
-![Thymis Architecture Diagram](./docs/src/architecture.jpg)
 
 ---
 
