@@ -141,7 +141,7 @@
         {
           default = pkgs.mkShell {
             packages = [
-              pkgs.poetry
+              pkgs.uv
               pkgs.python313
               pkgs.nodejs_22
               pkgs.pre-commit
@@ -161,7 +161,7 @@
           };
           ci = pkgs.mkShell {
             packages = [
-              pkgs.poetry
+              pkgs.uv
               pkgs.python313
               pkgs.nodejs_22
               pkgs.nixpkgs-fmt
@@ -175,7 +175,7 @@
             packages = [
               pkgs.playwright-driver.browsers
               pkgs.nodejs_22
-              pkgs.poetry
+              pkgs.uv
               pkgs.python313
               pkgs.nixpkgs-fmt
               pkgs.git

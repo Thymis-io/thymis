@@ -29,15 +29,12 @@ jobs:
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Configure poetry
-        run: |
-          nix develop .#ci --command poetry config virtualenvs.in-project true
 
       - name: Cache the virtualenv
         uses: actions/cache@v4
         with:
           path: ./controller/.venv
-          key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
+          key: ${{ runner.os }}-venv-${{ hashFiles('**/uv.lock') }}
 
       - name: Cache dev env
         uses: ./.github/actions/run-command-with-nix-cache-upload
@@ -49,12 +46,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          nix develop .#ci --command poetry install
+          nix develop .#ci --command uv sync
         working-directory: controller
 
       - name: Run tests
         run: |
-          nix develop .#ci --command poetry run python -m pytest -sxv
+          nix develop .#ci --command uv run python -m pytest -sxv
         working-directory: controller
 
   test-frontend-integration:

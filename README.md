@@ -95,7 +95,7 @@ nix develop
 cd frontend
 npm install
 cd ../controller
-poetry install
+uv sync
 ```
 
 ###  Running `thymis`
@@ -104,7 +104,7 @@ Use the following command to run thymis:
 
 ```sh
 cd controller
-poetry run uvicorn thymis_controller.main:app --reload
+uv run uvicorn thymis_controller.main:app --reload
 ```
 
 The controller takes care of running the frontend for you. You can access thymis at `http://localhost:8000`.

@@ -6,7 +6,7 @@ let command = `nix run .#thymis-controller`;
 
 if (process.env.THYMIS_DEV_SHELL) {
 	console.log('Using poetry run uvicorn reload');
-	command = `poetry run uvicorn thymis_controller.main:app --reload`;
+	command = `uv run uvicorn thymis_controller.main:app --reload`;
 }
 
 const port = process.env.UVICORN_PORT || 8000;
