@@ -42,7 +42,11 @@ let
         ]
       );
 
-  env = (pythonSet.mkVirtualEnv "thymis-agent-env" workspace.deps.default).overrideAttrs (oldAttrs: { });
+  env = (pythonSet.mkVirtualEnv "thymis-agent-env" workspace.deps.default).overrideAttrs (oldAttrs: {
+    venvIgnoreCollisions = [
+      "bin/fastapi"
+    ];
+  });
 
   app = writeShellApplication {
     name = "thymis-agent";
