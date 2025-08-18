@@ -13,6 +13,7 @@
 		onChange?: (value: string) => void;
 		value: string | null;
 		disabled: boolean;
+		language?: string;
 	} = $props();
 
 	onMount(async () => {
@@ -27,7 +28,7 @@
 		// Your monaco instance is ready, let's display some code!
 		editor = monaco.editor.create(editorContainer, {
 			value: props.value || '',
-			language: 'nix',
+			language: props.language || 'nix',
 			theme: 'vs-dark',
 			readOnly: props.disabled
 		});

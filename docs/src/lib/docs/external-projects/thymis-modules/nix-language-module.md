@@ -1,40 +1,68 @@
 # Using the Nix language module
 
-The Nix language module allows you to write Nix expressions to configure devices directly in Thymis. This is particularly useful when you are testing options or want to quickly prototype a configuration without creating a full Thymis module.
+The **Nix language module** allows you to write NixOS modules directly in Thymis device configurations or tags.
+This is particularly useful for testing options quickly or prototyping a configuration without creating a standalone Thymis module.
 
-Start by adding a "Custom Module" to your device or tag. You can do this by clicking the **Plus** button in the **Modules** section of the device or tag configuration page.
+## Adding the module
+
+Start by adding a **Custom Module** to your device configuration or tag.
+Do this by clicking the **+ Add Module** button in the **Modules** section of the configuration or tag page.
 
 ![Add Custom Module](./add-custom-module.png)
 
-Once added, select the **Custom Module** from the list of loaded modules. In the configuration section, you will find a text area where you can write your Nix expressions.
+Once added, you will see the **Custom Module** in the list of modules.
+Its configuration section provides a text editor where you can write your Nix expression.
 
 ![Custom Module Configuration](./custom-module-configuration.png)
 
-The configuration you write here will be placed in the body of a NixOS module, which is then applied to the device when it is deployed.
+## Writing a full NixOS module (recommended)
 
-The exact template used is:
+The editor accepts a **complete NixOS module** in the usual function/attribute set form:
 
 ```nix
 { pkgs, lib, inputs, config, ... }:
+
 {
-  # Your NixOS module configuration goes here
+  environment.systemPackages = with pkgs; [ vim htop ];
+  services.openssh.enable = true;
 }
 ```
 
-For example, to install vim on the device:
+
+This is the recommended way of using the Nix language module, since it matches the standard NixOS module structure used in `configuration.nix` and flake-based systems.
+
+## Legacy style: only the module body
+
+For backwards compatibility, you may also provide only the body of a module:
 
 ```nix
 environment.systemPackages = with pkgs; [ vim ];
+```
+
+This will continue to work, but is not the recommended style for new projects.
+
+## Example
+
+For example, to install Vim on a device:
+
+```nix
+{ pkgs, ... }:
+{
+  environment.systemPackages = with pkgs; [ vim ];
+}
 ```
 
 Like this:
 
 ![Custom Module Example](./custom-module-example.png)
 
-For guidance on how to write NixOS modules, see [Nix 101 - Configuring Devices with Nix](../../external-projects/packaging-software/nix-101.md#configuring-devices-with-nix).
+## Notes
 
-You can consult resources online, such as the [NixOS wiki](https://wiki.nixos.org/wiki/NixOS_modules) or the [NixOS manual](https://nixos.org/manual/nixos/stable/) to learn more about how to write NixOS modules and what options are available.
+- Device configurations created this way are merged with other modules and tags, following the usual [priority rules](../thymis-modules.md#module-priority-and-inheritance).
 
-We recommend using the [Nixpkgs search](https://search.nixos.org/packages) to find available packages and the [NixOS options search](https://search.nixos.org/options) to find available configuration options.
+## Further resources
 
-Tip: Want to run Python code on your devices? See [Using the Python language module (coming soon)](python-language-module.md) for a workaround using `pkgs.writers.writePython3`.
+- [Nix 101 – Configuring Devices with Nix](../../external-projects/packaging-software/nix-101.md#configuring-devices-with-nix)
+- [NixOS manual](https://nixos.org/manual/nixos/stable/) — complete overview of NixOS options
+- [Nixpkgs search](https://search.nixos.org/packages) — to look up available packages
+- [NixOS options search](https://search.nixos.org/options) — to explore configuration options
