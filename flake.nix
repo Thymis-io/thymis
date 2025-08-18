@@ -2,19 +2,29 @@
   description = "Thymis";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     nix.url = "github:NixOS/nix/2.26.1";
-    home-manager.url = "github:nix-community/home-manager/release-24.11";
+    home-manager.url = "github:nix-community/home-manager/release-25.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nixos-generators.url = "github:nix-community/nixos-generators";
     nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     raspberry-pi-nix.url = "github:nix-community/raspberry-pi-nix";
     flake-utils.url = "github:numtide/flake-utils";
-    poetry2nix = {
-      url = "github:thymis-io/poetry2nix";
+    pyproject-nix = {
+      url = "github:pyproject-nix/pyproject.nix";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-utils.follows = "flake-utils";
+    };
+    uv2nix = {
+      url = "github:pyproject-nix/uv2nix";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    pyproject-build-systems = {
+      url = "github:pyproject-nix/build-system-pkgs";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.uv2nix.follows = "uv2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     disko.url = "github:nix-community/disko/master";
     disko.inputs.nixpkgs.follows = "nixpkgs";
@@ -65,7 +75,7 @@
         services.thymis-controller.enable = true;
         services.thymis-controller.base-url = "https://thymis.example.com";
         services.thymis-controller.agent-access-url = "https://thymis.example.com";
-        system.stateVersion = "24.11";
+        system.stateVersion = "25.05";
       };
 
       thymis-controller-pi-3-sd-image = (nixpkgs.lib.nixosSystem {
@@ -186,16 +196,18 @@
             git-rev = inputs.self.rev or inputs.self.dirtyRev or null;
           };
           thymis-controller = pkgs.callPackage ./controller {
-            poetry2nix = (
-              (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; })
-            );
+            inherit (inputs)
+              pyproject-build-systems
+              pyproject-nix
+              uv2nix;
             thymis-frontend = thymis-frontend;
             nix = inputs.nix.packages."${system}".nix;
           };
           thymis-agent = pkgs.callPackage ./agent {
-            poetry2nix = (
-              (poetry2nix.lib.mkPoetry2Nix { inherit pkgs; })
-            );
+            inherit (inputs)
+              pyproject-build-systems
+              pyproject-nix
+              uv2nix;
           };
         in
         {
