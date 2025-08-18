@@ -5,7 +5,8 @@
 		ModuleSettings,
 		SecretSettingType,
 		SelectOneSettingType,
-		Setting
+		Setting,
+		TextAreaCodeSettingType
 	} from '$lib/state';
 	import ConfigString from './ConfigString.svelte';
 	import ConfigBool from './ConfigBool.svelte';
@@ -15,6 +16,7 @@
 	import ConfigInt from './ConfigInt.svelte';
 	import ConfigSecret from './ConfigSecret.svelte';
 	import ConfigArtifact from './ConfigArtifact.svelte';
+	import ConfigTextAreaCode from './ConfigTextAreaCode.svelte';
 	import type { Artifact } from '../../routes/(authenticated)/artifacts/[...rest]/+page';
 
 	interface Props {
@@ -39,9 +41,6 @@
 		if (typeof setting.type === 'object' && setting.type.hasOwnProperty('list-of')) {
 			return 'list-of';
 		}
-		if (typeof setting.type === 'object' && setting.type.hasOwnProperty('inline-file')) {
-			return 'inline-file';
-		}
 		if (
 			typeof setting.type === 'object' &&
 			setting.type.hasOwnProperty('type') &&
@@ -55,6 +54,13 @@
 			setting.type.type === 'artifact'
 		) {
 			return 'artifact';
+		}
+		if (
+			typeof setting.type === 'object' &&
+			setting.type.hasOwnProperty('type') &&
+			setting.type.type === 'textarea-code'
+		) {
+			return 'textarea-code';
 		}
 		console.error(`Unknown setting type: ${setting.type}`);
 	};
@@ -90,6 +96,10 @@
 	const settingIsArtifact = (setting: Setting): setting is Setting<ArtifactSettingType> => {
 		return getTypeKeyFromSetting(setting) === 'artifact';
 	};
+
+	const settingIsTextAreaCode = (setting: Setting): setting is Setting<TextAreaCodeSettingType> => {
+		return getTypeKeyFromSetting(setting) === 'textarea-code';
+	};
 </script>
 
 {#if settingIsInt(setting)}
@@ -115,4 +125,6 @@
 	<ConfigSecret {value} {setting} placeholder={setting.example} {onChange} {disabled} />
 {:else if settingIsArtifact(setting)}
 	<ConfigArtifact {value} {setting} {onChange} {disabled} {artifacts} />
+{:else if settingIsTextAreaCode(setting)}
+	<ConfigTextAreaCode {value} {setting} {onChange} {disabled} />
 {/if}
