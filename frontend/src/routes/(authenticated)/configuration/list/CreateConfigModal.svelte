@@ -52,7 +52,7 @@
 				getAllowedImageFormatsForDeviceType(selectedDeviceType, availableModules)?.[0] ||
 				'sd-card-image',
 			device_name: identifier,
-			nix_state_version: '24.11'
+			nix_state_version: '25.05'
 		};
 		const config: Config = {
 			displayName,
