@@ -1,26 +1,27 @@
-[tool.poetry]
+[project]
 name = "thymis-agent"
 version = "0.6.4.dev"
-description = ""
-authors = ["Adrian Block <adrian.block@thymis.io>", "Eli Kogan-Wang <eli.kogan-wang@thymis.io", "Maximilian Schmöcker <maximilian.schmoecker@thymis.io>", "Florian Schönlau <florian.schoenlau@thymis.io"]
-license = "AGPLv3"
+description = "Thymis Agent for managing and monitoring devices"
+authors = [
+    { name = "Adrian Block", email = "adrian.block@thymis.io" },
+    { name = "Eli Kogan-Wang", email = "eli.kogan-wang@thymis.io" },
+    { name = "Maximilian Schmöcker", email = "maximilian.schmoecker@thymis.io" },
+    { name = "Florian Schönlau", email = "florian.schoenlau@thymis.io" }
+]
 readme = "README.md"
-packages = [
-    { include = "thymis_agent" }
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.32.3",
+    "psutil>=7.0.0",
+    "pydantic>=2.8.2",
+    "http-network-relay @ git+https://github.com/Thymis-io/http-network-relay.git@uv",
+    "pyrage>=1.2.4",
+    "pyrage-stubs>=1.2.4",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-requests = "^2.32.3"
-psutil = "^7.0.0"
-pydantic = "^2.8.2"
-http-network-relay = {git = "https://git@github.com/Thymis-io/http-network-relay.git"}
-pyrage = "^1.2.4"
-pyrage-stubs = "^1.2.4"
+[project.scripts]
+thymis-agent = "thymis_agent.agent:main"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
-thymis-agent = 'thymis_agent.agent:main'
+requires = ["setuptools>=67.7.2", "wheel>=0.40.0"]
+build-backend = "setuptools.build_meta"
