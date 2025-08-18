@@ -52,11 +52,16 @@ export type ModuleSettingsWithOrigin = {
 //         serialization_alias="default-save-to-image", default=False
 //     )
 
-// class InlineFileType(BaseModel):
-//     type: Literal["inline-file"] = "inline-file"
-//     accept: Optional[str] = None
+// class ArtifactType(BaseModel):
+//     type: Literal["artifact"] = "artifact"
 
-// type SettingTypes = Union[ValueTypes, SelectOneType, ListType, SecretType, InlineFileType]
+// class TextAreaCodeType(BaseModel):
+//     type: Literal["textarea-code"] = "textarea-code"
+//     language: Optional[str] = None
+
+// type SettingTypes = Union[
+//     ValueTypes, SelectOneType, ListType, SecretType, ArtifactType, TextAreaCodeType
+// ]
 
 export type SecretType = 'single_line' | 'multi_line' | 'env_list' | 'file';
 export type SecretProcessingType = 'none' | 'mkpasswd-yescrypt';
@@ -107,6 +112,11 @@ export type ArtifactSettingType = {
 	type: 'artifact';
 };
 
+export type TextAreaCodeSettingType = {
+	type: 'textarea-code';
+	language?: string;
+};
+
 export type SettingType =
 	| 'string'
 	| 'number'
@@ -115,7 +125,9 @@ export type SettingType =
 	| 'int'
 	| SelectOneSettingType
 	| ListSettingType
-	| SecretSettingType;
+	| SecretSettingType
+	| ArtifactSettingType
+	| TextAreaCodeSettingType;
 
 export type Setting<T extends SettingType = SettingType> = {
 	displayName: string;
