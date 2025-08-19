@@ -1,4 +1,6 @@
 import logging
+import os
+import time
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
@@ -233,6 +235,11 @@ async def download_image(
 
     if len(relevant_paths) > 1:
         raise ValueError("Multiple images found")
+
+    # Update access time to track when image was last downloaded
+    image_path = relevant_paths[0]
+    current_time = time.time()
+    os.utime(image_path, (current_time, current_time))
 
     return FileResponse(
         relevant_paths[0],
