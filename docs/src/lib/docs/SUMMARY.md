@@ -8,7 +8,7 @@ layout: summary
   - [Thymis Cloud](setting-up-thymis/thymis-cloud.md)
   - [Self Hosted / On-Prem](setting-up-thymis/self-hosted.md)
     - [NixOS](setting-up-thymis/self-hosted/nixOS.md)
-    - [OCI-Container / Docker (coming soon)](setting-up-thymis/self-hosted/oci-container.md)
+    - [OCI-Container / Docker](setting-up-thymis/self-hosted/oci-container.md)
     - [Using nix run](setting-up-thymis/self-hosted/nix-run.md)
 - [Device Lifecycle](device-lifecycle.md)
   - [Getting started](device-lifecycle/getting-started.md)
