@@ -144,6 +144,7 @@ let
     sandbox = "false";
     build-users-group = "nixbld";
     trusted-public-keys = [ "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" ];
+    extra-platforms = [ "x86_64-linux" "aarch64-linux" ];
   };
 
   nixConfContents = (lib.concatStringsSep "\n" (lib.mapAttrsFlatten
