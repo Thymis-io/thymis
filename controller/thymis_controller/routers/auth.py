@@ -172,9 +172,13 @@ def get_auth_methods():
 
 # Route to redirect user to the OAuth2 provider's authorization URL
 @router.get("/login/oauth2")
-def login():
+def login(redirect: Optional[str] = None):
+    if redirect and redirect.startswith("/"):
+        state = f"&state={quote(redirect)}"
+    else:
+        state = ""
     return RedirectResponse(
-        f"{global_settings.AUTH_OAUTH_AUTHORIZATION_ENDPOINT}?response_type=code&client_id={global_settings.AUTH_OAUTH_CLIENT_ID}&redirect_uri={REDIRECT_URI}&scope=openid profile email"
+        f"{global_settings.AUTH_OAUTH_AUTHORIZATION_ENDPOINT}?response_type=code&client_id={global_settings.AUTH_OAUTH_CLIENT_ID}&redirect_uri={REDIRECT_URI}{state}&scope=openid profile email"
     )
 
 
@@ -193,7 +197,9 @@ def logout(
 
 # Route to handle the OAuth2 provider's callback
 @router.get("/callback")
-async def callback(code: str, response: Response, db_session: DBSessionAD):
+async def callback(
+    code: str, response: Response, db_session: DBSessionAD, state: Optional[str] = None
+):
     secret_file = pathlib.Path(global_settings.AUTH_OAUTH_CLIENT_SECRET_FILE)
     secret_file_content = secret_file.read_text(encoding="utf-8").strip()
     async with httpx.AsyncClient() as client:
@@ -240,10 +246,16 @@ async def callback(code: str, response: Response, db_session: DBSessionAD):
             )
 
     apply_user_session(db_session, response)
+
+    if state and state.startswith("/"):
+        redirect = f"?redirect={quote(state)}"
+    else:
+        redirect = ""
+
     return Response(
-        content="""<!DOCTYPE html>
+        content=f"""<!DOCTYPE html>
 <html>
-<head><meta http-equiv="refresh" content="0; url='/auth/redirect_success'"></head>
+<head><meta http-equiv="refresh" content="0; url='/auth/redirect_success{quote(redirect)}'"></head>
 <body></body>
 </html>""",
         media_type="text/html",

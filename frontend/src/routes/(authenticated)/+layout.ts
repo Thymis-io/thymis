@@ -12,12 +12,13 @@ import {
 	getConfigByIdentifier,
 	type Secret
 } from '$lib/state';
-import { error, redirect } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 import { getAllTasks } from '$lib/taskstatus';
 import { fetchWithNotify } from '$lib/fetchWithNotify';
 import { type RepoStatus } from '$lib/repo/repo';
 import { GlobalState } from '$lib/state.svelte';
 import { toast } from '@zerodevx/svelte-toast';
+import { redirectToLogin } from '$lib/login';
 
 export type Nav = {
 	selectedTargetType: ContextType | null;
@@ -63,7 +64,7 @@ export const load = (async ({ fetch, url, data }) => {
 	);
 
 	if (stateResponse.status === 401) {
-		redirect(307, '/login');
+		await redirectToLogin(undefined, url, fetch);
 	}
 	if (stateResponse.status === 422) {
 		// log
@@ -132,7 +133,7 @@ export const load = (async ({ fetch, url, data }) => {
 		fetch
 	);
 	if (secretsResponse.status === 401) {
-		redirect(307, '/login');
+		await redirectToLogin(undefined, url, fetch);
 	}
 
 	// is uuid -> secret

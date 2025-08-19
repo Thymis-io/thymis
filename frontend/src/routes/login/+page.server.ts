@@ -27,7 +27,7 @@ export const load = (async ({ cookies, url, fetch }) => {
 			const methods = await authmethod.json();
 			console.log('methods', methods);
 			if (!methods.oauth2.basic && methods.oauth2) {
-				redirect(307, `/auth/login/oauth2`);
+				redirect(303, `/auth/login/oauth2`);
 			}
 		}
 	}
