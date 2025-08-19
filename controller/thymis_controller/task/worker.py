@@ -387,12 +387,10 @@ def build_device_image_task(
         report_task_finished(task, conn, False, "Image format not found")
         return
 
-    secrets_builder_dest = f"{task_data.project_path}/image-builders/{task_data.configuration_id}.secrets-builder"
     final_image_dest_base = (
         f"{task_data.project_path}/images/{task_data.configuration_id}"
     )
-    # create dirs
-    os.makedirs(project_path / "image-builders", exist_ok=True)
+    # create images dir only
     os.makedirs(project_path / "images", exist_ok=True)
 
     architectures = ["x86_64", "aarch64"]
@@ -405,26 +403,36 @@ def build_device_image_task(
         report_task_finished(task, conn, False, "Unsupported build host architecture")
         return
 
-    returncode = run_command(
-        task,
-        conn,
-        process_list,
-        [
-            *NIX_CMD,
-            "build",
-            f'git+file:{repo_path}?rev={task_data.commit}#nixosConfigurations."{task_data.configuration_id}".config.system.build.thymis-image-with-secrets-builder-{architecture}',
-            "--out-link",
-            secrets_builder_dest,
-            "--allow-dirty-locks",
-        ],
-        cwd=repo_path,
-    )
-
-    if returncode != 0:
-        report_task_finished(task, conn, False, "Build failed")
-        return
-
     with tempfile.TemporaryDirectory() as tmpdir:
+        # Create subdirectories for organization
+        builder_dir = f"{tmpdir}/builder"
+        secrets_dir = f"{tmpdir}/secrets"
+        os.makedirs(builder_dir, exist_ok=True)
+        os.makedirs(secrets_dir, exist_ok=True)
+
+        secrets_builder_dest = (
+            f"{builder_dir}/{task_data.configuration_id}.secrets-builder"
+        )
+
+        returncode = run_command(
+            task,
+            conn,
+            process_list,
+            [
+                *NIX_CMD,
+                "build",
+                f'git+file:{repo_path}?rev={task_data.commit}#nixosConfigurations."{task_data.configuration_id}".config.system.build.thymis-image-with-secrets-builder-{architecture}',
+                "--out-link",
+                secrets_builder_dest,
+                "--allow-dirty-locks",
+            ],
+            cwd=repo_path,
+        )
+
+        if returncode != 0:
+            report_task_finished(task, conn, False, "Build failed")
+            return
+
         token = f"thymis-{random.randbytes(64).hex()}"  # see agent/thymis_agent/agent.py `AGENT_TOKEN_EXPECTED_FORMAT =`
         # get secrets
         secrets = task_data.secrets
@@ -456,11 +464,13 @@ def build_device_image_task(
             },
             "secret_infos": secrets,
         }
-        with open(f"{tmpdir}/thymis-secrets-initial.json", "w", encoding="utf-8") as f:
+        with open(
+            f"{secrets_dir}/thymis-secrets-initial.json", "w", encoding="utf-8"
+        ) as f:
             f.write(SecretsDiskJson(**secrets_disk_json).model_dump_json())
-        with open(f"{tmpdir}/thymis-token.txt", "w", encoding="utf-8") as f:
+        with open(f"{secrets_dir}/thymis-token.txt", "w", encoding="utf-8") as f:
             f.write(token)
-        with open(f"{tmpdir}/thymis-metadata.json", "w", encoding="utf-8") as f:
+        with open(f"{secrets_dir}/thymis-metadata.json", "w", encoding="utf-8") as f:
             f.write(
                 json.dumps(
                     {
@@ -471,7 +481,7 @@ def build_device_image_task(
                 )
             )
         with open(
-            f"{tmpdir}/thymis-controller-ssh-pubkey.txt", "w", encoding="utf-8"
+            f"{secrets_dir}/thymis-controller-ssh-pubkey.txt", "w", encoding="utf-8"
         ) as f:
             f.write(task_data.controller_ssh_pubkey)
 
@@ -485,7 +495,7 @@ def build_device_image_task(
             task,
             conn,
             process_list,
-            [secrets_builder_dest, tmpdir, final_image_dest_base],
+            [secrets_builder_dest, secrets_dir, final_image_dest_base],
             cwd=repo_path,
         )
         if returncode != 0:

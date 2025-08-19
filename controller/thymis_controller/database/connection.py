@@ -10,6 +10,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 from thymis_controller import crud
 from thymis_controller.config import global_settings
+from thymis_controller.crud import images
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +65,8 @@ async def initialize_cleanup(db_engine: Engine):
         enable_auto_vacuum(session)
         await crud.logs.remove_expired_logs(session)
         compact_database(session)
+    # Also do initial image cleanup
+    await images.periodic_image_cleanup()
 
 
 async def periodic_cleanup_loop(db_engine: Engine):
@@ -73,3 +76,5 @@ async def periodic_cleanup_loop(db_engine: Engine):
         await asyncio.sleep(global_settings.LOG_CLEANUP_INTERVAL_SECONDS)
         with Session(db_engine) as session:
             await crud.logs.remove_expired_logs(session)
+        # Clean up old images periodically
+        await images.periodic_image_cleanup()
