@@ -12,3 +12,7 @@ Since Thymis builds device images, it also requires sufficient storage space for
 ## See also
 
 [Administration](../reference/administration.md) for more information on how to manage Thymis in a self-hosted environment.
+
+## Run with nix run (alternative)
+
+If you already use Nix, you can run the Controller directly without Docker or the full NixOS module. See [Using nix run](self-hosted/nix-run.md) for a quick start and environment variables.

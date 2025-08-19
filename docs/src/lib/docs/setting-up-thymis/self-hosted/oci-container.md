@@ -4,6 +4,8 @@ Run the Thymis Controller in a Docker/OCI container on x86_64 hosts.
 
 Important: The container can build and serve x86_64 (x64) device configurations only. Raspberry Pi/ARM (aarch64) image builds are not supported from the container.
 
+If you already use Nix, you can also run the Controller with [`nix run`](nix-run.md).
+
 ## Image
 
 - [ghcr.io/thymis-io/thymis-controller:latest](https://ghcr.io/thymis-io/thymis-controller)
