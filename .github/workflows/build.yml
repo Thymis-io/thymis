@@ -249,6 +249,12 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix build .#thymis-controller-container --print-build-logs
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: push docker image
         run: |
           docker load < result
