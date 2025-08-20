@@ -1,4 +1,3 @@
-import json
 import pathlib
 from typing import Annotated, Optional
 from urllib.parse import quote, unquote
@@ -59,6 +58,18 @@ def apply_user_session(db_session: DBSessionAD, response: Response):
     )
 
 
+def parse_redirect_cookie(
+    redirect_cookie: Optional[str], expected_key: Optional[str]
+) -> Optional[str]:
+    if not redirect_cookie or not expected_key:
+        return None
+    # redirect_cookie: "{key}-{url}"
+    parts = unquote(redirect_cookie).split("-", 1)
+    if len(parts) == 2 and expected_key == parts[0] and parts[1].startswith("/"):
+        return parts[1]
+    return None
+
+
 # only enable basic auth if the flag is set
 @router.post("/login/basic")
 def login_basic(
@@ -75,17 +86,11 @@ def login_basic(
         )
 
     # check for redirect in cookie
-    redirect_url = None
-    safe_redirect = None
-    if redirect is not None and redirect_cookie is not None:
-        # look for uuid in cookie[uuid], but first urldecode and jsondecode
-        redirect_cookie = unquote(redirect_cookie)
-        redirect_dict = json.loads(redirect_cookie)
-        redirect_url, safe_redirect = (
-            {k: (v, k) for k, v in redirect_dict.items()}
-        ).get(redirect, (None, None))
-    if redirect_url is None:
-        redirect_url = "/overview"
+    redirect_url = parse_redirect_cookie(redirect_cookie, redirect)
+    if redirect_url:
+        safe_redirect = redirect
+    else:
+        safe_redirect = None
 
     password_file = pathlib.Path(global_settings.AUTH_BASIC_PASSWORD_FILE)
     password_file_content = password_file.read_text(encoding="utf-8").strip()
@@ -126,14 +131,7 @@ def redirect_success(
 ):
     assert loggedin
     # check for redirect in cookie
-    redirect_url = None
-    if redirect is not None and redirect_cookie is not None:
-        # look for uuid in cookie[uuid], but first urldecode and jsondecode
-        redirect_cookie = unquote(redirect_cookie)
-        redirect_dict = json.loads(redirect_cookie)
-        redirect_url, _ = ({k: (v, k) for k, v in redirect_dict.items()}).get(
-            redirect, (None, None)
-        )
+    redirect_url = parse_redirect_cookie(redirect_cookie, redirect)
     if redirect_url is None:
         redirect_url = "/overview"
 
@@ -173,12 +171,9 @@ def get_auth_methods():
 # Route to redirect user to the OAuth2 provider's authorization URL
 @router.get("/login/oauth2")
 def login(redirect: Optional[str] = None):
-    if redirect and redirect.startswith("/"):
-        state = f"&state={quote(redirect)}"
-    else:
-        state = ""
+    redirect_safe = redirect if redirect and redirect.isalnum() else ""
     return RedirectResponse(
-        f"{global_settings.AUTH_OAUTH_AUTHORIZATION_ENDPOINT}?response_type=code&client_id={global_settings.AUTH_OAUTH_CLIENT_ID}&redirect_uri={REDIRECT_URI}{state}&scope=openid profile email"
+        f"{global_settings.AUTH_OAUTH_AUTHORIZATION_ENDPOINT}?response_type=code&client_id={global_settings.AUTH_OAUTH_CLIENT_ID}&redirect_uri={REDIRECT_URI}&state={redirect_safe}&scope=openid profile email"
     )
 
 
@@ -247,15 +242,11 @@ async def callback(
 
     apply_user_session(db_session, response)
 
-    if state and state.startswith("/"):
-        redirect = f"?redirect={quote(state)}"
-    else:
-        redirect = ""
-
+    redirect_safe = state if state and state.isalnum() else ""
     return Response(
         content=f"""<!DOCTYPE html>
 <html>
-<head><meta http-equiv="refresh" content="0; url='/auth/redirect_success{quote(redirect)}'"></head>
+<head><meta http-equiv="refresh" content="0; url='/auth/redirect_success?redirect={redirect_safe}'"></head>
 <body></body>
 </html>""",
         media_type="text/html",
