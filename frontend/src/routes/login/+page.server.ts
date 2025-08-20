@@ -11,12 +11,9 @@ export const load = (async ({ cookies, url, fetch }) => {
 		if (stateResponse.ok) {
 			// now, check if there is a redirect cookie
 			let redirectUrl = '/overview'; // default redirect
-			// check for redirectParam in cookie to preven open redirect
-			if (redirectParam && redirectCookie) {
-				const redirectCookieDict = JSON.parse(redirectCookie);
-				if (redirectCookieDict[redirectParam]) {
-					redirectUrl = redirectCookieDict[redirectParam];
-				}
+			// check for redirectParam in cookie to prevent open redirect
+			if (redirectParam && redirectCookie && redirectCookie.startsWith(redirectParam + '-')) {
+				redirectUrl = redirectCookie.split('-')[1];
 			}
 			redirect(303, redirectUrl);
 		}
