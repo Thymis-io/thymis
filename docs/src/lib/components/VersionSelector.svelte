@@ -2,21 +2,16 @@
 	let isOpen = $state(false);
 
 	// Check if we're in development mode
-    // needs to be get from env
+	// needs to be get from env
 	const isDevelopment = false;
 
-    const versions = [
-        "v0.6",
-        "v0.5",
-        "v0.4",
-        "v0.3"
-	];
+	const versions = ['v0.6', 'v0.5', 'v0.4', 'v0.3'];
 
-    if (isDevelopment) {
-        versions.unshift("development version");
-    }
+	if (isDevelopment) {
+		versions.unshift('development version');
+	}
 
-	const currentVersion = isDevelopment ? "development version" : versions[0];
+	const currentVersion = isDevelopment ? 'development version' : versions[0];
 
 	function toggleDropdown() {
 		isOpen = !isOpen;
@@ -30,7 +25,11 @@
 		return `https://github.com/Thymis-io/thymis/blob/${version}/docs/src/SUMMARY.md`;
 	}
 
-	function handleVersionClick(event: MouseEvent, versionItem: typeof versions[0], position: number) {
+	function handleVersionClick(
+		event: MouseEvent,
+		versionItem: (typeof versions)[0],
+		position: number
+	) {
 		closeDropdown();
 
 		// If it's the current version (first item), prevent navigation
@@ -55,16 +54,18 @@
 	<button
 		type="button"
 		onclick={toggleDropdown}
-		class="flex items-center space-x-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+		class="flex items-center space-x-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
 		aria-haspopup="true"
 		aria-expanded={isOpen}
 	>
 		<span>{isDevelopment ? currentVersion : `latest version (${currentVersion})`}</span>
-		<i class="fas fa-chevron-down w-3 h-3 transition-transform" class:rotate-180={isOpen}></i>
+		<i class="fas fa-chevron-down h-3 w-3 transition-transform" class:rotate-180={isOpen}></i>
 	</button>
 
 	{#if isOpen}
-		<div class="absolute left-0 mt-2 w-48 rounded-md border border-gray-200 bg-white shadow-lg z-50">
+		<div
+			class="absolute left-0 z-50 mt-2 w-48 rounded-md border border-gray-200 bg-white shadow-lg"
+		>
 			<div class="py-1">
 				{#each versions as versionItem, position}
 					<a
@@ -72,23 +73,27 @@
 						target="_blank"
 						rel="noopener noreferrer"
 						onclick={(event) => handleVersionClick(event, versionItem, position)}
-						class="flex items-center justify-between px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors {position === 0 ? 'cursor-default' : ''}"
+						class="flex items-center justify-between px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 {position ===
+						0
+							? 'cursor-default'
+							: ''}"
 					>
 						<span>{versionItem}</span>
 						{#if position === 0}
-							<span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Current</span>
+							<span class="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">Current</span
+							>
 						{/if}
 					</a>
 				{/each}
-				<div class="border-t border-gray-100 mt-1 pt-1">
+				<div class="mt-1 border-t border-gray-100 pt-1">
 					<a
 						href="https://github.com/Thymis-io/thymis/releases"
 						target="_blank"
 						rel="noopener noreferrer"
 						onclick={closeDropdown}
-						class="flex items-center px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 transition-colors"
+						class="flex items-center px-4 py-2 text-sm text-gray-500 transition-colors hover:bg-gray-100"
 					>
-						<i class="fab fa-github w-4 h-4 mr-2"></i>
+						<i class="fab fa-github mr-2 h-4 w-4"></i>
 						View all releases
 					</a>
 				</div>

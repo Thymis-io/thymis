@@ -11,6 +11,7 @@ If you are setting up your project on new device types, you can refer to the [Ad
 Thymis can be used to manage a wide range of projects. In this docs section, we will explore an example project that packages a QT6 application for deployment on Thymis-managed devices.
 
 Other examples of projects that can be managed with Thymis include:
+
 - **Web Applications**: Deploying web applications that can be accessed via a browser on the device or from other devices on the network.
 - **IoT Applications**: Managing IoT devices and applications, allowing for remote data collection, device control, and monitoring.
 - **Custom Software**: Packaging and deploying custom software solutions that require specific configurations or dependencies.
@@ -18,6 +19,7 @@ Other examples of projects that can be managed with Thymis include:
 - **Containerized Applications**: Running applications in containers, allowing for easy deployment and management of software across different devices.
 
 Further, when extending Thymis with custom Nix code or integrating new device types such as VM environments, other applications are possible, such as:
+
 - **Virtual Machine Management**: Using Thymis to manage virtual machines, allowing for easy deployment and configuration of environments onto various target hosts.
 - **Quick Prototyping**: Setting up virtual machines for rapid prototyping and testing of new software or configurations before deploying them to physical devices.
 - **Development Machines**: Using Thymis to manage development environments, allowing developers to quickly spin up and configure VMs or Hardware devices for testing and development purposes.

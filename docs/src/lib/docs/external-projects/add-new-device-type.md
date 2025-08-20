@@ -18,8 +18,10 @@ Then, you have to add the device type in the [`thymis.py`](https://github.com/Th
 
 If you are running a [self-hosted Thymis instance](../setting-up-thymis/self-hosted.md), you can then deploy the updated Thymis instance with the new device type support, if you are using [Thymis Cloud](../setting-up-thymis/thymis-cloud.md), you can request the Thymis team to add support for your new device type, for example by opening an issue in the [Thymis GitHub repository](https://github.com/Thymis-io/thymis/issues).
 
-## Adding a new Device Type using Extensions (coming soon)
+## Device Type Extensions (Planned Feature)
 
 We plan to introduce a feature that allows users to add new device types using extensions. This will enable you to create and manage device types without modifying the core Thymis codebase. You will be able to define the necessary configurations and packages for your device type in a separate extension module, which can then be loaded into Thymis.
 
-This feature is still in development, and we will provide more details on how to use it once it is available.
+**Status:** This feature is still in development, and we will provide more details on how to use it once it is available.
+
+**Current workaround:** For now, use the methods described above: either generic device types with custom modules, or modify the core Thymis codebase for self-hosted instances.

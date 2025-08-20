@@ -5,4 +5,4 @@
 	let props = $props();
 </script>
 
-<img src={props.src} alt={props.alt} class={`shadow-xl ${props.class}`}/>
+<img src={props.src} alt={props.alt} class={`shadow-xl ${props.class}`} />

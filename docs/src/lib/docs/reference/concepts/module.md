@@ -213,6 +213,7 @@ device_settings = modules.Setting(
 The module system is implemented in the [controller/thymis_controller/modules/modules.py](https://github.com/Thymis-io/thymis/blob/master/controller/thymis_controller/modules/modules.py) file, which defines the base `Module` class and setting types.
 
 ## See Also:
+
 - [Device Configuration](configuration.md)
 - [Secrets](secrets.md)
 - [Artifacts](artifacts.md)

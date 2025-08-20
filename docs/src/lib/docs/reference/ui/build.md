@@ -37,6 +37,7 @@ You can also view the task at any time during execution by clicking **View** on 
 ![Build Task](./build-task.png)
 
 Common causes for build failures include:
+
 - Typographical errors in Nix expressions.
 - Missing packages or incorrect package names.
 - Invalid option names or mutually exclusive options set in modules.
@@ -46,6 +47,7 @@ Common causes for build failures include:
 ## After Build
 
 Once the build completes successfully, you can proceed with:
+
 - [**Commiting**](commit.md) your changes to save them in the repository.
 - [**Deploying**](deploy.md) the built closure to your devices for testing or production use.
 - Continue making further changes and repeat the build process as needed.

@@ -62,7 +62,7 @@
 					type="button"
 					onclick={() => (mobileMenuOpen = !mobileMenuOpen)}
 					aria-label="Toggle menu"
-					class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+					class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:ring-inset"
 				>
 					<i class="fas fa-bars h-6 w-6"></i>
 				</button>
@@ -91,7 +91,7 @@
 		{#if mobileMenuOpen}
 			<div class="fixed inset-0 z-40 lg:hidden">
 				<div
-					class="fixed inset-0 bg-gray-600 bg-opacity-75"
+					class="bg-opacity-75 fixed inset-0 bg-gray-600"
 					onclick={() => (mobileMenuOpen = false)}
 					role="button"
 					tabindex="0"
@@ -99,12 +99,12 @@
 					aria-label="Close menu"
 				></div>
 				<div class="relative flex h-full w-80 max-w-sm flex-col bg-white shadow-xl">
-					<div class="absolute right-0 top-0 -mr-12 pt-2">
+					<div class="absolute top-0 right-0 -mr-12 pt-2">
 						<button
 							type="button"
 							onclick={() => (mobileMenuOpen = false)}
 							aria-label="Close menu"
-							class="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+							class="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:ring-2 focus:ring-white focus:outline-none focus:ring-inset"
 						>
 							<i class="fas fa-times h-6 w-6 text-white"></i>
 						</button>
@@ -140,7 +140,7 @@
 					</div>
 
 					<article
-						class="prose prose-a:text-blue-600 prose-a:visited:text-purple-600 prose-code:before:hidden prose-code:after:hidden prose-code:p-1 prose-code:rounded prose-code:font-normal prose-code:bg-gray-200 mt-4 max-w-none"
+						class="prose mt-4 max-w-none prose-a:text-blue-600 prose-a:visited:text-purple-600 prose-code:rounded prose-code:bg-gray-200 prose-code:p-1 prose-code:font-normal prose-code:before:hidden prose-code:after:hidden"
 					>
 						<contentModule.default />
 					</article>

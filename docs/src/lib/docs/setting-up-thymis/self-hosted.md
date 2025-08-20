@@ -4,7 +4,7 @@ While not as easy to set up and use as the [Thymis Cloud](thymis-cloud.md), Thym
 This is useful for development purposes, testing, and scenarios where data privacy is a concern.
 
 We recommend using [NixOS](self-hosted/nixOS.md) for self-hosting Thymis, as it provides a simple and reproducible way to set up the Thymis Controller and its dependencies.
-If you prefer a containerized approach, you will be able to use the [OCI-Container / Docker](self-hosted/oci-container.md) setup in the future, which will allow you to run Thymis in a Docker-compatible environment.
+If you prefer a containerized approach, you can use the [OCI-Container / Docker](self-hosted/oci-container.md) setup, which allows you to run Thymis in a Docker-compatible environment.
 
 In any case, ensure that you have the necessary hardware and network setup to run Thymis, as it requires a stable connection to the devices it manages, and a publicly available domain for the Thymis Controller to allow devices to connect to it.
 Since Thymis builds device images, it also requires sufficient storage space for the device images and artifacts.

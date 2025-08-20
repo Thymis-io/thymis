@@ -33,6 +33,7 @@ nix run github:Thymis-io/thymis/v0.6#thymis-controller
 ```
 
 Notes:
+
 - Runs the same app as the container, but builds execute natively on your host.
 - Ensure `THYMIS_PROJECT_PATH` exists and is writable (e.g., `/var/lib/thymis`).
 - For public exposure and TLS, put a reverse proxy in front of the process.

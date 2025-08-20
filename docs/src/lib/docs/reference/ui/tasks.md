@@ -28,6 +28,7 @@ Thymis provides a **task system** to track long-running operations such as build
 ## Task Details
 
 Opening a task shows more information such as:
+
 - Submission Data: all information used to process the task
 - Process: the command that was executed and its arguments
 - Nix Infos, Warnings, Errors: parsed Nix output, separated by log level

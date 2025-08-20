@@ -5,6 +5,7 @@ This guide explains how to create, manage, and deploy secrets to your devices us
 ## Creating Secrets
 
 You can create secrets in two ways:
+
 1. Through the dedicated Secrets page
 2. Directly in configuration forms when needed
 
@@ -20,6 +21,7 @@ To create a secret through the Secrets page:
 4. Click **Save**
 
 ![Creating a Secret](./secret-creation-form.png)
+
 ## Using Secrets in Configurations
 
 To use secrets in your device configurations:
@@ -44,10 +46,12 @@ To share secrets across multiple devices:
 ## Secret Types and Use Cases
 
 ### Single-line Secrets
+
 - **Use case**: API keys, simple passwords, tokens
 - **Example**: `api-key = "abcd1234"`
 
 ### Multi-line Secrets
+
 - **Use case**: Private keys, certificates, configuration files
 - **Example**:
   ```
@@ -57,6 +61,7 @@ To share secrets across multiple devices:
   ```
 
 ### Environment Variables
+
 - **Use case**: Application configuration with environment variables
 - **Example**:
   ```
@@ -65,15 +70,18 @@ To share secrets across multiple devices:
   ```
 
 ### Files
+
 - **Use case**: Storing certificates, custom configuration files
 - **Example**: Deploying a certificate file at `/run/secrets/cert.pem`
 
 ## Post-processing Options
 
 ### None
+
 Use this for secrets that don't need additional processing, such as API keys or tokens.
 
 ### mkpasswd-yescrypt
+
 Use this for passwords to transform them into secure hashes. This is especially useful when you need to set user passwords.
 
 ## Deploying Secrets to Devices
@@ -94,6 +102,7 @@ Once you've configured secrets for your devices:
 ## Troubleshooting
 
 If secrets aren't deployed correctly:
+
 1. Check that the secret exists and is correctly configured
 2. Verify the deployment path exists and has appropriate permissions
 3. Check the logs in the Tasks view for error messages
@@ -103,6 +112,7 @@ If secrets aren't deployed correctly:
    - Monitor system logs for any secret-related errors
 
 ## See also
+
 - [Secrets concept](../reference/concepts/secrets.md)
 - [Device Configuration](../external-projects/thymis-modules/first-module.md)
 - [Deploying Files using Artifacts](artifacts.md)

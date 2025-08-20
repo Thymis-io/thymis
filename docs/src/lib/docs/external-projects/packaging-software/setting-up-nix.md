@@ -9,7 +9,6 @@ Even though Thymis itself runs Nix for you on the Controller, having a Nix envir
 
 This guide walks you through installing and configuring Nix on the most common platforms.
 
-
 ## 1. Installing Nix
 
 ### Linux & macOS
@@ -31,7 +30,6 @@ sh <(curl -L https://nixos.org/nix/install)
 
 Choose **multi-user installation** unless you have specific needs for single-user mode.
 
-
 ### Windows
 
 On Windows, Nix must run inside a Linux environment such as [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install).
@@ -40,7 +38,6 @@ On Windows, Nix must run inside a Linux environment such as [WSL2](https://learn
 2. Open a WSL terminal and follow the **Linux installation** steps above.
 
 > Thymis modules that target Linux devices cannot be built natively on Windows without WSL or a VM.
-
 
 ## 2. Enabling Flakes and the New CLI
 
@@ -68,7 +65,6 @@ Expected output should contain:
 ```
 experimental-features = nix-command flakes
 ```
-
 
 ## 3. Testing Your Nix Installation
 
@@ -99,8 +95,8 @@ With Nix installed, you can:
 - Explore [Languages](languages.md) for packaging guides in Python, Node.js, C/C++.
 - Start packaging your own application and integrate it into Thymis using [external repositories](../external-repositories.md) or the [Nix Language Module](../thymis-modules/nix-language-module.md).
 
-
 ## See also
+
 - [NixOS official manual](https://nixos.org/manual/nix/stable/)
 - [nix.dev tutorials](https://nix.dev)
 - [Nixpkgs search](https://search.nixos.org/packages)

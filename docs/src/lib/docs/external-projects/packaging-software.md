@@ -5,9 +5,11 @@ In Thymis, you'll need to package your applications or dependencies for deployme
 ## Packaging approaches
 
 ### Using existing packages
+
 Start by checking if your software is already available in [Nixpkgs](https://search.nixos.org/packages). If it is, you can simply reference it in your module configurations without any additional packaging work.
 
 ### Custom packaging
+
 When your software isn't available or requires customizations, you'll need to create a Nix expression for it. This ranges from simple use of the `Custom Module` to writing full-fledged derivations.
 
 ## Next steps
@@ -38,6 +40,7 @@ class MyAppModule(Module):
 ## External resources
 
 For advanced packaging scenarios:
+
 - [Nix.dev tutorials](https://nix.dev/tutorials) - Comprehensive Nix packaging guides
 - [NixOS Wiki](https://wiki.nixos.org/wiki/NixOS_Wiki) - Community knowledge base
 - [Nixpkgs manual](https://nixos.org/manual/nixpkgs/stable/) - Official packaging documentation

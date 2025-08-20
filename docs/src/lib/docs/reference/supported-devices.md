@@ -1,6 +1,7 @@
 # Supported Devices
 
 Thymis comes with built-in support for the following devices:
+
 - Raspberry Pi 3
 - Raspberry Pi 4
 - Raspberry Pi 5

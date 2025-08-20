@@ -5,7 +5,7 @@
 		href: string;
 	};
 
-	let { path, breadcrumbs }: { path: string, breadcrumbs: string[] } = $props();
+	let { path, breadcrumbs }: { path: string; breadcrumbs: string[] } = $props();
 
 	const breadcrumbItems = $derived.by(() => {
 		if (!path || path === '/') {
@@ -20,9 +20,9 @@
 			const segment = segments[i];
 			currentPath += `/${segment}`;
 			// Use breadcrumbs prop for label if available, otherwise fall back to segment formatting
-			const label = breadcrumbs[i + 1] || segment
-				.replace(/[-_]/g, ' ')
-				.replace(/\b\w/g, (char) => char.toUpperCase());
+			const label =
+				breadcrumbs[i + 1] ||
+				segment.replace(/[-_]/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 			items.push({ label, href: currentPath });
 		}
 
@@ -35,7 +35,10 @@
 		{#each breadcrumbItems as item, index}
 			<li class="flex items-center">
 				{#if index > 0}
-					<i class="fas fa-chevron-right mx-2 h-4 w-4 flex-shrink-0 text-gray-400" aria-hidden="true"></i>
+					<i
+						class="fas fa-chevron-right mx-2 h-4 w-4 flex-shrink-0 text-gray-400"
+						aria-hidden="true"
+					></i>
 				{/if}
 				{#if index === breadcrumbItems.length - 1}
 					<span class="font-medium text-gray-900" aria-current="page">
@@ -44,7 +47,7 @@
 				{:else}
 					<A
 						href={item.href}
-						class="font-medium text-gray-500 hover:text-gray-700 transition-colors duration-150"
+						class="font-medium text-gray-500 transition-colors duration-150 hover:text-gray-700"
 					>
 						{item.label}
 					</A>

@@ -18,6 +18,7 @@ Thymis allows you to test your device configurations using virtual machines (VMs
 ## Using the VM
 
 Once started, the VM will:
+
 - Automatically connect to the Thymis Controller
 - Appear in the Devices list just like a physical device
 - Allow you to test deployments, updates, and configurations
@@ -37,6 +38,7 @@ Once started, the VM will:
 - For production deployment, always test on target hardware
 
 ## See also
+
 - [Getting started with devices](getting-started.md)
 - [Deploy an Update](update.md)
 - [Accessing the Terminal](ssh-terminal.md)

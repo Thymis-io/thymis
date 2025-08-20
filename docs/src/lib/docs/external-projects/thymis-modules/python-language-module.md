@@ -1,4 +1,4 @@
-# Using the Python language module (coming soon)
+# Python Language Module (Planned Feature)
 
 We are working on a dedicated **Python Language Module** for Thymis.
 Once available, you’ll be able to write and run Python code on your devices directly from the Thymis UI — including dependency handling, service setup, and configuration — without dropping into a custom Nix expression.
@@ -10,6 +10,7 @@ Until then, you can still achieve the same effect by using the existing **[Custo
 In your device or tag, add a [**Custom NixOS Module**](nix-language-module.md) and use [`pkgs.writers.writePython3`](https://github.com/NixOS/nixpkgs/blob/6797403cbe8d8581c60104dc08a670229ab26c39/pkgs/build-support/writers/scripts.nix#L1262) to build a Python script into the system, then run it via a `systemd` service.
 
 Here’s an example that:
+
 - Uses **PyYAML** to parse a configuration file.
 - Simulates reading a temperature value.
 - Logs readings to `/var/log/temperature.log` every minute.
@@ -54,6 +55,7 @@ in {
 ```
 
 When deployed:
+
 - Nix will build your Python script and include PyYAML as a dependency.
 - Systemd will run it automatically and restart it if it stops.
 - Output gets logged to `/var/log/temperature.log` and is also visible in `journalctl -u temperature-logger`.
@@ -63,6 +65,7 @@ When deployed:
 ## Roadmap
 
 When the Python Language Module ships, you’ll be able to:
+
 - Write Python code directly in the UI without a full Nix block.
 - Pick dependencies from `python3Packages` via a form.
 - Choose how it runs: oneshot script, background daemon, or on‑demand.

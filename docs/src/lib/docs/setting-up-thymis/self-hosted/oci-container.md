@@ -24,11 +24,12 @@ docker run -d \
   ghcr.io/thymis-io/thymis-controller:latest
 ```
 
-Access the UI at: http://<host-ip>:8000 (or behind your HTTPS proxy).
+Access the UI at: http://&lt;host-ip&gt;:8000 (or behind your HTTPS proxy).
 
 ## Persistent state
 
 Mount host storage to keep the repo, DB, images, and keys:
+
 - `-v /var/lib/thymis:/var/lib/thymis`
 
 Ensure the directory is writable by the container.
@@ -36,6 +37,7 @@ Ensure the directory is writable by the container.
 ## Configuration (env vars)
 
 NixOS module defaults do not apply in Docker — pass what you need explicitly:
+
 - THYMIS_BASE_URL — public URL for users/UI (e.g. `https://thymis.example.com`).
 - THYMIS_AGENT_ACCESS_URL — URL devices use to connect (often same as BASE_URL).
 - THYMIS_PROJECT_PATH — data dir in container (use `/var/lib/thymis`).
@@ -46,6 +48,7 @@ NixOS module defaults do not apply in Docker — pass what you need explicitly:
 - UVICORN_PORT — internal port (default 8000); map a host port accordingly.
 
 Example with basic auth:
+
 ```bash
 -e THYMIS_AUTH_BASIC=true \
 -e THYMIS_AUTH_BASIC_USERNAME=admin \
