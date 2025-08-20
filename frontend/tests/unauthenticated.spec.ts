@@ -6,20 +6,20 @@ test.use({ storageState: { cookies: [], origins: [] } });
 test('index page redirects to login', async ({ page, baseURL }) => {
 	const resp = await page.goto('/');
 	expect(resp?.status()).toBe(200);
-	expect(resp?.url()).toBe(`${baseURL}/login`);
+	expect(resp?.url()).toMatch(new RegExp(`${baseURL}/login\\?redirect=\\w+`));
 });
 
 test('toolbar links work', async ({ page, baseURL }, testInfo) => {
 	const screenshotCounter = { count: 0 };
 	await page.goto('/');
 
-	await expect(page.url()).toBe(`${baseURL}/login`);
+	await expect(page.url()).toMatch(new RegExp(`${baseURL}/login\\?redirect=\\w+`));
 
 	const rootLink = page.locator('a').filter({ hasText: 'Thymis' });
 	await expectScreenshotWithHighlight(page, rootLink, testInfo, screenshotCounter);
 	await rootLink.click();
 
-	await expect(page.url()).toBe(`${baseURL}/login`);
+	await expect(page.url()).toMatch(new RegExp(`${baseURL}/login\\?redirect=\\w+`));
 
 	const homepageLink = page.locator('a').filter({ hasText: 'Homepage' });
 	await expectScreenshotWithHighlight(page, homepageLink, testInfo, screenshotCounter);
@@ -29,7 +29,7 @@ test('toolbar links work', async ({ page, baseURL }, testInfo) => {
 
 	await page.goBack();
 	await page.mouse.click(0, 0);
-	await expect(page.url()).toBe(`${baseURL}/login`);
+	await expect(page.url()).toMatch(new RegExp(`${baseURL}/login\\?redirect=\\w+`));
 
 	const docsLink = page.locator('a').filter({ hasText: 'Documentation' });
 	await expectScreenshotWithHighlight(page, docsLink, testInfo, screenshotCounter);
@@ -38,7 +38,7 @@ test('toolbar links work', async ({ page, baseURL }, testInfo) => {
 	await expect(page.url()).toBe('https://thymis.io/en/docs');
 
 	await page.goBack();
-	await expect(page.url()).toBe(`${baseURL}/login`);
+	await expect(page.url()).toMatch(new RegExp(`${baseURL}/login\\?redirect=\\w+`));
 });
 
 test('login page shows login form', async ({ page }, testInfo) => {
@@ -68,7 +68,7 @@ test('can login with testadminpassword and redirect to login', async ({ page, ba
 test('can redirect to page after login', async ({ page, baseURL }) => {
 	await page.goto('/devices');
 
-	await page.waitForURL(new RegExp(baseURL + '/login\\?redirect=.+/devices'));
+	await page.waitForURL(new RegExp(baseURL + '/login\\?redirect=\\w+'));
 
 	await page.fill('input[name="username"]', 'admin');
 	await page.fill('input[name="password"]', 'testadminpassword');
@@ -83,7 +83,7 @@ test('visiting overview page without login redirects to login', async ({ page, b
 	const resp = await page.goto('/overview');
 
 	expect(resp?.status()).toBe(200);
-	expect(resp?.url()).toMatch(new RegExp(`${baseURL}/login\\?redirect=.+/overview`));
+	expect(resp?.url()).toMatch(new RegExp(`${baseURL}/login\\?redirect=\\w+`));
 });
 
 test('highlight login button', async ({ page }, testInfo) => {
