@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "thymis-agent"
-version = "0.6.3"
+version = "0.6.4.dev"
 description = ""
 authors = ["Adrian Block <adrian.block@thymis.io>", "Eli Kogan-Wang <eli.kogan-wang@thymis.io", "Maximilian Schmöcker <maximilian.schmoecker@thymis.io>", "Florian Schönlau <florian.schoenlau@thymis.io"]
 license = "AGPLv3"
