@@ -38,13 +38,13 @@ class ArtifactType(BaseModel):
     type: Literal["artifact"] = "artifact"
 
 
-class InlineFileType(BaseModel):
-    type: Literal["inline-file"] = "inline-file"
-    accept: Optional[str] = None
+class TextAreaCodeType(BaseModel):
+    type: Literal["textarea-code"] = "textarea-code"
+    language: Optional[str] = None
 
 
 type SettingTypes = Union[
-    ValueTypes, SelectOneType, ListType, SecretType, ArtifactType, InlineFileType
+    ValueTypes, SelectOneType, ListType, SecretType, ArtifactType, TextAreaCodeType
 ]
 
 
@@ -73,4 +73,5 @@ __all__ = [
     "SettingTypes",
     "SecretType",
     "ArtifactType",
+    "TextAreaCodeType",
 ]
