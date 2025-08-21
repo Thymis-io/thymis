@@ -103,8 +103,8 @@ class ThymisDevice(modules.Module):
             de="NixOS State Version",
         ),
         nix_attr_name="system.stateVersion",
-        type=modules.SelectOneType(select_one=["24.05", "24.11"]),
-        default="24.11",
+        type=modules.SelectOneType(select_one=["24.05", "24.11", "25.05"]),
+        default="25.05",
         description=modules.LocalizedString(
             en="The NixOS state version.",
             de="Die NixOS Zustandsversion.",
