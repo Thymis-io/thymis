@@ -1,6 +1,6 @@
 {
 	"name": "thymis-frontend",
-	"version": "0.6.3-dev",
+	"version": "0.6.3",
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",
