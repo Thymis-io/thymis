@@ -770,14 +770,14 @@ files = [
 
 [[package]]
 name = "pyrage-stubs"
-version = "1.3.0"
+version = "1.3.1"
 description = "A PEP 561 stub package for pyrage's types"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "pyrage_stubs-1.3.0-py3-none-any.whl", hash = "sha256:611afa5ada3448225c66706f1aab7ac363c1e459ee131a306e277a7218f8c824"},
-    {file = "pyrage_stubs-1.3.0.tar.gz", hash = "sha256:0acf4cc36d9aa8cde205851c34f696b70635387046fd47db1ac7bcf69c6b4002"},
+    {file = "pyrage_stubs-1.3.1-py3-none-any.whl", hash = "sha256:4e38b7ec6d89977147b7d213f931b0a0198918369144eec6df03c5eb83aabf1c"},
+    {file = "pyrage_stubs-1.3.1.tar.gz", hash = "sha256:cf1a4473eee584314d396b87550c0a5d84e4b0e3f0ec54e4cae6d896ae50c2ba"},
 ]
 
 [package.dependencies]
@@ -912,14 +912,14 @@ files = [
 
 [[package]]
 name = "requests"
-version = "2.32.4"
+version = "2.32.5"
 description = "Python HTTP for Humans."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "requests-2.32.4-py3-none-any.whl", hash = "sha256:27babd3cda2a6d50b30443204ee89830707d396671944c998b5975b031ac2b2c"},
-    {file = "requests-2.32.4.tar.gz", hash = "sha256:27d0316682c8a29834d3264820024b62a36942083d52caf2f14c0591336d3422"},
+    {file = "requests-2.32.5-py3-none-any.whl", hash = "sha256:2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6"},
+    {file = "requests-2.32.5.tar.gz", hash = "sha256:dbba0bac56e100853db0ea71b82b4dfd5fe2bf6d3754a8893c3af500cec7d7cf"},
 ]
 
 [package.dependencies]
