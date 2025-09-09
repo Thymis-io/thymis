@@ -293,6 +293,7 @@
 			"title": "Repositories",
 			"name": "Name",
 			"url": "URL",
+			"secret": "API Key Secret",
 			"actions": "Actions",
 			"edit-name": "Edit Name",
 			"edit-url": "Edit URL",
@@ -369,6 +370,7 @@
 	"secrets": {
 		"edit": "Edit Secret",
 		"create": "Create Secret",
+		"select": "Select a Secret...",
 		"download-error": "Error downloading file",
 		"save-error": "Error saving secret",
 		"type-single-line": "Single Line",

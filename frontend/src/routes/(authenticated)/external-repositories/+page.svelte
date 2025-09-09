@@ -13,6 +13,7 @@
 	} from 'flowbite-svelte';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import type { PageData } from './$types';
+	import SecretSelect from '$lib/components/secrets/SecretSelect.svelte';
 
 	interface Props {
 		data: PageData;
@@ -75,6 +76,7 @@
 	<TableHead theadClass="text-xs normal-case">
 		<TableHeadCell padding="p-2">{$t('settings.repo.name')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('settings.repo.url')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('settings.repo.secret')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('settings.repo.actions')}</TableHeadCell>
 	</TableHead>
 	<TableBody>
@@ -82,6 +84,17 @@
 			<TableBodyRow>
 				<TableBodyEditCell value={name} onEnter={(newName) => changeRepoName(name, newName)} />
 				<TableBodyEditCell bind:value={repo.url} onEnter={() => data.globalState.save()} />
+				<TableBodyCell tdClass="p-2">
+					<SecretSelect
+						secret={repo.api_key_secret ? data.secrets[repo.api_key_secret] : undefined}
+						onChange={(secret) => {
+							repo.api_key_secret = secret?.id || null;
+							saveState(data.globalState);
+						}}
+						allowedTypes={['single_line']}
+						secrets={Object.values(data.secrets)}
+					/>
+				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					<div class="flex gap-1">
 						<Button on:click={() => deleteRepo(name)}>

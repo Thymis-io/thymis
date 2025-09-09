@@ -260,13 +260,14 @@
 	},
 	"settings": {
 		"repo": {
+			"title": "Repositories",
+			"name": "Name",
+			"url": "URL",
+			"secret": "API Key Secret",
 			"actions": "Aktionen",
-			"delete": "Löschen",
 			"edit-name": "Namen bearbeiten",
 			"edit-url": "URL bearbeiten",
-			"name": "Name",
-			"title": "Repositories",
-			"url": "URL"
+			"delete": "Löschen"
 		}
 	},
 	"taskbar": {
@@ -366,23 +367,38 @@
 		"update": "Aktualisieren"
 	},
 	"secrets": {
-		"actions": "Aktionen",
-		"add-variable": "Variable hinzufügen",
-		"confirm-delete": "Bestätigen Sie das Löschen des Secrets:",
+		"edit": "Secret bearbeiten",
 		"create": "Secret erstellen",
-		"copy-id": "ID Kopieren",
-		"file": "Datei",
-		"edit": "Geheimnis bearbeiten",
+		"select": "Secret auswählen...",
+		"download-error": "Fehler beim Herunterladen der Datei",
+		"save-error": "Fehler beim Speichern des Secrets",
+		"type-single-line": "Einzeilig",
+		"type-multi-line": "Mehrzeilig",
+		"type-env-list": "Liste von Umgebungsvariablen",
+		"type-file": "Datei",
 		"name": "Name",
+		"name-placeholder": "Kein Name",
+		"type": "Secret-Typ",
+		"processing": "Secret-Verarbeitung",
+		"processing-none": "Keine Verarbeitung",
+		"processing-mkpasswd-yescrypt": "Verarbeitung mit mkpasswd yescrypt",
+		"processing-description-yescrypt": "Das Secret wird mit dem yescrypt-Algorithmus gehasht. Der gehashte Wert wird im Secret gespeichert. \t\t\t\t\tDies sollte für Passwörter von Benutzern oder Diensten verwendet werden, die ein gehashtes Passwort benötigen.",
+		"include-in-image": "In Abbild einfügen",
+		"security-warning": "Warnung: Wird für jeden verfügbar sein, der Zugriff auf das Installationsmedium hat",
+		"value": "Wert",
+		"add-variable": "Variable hinzufügen",
+		"env-variables": "Umgebungsvariablen",
+		"file": "Datei",
+		"current-file": "Aktuelle Datei",
+		"download-file": "Datei herunterladen",
+		"new-file": "Neue Datei",
 		"name-exists": "Name existiert bereits",
 		"issues": "Probleme",
-		"type": "Secret-Typ",
-		"type-single-line": "Einzelzeile",
-		"type-multi-line": "Multi-Zeile",
-		"type-file": "Datei",
-		"type-env-list": "Liste von Umgebungsvariablen",
-		"no-secrets": "Keine Geheimnisse",
-		"processing-description-yescrypt": "Dies wird das Geheimnis unter Verwendung des Yescrypt -Algorithmus haben. \nDer Hash -Wert wird im Geheimnis gespeichert. \t\t\t\t\t\nDies sollte verwendet werden, um Passwörter für Benutzer oder Dienste festzulegen, für die ein Hashed -Passwort erforderlich ist.",
-		"include-in-image": "Im Installationsimage einbauen"
+		"actions": "Aktionen",
+		"copy-id": "ID kopieren",
+		"delete": "Secret löschen",
+		"no-secrets": "Keine Secrets",
+		"confirm-delete": "Löschen des Secrets bestätigen:",
+		"delete-error": "Fehler beim Löschen des Secrets"
 	}
 }

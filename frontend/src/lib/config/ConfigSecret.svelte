@@ -2,19 +2,18 @@
 	import { run } from 'svelte/legacy';
 
 	import { t } from 'svelte-i18n';
-	import { Button, Select } from 'flowbite-svelte';
+	import { Button } from 'flowbite-svelte';
 	import { invalidate } from '$app/navigation';
 	import SecretEditModal from '$lib/components/secrets/SecretEditModal.svelte';
 	import type { SecretProcessingType, SecretSettingType, SecretType, Setting } from '$lib/state';
 	import { page } from '$app/stores';
 	import {
-		type SecretEditState,
 		stringToEnvVars,
-		createSecretRequest,
 		downloadSecretFile,
 		resetFileInputById
 	} from '$lib/components/secrets/secretUtils';
 	import { onMount } from 'svelte';
+	import SecretSelect from '$lib/components/secrets/SecretSelect.svelte';
 
 	interface Props {
 		value?: string | null;
@@ -70,13 +69,6 @@
 		editedProcessingType =
 			secret?.processing_type || setting.type['default-processing-type'] || 'none';
 	});
-
-	// Filter secrets based on allowed types
-	let filteredSecrets = $derived(
-		Object.entries(secrets)
-			.filter(([_, secret]) => allowedTypes.includes(secret.type))
-			.sort((a, b) => a[1].display_name.localeCompare(b[1].display_name))
-	);
 
 	// Initialize with first allowed type
 	run(() => {
@@ -222,30 +214,20 @@
 			secretName = secrets[value].display_name;
 		}
 	});
-
-	const internalChange = async (event: Event) => {
-		const select = event.target as HTMLSelectElement;
-		value = select.value;
-		onChange(value);
-	};
-
-	let selectItems = $state([]);
-	run(() => {
-		selectItems = filteredSecrets.map(([id, secret]) => ({
-			name: `${secret.display_name} (${secret.type})`,
-			value: id
-		}));
-	});
 </script>
 
 <div class="flex w-full gap-2 items-center">
 	<div class="flex-grow">
-		<Select
-			{value}
-			on:change={internalChange}
+		<SecretSelect
+			secret={value ? secrets[value] : undefined}
+			onChange={(secret) => {
+				value = secret?.id || null;
+				onChange(value);
+			}}
+			{allowedTypes}
+			secrets={Object.values(secrets)}
+			{placeholder}
 			{disabled}
-			items={selectItems}
-			class={`h-8 px-2 py-1 ${disabled ? 'opacity-70' : ''}`}
 		/>
 	</div>
 	{#if value}
