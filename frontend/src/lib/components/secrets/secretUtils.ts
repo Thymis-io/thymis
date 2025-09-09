@@ -4,9 +4,9 @@ export type SecretShort = {
 	id: string;
 	display_name: string;
 	type: SecretType;
-	value_str?: string;
+	value_str: string | null;
 	value_size: number;
-	filename?: string;
+	filename: string | null;
 	include_in_image: boolean;
 	processing_type: SecretProcessingType;
 	error?: string | null;
