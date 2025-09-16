@@ -1,5 +1,6 @@
 from typing import Literal, Optional
 
+import httpx
 import requests
 from fastapi import HTTPException
 from pydantic import BaseModel
@@ -37,8 +38,6 @@ class GitFlakeReference(FlakeReference):
     repo: str
     ref: str | None
     rev: str | None
-    branches: list = []
-    head_commit: dict = None
 
 
 def is_commit_rev(s: str) -> bool:
@@ -124,21 +123,22 @@ def parse_flake_reference(flake_url: str):
         )
 
 
-def get_head_commit(reference: GitFlakeReference, api_key: Optional[SecretShort]):
+async def get_head_commit(reference: GitFlakeReference, api_key: Optional[SecretShort]):
     if "github.com" in reference.host:
         headers = {}
         if api_key:
             headers["Authorization"] = f"Bearer {api_key.value_str}"
-        response = requests.get(
-            f"https://api.github.com/repos/{reference.owner}/{reference.repo}/commits/{reference.rev or reference.ref or 'HEAD'}",
-            headers=headers,
-            timeout=10,
-        )
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"https://api.github.com/repos/{reference.owner}/{reference.repo}/commits/{reference.rev or reference.ref or 'HEAD'}",
+                headers=headers,
+                timeout=10,
+            )
         if response.status_code == 200:
             return response.json()
         raise HTTPException(
             status_code=response.status_code,
-            detail=f"Failed to fetch repo: {response.status_code} {response.text}",
+            detail={"status_code": response.status_code, "message": response.json()},
         )
 
 
@@ -156,6 +156,6 @@ def get_repo_branches(reference: GitFlakeReference, api_key: Optional[SecretShor
             return response.json()
         raise HTTPException(
             status_code=response.status_code,
-            detail=f"Failed to fetch branches: {response.status_code} {response.text}",
+            detail={"status_code": response.status_code, "message": response.json()},
         )
     return []
