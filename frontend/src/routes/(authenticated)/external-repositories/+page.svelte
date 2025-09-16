@@ -9,17 +9,32 @@
 		TableHeadCell,
 		TableBody,
 		TableBodyRow,
-		TableBodyCell
+		TableBodyCell,
+		Spinner
 	} from 'flowbite-svelte';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import type { PageData } from './$types';
 	import SecretSelect from '$lib/components/secrets/SecretSelect.svelte';
+	import Check from 'lucide-svelte/icons/check';
+	import Hourglass from 'lucide-svelte/icons/hourglass';
+	import X from 'lucide-svelte/icons/x';
 
 	interface Props {
 		data: PageData;
 	}
 
 	let { data }: Props = $props();
+
+	let externalRepoStatus = $state<
+		Record<
+			string,
+			| { status: 'pending' }
+			| { status: 'success' }
+			| { status: 'error'; detail: string }
+			| { status: 'unknown' }
+			| { status: 'rate_limited' }
+		>
+	>({});
 
 	const generateUniqueKey = () => {
 		let num = 1;
@@ -39,7 +54,8 @@
 		data.globalState.repositories = {
 			...data.globalState.repositories,
 			[key]: {
-				url: 'git+https://github.com/Thymis-io/thymis.git'
+				url: 'git+https://github.com/Thymis-io/thymis.git',
+				api_key_secret: null
 			}
 		};
 
@@ -64,6 +80,20 @@
 			saveState(data.globalState);
 		}
 	};
+
+	const checkRepoStatus = async (name: string) => {
+		externalRepoStatus[name] = { status: 'pending' };
+		const result = await (await fetch(`/api/external-repositories/test-flake-ref/${name}`)).json();
+		if (result.status === 'success') {
+			externalRepoStatus[name] = { status: 'success' };
+		} else if (result.status === 'rate_limited') {
+			externalRepoStatus[name] = { status: 'rate_limited' };
+		} else if (result.status === 'error') {
+			externalRepoStatus[name] = { status: 'error', detail: result.detail };
+		} else {
+			externalRepoStatus[name] = { status: 'unknown' };
+		}
+	};
 </script>
 
 <PageHead
@@ -77,6 +107,7 @@
 		<TableHeadCell padding="p-2">{$t('settings.repo.name')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('settings.repo.url')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('settings.repo.secret')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('settings.repo.status')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('settings.repo.actions')}</TableHeadCell>
 	</TableHead>
 	<TableBody>
@@ -94,6 +125,30 @@
 						allowedTypes={['single_line']}
 						secrets={Object.values(data.secrets)}
 					/>
+				</TableBodyCell>
+				<TableBodyCell tdClass="p-2">
+					<Button
+						class="flex gap-1"
+						on:click={() => checkRepoStatus(name)}
+						disabled={externalRepoStatus[name]?.status === 'pending'}
+					>
+						{#if externalRepoStatus[name]?.status === 'pending'}
+							<Spinner size="4" />
+							{$t('settings.repo.check')}
+						{:else if externalRepoStatus[name]?.status === 'success'}
+							<Check class="text-green-500" size="20" />
+							{$t('settings.repo.check-success')}
+						{:else if externalRepoStatus[name]?.status === 'rate_limited'}
+							<Hourglass class="text-yellow-500" size="20" />
+							{$t('settings.repo.check-rate-limited')}
+						{:else if externalRepoStatus[name]?.status === 'error'}
+							<X class="text-red-500" size="20" />
+							{$t('settings.repo.check-error')}:
+							{externalRepoStatus[name]?.detail}
+						{:else}
+							{$t('settings.repo.check')}
+						{/if}
+					</Button>
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					<div class="flex gap-1">
