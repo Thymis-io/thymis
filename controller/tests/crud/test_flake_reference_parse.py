@@ -1,5 +1,6 @@
 from thymis_controller.crud.external_repositories import (
     GitFlakeReference,
+    GithubFlakeReference,
     IndirectFlakeReference,
     parse_flake_reference,
 )
@@ -78,4 +79,46 @@ def test_git_flake_reference():
     assert ref.owner == "Thymis-io"
     assert ref.repo == "thymis"
     assert ref.ref == "master"
+    assert ref.rev is None
+
+
+def test_github_flake_reference():
+    ref = parse_flake_reference("github:NixOS/nix")
+    assert isinstance(ref, GithubFlakeReference)
+    assert ref.type == "github"
+    assert ref.host is None
+    assert ref.owner == "NixOS"
+    assert ref.repo == "nix"
+    assert ref.ref is None
+    assert ref.rev is None
+
+    ref = parse_flake_reference("github:NixOS/nix/master")
+    assert isinstance(ref, GithubFlakeReference)
+    assert ref.type == "github"
+    assert ref.host is None
+    assert ref.owner == "NixOS"
+    assert ref.repo == "nix"
+    assert ref.ref == "master"
+    assert ref.rev is None
+
+    ref = parse_flake_reference(
+        "github:NixOS/nix/a3a3dda3bacf61e8a39258a0ed9c924eeca8e293"
+    )
+    assert isinstance(ref, GithubFlakeReference)
+    assert ref.type == "github"
+    assert ref.host is None
+    assert ref.owner == "NixOS"
+    assert ref.repo == "nix"
+    assert ref.ref is None
+    assert ref.rev == "a3a3dda3bacf61e8a39258a0ed9c924eeca8e293"
+
+    ref = parse_flake_reference(
+        "github:internal/project?host=company-github.example.org"
+    )
+    assert isinstance(ref, GithubFlakeReference)
+    assert ref.type == "github"
+    assert ref.host == "company-github.example.org"
+    assert ref.owner == "internal"
+    assert ref.repo == "project"
+    assert ref.ref is None
     assert ref.rev is None
