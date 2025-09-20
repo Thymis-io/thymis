@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { saveState } from '$lib/state';
+	import { saveState, type Repo } from '$lib/state';
 	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
 	import {
 		Button,
@@ -18,12 +18,18 @@
 	import Check from 'lucide-svelte/icons/check';
 	import Hourglass from 'lucide-svelte/icons/hourglass';
 	import X from 'lucide-svelte/icons/x';
+	import Pen from 'lucide-svelte/icons/pen';
+	import EditExternalRepoUrl from '$lib/components/EditExternalRepoUrl.svelte';
 
 	interface Props {
 		data: PageData;
 	}
 
 	let { data }: Props = $props();
+
+	let editModalOpen = $state(false);
+	let editRepoName = $state<string>('');
+	let editRepo = $state<Repo>();
 
 	let externalRepoStatus = $state<
 		Record<
@@ -96,6 +102,16 @@
 	};
 </script>
 
+<EditExternalRepoUrl
+	bind:open={editModalOpen}
+	inputName={editRepoName}
+	url={editRepo?.url}
+	onSave={(newUrl) => {
+		if (!editRepo) return;
+		editRepo.url = newUrl;
+		saveState(data.globalState);
+	}}
+/>
 <PageHead
 	title={$t('nav.external-repositories')}
 	repoStatus={data.repoStatus}
@@ -114,7 +130,20 @@
 		{#each Object.entries(data.globalState.repositories) as [name, repo]}
 			<TableBodyRow>
 				<TableBodyEditCell value={name} onEnter={(newName) => changeRepoName(name, newName)} />
-				<TableBodyEditCell bind:value={repo.url} onEnter={() => data.globalState.save()} />
+				<TableBodyCell tdClass="p-2 px-2 md:px-4">
+					<div class="flex gap-4 p-0">
+						<span class="p-0">{repo.url}</span>
+						<button
+							onclick={() => {
+								editRepoName = name;
+								editRepo = { ...repo };
+								editModalOpen = true;
+							}}
+						>
+							<Pen size={'1rem'} class="min-w-4" />
+						</button>
+					</div>
+				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					<SecretSelect
 						secret={repo.api_key_secret ? data.secrets[repo.api_key_secret] : undefined}

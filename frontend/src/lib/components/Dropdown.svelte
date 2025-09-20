@@ -8,9 +8,11 @@
 		selected?: T | null;
 		disabled?: boolean;
 		showBox?: boolean;
-		onSelected?: (item: T) => void;
+		placeholder?: string;
+		onSelected?: (item: T) => T | null;
 		class?: string;
 		innerClass?: string;
+		dropdownClass?: string;
 		children?: Snippet;
 		options?: Snippet;
 	}
@@ -20,9 +22,11 @@
 		selected = $bindable(null),
 		disabled = false,
 		showBox = true,
-		onSelected = () => {},
+		placeholder = 'Select an option',
+		onSelected = (item) => item,
 		class: divClass = 'w-64',
 		innerClass = '',
+		dropdownClass = '',
 		children,
 		options
 	}: Props = $props();
@@ -38,9 +42,8 @@
 	};
 
 	const selectItem = (item: T) => {
-		selected = item;
+		selected = onSelected(item);
 		isOpen = false;
-		onSelected(item);
 	};
 
 	const onKeyDown = (event: KeyboardEvent) => {
@@ -79,7 +82,7 @@
 	tabindex="0"
 >
 	<button
-		class="w-full flex justify-between items-center p-1 disabled:opacity-50 disabled:cursor-not-allowed {showBox &&
+		class="w-full flex justify-between items-center p-1 disabled:opacity-50 disabled:cursor-not-allowed text-xs {showBox &&
 			'bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-500 rounded-lg shadow-sm'} {innerClass}"
 		onclick={(e) => {
 			e.preventDefault();
@@ -92,7 +95,7 @@
 		{#if children}
 			{@render children()}
 		{:else}
-			{selected || 'Select an option'}
+			{selected || placeholder}
 		{/if}
 		<ChevronDown class="h-4 w-4" />
 	</button>
@@ -100,7 +103,7 @@
 	{#if isOpen}
 		<div
 			id="dropdown-list"
-			class="absolute w-full max-h-[19rem] overflow-y-auto bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md mt-1 z-10"
+			class="absolute w-full max-h-[19rem] overflow-y-auto bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base border border-gray-300 dark:border-gray-700 rounded-lg shadow-md mt-1 z-10 {dropdownClass}"
 			role="listbox"
 		>
 			{#each values as item, index}
