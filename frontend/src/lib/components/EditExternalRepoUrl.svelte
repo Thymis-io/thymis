@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { FlakeReference } from '$lib/externalRepo';
 	import { Modal, Label, Input, Select } from 'flowbite-svelte';
-	import Dropdown from './Dropdown.svelte';
+	import AutoComplete from './AutoComplete.svelte';
+	import Branch from 'lucide-svelte/icons/git-branch';
+	import Commit from 'lucide-svelte/icons/git-commit-vertical';
 
 	interface Props {
 		open?: boolean;
@@ -44,21 +46,22 @@
 
 	const loadRepo = async (name: string) => {
 		flakeReference = await (await fetch(`/api/external-repositories/flake-ref/${name}`)).json();
-		const brnach = await (await fetch(`/api/external-repositories/branches/${name}`)).json();
-		console.log('brnach', brnach);
-		repoBranches = brnach;
+		repoBranches = await (await fetch(`/api/external-repositories/branches/${name}`)).json();
 	};
 
-	const onBranchSelect = (e: Event) => {
-		const ref = (e.target as HTMLInputElement).value;
+	const onBranchSelect = (value: string) => {
 		if (!flakeReference) return;
-		if (ref.length === 40) {
+		if (value.length === 40) {
 			flakeReference.ref = null;
-			flakeReference.rev = ref;
+			flakeReference.rev = value;
 		} else {
-			flakeReference.ref = ref;
+			flakeReference.ref = value;
 			flakeReference.rev = null;
 		}
+	};
+
+	const isCommitSha = (value: string) => {
+		return /^[0-9a-f]{40}$/.test(value);
 	};
 </script>
 
@@ -100,7 +103,7 @@
 					<option value="git">git</option>
 				</Select>
 			</div>
-			<div class="flex-grow">
+			<div class="flex-1">
 				<Label class="mb-0">Host</Label>
 				<Input bind:value={flakeReference.host} class="mb-2" />
 			</div>
@@ -108,40 +111,31 @@
 	{/if}
 	{#if flakeReference && (flakeReference.type === 'git' || flakeReference.type === 'github' || flakeReference.type === 'gitlab')}
 		<div class="flex gap-2">
-			<div class="flex-grow">
+			<div class="flex-1">
 				<Label class="mb-0">Owner</Label>
 				<Input bind:value={flakeReference.owner} class="mb-2" />
 			</div>
-			<div class="flex-grow">
+			<div class="flex-1">
 				<Label class="mb-0">Repository</Label>
 				<Input bind:value={flakeReference.repo} class="mb-2" />
 			</div>
 		</div>
 		<div class="flex gap-2">
-			<div class="flex-grow">
+			<div class="flex-1">
 				<Label class="mb-0">Ref / Branch / Tag / Full Commit SHA (optional)</Label>
-				<Input
+				<AutoComplete
 					value={flakeReference.ref ?? flakeReference.rev ?? ''}
-					on:input={onBranchSelect}
-					on:change={onBranchSelect}
-					class="mb-2"
+					values={repoBranches.map((branch) => ({
+						label: branch.name,
+						value: branch.name,
+						icon: Branch
+					}))}
+					allowCustomValues={true}
+					onChange={onBranchSelect}
+					defaultIcon={(value: string) => (isCommitSha(value) ? Commit : undefined)}
 				/>
 			</div>
-			<div>
-				<Dropdown
-					values={repoBranches.map((branch) => branch.name)}
-					onSelected={(branch) => {
-						if (!flakeReference) return null;
-						flakeReference.ref = branch;
-						flakeReference.rev = null;
-						return null;
-					}}
-					placeholder="Select Branch"
-					class="h-full w-32 mt-1 py-3 whitespace-nowrap"
-					innerClass="h-full px-3"
-					dropdownClass="fixed w-80! ml-[-12rem]!"
-				/>
-			</div>
+			<div class="flex-1"></div>
 		</div>
 	{/if}
 	<br />
