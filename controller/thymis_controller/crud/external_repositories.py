@@ -190,16 +190,19 @@ async def get_head_commit(reference: GitFlakeReference, api_key: Optional[Secret
         )
 
 
-def get_repo_branches(reference: GitFlakeReference, api_key: Optional[SecretShort]):
+async def get_repo_branches(
+    reference: GitFlakeReference, api_key: Optional[SecretShort]
+):
     if "github.com" in reference.host:
         headers = {}
         if api_key:
             headers["Authorization"] = f"Bearer {api_key.value_str}"
-        response = requests.get(
-            f"https://api.github.com/repos/{reference.owner}/{reference.repo}/branches",
-            headers=headers,
-            timeout=10,
-        )
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"https://api.github.com/repos/{reference.owner}/{reference.repo}/branches",
+                headers=headers,
+                timeout=10,
+            )
         if response.status_code == 200:
             return response.json()
         raise HTTPException(

@@ -30,6 +30,7 @@
 		onSelected={(value) => {
 			columns = value;
 			if (browser) document.cookie = `vnc-displays-per-column=${columns}; SameSite=Lax;`;
+			return value;
 		}}
 		class="min-w-10"
 	/>
