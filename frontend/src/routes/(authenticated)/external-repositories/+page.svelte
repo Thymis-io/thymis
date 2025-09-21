@@ -29,7 +29,6 @@
 
 	let editModalOpen = $state(false);
 	let editRepoName = $state<string>('');
-	let editRepo = $state<Repo>();
 
 	let externalRepoStatus = $state<
 		Record<
@@ -105,11 +104,11 @@
 <EditExternalRepoUrl
 	bind:open={editModalOpen}
 	inputName={editRepoName}
-	url={editRepo?.url}
 	onSave={(newUrl) => {
-		if (!editRepo) return;
-		editRepo.url = newUrl;
-		saveState(data.globalState);
+		if (editRepoName in data.globalState.repositories) {
+			data.globalState.repositories[editRepoName].url = newUrl;
+			saveState(data.globalState);
+		}
 	}}
 />
 <PageHead
@@ -136,7 +135,6 @@
 						<button
 							onclick={() => {
 								editRepoName = name;
-								editRepo = { ...repo };
 								editModalOpen = true;
 							}}
 						>

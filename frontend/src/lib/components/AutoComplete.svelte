@@ -11,7 +11,7 @@
 
 	interface Props {
 		value?: string;
-		values?: Option[];
+		options?: Option[];
 		allowCustomValues?: boolean;
 		defaultIcon?: (value: string) => Component | ComponentType | undefined;
 		onChange?: (value: string) => void;
@@ -20,7 +20,7 @@
 
 	let {
 		value = $bindable(''),
-		values = [],
+		options = [],
 		allowCustomValues = false,
 		defaultIcon,
 		onChange,
@@ -31,9 +31,9 @@
 	let highlightedIndex = $state(-1);
 	let parent = $state<HTMLElement | null>(null);
 
-	const filteredValues = $derived.by(() => {
+	const filteredOptions = $derived.by(() => {
 		const keys = value.split(' ').map((k) => k.trim().toLowerCase());
-		return values.filter((item) => keys.every((key) => item.label.toLowerCase().includes(key)));
+		return options.filter((item) => keys.every((key) => item.label.toLowerCase().includes(key)));
 	});
 
 	const selectItem = (item: Option) => {
@@ -67,15 +67,19 @@
 		if (event.key === 'ArrowDown') {
 			event.preventDefault();
 			event.stopPropagation();
-			highlightedIndex = (highlightedIndex + 1) % filteredValues.length;
+			highlightedIndex = (highlightedIndex + 1) % filteredOptions.length;
 		} else if (event.key === 'ArrowUp') {
 			event.preventDefault();
 			event.stopPropagation();
-			highlightedIndex = (highlightedIndex - 1 + filteredValues.length) % filteredValues.length;
+			highlightedIndex = (highlightedIndex - 1 + filteredOptions.length) % filteredOptions.length;
 		} else if (event.key === 'Enter' && highlightedIndex >= 0) {
 			event.preventDefault();
-			selectItem(filteredValues[highlightedIndex]);
+			selectItem(filteredOptions[highlightedIndex]);
 		}
+	};
+
+	const isOption = (value: string) => {
+		return options.some((v) => v.value === value);
 	};
 
 	const floatingStyle = $derived.by(() => {
@@ -88,13 +92,22 @@
 <div class="relative" bind:this={parent}>
 	<Input
 		bind:value
-		on:change={() => onChange?.(value)}
+		on:change={() => {
+			if (allowCustomValues || isOption(value)) {
+				onChange?.(value);
+			}
+		}}
+		on:input={() => {
+			if (allowCustomValues || isOption(value)) {
+				onChange?.(value);
+			}
+		}}
 		on:click={openDropdown}
 		on:focus={openDropdown}
 		on:keydown={onKeyDown}
 	>
 		<div slot="left">
-			{@const Icon = values?.find((item) => item.value === value)?.icon}
+			{@const Icon = options?.find((item) => item.value === value)?.icon}
 			{@const DefaultIcon = defaultIcon?.(value)}
 			{#if Icon}
 				<Icon class="h-4 w-4 text-gray-900 dark:text-white" />
@@ -103,14 +116,14 @@
 			{/if}
 		</div>
 	</Input>
-	{#if isOpen && filteredValues.length > 0}
+	{#if isOpen && filteredOptions.length > 0}
 		<div
 			id="dropdown-list"
 			class="w-full max-h-[19rem] overflow-y-auto bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base border border-gray-300 dark:border-gray-700 rounded-lg shadow-md mt-1 z-10 {dropdownClass}"
 			role="listbox"
 			style={floatingStyle}
 		>
-			{#each filteredValues as item, index}
+			{#each filteredOptions as item, index}
 				{@const highlightedClass = index === highlightedIndex ? 'bg-gray-200 dark:bg-gray-600' : ''}
 				{@const selectedClass =
 					item.value === value ? 'text-primary-600 dark:text-primary-400' : ''}

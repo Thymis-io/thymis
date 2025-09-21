@@ -1,18 +1,18 @@
 <script lang="ts">
 	import type { FlakeReference } from '$lib/externalRepo';
-	import { Modal, Label, Input, Select } from 'flowbite-svelte';
+	import { Modal, Label, Input, Select, Button } from 'flowbite-svelte';
 	import AutoComplete from './AutoComplete.svelte';
 	import Branch from 'lucide-svelte/icons/git-branch';
 	import Commit from 'lucide-svelte/icons/git-commit-vertical';
+	import Warning from 'lucide-svelte/icons/triangle-alert';
 
 	interface Props {
 		open?: boolean;
 		inputName: string;
-		url?: string;
-		onSave?: (newUrl: string) => void;
+		onSave: (newUrl: string) => void;
 	}
 
-	let { open = $bindable(false), inputName, url = $bindable(''), onSave }: Props = $props();
+	let { open = $bindable(false), inputName, onSave }: Props = $props();
 
 	let flakeReference = $state<FlakeReference>();
 	let compiledUrl = $derived.by(() => {
@@ -25,7 +25,7 @@
 			const host = flakeReference.host;
 			const ref = flakeReference.ref ? `?ref=${flakeReference.ref}` : '';
 			const rev = flakeReference.rev ? `?rev=${flakeReference.rev}` : '';
-			return `git${protocol}${host}/${flakeReference.owner}/${flakeReference.repo}${ref}${rev}`;
+			return `git${protocol}${host}/${flakeReference.owner}/${flakeReference.repo}.git${ref}${rev}`;
 		} else if (flakeReference.type === 'github') {
 			const ref = flakeReference.ref ? `/${flakeReference.ref}` : '';
 			const rev = flakeReference.rev ? `/${flakeReference.rev}` : '';
@@ -63,12 +63,24 @@
 	const isCommitSha = (value: string) => {
 		return /^[0-9a-f]{40}$/.test(value);
 	};
+
+	const warnings = $derived.by(() => {
+		const warns: string[] = [];
+		if (!flakeReference) return warns;
+		if (flakeReference.type === 'git' && flakeReference.host.includes('github.com')) {
+			warns.push('For GitHub repositories, consider using the "github" type.');
+		}
+		if (flakeReference.type === 'git' && flakeReference.host.includes('gitlab.com')) {
+			warns.push('For GitLab repositories, consider using the "gitlab" type.');
+		}
+		return warns;
+	});
 </script>
 
 <Modal bind:open title="Edit External Repository URL" size="lg" outsideclose>
 	{#if flakeReference}
 		<div class="flex gap-2">
-			<div>
+			<div class="flex-1">
 				<Label for="type" class="mb-0">Type</Label>
 				<Select bind:value={flakeReference.type} class="mb-2">
 					<option value="git">git</option>
@@ -76,11 +88,23 @@
 					<option value="gitlab">gitlab</option>
 				</Select>
 			</div>
+			<div class="flex-5">
+				{#if warnings.length > 0}
+					<div class="text-yellow-600 dark:text-yellow-400 flex items-top gap-2 text-base mt-6">
+						<Warning class="w-5 h-5 flex-shrink-0" />
+						<div>
+							{#each warnings as warn}
+								<div>{warn}</div>
+							{/each}
+						</div>
+					</div>
+				{/if}
+			</div>
 		</div>
 	{/if}
 	{#if flakeReference && flakeReference.type === 'git'}
 		<div class="flex gap-2">
-			<div>
+			<div class="flex-1">
 				<Label class="mb-0">Protocol</Label>
 				<Select
 					bind:value={flakeReference.protocol}
@@ -89,21 +113,19 @@
 						if (!protocol || !flakeReference || flakeReference.type !== 'git') return;
 						if (protocol === 'http' || protocol === 'https' || protocol === 'git') {
 							flakeReference.host = flakeReference.host.replace(/^(git@)/, '');
-						} else if (protocol === 'ssh') {
-							if (!flakeReference.host.startsWith('git@')) {
-								flakeReference.host = 'git@' + flakeReference.host;
-							}
+						} else if (protocol === 'ssh' && !flakeReference.host.includes('@')) {
+							flakeReference.host = 'git@' + flakeReference.host;
 						}
 					}}
 					class="mb-2"
 				>
-					<option value="http">https</option>
+					<option value="http">http</option>
 					<option value="https">https</option>
 					<option value="ssh">ssh</option>
 					<option value="git">git</option>
 				</Select>
 			</div>
-			<div class="flex-1">
+			<div class="flex-5">
 				<Label class="mb-0">Host</Label>
 				<Input bind:value={flakeReference.host} class="mb-2" />
 			</div>
@@ -112,7 +134,7 @@
 	{#if flakeReference && (flakeReference.type === 'git' || flakeReference.type === 'github' || flakeReference.type === 'gitlab')}
 		<div class="flex gap-2">
 			<div class="flex-1">
-				<Label class="mb-0">Owner</Label>
+				<Label class="mb-0">Owner / Organization</Label>
 				<Input bind:value={flakeReference.owner} class="mb-2" />
 			</div>
 			<div class="flex-1">
@@ -125,7 +147,7 @@
 				<Label class="mb-0">Ref / Branch / Tag / Full Commit SHA (optional)</Label>
 				<AutoComplete
 					value={flakeReference.ref ?? flakeReference.rev ?? ''}
-					values={repoBranches.map((branch) => ({
+					options={repoBranches.map((branch) => ({
 						label: branch.name,
 						value: branch.name,
 						icon: Branch
@@ -138,6 +160,17 @@
 			<div class="flex-1"></div>
 		</div>
 	{/if}
-	<br />
-	<Input bind:value={compiledUrl} placeholder="Repository URL" class="mb-2 w-full" />
+	<div class="flex mt-8 gap-2">
+		<Input class="flex-6 mb-2 w-full" bind:value={compiledUrl} placeholder="Repository URL" />
+		<Button
+			class="flex-1 mb-2"
+			on:click={() => {
+				if (compiledUrl) onSave(compiledUrl);
+				open = false;
+			}}
+			disabled={!compiledUrl}
+		>
+			Save
+		</Button>
+	</div>
 </Modal>
