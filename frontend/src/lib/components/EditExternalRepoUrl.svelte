@@ -4,11 +4,12 @@
 	import AutoComplete from './AutoComplete.svelte';
 	import Branch from 'lucide-svelte/icons/git-branch';
 	import Commit from 'lucide-svelte/icons/git-commit-vertical';
+	import Tag from 'lucide-svelte/icons/tag';
 	import Warning from 'lucide-svelte/icons/triangle-alert';
 
 	interface Props {
 		open?: boolean;
-		inputName: string;
+		inputName?: string;
 		onSave: (newUrl: string) => void;
 	}
 
@@ -38,6 +39,7 @@
 	});
 
 	let repoBranches = $state<{ name: string }[]>([]);
+	let repoTags = $state<{ name: string }[]>([]);
 
 	$effect(() => {
 		if (!inputName) return;
@@ -45,8 +47,29 @@
 	});
 
 	const loadRepo = async (name: string) => {
-		flakeReference = await (await fetch(`/api/external-repositories/flake-ref/${name}`)).json();
-		repoBranches = await (await fetch(`/api/external-repositories/branches/${name}`)).json();
+		const [flakeRefFetch, branchesFetch, tagsFetch] = await Promise.all([
+			fetch(`/api/external-repositories/flake-ref/${name}`),
+			fetch(`/api/external-repositories/branches/${name}`),
+			fetch(`/api/external-repositories/tags/${name}`)
+		]);
+
+		if (flakeRefFetch.ok) {
+			flakeReference = await flakeRefFetch.json();
+		} else {
+			flakeReference = undefined;
+		}
+
+		if (branchesFetch.ok) {
+			repoBranches = await branchesFetch.json();
+		} else {
+			repoBranches = [];
+		}
+
+		if (tagsFetch.ok) {
+			repoTags = await tagsFetch.json();
+		} else {
+			repoTags = [];
+		}
 	};
 
 	const onBranchSelect = (value: string) => {
@@ -77,7 +100,7 @@
 	});
 </script>
 
-<Modal bind:open title="Edit External Repository URL" size="lg" outsideclose>
+<Modal bind:open title="Edit External Repository URL" size="lg">
 	{#if flakeReference}
 		<div class="flex gap-2">
 			<div class="flex-1">
@@ -147,11 +170,18 @@
 				<Label class="mb-0">Ref / Branch / Tag / Full Commit SHA (optional)</Label>
 				<AutoComplete
 					value={flakeReference.ref ?? flakeReference.rev ?? ''}
-					options={repoBranches.map((branch) => ({
-						label: branch.name,
-						value: branch.name,
-						icon: Branch
-					}))}
+					options={[
+						...repoBranches.map((branch) => ({
+							label: branch.name,
+							value: branch.name,
+							icon: Branch
+						})),
+						...repoTags.map((tag) => ({
+							label: tag.name,
+							value: tag.name,
+							icon: Tag
+						}))
+					]}
 					allowCustomValues={true}
 					onChange={onBranchSelect}
 					defaultIcon={(value: string) => (isCommitSha(value) ? Commit : undefined)}
