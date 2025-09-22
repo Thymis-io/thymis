@@ -28,7 +28,7 @@
 	let { data }: Props = $props();
 
 	let editModalOpen = $state(false);
-	let editRepoName = $state<string>('');
+	let editRepoName = $state<string>();
 
 	let externalRepoStatus = $state<
 		Record<
@@ -105,7 +105,7 @@
 	bind:open={editModalOpen}
 	inputName={editRepoName}
 	onSave={(newUrl) => {
-		if (editRepoName in data.globalState.repositories) {
+		if (editRepoName && editRepoName in data.globalState.repositories) {
 			data.globalState.repositories[editRepoName].url = newUrl;
 			saveState(data.globalState);
 		}
