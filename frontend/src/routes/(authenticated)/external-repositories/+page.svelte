@@ -180,12 +180,14 @@
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					{@const status = data.externalRepositoriesStatus[name]}
-					{status.status}:
-					{status.modules.length}
-					{#each status.modules as module}
-						<div>{module}</div>
-					{/each}
-					<span class="whitespace-pre">{status.details}</span>
+					{#if status}
+						{status.status}:
+						{status.modules.length}
+						{#each status.modules as module}
+							<div>{module}</div>
+						{/each}
+						<span class="whitespace-pre">{status.details}</span>
+					{/if}
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					<div class="flex gap-1">
