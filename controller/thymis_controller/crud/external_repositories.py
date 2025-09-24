@@ -1,53 +1,15 @@
-from typing import Literal, Optional
+from typing import Optional
 
 import httpx
 from cachetools import TTLCache
 from fastapi import HTTPException
-from pydantic import BaseModel
 from thymis_controller.asyncache import cached
+from thymis_controller.models.external_repo import (
+    GitFlakeReference,
+    GithubFlakeReference,
+    IndirectFlakeReference,
+)
 from thymis_controller.models.secrets import SecretShort
-
-
-class FlakeReference(BaseModel):
-    # https://nix.dev/manual/nix/2.28/command-ref/new-cli/nix3-flake.html#types
-    type: Literal[
-        "indirect",
-        "path",
-        "git",
-        "mercurial",
-        "tarball",
-        "file",
-        "github",
-        "gitlab",
-        "sourcehut",
-    ]
-
-
-class IndirectFlakeReference(FlakeReference):
-    type: Literal["indirect"]
-    flake_id: str
-    rev: str | None
-    ref: str | None
-
-
-class GitFlakeReference(FlakeReference):
-    type: Literal["git"]
-    protocol: Literal["http", "https", "ssh", "git", "file"]
-    url: str
-    host: str
-    owner: str | None
-    repo: str
-    ref: str | None
-    rev: str | None
-
-
-class GithubFlakeReference(FlakeReference):
-    type: Literal["github"]
-    host: str | None
-    owner: str
-    repo: str
-    ref: str | None
-    rev: str | None
 
 
 def is_commit_rev(s: str) -> bool:

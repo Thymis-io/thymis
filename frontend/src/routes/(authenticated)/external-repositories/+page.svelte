@@ -123,6 +123,7 @@
 		<TableHeadCell padding="p-2">{$t('settings.repo.url')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('settings.repo.secret')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('settings.repo.status')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('settings.repo.status')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('settings.repo.actions')}</TableHeadCell>
 	</TableHead>
 	<TableBody>
@@ -176,6 +177,15 @@
 							{$t('settings.repo.check')}
 						{/if}
 					</Button>
+				</TableBodyCell>
+				<TableBodyCell tdClass="p-2">
+					{@const status = data.externalRepositoriesStatus[name]}
+					{status.status}:
+					{status.modules.length}
+					{#each status.modules as module}
+						<div>{module}</div>
+					{/each}
+					<span class="whitespace-pre">{status.details}</span>
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					<div class="flex gap-1">
