@@ -16,6 +16,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["External Repositories"])
 
 
+@router.get("/external-repositories/status")
+def get_external_repositories_status(project: ProjectAD):
+    return project.external_repo_status
+
+
 @router.get("/external-repositories/flake-ref/{flake_name}")
 def parse_flake_url(flake_name: str, project: ProjectAD):
     flake = project.read_state().repositories.get(flake_name)

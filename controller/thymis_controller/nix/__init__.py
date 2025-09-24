@@ -30,7 +30,7 @@ def get_input_out_path(flake_path, input_name):
             e.returncode,
             nix_parser.msg_output,
         )
-        return None
+        return None, nix_parser.msg_output
 
     cmd = NIX_CMD + [
         "eval",
@@ -50,13 +50,13 @@ def get_input_out_path(flake_path, input_name):
             e.returncode,
             nix_parser.msg_output,
         )
-        return None
+        return None, nix_parser.msg_output
 
     # result.stdout is a json string
     result = json.loads(result.stdout)
     # should be a string
     assert isinstance(result, str)
-    return result
+    return result, None
 
 
 def get_build_output(flake_path, identifier):
