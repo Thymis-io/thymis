@@ -22,6 +22,7 @@ from thymis_controller.config import global_settings
 from thymis_controller.models.external_repo import ExternalRepoStatus
 from thymis_controller.models.state import State
 from thymis_controller.nix import NIX_CMD, get_input_out_path
+from thymis_controller.nix.log_parse import NixParser
 from thymis_controller.nix.templating import render_flake_nix
 from thymis_controller.notifications import NotificationManager
 from thymis_controller.repo import Repo
@@ -338,14 +339,11 @@ class Project:
         self.lockfile = new_lockfile
         return True
 
-    def load_repositories(
-        self, flake_path: os.PathLike, repositories: dict[str, models.Repo]
-    ):
+    def load_repositories(self, repositories: dict[str, models.Repo]):
         from thymis_controller import modules
 
-        if not self.has_lockfile_changed(flake_path):
+        if not self.has_lockfile_changed(self.repo_dir):
             return
-        self.external_repo_status = {}
         # for each repository: get_input_out_path from the flake.nix in the path
         input_out_paths = {}
         for input_name, repo in repositories.items():
@@ -353,7 +351,7 @@ class Project:
             if not repo.url:
                 self.external_repo_status[input_name].status = "no-url"
                 continue
-            path, error_msg = get_input_out_path(flake_path, input_name)
+            path, error_msg = get_input_out_path(self.repo_dir, input_name)
             if path is None:
                 self.external_repo_status[input_name].status = "no-path"
                 self.external_repo_status[input_name].details = error_msg
@@ -438,7 +436,7 @@ class Project:
         """
         error = None
         self.repo.pause_file_watcher()
-        repositories = BUILTIN_REPOSITORIES | state.repositories
+        repositories = self.check_healthy_repositories(state)
         if (self.repo_dir / "flake.nix").exists():
             with open(self.repo_dir / "flake.nix", "r", encoding="utf-8") as f:
                 flake_nix_content = f.read()
@@ -470,7 +468,7 @@ class Project:
                 logger.error("stderr: %s", e.stderr)
                 traceback.print_exc()
                 error = e
-        self.set_repositories_in_python_path(self.repo_dir, state)
+        self.load_repositories(repositories)
         # create modules folder if not exists
         modules_path = self.repo_dir / "modules"
         del_path(modules_path)
@@ -500,6 +498,28 @@ class Project:
         )
         if error:
             raise error
+
+    def check_healthy_repositories(self, state: State):
+        repositories = BUILTIN_REPOSITORIES | state.repositories
+        healthy_repos = {}
+        for name, repo in repositories.items():
+            if not repo.url:
+                continue
+            try:
+                subprocess.run(
+                    ["nix", *NIX_CMD[1:], "flake", "prefetch", repo.url],
+                    capture_output=True,
+                    check=True,
+                )
+                healthy_repos[name] = repo
+            except subprocess.CalledProcessError as e:
+                nix_parser = NixParser()
+                nix_parser.process_buffer(bytearray(e.stderr))
+                self.external_repo_status[name] = ExternalRepoStatus(
+                    status="no-path", details=nix_parser.msg_output
+                )
+                continue
+        return healthy_repos
 
     def reload_from_disk(self):
         self.write_state_and_reload(self.read_state())
@@ -546,10 +566,6 @@ class Project:
                         )
                         traceback.print_exc()
         return module_pairs
-
-    def set_repositories_in_python_path(self, path: os.PathLike, state: State):
-        repositories = BUILTIN_REPOSITORIES | state.repositories
-        self.load_repositories(path, repositories)
 
     def clear_history(self, db_session: sqlalchemy.orm.Session):
         if "RUNNING_IN_PLAYWRIGHT" in os.environ:
