@@ -105,7 +105,31 @@
 		<div class="flex gap-2">
 			<div class="flex-1">
 				<Label for="type" class="mb-0">Type</Label>
-				<Select bind:value={flakeReference.type} class="mb-2">
+				<Select
+					value={flakeReference.type}
+					class="mb-2"
+					on:change={(e) => {
+						const newType = (e.target as HTMLInputElement)?.value ?? '';
+						const prevType = flakeReference?.type;
+						if (!newType || !flakeReference) return;
+
+						if (newType === 'git') {
+							const gitRef = flakeReference as Extract<FlakeReference, { type: 'git' }>;
+
+							if (prevType === 'github') {
+								gitRef.host ??= 'github.com';
+								gitRef.protocol ??= 'https';
+							} else if (prevType === 'gitlab') {
+								gitRef.host ??= 'gitlab.com';
+								gitRef.protocol ??= 'https';
+							}
+
+							gitRef.type = 'git';
+						} else {
+							flakeReference.type = newType as FlakeReference['type'];
+						}
+					}}
+				>
 					<option value="git">git</option>
 					<option value="github">github</option>
 					<option value="gitlab">gitlab</option>
