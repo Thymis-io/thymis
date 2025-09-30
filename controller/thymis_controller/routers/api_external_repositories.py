@@ -10,6 +10,7 @@ from thymis_controller.crud.external_repositories import (
     parse_flake_reference,
 )
 from thymis_controller.dependencies import DBSessionAD, ProjectAD
+from thymis_controller.nix import nix_flake_prefetch
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +43,16 @@ async def test_fake_reference(
     if isinstance(flake_ref, GitFlakeReference):
         try:
             head_commit = await get_head_commit(flake_ref, api_key)
-            if head_commit and head_commit.get("sha") is not None:
-                return {"status": "success"}
+            if not head_commit or head_commit.get("sha") is None:
+                return {"status": "error", "detail": "Could not fetch head commit"}
         except HTTPException as e:
             return {"status": "error", "detail": str(e)}
-    return {"status": "unknown"}
+
+    prefetch_success, prefetch_error = nix_flake_prefetch(flake.url, api_key)
+    if not prefetch_success:
+        return {"status": "error", "detail": prefetch_error}
+
+    return {"status": "success"}
 
 
 @router.get("/external-repositories/branches/{flake_name}")

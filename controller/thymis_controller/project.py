@@ -21,7 +21,12 @@ from thymis_controller import crud, db_models, migration, models
 from thymis_controller.config import global_settings
 from thymis_controller.models.external_repo import ExternalRepoStatus
 from thymis_controller.models.state import State
-from thymis_controller.nix import NIX_CMD, get_input_out_path
+from thymis_controller.nix import (
+    NIX_CMD,
+    NIX_SSHOPTS,
+    get_input_out_path,
+    nix_flake_prefetch,
+)
 from thymis_controller.nix.log_parse import NixParser
 from thymis_controller.nix.templating import render_flake_nix
 from thymis_controller.notifications import NotificationManager
@@ -80,6 +85,7 @@ def get_module_class_instance_by_type(module_type: str):
 class Project:
     path: pathlib.Path
     repo: Repo
+    db_engine: sqlalchemy.engine.Engine
     notification_manager: NotificationManager
     known_hosts_path: pathlib.Path
     public_key: str
@@ -95,10 +101,11 @@ class Project:
         self,
         path,
         notification_manager: NotificationManager,
-        db_session: sqlalchemy.orm.Session,
+        db_engine: sqlalchemy.engine.Engine,
     ):
         self.path = pathlib.Path(path)
         self.notification_manager = notification_manager
+        self.db_engine = db_engine
         # create the path if not exists
         self.path.mkdir(exist_ok=True, parents=True)
         self.repo_dir = self.path / "repository"
@@ -154,7 +161,8 @@ class Project:
 
         logger.debug("Initializing known_hosts file")
         self.known_hosts_path = None
-        self.update_known_hosts(db_session)
+        with sqlalchemy.orm.Session(self.db_engine) as db_session:
+            self.update_known_hosts(db_session)
 
     def encrypt(self, data: bytes) -> bytes:
         return encrypt(data, [self.controller_age_recipient])
@@ -432,7 +440,7 @@ class Project:
 
     def _reload_state_unsafe(self, state: State):
         """
-        This method must always be called within a write_repo_lock to prevent race conidtions
+        This method must always be called within a write_repo_lock to prevent race conditions
         """
         error = None
         self.repo.pause_file_watcher()
@@ -457,6 +465,11 @@ class Project:
                     cwd=self.repo_dir,
                     capture_output=True,
                     check=True,
+                    env={
+                        "PATH": os.getenv("PATH"),
+                        "NIX_SSHOPTS": NIX_SSHOPTS,
+                        "GIT_TERMINAL_PROMPT": "0",
+                    },
                 )
                 logger.info(
                     "Successfully ran nix flake lock in %s",
@@ -502,23 +515,20 @@ class Project:
     def check_healthy_repositories(self, state: State):
         repositories = BUILTIN_REPOSITORIES | state.repositories
         healthy_repos = {}
-        for name, repo in repositories.items():
+
+        for input_name, repo in repositories.items():
             if not repo.url:
                 continue
-            try:
-                subprocess.run(
-                    ["nix", *NIX_CMD[1:], "flake", "prefetch", repo.url],
-                    capture_output=True,
-                    check=True,
-                )
-                healthy_repos[name] = repo
-            except subprocess.CalledProcessError as e:
-                nix_parser = NixParser()
-                nix_parser.process_buffer(bytearray(e.stderr))
-                self.external_repo_status[name] = ExternalRepoStatus(
-                    status="no-path", details=nix_parser.msg_output
-                )
+            with sqlalchemy.orm.Session(self.db_engine) as db_session:
+                api_key = self.get_secret(db_session, repo.api_key_secret)
+            prefetch_success, error = nix_flake_prefetch(repo.url, api_key)
+            if prefetch_success:
+                healthy_repos[input_name] = repo
                 continue
+            else:
+                self.external_repo_status[input_name] = ExternalRepoStatus(
+                    status="no-path", details=error
+                )
         return healthy_repos
 
     def reload_from_disk(self):

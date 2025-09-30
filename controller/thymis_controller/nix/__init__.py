@@ -1,10 +1,21 @@
 import json
 import logging
+import os
 import pathlib
 import re
 import subprocess
+from typing import TYPE_CHECKING
+
+from thymis_controller.crud.external_repositories import (
+    GitFlakeReference,
+    GithubFlakeReference,
+    parse_flake_reference,
+)
 
 from .log_parse import NixParser
+
+if TYPE_CHECKING:
+    from thymis_controller.models.secrets import SecretShort
 
 logger = logging.getLogger(__name__)
 
@@ -17,10 +28,21 @@ def get_input_out_path(flake_path, input_name):
         f"{flake_path}#inputs.{input_name}.outPath",
         "--no-link",
         "--allow-dirty-locks",
+        "--refresh",
     ]
 
     try:
-        subprocess.run(cmd, check=True, cwd=flake_path, stderr=subprocess.PIPE)
+        subprocess.run(
+            cmd,
+            check=True,
+            cwd=flake_path,
+            stderr=subprocess.PIPE,
+            env={
+                "PATH": os.getenv("PATH"),
+                "NIX_SSHOPTS": NIX_SSHOPTS,
+                "GIT_TERMINAL_PROMPT": "0",
+            },
+        )
     except subprocess.CalledProcessError as e:
         nix_parser = NixParser()
         nix_parser.process_buffer(bytearray(e.stderr))
@@ -37,10 +59,21 @@ def get_input_out_path(flake_path, input_name):
         f"{flake_path}#inputs.{input_name}.outPath",
         "--json",
         "--allow-dirty-locks",
+        "--refresh",
     ]
 
     try:
-        result = subprocess.run(cmd, check=True, capture_output=True, cwd=flake_path)
+        result = subprocess.run(
+            cmd,
+            check=True,
+            capture_output=True,
+            cwd=flake_path,
+            env={
+                "PATH": os.getenv("PATH"),
+                "NIX_SSHOPTS": NIX_SSHOPTS,
+                "GIT_TERMINAL_PROMPT": "0",
+            },
+        )
     except subprocess.CalledProcessError as e:
         nix_parser = NixParser()
         nix_parser.process_buffer(bytearray(e.stderr))
@@ -167,6 +200,47 @@ def check_device_reference(
     return config_id in result
 
 
+def get_nix_access_tokens(flake_url: str, api_key: "SecretShort | None") -> str:
+    flake_ref = parse_flake_reference(flake_url)
+    if flake_ref and api_key:
+        if isinstance(flake_ref, GitFlakeReference):
+            return f"access-tokens = {flake_ref.host}={api_key.value_str}"
+        elif isinstance(flake_ref, GithubFlakeReference):
+            return f"access-tokens = github.com={api_key.value_str}"
+    return ""
+
+
+def nix_flake_prefetch(url: str, api_key: "SecretShort | None"):
+    access_token = get_nix_access_tokens(url, api_key)
+
+    try:
+        subprocess.run(
+            [
+                "nix",
+                *NIX_CMD[1:],
+                "flake",
+                "prefetch",
+                url,
+                "--refresh",
+                "--tarball-ttl",
+                "0",
+            ],
+            capture_output=True,
+            check=True,
+            env={
+                "PATH": os.getenv("PATH"),
+                "NIX_SSHOPTS": NIX_SSHOPTS,
+                "GIT_TERMINAL_PROMPT": "0",
+                "NIX_CONFIG": (access_token),
+            },
+        )
+    except subprocess.CalledProcessError as e:
+        nix_parser = NixParser()
+        nix_parser.process_buffer(bytearray(e.stderr))
+        return False, nix_parser.msg_output
+    return True, None
+
+
 NIX_CMD = [
     "nix",
     "--option",
@@ -181,3 +255,11 @@ NIX_CMD = [
     "--log-format",
     "internal-json",
 ]
+
+NIX_SSHOPTS = (
+    "-o PasswordAuthentication=no "
+    "-o KbdInteractiveAuthentication=no "
+    "-o BatchMode=yes "
+    "-o NumberOfPasswordPrompts=0"
+    "-o ConnectTimeout=10 "
+)
