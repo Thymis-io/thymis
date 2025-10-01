@@ -15,9 +15,9 @@ export type GitFlakeReference = {
 	type: 'git';
 	protocol: 'http' | 'https' | 'ssh' | 'git' | 'file';
 	url: string;
-	host: string;
+	host: string | null;
 	owner: string | null;
-	repo: string;
+	repo: string | null;
 	ref: string | null;
 	rev: string | null;
 };
