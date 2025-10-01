@@ -6,11 +6,12 @@ import re
 import subprocess
 from typing import TYPE_CHECKING
 
-from thymis_controller.crud.external_repositories import (
+from thymis_controller.models.external_repo import (
+    FlakeReference,
     GitFlakeReference,
     GithubFlakeReference,
-    parse_flake_reference,
 )
+from thymis_controller.nix.flake_reference import parse_flake_reference
 
 from .log_parse import NixParser
 

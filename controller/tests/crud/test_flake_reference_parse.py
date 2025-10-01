@@ -1,9 +1,9 @@
-from thymis_controller.crud.external_repositories import (
+from thymis_controller.models.external_repo import (
     GitFlakeReference,
     GithubFlakeReference,
     IndirectFlakeReference,
-    parse_flake_reference,
 )
+from thymis_controller.nix.flake_reference import parse_flake_reference
 
 
 def test_indirect_flake_reference():

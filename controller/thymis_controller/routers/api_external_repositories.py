@@ -2,15 +2,17 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 from thymis_controller.crud.external_repositories import (
-    GitFlakeReference,
-    GithubFlakeReference,
     get_head_commit,
     get_repo_branches,
     get_repo_tags,
-    parse_flake_reference,
 )
 from thymis_controller.dependencies import DBSessionAD, ProjectAD
+from thymis_controller.models.external_repo import (
+    GitFlakeReference,
+    GithubFlakeReference,
+)
 from thymis_controller.nix import nix_flake_prefetch
+from thymis_controller.nix.flake_reference import parse_flake_reference
 
 logger = logging.getLogger(__name__)
 
