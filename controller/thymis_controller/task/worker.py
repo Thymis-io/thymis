@@ -20,7 +20,7 @@ from typing import IO, AnyStr, List, assert_never
 import thymis_controller.models.task as models_task
 from pydantic import BaseModel
 from thymis_agent import agent
-from thymis_controller.nix import NIX_CMD
+from thymis_controller.nix import NIX_CMD, NIX_SSHOPTS
 from thymis_controller.nix.log_parse import NixParser
 
 
@@ -140,6 +140,12 @@ def project_flake_update_task(
         process_list,
         [*NIX_CMD, "flake", "update", "--allow-dirty-locks"],
         cwd=repo_path,
+        env={
+            "PATH": os.getenv("PATH"),
+            "NIX_SSHOPTS": NIX_SSHOPTS,
+            "GIT_TERMINAL_PROMPT": "0",
+            "NIX_CONFIG": task_data.nix_access_tokens,
+        },
     )
     if returncode == 0:
         report_task_finished(task, conn)
