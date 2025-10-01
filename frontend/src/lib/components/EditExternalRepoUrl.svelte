@@ -90,10 +90,10 @@
 	const warnings = $derived.by(() => {
 		const warns: string[] = [];
 		if (!flakeReference) return warns;
-		if (flakeReference.type === 'git' && flakeReference.host.includes('github.com')) {
+		if (flakeReference.type === 'git' && flakeReference.host?.includes('github.com')) {
 			warns.push('For GitHub repositories, consider using the "github" type.');
 		}
-		if (flakeReference.type === 'git' && flakeReference.host.includes('gitlab.com')) {
+		if (flakeReference.type === 'git' && flakeReference.host?.includes('gitlab.com')) {
 			warns.push('For GitLab repositories, consider using the "gitlab" type.');
 		}
 		return warns;
@@ -158,9 +158,16 @@
 					on:change={(e) => {
 						const protocol = (e.target as HTMLInputElement)?.value ?? '';
 						if (!protocol || !flakeReference || flakeReference.type !== 'git') return;
-						if (protocol === 'http' || protocol === 'https' || protocol === 'git') {
+						if (
+							(protocol === 'http' || protocol === 'https' || protocol === 'git') &&
+							flakeReference.host
+						) {
 							flakeReference.host = flakeReference.host.replace(/^(git@)/, '');
-						} else if (protocol === 'ssh' && !flakeReference.host.includes('@')) {
+						} else if (
+							protocol === 'ssh' &&
+							flakeReference.host &&
+							!flakeReference.host.includes('@')
+						) {
 							flakeReference.host = 'git@' + flakeReference.host;
 						}
 					}}

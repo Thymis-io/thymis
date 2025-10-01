@@ -37,9 +37,9 @@ class GitFlakeReference(FlakeReference):
     type: Literal["git"]
     protocol: Literal["http", "https", "ssh", "git", "file"]
     url: str
-    host: str
+    host: str | None
     owner: str | None
-    repo: str
+    repo: str | None
     ref: str | None
     rev: str | None
 

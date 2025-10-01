@@ -359,6 +359,7 @@ class Project:
             if not repo.url:
                 self.external_repo_status[input_name].status = "no-url"
                 continue
+            logger.info("Loading repository %s: %s", input_name, repo.url)
             path, error_msg = get_input_out_path(self.repo_dir, input_name)
             if path is None:
                 self.external_repo_status[input_name].status = "no-path"
@@ -528,6 +529,9 @@ class Project:
                 healthy_repos[input_name] = repo
                 continue
             else:
+                logger.warning(
+                    "Error while prefetching repository %s: %s", input_name, error
+                )
                 self.external_repo_status[input_name] = ExternalRepoStatus(
                     status="no-path", details=error
                 )

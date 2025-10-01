@@ -81,6 +81,28 @@ def test_git_flake_reference():
     assert ref.ref == "master"
     assert ref.rev is None
 
+    ref = parse_flake_reference("git+https://github.com/Thymis-io/thymis.git")
+    assert isinstance(ref, GitFlakeReference)
+    assert ref.type == "git"
+    assert ref.protocol == "https"
+    assert ref.url == "github.com/Thymis-io/thymis.git"
+    assert ref.host == "github.com"
+    assert ref.owner == "Thymis-io"
+    assert ref.repo == "thymis"
+    assert ref.ref is None
+    assert ref.rev is None
+
+    ref = parse_flake_reference("git+file:///home/projects/thymis/thymis")
+    assert isinstance(ref, GitFlakeReference)
+    assert ref.type == "git"
+    assert ref.protocol == "file"
+    assert ref.url == "/home/projects/thymis/thymis"
+    assert ref.host is None
+    assert ref.owner is None
+    assert ref.repo is None
+    assert ref.ref is None
+    assert ref.rev is None
+
 
 def test_github_flake_reference():
     ref = parse_flake_reference("github:NixOS/nix")
