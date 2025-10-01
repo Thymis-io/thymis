@@ -201,19 +201,38 @@ def check_device_reference(
     return config_id in result
 
 
-def get_nix_access_tokens(flake_url: str, api_key: "SecretShort | None") -> str:
+def build_token(reference: FlakeReference, api_key: "SecretShort") -> str:
+    if not reference or not api_key:
+        return ""
+    if isinstance(reference, GitFlakeReference):
+        return f"{reference.host}={api_key.value_str}"
+    if isinstance(reference, GithubFlakeReference):
+        return f"github.com={api_key.value_str}"
+    return ""
+
+
+def nix_access_tokens(flake_url: str, api_key: "SecretShort | None") -> str:
     flake_ref = parse_flake_reference(flake_url)
-    if flake_ref and api_key:
-        if isinstance(flake_ref, GitFlakeReference):
-            return f"access-tokens = {flake_ref.host}={api_key.value_str}"
-        elif isinstance(flake_ref, GithubFlakeReference):
-            return f"access-tokens = github.com={api_key.value_str}"
+    token = build_token(flake_ref, api_key)
+    if token:
+        return f"access-tokens = {token}"
+    return ""
+
+
+def all_nix_access_tokens(flake_urls: list[str], api_keys: list["SecretShort"]) -> str:
+    access_tokens = []
+    for flake_url, api_key in zip(flake_urls, api_keys):
+        flake_ref = parse_flake_reference(flake_url)
+        token = build_token(flake_ref, api_key)
+        if token and token not in access_tokens:
+            access_tokens.append(token)
+    if len(access_tokens) > 0:
+        return "access-tokens = " + " ".join(access_tokens)
     return ""
 
 
 def nix_flake_prefetch(url: str, api_key: "SecretShort | None"):
-    access_token = get_nix_access_tokens(url, api_key)
-
+    access_tokens = nix_access_tokens(url, api_key)
     try:
         subprocess.run(
             [
@@ -232,7 +251,7 @@ def nix_flake_prefetch(url: str, api_key: "SecretShort | None"):
                 "PATH": os.getenv("PATH"),
                 "NIX_SSHOPTS": NIX_SSHOPTS,
                 "GIT_TERMINAL_PROMPT": "0",
-                "NIX_CONFIG": (access_token),
+                "NIX_CONFIG": access_tokens,
             },
         )
     except subprocess.CalledProcessError as e:

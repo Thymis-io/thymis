@@ -24,10 +24,10 @@ from thymis_controller.models.state import State
 from thymis_controller.nix import (
     NIX_CMD,
     NIX_SSHOPTS,
+    all_nix_access_tokens,
     get_input_out_path,
     nix_flake_prefetch,
 )
-from thymis_controller.nix.log_parse import NixParser
 from thymis_controller.nix.templating import render_flake_nix
 from thymis_controller.notifications import NotificationManager
 from thymis_controller.repo import Repo
@@ -456,6 +456,7 @@ class Project:
             with open(self.repo_dir / "flake.nix", "w+", encoding="utf-8") as f:
                 f.write(new_flake_nix_content)
             self.repo.add(".")
+            access_tokens = self.nix_access_tokens()
             # write missing flake.lock entries using nix flake lock
             try:
                 logger.info("Running nix flake lock...")
@@ -469,6 +470,7 @@ class Project:
                         "PATH": os.getenv("PATH"),
                         "NIX_SSHOPTS": NIX_SSHOPTS,
                         "GIT_TERMINAL_PROMPT": "0",
+                        "NIX_CONFIG": access_tokens,
                     },
                 )
                 logger.info(
@@ -611,15 +613,28 @@ class Project:
 
         logger.debug("Updated known_hosts file at %s", self.known_hosts_path)
 
+    def nix_access_tokens(self):
+        repos_urls_with_secret = []
+        secrets = []
+        repositories = self.read_state().repositories.values()
+        with sqlalchemy.orm.Session(self.db_engine) as db_session:
+            for repo in repositories:
+                if repo.url and repo.api_key_secret:
+                    repos_urls_with_secret.append(repo.url)
+                    secrets.append(self.get_secret(db_session, repo.api_key_secret))
+        return all_nix_access_tokens(repos_urls_with_secret, secrets)
+
     def create_update_task(
         self,
         task_controller: "task.TaskController",
         user_session_id: uuid.UUID,
         db_session: sqlalchemy.orm.Session,
     ):
+        access_tokens = self.nix_access_tokens()
         return task_controller.submit(
             models.task.ProjectFlakeUpdateTaskSubmission(
                 project_path=str(self.path),
+                nix_access_tokens=access_tokens,
             ),
             user_session_id=user_session_id,
             db_session=db_session,
