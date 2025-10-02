@@ -1,6 +1,7 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
 	import type { FlakeReference } from '$lib/externalRepo';
-	import { Modal, Label, Input, Select, Button } from 'flowbite-svelte';
+	import { Modal, Label, Input, Select, Button, Spinner } from 'flowbite-svelte';
 	import AutoComplete from './AutoComplete.svelte';
 	import Branch from 'lucide-svelte/icons/git-branch';
 	import Commit from 'lucide-svelte/icons/git-commit-vertical';
@@ -42,8 +43,7 @@
 	let repoTags = $state<{ name: string }[]>([]);
 
 	$effect(() => {
-		if (!inputName) return;
-		loadRepo(inputName);
+		if (inputName) loadRepo(inputName);
 	});
 
 	const loadRepo = async (name: string) => {
@@ -91,20 +91,20 @@
 		const warns: string[] = [];
 		if (!flakeReference) return warns;
 		if (flakeReference.type === 'git' && flakeReference.host?.includes('github.com')) {
-			warns.push('For GitHub repositories, consider using the "github" type.');
+			warns.push($t('settings.external-modal.use-github-warning'));
 		}
 		if (flakeReference.type === 'git' && flakeReference.host?.includes('gitlab.com')) {
-			warns.push('For GitLab repositories, consider using the "gitlab" type.');
+			warns.push($t('settings.external-modal.use-gitlab-warning'));
 		}
 		return warns;
 	});
 </script>
 
-<Modal bind:open title="Edit External Repository URL" size="lg">
+<Modal bind:open title={$t('settings.external-modal.title')} size="lg">
 	{#if flakeReference}
 		<div class="flex gap-2">
 			<div class="flex-1">
-				<Label for="type" class="mb-0">Type</Label>
+				<Label class="mb-0">{$t('settings.external-modal.reference-type')}</Label>
 				<Select
 					value={flakeReference.type}
 					class="mb-2"
@@ -130,9 +130,9 @@
 						}
 					}}
 				>
-					<option value="git">git</option>
-					<option value="github">github</option>
-					<option value="gitlab">gitlab</option>
+					<option value="git">{$t('settings.external-modal.reference-type-git')}</option>
+					<option value="github">{$t('settings.external-modal.reference-type-github')}</option>
+					<option value="gitlab">{$t('settings.external-modal.reference-type-gitlab')}</option>
 				</Select>
 			</div>
 			<div class="flex-5">
@@ -152,7 +152,7 @@
 	{#if flakeReference && flakeReference.type === 'git'}
 		<div class="flex gap-2">
 			<div class="flex-1">
-				<Label class="mb-0">Protocol</Label>
+				<Label class="mb-0">{$t('settings.external-modal.protocol')}</Label>
 				<Select
 					bind:value={flakeReference.protocol}
 					on:change={(e) => {
@@ -173,14 +173,14 @@
 					}}
 					class="mb-2"
 				>
-					<option value="http">http</option>
-					<option value="https">https</option>
-					<option value="ssh">ssh</option>
-					<option value="git">git</option>
+					<option value="http">{$t('settings.external-modal.protocol-http')}</option>
+					<option value="https">{$t('settings.external-modal.protocol-https')}</option>
+					<option value="ssh">{$t('settings.external-modal.protocol-ssh')}</option>
+					<option value="git">{$t('settings.external-modal.protocol-git')}</option>
 				</Select>
 			</div>
 			<div class="flex-5">
-				<Label class="mb-0">Host</Label>
+				<Label class="mb-0">{$t('settings.external-modal.host')}</Label>
 				<Input bind:value={flakeReference.host} class="mb-2" />
 			</div>
 		</div>
@@ -188,17 +188,17 @@
 	{#if flakeReference && (flakeReference.type === 'git' || flakeReference.type === 'github' || flakeReference.type === 'gitlab')}
 		<div class="flex gap-2">
 			<div class="flex-1">
-				<Label class="mb-0">Owner / Organization</Label>
+				<Label class="mb-0">{$t('settings.external-modal.owner')}</Label>
 				<Input bind:value={flakeReference.owner} class="mb-2" />
 			</div>
 			<div class="flex-1">
-				<Label class="mb-0">Repository</Label>
+				<Label class="mb-0">{$t('settings.external-modal.repo')}</Label>
 				<Input bind:value={flakeReference.repo} class="mb-2" />
 			</div>
 		</div>
 		<div class="flex gap-2">
 			<div class="flex-1">
-				<Label class="mb-0">Ref / Branch / Tag / Full Commit SHA (optional)</Label>
+				<Label class="mb-0">{$t('settings.external-modal.ref')}</Label>
 				<AutoComplete
 					value={flakeReference.ref ?? flakeReference.rev ?? ''}
 					options={[
@@ -221,17 +221,27 @@
 			<div class="flex-1"></div>
 		</div>
 	{/if}
-	<div class="flex mt-8 gap-2">
-		<Input class="flex-6 mb-2 w-full" bind:value={compiledUrl} placeholder="Repository URL" />
-		<Button
-			class="flex-1 mb-2"
-			on:click={() => {
-				if (compiledUrl) onSave(compiledUrl);
-				open = false;
-			}}
-			disabled={!compiledUrl}
-		>
-			Save
-		</Button>
-	</div>
+	{#if flakeReference}
+		<div class="flex mt-8 gap-2">
+			<div class="flex-5">
+				<Label class="mb-0">{$t('settings.external-modal.compiled-url')}</Label>
+				<Input class="flex-6 mb-2 w-full" bind:value={compiledUrl} placeholder="Repository URL" />
+			</div>
+			<Button
+				class="flex-1 mt-4 mb-2"
+				on:click={() => {
+					if (compiledUrl) onSave(compiledUrl);
+					open = false;
+				}}
+				disabled={!compiledUrl}
+			>
+				{$t('common.save')}
+			</Button>
+		</div>
+	{/if}
+	{#if !flakeReference}
+		<div class="flex justify-center mt-4">
+			<Spinner class="mr-2" size="8" />
+		</div>
+	{/if}
 </Modal>

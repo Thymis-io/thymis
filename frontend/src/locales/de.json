@@ -264,10 +264,42 @@
 			"name": "Name",
 			"url": "URL",
 			"secret": "API Key Secret",
+			"status": "Status",
+			"check": "Verbindung Prüfen",
+			"check-success": "Verbindung erfolgreich",
+			"check-rate-limited": "Rate limitiert, später erneut versuchen",
+			"check-error": "Verbindung fehlgeschlagen",
 			"actions": "Aktionen",
+			"show-details": "Details",
+			"show-details-title": "Details",
 			"edit-name": "Namen bearbeiten",
 			"edit-url": "URL bearbeiten",
 			"delete": "Löschen"
+		},
+		"external-modal": {
+			"title": "Externe Repository URL Bearbeiten",
+			"reference-type": "Typ",
+			"reference-type-git": "Git",
+			"reference-type-github": "GitHub",
+			"reference-type-gitlab": "GitLab",
+			"use-github-warning": "Für GitHub-Repositories kann der 'GitHub' Typ verwendet werden.",
+			"use-gitlab-warning": "Für GitLab-Repositories kann der Typ 'GitLab' verwendet werden.",
+			"protocol": "Protokoll",
+			"protocol-http": "HTTP",
+			"protocol-https": "HTTPS",
+			"protocol-ssh": "SSH",
+			"protocol-git": "Git",
+			"host": "Host",
+			"owner": "Nutzer / Organisation",
+			"repo": "Repository",
+			"ref": "Branch / Tag / Vollständiger Commit SHA (optional)",
+			"compiled-url": "Kompilierte URL"
+		},
+		"repo-status": {
+			"no-path": "URL/Pfad nicht gefunden",
+			"no-readme": "Repo hat keine Readme.md",
+			"no-magic-string": "Kein Thymis-Modul Repository: 'contains thymis modules' nicht in Readme.md",
+			"loaded": "Repo mit {count} Modulen geladen"
 		}
 	},
 	"taskbar": {

@@ -300,9 +300,36 @@
 			"check-rate-limited": "Rate limited, try again later",
 			"check-error": "Connection failed",
 			"actions": "Actions",
+			"show-details": "Details",
+			"show-details-title": "Details",
 			"edit-name": "Edit Name",
 			"edit-url": "Edit URL",
 			"delete": "Delete"
+		},
+		"external-modal": {
+			"title": "Edit External Repository URL",
+			"reference-type": "Type",
+			"reference-type-git": "Git",
+			"reference-type-github": "GitHub",
+			"reference-type-gitlab": "GitLab",
+			"use-github-warning": "For GitHub repositories, consider using the 'GitHub' type.",
+			"use-gitlab-warning": "For GitLab repositories, consider using the 'GitLab' type.",
+			"protocol": "Protocol",
+			"protocol-http": "HTTP",
+			"protocol-https": "HTTPS",
+			"protocol-ssh": "SSH",
+			"protocol-git": "Git",
+			"host": "Host",
+			"owner": "Owner / Organization",
+			"repo": "Repository",
+			"ref": "Branch / Tag / Full Commit SHA (optional)",
+			"compiled-url": "Compiled URL"
+		},
+		"repo-status": {
+			"no-path": "URL/Path not found",
+			"no-readme": "Repo has no Readme.md",
+			"no-magic-string": "Not a Thymis Module Repository: 'contains thymis modules' not in Readme.md",
+			"loaded": "Repo loaded with {count} modules"
 		}
 	},
 	"tags": {

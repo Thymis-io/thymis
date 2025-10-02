@@ -20,6 +20,9 @@
 	import X from 'lucide-svelte/icons/x';
 	import Pen from 'lucide-svelte/icons/pen';
 	import EditExternalRepoUrl from '$lib/components/EditExternalRepoUrl.svelte';
+	import ModuleIcon from '$lib/config/ModuleIcon.svelte';
+	import DetailsModal from '$lib/components/DetailsModal.svelte';
+	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 
 	interface Props {
 		data: PageData;
@@ -29,6 +32,9 @@
 
 	let editModalOpen = $state(false);
 	let editRepoName = $state<string>();
+	let detailsModalOpen = $state(false);
+	let detailsText = $state<string>();
+	let deleteRepoConfirm = $state<string>();
 
 	let externalRepoStatus = $state<
 		Record<
@@ -111,6 +117,17 @@
 		}
 	}}
 />
+<DetailsModal
+	bind:open={detailsModalOpen}
+	title={$t('settings.repo.show-details-title')}
+	details={detailsText}
+/>
+<DeleteConfirm
+	target={deleteRepoConfirm}
+	on:confirm={() => {
+		if (deleteRepoConfirm) deleteRepo(deleteRepoConfirm);
+	}}
+/>
 <PageHead
 	title={$t('nav.external-repositories')}
 	repoStatus={data.repoStatus}
@@ -178,20 +195,43 @@
 						{/if}
 					</Button>
 				</TableBodyCell>
-				<TableBodyCell tdClass="p-2">
+				<TableBodyCell tdClass="p-2 text-xs">
 					{@const status = data.externalRepositoriesStatus[name]}
-					{#if status}
-						{status.status}:
-						{status.modules.length}
-						{#each status.modules as module}
-							<div>{module}</div>
+					{#if status.status === 'no-path'}
+						{$t('settings.repo-status.no-path')}
+					{:else if status.status === 'no-readme'}
+						{$t('settings.repo-status.no-readme')}
+					{:else if status.status === 'no-magic-string'}
+						{$t('settings.repo-status.no-magic-string')}
+					{:else if status.status === 'loaded'}
+						{$t('settings.repo-status.loaded', { values: { count: status.modules.length } })}
+						{#each status.modules as module_id}
+							{@const module = data.globalState.availableModules.find((m) => m.type === module_id)}
+							<div class="flex items-center gap-1">
+								{#if module}
+									<ModuleIcon {module} imageClass="w-5 m-0.5" />
+								{/if}
+								{module?.displayName || module_id}
+							</div>
 						{/each}
-						<span class="whitespace-pre">{status.details}</span>
+					{/if}
+					{#if status.details}
+						<Button
+							size="xs"
+							color="alternative"
+							class="ml-2"
+							on:click={() => {
+								detailsModalOpen = true;
+								detailsText = status.details;
+							}}
+						>
+							{$t('settings.repo.show-details')}
+						</Button>
 					{/if}
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2">
 					<div class="flex gap-1">
-						<Button on:click={() => deleteRepo(name)}>
+						<Button on:click={() => (deleteRepoConfirm = name)}>
 							{$t('settings.repo.delete')}
 						</Button>
 					</div>
