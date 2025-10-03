@@ -23,9 +23,9 @@
       "matchUpdateTypes": ["minor", "patch"]
     },
     {
-      "description": "Group poetry non-major updates together",
-      "groupName": "poetry non-major updates",
-      "groupSlug": "poetry-non-major-updates",
+      "description": "Group python non-major updates together",
+      "groupName": "python non-major updates",
+      "groupSlug": "python-non-major-updates",
       "matchDatasources": ["pypi"],
       "matchUpdateTypes": ["minor", "patch"]
     },
