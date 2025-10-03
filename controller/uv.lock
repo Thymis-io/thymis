@@ -1080,7 +1080,7 @@ wheels = [
 
 [[package]]
 name = "thymis-agent"
-version = "0.6.3.dev0"
+version = "0.6.4.dev0"
 source = { directory = "../agent" }
 dependencies = [
     { name = "http-network-relay" },
@@ -1103,7 +1103,7 @@ requires-dist = [
 
 [[package]]
 name = "thymis-controller"
-version = "0.6.3.dev0"
+version = "0.6.4.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "alembic" },
