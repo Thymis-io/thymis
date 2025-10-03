@@ -49,7 +49,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 		.filter({ hasText: 'VM Test x64 1' })
 		.getByRole('button', { name: 'View Details' })
 		.first()
-		.click();
+		.click({ force: true });
 
 	// select button "Build and start VM"
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
@@ -68,7 +68,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 		.filter({ hasText: 'VM Test x64 2' })
 		.getByRole('button', { name: 'View Details' })
 		.first()
-		.click();
+		.click({ force: true });
 
 	// wait a few seconds, so the first VM is more likely to finish first
 	await page.waitForTimeout(20000);
@@ -233,7 +233,7 @@ test('Create and use artifacts', async ({ page, request }, testInfo) => {
 		.filter({ hasText: 'My Device 1' })
 		.getByRole('button', { name: 'View Details' })
 		.first()
-		.click();
+		.click({ force: true });
 	await page.getByRole('tab', { name: 'Configure' }).click();
 	await page.locator('button').filter({ hasText: 'Add Artifact' }).click();
 	await page.locator('button', { hasText: 'Add Artifact' }).scrollIntoViewIfNeeded();

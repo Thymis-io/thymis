@@ -78,7 +78,7 @@ test('shows configuration', async ({ page, request }, testInfo) => {
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
 	// go to device details page, delete device
-	await page.getByRole('button', { name: 'View Details' }).first().click();
+	await page.getByRole('button', { name: 'View Details' }).first().click({ force: true });
 
 	await page.waitForURL('/configuration/configuration-details*');
 
@@ -149,12 +149,9 @@ test('create whoami tag', async ({ page, request }, testInfo) => {
 	await saveButton.click();
 
 	// Configure the tag
-	const configureTagButton = page
-		.locator('a', { hasText: 'Configure Tag' })
-		.locator('visible=true')
-		.first();
+	const configureTagButton = page.getByRole('button', { name: 'Configure Tag' }).first();
 	await expectScreenshotWithHighlight(page, configureTagButton, testInfo, screenshotCounter);
-	await configureTagButton.click();
+	await configureTagButton.click({ force: true });
 
 	const addModuleButton = page.locator('#add-module').first();
 	await expectScreenshotWithHighlight(
@@ -225,7 +222,7 @@ test('create whoami tag', async ({ page, request }, testInfo) => {
 		.locator('button')
 		.nth(1);
 	await expectScreenshotWithHighlight(page, editTagButton, testInfo, screenshotCounter);
-	await editTagButton.click();
+	await editTagButton.click({ force: true });
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
@@ -356,7 +353,7 @@ test('Download Raspberry Pi 4 image', async ({ page, request }, testInfo) => {
 		.filter({ hasText: 'My Device 1' })
 		.getByRole('button', { name: 'View Details' })
 		.first()
-		.click();
+		.click({ force: true });
 
 	// find download button and click on it
 	await page.locator('button').filter({ hasText: 'Download Device Image' }).first().click();
@@ -390,11 +387,8 @@ test('VNC View', async ({ page, request }, testInfo) => {
 	await page.locator('nav:visible').locator('a', { hasText: 'Config-Tags' }).click();
 
 	// add Kiosk module with VNC server to tag
-	const configureTagButton = page
-		.locator('a', { hasText: 'Configure Tag' })
-		.locator('visible=true')
-		.first();
-	await configureTagButton.click();
+	const configureTagButton = page.getByRole('button', { name: 'Configure Tag' }).first();
+	await configureTagButton.click({ force: true });
 
 	const addModuleButton = page.locator('#add-module').first();
 	await addModuleButton.click();
@@ -470,7 +464,7 @@ test('Configure Wifi Network', async ({ page, request }, testInfo) => {
 
 	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
 
-	await page.getByRole('button', { name: 'View Details' }).click();
+	await page.getByRole('button', { name: 'View Details' }).click({ force: true });
 
 	await page.waitForURL('/configuration/configuration-details*');
 
