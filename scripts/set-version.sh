@@ -3,7 +3,7 @@
 set -e
 
 # This script sets the version of the project in agent/pyproject.toml, controller/pyproject.toml, frontend/package.json
-# and runs `poetry lock` `poetry install`, `npm install` respectively.
+# and runs `uv lock` `uv install`, `npm install` respectively.
 
 MY_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 PROJECT_DIR="$(dirname "$MY_DIR")"
@@ -41,14 +41,14 @@ fi
 # Set the version in agent/pyproject.toml
 sed -i "s/^version = .*/version = \"$PY_VERSION\"/" $PROJECT_DIR/agent/pyproject.toml
 
-# run poetry lock and install
-(cd $PROJECT_DIR/agent && poetry lock)
+# run uv lock and install
+(cd $PROJECT_DIR/agent && uv lock)
 
 # Set the version in controller/pyproject.toml
 sed -i "s/^version = .*/version = \"$PY_VERSION\"/" $PROJECT_DIR/controller/pyproject.toml
 
-# run poetry lock and install
-(cd $PROJECT_DIR/controller && poetry lock)
+# run uv lock and install
+(cd $PROJECT_DIR/controller && uv lock)
 
 # Set the version in frontend/package.json
 sed -i "s/\"version\": .*/\"version\": \"$NPM_VERSION\",/" $PROJECT_DIR/frontend/package.json

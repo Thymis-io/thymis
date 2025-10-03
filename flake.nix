@@ -39,7 +39,7 @@
     ];
   };
 
-  outputs = inputss@{ self, nixpkgs, home-manager, poetry2nix, flake-utils, ... }:
+  outputs = inputss@{ self, nixpkgs, home-manager, flake-utils, ... }:
     let
       inputs = inputss // {
         thymis = self;
@@ -156,7 +156,7 @@
               export THYMIS_DEV_SHELL=true
               export THYMIS_FLAKE_ROOT=$(git rev-parse --show-toplevel)
               export PATH=${inputs.nix.packages."${system}".nix}/bin:$PATH
-              alias run-dev="(cd $THYMIS_FLAKE_ROOT/controller && UVICORN_PORT=8080 poetry run uvicorn thymis_controller.main:app --reload --host 0.0.0.0 --port 8080)"
+              alias run-dev="(cd $THYMIS_FLAKE_ROOT/controller && UVICORN_PORT=8080 uv run uvicorn thymis_controller.main:app --reload --host 0.0.0.0 --port 8080)"
             '';
           };
           ci = pkgs.mkShell {
