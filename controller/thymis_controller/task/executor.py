@@ -387,6 +387,9 @@ class TaskWorkerPoolManager:
             db_session.commit()
             self.on_task_update.notify(task)
 
+    def format_nix_error_list(self, errors: list[dict]) -> str:
+        return "\n".join([error["msg"] for error in errors if "msg" in error])
+
     def finish_task(self, future: Future):
         task_id = self.future_to_id[future]
         future, child_out = self.futures.pop(task_id)
@@ -452,7 +455,7 @@ class TaskWorkerPoolManager:
                     logger.error("No nix status")
                 logger.error("Nix errors for task %s:", task_id)
                 if task.nix_errors:
-                    logger.error(task.nix_errors)
+                    logger.error(self.format_nix_error_list(task.nix_errors))
                 else:
                     logger.error("No nix errors")
                 logger.error("Nix error logs for task %s:", task_id)
