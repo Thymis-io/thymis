@@ -1,13 +1,10 @@
 import logging
 from typing import Annotated, List
 
-import http_network_relay
-import http_network_relay.network_relay as nr
-import thymis_agent.agent as agent
-import thymis_controller.network_relay as nr
 from fastapi import APIRouter, Header, HTTPException, Request, WebSocket
-from pydantic import BaseModel, TypeAdapter
+from pydantic import TypeAdapter
 from sqlalchemy.orm import Session
+from starlette.requests import ClientDisconnect
 from thymis_controller import crud, models
 from thymis_controller.crud.agent_token import check_token_validity
 from thymis_controller.dependencies import (
@@ -97,7 +94,13 @@ async def logs(
         logger.warning(f"Invalid token from {request.client.host}: {x_thymis_token}")
         raise HTTPException(status_code=404)
     # token is valid
-    data = await request.body()
+    try:
+        data = await request.body()
+    except ClientDisconnect as e:
+        logger.warning(
+            f"Client disconnected before sending logs: {request.client.host}"
+        )
+        raise HTTPException(status_code=408) from e
     # parse as json
     ta = TypeAdapter(List[models.LogEntry])
     log_entries = ta.validate_json(data)

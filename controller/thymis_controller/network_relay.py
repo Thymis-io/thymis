@@ -481,9 +481,11 @@ class NetworkRelay(nr.NetworkRelay):
             return self.public_key_to_connection_id[public_key]
 
     async def edge_agent_connection_close(self, edge_agent_connection_id: str):
+        public_key = self.connection_id_to_public_key.get(edge_agent_connection_id)
+
         with sqlalchemy.orm.Session(self.db_engine) as db_session:
             deployment_info = crud_deployment_info.get_by_ssh_public_key(
-                db_session, self.connection_id_to_public_key[edge_agent_connection_id]
+                db_session, public_key
             )
             if deployment_info and len(deployment_info) == 1:
                 crud_agent_connection.create(
@@ -494,7 +496,7 @@ class NetworkRelay(nr.NetworkRelay):
             else:
                 logger.error(
                     "No valid deployment info found for public key %s: %s",
-                    self.connection_id_to_public_key[edge_agent_connection_id],
+                    public_key,
                     deployment_info,
                 )
 
