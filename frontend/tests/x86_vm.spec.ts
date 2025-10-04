@@ -125,19 +125,17 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 
 	// fill in the form input "Freeform Settings"
 	await page.locator('p', { hasText: 'Freeform Settings' }).waitFor();
-	// const freeformSettingsInput = page.locator('textarea').first();
-	// await freeformSettingsInput.fill(
-	// 	'programs.bash.promptInit = "PS1=\\"\\[`cat /run/thymis/secret.txt`Hello World Custom Prompt\\] \\"";services.openssh.settings.PrintLastLog = "no";'
-	// );
 
 	// we moved to monaco editor
 	// get by role "code"
 	const freeformSettingsInput = page.getByRole('code').first();
 	await freeformSettingsInput.click();
 	await page.keyboard.press('ControlOrMeta+A'); // Select all text
+	await page.keyboard.press('Backspace'); // Delete selected text
 	await page.keyboard.type(
 		'programs.bash.promptInit = "PS1=\\"\\[`cat /run/thymis/secret.txt`Hello World Custom Prompt\\] \\"";services.openssh.settings.PrintLastLog = "no";'
 	);
+	await page.waitForTimeout(1000);
 
 	// Edit core device module too
 	await page.locator('p', { hasText: 'Core Device Configuration' }).click();

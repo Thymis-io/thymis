@@ -7,6 +7,7 @@
 	let editor: Monaco.editor.IStandaloneCodeEditor;
 	let monaco: typeof Monaco;
 	let editorContainer: HTMLElement;
+	let debounceTimeout: NodeJS.Timeout;
 
 	let props: {
 		placeholder: string | null;
@@ -34,12 +35,16 @@
 		});
 		editor.getModel()?.onDidChangeContent(() => {
 			if (props.onChange) {
-				props.onChange(editor.getValue());
+				clearTimeout(debounceTimeout);
+				debounceTimeout = setTimeout(() => {
+					props.onChange!(editor.getValue());
+				}, 200);
 			}
 		});
 	});
 
 	onDestroy(() => {
+		clearTimeout(debounceTimeout);
 		monaco?.editor.getModels().forEach((model) => model.dispose());
 		editor?.dispose();
 	});
