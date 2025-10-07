@@ -12,5 +12,5 @@
 </script>
 
 <Modal bind:open {title} {size}>
-	<span class="whitespace-pre">{details}</span>
+	<span class="whitespace-pre text-base">{details}</span>
 </Modal>

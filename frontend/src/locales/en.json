@@ -327,8 +327,8 @@
 		},
 		"repo-status": {
 			"no-path": "URL/Path not found",
-			"no-readme": "Repo has no Readme.md",
-			"no-magic-string": "Not a Thymis Module Repository: 'contains thymis modules' not in Readme.md",
+			"no-readme": "Repo has no README.md",
+			"no-magic-string": "Not a Thymis Module Repository: 'contains thymis modules' not in README.md",
 			"loaded": "Repo loaded with {count} modules"
 		}
 	},
