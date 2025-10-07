@@ -7,14 +7,18 @@
 	import Commit from 'lucide-svelte/icons/git-commit-vertical';
 	import Tag from 'lucide-svelte/icons/tag';
 	import Warning from 'lucide-svelte/icons/triangle-alert';
+	import RepoConnectionTest from './RepoConnectionTest.svelte';
 
 	interface Props {
 		open?: boolean;
 		inputName?: string;
+		apiSecret?: string | null;
 		onSave: (newUrl: string) => void;
 	}
 
-	let { open = $bindable(false), inputName, onSave }: Props = $props();
+	let { open = $bindable(false), inputName, apiSecret, onSave }: Props = $props();
+
+	let testConnectionUrl = $state<string>('');
 
 	let flakeReference = $state<FlakeReference>();
 	let compiledUrl = $derived.by(() => {
@@ -100,7 +104,13 @@
 	});
 </script>
 
-<Modal bind:open title={$t('settings.external-modal.title')} size="lg">
+<Modal
+	bind:open
+	title={$t('settings.external-modal.title')}
+	size="lg"
+	on:open={() => (testConnectionUrl = '')}
+	on:close={() => (testConnectionUrl = '')}
+>
 	{#if flakeReference}
 		<div class="flex gap-2">
 			<div class="flex-1">
@@ -230,6 +240,18 @@
 			<Button
 				class="flex-1 mt-4 mb-2"
 				on:click={() => {
+					if (compiledUrl) {
+						testConnectionUrl = '';
+						testConnectionUrl = compiledUrl;
+					}
+				}}
+				disabled={!compiledUrl}
+			>
+				{$t('settings.repo.check')}
+			</Button>
+			<Button
+				class="flex-1 mt-4 mb-2"
+				on:click={() => {
 					if (compiledUrl) onSave(compiledUrl);
 					open = false;
 				}}
@@ -244,4 +266,5 @@
 			<Spinner class="mr-2" size="8" />
 		</div>
 	{/if}
+	<RepoConnectionTest inputUrl={testConnectionUrl} {apiSecret} />
 </Modal>

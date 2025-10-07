@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { saveState, type Repo } from '$lib/state';
+	import { saveState } from '$lib/state';
 	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
 	import {
 		Button,
@@ -10,19 +10,17 @@
 		TableBody,
 		TableBodyRow,
 		TableBodyCell,
-		Spinner
+		Modal
 	} from 'flowbite-svelte';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import type { PageData } from './$types';
 	import SecretSelect from '$lib/components/secrets/SecretSelect.svelte';
-	import Check from 'lucide-svelte/icons/check';
-	import Hourglass from 'lucide-svelte/icons/hourglass';
-	import X from 'lucide-svelte/icons/x';
 	import Pen from 'lucide-svelte/icons/pen';
 	import EditExternalRepoUrl from '$lib/components/EditExternalRepoUrl.svelte';
 	import ModuleIcon from '$lib/config/ModuleIcon.svelte';
 	import DetailsModal from '$lib/components/DetailsModal.svelte';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
+	import RepoConnectionTest from '$lib/components/RepoConnectionTest.svelte';
 
 	interface Props {
 		data: PageData;
@@ -32,20 +30,13 @@
 
 	let editModalOpen = $state(false);
 	let editRepoName = $state<string>();
+	let editRepoSecret = $state<string | null>();
 	let detailsModalOpen = $state(false);
 	let detailsText = $state<string>();
 	let deleteRepoConfirm = $state<string>();
-
-	let externalRepoStatus = $state<
-		Record<
-			string,
-			| { status: 'pending' }
-			| { status: 'success' }
-			| { status: 'error'; detail: string }
-			| { status: 'unknown' }
-			| { status: 'rate_limited' }
-		>
-	>({});
+	let testConnectionOpen = $state(false);
+	let testConnectionInput = $state<string>();
+	let testConnectionApiSecret = $state<string | null>();
 
 	const generateUniqueKey = () => {
 		let num = 1;
@@ -91,25 +82,12 @@
 			saveState(data.globalState);
 		}
 	};
-
-	const checkRepoStatus = async (name: string) => {
-		externalRepoStatus[name] = { status: 'pending' };
-		const result = await (await fetch(`/api/external-repositories/test-flake-ref/${name}`)).json();
-		if (result.status === 'success') {
-			externalRepoStatus[name] = { status: 'success' };
-		} else if (result.status === 'rate_limited') {
-			externalRepoStatus[name] = { status: 'rate_limited' };
-		} else if (result.status === 'error') {
-			externalRepoStatus[name] = { status: 'error', detail: result.detail };
-		} else {
-			externalRepoStatus[name] = { status: 'unknown' };
-		}
-	};
 </script>
 
 <EditExternalRepoUrl
 	bind:open={editModalOpen}
 	inputName={editRepoName}
+	apiSecret={editRepoSecret}
 	onSave={(newUrl) => {
 		if (editRepoName && editRepoName in data.globalState.repositories) {
 			data.globalState.repositories[editRepoName].url = newUrl;
@@ -128,6 +106,9 @@
 		if (deleteRepoConfirm) deleteRepo(deleteRepoConfirm);
 	}}
 />
+<Modal bind:open={testConnectionOpen} size="lg" title={$t('settings.repo.check')}>
+	<RepoConnectionTest inputUrl={testConnectionInput} apiSecret={testConnectionApiSecret} />
+</Modal>
 <PageHead
 	title={$t('nav.external-repositories')}
 	repoStatus={data.repoStatus}
@@ -139,7 +120,6 @@
 		<TableHeadCell padding="p-2">{$t('settings.repo.name')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('settings.repo.url')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('settings.repo.secret')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('settings.repo.status')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('settings.repo.status')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('settings.repo.actions')}</TableHeadCell>
 	</TableHead>
@@ -153,6 +133,7 @@
 						<button
 							onclick={() => {
 								editRepoName = name;
+								editRepoSecret = repo.api_key_secret;
 								editModalOpen = true;
 							}}
 						>
@@ -160,7 +141,7 @@
 						</button>
 					</div>
 				</TableBodyCell>
-				<TableBodyCell tdClass="p-2">
+				<TableBodyCell tdClass="p-2 min-w-48 pr-2 xl:pr-12">
 					<SecretSelect
 						secret={repo.api_key_secret ? data.secrets[repo.api_key_secret] : undefined}
 						onChange={(secret) => {
@@ -171,31 +152,7 @@
 						secrets={Object.values(data.secrets)}
 					/>
 				</TableBodyCell>
-				<TableBodyCell tdClass="p-2">
-					<Button
-						class="flex gap-1"
-						on:click={() => checkRepoStatus(name)}
-						disabled={externalRepoStatus[name]?.status === 'pending'}
-					>
-						{#if externalRepoStatus[name]?.status === 'pending'}
-							<Spinner size="4" />
-							{$t('settings.repo.check')}
-						{:else if externalRepoStatus[name]?.status === 'success'}
-							<Check class="text-green-500" size="20" />
-							{$t('settings.repo.check-success')}
-						{:else if externalRepoStatus[name]?.status === 'rate_limited'}
-							<Hourglass class="text-yellow-500" size="20" />
-							{$t('settings.repo.check-rate-limited')}
-						{:else if externalRepoStatus[name]?.status === 'error'}
-							<X class="text-red-500" size="20" />
-							{$t('settings.repo.check-error')}:
-							{externalRepoStatus[name]?.detail}
-						{:else}
-							{$t('settings.repo.check')}
-						{/if}
-					</Button>
-				</TableBodyCell>
-				<TableBodyCell tdClass="p-2 text-xs">
+				<TableBodyCell tdClass="p-2 min-w-48 text-xs">
 					{@const status = data.externalRepositoriesStatus[name]}
 					{#if status.status === 'no-path'}
 						{$t('settings.repo-status.no-path')}
@@ -229,7 +186,17 @@
 						</Button>
 					{/if}
 				</TableBodyCell>
-				<TableBodyCell tdClass="p-2">
+				<TableBodyCell tdClass="p-2 flex gap-2">
+					<Button
+						class="flex gap-1"
+						on:click={() => {
+							testConnectionInput = repo.url;
+							testConnectionApiSecret = repo.api_key_secret;
+							testConnectionOpen = true;
+						}}
+					>
+						{$t('settings.repo.check')}
+					</Button>
 					<div class="flex gap-1">
 						<Button on:click={() => (deleteRepoConfirm = name)}>
 							{$t('settings.repo.delete')}
