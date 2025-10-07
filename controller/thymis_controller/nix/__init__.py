@@ -10,6 +10,7 @@ from thymis_controller.models.external_repo import (
     FlakeReference,
     GitFlakeReference,
     GithubFlakeReference,
+    GitlabFlakeReference,
 )
 from thymis_controller.nix.flake_reference import parse_flake_reference
 
@@ -208,6 +209,11 @@ def build_token(reference: FlakeReference, api_key: "SecretShort") -> str:
         return f"{reference.host}={api_key.value_str}"
     if isinstance(reference, GithubFlakeReference):
         return f"github.com={api_key.value_str}"
+    if isinstance(reference, GitlabFlakeReference):
+        if api_key.value_str.startswith("glpat-"):
+            return f"gitlab.com=PAT:{api_key.value_str}"
+        else:
+            return f"gitlab.com={api_key.value_str}"
     return ""
 
 

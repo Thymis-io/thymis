@@ -1,6 +1,7 @@
 from thymis_controller.models.external_repo import (
     GitFlakeReference,
     GithubFlakeReference,
+    GitlabFlakeReference,
     IndirectFlakeReference,
 )
 
@@ -119,6 +120,45 @@ def parse_flake_reference(flake_url: str):
 
         return GithubFlakeReference(
             type="github",
+            host=host,
+            owner=owner,
+            repo=repo,
+            ref=ref,
+            rev=rev,
+        )
+
+    if flake_url.startswith("gitlab:"):
+        url = flake_url[len("gitlab:") :]
+        parts = url.split("/")
+        params = []
+        host = None
+        owner = None
+        repo = None
+        ref = None
+        rev = None
+        if len(parts) == 2:
+            owner = parts[0]
+            params = parts[1].split("?")
+            repo = params[0]
+        elif len(parts) == 3:
+            owner = parts[0]
+            repo = parts[1]
+            params = parts[2].split("?")
+            if is_commit_rev(parts[2]):
+                rev = params[0]
+            else:
+                ref = params[0]
+
+        for param in params[1:]:
+            if param.startswith("ref="):
+                ref = param[len("ref=") :]
+            if param.startswith("rev="):
+                rev = param[len("rev=") :]
+            if param.startswith("host="):
+                host = param[len("host=") :]
+
+        return GitlabFlakeReference(
+            type="gitlab",
             host=host,
             owner=owner,
             repo=repo,

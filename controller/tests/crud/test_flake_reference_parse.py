@@ -1,6 +1,7 @@
 from thymis_controller.models.external_repo import (
     GitFlakeReference,
     GithubFlakeReference,
+    GitlabFlakeReference,
     IndirectFlakeReference,
 )
 from thymis_controller.nix.flake_reference import parse_flake_reference
@@ -142,5 +143,45 @@ def test_github_flake_reference():
     assert ref.host == "company-github.example.org"
     assert ref.owner == "internal"
     assert ref.repo == "project"
+    assert ref.ref is None
+    assert ref.rev is None
+
+
+def test_gitlab_flake_reference():
+    ref = parse_flake_reference("gitlab:veloren/veloren")
+    assert isinstance(ref, GitlabFlakeReference)
+    assert ref.type == "gitlab"
+    assert ref.host is None
+    assert ref.owner == "veloren"
+    assert ref.repo == "veloren"
+    assert ref.ref is None
+    assert ref.rev is None
+
+    ref = parse_flake_reference("gitlab:veloren/veloren/master")
+    assert isinstance(ref, GitlabFlakeReference)
+    assert ref.type == "gitlab"
+    assert ref.host is None
+    assert ref.owner == "veloren"
+    assert ref.repo == "veloren"
+    assert ref.ref == "master"
+    assert ref.rev is None
+
+    ref = parse_flake_reference(
+        "gitlab:veloren/veloren/80a4d7f13492d916e47d6195be23acae8001985a"
+    )
+    assert isinstance(ref, GitlabFlakeReference)
+    assert ref.type == "gitlab"
+    assert ref.host is None
+    assert ref.owner == "veloren"
+    assert ref.repo == "veloren"
+    assert ref.ref is None
+    assert ref.rev == "80a4d7f13492d916e47d6195be23acae8001985a"
+
+    ref = parse_flake_reference("gitlab:openldap/openldap?host=git.openldap.org")
+    assert isinstance(ref, GitlabFlakeReference)
+    assert ref.type == "gitlab"
+    assert ref.host == "git.openldap.org"
+    assert ref.owner == "openldap"
+    assert ref.repo == "openldap"
     assert ref.ref is None
     assert ref.rev is None

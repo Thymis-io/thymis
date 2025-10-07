@@ -51,3 +51,12 @@ class GithubFlakeReference(FlakeReference):
     repo: str
     ref: str | None
     rev: str | None
+
+
+class GitlabFlakeReference(FlakeReference):
+    type: Literal["gitlab"]
+    host: str | None
+    owner: str
+    repo: str
+    ref: str | None
+    rev: str | None
