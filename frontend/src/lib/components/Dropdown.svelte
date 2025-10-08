@@ -82,7 +82,7 @@
 	tabindex="0"
 >
 	<button
-		class="w-full flex justify-between items-center p-1 disabled:opacity-50 disabled:cursor-not-allowed text-xs {showBox &&
+		class="w-full flex justify-between items-center p-1 disabled:opacity-50 disabled:cursor-not-allowed {showBox &&
 			'bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-500 rounded-lg shadow-sm'} {innerClass}"
 		onclick={(e) => {
 			e.preventDefault();

@@ -163,7 +163,7 @@ def cachedmethod(
                 if method_cache is None:
                     return method(self, *args, **kwargs)
 
-                k = key(*args, **kwargs)
+                k = key(self, *args, **kwargs)
                 try:
                     with lock(self):
                         return method_cache[k]

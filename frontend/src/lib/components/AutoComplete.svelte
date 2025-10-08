@@ -85,7 +85,7 @@
 	const floatingStyle = $derived.by(() => {
 		if (!parent) return '';
 		const rect = parent.getBoundingClientRect();
-		return `position: fixed; left: ${rect.left}px; width: ${rect.right - rect.left}px;`;
+		return `position: fixed; left: ${rect.left}px; top: ${rect.bottom}px; width: ${rect.width}px;`;
 	});
 </script>
 
@@ -128,7 +128,9 @@
 				{@const selectedClass =
 					item.value === value ? 'text-primary-600 dark:text-primary-400' : ''}
 				{@const Icon = item.icon}
-				<option
+				<div
+					role="option"
+					aria-selected={item.value === value}
 					class="p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 {highlightedClass} {selectedClass}"
 					onclick={() => selectItem(item)}
 					onkeydown={(event) => {
@@ -144,7 +146,7 @@
 						<Icon class="inline h-4 w-4 mr-2" />
 					{/if}
 					{item.label}
-				</option>
+				</div>
 			{/each}
 		</div>
 	{/if}
