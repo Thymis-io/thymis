@@ -54,7 +54,7 @@
 </script>
 
 {#if inputUrl}
-	<p class="md-4">
+	<p class="md-4 text-base">
 		{$t('settings.repo.checking-access', { values: { url: inputUrl } })}
 	</p>
 {/if}

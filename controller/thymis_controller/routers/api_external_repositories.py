@@ -89,13 +89,15 @@ async def test_fake_reference_api_access(
     return {"status": "error", "detail": "Not a supported repository type"}
 
 
-@router.get("/external-repositories/branches/{flake_name}")
-async def get_flake_branches(flake_name: str, project: ProjectAD, session: DBSessionAD):
-    flake = project.read_state().repositories.get(flake_name)
-    if not flake:
-        raise HTTPException(status_code=404, detail="Flake not found")
-    api_key = project.get_secret(session, flake.api_key_secret)
-    flake_ref = parse_flake_reference(flake.url)
+@router.get("/external-repositories/branches/{flake_url:path}")
+async def get_flake_branches(
+    flake_url: str,
+    project: ProjectAD,
+    session: DBSessionAD,
+    api_key_secret: Optional[uuid.UUID] = None,
+):
+    api_key = project.get_secret(session, api_key_secret)
+    flake_ref = parse_flake_reference(flake_url)
 
     if isinstance(
         flake_ref, (GitFlakeReference, GithubFlakeReference, GitlabFlakeReference)
@@ -104,13 +106,15 @@ async def get_flake_branches(flake_name: str, project: ProjectAD, session: DBSes
     return []
 
 
-@router.get("/external-repositories/tags/{flake_name}")
-async def get_flake_tags(flake_name: str, project: ProjectAD, session: DBSessionAD):
-    flake = project.read_state().repositories.get(flake_name)
-    if not flake:
-        raise HTTPException(status_code=404, detail="Flake not found")
-    api_key = project.get_secret(session, flake.api_key_secret)
-    flake_ref = parse_flake_reference(flake.url)
+@router.get("/external-repositories/tags/{flake_url:path}")
+async def get_flake_tags(
+    flake_url: str,
+    project: ProjectAD,
+    session: DBSessionAD,
+    api_key_secret: Optional[uuid.UUID] = None,
+):
+    api_key = project.get_secret(session, api_key_secret)
+    flake_ref = parse_flake_reference(flake_url)
 
     if isinstance(
         flake_ref, (GitFlakeReference, GithubFlakeReference, GitlabFlakeReference)
