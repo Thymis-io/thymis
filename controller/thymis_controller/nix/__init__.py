@@ -210,7 +210,9 @@ def build_token(reference: FlakeReference, api_key: "SecretShort") -> str:
     if isinstance(reference, GithubFlakeReference):
         return f"github.com={api_key.value_str}"
     if isinstance(reference, GitlabFlakeReference):
-        if api_key.value_str.startswith("glpat-"):
+        if api_key.value_str.startswith("PAT:"):
+            return f"gitlab.com={api_key.value_str}"
+        elif api_key.value_str.startswith("glpat-"):
             return f"gitlab.com=PAT:{api_key.value_str}"
         else:
             return f"gitlab.com={api_key.value_str}"
@@ -286,6 +288,6 @@ NIX_SSHOPTS = (
     "-o PasswordAuthentication=no "
     "-o KbdInteractiveAuthentication=no "
     "-o BatchMode=yes "
-    "-o NumberOfPasswordPrompts=0"
+    "-o NumberOfPasswordPrompts=0 "
     "-o ConnectTimeout=10 "
 )
