@@ -30,6 +30,7 @@
 
 	let editModalOpen = $state(false);
 	let editRepoName = $state<string>();
+	let editRepoUrl = $state<string>();
 	let editRepoSecret = $state<string | null>();
 	let detailsModalOpen = $state(false);
 	let detailsText = $state<string>();
@@ -87,12 +88,18 @@
 <EditExternalRepoUrl
 	bind:open={editModalOpen}
 	inputName={editRepoName}
+	inputUrl={editRepoUrl}
 	apiSecret={editRepoSecret}
 	onSave={(newUrl) => {
 		if (editRepoName && editRepoName in data.globalState.repositories) {
 			data.globalState.repositories[editRepoName].url = newUrl;
 			saveState(data.globalState);
 		}
+	}}
+	onClose={() => {
+		editRepoName = undefined;
+		editRepoUrl = undefined;
+		editRepoSecret = undefined;
 	}}
 />
 <DetailsModal
@@ -133,6 +140,7 @@
 						<button
 							onclick={() => {
 								editRepoName = name;
+								editRepoUrl = repo.url;
 								editRepoSecret = repo.api_key_secret;
 								editModalOpen = true;
 							}}

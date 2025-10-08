@@ -67,9 +67,9 @@ async def _get_github_get_head_commit(
     cache=TTLCache(maxsize=100, ttl=60),
     key=lambda owner, repo, api_key: f"{owner}/{repo}/{api_key.id if api_key else 'no_key'}",
 )
-def _get_gitlab_branches(owner: str, repo: str, api_key: Optional["SecretShort"]):
+async def _get_gitlab_branches(owner: str, repo: str, api_key: Optional["SecretShort"]):
     project_path = f"{owner}/{repo}".replace("/", "%2F")
-    return _request_json(
+    return await _request_json(
         f"https://gitlab.com/api/v4/projects/{project_path}/repository/branches",
         api_key,
     )
@@ -79,9 +79,9 @@ def _get_gitlab_branches(owner: str, repo: str, api_key: Optional["SecretShort"]
     cache=TTLCache(maxsize=100, ttl=60),
     key=lambda owner, repo, api_key: f"{owner}/{repo}/{api_key.id if api_key else 'no_key'}",
 )
-def _get_gitlab_tags(owner: str, repo: str, api_key: Optional["SecretShort"]):
+async def _get_gitlab_tags(owner: str, repo: str, api_key: Optional["SecretShort"]):
     project_path = f"{owner}/{repo}".replace("/", "%2F")
-    return _request_json(
+    return await _request_json(
         f"https://gitlab.com/api/v4/projects/{project_path}/repository/tags",
         api_key,
     )
@@ -104,7 +104,9 @@ async def _get_gitlab_get_head_commit(
 def is_github(reference: FlakeReference) -> bool:
     if isinstance(reference, GithubFlakeReference):
         return True
-    if isinstance(reference, GitFlakeReference) and reference.host == "github.com":
+    if isinstance(reference, GitFlakeReference) and (
+        reference.host == "github.com" or reference.host == "git@github.com"
+    ):
         return True
     return False
 
@@ -112,7 +114,9 @@ def is_github(reference: FlakeReference) -> bool:
 def is_gitlab(reference: FlakeReference) -> bool:
     if isinstance(reference, GitlabFlakeReference):
         return True
-    if isinstance(reference, GitFlakeReference) and reference.host == "gitlab.com":
+    if isinstance(reference, GitFlakeReference) and (
+        reference.host == "gitlab.com" or reference.host == "git@gitlab.com"
+    ):
         return True
     return False
 

@@ -298,6 +298,7 @@
 			"owner": "Nutzer / Organisation",
 			"repo": "Repository",
 			"ref": "Branch / Tag / Vollständiger Commit SHA (optional)",
+			"refresh-refs": "Branches aktualisieren",
 			"compiled-url": "Kompilierte URL"
 		},
 		"repo-status": {

@@ -7,16 +7,28 @@
 	import Commit from 'lucide-svelte/icons/git-commit-vertical';
 	import Tag from 'lucide-svelte/icons/tag';
 	import Warning from 'lucide-svelte/icons/triangle-alert';
+	import RefreshCcw from 'lucide-svelte/icons/refresh-ccw';
+	import Check from 'lucide-svelte/icons/check';
+	import X from 'lucide-svelte/icons/x';
 	import RepoConnectionTest from './RepoConnectionTest.svelte';
 
 	interface Props {
 		open?: boolean;
 		inputName?: string;
+		inputUrl?: string;
 		apiSecret?: string | null;
 		onSave: (newUrl: string) => void;
+		onClose: () => void;
 	}
 
-	let { open = $bindable(false), inputName, apiSecret, onSave }: Props = $props();
+	let {
+		open = $bindable(false),
+		inputName,
+		inputUrl,
+		apiSecret,
+		onSave,
+		onClose
+	}: Props = $props();
 
 	let testConnectionUrl = $state<string>('');
 
@@ -43,37 +55,45 @@
 		}
 	});
 
+	let manualRefRefreshStatus = $state<null | 'pending' | 'done' | 'error'>(null);
 	let repoBranches = $state<{ name: string }[]>([]);
 	let repoTags = $state<{ name: string }[]>([]);
 
-	$effect(() => {
-		if (inputName) loadRepo(inputName);
-	});
-
 	const loadRepo = async (name: string) => {
-		const [flakeRefFetch, branchesFetch, tagsFetch] = await Promise.all([
-			fetch(`/api/external-repositories/flake-ref/${name}`),
-			fetch(`/api/external-repositories/branches/${name}`),
-			fetch(`/api/external-repositories/tags/${name}`)
+		flakeReference = undefined;
+
+		const [flakeRefFetch] = await Promise.all([
+			fetch(`/api/external-repositories/flake-ref/${name}`)
 		]);
 
 		if (flakeRefFetch.ok) {
 			flakeReference = await flakeRefFetch.json();
-		} else {
-			flakeReference = undefined;
 		}
+	};
+
+	const loadRefs = async (url: string) => {
+		repoBranches = [];
+		repoTags = [];
+
+		const searchParams = new URLSearchParams();
+		if (apiSecret) {
+			searchParams.set('api_key_secret', apiSecret);
+		}
+
+		const [branchesFetch, tagsFetch] = await Promise.all([
+			fetch(`/api/external-repositories/branches/${encodeURIComponent(url)}?${searchParams}`),
+			fetch(`/api/external-repositories/tags/${encodeURIComponent(url)}?${searchParams}`)
+		]);
 
 		if (branchesFetch.ok) {
 			repoBranches = await branchesFetch.json();
-		} else {
-			repoBranches = [];
 		}
 
 		if (tagsFetch.ok) {
 			repoTags = await tagsFetch.json();
-		} else {
-			repoTags = [];
 		}
+
+		return branchesFetch.ok && tagsFetch.ok;
 	};
 
 	const onBranchSelect = (value: string) => {
@@ -108,8 +128,16 @@
 	bind:open
 	title={$t('settings.external-modal.title')}
 	size="lg"
-	on:open={() => (testConnectionUrl = '')}
-	on:close={() => (testConnectionUrl = '')}
+	on:open={() => {
+		testConnectionUrl = '';
+		manualRefRefreshStatus = null;
+		if (inputName) loadRepo(inputName);
+		if (inputUrl) loadRefs(inputUrl);
+	}}
+	on:close={() => {
+		testConnectionUrl = '';
+		onClose();
+	}}
 >
 	{#if flakeReference}
 		<div class="flex gap-2">
@@ -228,7 +256,32 @@
 					defaultIcon={(value: string) => (isCommitSha(value) ? Commit : undefined)}
 				/>
 			</div>
-			<div class="flex-1"></div>
+			<div class="flex-1">
+				<Button
+					on:click={() => {
+						if (compiledUrl) {
+							manualRefRefreshStatus = 'pending';
+							loadRefs(compiledUrl).then((success) => {
+								manualRefRefreshStatus = success ? 'done' : 'error';
+								setTimeout(() => (manualRefRefreshStatus = null), 3000);
+							});
+						}
+					}}
+					class="gap-1 mt-4 px-3"
+					color="alternative"
+				>
+					{#if !manualRefRefreshStatus}
+						<RefreshCcw class="w-4 h-4" />
+					{:else if manualRefRefreshStatus === 'pending'}
+						<Spinner class="w-4 h-4" />
+					{:else if manualRefRefreshStatus === 'done'}
+						<Check class="w-4 h-4 text-green-500" />
+					{:else if manualRefRefreshStatus === 'error'}
+						<X class="w-4 h-4 text-red-500" />
+					{/if}
+					{$t('settings.external-modal.refresh-refs')}
+				</Button>
+			</div>
 		</div>
 	{/if}
 	{#if flakeReference}
