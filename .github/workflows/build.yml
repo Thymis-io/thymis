@@ -17,7 +17,7 @@ jobs:
     outputs:
       package-lock-json: ${{ steps.filter.outputs.package-lock-json }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -28,7 +28,7 @@ jobs:
   build-agent:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -44,7 +44,7 @@ jobs:
   build-agent-aarch64:
     runs-on: ubuntu-22.04-arm
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -60,7 +60,7 @@ jobs:
   build-thymis-controller:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           path: thymis
       - uses: ./thymis/.github/actions/setup-nix
@@ -83,7 +83,7 @@ jobs:
         with:
           app-id: ${{ vars.THYMIS_APP_ID }}
           private-key: ${{ secrets.THYMIS_APP_PRIVATE_KEY }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: failure()
         with:
           token: ${{ steps.generate-token.outputs.token }}
@@ -158,7 +158,7 @@ jobs:
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -175,7 +175,7 @@ jobs:
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -194,7 +194,7 @@ jobs:
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -213,7 +213,7 @@ jobs:
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
@@ -237,7 +237,7 @@ jobs:
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-nix
         with:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
