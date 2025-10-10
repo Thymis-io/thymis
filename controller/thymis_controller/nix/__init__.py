@@ -1,10 +1,23 @@
 import json
 import logging
+import os
 import pathlib
 import re
 import subprocess
+from typing import TYPE_CHECKING
+
+from thymis_controller.models.external_repo import (
+    FlakeReference,
+    GitFlakeReference,
+    GithubFlakeReference,
+    GitlabFlakeReference,
+)
+from thymis_controller.nix.flake_reference import parse_flake_reference
 
 from .log_parse import NixParser
+
+if TYPE_CHECKING:
+    from thymis_controller.models.secrets import SecretShort
 
 logger = logging.getLogger(__name__)
 
@@ -17,10 +30,21 @@ def get_input_out_path(flake_path, input_name):
         f"{flake_path}#inputs.{input_name}.outPath",
         "--no-link",
         "--allow-dirty-locks",
+        "--refresh",
     ]
 
     try:
-        subprocess.run(cmd, check=True, cwd=flake_path, stderr=subprocess.PIPE)
+        subprocess.run(
+            cmd,
+            check=True,
+            cwd=flake_path,
+            stderr=subprocess.PIPE,
+            env={
+                "PATH": os.getenv("PATH"),
+                "NIX_SSHOPTS": NIX_SSHOPTS,
+                "GIT_TERMINAL_PROMPT": "0",
+            },
+        )
     except subprocess.CalledProcessError as e:
         nix_parser = NixParser()
         nix_parser.process_buffer(bytearray(e.stderr))
@@ -30,17 +54,28 @@ def get_input_out_path(flake_path, input_name):
             e.returncode,
             nix_parser.msg_output,
         )
-        return None
+        return None, nix_parser.msg_output
 
     cmd = NIX_CMD + [
         "eval",
         f"{flake_path}#inputs.{input_name}.outPath",
         "--json",
         "--allow-dirty-locks",
+        "--refresh",
     ]
 
     try:
-        result = subprocess.run(cmd, check=True, capture_output=True, cwd=flake_path)
+        result = subprocess.run(
+            cmd,
+            check=True,
+            capture_output=True,
+            cwd=flake_path,
+            env={
+                "PATH": os.getenv("PATH"),
+                "NIX_SSHOPTS": NIX_SSHOPTS,
+                "GIT_TERMINAL_PROMPT": "0",
+            },
+        )
     except subprocess.CalledProcessError as e:
         nix_parser = NixParser()
         nix_parser.process_buffer(bytearray(e.stderr))
@@ -50,13 +85,13 @@ def get_input_out_path(flake_path, input_name):
             e.returncode,
             nix_parser.msg_output,
         )
-        return None
+        return None, nix_parser.msg_output
 
     # result.stdout is a json string
     result = json.loads(result.stdout)
     # should be a string
     assert isinstance(result, str)
-    return result
+    return result, None
 
 
 def get_build_output(flake_path, identifier):
@@ -167,6 +202,78 @@ def check_device_reference(
     return config_id in result
 
 
+def build_token(reference: FlakeReference, api_key: "SecretShort") -> str:
+    if not reference or not api_key:
+        return ""
+    if isinstance(reference, GitFlakeReference):
+        if reference.host and reference.host.startswith("git@"):
+            host = reference.host[4:]
+        else:
+            host = reference.host
+        if host:
+            return f"{host}={api_key.value_str}"
+    if isinstance(reference, GithubFlakeReference):
+        return f"github.com={api_key.value_str}"
+    if isinstance(reference, GitlabFlakeReference):
+        if api_key.value_str.startswith("PAT:"):
+            return f"gitlab.com={api_key.value_str}"
+        elif api_key.value_str.startswith("glpat-"):
+            return f"gitlab.com=PAT:{api_key.value_str}"
+        else:
+            return f"gitlab.com={api_key.value_str}"
+    return ""
+
+
+def nix_access_tokens(flake_url: str, api_key: "SecretShort | None") -> str:
+    flake_ref = parse_flake_reference(flake_url)
+    token = build_token(flake_ref, api_key)
+    if token:
+        return f"access-tokens = {token}"
+    return ""
+
+
+def all_nix_access_tokens(flake_urls: list[str], api_keys: list["SecretShort"]) -> str:
+    access_tokens = []
+    for flake_url, api_key in zip(flake_urls, api_keys):
+        flake_ref = parse_flake_reference(flake_url)
+        token = build_token(flake_ref, api_key)
+        if token and token not in access_tokens:
+            access_tokens.append(token)
+    if len(access_tokens) > 0:
+        return "access-tokens = " + " ".join(access_tokens)
+    return ""
+
+
+def nix_flake_prefetch(url: str, api_key: "SecretShort | None"):
+    access_tokens = nix_access_tokens(url, api_key)
+    try:
+        subprocess.run(
+            [
+                "nix",
+                *NIX_CMD[1:],
+                "flake",
+                "prefetch",
+                url,
+                "--refresh",
+                "--tarball-ttl",
+                "0",
+            ],
+            capture_output=True,
+            check=True,
+            env={
+                "PATH": os.getenv("PATH"),
+                "NIX_SSHOPTS": NIX_SSHOPTS,
+                "GIT_TERMINAL_PROMPT": "0",
+                "NIX_CONFIG": access_tokens,
+            },
+        )
+    except subprocess.CalledProcessError as e:
+        nix_parser = NixParser()
+        nix_parser.process_buffer(bytearray(e.stderr))
+        return False, nix_parser.msg_output
+    return True, None
+
+
 NIX_CMD = [
     "nix",
     "--option",
@@ -181,3 +288,11 @@ NIX_CMD = [
     "--log-format",
     "internal-json",
 ]
+
+NIX_SSHOPTS = (
+    "-o PasswordAuthentication=no "
+    "-o KbdInteractiveAuthentication=no "
+    "-o BatchMode=yes "
+    "-o NumberOfPasswordPrompts=0 "
+    "-o ConnectTimeout=10 "
+)

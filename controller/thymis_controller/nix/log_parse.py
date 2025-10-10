@@ -234,10 +234,12 @@ class NixParser:
                     )
                     # Ignore this line
                     normal_stderr += line
+                    self.msg_output += line.decode("utf-8", errors="replace")
                     continue
                 has_handled_nix_lines = True
             else:
                 normal_stderr += line
+                self.msg_output += line.decode("utf-8", errors="replace")
         buffer[:] = normal_stderr
         return has_handled_nix_lines
 

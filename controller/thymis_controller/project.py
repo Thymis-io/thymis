@@ -19,8 +19,15 @@ import sqlalchemy.orm
 from pyrage import decrypt, encrypt, passphrase, ssh
 from thymis_controller import crud, db_models, migration, models
 from thymis_controller.config import global_settings
+from thymis_controller.models.external_repo import ExternalRepoStatus
 from thymis_controller.models.state import State
-from thymis_controller.nix import NIX_CMD, get_input_out_path
+from thymis_controller.nix import (
+    NIX_CMD,
+    NIX_SSHOPTS,
+    all_nix_access_tokens,
+    get_input_out_path,
+    nix_flake_prefetch,
+)
 from thymis_controller.nix.templating import render_flake_nix
 from thymis_controller.notifications import NotificationManager
 from thymis_controller.repo import Repo
@@ -58,75 +65,6 @@ def del_path(path: os.PathLike):
 
 startup_python_path = sys.path.copy()
 
-lockfile = None
-
-
-def load_repositories(flake_path: os.PathLike, repositories: dict[str, models.Repo]):
-    from thymis_controller import modules
-
-    # only run if lockfile changed
-    global lockfile
-    # lockfile sits at path/flake.lock
-    lockfile_path = os.path.join(flake_path, "flake.lock")
-    try:
-        with open(lockfile_path, "r", encoding="utf-8") as f:
-            new_lockfile = f.read()
-    except FileNotFoundError:
-        logger.error("No flake.lock found at %s", lockfile_path)
-        new_lockfile = None
-    if new_lockfile == lockfile:
-        return
-    lockfile = new_lockfile
-    # for each repository: get_input_out_path from the flake.nix in the path
-    input_out_paths = {}
-    for name, repo in repositories.items():
-        if not repo.url:
-            continue
-        path = get_input_out_path(flake_path, name)
-        if path is None:
-            continue
-        # check wether path / README.md exists and contains the string "contains thymis modules"
-        if not os.path.exists(os.path.join(path, "README.md")):
-            logger.debug("Repository %s does not contain a README.md", name)
-            logger.debug("Skipping %s", name)
-            continue
-        with open(os.path.join(path, "README.md"), "r", encoding="utf-8") as f:
-            if "contains thymis modules" not in f.read():
-                logger.debug("Repository %s contains no thymis modules", name)
-                logger.debug("Skipping %s", name)
-                continue
-        logger.info("Found repository %s at %s", name, path)
-        input_out_paths[name] = path
-    # add the paths to sys.path
-    sys.path = startup_python_path.copy()
-    # for path in input_out_paths.values():
-    importlib.invalidate_caches()
-    modules_found = []
-    for name, path in input_out_paths.items():
-        logger.debug("Adding %s at %s to sys.path", name, path)
-        sys.path.append(path)
-        for module in pkgutil.walk_packages([path]):
-            try:
-                imported_module = importlib.import_module(module.name)
-                # required to detect changes if this is a second import
-                importlib.reload(imported_module)
-                logger.debug("Imported module %s", module.name)
-                for name, value in imported_module.__dict__.items():
-                    # logger.info("Checking value %s", name)
-                    if not isinstance(value, type):
-                        continue
-                    cls = value
-                    logger.debug("Found class %s", cls)
-                    if issubclass(cls, modules.Module) and cls != modules.Module:
-                        module_obj = cls()
-                        modules_found.append(module_obj)
-                        logger.info("Found module %s", module_obj.type)
-            except Exception as e:  # pylint: disable=broad-except
-                traceback.print_exc()
-                logger.error("Error while importing module %s: %s", module.name, e)
-    modules.ALL_MODULES = modules.ALL_MODULES_START.copy()
-    modules.ALL_MODULES.extend(modules_found)
-
 
 def get_module_class_instance_by_type(module_type: str):
     # split the module_type by .
@@ -147,6 +85,7 @@ def get_module_class_instance_by_type(module_type: str):
 class Project:
     path: pathlib.Path
     repo: Repo
+    db_engine: sqlalchemy.engine.Engine
     notification_manager: NotificationManager
     known_hosts_path: pathlib.Path
     public_key: str
@@ -155,15 +94,18 @@ class Project:
     repo_dir: pathlib.Path
     controller_age_identity: ssh.Identity
     controller_age_recipient: ssh.Recipient
+    lockfile: str | None = None
+    external_repo_status: dict[str, ExternalRepoStatus] = {}
 
     def __init__(
         self,
         path,
         notification_manager: NotificationManager,
-        db_session: sqlalchemy.orm.Session,
+        db_engine: sqlalchemy.engine.Engine,
     ):
         self.path = pathlib.Path(path)
         self.notification_manager = notification_manager
+        self.db_engine = db_engine
         # create the path if not exists
         self.path.mkdir(exist_ok=True, parents=True)
         self.repo_dir = self.path / "repository"
@@ -219,7 +161,8 @@ class Project:
 
         logger.debug("Initializing known_hosts file")
         self.known_hosts_path = None
-        self.update_known_hosts(db_session)
+        with sqlalchemy.orm.Session(self.db_engine) as db_session:
+            self.update_known_hosts(db_session)
 
     def encrypt(self, data: bytes) -> bytes:
         return encrypt(data, [self.controller_age_recipient])
@@ -391,6 +334,91 @@ class Project:
 
         return value, secret.filename
 
+    def has_lockfile_changed(self, flake_path):
+        lockfile_path = os.path.join(flake_path, "flake.lock")
+        try:
+            with open(lockfile_path, "r", encoding="utf-8") as f:
+                new_lockfile = f.read()
+        except FileNotFoundError:
+            logger.error("No flake.lock found at %s", lockfile_path)
+            new_lockfile = None
+        if new_lockfile == self.lockfile:
+            return False
+        self.lockfile = new_lockfile
+        return True
+
+    def load_repositories(self, repositories: dict[str, models.Repo]):
+        from thymis_controller import modules
+
+        if not self.has_lockfile_changed(self.repo_dir):
+            return
+        # for each repository: get_input_out_path from the flake.nix in the path
+        input_out_paths = {}
+        for input_name, repo in repositories.items():
+            self.external_repo_status[input_name] = ExternalRepoStatus(status="loading")
+            if not repo.url:
+                self.external_repo_status[input_name].status = "no-url"
+                continue
+            logger.info("Loading repository %s: %s", input_name, repo.url)
+            path, error_msg = get_input_out_path(self.repo_dir, input_name)
+            if path is None:
+                self.external_repo_status[input_name].status = "no-path"
+                self.external_repo_status[input_name].details = error_msg
+                continue
+            # check wether path / README.md exists and contains the string "contains thymis modules"
+            if not os.path.exists(os.path.join(path, "README.md")):
+                logger.debug("Repository %s does not contain a README.md", input_name)
+                logger.debug("Skipping %s", input_name)
+                self.external_repo_status[input_name].status = "no-readme"
+                continue
+            with open(os.path.join(path, "README.md"), "r", encoding="utf-8") as f:
+                if "contains thymis modules" not in f.read():
+                    logger.debug("Repository %s contains no thymis modules", input_name)
+                    logger.debug("Skipping %s", input_name)
+                    self.external_repo_status[input_name].status = "no-magic-string"
+                    continue
+            logger.info("Found repository %s at %s", input_name, path)
+            input_out_paths[input_name] = path
+        self.notification_manager.broadcast_invalidate_notification(
+            ["/api/external-repositories/status"]
+        )
+        # add the paths to sys.path
+        sys.path = startup_python_path.copy()
+        # for path in input_out_paths.values():
+        importlib.invalidate_caches()
+        modules_found = []
+        for input_name, path in input_out_paths.items():
+            logger.debug("Adding %s at %s to sys.path", input_name, path)
+            sys.path.append(path)
+            for module in pkgutil.walk_packages([path]):
+                try:
+                    imported_module = importlib.import_module(module.name)
+                    # required to detect changes if this is a second import
+                    importlib.reload(imported_module)
+                    logger.debug("Imported module %s", module.name)
+                    for name, value in imported_module.__dict__.items():
+                        # logger.info("Checking value %s", name)
+                        if not isinstance(value, type):
+                            continue
+                        cls = value
+                        logger.debug("Found class %s", cls)
+                        if issubclass(cls, modules.Module) and cls != modules.Module:
+                            module_obj = cls()
+                            modules_found.append(module_obj)
+                            logger.info("Found module %s", module_obj.type)
+                            self.external_repo_status[input_name].modules.append(
+                                module_obj.type
+                            )
+                    self.external_repo_status[input_name].status = "loaded"
+                except Exception as e:  # pylint: disable=broad-except
+                    traceback.print_exc()
+                    logger.error("Error while importing module %s: %s", module.name, e)
+        modules.ALL_MODULES = modules.ALL_MODULES_START.copy()
+        modules.ALL_MODULES.extend(modules_found)
+        self.notification_manager.broadcast_invalidate_notification(
+            ["/api/external-repositories/status"]
+        )
+
     def read_state(self):
         with self.state_lock:
             with open(self.repo_dir / "state.json", "r", encoding="utf-8") as f:
@@ -413,11 +441,11 @@ class Project:
 
     def _reload_state_unsafe(self, state: State):
         """
-        This method must always be called within a write_repo_lock to prevent race conidtions
+        This method must always be called within a write_repo_lock to prevent race conditions
         """
         error = None
         self.repo.pause_file_watcher()
-        repositories = BUILTIN_REPOSITORIES | state.repositories
+        repositories = self.check_healthy_repositories(state)
         if (self.repo_dir / "flake.nix").exists():
             with open(self.repo_dir / "flake.nix", "r", encoding="utf-8") as f:
                 flake_nix_content = f.read()
@@ -429,6 +457,7 @@ class Project:
             with open(self.repo_dir / "flake.nix", "w+", encoding="utf-8") as f:
                 f.write(new_flake_nix_content)
             self.repo.add(".")
+            access_tokens = self.nix_access_tokens()
             # write missing flake.lock entries using nix flake lock
             try:
                 logger.info("Running nix flake lock...")
@@ -438,6 +467,12 @@ class Project:
                     cwd=self.repo_dir,
                     capture_output=True,
                     check=True,
+                    env={
+                        "PATH": os.getenv("PATH"),
+                        "NIX_SSHOPTS": NIX_SSHOPTS,
+                        "GIT_TERMINAL_PROMPT": "0",
+                        "NIX_CONFIG": access_tokens,
+                    },
                 )
                 logger.info(
                     "Successfully ran nix flake lock in %s",
@@ -449,7 +484,7 @@ class Project:
                 logger.error("stderr: %s", e.stderr)
                 traceback.print_exc()
                 error = e
-        self.set_repositories_in_python_path(self.repo_dir, state)
+        self.load_repositories(repositories)
         # create modules folder if not exists
         modules_path = self.repo_dir / "modules"
         del_path(modules_path)
@@ -479,6 +514,28 @@ class Project:
         )
         if error:
             raise error
+
+    def check_healthy_repositories(self, state: State):
+        repositories = BUILTIN_REPOSITORIES | state.repositories
+        healthy_repos = {}
+
+        for input_name, repo in repositories.items():
+            if not repo.url:
+                continue
+            with sqlalchemy.orm.Session(self.db_engine) as db_session:
+                api_key = self.get_secret(db_session, repo.api_key_secret)
+            prefetch_success, error = nix_flake_prefetch(repo.url, api_key)
+            if prefetch_success:
+                healthy_repos[input_name] = repo
+                continue
+            else:
+                logger.warning(
+                    "Error while prefetching repository %s: %s", input_name, error
+                )
+                self.external_repo_status[input_name] = ExternalRepoStatus(
+                    status="no-path", details=error
+                )
+        return healthy_repos
 
     def reload_from_disk(self):
         self.write_state_and_reload(self.read_state())
@@ -526,10 +583,6 @@ class Project:
                         traceback.print_exc()
         return module_pairs
 
-    def set_repositories_in_python_path(self, path: os.PathLike, state: State):
-        repositories = BUILTIN_REPOSITORIES | state.repositories
-        load_repositories(path, repositories)
-
     def clear_history(self, db_session: sqlalchemy.orm.Session):
         if "RUNNING_IN_PLAYWRIGHT" in os.environ:
             with self.write_repo_lock:
@@ -564,15 +617,28 @@ class Project:
 
         logger.debug("Updated known_hosts file at %s", self.known_hosts_path)
 
+    def nix_access_tokens(self):
+        repos_urls_with_secret = []
+        secrets = []
+        repositories = self.read_state().repositories.values()
+        with sqlalchemy.orm.Session(self.db_engine) as db_session:
+            for repo in repositories:
+                if repo.url and repo.api_key_secret:
+                    repos_urls_with_secret.append(repo.url)
+                    secrets.append(self.get_secret(db_session, repo.api_key_secret))
+        return all_nix_access_tokens(repos_urls_with_secret, secrets)
+
     def create_update_task(
         self,
         task_controller: "task.TaskController",
         user_session_id: uuid.UUID,
         db_session: sqlalchemy.orm.Session,
     ):
+        access_tokens = self.nix_access_tokens()
         return task_controller.submit(
             models.task.ProjectFlakeUpdateTaskSubmission(
                 project_path=str(self.path),
+                nix_access_tokens=access_tokens,
             ),
             user_session_id=user_session_id,
             db_session=db_session,

@@ -21,7 +21,10 @@
 	selected={value}
 	{disabled}
 	showBox={true}
-	onSelected={(selectedValue) => onChange?.(selectedValue)}
+	onSelected={(selectedValue) => {
+		onChange?.(selectedValue);
+		return selectedValue;
+	}}
 	class="min-w-10 text-base"
 	innerClass="px-2 py-1"
 >

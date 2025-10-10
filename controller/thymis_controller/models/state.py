@@ -1,3 +1,4 @@
+import uuid
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel, JsonValue
@@ -8,6 +9,7 @@ class Repo(BaseModel):
     url: Optional[str] = None
     follows: Optional[str] = None
     inputs_follows: Dict[str, str] = {}
+    api_key_secret: Optional[uuid.UUID] = None
 
 
 class ModuleSettings(BaseModel):

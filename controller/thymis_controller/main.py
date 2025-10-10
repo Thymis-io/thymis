@@ -165,10 +165,9 @@ async def lifespan(app: FastAPI):
     db_engine = create_sqlalchemy_engine()
     db_cleanup_task = asyncio.create_task(periodic_cleanup_loop(db_engine))
     network_relay = NetworkRelay(db_engine, notification_manager)
-    with sqlalchemy.orm.Session(db_engine) as db_session:
-        project = Project(
-            global_settings.PROJECT_PATH.resolve(), notification_manager, db_session
-        )
+    project = Project(
+        global_settings.PROJECT_PATH.resolve(), notification_manager, db_engine
+    )
     task_controller = TaskController(
         f"ws://{host}:{port}/agent/relay_for_clients",
         network_relay,
@@ -189,13 +188,14 @@ async def lifespan(app: FastAPI):
             "host": host,
             "port": port,
         }
-    connected_agents = crud.agent_connection.get_all_connected(db_session)
-    for connected_agent in connected_agents:
-        crud.agent_connection.create(
-            db_session,
-            connection_type="disconnect",
-            deployment_info_id=connected_agent.deployment_info_id,
-        )
+    with sqlalchemy.orm.Session(db_engine) as db_session:
+        connected_agents = crud.agent_connection.get_all_connected(db_session)
+        for connected_agent in connected_agents:
+            crud.agent_connection.create(
+                db_session,
+                connection_type="disconnect",
+                deployment_info_id=connected_agent.deployment_info_id,
+            )
     logger.info(
         "%d connected agents marked as disconnected",
         len(connected_agents),

@@ -291,12 +291,54 @@
 	"settings": {
 		"repo": {
 			"title": "Repositories",
-			"name": "Name",
+			"name": "Input Name",
 			"url": "URL",
+			"secret": "API Key Secret",
+			"status": "Status",
+			"check": "Test Connection",
+			"checking-access": "Checking access to {url}",
+			"check-prefetch": "Testing Nix fetch",
+			"check-api": "Testing API Connection",
+			"check-prefetch-success": "Nix fetch successful!",
+			"check-api-success": "API Connection successful! commit: {commit_hash}",
+			"check-rate-limited": "Rate limited, try again later",
+			"check-prefetch-error": "Nix fetch failed",
+			"check-api-error": "API Connection failed",
 			"actions": "Actions",
+			"show-details": "Details",
+			"show-details-title": "Details",
 			"edit-name": "Edit Name",
 			"edit-url": "Edit URL",
 			"delete": "Delete"
+		},
+		"external-modal": {
+			"title": "Edit External Repository URL",
+			"reference-type": "Type",
+			"reference-type-git": "Git",
+			"reference-type-github": "GitHub",
+			"reference-type-gitlab": "GitLab",
+			"use-github-warning": "For GitHub repositories, consider using the 'GitHub' type. Some features and authentication might not work.",
+			"use-gitlab-warning": "For GitLab repositories, consider using the 'GitLab' type. Some features and authentication might not work.",
+			"file-not-absolute-warning": "File paths should be absolute and start with '/'",
+			"protocol": "Protocol",
+			"protocol-http": "HTTP",
+			"protocol-https": "HTTPS",
+			"protocol-ssh": "SSH",
+			"protocol-git": "Git",
+			"protocol-file": "File",
+			"file-path": "Absolute Directory Path",
+			"host": "Host",
+			"owner": "Owner / Organization",
+			"repo": "Repository",
+			"ref": "Branch / Tag / Full Commit SHA (optional)",
+			"refresh-refs": "Refresh Branches",
+			"compiled-url": "Compiled URL"
+		},
+		"repo-status": {
+			"no-path": "URL/Path not found",
+			"no-readme": "Repo has no README.md",
+			"no-magic-string": "Not a Thymis Module Repository: 'contains thymis modules' not in README.md",
+			"loaded": "Repo loaded with {count} modules"
 		}
 	},
 	"tags": {
@@ -369,6 +411,7 @@
 	"secrets": {
 		"edit": "Edit Secret",
 		"create": "Create Secret",
+		"select": "Select a Secret...",
 		"download-error": "Error downloading file",
 		"save-error": "Error saving secret",
 		"type-single-line": "Single Line",

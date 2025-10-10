@@ -54,7 +54,7 @@ The Custom Nix Module provides advanced users with the ability to write custom N
 - **System service configuration**: Defining custom systemd services
 - **Hardware-specific settings**: Configuration for specialized hardware
 
-![Custom Nix Module](./custom-nix-module.png)
+![Custom Nix Module](./custom-thymis-module.png)
 
 The Custom Nix Module accepts raw Nix expressions that are included directly in the device's NixOS configuration, giving you full control over your device's configuration.
 

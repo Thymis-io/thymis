@@ -162,6 +162,7 @@ export type Config = {
 
 export type Repo = {
 	url: string;
+	api_key_secret: string | null;
 };
 
 export type State = {

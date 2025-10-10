@@ -188,6 +188,7 @@ class DeployDeviceTaskSubmission(BaseModel):
 class ProjectFlakeUpdateTaskSubmission(BaseModel):
     type: Literal["project_flake_update_task"] = "project_flake_update_task"
     project_path: str
+    nix_access_tokens: str
 
 
 class BuildProjectTaskSubmission(BaseModel):
