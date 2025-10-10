@@ -43,7 +43,11 @@
 			const host = flakeReference.host;
 			const ref = flakeReference.ref ? `?ref=${flakeReference.ref}` : '';
 			const rev = flakeReference.rev ? `?rev=${flakeReference.rev}` : '';
-			return `git${protocol}${host}/${flakeReference.owner}/${flakeReference.repo}.git${ref}${rev}`;
+			if (flakeReference.protocol === 'file') {
+				return `git+file://${flakeReference.url}`;
+			} else {
+				return `git${protocol}${host}/${flakeReference.owner}/${flakeReference.repo}.git${ref}${rev}`;
+			}
 		} else if (flakeReference.type === 'github') {
 			const ref = flakeReference.ref ? `/${flakeReference.ref}` : '';
 			const rev = flakeReference.rev ? `/${flakeReference.rev}` : '';
@@ -119,6 +123,13 @@
 		}
 		if (flakeReference.type === 'git' && flakeReference.host?.includes('gitlab.com')) {
 			warns.push($t('settings.external-modal.use-gitlab-warning'));
+		}
+		if (
+			flakeReference.type === 'git' &&
+			flakeReference.protocol === 'file' &&
+			!flakeReference.url?.startsWith('/')
+		) {
+			warns.push($t('settings.external-modal.file-not-absolute-warning'));
 		}
 		return warns;
 	});
@@ -207,6 +218,9 @@
 							!flakeReference.host.includes('@')
 						) {
 							flakeReference.host = 'git@' + flakeReference.host;
+						} else if (protocol === 'file') {
+							flakeReference.host = '';
+							flakeReference.url = '/path/to/repo';
 						}
 					}}
 					class="mb-2"
@@ -215,15 +229,21 @@
 					<option value="https">{$t('settings.external-modal.protocol-https')}</option>
 					<option value="ssh">{$t('settings.external-modal.protocol-ssh')}</option>
 					<option value="git">{$t('settings.external-modal.protocol-git')}</option>
+					<option value="file">{$t('settings.external-modal.protocol-file')}</option>
 				</Select>
 			</div>
 			<div class="flex-5">
-				<Label class="mb-0">{$t('settings.external-modal.host')}</Label>
-				<Input bind:value={flakeReference.host} class="mb-2" />
+				{#if flakeReference.protocol !== 'file'}
+					<Label class="mb-0">{$t('settings.external-modal.host')}</Label>
+					<Input class="mb-2" bind:value={flakeReference.host} />
+				{:else}
+					<Label class="mb-0">{$t('settings.external-modal.file-path')}</Label>
+					<Input class="mb-2" bind:value={flakeReference.url} />
+				{/if}
 			</div>
 		</div>
 	{/if}
-	{#if flakeReference && (flakeReference.type === 'git' || flakeReference.type === 'github' || flakeReference.type === 'gitlab')}
+	{#if flakeReference && ((flakeReference.type === 'git' && flakeReference.protocol !== 'file') || flakeReference.type === 'github' || flakeReference.type === 'gitlab')}
 		<div class="flex gap-2">
 			<div class="flex-1">
 				<Label class="mb-0">{$t('settings.external-modal.owner')}</Label>
@@ -234,6 +254,8 @@
 				<Input bind:value={flakeReference.repo} class="mb-2" />
 			</div>
 		</div>
+	{/if}
+	{#if flakeReference && (flakeReference.type === 'git' || flakeReference.type === 'github' || flakeReference.type === 'gitlab')}
 		<div class="flex gap-2">
 			<div class="flex-1">
 				<Label class="mb-0">{$t('settings.external-modal.ref')}</Label>
