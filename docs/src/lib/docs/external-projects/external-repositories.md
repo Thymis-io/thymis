@@ -85,6 +85,12 @@ However, access tokens are scoped to the host in flake fetches and updates, not 
 For example, setting a token for a GitHub host sets `github.com=23ac...b289` internally, which will then be used for all GitHub repositories.
 See [Nix Config access-tokens](https://nix.dev/manual/nix/2.24/command-ref/conf-file.html#conf-access-tokens) for more information.
 
+Go to the Secrets page and create a new secret with the API key as the value.
+![Secrets page](./api-key-secret.png)
+
+When adding the external repository, select the secret from the dropdown next to the URL input.
+![Add external repository with API key](./add-external-repo-with-api-key.png)
+
 ### 4. Use the Modules in Your Projects
 
 Once your external repository is added, you can use its modules in your Thymis projects.
