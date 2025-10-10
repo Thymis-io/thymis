@@ -261,7 +261,7 @@
 	"settings": {
 		"repo": {
 			"title": "Repositories",
-			"name": "Name",
+			"name": "Input Name",
 			"url": "URL",
 			"secret": "API Key Secret",
 			"status": "Status",
