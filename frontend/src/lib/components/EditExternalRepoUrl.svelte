@@ -166,11 +166,11 @@
 							const gitRef = flakeReference as Extract<FlakeReference, { type: 'git' }>;
 
 							if (prevType === 'github') {
-								gitRef.host ??= 'github.com';
-								gitRef.protocol ??= 'https';
+								gitRef.host = 'github.com';
+								gitRef.protocol = 'https';
 							} else if (prevType === 'gitlab') {
-								gitRef.host ??= 'gitlab.com';
-								gitRef.protocol ??= 'https';
+								gitRef.host = 'gitlab.com';
+								gitRef.protocol = 'https';
 							}
 
 							gitRef.type = 'git';
@@ -219,7 +219,6 @@
 						) {
 							flakeReference.host = 'git@' + flakeReference.host;
 						} else if (protocol === 'file') {
-							flakeReference.host = '';
 							flakeReference.url = '/path/to/repo';
 						}
 					}}
