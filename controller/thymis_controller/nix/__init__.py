@@ -206,7 +206,11 @@ def build_token(reference: FlakeReference, api_key: "SecretShort") -> str:
     if not reference or not api_key:
         return ""
     if isinstance(reference, GitFlakeReference):
-        return f"{reference.host}={api_key.value_str}"
+        if reference.host.startswith("git@"):
+            host = reference.host[4:]
+        else:
+            host = reference.host
+        return f"{host}={api_key.value_str}"
     if isinstance(reference, GithubFlakeReference):
         return f"github.com={api_key.value_str}"
     if isinstance(reference, GitlabFlakeReference):
