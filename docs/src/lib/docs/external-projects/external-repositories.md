@@ -51,14 +51,39 @@ In the Thymis UI:
 
 1. Navigate to **External Repositories**.
 2. Click **Add Repository**.
-3. Enter the **URL** of your Git repository.
-4. Provide a **display name**.
+3. Provide a unique **input name**.
+4. Enter the **URL** of your Git repository.
 
 Thymis will then fetch the repository and make its modules available for use in your Thymis projects.
 
 ![External repository page](./external-repo-screenshot.png)
 
 You can also override the Nix code of the built-in Thymis modules by creating a `thymis` input in your flake that points to your own fork or modified version.
+
+## Using API Keys
+
+You can use API keys to add a private repositories.
+This is supported by Github, Gitlab and should also work with arbitrary Git servers via the `Bearer <api-key>` header.
+
+GitHub Legacy Tokens:
+- Go to your [GitHub Settings](https://github.com/settings/profile)
+- Navigate to Developer Settings -> Personal Access Tokens -> Tokens (classic)
+- Generate new token with at least the `repo` scope
+
+GitHub Fine-Grained Tokens:
+- Go to your [GitHub Settings](https://github.com/settings/profile)
+- Navigate to Developer Settings -> Personal Access Tokens -> Fine-grained tokens
+- Generate new token with at least the `Contents: Read` permission for the repository
+
+GitLab Access Tokens:
+- Go to your [GitLab User Settings](https://gitlab.com/-/user_settings/profile)
+- Navigate to Access Tokens
+- Generate new token with at least the `read_repository` scope
+
+You can assign different API keys to different inputs, and these will be used for the specific API calls.
+However, access tokens are scoped to the host in flake fetches and updates, not a specific repository.
+For example, setting a token for a GitHub host sets `github.com=23ac...b289` internally, which will then be used for all GitHub repositories.
+See [Nix Config access-tokens](https://nix.dev/manual/nix/2.24/command-ref/conf-file.html#conf-access-tokens) for more information.
 
 ### 4. Use the Modules in Your Projects
 

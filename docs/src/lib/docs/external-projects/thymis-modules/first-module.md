@@ -9,6 +9,7 @@ Create a Python file named `temperature_logger.py` in a directory with the struc
 ```
 my-thymis-project/
 ├── README.md (must contain "contains thymis modules")
+├── flake.nix
 └── my_project_name/
     ├── __init__.py
     └── temperature_logger.py
@@ -16,6 +17,26 @@ my-thymis-project/
 
 File content:
 
+
+README.md:
+```readme
+# Temperature Logger
+
+This projects contains thymis modules
+```
+
+flake.nix:
+```nix
+{
+  description = "";
+  inputs = {
+  };
+  outputs = { self }: {
+  };
+}
+```
+
+temperature_logger.py:
 ```python
 from thymis_controller.modules.modules import Module, Setting, LocalizedString
 from thymis_controller.project import Project
@@ -78,6 +99,16 @@ class TemperatureLoggerModule(Module):
             "};\n"
         )
 ```
+
+### Thymis Python Package
+
+To add the `thymis_controller` package to your local project, install it directly from the Thymis GitHub repository.
+This is not required but makes development much easier. Here we use `uv` to add the package:
+
+```bash
+uv add git+ssh://git@github.com/Thymis-io/thymis#subdirectory=controller
+```
+
 
 ## Part Breakdown
 
