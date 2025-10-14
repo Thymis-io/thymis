@@ -165,6 +165,7 @@ async def lifespan(app: FastAPI):
     db_engine = create_sqlalchemy_engine()
     db_cleanup_task = asyncio.create_task(periodic_cleanup_loop(db_engine))
     network_relay = NetworkRelay(db_engine, notification_manager)
+    logger.info("Loading project from %s", global_settings.PROJECT_PATH / "repository")
     project = Project(
         global_settings.PROJECT_PATH.resolve(), notification_manager, db_engine
     )
