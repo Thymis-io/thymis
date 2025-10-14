@@ -436,16 +436,17 @@ class Project:
         self.reload_state(state)
 
     def reload_state(self, state: State):
+        repositories = self.check_healthy_repositories(state)
         with self.write_repo_lock:
-            self._reload_state_unsafe(state)
+            self._reload_state_unsafe(state, repositories)
 
-    def _reload_state_unsafe(self, state: State):
+    def _reload_state_unsafe(self, state: State, repositories: dict[str, Repo]):
         """
         This method must always be called within a write_repo_lock to prevent race conditions
         """
+        logger.info("Reloading state...")
         error = None
         self.repo.pause_file_watcher()
-        repositories = self.check_healthy_repositories(state)
         if (self.repo_dir / "flake.nix").exists():
             with open(self.repo_dir / "flake.nix", "r", encoding="utf-8") as f:
                 flake_nix_content = f.read()
@@ -512,6 +513,7 @@ class Project:
         self.notification_manager.broadcast_invalidate_notification(
             ["/api/repo_status"]
         )
+        logger.info("Reloading state done")
         if error:
             raise error
 
@@ -524,6 +526,7 @@ class Project:
                 continue
             with sqlalchemy.orm.Session(self.db_engine) as db_session:
                 api_key = self.get_secret(db_session, repo.api_key_secret)
+            logger.info("prefetching %s...", input_name)
             prefetch_success, error = nix_flake_prefetch(repo.url, api_key)
             if prefetch_success:
                 healthy_repos[input_name] = repo
@@ -592,7 +595,8 @@ class Project:
                 self.repo = Repo(self.repo_dir, self.notification_manager)
                 state = State()
                 self.write_state(state)
-                self._reload_state_unsafe(state)
+                repositories = self.check_healthy_repositories(state)
+                self._reload_state_unsafe(state, repositories)
                 if not self.repo.has_root_commit():
                     self.repo.add(".")
                     self.repo.commit("Initial commit")
