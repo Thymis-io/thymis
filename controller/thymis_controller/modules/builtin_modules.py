@@ -1,3 +1,4 @@
+from .bash import BashModule
 from .kiosk import Kiosk
 from .modules import Module
 from .oci_container import OCIContainers
@@ -9,6 +10,7 @@ ALL_MODULES: list[Module] = [
     OCIContainers(),
     Kiosk(),
     WhateverModule(),
+    BashModule(),
 ]
 
 ALL_MODULES_START = ALL_MODULES.copy()

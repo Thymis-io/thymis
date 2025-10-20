@@ -3,7 +3,7 @@ import typing
 from abc import ABC
 from dataclasses import dataclass
 from io import StringIO
-from typing import List, Optional, Tuple, Union
+from typing import List, Literal, Optional, Tuple, Union
 
 from pydantic import JsonValue
 from thymis_controller import db_models, models
@@ -214,8 +214,34 @@ class TextAreaCodeType:
         )
 
 
+@dataclass
+class SystemdTimerType:
+    timer_type: Optional[Literal["realtime", "monotonic"]] = "realtime"
+    on_boot_sec: Optional[str] = None
+    on_unit_active_sec: Optional[str] = None
+    accuracy_sec: Optional[str] = None
+    on_calendar: Optional[list[str]] = None
+    persistent: Optional[bool] = None
+
+    def get_model(self, locale: str) -> models.SystemdTimerType:
+        return models.SystemdTimerType(
+            timer_type=self.timer_type,
+            on_boot_sec=self.on_boot_sec,
+            on_unit_active_sec=self.on_unit_active_sec,
+            accuracy_sec=self.accuracy_sec,
+            on_calendar=self.on_calendar,
+            persistent=self.persistent,
+        )
+
+
 type SettingTypes = Union[
-    ValueTypes, SelectOneType, ListType, SecretType, ArtifactType, TextAreaCodeType
+    ValueTypes,
+    SelectOneType,
+    ListType,
+    SecretType,
+    ArtifactType,
+    TextAreaCodeType,
+    SystemdTimerType,
 ]
 
 
@@ -229,6 +255,8 @@ def get_setting_type_model(setting: SettingTypes, locale: str) -> models.Setting
     if isinstance(setting, ArtifactType):
         return setting.get_model(locale)
     if isinstance(setting, TextAreaCodeType):
+        return setting.get_model(locale)
+    if isinstance(setting, SystemdTimerType):
         return setting.get_model(locale)
     return setting
 
@@ -266,4 +294,7 @@ __all__ = [
     "SettingTypes",
     "LocalizedString",
     "ArtifactType",
+    "SecretType",
+    "TextAreaCodeType",
+    "SystemdTimerType",
 ]
