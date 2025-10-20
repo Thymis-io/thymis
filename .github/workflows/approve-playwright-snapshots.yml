@@ -172,17 +172,17 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
           ref: ${{ needs.comment-action-start.outputs.pr_head }}
       - name: Download updated snapshots aarch64-screencaps
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: updated-snapshots-aarch64-screencaps
           path: frontend/tests/screencaps.spec.ts-snapshots/
       - name: Download updated snapshots aarch64-unauthenticated
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: updated-snapshots-aarch64-unauthenticated
           path: frontend/tests/unauthenticated.spec.ts-snapshots/
       - name: Download updated snapshots x86_vm
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: updated-snapshots-x86_vm
           path: frontend/tests/x86_vm.spec.ts-snapshots/
