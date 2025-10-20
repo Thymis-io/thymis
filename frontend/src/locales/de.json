@@ -305,6 +305,7 @@
 			"compiled-url": "Kompilierte URL"
 		},
 		"repo-status": {
+			"loading": "Lädt...",
 			"no-path": "URL/Pfad nicht gefunden",
 			"no-readme": "Repo hat keine README.md",
 			"no-magic-string": "Kein Thymis-Modul Repository: 'contains thymis modules' nicht in README.md",

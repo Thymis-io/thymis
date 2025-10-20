@@ -4,6 +4,7 @@ from fastapi import APIRouter, BackgroundTasks, Body, Depends, Request
 from thymis_controller import dependencies, models, modules
 from thymis_controller.dependencies import ProjectAD
 from thymis_controller.models.state import State
+from thymis_controller.repo import RepoStatus
 
 router = APIRouter()
 
@@ -52,10 +53,19 @@ def get_diff(
     return project.repo.diff(refA, refB)
 
 
+last_known_repo_status = RepoStatus(changes=[])
+
+
 @router.get("/repo_status", tags=["history"])
 def get_repo_status(project: ProjectAD):
-    with project.write_repo_lock:
-        return project.repo.status()
+    global last_known_repo_status
+    # try to acquire the lock for a short time to avoid blocking for too long
+    if project.write_repo_lock.acquire(timeout=0.3):
+        try:
+            last_known_repo_status = project.repo.status()
+        finally:
+            project.write_repo_lock.release()
+    return last_known_repo_status
 
 
 @router.get("/available_modules")
