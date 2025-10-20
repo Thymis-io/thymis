@@ -112,14 +112,16 @@
 				{$t(setting.displayName)}
 			</P>
 			<div class="flex gap-1">
-				<ConfigRenderer
-					{setting}
-					moduleSettings={settings}
-					value={globalState.selectedModuleSettings?.settings[key]}
-					disabled={!canReallyEditSetting(canEdit, setting)}
-					onChange={(value) => setSetting(setting, key, value)}
-					{artifacts}
-				/>
+				{#key module.type}
+					<ConfigRenderer
+						{setting}
+						moduleSettings={settings}
+						value={globalState.selectedModuleSettings?.settings[key]}
+						disabled={!canReallyEditSetting(canEdit, setting)}
+						onChange={(value) => setSetting(setting, key, value)}
+						{artifacts}
+					/>
+				{/key}
 				<div class="ml-auto"></div>
 				<button
 					class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
