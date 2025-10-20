@@ -10,7 +10,8 @@
 		TableBody,
 		TableBodyRow,
 		TableBodyCell,
-		Modal
+		Modal,
+		Spinner
 	} from 'flowbite-svelte';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import type { PageData } from './$types';
@@ -162,7 +163,12 @@
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2 min-w-48 text-xs">
 					{@const status = data.externalRepositoriesStatus[name]}
-					{#if status.status === 'no-path'}
+					{#if status.status === 'loading'}
+						<div class="flex items-center gap-2">
+							<Spinner size="4" />
+							{$t('settings.repo-status.loading')}
+						</div>
+					{:else if status.status === 'no-path'}
 						{$t('settings.repo-status.no-path')}
 					{:else if status.status === 'no-readme'}
 						{$t('settings.repo-status.no-readme')}

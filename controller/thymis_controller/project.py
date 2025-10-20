@@ -347,41 +347,50 @@ class Project:
         self.lockfile = new_lockfile
         return True
 
+    def invalidate_external_repo_status(self):
+        self.notification_manager.broadcast_invalidate_notification(
+            ["/api/external-repositories/status"]
+        )
+
     def load_repositories(self, repositories: dict[str, models.Repo]):
         from thymis_controller import modules
 
-        if not self.has_lockfile_changed(self.repo_dir):
-            return
+        for input_name, repo in repositories.items():
+            self.external_repo_status[input_name] = ExternalRepoStatus(status="loading")
+        self.invalidate_external_repo_status()
+
         # for each repository: get_input_out_path from the flake.nix in the path
         input_out_paths = {}
         for input_name, repo in repositories.items():
             self.external_repo_status[input_name] = ExternalRepoStatus(status="loading")
             if not repo.url:
                 self.external_repo_status[input_name].status = "no-url"
+                self.invalidate_external_repo_status()
                 continue
             logger.info("Loading repository %s: %s", input_name, repo.url)
             path, error_msg = get_input_out_path(self.repo_dir, input_name)
             if path is None:
                 self.external_repo_status[input_name].status = "no-path"
                 self.external_repo_status[input_name].details = error_msg
+                self.lockfile = None  # force reload next time
+                self.invalidate_external_repo_status()
                 continue
             # check wether path / README.md exists and contains the string "contains thymis modules"
             if not os.path.exists(os.path.join(path, "README.md")):
                 logger.debug("Repository %s does not contain a README.md", input_name)
                 logger.debug("Skipping %s", input_name)
                 self.external_repo_status[input_name].status = "no-readme"
+                self.invalidate_external_repo_status()
                 continue
             with open(os.path.join(path, "README.md"), "r", encoding="utf-8") as f:
                 if "contains thymis modules" not in f.read():
                     logger.debug("Repository %s contains no thymis modules", input_name)
                     logger.debug("Skipping %s", input_name)
                     self.external_repo_status[input_name].status = "no-magic-string"
+                    self.invalidate_external_repo_status()
                     continue
             logger.info("Found repository %s at %s", input_name, path)
             input_out_paths[input_name] = path
-        self.notification_manager.broadcast_invalidate_notification(
-            ["/api/external-repositories/status"]
-        )
         # add the paths to sys.path
         sys.path = startup_python_path.copy()
         # for path in input_out_paths.values():
@@ -410,14 +419,13 @@ class Project:
                                 module_obj.type
                             )
                     self.external_repo_status[input_name].status = "loaded"
+                    self.invalidate_external_repo_status()
                 except Exception as e:  # pylint: disable=broad-except
                     traceback.print_exc()
                     logger.error("Error while importing module %s: %s", module.name, e)
         modules.ALL_MODULES = modules.ALL_MODULES_START.copy()
         modules.ALL_MODULES.extend(modules_found)
-        self.notification_manager.broadcast_invalidate_notification(
-            ["/api/external-repositories/status"]
-        )
+        self.invalidate_external_repo_status()
 
     def read_state(self):
         with self.state_lock:
@@ -436,7 +444,7 @@ class Project:
         self.reload_state(state)
 
     def reload_state(self, state: State):
-        repositories = self.check_healthy_repositories(state)
+        repositories = BUILTIN_REPOSITORIES | state.repositories
         with self.write_repo_lock:
             self._reload_state_unsafe(state, repositories)
 
@@ -485,7 +493,9 @@ class Project:
                 logger.error("stderr: %s", e.stderr)
                 traceback.print_exc()
                 error = e
-        self.load_repositories(repositories)
+                self.lockfile = None  # force lockfile reload
+        if self.has_lockfile_changed(self.repo_dir):
+            self.load_repositories(repositories)
         # create modules folder if not exists
         modules_path = self.repo_dir / "modules"
         del_path(modules_path)
@@ -522,6 +532,10 @@ class Project:
         healthy_repos = {}
 
         for input_name, repo in repositories.items():
+            self.external_repo_status[input_name] = ExternalRepoStatus(status="loading")
+        self.invalidate_external_repo_status()
+
+        for input_name, repo in repositories.items():
             if not repo.url:
                 continue
             with sqlalchemy.orm.Session(self.db_engine) as db_session:
@@ -538,6 +552,7 @@ class Project:
                 self.external_repo_status[input_name] = ExternalRepoStatus(
                     status="no-path", details=error
                 )
+        self.invalidate_external_repo_status()
         return healthy_repos
 
     def reload_from_disk(self):
@@ -595,7 +610,7 @@ class Project:
                 self.repo = Repo(self.repo_dir, self.notification_manager)
                 state = State()
                 self.write_state(state)
-                repositories = self.check_healthy_repositories(state)
+                repositories = BUILTIN_REPOSITORIES | state.repositories
                 self._reload_state_unsafe(state, repositories)
                 if not self.repo.has_root_commit():
                     self.repo.add(".")

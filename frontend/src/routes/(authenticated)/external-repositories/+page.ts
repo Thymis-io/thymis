@@ -2,7 +2,7 @@ import { fetchWithNotify } from '$lib/fetchWithNotify';
 import type { PageLoad } from './$types';
 
 type ExternalRepositoryStatus = {
-	status: 'no-path' | 'no-readme' | 'no-magic-string' | 'loaded';
+	status: 'loading' | 'no-path' | 'no-readme' | 'no-magic-string' | 'loaded';
 	modules: string[];
 	details?: string;
 };
