@@ -4,7 +4,7 @@
 	import { onDestroy, onMount, type Snippet } from 'svelte';
 
 	interface Props {
-		values?: T[];
+		values?: { label: string; value: T }[];
 		selected?: T | null;
 		disabled?: boolean;
 		showBox?: boolean;
@@ -41,8 +41,8 @@
 		isOpen = false;
 	};
 
-	const selectItem = (item: T) => {
-		selected = onSelected(item);
+	const selectItem = (item: { label: string; value: T }) => {
+		selected = onSelected(item.value);
 		isOpen = false;
 	};
 
@@ -94,10 +94,11 @@
 	>
 		{#if children}
 			{@render children()}
-		{:else}
-			{selected || placeholder}
+		{:else if selected}
+			{@const label = values.find((v) => v.value === selected)?.label}
+			{label || placeholder}
 		{/if}
-		<ChevronDown class="h-4 w-4" />
+		<ChevronDown class="h-4 w-4 ml-1" />
 	</button>
 
 	{#if isOpen}
@@ -108,7 +109,8 @@
 		>
 			{#each values as item, index}
 				{@const highlightedClass = index === highlightedIndex ? 'bg-gray-200 dark:bg-gray-600' : ''}
-				{@const selectedClass = item === selected ? 'text-primary-600 dark:text-primary-400' : ''}
+				{@const selectedClass =
+					item.value === selected ? 'text-primary-600 dark:text-primary-400' : ''}
 				<option
 					class="p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 {highlightedClass} {selectedClass}"
 					onclick={() => selectItem(item)}
@@ -121,7 +123,7 @@
 					}}
 					tabindex="-1"
 				>
-					{item}
+					{item.label}
 				</option>
 			{/each}
 			{#if options}
