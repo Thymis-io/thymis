@@ -450,5 +450,48 @@
 		"no-secrets": "No Secrets",
 		"confirm-delete": "Confirm deleting secret:",
 		"delete-error": "Error deleting secret"
+	},
+	"systemd": {
+		"calendar": {
+			"placeholder": "[DayOfWeek] Year-Month-Day Hour:Minute:Second (e.g., Mon *-*-* 09:00:00)",
+			"tooltip": {
+				"next-occurrences": "Next occurrences (times may vary by device timezone):",
+				"validation-failed": "Failed to validate calendar expression"
+			},
+			"templates": {
+				"daily": "Daily",
+				"weekly": "Weekly",
+				"monthly": "Monthly",
+				"yearly": "Yearly",
+				"hourly": "Hourly",
+				"every-15-minutes": "Every 15 minutes",
+				"monday-9am": "Every Monday at 9 AM",
+				"daily-midnight": "Daily at midnight",
+				"weekdays-6pm": "Weekdays at 6 PM",
+				"weekends-10am": "Weekends at 10 AM",
+				"every-2-hours": "Every 2 hours",
+				"business-hours": "Business hours (9-5)",
+				"monthly-1st-2am": "First day of month at 2 AM",
+				"weekdays-30min": "Weekdays every 30 minutes"
+			}
+		},
+		"timespan": {
+			"placeholder": "Time span (e.g., 30s, 5min, 2h, 1d, 1w)",
+			"tooltip": {
+				"parsed-as": "Interpreted as:",
+				"validation-failed": "Failed to validate time span"
+			},
+			"templates": {
+				"30-seconds": "30 seconds",
+				"5-minutes": "5 minutes",
+				"30-minutes": "30 minutes",
+				"1-hour": "1 hour",
+				"1-hour-30-minutes": "1 hour 30 minutes",
+				"6-hours": "6 hours",
+				"1-day": "1 day",
+				"1-week": "1 week",
+				"1-month": "1 month"
+			}
+		}
 	}
 }
