@@ -43,8 +43,24 @@ class TextAreaCodeType(BaseModel):
     language: Optional[str] = None
 
 
+class SystemdTimerType(BaseModel):
+    type: Literal["systemd-timer"] = "systemd-timer"
+    timer_type: Optional[Literal["realtime", "monotonic"]] = Field(default="realtime")
+    on_boot_sec: Optional[str] = Field(default=None)
+    on_unit_active_sec: Optional[str] = Field(default=None)
+    accuracy_sec: Optional[str] = Field(default=None)
+    on_calendar: Optional[list[str]] = Field(default=None)
+    persistent: Optional[bool] = Field(default=None)
+
+
 type SettingTypes = Union[
-    ValueTypes, SelectOneType, ListType, SecretType, ArtifactType, TextAreaCodeType
+    ValueTypes,
+    SelectOneType,
+    ListType,
+    SecretType,
+    ArtifactType,
+    TextAreaCodeType,
+    SystemdTimerType,
 ]
 
 
@@ -74,4 +90,5 @@ __all__ = [
     "SecretType",
     "ArtifactType",
     "TextAreaCodeType",
+    "SystemdTimerType",
 ]

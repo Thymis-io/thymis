@@ -6,6 +6,7 @@
 		SecretSettingType,
 		SelectOneSettingType,
 		Setting,
+		SystemdTimerSettingType,
 		TextAreaCodeSettingType
 	} from '$lib/state';
 	import ConfigString from './ConfigString.svelte';
@@ -18,6 +19,7 @@
 	import ConfigArtifact from './ConfigArtifact.svelte';
 	import ConfigTextAreaCode from './ConfigTextAreaCode.svelte';
 	import type { Artifact } from '../../routes/(authenticated)/artifacts/[...rest]/+page';
+	import ConfigSystemdTimer from './ConfigSystemdTimer.svelte';
 
 	interface Props {
 		setting: Setting;
@@ -62,6 +64,13 @@
 		) {
 			return 'textarea-code';
 		}
+		if (
+			typeof setting.type === 'object' &&
+			setting.type.hasOwnProperty('type') &&
+			setting.type.type === 'systemd-timer'
+		) {
+			return 'systemd-timer';
+		}
 		console.error(`Unknown setting type: ${setting.type}`);
 	};
 
@@ -100,6 +109,10 @@
 	const settingIsTextAreaCode = (setting: Setting): setting is Setting<TextAreaCodeSettingType> => {
 		return getTypeKeyFromSetting(setting) === 'textarea-code';
 	};
+
+	const settingIsSystemdTimer = (setting: Setting): setting is Setting<SystemdTimerSettingType> => {
+		return getTypeKeyFromSetting(setting) === 'systemd-timer';
+	};
 </script>
 
 {#if settingIsInt(setting)}
@@ -127,4 +140,6 @@
 	<ConfigArtifact {value} {setting} {onChange} {disabled} {artifacts} />
 {:else if settingIsTextAreaCode(setting)}
 	<ConfigTextAreaCode {value} {setting} {onChange} {disabled} />
+{:else if settingIsSystemdTimer(setting)}
+	<ConfigSystemdTimer {value} {setting} {onChange} {disabled} />
 {/if}
