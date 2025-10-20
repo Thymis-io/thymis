@@ -41,14 +41,16 @@
 			<div class="flex flex-col gap-1">
 				{#each value.on_calendar as calendar, i}
 					<div class="flex gap-2">
-						<SystemdCalendarInput
-							value={calendar}
-							onChange={(newValue) => {
-								const newOnCalendar = [...value.on_calendar!];
-								newOnCalendar[i] = newValue;
-								onChange({ ...value, on_calendar: newOnCalendar });
-							}}
-						/>
+						<div class="flex-1">
+							<SystemdCalendarInput
+								value={calendar}
+								onChange={(newValue) => {
+									const newOnCalendar = [...value.on_calendar!];
+									newOnCalendar[i] = newValue;
+									onChange({ ...value, on_calendar: newOnCalendar });
+								}}
+							/>
+						</div>
 						<Button
 							class="w-8"
 							color="alternative"
