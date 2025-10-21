@@ -51,6 +51,7 @@ class SystemdTimerType(BaseModel):
     accuracy_sec: Optional[str] = Field(default=None)
     on_calendar: Optional[list[str]] = Field(default=None)
     persistent: Optional[bool] = Field(default=None)
+    randomized_delay_sec: Optional[str] = Field(default=None)
 
 
 type SettingTypes = Union[

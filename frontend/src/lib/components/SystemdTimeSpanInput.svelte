@@ -9,14 +9,23 @@
 	interface Props {
 		value?: string;
 		onChange?: (newValue: string) => void;
+		disabled?: boolean;
+		placeholder?: string;
+		class?: string;
 	}
 
-	let { value = $bindable(''), onChange = () => {} }: Props = $props();
+	let {
+		value = $bindable(''),
+		onChange = () => {},
+		disabled,
+		placeholder = $t('systemd.timespan.placeholder'),
+		class: customClass
+	}: Props = $props();
 
 	let validationState: 'valid' | 'invalid' | 'pending' | null = $state(null);
 	let validationError = $state('');
-	let validationResult: string | null = $state(null);
-	let debounceTimer: number | null = null;
+	let validationResult = $state<string | null>(null);
+	let debounceTimer: NodeJS.Timeout | undefined;
 
 	const commonTimeSpans = [
 		{ label: $t('systemd.timespan.templates.30-seconds'), value: '30s' },
@@ -60,10 +69,8 @@
 	};
 
 	const debouncedValidate = (inputValue: string) => {
-		if (debounceTimer) {
-			clearTimeout(debounceTimer);
-		}
-		debounceTimer = setTimeout(() => validateTimeSpan(inputValue), 500);
+		clearTimeout(debounceTimer);
+		debounceTimer = setTimeout(() => validateTimeSpan(inputValue), 200);
 	};
 
 	const selectTimeSpan = (selectedValue: string) => {
@@ -72,18 +79,18 @@
 		validateTimeSpan(selectedValue);
 	};
 
-	// Validate when value changes
 	$effect(() => {
 		debouncedValidate(value);
 	});
 </script>
 
-<div class="flex gap-2">
+<div class="flex gap-2 {customClass}">
 	<div class="relative flex-1">
 		<Input
 			bind:value
-			placeholder={$t('systemd.timespan.placeholder')}
-			on:input={(e) => onChange(e.target?.value as string)}
+			{placeholder}
+			on:input={(e) => onChange((e.target as HTMLInputElement)?.value as string)}
+			{disabled}
 			class="flex-1"
 		/>
 		{#if validationState === 'valid'}
@@ -117,7 +124,7 @@
 			</Tooltip>
 		{/if}
 	</div>
-	<Button color="alternative" class="px-3">
+	<Button color="alternative" {disabled} class="px-3">
 		<ClockIcon size={16} />
 		<ChevronDownIcon size={16} class="ml-1" />
 	</Button>

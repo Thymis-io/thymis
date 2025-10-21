@@ -222,6 +222,7 @@ class SystemdTimerType:
     accuracy_sec: Optional[str] = None
     on_calendar: Optional[list[str]] = None
     persistent: Optional[bool] = None
+    randomized_delay_sec: Optional[str] = None
 
     def get_model(self, locale: str) -> models.SystemdTimerType:
         return models.SystemdTimerType(
@@ -231,6 +232,7 @@ class SystemdTimerType:
             accuracy_sec=self.accuracy_sec,
             on_calendar=self.on_calendar,
             persistent=self.persistent,
+            randomized_delay_sec=self.randomized_delay_sec,
         )
 
 

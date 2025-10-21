@@ -9,14 +9,23 @@
 	interface Props {
 		value?: string;
 		onChange?: (newValue: string) => void;
+		disabled?: boolean;
+		placeholder?: string;
+		class?: string;
 	}
 
-	let { value = $bindable(''), onChange = () => {} }: Props = $props();
+	let {
+		value = $bindable(''),
+		onChange = () => {},
+		disabled,
+		placeholder = $t('systemd.calendar.placeholder'),
+		class: customClass
+	}: Props = $props();
 
 	let validationState: 'valid' | 'invalid' | 'pending' | null = $state(null);
 	let validationError = $state('');
-	let validationResult: string[] | null = $state(null);
-	let debounceTimer: number | null = null;
+	let validationResult = $state<string[] | null>(null);
+	let debounceTimer: NodeJS.Timeout | undefined;
 
 	const commonExpressions = [
 		{ label: $t('systemd.calendar.templates.hourly'), value: 'hourly' },
@@ -65,30 +74,28 @@
 	};
 
 	const debouncedValidate = (inputValue: string) => {
-		if (debounceTimer) {
-			clearTimeout(debounceTimer);
-		}
-		debounceTimer = setTimeout(() => validateCalendar(inputValue), 500);
+		clearTimeout(debounceTimer);
+		debounceTimer = setTimeout(() => validateCalendar(inputValue), 200);
 	};
 
-	const selectExpression = (selectedValue: string) => {
+	const selectCalendar = (selectedValue: string) => {
 		value = selectedValue;
 		onChange(selectedValue);
 		validateCalendar(selectedValue);
 	};
 
-	// Validate when value changes
 	$effect(() => {
 		debouncedValidate(value);
 	});
 </script>
 
-<div class="flex gap-2">
+<div class="flex gap-2 {customClass}">
 	<div class="relative flex-1">
 		<Input
 			bind:value
-			placeholder={$t('systemd.calendar.placeholder')}
-			on:input={(e) => onChange(e.target?.value as string)}
+			{placeholder}
+			on:input={(e) => onChange((e.target as HTMLInputElement)?.value as string)}
+			{disabled}
 			class="flex-1"
 		/>
 		{#if validationState === 'valid'}
@@ -126,13 +133,13 @@
 			</Tooltip>
 		{/if}
 	</div>
-	<Button color="alternative" class="px-3">
+	<Button color="alternative" {disabled} class="px-3">
 		<CalendarIcon size={16} />
 		<ChevronDownIcon size={16} class="ml-1" />
 	</Button>
 	<Dropdown class="w-64">
 		{#each commonExpressions as expr}
-			<DropdownItem on:click={() => selectExpression(expr.value)}>
+			<DropdownItem on:click={() => selectCalendar(expr.value)}>
 				{expr.label}
 			</DropdownItem>
 		{/each}
