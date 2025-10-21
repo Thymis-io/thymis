@@ -256,7 +256,18 @@
 		"passed": "Diese Definition wird an das Gerät übergeben",
 		"priority": "Priorität {priority}",
 		"remove-element": "{element} entfernen",
-		"no-settings": "Für dieses Modul wurden keine Einstellungen gefunden"
+		"no-settings": "Für dieses Modul wurden keine Einstellungen gefunden",
+		"timer-type": "Zeitgeber-Typ",
+		"timer-type-realtime": "Echtzeit",
+		"timer-type-realtime-long": "Echtzeit: läuft zu einem bestimmten Datum oder Zeitpunkt",
+		"timer-type-monotonic": "Monoton",
+		"timer-type-monotonic-long": "Monoton: läuft nach einem Zeitintervall",
+		"timer-on-calendar": "Kalender",
+		"timer-on-boot": "Zeit nach dem Systemstart bis zum Start (leer lassen, um zu deaktivieren)",
+		"timer-on-unit-active": "Zeit nach dem letzten Start bis zur nächsten Ausführung (leer lassen, um zu deaktivieren)",
+		"timer-accuracy-sec": "Genauigkeit",
+		"timer-persistent": "Verpasste Timer nachholen",
+		"timer-randomized-delay-sec": "Zufällige Verzögerung"
 	},
 	"settings": {
 		"repo": {
@@ -442,5 +453,49 @@
 		"no-secrets": "Keine Secrets",
 		"confirm-delete": "Löschen des Secrets bestätigen:",
 		"delete-error": "Fehler beim Löschen des Secrets"
+	},
+	"systemd": {
+		"calendar": {
+			"placeholder": "[DayOfWeek] Year-Month-Day Hour:Minute:Second (e.g., Mon *-*-* 09:00:00)",
+			"tooltip": {
+				"next-occurrences": "Nächste Ausführungen (Zeiten können je nach Gerätezeitzone variieren):",
+				"validation-failed": "Kalenderausdruck konnte nicht überprüft werden"
+			},
+			"templates": {
+				"daily": "Täglich",
+				"weekly": "Wöchentlich",
+				"monthly": "Monatlich",
+				"yearly": "Jährlich",
+				"hourly": "Stündlich",
+				"every-15-minutes": "Alle 15 Minuten",
+				"monday-9am": "Jeden Montag um 9 Uhr",
+				"daily-midnight": "Täglich um Mitternacht",
+				"weekdays-6pm": "An Werktagen um 18 Uhr",
+				"weekends-10am": "An Wochenenden um 10 Uhr",
+				"every-2-hours": "Alle 2 Stunden",
+				"business-hours": "Geschäftszeiten (9–17 Uhr)",
+				"monthly-1st-2am": "Am 1. Tag des Monats um 2 Uhr",
+				"weekdays-30min": "An Werktagen alle 30 Minuten"
+			}
+		},
+		"timespan": {
+			"placeholder": "Time span (e.g., 30s, 5min, 2h, 1d, 1w)",
+			"tooltip": {
+				"parsed-as": "Erkannt als:",
+				"validation-failed": "Zeitspanne konnte nicht überprüft werden"
+			},
+			"templates": {
+				"1-second": "1 Sekunde",
+				"30-seconds": "30 Sekunden",
+				"5-minutes": "5 Minuten",
+				"30-minutes": "30 Minuten",
+				"1-hour": "1 Stunde",
+				"1-hour-30-minutes": "1 Stunde 30 Minuten",
+				"6-hours": "6 Stunden",
+				"1-day": "1 Tag",
+				"1-week": "1 Woche",
+				"1-month": "1 Monat"
+			}
+		}
 	}
 }
