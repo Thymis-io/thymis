@@ -25,23 +25,58 @@ class BashModule(modules.Module):
         ),
         type=modules.SystemdTimerType(),
         default=None,
-        description="The timer configuration for the bash script.",
+        description=modules.LocalizedString(
+            en="The timer configuration for the bash script.",
+            de="Die Timer-Konfiguration für das Bash-Skript.",
+        ),
         example="",
         order=10,
     )
 
+    packages = modules.Setting(
+        display_name=modules.LocalizedString(
+            en="Required Packages",
+            de="Benötigte Pakete",
+        ),
+        type=modules.ListType(
+            settings={
+                "package": modules.Setting(
+                    display_name=modules.LocalizedString(
+                        en="Package",
+                        de="Paket",
+                    ),
+                    type="string",
+                    order=0,
+                )
+            },
+            element_name=modules.LocalizedString(
+                en="Package",
+                de="Paket",
+            ),
+        ),
+        default=[],
+        description=modules.LocalizedString(
+            en="List of packages from nixpkgs: https://search.nixos.org/packages",
+            de="Liste der Pakete aus nixpkgs: https://search.nixos.org/packages",
+        ),
+        order=20,
+    )
+
     script = modules.Setting(
         display_name=modules.LocalizedString(
-            en="Freeform Settings",
-            de="Freiform Einstellungen",
+            en="Bash Script",
+            de="Bash-Skript",
         ),
         type=modules.TextAreaCodeType(
             language="bash",
         ),
         default="",
-        description="The settings for the freeform module.",
+        description=modules.LocalizedString(
+            en="The bash script to be executed.",
+            de="Das auszuführende Bash-Skript.",
+        ),
         example="",
-        order=20,
+        order=30,
     )
 
     @staticmethod
@@ -100,12 +135,16 @@ class BashModule(modules.Module):
         else:
             timer_settings = []
 
+        packages_list = module_settings.settings.get("packages", self.packages.default)
+
         f.write(
             f"""
             systemd.services."{service_name}" = {{
                 script = ''
+#!/bin/bash
 {bash_script}
                 '';
+                path = [ {" ".join([ "pkgs." + entry["package"] for entry in packages_list if "package" in entry])} ];
                 serviceConfig = {{
                     Type = "oneshot";
                 }};

@@ -28,6 +28,7 @@
 	let debounceTimer: NodeJS.Timeout | undefined;
 
 	const commonTimeSpans = [
+		{ label: $t('systemd.timespan.templates.1-second'), value: '1s' },
 		{ label: $t('systemd.timespan.templates.30-seconds'), value: '30s' },
 		{ label: $t('systemd.timespan.templates.5-minutes'), value: '5min' },
 		{ label: $t('systemd.timespan.templates.30-minutes'), value: '30min' },
