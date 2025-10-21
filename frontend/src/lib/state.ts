@@ -124,6 +124,7 @@ export type SystemdTimerSetting = {
 	accuracy_sec?: string;
 	on_calendar?: string[];
 	persistent?: boolean;
+	randomized_delay_sec?: string;
 };
 
 export type SystemdTimerSettingType = {

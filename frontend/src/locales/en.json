@@ -287,13 +287,17 @@
 		"priority": "Priority {priority}",
 		"editDisabled": "Editing disabled",
 		"no-settings": "No settings found for this module",
+		"timer-type": "Timer Type",
 		"timer-type-realtime": "Realtime",
-		"timer-type-realtime-long": "Realtime: Runs at a specific date or time",
+		"timer-type-realtime-long": "Realtime: runs at a specific date or time",
 		"timer-type-monotonic": "Monotonic",
-		"timer-type-monotonic-long": "Monotonic: Runs a specific time after boot or after the last run",
+		"timer-type-monotonic-long": "Monotonic: runs after a time interval",
 		"timer-on-calendar": "Calendar",
-		"timer-on-boot": "Time to start after boot, empty to disable",
-		"timer-on-unit-active": "Time to start after last run, empty to disable"
+		"timer-on-boot": "Time after boot to start, empty to disable",
+		"timer-on-unit-active": "Time after last start to run again, empty to disable",
+		"timer-accuracy-sec": "Accuracy",
+		"timer-persistent": "Run missed timers",
+		"timer-randomized-delay-sec": "Randomized Delay"
 	},
 	"settings": {
 		"repo": {
@@ -478,7 +482,7 @@
 		"timespan": {
 			"placeholder": "Time span (e.g., 30s, 5min, 2h, 1d, 1w)",
 			"tooltip": {
-				"parsed-as": "Interpreted as:",
+				"parsed-as": "Read as:",
 				"validation-failed": "Failed to validate time span"
 			},
 			"templates": {
