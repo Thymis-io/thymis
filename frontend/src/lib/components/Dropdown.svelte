@@ -1,10 +1,10 @@
 <script lang="ts" generics="T extends string | number">
 	import { browser } from '$app/environment';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
-	import { onDestroy, onMount, type Snippet } from 'svelte';
+	import { onDestroy, onMount, type Component, type ComponentType, type Snippet } from 'svelte';
 
 	interface Props {
-		values?: { label: string; value: T }[];
+		values?: { label: string; icon: Component | ComponentType; value: T }[];
 		selected?: T | null;
 		disabled?: boolean;
 		showBox?: boolean;
@@ -95,8 +95,16 @@
 		{#if children}
 			{@render children()}
 		{:else if selected}
-			{@const label = values.find((v) => v.value === selected)?.label}
-			{label || placeholder}
+			{@const item = values.find((v) => v.value === selected)}
+			{@const Icon = item?.icon}
+			<div class="flex items-center gap-1">
+				{#if Icon}
+					<Icon class="w-4 h-4 shrink-0" />
+				{/if}
+				{item?.label || placeholder}
+			</div>
+		{:else}
+			{selected || placeholder}
 		{/if}
 		<ChevronDown class="h-4 w-4 ml-1" />
 	</button>
@@ -111,8 +119,9 @@
 				{@const highlightedClass = index === highlightedIndex ? 'bg-gray-200 dark:bg-gray-600' : ''}
 				{@const selectedClass =
 					item.value === selected ? 'text-primary-600 dark:text-primary-400' : ''}
+				{@const Icon = item.icon}
 				<option
-					class="p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 {highlightedClass} {selectedClass}"
+					class="flex items-center gap-1 p-1 px-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 {highlightedClass} {selectedClass}"
 					onclick={() => selectItem(item)}
 					onkeydown={(event) => {
 						if (event.key === 'Enter') {
@@ -123,6 +132,9 @@
 					}}
 					tabindex="-1"
 				>
+					{#if Icon}
+						<Icon class="h-4 w-4" />
+					{/if}
 					{item.label}
 				</option>
 			{/each}
