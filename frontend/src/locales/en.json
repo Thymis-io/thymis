@@ -486,7 +486,7 @@
 				"validation-failed": "Failed to validate time span"
 			},
 			"templates": {
-				"1-second": "1 Sekunde",
+				"1-second": "1 second",
 				"30-seconds": "30 seconds",
 				"5-minutes": "5 minutes",
 				"30-minutes": "30 minutes",
