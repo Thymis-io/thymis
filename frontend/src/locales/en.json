@@ -286,7 +286,18 @@
 		"overwrittenBy": "Overwritten by:",
 		"priority": "Priority {priority}",
 		"editDisabled": "Editing disabled",
-		"no-settings": "No settings found for this module"
+		"no-settings": "No settings found for this module",
+		"timer-type": "Timer Type",
+		"timer-type-realtime": "Realtime",
+		"timer-type-realtime-long": "Realtime: runs at a specific date or time",
+		"timer-type-monotonic": "Monotonic",
+		"timer-type-monotonic-long": "Monotonic: runs after a time interval",
+		"timer-on-calendar": "Calendar",
+		"timer-on-boot": "Time after boot to start, empty to disable",
+		"timer-on-unit-active": "Time after last start to run again, empty to disable",
+		"timer-accuracy-sec": "Accuracy",
+		"timer-persistent": "Run missed timers",
+		"timer-randomized-delay-sec": "Randomized Delay"
 	},
 	"settings": {
 		"repo": {
@@ -443,5 +454,49 @@
 		"no-secrets": "No Secrets",
 		"confirm-delete": "Confirm deleting secret:",
 		"delete-error": "Error deleting secret"
+	},
+	"systemd": {
+		"calendar": {
+			"placeholder": "[DayOfWeek] Year-Month-Day Hour:Minute:Second (e.g., Mon *-*-* 09:00:00)",
+			"tooltip": {
+				"next-occurrences": "Next occurrences (times may vary by device timezone):",
+				"validation-failed": "Failed to validate calendar expression"
+			},
+			"templates": {
+				"daily": "Daily",
+				"weekly": "Weekly",
+				"monthly": "Monthly",
+				"yearly": "Yearly",
+				"hourly": "Hourly",
+				"every-15-minutes": "Every 15 minutes",
+				"monday-9am": "Every Monday at 9 AM",
+				"daily-midnight": "Daily at midnight",
+				"weekdays-6pm": "Weekdays at 6 PM",
+				"weekends-10am": "Weekends at 10 AM",
+				"every-2-hours": "Every 2 hours",
+				"business-hours": "Business hours (9-5)",
+				"monthly-1st-2am": "First day of month at 2 AM",
+				"weekdays-30min": "Weekdays every 30 minutes"
+			}
+		},
+		"timespan": {
+			"placeholder": "Time span (e.g., 30s, 5min, 2h, 1d, 1w)",
+			"tooltip": {
+				"parsed-as": "Read as:",
+				"validation-failed": "Failed to validate time span"
+			},
+			"templates": {
+				"1-second": "1 second",
+				"30-seconds": "30 seconds",
+				"5-minutes": "5 minutes",
+				"30-minutes": "30 minutes",
+				"1-hour": "1 hour",
+				"1-hour-30-minutes": "1 hour 30 minutes",
+				"6-hours": "6 hours",
+				"1-day": "1 day",
+				"1-week": "1 week",
+				"1-month": "1 month"
+			}
+		}
 	}
 }

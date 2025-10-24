@@ -17,7 +17,11 @@
 </script>
 
 <Dropdown
-	values={[]}
+	values={artifacts.map((artifact) => ({
+		label: artifact.name,
+		icon: FileIcon,
+		value: artifact.name
+	}))}
 	selected={value}
 	{disabled}
 	showBox={true}
@@ -27,17 +31,4 @@
 	}}
 	class="min-w-10 text-base"
 	innerClass="px-2 py-1"
->
-	{#snippet options()}
-		{#each artifacts as artifact}
-			<option
-				value={artifact.name}
-				class="flex items-center px-1 gap-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
-				onclick={() => onChange?.(artifact.name)}
-			>
-				<FileIcon class="w-4 h-4 shrink-0" />
-				{artifact.name}
-			</option>
-		{/each}
-	{/snippet}
-</Dropdown>
+/>

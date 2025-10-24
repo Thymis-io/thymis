@@ -1,10 +1,10 @@
 <script lang="ts" generics="T extends string | number">
 	import { browser } from '$app/environment';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
-	import { onDestroy, onMount, type Snippet } from 'svelte';
+	import { onDestroy, onMount, type Component, type ComponentType, type Snippet } from 'svelte';
 
 	interface Props {
-		values?: T[];
+		values?: { label: string; icon: Component | ComponentType; value: T }[];
 		selected?: T | null;
 		disabled?: boolean;
 		showBox?: boolean;
@@ -41,8 +41,8 @@
 		isOpen = false;
 	};
 
-	const selectItem = (item: T) => {
-		selected = onSelected(item);
+	const selectItem = (item: { label: string; value: T }) => {
+		selected = onSelected(item.value);
 		isOpen = false;
 	};
 
@@ -94,10 +94,19 @@
 	>
 		{#if children}
 			{@render children()}
+		{:else if selected}
+			{@const item = values.find((v) => v.value === selected)}
+			{@const Icon = item?.icon}
+			<div class="flex items-center gap-1">
+				{#if Icon}
+					<Icon class="w-4 h-4 shrink-0" />
+				{/if}
+				{item?.label || placeholder}
+			</div>
 		{:else}
 			{selected || placeholder}
 		{/if}
-		<ChevronDown class="h-4 w-4" />
+		<ChevronDown class="h-4 w-4 ml-1" />
 	</button>
 
 	{#if isOpen}
@@ -106,11 +115,13 @@
 			class="absolute w-full max-h-[19rem] overflow-y-auto bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base border border-gray-300 dark:border-gray-700 rounded-lg shadow-md mt-1 z-10 {dropdownClass}"
 			role="listbox"
 		>
-			{#each values as item, index}
+			{#each values as item, index (item.value)}
 				{@const highlightedClass = index === highlightedIndex ? 'bg-gray-200 dark:bg-gray-600' : ''}
-				{@const selectedClass = item === selected ? 'text-primary-600 dark:text-primary-400' : ''}
+				{@const selectedClass =
+					item.value === selected ? 'text-primary-600 dark:text-primary-400' : ''}
+				{@const Icon = item.icon}
 				<option
-					class="p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 {highlightedClass} {selectedClass}"
+					class="flex items-center gap-1 p-1 px-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 {highlightedClass} {selectedClass}"
 					onclick={() => selectItem(item)}
 					onkeydown={(event) => {
 						if (event.key === 'Enter') {
@@ -121,7 +132,10 @@
 					}}
 					tabindex="-1"
 				>
-					{item}
+					{#if Icon}
+						<Icon class="h-4 w-4" />
+					{/if}
+					{item.label}
 				</option>
 			{/each}
 			{#if options}

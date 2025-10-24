@@ -52,7 +52,8 @@ const config: PlaywrightTestConfig = {
 		command: commandFrame(command),
 		cwd: `../controller`,
 		port: port,
-		stdout: 'pipe'
+		stdout: 'pipe',
+		timeout: 120000
 	},
 	testDir: 'tests',
 	testMatch: /(.+\.)?(test|spec)\.[jt]s/,

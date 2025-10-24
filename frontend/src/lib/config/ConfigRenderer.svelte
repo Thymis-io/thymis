@@ -6,6 +6,7 @@
 		SecretSettingType,
 		SelectOneSettingType,
 		Setting,
+		SystemdTimerSettingType,
 		TextAreaCodeSettingType
 	} from '$lib/state';
 	import ConfigString from './ConfigString.svelte';
@@ -18,8 +19,10 @@
 	import ConfigArtifact from './ConfigArtifact.svelte';
 	import ConfigTextAreaCode from './ConfigTextAreaCode.svelte';
 	import type { Artifact } from '../../routes/(authenticated)/artifacts/[...rest]/+page';
+	import ConfigSystemdTimer from './ConfigSystemdTimer.svelte';
 
 	interface Props {
+		key: string;
 		setting: Setting;
 		value: unknown;
 		disabled: boolean;
@@ -28,7 +31,7 @@
 		artifacts: Artifact[];
 	}
 
-	let { setting, value, disabled, moduleSettings, onChange, artifacts }: Props = $props();
+	let { key, setting, value, disabled, moduleSettings, onChange, artifacts }: Props = $props();
 
 	const getTypeKeyFromSetting = (setting: Setting): string | undefined => {
 		if (setting.type === 'int') return 'int';
@@ -61,6 +64,13 @@
 			setting.type.type === 'textarea-code'
 		) {
 			return 'textarea-code';
+		}
+		if (
+			typeof setting.type === 'object' &&
+			setting.type.hasOwnProperty('type') &&
+			setting.type.type === 'systemd-timer'
+		) {
+			return 'systemd-timer';
 		}
 		console.error(`Unknown setting type: ${setting.type}`);
 	};
@@ -100,20 +110,31 @@
 	const settingIsTextAreaCode = (setting: Setting): setting is Setting<TextAreaCodeSettingType> => {
 		return getTypeKeyFromSetting(setting) === 'textarea-code';
 	};
+
+	const settingIsSystemdTimer = (setting: Setting): setting is Setting<SystemdTimerSettingType> => {
+		return getTypeKeyFromSetting(setting) === 'systemd-timer';
+	};
 </script>
 
 {#if settingIsInt(setting)}
-	<ConfigInt {value} placeholder={setting.example} {onChange} {disabled} />
+	<ConfigInt {value} placeholder={setting.example} {onChange} {disabled} aria-labelledby={key} />
 {:else if settingIsBool(setting)}
-	<ConfigBool value={value === true} name={setting.displayName} {onChange} {disabled} />
+	<ConfigBool
+		value={value === true}
+		name={setting.displayName}
+		{onChange}
+		{disabled}
+		aria-labelledby={key}
+	/>
 {:else if settingIsString(setting)}
-	<ConfigString {value} placeholder={setting.example} {onChange} {disabled} />
+	<ConfigString {value} placeholder={setting.example} {onChange} {disabled} aria-labelledby={key} />
 {:else if settingIsTextarea(setting)}
 	<ConfigTextarea {value} placeholder={setting.example} {onChange} {disabled} />
 {:else if settingIsSelectOne(setting)}
 	<ConfigSelectOne {value} {setting} {moduleSettings} {onChange} {disabled} />
 {:else if settingIsListOf(setting)}
 	<ConfigList
+		{key}
 		values={Array.isArray(value) ? value : []}
 		{setting}
 		{moduleSettings}
@@ -127,4 +148,6 @@
 	<ConfigArtifact {value} {setting} {onChange} {disabled} {artifacts} />
 {:else if settingIsTextAreaCode(setting)}
 	<ConfigTextAreaCode {value} {setting} {onChange} {disabled} />
+{:else if settingIsSystemdTimer(setting)}
+	<ConfigSystemdTimer {key} {value} {setting} {onChange} {disabled} />
 {/if}
