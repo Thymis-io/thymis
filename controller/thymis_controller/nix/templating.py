@@ -155,3 +155,35 @@ def render_flake_nix(repositories: dict[str, "models.Repo"]) -> str:
     rendered = template.render(inputs=inputs, inputs_keys=inputs_keys)
     formatted = format_nix_value_as_string(rendered)
     return formatted
+
+
+def generate_timer_settings(timer_config: "models.SystemdTimerType"):
+    settings = []
+    timer_type = timer_config.timer_type
+    on_calendar = timer_config.on_calendar or []
+    persistent = timer_config.persistent
+    on_boot_sec = timer_config.on_boot_sec
+    on_unit_active_sec = timer_config.on_unit_active_sec
+    accuracy_sec = timer_config.accuracy_sec
+    randomized_delay_sec = timer_config.randomized_delay_sec
+
+    if timer_type == "realtime":
+        for calendar in on_calendar:
+            if calendar:
+                settings.append(f'timerConfig.OnCalendar = "{calendar}";')
+        if persistent:
+            settings.append(
+                f"timerConfig.Persistent = {convert_python_value_to_nix(persistent)};"
+            )
+    elif timer_type == "monotonic":
+        if on_boot_sec:
+            settings.append(f'timerConfig.OnBootSec = "{on_boot_sec}";')
+        if on_unit_active_sec:
+            settings.append(f'timerConfig.OnUnitActiveSec = "{on_unit_active_sec}";')
+
+    if accuracy_sec:
+        settings.append(f'timerConfig.AccuracySec = "{accuracy_sec}";')
+    if randomized_delay_sec:
+        settings.append(f'timerConfig.RandomizedDelaySec = "{randomized_delay_sec}";')
+
+    return settings
