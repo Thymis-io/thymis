@@ -6,14 +6,15 @@
 	import SystemdTimeSpanInput from '$lib/components/SystemdTimeSpanInput.svelte';
 	import SystemdCalendarInput from '$lib/components/SystemdCalendarInput.svelte';
 	import ConfigBool from './ConfigBool.svelte';
+
 	interface Props {
-		name: string;
+		key: string;
 		value?: SystemdTimerSetting | undefined;
 		onChange?: (value: SystemdTimerSetting) => void;
 		disabled: boolean;
 	}
 
-	let { name, value = { timer_type: 'realtime' }, onChange = () => {}, disabled }: Props = $props();
+	let { key, value = { timer_type: 'realtime' }, onChange = () => {}, disabled }: Props = $props();
 
 	$effect(() => {
 		if (value?.timer_type === 'realtime' && value.on_calendar === undefined) {
@@ -25,7 +26,7 @@
 <Card
 	class="flex flex-col w-full max-w-full drop-shadow z-10 gap-1 text-base text-gray-900 dark:text-white"
 >
-	<p>{$t('config.timer-type')}</p>
+	<p id="{key}-timer-type">{$t('config.timer-type')}</p>
 	<Dropdown
 		selected={value?.timer_type}
 		values={[
@@ -82,39 +83,44 @@
 				+
 			</Button>
 		</div>
-		<p>{$t('config.timer-persistent')}</p>
+		<p id="{key}-timer-persistent">{$t('config.timer-persistent')}</p>
 		<ConfigBool
 			name="persistent"
+			aria-labelledby="{key}-timer-persistent"
 			value={value.persistent}
 			onChange={(newValue) => onChange({ ...value, persistent: newValue })}
 			{disabled}
 		/>
 	{:else if value.timer_type === 'monotonic'}
-		<p>{$t('config.timer-on-boot')}</p>
+		<p id="{key}-timer-on-boot">{$t('config.timer-on-boot')}</p>
 		<SystemdTimeSpanInput
 			class="mb-2"
+			aria-labelledby="{key}-timer-on-boot"
 			value={value.on_boot_sec}
 			onChange={(newValue) => onChange({ ...value, on_boot_sec: newValue })}
 			{disabled}
 		/>
-		<p>{$t('config.timer-on-unit-active')}</p>
+		<p id="{key}-timer-on-unit-active">{$t('config.timer-on-unit-active')}</p>
 		<SystemdTimeSpanInput
 			class="mb-2"
+			aria-labelledby="{key}-timer-on-unit-active"
 			value={value.on_unit_active_sec}
 			onChange={(newValue) => onChange({ ...value, on_unit_active_sec: newValue })}
 			{disabled}
 		/>
 	{/if}
-	<p>{$t('config.timer-accuracy-sec')}</p>
+	<p id="{key}-timer-accuracy-sec">{$t('config.timer-accuracy-sec')}</p>
 	<SystemdTimeSpanInput
 		class="mb-2"
+		aria-labelledby="{key}-timer-accuracy-sec"
 		value={value.accuracy_sec}
 		placeholder="1min"
 		onChange={(newValue) => onChange({ ...value, accuracy_sec: newValue })}
 		{disabled}
 	/>
-	<p>{$t('config.timer-randomized-delay-sec')}</p>
+	<p id="{key}-timer-randomized-delay-sec">{$t('config.timer-randomized-delay-sec')}</p>
 	<SystemdTimeSpanInput
+		aria-labelledby="{key}-timer-randomized-delay-sec"
 		value={value.randomized_delay_sec}
 		onChange={(newValue) => onChange({ ...value, randomized_delay_sec: newValue })}
 		{disabled}

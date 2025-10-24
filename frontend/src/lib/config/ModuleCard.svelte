@@ -108,12 +108,13 @@
 				setting: o.settings[key]
 			}))}
 		<div class="flex flex-col">
-			<P class="mb-1">
+			<P id="config-{key}" class="mb-1">
 				{$t(setting.displayName)}
 			</P>
 			<div class="flex gap-1">
 				{#key module.type}
 					<ConfigRenderer
+						key="config-{key}"
 						{setting}
 						moduleSettings={settings}
 						value={globalState.selectedModuleSettings?.settings[key]}
