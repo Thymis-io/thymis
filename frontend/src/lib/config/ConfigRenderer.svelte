@@ -22,6 +22,7 @@
 	import ConfigSystemdTimer from './ConfigSystemdTimer.svelte';
 
 	interface Props {
+		key: string;
 		setting: Setting;
 		value: unknown;
 		disabled: boolean;
@@ -30,7 +31,7 @@
 		artifacts: Artifact[];
 	}
 
-	let { setting, value, disabled, moduleSettings, onChange, artifacts }: Props = $props();
+	let { key, setting, value, disabled, moduleSettings, onChange, artifacts }: Props = $props();
 
 	const getTypeKeyFromSetting = (setting: Setting): string | undefined => {
 		if (setting.type === 'int') return 'int';
@@ -116,17 +117,24 @@
 </script>
 
 {#if settingIsInt(setting)}
-	<ConfigInt {value} placeholder={setting.example} {onChange} {disabled} />
+	<ConfigInt {value} placeholder={setting.example} {onChange} {disabled} aria-labelledby={key} />
 {:else if settingIsBool(setting)}
-	<ConfigBool value={value === true} name={setting.displayName} {onChange} {disabled} />
+	<ConfigBool
+		value={value === true}
+		name={setting.displayName}
+		{onChange}
+		{disabled}
+		aria-labelledby={key}
+	/>
 {:else if settingIsString(setting)}
-	<ConfigString {value} placeholder={setting.example} {onChange} {disabled} />
+	<ConfigString {value} placeholder={setting.example} {onChange} {disabled} aria-labelledby={key} />
 {:else if settingIsTextarea(setting)}
 	<ConfigTextarea {value} placeholder={setting.example} {onChange} {disabled} />
 {:else if settingIsSelectOne(setting)}
 	<ConfigSelectOne {value} {setting} {moduleSettings} {onChange} {disabled} />
 {:else if settingIsListOf(setting)}
 	<ConfigList
+		{key}
 		values={Array.isArray(value) ? value : []}
 		{setting}
 		{moduleSettings}
@@ -141,5 +149,5 @@
 {:else if settingIsTextAreaCode(setting)}
 	<ConfigTextAreaCode {value} {setting} {onChange} {disabled} />
 {:else if settingIsSystemdTimer(setting)}
-	<ConfigSystemdTimer {value} {setting} {onChange} {disabled} />
+	<ConfigSystemdTimer {key} {value} {setting} {onChange} {disabled} />
 {/if}

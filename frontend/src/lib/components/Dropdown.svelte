@@ -107,7 +107,7 @@
 			class="absolute w-full max-h-[19rem] overflow-y-auto bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base border border-gray-300 dark:border-gray-700 rounded-lg shadow-md mt-1 z-10 {dropdownClass}"
 			role="listbox"
 		>
-			{#each values as item, index}
+			{#each values as item, index (item.value)}
 				{@const highlightedClass = index === highlightedIndex ? 'bg-gray-200 dark:bg-gray-600' : ''}
 				{@const selectedClass =
 					item.value === selected ? 'text-primary-600 dark:text-primary-400' : ''}

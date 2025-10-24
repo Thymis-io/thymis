@@ -5,6 +5,7 @@
 	import CheckCircleIcon from 'lucide-svelte/icons/check-circle';
 	import XCircleIcon from 'lucide-svelte/icons/x-circle';
 	import { t } from 'svelte-i18n';
+	import type { HTMLInputAttributes } from 'svelte/elements';
 
 	interface Props {
 		value?: string;
@@ -19,8 +20,9 @@
 		onChange = () => {},
 		disabled,
 		placeholder = $t('systemd.calendar.placeholder'),
-		class: customClass
-	}: Props = $props();
+		class: customClass,
+		...props
+	}: Props & Omit<HTMLInputAttributes, 'type' | 'size' | 'color'> = $props();
 
 	let validationState: 'valid' | 'invalid' | 'pending' | null = $state(null);
 	let validationError = $state('');
@@ -97,6 +99,7 @@
 			on:input={(e) => onChange((e.target as HTMLInputElement)?.value as string)}
 			{disabled}
 			class="flex-1"
+			{...props}
 		/>
 		{#if validationState === 'valid'}
 			<CheckCircleIcon
