@@ -137,6 +137,36 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	);
 	await page.waitForTimeout(1000);
 
+	// Add the Bash Module
+	await addModuleButton.click();
+	const addBashModuleButton = page.locator('button').filter({ hasText: 'Bash Module' });
+	await addBashModuleButton.click();
+
+	await page.locator('p', { hasText: 'Bash Script' }).nth(0).waitFor();
+
+	const timerTypeInput = page.locator('button').filter({ hasText: 'Realtime' }).first();
+	await timerTypeInput.click();
+	await page.locator('option', { hasText: 'Monotonic' }).click();
+
+	const timeAfterBoot = page.getByRole('textbox', { name: 'Time after boot' }).first();
+	await timeAfterBoot.fill('1s');
+
+	const accuracyInput = page.getByRole('textbox', { name: 'Accuracy' }).first();
+	await accuracyInput.fill('1s');
+
+	const packageButton = page.getByRole('button', { name: 'Add Package' }).first();
+	await packageButton.click();
+
+	const packageNameInput = page.getByRole('textbox', { name: 'Package' }).first();
+	await packageNameInput.fill('jq');
+
+	const scriptInput = page.getByRole('code').first();
+	await scriptInput.click();
+	await page.keyboard.press('ControlOrMeta+A'); // Select all text
+	await page.keyboard.press('Backspace'); // Delete selected text
+	await page.keyboard.type('echo \'{"key": "value"}\' | jq "."');
+	await page.waitForTimeout(1000);
+
 	// Edit core device module too
 	await page.locator('p', { hasText: 'Core Device Configuration' }).click();
 	await page.getByRole('button', { name: 'Add Secret' }).click();
@@ -173,7 +203,15 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await page.locator('a', { hasText: 'Details' }).first().click();
 	await page.locator('p', { hasText: 'Deployed:' }).first().waitFor();
 
+	await page.getByTitle('Minimize Taskbar').first().click();
+
 	await waitForTerminalText(page, '[THIS IS A SECRETHello World Custom Prompt]');
+
+	await enterTextInTerminal(
+		page,
+		'journalctl -u thymis-bash-service-host-vm-test-x64-1.service -n 5'
+	);
+	await waitForTerminalText(page, '{\n  "key": "value"\n}');
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: maxDiffPixels
