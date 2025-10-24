@@ -209,9 +209,9 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 
 	await enterTextInTerminal(
 		page,
-		'journalctl -u thymis-bash-service-host-vm-test-x64-1.service -n 5'
+		'journalctl -u thymis-bash-service-hosts-vm-test-x64-1.service -o cat'
 	);
-	await waitForTerminalText(page, '{\n  "key": "value"\n}');
+	await waitForTerminalText(page, '"key": "value"');
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: maxDiffPixels
