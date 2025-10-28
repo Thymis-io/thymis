@@ -10,8 +10,8 @@
 	let { data }: Props = $props();
 </script>
 
-{#if data.deploymentInfos}
-	{#each data.deploymentInfos as deploymentInfo}
+{#if data.connectedDeploymentInfos}
+	{#each data.connectedDeploymentInfos as deploymentInfo}
 		<Terminal {deploymentInfo} />
 	{/each}
 {/if}

@@ -24,7 +24,7 @@
 	<div class="grid grid-cols-4 grid-flow-row gap-x-2 gap-y-6">
 		<SectionDeploymentInfo
 			class="col-span-3"
-			deploymentInfos={data.deploymentInfos}
+			deploymentInfos={data.connectedDeploymentInfos}
 			config={data.nav.selectedConfig}
 		/>
 		<SectionActions class="col-span-1" config={data.nav.selectedConfig} />
@@ -40,13 +40,13 @@
 			globalState={data.globalState}
 		/>
 		{#if targetShouldShowVNC(currentConfig, data.globalState)}
-			{#each data.deploymentInfos as deploymentInfo}
+			{#each data.connectedDeploymentInfos as deploymentInfo}
 				<Section class="col-span-2" title={$t('nav.device-vnc')}>
 					<VncView globalState={data.globalState} config={currentConfig} {deploymentInfo} />
 				</Section>
 			{/each}
 		{/if}
-		{#each data.deploymentInfos as deploymentInfo}
+		{#each data.connectedDeploymentInfos as deploymentInfo}
 			<Section class="col-span-2" title={$t('nav.terminal')}>
 				<Card class="w-full max-w-none" padding="sm">
 					<Terminal {deploymentInfo} />
