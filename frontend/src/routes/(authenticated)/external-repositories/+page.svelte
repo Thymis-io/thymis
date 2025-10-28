@@ -113,6 +113,9 @@
 	on:confirm={() => {
 		if (deleteRepoConfirm) deleteRepo(deleteRepoConfirm);
 	}}
+	on:cancel={() => {
+		deleteRepoConfirm = undefined;
+	}}
 />
 <Modal bind:open={testConnectionOpen} size="lg" title={$t('settings.repo.check')}>
 	<RepoConnectionTest inputUrl={testConnectionInput} apiSecret={testConnectionApiSecret} />
@@ -163,18 +166,18 @@
 				</TableBodyCell>
 				<TableBodyCell tdClass="p-2 min-w-48 text-xs">
 					{@const status = data.externalRepositoriesStatus[name]}
-					{#if status.status === 'loading'}
+					{#if status?.status === 'loading'}
 						<div class="flex items-center gap-2">
 							<Spinner size="4" />
 							{$t('settings.repo-status.loading')}
 						</div>
-					{:else if status.status === 'no-path'}
+					{:else if status?.status === 'no-path'}
 						{$t('settings.repo-status.no-path')}
-					{:else if status.status === 'no-readme'}
+					{:else if status?.status === 'no-readme'}
 						{$t('settings.repo-status.no-readme')}
-					{:else if status.status === 'no-magic-string'}
+					{:else if status?.status === 'no-magic-string'}
 						{$t('settings.repo-status.no-magic-string')}
-					{:else if status.status === 'loaded'}
+					{:else if status?.status === 'loaded'}
 						{$t('settings.repo-status.loaded', { values: { count: status.modules.length } })}
 						{#each status.modules as module_id}
 							{@const module = data.globalState.availableModules.find((m) => m.type === module_id)}
@@ -186,7 +189,7 @@
 							</div>
 						{/each}
 					{/if}
-					{#if status.details}
+					{#if status?.details}
 						<Button
 							size="xs"
 							color="alternative"
