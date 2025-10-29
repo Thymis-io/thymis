@@ -15,6 +15,7 @@
 		"terminal": "Terminal",
 		"global-vnc": "VNC Geräte",
 		"device-vnc": "VNC",
+		"logs": "Logs",
 		"external-repositories": "Externe Repositories",
 		"tags": "Konfig. Tags",
 		"device-details": "Details",

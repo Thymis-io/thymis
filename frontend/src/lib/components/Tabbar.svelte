@@ -3,19 +3,22 @@
 	import { t } from 'svelte-i18n';
 	import Sliders from 'lucide-svelte/icons/sliders-horizontal';
 	import Terminal from 'lucide-svelte/icons/terminal';
+	import LogIcon from 'lucide-svelte/icons/text-search';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import ListCollapse from 'lucide-svelte/icons/list-collapse';
 	import type { GlobalState } from '$lib/state.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import { page } from '$app/state';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
+	import type { DeploymentInfo } from '$lib/deploymentInfo';
 
 	interface Props {
 		globalState: GlobalState;
+		deploymentInfos: DeploymentInfo[];
 		nav: Nav;
 	}
 
-	let { globalState, nav }: Props = $props();
+	let { globalState, deploymentInfos, nav }: Props = $props();
 
 	type NavItem = {
 		name: string;
@@ -59,6 +62,12 @@
 			icon: Terminal,
 			href: '/configuration/terminal',
 			hidden: !nav.selectedConfig
+		},
+		{
+			name: $t('nav.logs'),
+			icon: LogIcon,
+			href: '/configuration/logs',
+			hidden: deploymentInfos.length === 0
 		}
 	]);
 </script>

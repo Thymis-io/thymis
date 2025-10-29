@@ -108,5 +108,5 @@
 		</Button>
 	{/if}
 </PageHead>
-<Tabbar globalState={data.globalState} nav={data.nav} />
+<Tabbar globalState={data.globalState} deploymentInfos={data.deploymentInfos} nav={data.nav} />
 {@render children?.()}

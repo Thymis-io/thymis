@@ -68,7 +68,8 @@
 			'/configuration/configuration-details',
 			'/configuration/edit',
 			targetShouldShowVNC(config, globalState) ? '/configuration/vnc' : undefined,
-			'/configuration/terminal'
+			'/configuration/terminal',
+			'/configuration/logs'
 		].includes($page.url.pathname)
 			? $page.url.pathname
 			: '/configuration/configuration-details'}
