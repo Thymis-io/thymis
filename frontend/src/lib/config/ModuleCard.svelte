@@ -112,7 +112,7 @@
 				{$t(setting.displayName)}
 			</P>
 			<div class="flex gap-1">
-				{#key module.type}
+				{#key (module.type, globalState.selectedModuleSettings?.settings[key], !canReallyEditSetting(canEdit, setting))}
 					<ConfigRenderer
 						key="config-{key}"
 						{setting}

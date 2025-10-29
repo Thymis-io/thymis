@@ -4,7 +4,7 @@
 	import { onDestroy, onMount, type Component, type ComponentType, type Snippet } from 'svelte';
 
 	interface Props {
-		values?: { label: string; icon: Component | ComponentType; value: T }[];
+		values?: { label: string; icon?: Component | ComponentType; value: T }[];
 		selected?: T | null;
 		disabled?: boolean;
 		showBox?: boolean;
@@ -94,17 +94,17 @@
 	>
 		{#if children}
 			{@render children()}
-		{:else if selected}
+		{:else if selected !== null}
 			{@const item = values.find((v) => v.value === selected)}
 			{@const Icon = item?.icon}
 			<div class="flex items-center gap-1">
 				{#if Icon}
 					<Icon class="w-4 h-4 shrink-0" />
 				{/if}
-				{item?.label || placeholder}
+				{item?.label ?? placeholder}
 			</div>
 		{:else}
-			{selected || placeholder}
+			{selected ?? placeholder}
 		{/if}
 		<ChevronDown class="h-4 w-4 ml-1" />
 	</button>

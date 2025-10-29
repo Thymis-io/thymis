@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timedelta
 
 import sqlalchemy
-from sqlalchemy import nullslast, or_
+from sqlalchemy import func, nullslast, or_
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
@@ -80,7 +80,7 @@ def get_logs(
 ):
     # where ID equals or ssh public key equals
 
-    stmt = session.query(db_models.LogEntry)
+    stmt = session.query(db_models.LogEntry, func.count().over().label("total_count"))
     stmt = stmt.filter(
         or_(
             db_models.LogEntry.deployment_info_id == deployment_info.id,
@@ -93,7 +93,11 @@ def get_logs(
         stmt = stmt.filter(db_models.LogEntry.timestamp <= to_datetime)
     stmt = stmt.order_by(nullslast(db_models.LogEntry.timestamp.desc()))
     stmt = stmt.limit(limit).offset(offset)
-    return stmt.all()
+    results = stmt.all()
+    total_count = results[0].total_count
+    log_entries = [row.LogEntry for row in results]
+
+    return log_entries, total_count
 
 
 def delete_expired_log_batch(
