@@ -386,6 +386,10 @@
 		"confirm": "Delete",
 		"cancel": "Cancel"
 	},
+	"logs": {
+		"filter-by-program-name": "Filter by program name",
+		"exact-program-name": "Exact match"
+	},
 	"tag": {
 		"device": "Device"
 	},

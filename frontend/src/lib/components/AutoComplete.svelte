@@ -13,8 +13,10 @@
 		value?: string;
 		options?: Option[];
 		allowCustomValues?: boolean;
+		placeholder?: string;
 		defaultIcon?: (value: string) => Component | ComponentType | undefined;
 		onChange?: (value: string) => void;
+		class?: string;
 		dropdownClass?: string;
 	}
 
@@ -22,8 +24,10 @@
 		value = $bindable(''),
 		options = [],
 		allowCustomValues = false,
+		placeholder = '',
 		defaultIcon,
 		onChange,
+		class: customClass,
 		dropdownClass = ''
 	}: Props = $props();
 
@@ -87,11 +91,15 @@
 		const rect = parent.getBoundingClientRect();
 		return `position: fixed; left: ${rect.left}px; top: ${rect.bottom}px; width: ${rect.width}px;`;
 	});
+
+	const Icon = options?.find((item) => item.value === value)?.icon;
+	const DefaultIcon = defaultIcon?.(value);
 </script>
 
 <div class="relative" bind:this={parent}>
 	<Input
 		bind:value
+		{placeholder}
 		on:change={() => {
 			if (allowCustomValues || isOption(value)) {
 				onChange?.(value);
@@ -105,10 +113,9 @@
 		on:click={openDropdown}
 		on:focus={openDropdown}
 		on:keydown={onKeyDown}
+		class={!Icon && !defaultIcon ? `px-2! ${customClass}` : customClass}
 	>
 		<div slot="left">
-			{@const Icon = options?.find((item) => item.value === value)?.icon}
-			{@const DefaultIcon = defaultIcon?.(value)}
 			{#if Icon}
 				<Icon class="h-4 w-4 text-gray-900 dark:text-white" />
 			{:else if DefaultIcon}

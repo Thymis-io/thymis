@@ -385,6 +385,10 @@
 		"cancel": "Abbrechen",
 		"confirm": "Löschen"
 	},
+	"logs": {
+		"filter-by-program-name": "Filter nach Programmname",
+		"exact-program-name": "Exakt"
+	},
 	"tag": {
 		"device": "Gerät"
 	},
