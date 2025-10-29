@@ -92,8 +92,8 @@
 		return `position: fixed; left: ${rect.left}px; top: ${rect.bottom}px; width: ${rect.width}px;`;
 	});
 
-	const Icon = options?.find((item) => item.value === value)?.icon;
-	const DefaultIcon = defaultIcon?.(value);
+	const Icon = $derived(options?.find((item) => item.value === value)?.icon);
+	const DefaultIcon = $derived(defaultIcon?.(value));
 </script>
 
 <div class="relative" bind:this={parent}>
