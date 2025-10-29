@@ -75,6 +75,8 @@ def get_logs(
     deployment_info: db_models.DeploymentInfo,
     from_datetime: datetime = None,
     to_datetime: datetime = None,
+    program_name: str = None,
+    exact_program_name: bool = False,
     limit: int = 100,
     offset: int = 0,
 ):
@@ -91,12 +93,19 @@ def get_logs(
         stmt = stmt.filter(db_models.LogEntry.timestamp >= from_datetime)
     if to_datetime is not None:
         stmt = stmt.filter(db_models.LogEntry.timestamp <= to_datetime)
+    if program_name is not None:
+        if exact_program_name:
+            stmt = stmt.filter(db_models.LogEntry.programname == program_name)
+        else:
+            stmt = stmt.filter(db_models.LogEntry.programname.contains(program_name))
     stmt = stmt.order_by(nullslast(db_models.LogEntry.timestamp.desc()))
     stmt = stmt.limit(limit).offset(offset)
+
     results = stmt.all()
+    if not results:
+        return [], 0
     total_count = results[0].total_count
     log_entries = [row.LogEntry for row in results]
-
     return log_entries, total_count
 
 

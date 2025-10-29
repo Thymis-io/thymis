@@ -4,9 +4,9 @@
 	import type { DeploymentInfo } from '$lib/deploymentInfo';
 	import { queryParameters } from 'sveltekit-search-params';
 	import type { PageData } from './$types';
-	import { onMount } from 'svelte';
 	import { invalidateButDeferUntilNavigation } from '$lib/notification';
-	import { Card } from 'flowbite-svelte';
+	import { Card, Toggle } from 'flowbite-svelte';
+	import AutoComplete from '$lib/components/AutoComplete.svelte';
 
 	interface Props {
 		data: PageData;
@@ -34,7 +34,7 @@
 
 	const getLabel = (info: DeploymentInfo) => {
 		const displayName = data.globalState.config(info.deployed_config_id)?.displayName;
-		const lastSeen = new Date(info.last_seen).toLocaleString();
+		const lastSeen = new Date(info.last_seen).toUTCString();
 		return `${displayName ?? info.deployed_config_id} - ${lastSeen}`;
 	};
 
@@ -55,7 +55,7 @@
 	});
 </script>
 
-<div class="mb-4 flex items-center">
+<div class="mb-4 flex items-center gap-4">
 	<Dropdown
 		selected={selectedDeploymentInfoId}
 		values={deploymentInfos.map((info) => ({
@@ -63,7 +63,7 @@
 			value: info.id
 		}))}
 		onSelected={(value) => (params['deployment-info-id'] = value)}
-		class="w-96"
+		class="w-120"
 		innerClass="px-2"
 	/>
 	<Dropdown
@@ -75,8 +75,29 @@
 		]}
 		selected={refreshInterval}
 		onSelected={(value) => (refreshInterval = value)}
-		class="ml-4 w-48"
+		class="w-32"
 		innerClass="px-2"
+	/>
+	<AutoComplete
+		placeholder={$t('logs.filter-by-program-name')}
+		options={data.programNames?.map((name) => ({ label: name, value: name }))}
+		allowCustomValues={true}
+		value={params['program-name'] ?? ''}
+		onChange={(value) => {
+			if (value.trim() === '') {
+				params['program-name'] = null;
+			} else {
+				params['program-name'] = value;
+			}
+		}}
+		class="w-96"
+	/>
+	<!-- exact program name -->
+	<span>{$t('logs.exact-program-name')}</span>
+	<Toggle
+		checked={params['exact-program-name'] === 'true'}
+		on:change={(e) =>
+			(params['exact-program-name'] = (e.target as HTMLInputElement).checked.toString())}
 	/>
 </div>
 <Card class="w-full max-w-full overflow-x-auto">
