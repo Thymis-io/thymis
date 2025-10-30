@@ -7,6 +7,7 @@
 	import { invalidateButDeferUntilNavigation } from '$lib/notification';
 	import { Card, Toggle } from 'flowbite-svelte';
 	import AutoComplete from '$lib/components/AutoComplete.svelte';
+	import { calcTimeSince } from '$lib/hardwareDevices';
 
 	interface Props {
 		data: PageData;
@@ -34,8 +35,8 @@
 
 	const getLabel = (info: DeploymentInfo) => {
 		const displayName = data.globalState.config(info.deployed_config_id)?.displayName;
-		const lastSeen = new Date(info.last_seen).toUTCString();
-		return `${displayName ?? info.deployed_config_id} - ${lastSeen}`;
+		const lastSeen = calcTimeSince(new Date(info.last_seen), new Date());
+		return `${displayName ?? info.deployed_config_id} (${lastSeen})`;
 	};
 
 	$effect(() => {
@@ -76,7 +77,7 @@
 		]}
 		selected={refreshInterval}
 		onSelected={(value) => (refreshInterval = value)}
-		class="w-32"
+		class="w-20"
 		innerClass="px-2"
 	/>
 	<AutoComplete
