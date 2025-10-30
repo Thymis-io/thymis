@@ -387,7 +387,15 @@
 	},
 	"logs": {
 		"filter-by-program-name": "Filter nach Programmname",
-		"exact-program-name": "Exakt"
+		"exact-program-name": "Exakt",
+		"download": "Herunterladen",
+		"download-5min": "Letzte 5 Minuten",
+		"download-15min": "Letzte 15 Minuten",
+		"download-1hr": "Letzte 1 Stunde",
+		"download-6hr": "Letzte 6 Stunden",
+		"download-1day": "Letzte 1 Tag",
+		"download-7day": "Letzte 7 Tage",
+		"download-14day": "Letzte 14 Tage"
 	},
 	"tag": {
 		"device": "Gerät"

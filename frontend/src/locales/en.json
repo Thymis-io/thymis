@@ -388,7 +388,15 @@
 	},
 	"logs": {
 		"filter-by-program-name": "Filter by program name",
-		"exact-program-name": "Exact match"
+		"exact-program-name": "Exact match",
+		"download": "Download",
+		"download-5min": "Last 5 minutes",
+		"download-15min": "Last 15 minutes",
+		"download-1hr": "Last 1 hour",
+		"download-6hr": "Last 6 hours",
+		"download-1day": "Last 1 day",
+		"download-7day": "Last 7 days",
+		"download-14day": "Last 14 days"
 	},
 	"tag": {
 		"device": "Device"

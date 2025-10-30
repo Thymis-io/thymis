@@ -2,8 +2,9 @@ import datetime
 import uuid
 
 from fastapi import APIRouter, Response
+from fastapi.responses import PlainTextResponse
 from thymis_controller import db_models, models
-from thymis_controller.crud.logs import get_logs
+from thymis_controller.crud.logs import get_log_text, get_logs
 from thymis_controller.dependencies import DBSessionAD
 
 router = APIRouter()
@@ -68,3 +69,34 @@ def get_log_program_names(
         .all()
     )
     return [pn[0] for pn in program_names]
+
+
+@router.get("/logs/{deployment_info_id}/download", response_class=PlainTextResponse)
+def download_logs(
+    session: DBSessionAD, deployment_info_id: uuid.UUID, duration_minutes: int
+):
+    deployment_info = (
+        session.query(db_models.DeploymentInfo)
+        .filter(db_models.DeploymentInfo.id == deployment_info_id)
+        .first()
+    )
+    if deployment_info is None:
+        return Response(status_code=404)
+
+    from_datetime = datetime.datetime.now(
+        tz=datetime.timezone.utc
+    ) - datetime.timedelta(minutes=duration_minutes)
+
+    content = get_log_text(
+        session,
+        deployment_info=deployment_info,
+        from_datetime=from_datetime,
+    )
+
+    return PlainTextResponse(
+        content=content,
+        media_type="text/plain",
+        headers={
+            "Content-Disposition": f'attachment; filename="logs_{deployment_info.deployed_config_id}_{from_datetime.isoformat()}.txt"'
+        },
+    )

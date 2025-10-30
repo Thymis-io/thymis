@@ -5,7 +5,14 @@
 	import { queryParameters } from 'sveltekit-search-params';
 	import type { PageData } from './$types';
 	import { invalidateButDeferUntilNavigation } from '$lib/notification';
-	import { Card, Toggle } from 'flowbite-svelte';
+	import ChevronDown from 'lucide-svelte/icons/chevron-down';
+	import {
+		Button,
+		Card,
+		Toggle,
+		Dropdown as FlowbiteDropdown,
+		DropdownItem
+	} from 'flowbite-svelte';
 	import AutoComplete from '$lib/components/AutoComplete.svelte';
 	import { calcTimeSince } from '$lib/hardwareDevices';
 	import { onMount } from 'svelte';
@@ -16,6 +23,7 @@
 
 	let { data }: Props = $props();
 
+	let downloadOpen = $state(false);
 	let refreshInterval = $state(1000);
 
 	const deploymentInfos = $derived(
@@ -39,6 +47,10 @@
 		const online = new Date(info.last_seen) > new Date(new Date().getTime() - 30000);
 		const lastSeen = calcTimeSince(new Date(info.last_seen), new Date());
 		return `${displayName ?? info.deployed_config_id} (${online ? $t('configurations.status.online') : lastSeen})`;
+	};
+
+	const download_url = (deploymentId: string | null, minutes: number) => {
+		return `/api/logs/${deploymentId}/download?duration_minutes=${minutes}`;
 	};
 
 	$effect(() => {
@@ -115,6 +127,61 @@
 		on:change={(e) =>
 			(params['exact-program-name'] = (e.target as HTMLInputElement).checked.toString())}
 	/>
+	<Button>
+		{$t('logs.download')}
+		<ChevronDown class="h-4 w-4 ml-1" />
+	</Button>
+	<FlowbiteDropdown bind:open={downloadOpen}>
+		<DropdownItem
+			href={download_url(selectedDeploymentInfoId, 5)}
+			download
+			on:click={() => (downloadOpen = false)}
+		>
+			{$t('logs.download-5min')}
+		</DropdownItem>
+		<DropdownItem
+			href={download_url(selectedDeploymentInfoId, 15)}
+			download
+			on:click={() => (downloadOpen = false)}
+		>
+			{$t('logs.download-15min')}
+		</DropdownItem>
+		<DropdownItem
+			href={download_url(selectedDeploymentInfoId, 60)}
+			download
+			on:click={() => (downloadOpen = false)}
+		>
+			{$t('logs.download-1hr')}
+		</DropdownItem>
+		<DropdownItem
+			href={download_url(selectedDeploymentInfoId, 60 * 6)}
+			download
+			on:click={() => (downloadOpen = false)}
+		>
+			{$t('logs.download-6hr')}
+		</DropdownItem>
+		<DropdownItem
+			href={download_url(selectedDeploymentInfoId, 60 * 24)}
+			download
+			on:click={() => (downloadOpen = false)}
+		>
+			{$t('logs.download-1day')}
+		</DropdownItem>
+		<DropdownItem
+			href={download_url(selectedDeploymentInfoId, 60 * 24 * 7)}
+			download
+			on:click={() => (downloadOpen = false)}
+		>
+			{$t('logs.download-7day')}
+		</DropdownItem>
+		<DropdownItem
+			href={download_url(selectedDeploymentInfoId, 60 * 24 * 14)}
+			download
+			on:click={() => (downloadOpen = false)}
+		>
+			{$t('logs.download-14day')}
+		</DropdownItem>
+	</FlowbiteDropdown>
 </div>
 <Card class="w-full max-w-full overflow-x-auto">
 	{#each data.logs.toReversed() as line (line.uuid)}
