@@ -8,6 +8,7 @@
 	import { Card, Toggle } from 'flowbite-svelte';
 	import AutoComplete from '$lib/components/AutoComplete.svelte';
 	import { calcTimeSince } from '$lib/hardwareDevices';
+	import { onMount } from 'svelte';
 
 	interface Props {
 		data: PageData;
@@ -35,8 +36,9 @@
 
 	const getLabel = (info: DeploymentInfo) => {
 		const displayName = data.globalState.config(info.deployed_config_id)?.displayName;
+		const online = new Date(info.last_seen) > new Date(new Date().getTime() - 30000);
 		const lastSeen = calcTimeSince(new Date(info.last_seen), new Date());
-		return `${displayName ?? info.deployed_config_id} (${lastSeen})`;
+		return `${displayName ?? info.deployed_config_id} (${online ? $t('configurations.status.online') : lastSeen})`;
 	};
 
 	$effect(() => {
@@ -51,6 +53,18 @@
 				url.pathname.startsWith(`/api/logs/${selectedDeploymentInfoId}`)
 			);
 		}, refreshInterval);
+
+		return () => clearInterval(interval);
+	});
+
+	onMount(() => {
+		const interval = setInterval(async () => {
+			await invalidateButDeferUntilNavigation(
+				(url) =>
+					url.pathname.startsWith(`/api/deployment_info`) ||
+					url.pathname.startsWith(`/api/all_deployment_info`)
+			);
+		}, 10000);
 
 		return () => clearInterval(interval);
 	});
