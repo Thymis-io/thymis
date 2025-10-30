@@ -2,14 +2,14 @@ import datetime
 import uuid
 
 from fastapi import APIRouter, Response
-from thymis_controller import db_models
+from thymis_controller import db_models, models
 from thymis_controller.crud.logs import get_logs
 from thymis_controller.dependencies import DBSessionAD
 
 router = APIRouter()
 
 
-@router.get("/logs/{deployment_info_id}")
+@router.get("/logs/{deployment_info_id}", response_model=models.LogList)
 def get_tasks(
     session: DBSessionAD,
     deployment_info_id: uuid.UUID,
@@ -28,7 +28,7 @@ def get_tasks(
     if deployment_info is None:
         return Response(status_code=404)
 
-    logs, total_count = get_logs(
+    log_list = get_logs(
         session,
         deployment_info=deployment_info,
         from_datetime=(
@@ -42,10 +42,7 @@ def get_tasks(
         limit=limit,
         offset=offset,
     )
-    return {
-        "total_count": total_count,
-        "logs": logs,
-    }
+    return log_list
 
 
 @router.get("/logs/{deployment_info_id}/program-names")

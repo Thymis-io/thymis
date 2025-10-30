@@ -1,11 +1,17 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
 	import { onMount } from 'svelte';
-	import { t } from 'svelte-i18n';
 	import { calcTimeSince } from '$lib/hardwareDevices';
 
+	interface Props {
+		timestamp: string | null;
+		minSeconds?: number;
+		class?: string;
+	}
+
+	let { timestamp, minSeconds = 0, class: customClass = '' }: Props = $props();
+
 	let currentDate = $state(new Date());
-	let date: Date | undefined = $state();
+	let date = $state<Date | undefined>(timestamp ? new Date(timestamp) : undefined);
 
 	onMount(() => {
 		const interval = setInterval(() => {
@@ -14,29 +20,12 @@
 
 		return () => clearInterval(interval);
 	});
-
-	interface Props {
-		timestamp: string | undefined | null;
-		minSeconds?: number;
-		class?: string;
-	}
-
-	let { timestamp, minSeconds = 0, class: clazz = '' }: Props = $props();
-
-	run(() => {
-		if (timestamp) {
-			const timeZoneAwareTimestamp = timestamp.includes('+') ? timestamp : timestamp + '+0000';
-			date = new Date(Date.parse(timeZoneAwareTimestamp));
-		} else {
-			date = undefined;
-		}
-	});
 </script>
 
 {#if date}
 	<span
 		title={date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'long' })}
-		class="playwright-snapshot-unstable {clazz}"
+		class="playwright-snapshot-unstable {customClass}"
 	>
 		<time datetime={date.toISOString()}>
 			{calcTimeSince(date, currentDate, minSeconds)}

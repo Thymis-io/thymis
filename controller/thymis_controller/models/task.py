@@ -2,7 +2,14 @@ import datetime
 import uuid
 from typing import TYPE_CHECKING, Literal, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue, ValidationError
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    JsonValue,
+    ValidationError,
+    field_serializer,
+)
 from thymis_agent import agent
 from thymis_controller.nix.log_parse import ParsedNixProcess
 
@@ -53,6 +60,17 @@ class Task(BaseModel):
     nix_notice_logs: Optional[JsonValue]
     nix_info_logs: Optional[JsonValue]
 
+    @field_serializer("start_time", "end_time")
+    def _ser_dt(self, dt: datetime.datetime | None) -> str | None:
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            # treat stored naive values as UTC
+            dt = dt.replace(tzinfo=datetime.timezone.utc)
+        else:
+            dt = dt.astimezone(datetime.timezone.utc)
+        return dt.isoformat().replace("+00:00", "Z")
+
     @classmethod
     def from_orm_task(cls, task: "db_models.Task") -> "Task":
         try:
@@ -102,6 +120,17 @@ class TaskShort(BaseModel):
     exception: Optional[str]
     task_submission_data: Optional["TaskSubmissionData"]
     nix_status: Optional[NixProcessStatus]
+
+    @field_serializer("start_time", "end_time")
+    def _ser_dt(self, dt: datetime.datetime | None) -> str | None:
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            # treat stored naive values as UTC
+            dt = dt.replace(tzinfo=datetime.timezone.utc)
+        else:
+            dt = dt.astimezone(datetime.timezone.utc)
+        return dt.isoformat().replace("+00:00", "Z")
 
     @classmethod
     def from_orm_task(cls, task: "db_models.Task") -> "TaskShort":
