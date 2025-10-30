@@ -7,8 +7,8 @@ export type DeploymentInfo = {
 	deployed_config_commit: string | null;
 	deployed_config_id: string | null;
 	reachable_deployed_host: string | null;
-	last_seen: string;
-	first_seen: string;
+	last_seen: string | null;
+	first_seen: string | null;
 	hardware_devices: HardwareDevice[];
 };
 

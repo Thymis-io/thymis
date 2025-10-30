@@ -28,7 +28,9 @@
 
 	const deploymentInfos = $derived(
 		data.deploymentInfos.toSorted(
-			(a, b) => new Date(b.last_seen).getDate() - new Date(a.last_seen).getDate()
+			(a, b) =>
+				(b.last_seen ? new Date(b.last_seen).getDate() : -1000) -
+				(a.last_seen ? new Date(a.last_seen).getDate() : -1000)
 		)
 	);
 
@@ -44,8 +46,11 @@
 
 	const getLabel = (info: DeploymentInfo) => {
 		const displayName = data.globalState.config(info.deployed_config_id)?.displayName;
-		const online = new Date(info.last_seen) > new Date(new Date().getTime() - 30000);
-		const lastSeen = calcTimeSince(new Date(info.last_seen), new Date());
+		const online =
+			info.last_seen && new Date(info.last_seen) > new Date(new Date().getTime() - 30000);
+		const lastSeen = info.last_seen
+			? calcTimeSince(new Date(info.last_seen), new Date())
+			: $t('configurations.status.never-seen');
 		return `${displayName ?? info.deployed_config_id} (${online ? $t('configurations.status.online') : lastSeen})`;
 	};
 
