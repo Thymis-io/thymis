@@ -83,7 +83,8 @@
 		},
 		"status": {
 			"online": "Online",
-			"offline": "Offline"
+			"offline": "Offline",
+			"never-seen": "Nie gesehen"
 		},
 		"edit-name-title": "Namen Bearbeiten",
 		"edit-hostname-title": "Ziel Hostnamen Bearbeiten",
