@@ -109,6 +109,31 @@ def get_logs(
     return models.LogList(total_count=total_count, logs=log_entries)
 
 
+def get_log_text(
+    session: Session,
+    deployment_info: db_models.DeploymentInfo,
+    from_datetime: datetime = None,
+) -> str:
+    stmt = session.query(db_models.LogEntry)
+    stmt = stmt.filter(
+        or_(
+            db_models.LogEntry.deployment_info_id == deployment_info.id,
+            db_models.LogEntry.ssh_public_key == deployment_info.ssh_public_key,
+        )
+    )
+    if from_datetime is not None:
+        stmt = stmt.filter(db_models.LogEntry.timestamp >= from_datetime)
+    stmt = stmt.order_by(nullslast(db_models.LogEntry.timestamp.asc()))
+
+    results = stmt.all()
+    log_lines = []
+    for log_entry in results:
+        timestamp_str = log_entry.timestamp.isoformat().replace("+00:00", "Z")
+        log_line = f"{timestamp_str} {log_entry.hostname} {log_entry.syslogtag} {log_entry.message}"
+        log_lines.append(log_line)
+    return "\n".join(log_lines)
+
+
 def delete_expired_log_batch(
     session: Session, cutoff_date: datetime, limit: int
 ) -> int:
