@@ -1,8 +1,8 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 from thymis_controller import db_models
 
 
@@ -48,6 +48,17 @@ class DeploymentInfo(BaseModel):
     last_seen: Optional[datetime]
     first_seen: Optional[datetime]
     hardware_devices: List["HardwareDevice"]
+
+    @field_serializer("last_seen", "first_seen")
+    def _ser_dt(self, dt: datetime | None) -> str | None:
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            # treat stored naive values as UTC
+            dt = dt.replace(tzinfo=timezone.utc)
+        else:
+            dt = dt.astimezone(timezone.utc)
+        return dt.isoformat().replace("+00:00", "Z")
 
     @staticmethod
     def from_deployment_info(

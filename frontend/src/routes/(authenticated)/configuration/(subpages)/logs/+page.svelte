@@ -103,7 +103,7 @@
 	/>
 </div>
 <Card class="w-full max-w-full overflow-x-auto">
-	{#each data.logs.toReversed() as line (line.id)}
+	{#each data.logs.toReversed() as line (line.uuid)}
 		<p class="font-mono whitespace-pre">
 			{`${new Date(line.timestamp).toUTCString()} ${line.programname}: ${line.message}`}
 		</p>

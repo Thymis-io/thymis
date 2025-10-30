@@ -7,7 +7,7 @@ import sqlalchemy
 from sqlalchemy import func, nullslast, or_
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import Session
-from thymis_controller import db_models
+from thymis_controller import db_models, models
 from thymis_controller.config import global_settings
 
 logger = logging.getLogger(__name__)
@@ -79,7 +79,7 @@ def get_logs(
     exact_program_name: bool = False,
     limit: int = 100,
     offset: int = 0,
-):
+) -> models.LogList:
     # where ID equals or ssh public key equals
 
     stmt = session.query(db_models.LogEntry, func.count().over().label("total_count"))
@@ -103,10 +103,10 @@ def get_logs(
 
     results = stmt.all()
     if not results:
-        return [], 0
+        return models.LogList(total_count=0, logs=[])
     total_count = results[0].total_count
-    log_entries = [row.LogEntry for row in results]
-    return log_entries, total_count
+    log_entries = [models.LogEntry.from_db_model(row.LogEntry) for row in results]
+    return models.LogList(total_count=total_count, logs=log_entries)
 
 
 def delete_expired_log_batch(

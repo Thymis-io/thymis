@@ -1,5 +1,5 @@
 export type LogLine = {
-	id: string;
+	uuid: string;
 	hostname: string;
 	severity: number;
 	syslogtag: string;

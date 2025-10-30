@@ -51,7 +51,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#each taskList as task}
+			{#each taskList as task (task.id)}
 				<tr>
 					<td class={tdClass}>
 						<TaskbarName {globalState} {task} />
