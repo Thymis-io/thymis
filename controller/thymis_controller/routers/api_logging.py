@@ -1,17 +1,22 @@
 import datetime
 import uuid
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import PlainTextResponse
-from thymis_controller import db_models, models
-from thymis_controller.crud.logs import get_log_text, get_logs
+from thymis_controller import crud, models
+from thymis_controller.crud.logs import (
+    get_latest_log_time,
+    get_log_text,
+    get_logs,
+    get_program_names,
+)
 from thymis_controller.dependencies import DBSessionAD
 
 router = APIRouter()
 
 
 @router.get("/logs/{deployment_info_id}", response_model=models.LogList)
-def get_tasks(
+def get_logs_endpoint(
     session: DBSessionAD,
     deployment_info_id: uuid.UUID,
     from_datetime: str = None,
@@ -21,13 +26,9 @@ def get_tasks(
     limit: int = 100,
     offset: int = 0,
 ):
-    deployment_info = (
-        session.query(db_models.DeploymentInfo)
-        .filter(db_models.DeploymentInfo.id == deployment_info_id)
-        .first()
-    )
+    deployment_info = crud.deployment_info.get_by_id(session, deployment_info_id)
     if deployment_info is None:
-        return Response(status_code=404)
+        raise HTTPException(status_code=404, detail="Deployment not found")
 
     log_list = get_logs(
         session,
@@ -51,56 +52,25 @@ def get_log_program_names(
     session: DBSessionAD,
     deployment_info_id: uuid.UUID,
 ):
-    deployment_info = (
-        session.query(db_models.DeploymentInfo)
-        .filter(db_models.DeploymentInfo.id == deployment_info_id)
-        .first()
-    )
+    deployment_info = crud.deployment_info.get_by_id(session, deployment_info_id)
     if deployment_info is None:
-        return Response(status_code=404)
+        raise HTTPException(status_code=404, detail="Deployment not found")
 
-    program_names = (
-        session.query(db_models.LogEntry.programname)
-        .filter(
-            db_models.LogEntry.deployment_info_id == deployment_info.id,
-        )
-        .distinct()
-        .order_by(db_models.LogEntry.programname)
-        .all()
-    )
-    return [pn[0] for pn in program_names]
+    return get_program_names(session, deployment_info)
 
 
 @router.get("/logs/{deployment_info_id}/download", response_class=PlainTextResponse)
 def download_logs(
     session: DBSessionAD, deployment_info_id: uuid.UUID, duration_minutes: int
 ):
-    deployment_info = (
-        session.query(db_models.DeploymentInfo)
-        .filter(db_models.DeploymentInfo.id == deployment_info_id)
-        .first()
-    )
+    deployment_info = crud.deployment_info.get_by_id(session, deployment_info_id)
     if deployment_info is None:
-        return Response(status_code=404)
+        raise HTTPException(status_code=404, detail="Deployment not found")
 
-    latest_log = (
-        session.query(db_models.LogEntry)
-        .filter(db_models.LogEntry.deployment_info_id == deployment_info.id)
-        .order_by(db_models.LogEntry.timestamp.desc())
-        .first()
-    )
-    latest_log_time = (
-        latest_log.timestamp
-        if latest_log
-        else datetime.datetime.now(tz=datetime.timezone.utc)
-    )
+    latest_log_time = get_latest_log_time(session, deployment_info)
     from_datetime = latest_log_time - datetime.timedelta(minutes=duration_minutes)
 
-    content = get_log_text(
-        session,
-        deployment_info=deployment_info,
-        from_datetime=from_datetime,
-    )
+    content = get_log_text(session, deployment_info, from_datetime)
 
     return PlainTextResponse(
         content=content,
