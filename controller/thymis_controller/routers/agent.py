@@ -107,7 +107,7 @@ async def logs(
     for log_entry in log_entries:
         crud.logs.create(
             db_session,
-            id=log_entry.uuid,
+            log_id=log_entry.uuid,
             timestamp=log_entry.timestamp,
             message=log_entry.message,
             hostname=log_entry.host,

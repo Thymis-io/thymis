@@ -1,7 +1,8 @@
 import asyncio
 import logging
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from typing import List
 
 import sqlalchemy
 from sqlalchemy import func, nullslast, or_
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 def create(
     session: Session,
-    id: uuid.UUID,
+    log_id: uuid.UUID,
     timestamp: datetime,
     message: str,
     hostname: str,
@@ -39,7 +40,7 @@ def create(
     stmt = sqlite_insert(db_models.LogEntry).values(
         [
             {
-                "id": id,
+                "id": log_id,
                 "timestamp": timestamp,
                 "message": message,
                 "hostname": hostname,
@@ -182,3 +183,40 @@ async def remove_expired_logs(session: Session) -> int:
                 "Deleted %d/%d expired log entries", total_deleted, delete_count
             )
     logger.info("Deleted a total of %d expired log entries", total_deleted)
+
+
+def get_program_names(
+    session: Session, deployment_info: db_models.DeploymentInfo
+) -> List[str]:
+    """Get distinct program names for a deployment."""
+    program_names = (
+        session.query(db_models.LogEntry.programname)
+        .filter(
+            or_(
+                db_models.LogEntry.deployment_info_id == deployment_info.id,
+                db_models.LogEntry.ssh_public_key == deployment_info.ssh_public_key,
+            )
+        )
+        .distinct()
+        .order_by(db_models.LogEntry.programname)
+        .all()
+    )
+    return [pn[0] for pn in program_names]
+
+
+def get_latest_log_time(
+    session: Session, deployment_info: db_models.DeploymentInfo
+) -> datetime:
+    """Get the timestamp of the latest log entry for a deployment."""
+    latest_log = (
+        session.query(db_models.LogEntry)
+        .filter(
+            or_(
+                db_models.LogEntry.deployment_info_id == deployment_info.id,
+                db_models.LogEntry.ssh_public_key == deployment_info.ssh_public_key,
+            )
+        )
+        .order_by(db_models.LogEntry.timestamp.desc())
+        .first()
+    )
+    return latest_log.timestamp if latest_log else datetime.now(tz=timezone.utc)
