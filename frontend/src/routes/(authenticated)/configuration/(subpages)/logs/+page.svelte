@@ -26,11 +26,32 @@
 	let downloadOpen = $state(false);
 	let refreshInterval = $state(1000);
 
+	const refreshIntervals = [
+		{ label: 'Off', value: 0 },
+		{ label: '1s', value: 1000 },
+		{ label: '5s', value: 5000 },
+		{ label: '10s', value: 10000 },
+		{ label: '60s', value: 60000 }
+	];
+
+	const downloadOptions = [
+		{ minutes: 5, label: $t('logs.download-5min') },
+		{ minutes: 15, label: $t('logs.download-15min') },
+		{ minutes: 60, label: $t('logs.download-1hr') },
+		{ minutes: 60 * 6, label: $t('logs.download-6hr') },
+		{ minutes: 60 * 24, label: $t('logs.download-1day') },
+		{ minutes: 60 * 24 * 7, label: $t('logs.download-7day') },
+		{ minutes: 60 * 24 * 14, label: $t('logs.download-14day') }
+	];
+
+	const onlineThresholdMs = 30000;
+	const deploymentInfoRefreshMs = 10000;
+
 	const deploymentInfos = $derived(
 		data.deploymentInfos.toSorted(
 			(a, b) =>
-				(b.last_seen ? new Date(b.last_seen).getDate() : -1000) -
-				(a.last_seen ? new Date(a.last_seen).getDate() : -1000)
+				(b.last_seen ? new Date(b.last_seen).getTime() : -1000) -
+				(a.last_seen ? new Date(a.last_seen).getTime() : -1000)
 		)
 	);
 
@@ -47,14 +68,14 @@
 	const getLabel = (info: DeploymentInfo) => {
 		const displayName = data.globalState.config(info.deployed_config_id)?.displayName;
 		const online =
-			info.last_seen && new Date(info.last_seen) > new Date(new Date().getTime() - 30000);
+			info.last_seen && new Date(info.last_seen) > new Date(Date.now() - onlineThresholdMs);
 		const lastSeen = info.last_seen
 			? calcTimeSince(new Date(info.last_seen), new Date())
 			: $t('configurations.status.never-seen');
 		return `${displayName ?? info.deployed_config_id} (${online ? $t('configurations.status.online') : lastSeen})`;
 	};
 
-	const download_url = (deploymentId: string | null, minutes: number) => {
+	const getDownloadUrl = (deploymentId: string | null, minutes: number) => {
 		return `/api/logs/${deploymentId}/download?duration_minutes=${minutes}`;
 	};
 
@@ -78,10 +99,10 @@
 		const interval = setInterval(async () => {
 			await invalidateButDeferUntilNavigation(
 				(url) =>
-					url.pathname.startsWith(`/api/deployment_info`) ||
-					url.pathname.startsWith(`/api/all_deployment_info`)
+					url.pathname.startsWith('/api/deployment_info') ||
+					url.pathname.startsWith('/api/all_deployment_info')
 			);
-		}, 10000);
+		}, deploymentInfoRefreshMs);
 
 		return () => clearInterval(interval);
 	});
@@ -99,13 +120,7 @@
 		innerClass="px-2"
 	/>
 	<Dropdown
-		values={[
-			{ label: 'Off', value: 0 },
-			{ label: '1s', value: 1000 },
-			{ label: '5s', value: 5000 },
-			{ label: '10s', value: 10000 },
-			{ label: '60s', value: 60000 }
-		]}
+		values={refreshIntervals}
 		selected={refreshInterval}
 		onSelected={(value) => (refreshInterval = value)}
 		class="w-20"
@@ -117,11 +132,7 @@
 		allowCustomValues={true}
 		value={params['program-name'] ?? ''}
 		onChange={(value) => {
-			if (value.trim() === '') {
-				params['program-name'] = null;
-			} else {
-				params['program-name'] = value;
-			}
+			params['program-name'] = value.trim() === '' ? null : value;
 		}}
 		class="w-96"
 	/>
@@ -129,63 +140,24 @@
 	<span>{$t('logs.exact-program-name')}</span>
 	<Toggle
 		checked={params['exact-program-name'] === 'true'}
-		on:change={(e) =>
-			(params['exact-program-name'] = (e.target as HTMLInputElement).checked.toString())}
+		on:change={(e) => {
+			params['exact-program-name'] = (e.target as HTMLInputElement).checked.toString();
+		}}
 	/>
 	<Button>
 		{$t('logs.download')}
 		<ChevronDown class="h-4 w-4 ml-1" />
 	</Button>
 	<FlowbiteDropdown bind:open={downloadOpen}>
-		<DropdownItem
-			href={download_url(selectedDeploymentInfoId, 5)}
-			download
-			on:click={() => (downloadOpen = false)}
-		>
-			{$t('logs.download-5min')}
-		</DropdownItem>
-		<DropdownItem
-			href={download_url(selectedDeploymentInfoId, 15)}
-			download
-			on:click={() => (downloadOpen = false)}
-		>
-			{$t('logs.download-15min')}
-		</DropdownItem>
-		<DropdownItem
-			href={download_url(selectedDeploymentInfoId, 60)}
-			download
-			on:click={() => (downloadOpen = false)}
-		>
-			{$t('logs.download-1hr')}
-		</DropdownItem>
-		<DropdownItem
-			href={download_url(selectedDeploymentInfoId, 60 * 6)}
-			download
-			on:click={() => (downloadOpen = false)}
-		>
-			{$t('logs.download-6hr')}
-		</DropdownItem>
-		<DropdownItem
-			href={download_url(selectedDeploymentInfoId, 60 * 24)}
-			download
-			on:click={() => (downloadOpen = false)}
-		>
-			{$t('logs.download-1day')}
-		</DropdownItem>
-		<DropdownItem
-			href={download_url(selectedDeploymentInfoId, 60 * 24 * 7)}
-			download
-			on:click={() => (downloadOpen = false)}
-		>
-			{$t('logs.download-7day')}
-		</DropdownItem>
-		<DropdownItem
-			href={download_url(selectedDeploymentInfoId, 60 * 24 * 14)}
-			download
-			on:click={() => (downloadOpen = false)}
-		>
-			{$t('logs.download-14day')}
-		</DropdownItem>
+		{#each downloadOptions as { minutes, label }}
+			<DropdownItem
+				href={getDownloadUrl(selectedDeploymentInfoId, minutes)}
+				download
+				on:click={() => (downloadOpen = false)}
+			>
+				{label}
+			</DropdownItem>
+		{/each}
 	</FlowbiteDropdown>
 </div>
 <Card class="w-full max-w-full overflow-x-auto">
