@@ -83,9 +83,18 @@ def download_logs(
     if deployment_info is None:
         return Response(status_code=404)
 
-    from_datetime = datetime.datetime.now(
-        tz=datetime.timezone.utc
-    ) - datetime.timedelta(minutes=duration_minutes)
+    latest_log = (
+        session.query(db_models.LogEntry)
+        .filter(db_models.LogEntry.deployment_info_id == deployment_info.id)
+        .order_by(db_models.LogEntry.timestamp.desc())
+        .first()
+    )
+    latest_log_time = (
+        latest_log.timestamp
+        if latest_log
+        else datetime.datetime.now(tz=datetime.timezone.utc)
+    )
+    from_datetime = latest_log_time - datetime.timedelta(minutes=duration_minutes)
 
     content = get_log_text(
         session,
