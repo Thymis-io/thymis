@@ -27,13 +27,13 @@ The documentation is available at [thymis.io/docs](https://thymis.io/docs/).
 
 ## Screenshot & Demo
 
-|![Screenshot](frontend/tests/screencaps.spec.ts-snapshots/Color-scheme-dark-Create-moneyshot-4-linux.png)|
-|-|
-|Screenshot of the Control Panel|
+| ![Screenshot](frontend/tests/screencaps.spec.ts-snapshots/Color-scheme-dark-Create-moneyshot-4-linux.png) |
+| --------------------------------------------------------------------------------------------------------- |
+| Screenshot of the Control Panel                                                                           |
 
-|<video src="https://github.com/user-attachments/assets/c4f240d8-8fde-4987-989d-c598d4cba487" width="300" />|
-|-|
-|Video of a Kiosk Deployment to 3 Devices changing the URL to [https://thymis.io/](https://thymis.io/)
+| <video src="https://github.com/user-attachments/assets/c4f240d8-8fde-4987-989d-c598d4cba487" width="300" /> |
+| ----------------------------------------------------------------------------------------------------------- |
+| Video of a Kiosk Deployment to 3 Devices changing the URL to [https://thymis.io/](https://thymis.io/)       |
 
 ##  Overview
 
@@ -113,42 +113,34 @@ The controller takes care of running the frontend for you. You can access thymis
 
 ## Project Roadmap
 
-- [x] `Release 0.1.0`
+- [x] Release [0.1.0](https://github.com/Thymis-io/thymis/releases/tag/0.1.0)
   - Initial release of the project
-  - Including basic device management features
-  - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.1.0)
+  - Basic device management features
 
-- [x] `Release 0.1.1`
-  - Bug fixes and minor improvements
-  - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.1.1)
+- [x] Release [0.2.0](https://github.com/Thymis-io/thymis/releases/tag/0.2.0)
+  - Various bug fixes and improvements
 
-- [x] `Release 0.2.0`
-  - New features and bug fixes, possibly containing breaking changes
-  - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.2.0)
-
-- [x] `Release 0.3.0`
+- [x] Release [0.3.0](https://github.com/Thymis-io/thymis/releases/tag/0.3.0)
   - Task persistence using the database
   - Update to nixpkgs/NixOS 24.11
-  - New features and bug fixes, possibly containing breaking changes
-  - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.3.0)
 
-- [x] `Release 0.4.0`
+- [x] Release [0.4.0](https://github.com/Thymis-io/thymis/releases/tag/0.4.0)
   - Automatic rollback if OTA update fails or condition is met
-  - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.4.0)
 
-- [x] `Release 0.5.0`
-  - Secrets management
+- [x] Release [0.5.0](https://github.com/Thymis-io/thymis/releases/tag/0.5.0)
+  - Added secrets management
   - Fixed unresponsive navigation when the page invalidates data at the same time, see sveltejs/kit#9354
-  - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.5.0)
 
-- [x] `Release 0.6.0`
-  - artifact management
-  - logs are now collected into the database
-  - bug fixes and minor improvements
-  - See [GitHub Release](https://github.com/Thymis-io/thymis/releases/tag/0.6.0)
+- [x] Release [0.6.0](https://github.com/Thymis-io/thymis/releases/tag/0.6.0)
+  - Added artifact management
+  - Logs are now collected into the database
 
-- [ ] `Release 0.7.0`
+- [x] Release [0.7.0](https://github.com/Thymis-io/thymis/releases/tag/0.7.0)
+  - Improved External Repository UI
+  - Added Bash + Python Module
   - Update to nixpkgs/NixOS 25.05
+
+- [ ] Release 0.8.0
   - Rework module system for outside developers
   - New features and bug fixes, possibly containing breaking changes
 

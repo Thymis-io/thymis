@@ -3,7 +3,7 @@
 You can run the Thymis Controller directly with Nix, without installing NixOS or using Docker.
 
 ```bash
-nix run github:Thymis-io/thymis/v0.6#thymis-controller
+nix run github:Thymis-io/thymis/v0.7#thymis-controller
 ```
 
 This starts the controller binary from the pinned release.
@@ -29,7 +29,7 @@ THYMIS_PROJECT_PATH=/var/lib/thymis \
 UVICORN_HOST=0.0.0.0 \
 UVICORN_PORT=8000 \
 mkdir -p /var/lib/thymis && \
-nix run github:Thymis-io/thymis/v0.6#thymis-controller
+nix run github:Thymis-io/thymis/v0.7#thymis-controller
 ```
 
 Notes:
