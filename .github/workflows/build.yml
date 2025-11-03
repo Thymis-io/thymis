@@ -263,5 +263,11 @@ jobs:
       - name: push latest if on main branch
         if: github.ref == 'refs/heads/master'
         run: |
-          docker tag $(docker images --format "{{.Repository}}:{{.Tag}}" | grep thymis-controller) ghcr.io/thymis-io/thymis-controller:latest
+          docker tag ghcr.io/thymis-io/thymis-controller:${{ github.sha }} ghcr.io/thymis-io/thymis-controller:latest
           docker push ghcr.io/thymis-io/thymis-controller:latest
+      - name: push version tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          docker tag ghcr.io/thymis-io/thymis-controller:${{ github.sha }} ghcr.io/thymis-io/thymis-controller:$VERSION
+          docker push ghcr.io/thymis-io/thymis-controller:$VERSION
