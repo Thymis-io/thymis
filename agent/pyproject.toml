@@ -1,6 +1,6 @@
 [project]
 name = "thymis-agent"
-version = "0.7.0"
+version = "0.7.0.dev"
 description = "Thymis Agent for managing and monitoring devices"
 authors = [
     { name = "Adrian Block", email = "adrian.block@thymis.io" },
