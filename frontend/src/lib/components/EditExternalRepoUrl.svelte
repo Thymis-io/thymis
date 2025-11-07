@@ -55,7 +55,7 @@
 		} else if (flakeReference.type === 'gitlab') {
 			const ref = flakeReference.ref ? `/${flakeReference.ref}` : '';
 			const rev = flakeReference.rev ? `/${flakeReference.rev}` : '';
-			return `gitlab:${flakeReference.owner}/${flakeReference.repo}${ref}${rev}`;
+			return `gitlab:${encodeURIComponent(flakeReference.owner)}/${flakeReference.repo}${ref}${rev}`;
 		}
 	});
 

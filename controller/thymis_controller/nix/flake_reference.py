@@ -1,3 +1,5 @@
+from urllib.parse import unquote
+
 from thymis_controller.models.external_repo import (
     GitFlakeReference,
     GithubFlakeReference,
@@ -11,6 +13,8 @@ def is_commit_rev(s: str) -> bool:
 
 
 def parse_flake_reference(flake_url: str):
+    # https://nix.dev/manual/nix/2.28/command-ref/new-cli/nix3-flake.html#types
+
     if flake_url.startswith("flake:") or ":" not in flake_url:
         # indirect flake reference
         if flake_url.startswith("flake:"):
@@ -51,7 +55,14 @@ def parse_flake_reference(flake_url: str):
             protocol = "git"
             url = flake_url[len("git:") :]
 
-        url_parts = url.split("/")
+        slashes_before_args = 0
+        args_index = url.find("?")
+        if args_index != -1:
+            slashes_before_args = url[:args_index].count("/")
+        else:
+            slashes_before_args = url.count("/")
+
+        url_parts = url.split("/", maxsplit=slashes_before_args)
         params = []
         host = None
         owner = None
@@ -90,7 +101,7 @@ def parse_flake_reference(flake_url: str):
 
     if flake_url.startswith("github:"):
         url = flake_url[len("github:") :]
-        parts = url.split("/")
+        parts = url.split("/", maxsplit=2)
         params = []
         host = None
         owner = None
@@ -129,7 +140,7 @@ def parse_flake_reference(flake_url: str):
 
     if flake_url.startswith("gitlab:"):
         url = flake_url[len("gitlab:") :]
-        parts = url.split("/")
+        parts = url.split("/", maxsplit=2)
         params = []
         host = None
         owner = None
@@ -160,7 +171,7 @@ def parse_flake_reference(flake_url: str):
         return GitlabFlakeReference(
             type="gitlab",
             host=host,
-            owner=owner,
+            owner=unquote(owner),
             repo=repo,
             ref=ref,
             rev=rev,

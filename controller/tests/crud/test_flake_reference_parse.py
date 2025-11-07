@@ -82,6 +82,19 @@ def test_git_flake_reference():
     assert ref.ref == "master"
     assert ref.rev is None
 
+    ref = parse_flake_reference(
+        "git+https://github.com/Thymis-io/thymis.git?ref=feat/new-feature"
+    )
+    assert isinstance(ref, GitFlakeReference)
+    assert ref.type == "git"
+    assert ref.protocol == "https"
+    assert ref.url == "github.com/Thymis-io/thymis.git?ref=feat/new-feature"
+    assert ref.host == "github.com"
+    assert ref.owner == "Thymis-io"
+    assert ref.repo == "thymis"
+    assert ref.ref == "feat/new-feature"
+    assert ref.rev is None
+
     ref = parse_flake_reference("git+https://github.com/Thymis-io/thymis.git")
     assert isinstance(ref, GitFlakeReference)
     assert ref.type == "git"
@@ -124,6 +137,25 @@ def test_github_flake_reference():
     assert ref.ref == "master"
     assert ref.rev is None
 
+    ref = parse_flake_reference("github:NixOS/nix/feature/awesome")
+    assert isinstance(ref, GithubFlakeReference)
+    assert ref.type == "github"
+    assert ref.host is None
+    assert ref.owner == "NixOS"
+    assert ref.repo == "nix"
+    assert ref.ref == "feature/awesome"
+    assert ref.rev is None
+
+    # veloren/dev is a subgroup and is URL-encoded
+    ref = parse_flake_reference("gitlab:veloren%2Fdev/rfcs")
+    assert isinstance(ref, GitlabFlakeReference)
+    assert ref.type == "gitlab"
+    assert ref.host is None
+    assert ref.owner == "veloren/dev"
+    assert ref.repo == "rfcs"
+    assert ref.ref is None
+    assert ref.rev is None
+
     ref = parse_flake_reference(
         "github:NixOS/nix/a3a3dda3bacf61e8a39258a0ed9c924eeca8e293"
     )
@@ -164,6 +196,15 @@ def test_gitlab_flake_reference():
     assert ref.owner == "veloren"
     assert ref.repo == "veloren"
     assert ref.ref == "master"
+    assert ref.rev is None
+
+    ref = parse_flake_reference("gitlab:veloren/veloren/feature/awesome")
+    assert isinstance(ref, GitlabFlakeReference)
+    assert ref.type == "gitlab"
+    assert ref.host is None
+    assert ref.owner == "veloren"
+    assert ref.repo == "veloren"
+    assert ref.ref == "feature/awesome"
     assert ref.rev is None
 
     ref = parse_flake_reference(
