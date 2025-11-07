@@ -84,5 +84,6 @@ This priority system ensures that device-specific settings can override tag sett
 - [Creating your first Thymis module](thymis-modules/first-module.md)
 - [Using the Nix language module](thymis-modules/nix-language-module.md)
 - [Using the Python language module](thymis-modules/python-language-module.md)
+- [Using the Bash language module](thymis-modules/bash-language-module.md)
 - [Setting up external repositories](external-repositories.md)
 - [Device Configuration](../reference/concepts/configuration.md)
