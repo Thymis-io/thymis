@@ -110,15 +110,6 @@ BACKUP_SIZE=$(du -h "$BACKUP_DIR/$BACKUP_NAME" | cut -f1)
 echo "Backup size: $BACKUP_SIZE"
 ```
 
-## Benefits
-
-The Bash Module provides several advantages:
-
-- **Familiar**: Use standard bash scripting without Nix knowledge
-- **Package management**: Easy access to nixpkgs tools
-- **Service integration**: Automatic systemd service generation
-- **Timer support**: Built-in scheduling capabilities
-- **System integration**: Full access to system commands and utilities
 
 ## Common Use Cases
 
