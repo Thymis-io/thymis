@@ -295,4 +295,5 @@ NIX_SSHOPTS = (
     "-o BatchMode=yes "
     "-o NumberOfPasswordPrompts=0 "
     "-o ConnectTimeout=10 "
+    "-o StrictHostKeyChecking=accept-new "
 )
