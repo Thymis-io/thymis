@@ -113,7 +113,6 @@ class BashModule(modules.Module):
             f"""
             systemd.services."{service_name}" = {{
                 script = ''
-#!/bin/bash
 {bash_script}
                 '';
                 path = [ {" ".join([ "pkgs." + entry["package"] for entry in packages_list if "package" in entry])} ];
