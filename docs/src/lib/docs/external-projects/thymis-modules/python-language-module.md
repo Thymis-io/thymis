@@ -1,74 +1,87 @@
-# Using the Python language module (coming soon)
+# Using the Python language module
 
-We are working on a dedicated **Python Language Module** for Thymis.
-Once available, you’ll be able to write and run Python code on your devices directly from the Thymis UI — including dependency handling, service setup, and configuration — without dropping into a custom Nix expression.
+The **Python Language Module** for Thymis allows you to write and run Python code on your devices directly from the Thymis UI — including dependency handling, service setup, and timer configuration — without dropping into a custom Nix expression.
 
-Until then, you can still achieve the same effect by using the existing **[Custom Nix Language Module](nix-language-module.md)** and embedding your Python code in a Nix expression.
+## How to Use the Python Module
 
-## Temporary workaround
+1. **Add the module**: In your device or tag configuration, add the "Python Module" from the module list.
 
-In your device or tag, add a [**Custom NixOS Module**](nix-language-module.md) and use [`pkgs.writers.writePython3`](https://github.com/NixOS/nixpkgs/blob/6797403cbe8d8581c60104dc08a670229ab26c39/pkgs/build-support/writers/scripts.nix#L1262) to build a Python script into the system, then run it via a `systemd` service.
+2. **Configure your script**: Write your Python code directly in the "Python Script" field.
 
-Here’s an example that:
-- Uses **PyYAML** to parse a configuration file.
-- Simulates reading a temperature value.
-- Logs readings to `/var/log/temperature.log` every minute.
+3. **Set dependencies**: Add any required Python packages from `python3Packages` (e.g., `requests`, `numpy`, `pandas`).
 
-```nix
-systemd.services.temperature-logger = let
-# Build a Python script with PyYAML
-  temperatureLogger = pkgs.writers.writePython3 "temperature_logger" {
-    libraries = [ pkgs.python3Packages.pyyaml ];
-  } ''
-    import yaml
-    import time
-    from datetime import datetime
-    from random import uniform
+4. **Add system packages**: Include any system packages from nixpkgs if needed (e.g., `git`, `curl`, `ffmpeg`).
 
-    # Example YAML config (could also come from a file)
-    config_yaml = """
-    log_file: "/var/log/temperature.log"
-    unit: "°C"
-    """
-    config = yaml.safe_load(config_yaml)
+5. **Configure timing**: Use the timer configuration to control when and how often your script runs.
 
-    while True:
-        temperature = round(uniform(18.0, 25.0), 2)
-        timestamp = datetime.now().isoformat()
-        log_entry = f"{timestamp} Temperature: {temperature}{config['unit']}\n"
+## Module Settings
 
-        with open(config["log_file"], "a") as f:
-            f.write(log_entry)
+| Setting | Type | Purpose |
+|---------|------|---------|
+| **Timer Configuration** | SystemdTimer | Controls when the script runs (oneshot, recurring, etc.) |
+| **Python Packages** | List | Python packages from `python3Packages` to include |
+| **System Packages** | List | System packages from nixpkgs to include in PATH |
+| **Python Script** | Code | The Python code to execute |
 
-        print(f"Logged: {log_entry.strip()}")
-        time.sleep(60)  # wait 1 minute
-  '';
-in {
-  description = "Temperature Logger Example (Python)";
-  wantedBy = [ "multi-user.target" ];
-  serviceConfig = {
-    ExecStart = "${temperatureLogger}";
-    Restart = "always";
-  };
-};
+## Example: Temperature Logger
+
+Here's an example that logs temperature readings every minute:
+
+```python
+import time
+import json
+from datetime import datetime
+from random import uniform
+
+# Configuration
+log_file = "/var/log/temperature.log"
+unit = "°C"
+
+while True:
+    # Simulate reading temperature
+    temperature = round(uniform(18.0, 25.0), 2)
+    timestamp = datetime.now().isoformat()
+
+    # Create log entry
+    log_entry = {
+        "timestamp": timestamp,
+        "temperature": temperature,
+        "unit": unit
+    }
+
+    # Write to log file
+    with open(log_file, "a") as f:
+        f.write(json.dumps(log_entry) + "\n")
+
+    print(f"Logged: {temperature}{unit} at {timestamp}")
+    time.sleep(60)  # Wait 1 minute
 ```
 
-When deployed:
-- Nix will build your Python script and include PyYAML as a dependency.
-- Systemd will run it automatically and restart it if it stops.
-- Output gets logged to `/var/log/temperature.log` and is also visible in `journalctl -u temperature-logger`.
+### Configuration for the Example
 
----
+- **Python Packages**: Add `json` if not using built-in, or any other packages like `requests` for API calls
+- **Timer Configuration**: Set up as a service that starts automatically
+- **System Packages**: Add any tools your script needs to call
 
-## Roadmap
+## Benefits
 
-When the Python Language Module ships, you’ll be able to:
-- Write Python code directly in the UI without a full Nix block.
-- Pick dependencies from `python3Packages` via a form.
-- Choose how it runs: oneshot script, background daemon, or on‑demand.
-- Reuse scripts easily across tags and device configurations.
+The Python Module provides several advantages over manual Nix expressions:
 
----
+- **User-friendly**: Write Python directly without Nix knowledge
+- **Dependency management**: Easy package selection via forms
+- **Service integration**: Automatic systemd service generation
+- **Timer support**: Built-in scheduling capabilities
+- **Reusable**: Share scripts across tags and device configurations
 
-**Until then**:
-Use the [Custom Nix Language Module](nix-language-module.md) + `pkgs.writers.writePython3` to run Python scripts on your devices today.
+## Migration from Custom Nix
+
+If you have existing Python code in a Custom Nix Module using `pkgs.writers.writePython3`, you can easily migrate:
+
+1. Copy your Python code to the "Python Script" field
+2. Add your dependencies to the "Python Packages" list
+3. Configure the timer as needed
+4. Remove the old Nix expression
+
+## Advanced Usage
+
+For complex scenarios, you can still combine the Python Module with other modules or use the Custom Nix Module for advanced systemd configurations.
