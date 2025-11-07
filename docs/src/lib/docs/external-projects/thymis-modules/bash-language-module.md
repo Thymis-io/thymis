@@ -25,8 +25,6 @@ The **Bash Language Module** for Thymis allows you to write and run bash scripts
 Here's an example that logs system status information every 5 minutes:
 
 ```bash
-#!/bin/bash
-
 # Configuration
 LOG_FILE="/var/log/system-status.log"
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
@@ -85,8 +83,6 @@ echo "System status logged at $TIMESTAMP"
 Here's another example that creates backups of important directories:
 
 ```bash
-#!/bin/bash
-
 # Configuration
 SOURCE_DIR="/home/user/important-data"
 BACKUP_DIR="/backup"
