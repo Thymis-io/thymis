@@ -74,7 +74,7 @@ echo "System status logged at $TIMESTAMP"
 
 ### Configuration for the Example
 
-- **Required Packages**: Add `curl`, `jq` if you need JSON processing, or other tools your script uses
+- **Required Packages**: Add `procps` (for `free` command), `curl`, `jq` if you need JSON processing, or other tools your script uses
 - **Timer Configuration**: Set to run every 5 minutes using systemd timer
 - **Bash Script**: The script above
 
