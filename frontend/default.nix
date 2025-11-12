@@ -1,6 +1,6 @@
 { buildNpmPackage
 , runtimeShell
-, nodejs_22
+, nodejs_24
 , git-rev
 , lib
 }:
@@ -19,7 +19,7 @@ buildNpmPackage {
     mkdir -p $out/bin
     cat > $out/bin/thymis-frontend <<EOF
     #!${runtimeShell}
-    ${nodejs_22}/bin/node $out/lib/thymis-frontend/build/index.js
+    ${nodejs_24}/bin/node $out/lib/thymis-frontend/build/index.js
     EOF
     chmod +x $out/bin/thymis-frontend
 
