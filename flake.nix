@@ -143,7 +143,7 @@
             packages = [
               pkgs.uv
               pkgs.python313
-              pkgs.nodejs_22
+              pkgs.nodejs_24
               pkgs.pre-commit
               pkgs.playwright-driver.browsers
               pkgs.mdbook
@@ -163,7 +163,7 @@
             packages = [
               pkgs.uv
               pkgs.python313
-              pkgs.nodejs_22
+              pkgs.nodejs_24
               pkgs.nixpkgs-fmt
               pkgs.pre-commit
               pkgs.which
@@ -174,7 +174,7 @@
           forNpmTesting = pkgs.mkShell {
             packages = [
               pkgs.playwright-driver.browsers
-              pkgs.nodejs_22
+              pkgs.nodejs_24
               pkgs.uv
               pkgs.python313
               pkgs.nixpkgs-fmt
