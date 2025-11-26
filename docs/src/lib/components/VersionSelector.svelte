@@ -5,18 +5,19 @@
     // needs to be get from env
 	const isDevelopment = false;
 
-    const versions = [
-        "v0.6",
-        "v0.5",
-        "v0.4",
-        "v0.3"
-	];
+    const versions: Record<string, string> = {
+        "v0.7": "https://github.com/Thymis-io/thymis/blob/v0.7/docs/src/lib/docs/SUMMARY.md",
+        "v0.6": "https://github.com/Thymis-io/thymis/blob/v0.6/docs/src/lib/docs/SUMMARY.md",
+        "v0.5": "https://github.com/Thymis-io/thymis/blob/v0.5/docs/src/SUMMARY.md",
+        "v0.4": "https://github.com/Thymis-io/thymis/blob/v0.4/docs/src/SUMMARY.md",
+        "v0.3": "https://github.com/Thymis-io/thymis/blob/v0.3/docs/src/SUMMARY.md",
+	}
 
     if (isDevelopment) {
-        versions.unshift("development version");
+		versions["development version"] = "https://github.com/Thymis-io/thymis"
     }
 
-	const currentVersion = isDevelopment ? "development version" : versions[0];
+	const currentVersion = isDevelopment ? "development version" : Object.keys(versions)[0];
 
 	function toggleDropdown() {
 		isOpen = !isOpen;
@@ -27,7 +28,7 @@
 	}
 
 	function getGitHubUrl(version: string) {
-		return `https://github.com/Thymis-io/thymis/blob/${version}/docs/src/SUMMARY.md`;
+		return versions[version]
 	}
 
 	function handleVersionClick(event: MouseEvent, versionItem: typeof versions[0], position: number) {
@@ -66,7 +67,7 @@
 	{#if isOpen}
 		<div class="absolute left-0 mt-2 w-48 rounded-md border border-gray-200 bg-white shadow-lg z-50">
 			<div class="py-1">
-				{#each versions as versionItem, position}
+				{#each Object.keys(versions) as versionItem, position}
 					<a
 						href={getGitHubUrl(versionItem)}
 						target="_blank"
