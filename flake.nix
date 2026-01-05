@@ -2,9 +2,8 @@
   description = "Thymis";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
-    nix.url = "github:NixOS/nix/2.26.1";
-    home-manager.url = "github:nix-community/home-manager/release-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    home-manager.url = "github:nix-community/home-manager/release-25.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nixos-generators.url = "github:nix-community/nixos-generators";
     nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
@@ -75,7 +74,7 @@
         services.thymis-controller.enable = true;
         services.thymis-controller.base-url = "https://thymis.example.com";
         services.thymis-controller.agent-access-url = "https://thymis.example.com";
-        system.stateVersion = "25.05";
+        system.stateVersion = "25.11";
       };
 
       thymis-controller-pi-3-sd-image = (nixpkgs.lib.nixosSystem {
@@ -201,7 +200,6 @@
               pyproject-nix
               uv2nix;
             thymis-frontend = thymis-frontend;
-            nix = inputs.nix.packages."${system}".nix;
           };
           thymis-agent = pkgs.callPackage ./agent {
             inherit (inputs)
