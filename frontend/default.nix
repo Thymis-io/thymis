@@ -1,6 +1,6 @@
 { buildNpmPackage
 , runtimeShell
-, nodejs_22
+, nodejs_24
 , git-rev
 , lib
 }:
@@ -9,7 +9,7 @@ buildNpmPackage {
   pname = "thymis-frontend";
   version = (builtins.fromJSON (builtins.readFile ./package.json)).version;
   src = ./.;
-  npmDepsHash = "sha256-9zWB8l/vTp44EdrpayCOpxiEHJEBZHkWrpnwoS7mgH4=";
+  npmDepsHash = "sha256-0l7umsJsLzWXFRhsCkdybjFddhXtENsF52EeR+sY2EY=";
   dontNpmInstall = true;
   installPhase = ''
     runHook preInstall
@@ -19,7 +19,7 @@ buildNpmPackage {
     mkdir -p $out/bin
     cat > $out/bin/thymis-frontend <<EOF
     #!${runtimeShell}
-    ${nodejs_22}/bin/node $out/lib/thymis-frontend/build/index.js
+    ${nodejs_24}/bin/node $out/lib/thymis-frontend/build/index.js
     EOF
     chmod +x $out/bin/thymis-frontend
 
