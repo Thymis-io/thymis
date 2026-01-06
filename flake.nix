@@ -147,14 +147,12 @@
               pkgs.playwright-driver.browsers
               pkgs.mdbook
               pkgs.nixpkgs-fmt
-              (inputs.nix.packages."${system}".nix)
             ];
             shellHook = ''
               export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
               export THYMIS_DEV_SHELL=true
               export THYMIS_FLAKE_ROOT=$(git rev-parse --show-toplevel)
-              export PATH=${inputs.nix.packages."${system}".nix}/bin:$PATH
               alias run-dev="(cd $THYMIS_FLAKE_ROOT/controller && UVICORN_PORT=8080 uv run uvicorn thymis_controller.main:app --reload --host 0.0.0.0 --port 8080)"
             '';
           };
