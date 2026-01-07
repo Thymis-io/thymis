@@ -759,7 +759,7 @@ wheels = [
 
 [[package]]
 name = "thymis-agent"
-version = "0.7.1"
+version = "0.7.2.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "http-network-relay" },
