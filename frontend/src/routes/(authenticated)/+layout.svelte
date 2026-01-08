@@ -2,6 +2,8 @@
 	import { run } from 'svelte/legacy';
 
 	import '../../app.postcss';
+	import '@fontsource/inter';
+	import '@fontsource/jetbrains-mono';
 	import Navbar from '$lib/navbar/Navbar.svelte';
 	import Sidebar from '$lib/sidebar/Sidebar.svelte';
 	import SplitPane from '$lib/splitpane/SplitPane.svelte';

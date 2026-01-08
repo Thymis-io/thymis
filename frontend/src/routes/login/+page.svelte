@@ -1,5 +1,7 @@
 <script lang="ts">
 	import '../../app.postcss';
+	import '@fontsource/inter';
+	import '@fontsource/jetbrains-mono';
 	import Navbar from '$lib/navbar/Navbar.svelte';
 	import { page } from '$app/state';
 	import { ProgressBar } from '@prgm/sveltekit-progress-bar';
