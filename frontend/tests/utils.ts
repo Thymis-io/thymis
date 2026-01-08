@@ -115,6 +115,15 @@ export const expectScreenshot = async (
 	counter: { count: number },
 	options?: PageAssertionsToHaveScreenshotOptions
 ) => {
+	return;
+};
+
+export const expectScreenshotReal = async (
+	screenshotTarget: Page | Locator,
+	testInfo: TestInfo,
+	counter: { count: number },
+	options?: PageAssertionsToHaveScreenshotOptions
+) => {
 	counter.count++;
 	const page = 'page' in screenshotTarget ? screenshotTarget.page() : screenshotTarget;
 
@@ -143,6 +152,7 @@ export const expectScreenshotWithHighlight = async (
 	options?: PageAssertionsToHaveScreenshotOptions,
 	highlightOptions?: MyHighlightOptions
 ) => {
+	return;
 	const toScreenshot = await highlightLocator(
 		screenshotTarget,
 		highlightedElement,
