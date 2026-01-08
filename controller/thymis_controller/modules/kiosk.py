@@ -184,7 +184,7 @@ class Kiosk(modules.Module):
             exec "/run/current-system/sw/bin/xset s off"
             exec "/run/current-system/sw/bin/xset -dpms"
             exec "${{pkgs.unclutter}}/bin/unclutter"
-            exec ${{pkgs.bash}}/bin/bash -c "rm -rf ~/.config/chromium/Singleton*; ${{pkgs.chromium}}/bin/chromium --kiosk '{kiosk_url}' ${{if (pkgs.stdenv.system == "aarch64-linux") then "--disable-gpu" else ""}} --chrome-flags='--disable-features=Translate' --hide-scrollbars"
+            exec ${{pkgs.bash}}/bin/bash -c "rm -rf ~/.config/chromium/Singleton*; ${{pkgs.jq}}/bin/jq '.translate_blocked_languages += ["de"]' ~/.config/chromium/Default/Preferences > tmp.json && mv tmp.json ~/.config/chromium/Default/Preferences; ${{pkgs.chromium}}/bin/chromium --kiosk '{kiosk_url}' ${{if (pkgs.stdenv.system == "aarch64-linux") then "--disable-gpu" else ""}} --hide-scrollbars"
             {'exec ${pkgs.bash}/bin/bash -c "mkdir -p $HOME/tigervnc; ${pkgs.tigervnc}/bin/vncpasswd -f <<< \\"'+ vnc_password + '\\" > $HOME/tigervnc/passwd"' if enable_vnc else ''}
             {'exec ${pkgs.tigervnc}/bin/x0vncserver -display :0 -PasswordFile=$HOME/tigervnc/passwd' if enable_vnc else ''}
             exec "${{pkgs.pamixer}}/bin/pamixer --set-volume {volume}"
