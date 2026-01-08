@@ -39,7 +39,7 @@ jobs:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            nix build .#thymis-agent --print-build-logs
+            nix build .#thymis-agent --print-build-logs --fallback
 
   build-agent-aarch64:
     runs-on: ubuntu-22.04-arm
@@ -55,7 +55,7 @@ jobs:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            nix build .#thymis-agent --print-build-logs
+            nix build .#thymis-agent --print-build-logs --fallback
 
   build-thymis-controller:
     runs-on: ubuntu-latest
@@ -74,7 +74,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             cd thymis
-            nix build .#thymis-frontend --print-build-logs 2>&1 | tee build.log
+            nix build .#thymis-frontend --print-build-logs --fallback 2>&1 | tee build.log
             sleep 1
       - name: Get Thymis App Token
         id: generate-token
@@ -119,7 +119,7 @@ jobs:
             git add ./frontend/package-lock.json
             sed -i 's/npmDepsHash = "sha256-.*";/npmDepsHash = lib.fakeHash;/' ./frontend/default.nix
             # and then build the derivation again
-            nix build .#thymis-frontend --print-build-logs 2>&1 | tee build.log
+            nix build .#thymis-frontend --print-build-logs --fallback 2>&1 | tee build.log
             # now checkout the head_ref branch
             git fetch --all
             git checkout $BRANCH_NAME
@@ -150,7 +150,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             cd thymis
-            nix build .#thymis-controller --print-build-logs
+            nix build .#thymis-controller --print-build-logs --fallback
 
 
   build-thymis-controller-pi-3-sd-image:
@@ -167,7 +167,7 @@ jobs:
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
             script: |
-              nix build .#thymis-controller-pi-3-sd-image --print-build-logs
+              nix build .#thymis-controller-pi-3-sd-image --print-build-logs --fallback
       - uses: ./.github/actions/assemble-image-and-assert-existence
 
   build-thymis-controller-pi-4-sd-image:
@@ -186,7 +186,7 @@ jobs:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            nix build .#thymis-controller-pi-4-sd-image --print-build-logs
+            nix build .#thymis-controller-pi-4-sd-image --print-build-logs --fallback
       - uses: ./.github/actions/assemble-image-and-assert-existence
 
   build-thymis-controller-pi-5-sd-image:
@@ -205,7 +205,7 @@ jobs:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            nix build .#thymis-controller-pi-5-sd-image --print-build-logs
+            nix build .#thymis-controller-pi-5-sd-image --print-build-logs --fallback
       - uses: ./.github/actions/assemble-image-and-assert-existence
 
   build-generic-x86_64-image:
@@ -226,7 +226,7 @@ jobs:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            nix build .#thymis-controller-generic-x86_64-image --print-build-logs
+            nix build .#thymis-controller-generic-x86_64-image --print-build-logs --fallback
       - uses: ./.github/actions/assemble-image-and-assert-existence
 
   build-controller-container-x86_64:
@@ -248,7 +248,7 @@ jobs:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            nix build .#thymis-controller-container --print-build-logs
+            nix build .#thymis-controller-container --print-build-logs --fallback
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:

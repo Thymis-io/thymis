@@ -78,7 +78,7 @@ jobs:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            nix build .#thymis-controller --print-build-logs
+            nix build .#thymis-controller --print-build-logs --fallback
       - name: Run tests
         run: |
           export THYMIS_FLAKE_ROOT='..'
@@ -170,7 +170,7 @@ jobs:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            nix build .#thymis-controller --print-build-logs
+            nix build .#thymis-controller --print-build-logs --fallback
       - name: Run tests
         run: |
           # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
@@ -221,7 +221,7 @@ jobs:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            nix build .#thymis-controller --print-build-logs
+            nix build .#thymis-controller --print-build-logs --fallback
       - name: Run tests
         run: |
           export THYMIS_FLAKE_ROOT='..'
@@ -272,7 +272,7 @@ jobs:
           attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            nix build .#thymis-controller --print-build-logs
+            nix build .#thymis-controller --print-build-logs --fallback
       - name: Run tests
         run: |
           # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
