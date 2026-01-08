@@ -223,7 +223,8 @@ test('create whoami tag', async ({ page, request }, testInfo) => {
 		.locator('button')
 		.nth(1);
 	await expectScreenshotWithHighlight(page, editTagButton, testInfo, screenshotCounter);
-	await editTagButton.click({ force: true });
+
+	await editTagButton.click();
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
