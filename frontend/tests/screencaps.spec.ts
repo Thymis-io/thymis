@@ -5,6 +5,7 @@ import {
 	createTag,
 	deleteAllTasks,
 	expectScreenshot,
+	expectScreenshotReal,
 	expectScreenshotWithHighlight
 } from './utils';
 
@@ -298,7 +299,7 @@ test('Create moneyshot', async ({ page, request, browser }, testInfo) => {
 	test.setTimeout(300000);
 	await page.locator('td', { hasText: 'completed' }).nth(1).waitFor({ timeout: 300000 });
 
-	await expectScreenshot(page, testInfo, screenshotCounter, {
+	await expectScreenshotReal(page, testInfo, screenshotCounter, {
 		mask: [page.locator('.playwright-snapshot-unstable')]
 	});
 
@@ -310,7 +311,7 @@ test('Create moneyshot', async ({ page, request, browser }, testInfo) => {
 		maxDiffPixels = 100;
 	}
 
-	await expectScreenshot(page, testInfo, screenshotCounter, {
+	await expectScreenshotReal(page, testInfo, screenshotCounter, {
 		maxDiffPixels: maxDiffPixels,
 		mask: []
 	});
@@ -329,7 +330,7 @@ test('Create moneyshot', async ({ page, request, browser }, testInfo) => {
 		});
 		const zoomedPage = await zoomedContext.newPage();
 		await zoomedPage.goto('/configuration/list');
-		await expectScreenshot(zoomedPage, testInfo, screenshotCounter, {
+		await expectScreenshotReal(zoomedPage, testInfo, screenshotCounter, {
 			maxDiffPixels: maxDiffPixels,
 			mask: []
 		});
