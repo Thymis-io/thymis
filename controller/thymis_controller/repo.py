@@ -126,7 +126,10 @@ class Repo:
             logger.info(f"Initializing git repository at {self.path}")
             self.run_command("git", "init", "-b", "master")
 
-        if not self.run_command("git", "config", "--get", "user.name"):
+        running_in_playwright = os.environ.get("RUNNING_IN_PLAYWRIGHT") == "true"
+        if running_in_playwright or not self.run_command(
+            "git", "config", "--get", "user.name"
+        ):
             logger.info("Setting local git user name and email to Thymis Controller")
             self.run_command("git", "config", "user.name", "Thymis Controller")
             self.run_command(
