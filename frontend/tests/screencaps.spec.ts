@@ -79,7 +79,7 @@ test('shows configuration', async ({ page, request }, testInfo) => {
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
 	// go to device details page, delete device
-	await page.getByRole('button', { name: 'View Details' }).first().click({ force: true });
+	await page.getByRole('button', { name: 'View Details' }).first().click();
 
 	await page.waitForURL('/configuration/configuration-details*');
 
