@@ -206,7 +206,9 @@ def deploy_device_task(
         # write deployment_public_key to tmpfile
         hostfile_path = f"{tmpdir}/known_hosts"
         with open(hostfile_path, "w", encoding="utf-8") as hostfile:
-            hostfile.write(f"localhost {task_data.device.deployment_public_key}\n")
+            hostfile.write(
+                f"{task_data.device.deployment_info_id}.thymis.cloud.internal {task_data.device.deployment_public_key}\n"
+            )
             hostfile.flush()
         env = {
             "NIX_SSHOPTS": f"-i {task_data.ssh_key_path} "
@@ -298,7 +300,7 @@ def deploy_device_task(
                 shutil.which("nix-copy-closure"),
                 *NIX_CMD[1:],
                 "--to",
-                "root@localhost",
+                f"root@{task_data.device.deployment_info_id}.thymis.cloud.internal",
                 "--gzip",
                 config_path,
             ],

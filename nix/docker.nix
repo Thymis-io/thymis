@@ -5,7 +5,7 @@
 , tag ? "latest"
 , bundleNixpkgs ? false
 , channelName ? "nixpkgs"
-, channelURL ? "https://nixos.org/channels/nixpkgs-unstable"
+, channelURL ? "https://channels.nixos.org/nixpkgs-unstable"
 , extraPkgs ? [ ]
 , maxLayers ? 100
 , nixConf ? { }
@@ -148,13 +148,18 @@ let
     filter-syscalls = "false";
   };
 
-  nixConfContents = (lib.concatStringsSep "\n" (lib.mapAttrsFlatten
-    (n: v:
-      let
-        vStr = if builtins.isList v then lib.concatStringsSep " " v else v;
-      in
-      "${n} = ${vStr}")
-    (defaultNixConf // nixConf))) + "\n";
+  toConf =
+    with pkgs.lib.generators;
+    toKeyValue {
+      mkKeyValue = mkKeyValueDefault
+        {
+          mkValueString = v: if lib.isList v then lib.concatStringsSep " " v else mkValueStringDefault { } v;
+        } " = ";
+    };
+
+  nixConfContents = toConf (
+    defaultNixConf // nixConf
+  );
 
   baseSystem =
     let
@@ -221,8 +226,12 @@ let
         set -x
         mkdir -p $out/etc
 
+        # may get replaced by pkgs.dockerTools.caCertificates
         mkdir -p $out/etc/ssl/certs
+        # Old NixOS compatibility.
         ln -s /nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt $out/etc/ssl/certs
+        # NixOS canonical location
+        ln -s /nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt $out/etc/ssl/certs/ca-certificates.crt
 
         cat $passwdContentsPath > $out/etc/passwd
         echo "" >> $out/etc/passwd

@@ -47,7 +47,7 @@
 	class="border-2 dark:border-0 w-full h-full flex px-2 gap-2 sm:gap-4 xl:gap-10 pr-8 md:pr-16 items-center bg-gray-50 dark:bg-gray-700 overflow-y-auto"
 >
 	<div class="text-xs md:text-sm playwright-snapshot-unstable">
-		<span class="hidden xl:block min-w-[14rem]">
+		<span class="hidden xl:block min-w-[20rem]">
 			{$t('taskbar.version', { values: { version: versionInfo.version } })}
 			(<span class="font-mono">
 				{shortRev}
