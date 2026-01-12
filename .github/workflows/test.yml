@@ -31,7 +31,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache the virtualenv
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ./controller/.venv
           key: ${{ runner.os }}-venv-${{ hashFiles('**/uv.lock') }}
