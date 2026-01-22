@@ -24,7 +24,7 @@ dependencies = [
     "sqlalchemy>=2.0.36",
     "python-multipart>=0.0.20",
     "paramiko>=3.5.0",
-    "http-network-relay @ git+https://github.com/Thymis-io/http-network-relay.git@uv",
+    "http-network-relay @ git+https://github.com/Thymis-io/http-network-relay.git",
     # "thymis-agent @ path=../agent,develop=true",
     "thymis-agent",
     "watchdog>=6.0.0",
