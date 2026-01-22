@@ -14,7 +14,7 @@ dependencies = [
     "requests>=2.32.3",
     "psutil>=7.0.0",
     "pydantic>=2.8.2",
-    "http-network-relay @ git+https://github.com/Thymis-io/http-network-relay.git@uv",
+    "http-network-relay @ git+https://github.com/Thymis-io/http-network-relay.git",
     "pyrage>=1.2.4",
     "pyrage-stubs>=1.2.4",
 ]

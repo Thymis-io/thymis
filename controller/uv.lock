@@ -417,7 +417,7 @@ wheels = [
 [[package]]
 name = "http-network-relay"
 version = "0.1.0"
-source = { git = "https://github.com/Thymis-io/http-network-relay.git?rev=uv#ed3c019a2f23b0319035234b75891544c09b3965" }
+source = { git = "https://github.com/Thymis-io/http-network-relay.git#2ac181ff8b8edb4329bed5aa56ea0b05b7ef0dce" }
 dependencies = [
     { name = "fastapi", extra = ["standard"] },
     { name = "pydantic" },
@@ -1110,7 +1110,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "http-network-relay", git = "https://github.com/Thymis-io/http-network-relay.git?rev=uv" },
+    { name = "http-network-relay", git = "https://github.com/Thymis-io/http-network-relay.git" },
     { name = "psutil", specifier = ">=7.0.0" },
     { name = "pydantic", specifier = ">=2.8.2" },
     { name = "pyrage", specifier = ">=1.2.4" },
@@ -1150,7 +1150,7 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.13.2" },
     { name = "cachetools", specifier = ">=6.2.0" },
     { name = "fastapi", specifier = ">=0.115.3" },
-    { name = "http-network-relay", git = "https://github.com/Thymis-io/http-network-relay.git?rev=uv" },
+    { name = "http-network-relay", git = "https://github.com/Thymis-io/http-network-relay.git" },
     { name = "httpx", specifier = ">=0.28.0" },
     { name = "jinja2", specifier = ">=3.1.5" },
     { name = "packaging", specifier = ">=24.0" },
