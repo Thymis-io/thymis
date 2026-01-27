@@ -56,14 +56,7 @@
 	);
 
 	const params = queryParameters();
-	let selectedDeploymentInfoId = $derived.by(() => {
-		const id = params['deployment-info-id'];
-		if (!deploymentInfos.find((info) => info.id === id)) {
-			return deploymentInfos.length > 0 ? deploymentInfos[0].id : null;
-		} else {
-			return id;
-		}
-	});
+	let selectedDeploymentInfoId = $derived.by(() => params['deployment-info-id']);
 
 	const getLabel = (info: DeploymentInfo) => {
 		const displayName = data.globalState.config(info.deployed_config_id)?.displayName;
