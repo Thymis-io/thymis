@@ -225,7 +225,10 @@ router = APIRouter()
 
 
 async def _reverse_proxy(request: fastapi.Request):
-    url = httpx.URL(path=request.url.path, query=request.url.query.encode("utf-8"))
+    try:
+        url = httpx.URL(path=request.url.path, query=request.url.query.encode("utf-8"))
+    except httpx.InvalidURL:
+        return Response(status_code=404)
     rp_req = client.build_request(
         request.method,
         url,
