@@ -27,11 +27,12 @@
 	let refreshInterval = $state(1000);
 
 	const refreshIntervals = [
-		{ label: 'Off', value: 0 },
-		{ label: '1s', value: 1000 },
-		{ label: '5s', value: 5000 },
-		{ label: '10s', value: 10000 },
-		{ label: '60s', value: 60000 }
+		{ label: $t('logs.refresh_off'), value: 0 },
+		{ label: $t('logs.refresh_1s'), value: 1000 },
+		{ label: $t('logs.refresh_5s'), value: 5000 },
+		{ label: $t('logs.refresh_10s'), value: 10000 },
+		{ label: $t('logs.refresh_30s'), value: 30000 },
+		{ label: $t('logs.refresh_60s'), value: 60000 }
 	];
 
 	const downloadOptions = [
@@ -109,14 +110,14 @@
 			value: info.id
 		}))}
 		onSelected={(value) => (params['deployment-info-id'] = value)}
-		class="w-120"
+		class="w-120 min-w-60"
 		innerClass="px-2"
 	/>
 	<Dropdown
 		values={refreshIntervals}
 		selected={refreshInterval}
 		onSelected={(value) => (refreshInterval = value)}
-		class="w-20"
+		class="whitespace-nowrap"
 		innerClass="px-2"
 	/>
 	<AutoComplete
