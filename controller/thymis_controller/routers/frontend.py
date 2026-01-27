@@ -138,10 +138,12 @@ class Frontend:
         async def read_stream(stream: asyncio.StreamReader, level=logging.INFO):
             while not stream.at_eof():
                 line = await stream.readline()
-                if line:
-                    logger.log(
-                        level, "frontend process: %s", line.decode("utf-8").strip()
-                    )
+                if not line:
+                    continue
+                line_decoded = line.decode("utf-8").strip()
+                if not line_decoded:
+                    continue
+                logger.log(level, line_decoded)
 
         async def read_stream_wait_for_started(stream: asyncio.StreamReader):
             # waits for line with regex "VITE v5.4.11  ready in 965 ms" or "Listening on http(s)://ip:port"
