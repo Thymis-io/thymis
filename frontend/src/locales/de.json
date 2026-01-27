@@ -389,6 +389,7 @@
 	"logs": {
 		"filter-by-program-name": "Filter nach Programmname",
 		"exact-program-name": "Exakt",
+		"no-logs": "--- Keine Logs ---",
 		"download": "Herunterladen",
 		"download-5min": "Letzte 5 Minuten",
 		"download-15min": "Letzte 15 Minuten",

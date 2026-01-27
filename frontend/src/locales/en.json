@@ -390,6 +390,7 @@
 	"logs": {
 		"filter-by-program-name": "Filter by program name",
 		"exact-program-name": "Exact match",
+		"no-logs": "--- No logs ---",
 		"download": "Download",
 		"download-5min": "Last 5 minutes",
 		"download-15min": "Last 15 minutes",
