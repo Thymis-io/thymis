@@ -154,6 +154,9 @@
 	</FlowbiteDropdown>
 </div>
 <Card class="w-full max-w-full overflow-x-auto">
+	{#if data.logs.length === 0}
+		<p class="italic text-gray-500">{$t('logs.no-logs')}</p>
+	{/if}
 	{#each data.logs.toReversed() as line (line.uuid)}
 		<p class="font-mono whitespace-pre">
 			{`${new Date(line.timestamp).toUTCString()} ${line.programname}: ${line.message}`}
