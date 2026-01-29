@@ -352,9 +352,8 @@ class Agent(ea.EdgeAgent):
 
                 async def wait_for_reconnect_and_send_result():
                     websocket = self.websocket
+                    self.signal_connected.clear()
                     await websocket.close()
-                    if self.websocket is websocket:
-                        await websocket.wait_closed()
                     try:
                         async with asyncio.timeout(60):  # 1 minute timeout
                             await self.signal_connected.wait()
