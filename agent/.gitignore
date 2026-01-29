@@ -3,3 +3,4 @@ venv/
 state.json
 .env
 *.egg-info
+build/
