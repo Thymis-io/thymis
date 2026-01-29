@@ -271,3 +271,47 @@ jobs:
           VERSION=${GITHUB_REF#refs/tags/v}
           docker tag ghcr.io/thymis-io/thymis-controller:${{ github.sha }} ghcr.io/thymis-io/thymis-controller:$VERSION
           docker push ghcr.io/thymis-io/thymis-controller:$VERSION
+
+  build-controller-container-aarch64:
+    # tag sha-arm and latest-arm
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-22.04-arm
+    needs: changes
+    if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-nix
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: build thymis-controller-container-aarch64
+        uses: ./.github/actions/run-command-with-nix-cache-upload
+        with:
+          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            nix build .#thymis-controller-container --print-build-logs --fallback
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: push docker image
+        run: |
+          docker load < result
+          docker tag $(docker images --format "{{.Repository}}:{{.Tag}}" | grep thymis-controller) ghcr.io/thymis-io/thymis-controller:${{ github.sha }}-arm64
+          docker push ghcr.io/thymis-io/thymis-controller:${{ github.sha }}-arm64
+      - name: push latest-arm if on main branch
+        if: github.ref == 'refs/heads/master'
+        run: |
+          docker tag ghcr.io/thymis-io/thymis-controller:${{ github.sha }}-arm64 ghcr.io/thymis-io/thymis-controller:latest-arm64
+          docker push ghcr.io/thymis-io/thymis-controller:latest-arm64
+      - name: push version tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          docker tag ghcr.io/thymis-io/thymis-controller:${{ github.sha }}-arm64 ghcr.io/thymis-io/thymis-controller:$VERSION-arm64
+          docker push ghcr.io/thymis-io/thymis-controller:$VERSION-arm64
