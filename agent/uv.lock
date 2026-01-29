@@ -216,7 +216,7 @@ wheels = [
 [[package]]
 name = "http-network-relay"
 version = "0.1.0"
-source = { git = "https://github.com/Thymis-io/http-network-relay.git#a1aeca91db9125f7d5f73f6bffa7116fb574fde8" }
+source = { git = "https://github.com/Thymis-io/http-network-relay.git#2a49da6c12467eefedf76eb659fe5b17bdcaee98" }
 dependencies = [
     { name = "fastapi", extra = ["standard"] },
     { name = "pydantic" },
