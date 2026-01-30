@@ -116,6 +116,10 @@ in
       createHome = true;
       password = lib.mkIf (cfg.password != null) cfg.password;
     };
+    swapDevices = [{
+      device = "/swapfile";
+      size = 1 * 1024; # 1GB
+    }];
     networking.firewall = {
       allowedTCPPorts = [ 22 ];
     };
