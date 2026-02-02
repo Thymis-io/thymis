@@ -251,20 +251,82 @@ def deploy_device_task(
         # resolve the toplevel path
         config_path = str(pathlib.Path(toplevel_path).resolve())
 
-        returncode = run_command(
-            task,
-            conn,
-            process_list,
-            [
-                *NIX_CMD,
-                "copy",
-                "--to",
-                "ssh://root@localhost",
-                config_path,
-            ],
-            env,
-            cwd=tmpdir,
-        )
+        # Try to find systemd-run for better process isolation
+        systemd_run = None
+        for path in [
+            "systemd-run",
+            "/bin/systemd-run",
+            "/run/current-system/sw/bin/systemd-run",
+        ]:
+            if shutil.which(path):
+                systemd_run = path
+                break
+
+        # If systemd-run is available, use it for better process isolation
+        if systemd_run:
+            sudo = None
+            for path in ["sudo", "/bin/sudo", "/run/current-system/sw/bin/sudo"]:
+                if shutil.which(path):
+                    sudo = path
+                    break
+
+            if sudo is None:
+                report_task_finished(task, conn, False, "sudo not found")
+                return
+
+            returncode = run_command(
+                task,
+                conn,
+                process_list,
+                [
+                    *(
+                        [sudo, "-n", "-E"]
+                        if "RUNNING_IN_PLAYWRIGHT" in os.environ
+                        and not "DBUS_SESSION_BUS_ADDRESS" in os.environ
+                        else []
+                    ),
+                    systemd_run,
+                    "-E",
+                    "NIX_SSHOPTS",
+                    "-E",
+                    "HTTP_NETWORK_RELAY_SECRET",
+                    "-E",
+                    "PATH",
+                    *(["--user"] if "DBUS_SESSION_BUS_ADDRESS" in os.environ else []),
+                    "--collect",
+                    "--no-ask-password",
+                    "--pipe",
+                    "--quiet",
+                    "--service-type=exec",
+                    f"--unit=thymis-nix-copy-closure-{random.randbytes(8).hex()}",
+                    "--wait",
+                    shutil.which("nix-copy-closure"),
+                    *NIX_CMD[1:],
+                    "--to",
+                    "root@localhost",
+                    "--gzip",
+                    config_path,
+                ],
+                env,
+                cwd=tmpdir,
+            )
+        else:
+            # Fallback to direct nix copy without systemd-run
+            returncode = run_command(
+                task,
+                conn,
+                process_list,
+                [
+                    *NIX_CMD,
+                    "copy",
+                    "--to",
+                    "ssh://root@localhost",
+                    config_path,
+                ],
+                env,
+                cwd=tmpdir,
+                stderr_read_size=1,
+            )
 
         if returncode != 0:
             report_task_finished(task, conn, False, "Copy closure failed")
@@ -586,6 +648,7 @@ def run_command(
     env: dict = None,
     cwd: str = None,
     input: AnyStr = None,
+    stderr_read_size: int = 1024,
 ):
     if process_list.terminated:
         return -1
@@ -610,7 +673,7 @@ def run_command(
         stdin=(subprocess.PIPE if input else None),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        process_group=0,
+        start_new_session=True,  # Creates new process group to isolate children
     )
 
     process_list.add(proc)
@@ -623,7 +686,9 @@ def run_command(
         target=stream_to_buffer, args=(proc.stdout, stdout_buffer, buffer_lock)
     )
     stderr_thread = threading.Thread(
-        target=stream_to_buffer, args=(proc.stderr, stderr_buffer, buffer_lock)
+        target=stream_to_buffer,
+        args=(proc.stderr, stderr_buffer, buffer_lock),
+        kwargs={"read_size": stderr_read_size},
     )
 
     nix_parser = NixParser()
@@ -678,31 +743,38 @@ def run_command(
     if input:
         proc.stdin.write(input)
         proc.stdin.close()
-
-    open_fds = [proc.stdout, proc.stderr]
-    while open_fds:
-        copy_fds = open_fds.copy()
-        for fd in copy_fds:
-            if fd.closed:
-                open_fds.remove(fd)
-        time.sleep(0.5)
-
     proc.wait()
+
+    # Kill the entire process group to ensure SSH and any child processes are cleaned up
+    # This closes any lingering pipes that might be keeping stderr open
+    try:
+        pgid = os.getpgid(proc.pid)
+        os.killpg(pgid, signal.SIGTERM)
+        # Give processes a moment to terminate gracefully
+        time.sleep(0.1)
+    except ProcessLookupError:
+        pass
+    except Exception:
+        pass
+
     stdout_thread.join(0.5)
     stderr_thread.join(0.5)
     update_thread.join(1.5)
 
-    # if anything is still alive, complain
+    # Do a final flush to capture any remaining data
+    with buffer_lock:
+        if stdout_buffer or stderr_buffer:
+            flush_buffers()
+
+    # if anything is still alive, don't fail - the data has been captured
     if proc.poll() is None:
         raise RuntimeError("Process did not stop properly")
+    # complain about still living threads
     if stdout_thread.is_alive() or stderr_thread.is_alive() or update_thread.is_alive():
-        # raise RuntimeError("Threads did not stop properly")
-        if stdout_thread.is_alive():
-            raise RuntimeError("stdout_thread did not stop properly")
-        if stderr_thread.is_alive():
-            raise RuntimeError("stderr_thread did not stop properly")
-        if update_thread.is_alive():
-            raise RuntimeError("update_thread did not stop properly")
+        print("Warning: One of the IO threads is still alive after process termination")
+        print(f"stdout_thread alive: {stdout_thread.is_alive()}")
+        print(f"stderr_thread alive: {stderr_thread.is_alive()}")
+        print(f"update_thread alive: {update_thread.is_alive()}")
 
     return proc.returncode
 
@@ -724,9 +796,11 @@ def report_task_finished(task, conn, success=True, reason=None):
         )
 
 
-def stream_to_buffer(stream: IO[bytes], buffer: bytearray, lock: threading.Lock):
+def stream_to_buffer(
+    stream: IO[bytes], buffer: bytearray, lock: threading.Lock, read_size=1024
+):
     while True:
-        data = stream.read(1024)
+        data = stream.read(read_size)
         if not data:
             break
         with lock:

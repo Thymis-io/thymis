@@ -220,19 +220,25 @@ class NixParser:
     def process_buffer(self, buffer: bytearray):
         normal_stderr = bytearray()
         has_handled_nix_lines = False
-        for line in buffer.splitlines(keepends=True):
+        lines = buffer.splitlines(keepends=True)
+        for i, line in enumerate(lines):
             if line.startswith(b"@nix "):
+                # Check if line ends with newline, otherwise it's incomplete
+                if not line.endswith(b"\n"):
+                    # Keep incomplete @nix line in buffer for next iteration
+                    normal_stderr += line
+                    continue
                 try:
                     parsed = self.handle_line(line)
                     if hasattr(parsed.nix_line, "msg") and parsed.nix_line.msg:
                         self.msg_output += str(parsed.nix_line.msg) + "\n"
                 except json.JSONDecodeError as e:
-                    logger.error(
-                        "Failed to parse line: %s, error: %s",
-                        line,
+                    logger.warning(
+                        "Failed to parse @nix line (len=%d): %s",
+                        len(line),
                         e,
                     )
-                    # Ignore this line
+                    # Treat as normal stderr
                     normal_stderr += line
                     self.msg_output += line.decode("utf-8", errors="replace")
                     continue
