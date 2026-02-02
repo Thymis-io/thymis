@@ -251,51 +251,12 @@ def deploy_device_task(
         # resolve the toplevel path
         config_path = str(pathlib.Path(toplevel_path).resolve())
 
-        systemd_run = "systemd-run"
-        if shutil.which(systemd_run) is None:
-            systemd_run = "/bin/systemd-run"
-        if shutil.which(systemd_run) is None:
-            systemd_run = "/run/current-system/sw/bin/systemd-run"
-        if shutil.which(systemd_run) is None:
-            report_task_finished(task, conn, False, "systemd-run not found")
-            return
-
-        sudo = "sudo"
-        if shutil.which(sudo) is None:
-            sudo = "/bin/sudo"
-        if shutil.which(sudo) is None:
-            sudo = "/run/current-system/sw/bin/sudo"
-        if shutil.which(sudo) is None:
-            report_task_finished(task, conn, False, "sudo not found")
-            return
-
         returncode = run_command(
             task,
             conn,
             process_list,
             [
-                *(
-                    [sudo, "-n", "-E"]
-                    if "RUNNING_IN_PLAYWRIGHT" in os.environ
-                    and not "DBUS_SESSION_BUS_ADDRESS" in os.environ
-                    else []
-                ),
-                systemd_run,
-                "-E",
-                "NIX_SSHOPTS",
-                "-E",
-                "HTTP_NETWORK_RELAY_SECRET",
-                "-E",
-                "PATH",
-                *(["--user"] if "DBUS_SESSION_BUS_ADDRESS" in os.environ else []),
-                "--collect",
-                "--no-ask-password",
-                "--pipe",
-                "--quiet",
-                "--service-type=exec",
-                f"--unit=thymis-nix-copy-closure-{random.randbytes(8).hex()}",
-                "--wait",
-                shutil.which("nix-copy-closure"),
+                "nix-copy-closure",
                 *NIX_CMD[1:],
                 "--to",
                 "root@localhost",
