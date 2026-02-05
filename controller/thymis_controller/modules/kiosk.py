@@ -184,7 +184,25 @@ class Kiosk(modules.Module):
             exec "/run/current-system/sw/bin/xset s off"
             exec "/run/current-system/sw/bin/xset -dpms"
             exec "${{pkgs.unclutter}}/bin/unclutter"
-            exec ${{pkgs.bash}}/bin/bash -c "rm -rf ~/.config/chromium/Singleton*; mkdir -p ~/.config/chromium/Default; [ -s ~/.config/chromium/Default/Preferences ] || echo \\\\"{{}}\\\\" > ~/.config/chromium/Default/Preferences; ${{pkgs.jq}}/bin/jq '.translate_blocked_languages = ((.translate_blocked_languages // []) + [\\\\"de\\\\"] | unique)' ~/.config/chromium/Default/Preferences > tmp.json && mv tmp.json ~/.config/chromium/Default/Preferences; ${{pkgs.chromium}}/bin/chromium --kiosk '{kiosk_url}' ${{if (pkgs.stdenv.system == "aarch64-linux") then "--disable-gpu" else ""}} --hide-scrollbars"
+            exec ${{pkgs.bash}}/bin/bash -c "\
+                ${{pkgs.killall}}/bin/killall chromium; \
+                rm -rf ~/.config/chromium/Singleton*; \
+                mkdir -p ~/.config/chromium/Default; \
+                [ -s ~/.config/chromium/Default/Preferences ] || echo \\\\"{{}}\\\\" > ~/.config/chromium/Default/Preferences; \
+                ${{pkgs.jq}}/bin/jq '.translate_blocked_languages = ((.translate_blocked_languages // []) + [\\\\"de\\\\"] | unique)' ~/.config/chromium/Default/Preferences > tmp.json && \
+                mv tmp.json ~/.config/chromium/Default/Preferences; \
+                ${{pkgs.ungoogled-chromium}}/bin/chromium --app='data:text/html,<html><body><h1>Loading...</h1></body></html>' & \
+                sleep 30; \
+                ${{pkgs.killall}}/bin/killall chromium; \
+                sleep 3; \
+                while ! ${{pkgs.curl}}/bin/curl --fail --silent --max-time 10 --head '{kiosk_url}'; do \
+                sleep 3; \
+                done; \
+                sleep 1; \
+                ${{pkgs.ungoogled-chromium}}/bin/chromium --app='{kiosk_url}' \
+                ${{if (pkgs.stdenv.system == "aarch64-linux") then "--disable-gpu" else ""}} \
+                --disable-features=Translate --hide-scrollbars;"
+
             {'exec ${pkgs.bash}/bin/bash -c "mkdir -p $HOME/tigervnc; ${pkgs.tigervnc}/bin/vncpasswd -f <<< \\"'+ vnc_password + '\\" > $HOME/tigervnc/passwd"' if enable_vnc else ''}
             {'exec ${pkgs.tigervnc}/bin/x0vncserver -display :0 -PasswordFile=$HOME/tigervnc/passwd' if enable_vnc else ''}
             exec "${{pkgs.pamixer}}/bin/pamixer --set-volume {volume}"
