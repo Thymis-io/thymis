@@ -45,7 +45,9 @@ class TextAreaCodeType(BaseModel):
 
 class SystemdTimerType(BaseModel):
     type: Literal["systemd-timer"] = "systemd-timer"
-    timer_type: Optional[Literal["realtime", "monotonic"]] = Field(default="realtime")
+    timer_type: Optional[Literal["realtime", "monotonic", "continuous"]] = Field(
+        default="realtime"
+    )
     on_boot_sec: Optional[str] = Field(default=None)
     on_unit_active_sec: Optional[str] = Field(default=None)
     accuracy_sec: Optional[str] = Field(default=None)

@@ -216,7 +216,7 @@ class TextAreaCodeType:
 
 @dataclass
 class SystemdTimerType:
-    timer_type: Optional[Literal["realtime", "monotonic"]] = "realtime"
+    timer_type: Optional[Literal["realtime", "monotonic", "continuous"]] = "realtime"
     on_boot_sec: Optional[str] = None
     on_unit_active_sec: Optional[str] = None
     accuracy_sec: Optional[str] = None
