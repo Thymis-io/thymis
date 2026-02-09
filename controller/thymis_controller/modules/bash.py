@@ -103,14 +103,20 @@ class BashModule(modules.Module):
         )
         if timer_config_raw is not None:
             timer_config = models.SystemdTimerType.model_validate(timer_config_raw)
-            timer_settings = generate_timer_settings(timer_config)
+            # Continuous timer type is for background services without timers
+            if timer_config.timer_type == "continuous":
+                timer_settings = []
+            else:
+                timer_settings = generate_timer_settings(timer_config)
         else:
             timer_settings = []
 
         packages_list = module_settings.settings.get("packages", self.packages.default)
 
-        f.write(
-            f"""
+        # Determine if this is a timer-based service or a continuous service
+        if timer_settings:
+            # Timer-based service: runs on schedule
+            service_config = f"""
             systemd.services."{service_name}" = {{
                 script = ''
 {bash_script}
@@ -118,11 +124,29 @@ class BashModule(modules.Module):
                 path = [ {" ".join([ "pkgs." + entry["package"] for entry in packages_list if "package" in entry])} ];
                 serviceConfig = {{
                     Type = "oneshot";
+                    RemainAfterExit = true;
                 }};
             }};
             systemd.timers."{service_name}" = {{
                 wantedBy = [ "timers.target" ];
                 {"\n    ".join(timer_settings)}
             }};
-            """.strip()
-        )
+            """
+        else:
+            # Continuous service: runs as a daemon
+            service_config = f"""
+            systemd.services."{service_name}" = {{
+                script = ''
+{bash_script}
+                '';
+                path = [ {" ".join([ "pkgs." + entry["package"] for entry in packages_list if "package" in entry])} ];
+                wantedBy = [ "multi-user.target" ];
+                serviceConfig = {{
+                    Type = "simple";
+                    Restart = "always";
+                    RestartSec = "10s";
+                }};
+            }};
+            """
+
+        f.write(service_config.strip())

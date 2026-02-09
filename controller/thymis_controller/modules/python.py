@@ -132,7 +132,11 @@ class PythonModule(modules.Module):
         )
         if timer_config_raw is not None:
             timer_config = models.SystemdTimerType.model_validate(timer_config_raw)
-            timer_settings = generate_timer_settings(timer_config)
+            # Continuous timer type is for background services without timers
+            if timer_config.timer_type == "continuous":
+                timer_settings = []
+            else:
+                timer_settings = generate_timer_settings(timer_config)
         else:
             timer_settings = []
 
@@ -161,8 +165,10 @@ class PythonModule(modules.Module):
             if "package" in entry and entry["package"].strip()
         ]
 
-        f.write(
-            f"""
+        # Determine if this is a timer-based service or a continuous service
+        if timer_settings:
+            # Timer-based service: runs on schedule
+            service_config = f"""
             systemd.services."{service_name}" = let
               pythonScript = pkgs.writers.writePython3 "{service_name}-script" {{
                 libraries = [ {" ".join(python_packages)} ];
@@ -173,6 +179,7 @@ class PythonModule(modules.Module):
               serviceConfig = {{
                 ExecStart = "${{pythonScript}}";
                 Type = "oneshot";
+                RemainAfterExit = true;
               }};
               path = [ {" ".join(system_packages)} ];
             }};
@@ -180,5 +187,26 @@ class PythonModule(modules.Module):
               wantedBy = [ "timers.target" ];
               {"\n    ".join(timer_settings)}
             }};
-            """.strip()
-        )
+            """
+        else:
+            # Continuous service: runs as a daemon
+            service_config = f"""
+            systemd.services."{service_name}" = let
+              pythonScript = pkgs.writers.writePython3 "{service_name}-script" {{
+                libraries = [ {" ".join(python_packages)} ];
+              }} ''
+{python_script}
+              '';
+            in {{
+              wantedBy = [ "multi-user.target" ];
+              serviceConfig = {{
+                ExecStart = "${{pythonScript}}";
+                Type = "simple";
+                Restart = "always";
+                RestartSec = "10s";
+              }};
+              path = [ {" ".join(system_packages)} ];
+            }};
+            """
+
+        f.write(service_config.strip())

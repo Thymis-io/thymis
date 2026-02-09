@@ -118,7 +118,7 @@ export type TextAreaCodeSettingType = {
 };
 
 export type SystemdTimerSetting = {
-	timer_type?: 'realtime' | 'monotonic';
+	timer_type?: 'realtime' | 'monotonic' | 'continuous';
 	on_boot_sec?: string;
 	on_unit_active_sec?: string;
 	accuracy_sec?: string;

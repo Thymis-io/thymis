@@ -31,9 +31,10 @@
 		selected={value?.timer_type}
 		values={[
 			{ value: 'realtime', label: $t('config.timer-type-realtime-long') },
-			{ value: 'monotonic', label: $t('config.timer-type-monotonic-long') }
+			{ value: 'monotonic', label: $t('config.timer-type-monotonic-long') },
+			{ value: 'continuous', label: $t('config.timer-type-continuous-long') }
 		]}
-		onSelected={(timerType: 'realtime' | 'monotonic') => {
+		onSelected={(timerType: 'realtime' | 'monotonic' | 'continuous') => {
 			onChange({ ...value, timer_type: timerType });
 			return timerType;
 		}}
@@ -108,21 +109,25 @@
 			onChange={(newValue) => onChange({ ...value, on_unit_active_sec: newValue })}
 			{disabled}
 		/>
+	{:else if value.timer_type === 'continuous'}
+		<p class="text-gray-600 dark:text-gray-400">{$t('config.timer-type-continuous-description')}</p>
 	{/if}
-	<p id="{key}-timer-accuracy-sec">{$t('config.timer-accuracy-sec')}</p>
-	<SystemdTimeSpanInput
-		class="mb-2"
-		aria-labelledby="{key}-timer-accuracy-sec"
-		value={value.accuracy_sec}
-		placeholder="1min"
-		onChange={(newValue) => onChange({ ...value, accuracy_sec: newValue })}
-		{disabled}
-	/>
-	<p id="{key}-timer-randomized-delay-sec">{$t('config.timer-randomized-delay-sec')}</p>
-	<SystemdTimeSpanInput
-		aria-labelledby="{key}-timer-randomized-delay-sec"
-		value={value.randomized_delay_sec}
-		onChange={(newValue) => onChange({ ...value, randomized_delay_sec: newValue })}
-		{disabled}
-	/>
+	{#if value.timer_type !== 'continuous'}
+		<p id="{key}-timer-accuracy-sec">{$t('config.timer-accuracy-sec')}</p>
+		<SystemdTimeSpanInput
+			class="mb-2"
+			aria-labelledby="{key}-timer-accuracy-sec"
+			value={value.accuracy_sec}
+			placeholder="1min"
+			onChange={(newValue) => onChange({ ...value, accuracy_sec: newValue })}
+			{disabled}
+		/>
+		<p id="{key}-timer-randomized-delay-sec">{$t('config.timer-randomized-delay-sec')}</p>
+		<SystemdTimeSpanInput
+			aria-labelledby="{key}-timer-randomized-delay-sec"
+			value={value.randomized_delay_sec}
+			onChange={(newValue) => onChange({ ...value, randomized_delay_sec: newValue })}
+			{disabled}
+		/>
+	{/if}
 </Card>
