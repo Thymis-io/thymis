@@ -227,9 +227,8 @@ async def callback(
         )
 
     if global_settings.AUTH_OAUTH_CLIENT_ROLE_LOGIN:
-        client_roles = jwt_token.get("resource_access").get(
-            global_settings.AUTH_OAUTH_CLIENT_ID
-        )
+        resource_access = jwt_token.get("resource_access") or {}
+        client_roles = resource_access.get(global_settings.AUTH_OAUTH_CLIENT_ID)
         if (
             not client_roles
             or global_settings.AUTH_OAUTH_CLIENT_ROLE_LOGIN
