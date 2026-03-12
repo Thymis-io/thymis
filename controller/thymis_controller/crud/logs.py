@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import uuid
 from datetime import datetime, timedelta, timezone
 from typing import List
 
@@ -14,57 +13,50 @@ from thymis_controller.config import global_settings
 logger = logging.getLogger(__name__)
 
 
-def create(
+def create_batch(
     session: Session,
-    log_id: uuid.UUID,
-    timestamp: datetime,
-    message: str,
-    hostname: str,
-    facility: int,
-    severity: int,
-    programname: str,
-    syslogtag: str,
+    log_entries: list,  # list of models.LogEntry
     ssh_public_key: str,
-):
-    # find deployment_info_id by ssh_public_key, if not exists, just write without it
+) -> None:
+    if not log_entries:
+        return
+    # find deployment_info_id by ssh_public_key once for the entire batch
     deployment_info = (
         session.query(db_models.DeploymentInfo)
         .filter(db_models.DeploymentInfo.ssh_public_key == ssh_public_key)
         .first()
     )
-    if deployment_info is not None:
-        deployment_info_id = deployment_info.id
-    else:
-        deployment_info_id = None
+    deployment_info_id = deployment_info.id if deployment_info is not None else None
 
-    stmt = sqlite_insert(db_models.LogEntry).values(
-        [
-            {
-                "id": log_id,
-                "timestamp": timestamp,
-                "message": message,
-                "hostname": hostname,
-                "facility": facility,
-                "severity": severity,
-                "programname": programname,
-                "syslogtag": syslogtag,
-                "deployment_info_id": deployment_info_id,
-                "ssh_public_key": ssh_public_key,
-            }
-        ]
-    )
+    rows = [
+        {
+            "id": entry.uuid,
+            "timestamp": entry.timestamp,
+            "message": entry.message,
+            "hostname": entry.host,
+            "facility": entry.facility,
+            "severity": entry.severity,
+            "programname": entry.programname,
+            "syslogtag": entry.syslogtag,
+            "deployment_info_id": deployment_info_id,
+            "ssh_public_key": ssh_public_key,
+        }
+        for entry in log_entries
+    ]
+
+    stmt = sqlite_insert(db_models.LogEntry).values(rows)
     stmt = stmt.on_conflict_do_update(
         index_elements=["id"],
         set_={
-            "timestamp": timestamp,
-            "message": message,
-            "hostname": hostname,
-            "facility": facility,
-            "severity": severity,
-            "programname": programname,
-            "syslogtag": syslogtag,
-            "deployment_info_id": deployment_info_id,
-            "ssh_public_key": ssh_public_key,
+            "timestamp": stmt.excluded.timestamp,
+            "message": stmt.excluded.message,
+            "hostname": stmt.excluded.hostname,
+            "facility": stmt.excluded.facility,
+            "severity": stmt.excluded.severity,
+            "programname": stmt.excluded.programname,
+            "syslogtag": stmt.excluded.syslogtag,
+            "deployment_info_id": stmt.excluded.deployment_info_id,
+            "ssh_public_key": stmt.excluded.ssh_public_key,
         },
     )
     session.execute(stmt)

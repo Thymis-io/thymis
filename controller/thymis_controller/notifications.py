@@ -53,21 +53,28 @@ class NotificationManager:
 
     def __init__(self):
         self.active_connections: dict[WebSocket, uuid.UUID] = {}
+        self.loop: asyncio.AbstractEventLoop = None
 
     def start(self):
         self.alive = True
-        threading.Thread(target=self.start_send_queue).start()
+        self.loop = asyncio.get_event_loop()  # called from uvicorn/asyncio thread
+        threading.Thread(target=self.start_send_queue, daemon=True).start()
 
     def stop(self):
         self.alive = False
+        # unblock queue.get() so the background thread can exit
+        self.queue.put(Notification(ShouldInvalidate(should_invalidate_paths=[])))
 
     def start_send_queue(self):
-        asyncio.run(self.send_queue())
-
-    async def send_queue(self):
+        # blocking loop — runs in background thread, uses queue.get() to block
         while self.alive:
             notification = self.queue.get()
-            await self._broadcast(notification)
+            if not self.alive:  # sentinel check after wake-up from stop()
+                break
+            future = asyncio.run_coroutine_threadsafe(
+                self._broadcast(notification), self.loop
+            )
+            future.result()  # propagate exceptions; keeps backpressure
 
     async def connect(self, websocket: WebSocket, user_session_id: uuid.UUID):
         await websocket.accept()

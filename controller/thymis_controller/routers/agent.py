@@ -15,6 +15,7 @@ from thymis_controller.dependencies import (
 )
 
 logger = logging.getLogger(__name__)
+ta = TypeAdapter(List[models.LogEntry])
 
 router = APIRouter()
 
@@ -102,18 +103,5 @@ async def logs(
         )
         raise HTTPException(status_code=408) from e
     # parse as json
-    ta = TypeAdapter(List[models.LogEntry])
     log_entries = ta.validate_json(data)
-    for log_entry in log_entries:
-        crud.logs.create(
-            db_session,
-            log_id=log_entry.uuid,
-            timestamp=log_entry.timestamp,
-            message=log_entry.message,
-            hostname=log_entry.host,
-            facility=log_entry.facility,
-            severity=log_entry.severity,
-            programname=log_entry.programname,
-            syslogtag=log_entry.syslogtag,
-            ssh_public_key=x_thymis_ssh_pubkey,
-        )
+    crud.logs.create_batch(db_session, log_entries, x_thymis_ssh_pubkey)

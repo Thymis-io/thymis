@@ -32,7 +32,7 @@ def create_sqlalchemy_engine():
         parent = path.parent
         if not parent.exists():
             os.makedirs(parent)
-    engine = create_engine(get_db_url(), pool_size=20, max_overflow=40)
+    engine = create_engine(get_db_url(), pool_size=5, max_overflow=10)
     return engine
 
 
@@ -41,6 +41,8 @@ def set_sqlite_pragma(dbapi_connection, _connection_record):
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA journal_mode=WAL")
     cursor.execute("PRAGMA synchronous=normal")
+    cursor.execute("PRAGMA cache_size = -2000")
+    cursor.execute("PRAGMA temp_store = MEMORY")
     cursor.close()
 
 
