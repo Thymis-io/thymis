@@ -63,7 +63,9 @@ class StateEventHandler(FileSystemEventHandler):
 
             if self.should_debounce():
                 if not self.debounce_task or self.debounce_task.done():
-                    self.debounce_task = self.event_loop.create_task(self.debounce())
+                    self.debounce_task = asyncio.run_coroutine_threadsafe(
+                        self.debounce(), self.event_loop
+                    )
             else:
                 self.last_event = datetime.datetime.now()
                 self.broadcast_update()
