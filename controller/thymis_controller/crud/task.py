@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Literal
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session, load_only
+from sqlalchemy.orm import Session, load_only, selectinload
 from thymis_controller import db_models
 from thymis_controller.models.task import TaskShort
 
@@ -47,8 +47,10 @@ def get_tasks_short(db_session: Session, limit: int = 100, offset: int = 0):
                 db_models.Task.end_time,
                 db_models.Task.exception,
                 db_models.Task.task_submission_data,
-                db_models.Task.nix_status,
-            )
+            ),
+            selectinload(db_models.Task.processes).load_only(
+                db_models.TaskProcess.nix_status
+            ),
         )
         .order_by(db_models.Task.start_time.desc())
         .limit(limit)

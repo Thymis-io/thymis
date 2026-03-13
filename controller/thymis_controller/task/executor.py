@@ -16,6 +16,7 @@ import sqlalchemy.orm
 import thymis_agent.agent as agent
 import thymis_controller.crud as crud
 import thymis_controller.crud.task as crud_task
+import thymis_controller.db_models as db_models
 import thymis_controller.models.task as models_task
 from pyrage import ssh
 from thymis_controller.notifier import Notifier
@@ -178,27 +179,46 @@ class TaskWorkerPoolManager:
                             case models_task.TaskStdOutErrUpdate(
                                 stdoutb64=stdoutb64, stderrb64=stderrb64
                             ):
+                                process = task.get_process_by_index(
+                                    message.update.process_index
+                                )
+                                if process is None:
+                                    process = db_models.TaskProcess(
+                                        task_id=task_id,
+                                        process_index=message.update.process_index,
+                                    )
+                                    task.processes.append(process)
+
                                 # initialize stdout and stderr if not already set
-                                if task.process_stdout is None:
-                                    task.process_stdout = b""
-                                if task.process_stderr is None:
-                                    task.process_stderr = b""
+                                if process.process_stdout is None:
+                                    process.process_stdout = b""
+                                if process.process_stderr is None:
+                                    process.process_stderr = b""
                                 # append new data to stdout and stderr
-                                task.process_stdout += base64.b64decode(stdoutb64)
-                                task.process_stderr += base64.b64decode(stderrb64)
+                                process.process_stdout += base64.b64decode(stdoutb64)
+                                process.process_stderr += base64.b64decode(stderrb64)
                                 db_session.commit()
                                 self.on_task_output.notify(task)
                             case models_task.TaskNixStatusUpdate(status=status):
-                                task.nix_status = status.model_dump(
+                                process = task.get_process_by_index(
+                                    message.update.process_index
+                                )
+                                if process is None:
+                                    process = db_models.TaskProcess(
+                                        task_id=task_id,
+                                        process_index=message.update.process_index,
+                                    )
+                                    task.processes.append(process)
+                                process.nix_status = status.model_dump(
                                     include=("done", "expected", "running", "failed")
                                 )
-                                task.nix_errors = status.model_dump(include=("errors"))[
-                                    "errors"
-                                ]
-                                task.nix_error_logs = status.logs_by_level.get(0)
-                                task.nix_warning_logs = status.logs_by_level.get(1)
-                                task.nix_notice_logs = status.logs_by_level.get(2)
-                                task.nix_info_logs = status.logs_by_level.get(3)
+                                process.nix_errors = status.model_dump(
+                                    include=("errors")
+                                )["errors"]
+                                process.nix_error_logs = status.logs_by_level.get(0)
+                                process.nix_warning_logs = status.logs_by_level.get(1)
+                                process.nix_notice_logs = status.logs_by_level.get(2)
+                                process.nix_info_logs = status.logs_by_level.get(3)
                                 db_session.commit()
                                 self.on_task_output.notify(task)
                             case models_task.TaskCompletedUpdate():
@@ -218,9 +238,14 @@ class TaskWorkerPoolManager:
                                 conn.close()
                                 break
                             case models_task.CommandRunUpdate():
-                                task.process_program = message.update.args[0]
-                                task.process_args = message.update.args[1:]
-                                task.process_env = message.update.env
+                                process = db_models.TaskProcess(
+                                    task_id=task_id,
+                                    process_index=message.update.process_index,
+                                    process_program=message.update.args[0],
+                                    process_args=message.update.args[1:],
+                                    process_env=message.update.env,
+                                )
+                                task.processes.append(process)
                                 db_session.commit()
                             case models_task.ImageBuiltUpdate():
                                 crud.agent_token.create(
@@ -421,14 +446,6 @@ class TaskWorkerPoolManager:
 
                     parent_task.add_exception(f"Child Task {task_id} failed")
 
-                    # TODO: Remove direct writing to stderr and show child progress in UI
-                    if parent_task.process_stderr is None:
-                        parent_task.process_stderr = b""
-
-                    parent_task.process_stderr += (
-                        f"Child Task {task_id} failed\n".encode("utf-8")
-                    )
-
                     db_session.commit()
                     self.on_task_update.notify(parent_task)
 
@@ -438,43 +455,41 @@ class TaskWorkerPoolManager:
                 logger.error(task.task_submission_data)
                 logger.error("Task error for task %s:", task_id)
                 logger.error(task.exception)
-                logger.error("STDOUT for task %s:", task_id)
-                if task.process_stdout:
-                    logger.error(task.process_stdout.decode("utf-8"))
-                else:
-                    logger.error("No stdout")
-                logger.error("STDERR for task %s:", task_id)
-                if task.process_stderr:
-                    logger.error(task.process_stderr.decode("utf-8"))
-                else:
-                    logger.error("No stderr")
-                logger.error("Nix status for task %s:", task_id)
-                if task.nix_status:
-                    logger.error(task.nix_status)
-                else:
-                    logger.error("No nix status")
-                logger.error("Nix errors for task %s:", task_id)
-                if task.nix_errors:
-                    logger.error(self.format_nix_error_list(task.nix_errors))
-                else:
-                    logger.error("No nix errors")
-                logger.error("Nix error logs for task %s:", task_id)
-                if task.nix_error_logs:
-                    logger.error(task.nix_error_logs)
-                else:
-                    logger.error("No nix error logs")
-                logger.error("Nix warning logs for task %s:", task_id)
-                if task.nix_warning_logs:
-                    logger.error(task.nix_warning_logs)
-                else:
-                    logger.error("No nix warning logs")
-                logger.error("Nix notice logs for task %s:", task_id)
-                if task.nix_notice_logs:
-                    logger.error(task.nix_notice_logs)
-                else:
-                    logger.error("No nix notice logs")
-                logger.error("Nix info logs for task %s:", task_id)
-                if task.nix_info_logs:
-                    logger.error(task.nix_info_logs)
-                else:
-                    logger.error("No nix info logs")
+                for process in task.processes:
+                    logger.error(
+                        "Process %d for task %s:", process.process_index, task_id
+                    )
+                    logger.error("STDOUT for process %d:", process.process_index)
+                    if process.process_stdout:
+                        logger.error(process.process_stdout.decode("utf-8"))
+                    else:
+                        logger.error("No stdout")
+                    logger.error("STDERR for process %d:", process.process_index)
+                    if process.process_stderr:
+                        logger.error(process.process_stderr.decode("utf-8"))
+                    else:
+                        logger.error("No stderr")
+                    logger.error("Nix status for process %d:", process.process_index)
+                    if process.nix_status:
+                        logger.error(process.nix_status)
+                    else:
+                        logger.error("No nix status")
+                    logger.error("Nix errors for process %d:", process.process_index)
+                    if process.nix_errors:
+                        logger.error(self.format_nix_error_list(process.nix_errors))
+                    else:
+                        logger.error("No nix errors")
+                    logger.error(
+                        "Nix error logs for process %d:", process.process_index
+                    )
+                    logger.error(process.nix_error_logs or "No nix error logs")
+                    logger.error(
+                        "Nix warning logs for process %d:", process.process_index
+                    )
+                    logger.error(process.nix_warning_logs or "No nix warning logs")
+                    logger.error(
+                        "Nix notice logs for process %d:", process.process_index
+                    )
+                    logger.error(process.nix_notice_logs or "No nix notice logs")
+                    logger.error("Nix info logs for process %d:", process.process_index)
+                    logger.error(process.nix_info_logs or "No nix info logs")

@@ -91,61 +91,72 @@
 	<hr />
 
 	<div>
-		<h2>Process</h2>
-		{#if task.process_program && task.process_args}
-			<MonospaceText
-				code={(task.process_env
-					? Object.entries(task.process_env)
-							.map(([key, value]) => `${key}="${escapeForDoubleQuotes(value)}"`)
-							.join(' ') + ' '
-					: '') +
-					task.process_program +
-					' ' +
-					task.process_args
-						.map((arg) => (needsDoubleQuotes(arg) ? `"${escapeForDoubleQuotes(arg)}"` : arg))
-						.join(' ')}
-			/>
+		<h2>Processes</h2>
+		{#if task.processes && task.processes.length > 0}
+			{#each task.processes as process, i (process.process_index)}
+				<h3 class="mt-4">Process {i + 1}</h3>
+				{#if process.process_program && process.process_args}
+					<MonospaceText
+						code={(process.process_env
+							? Object.entries(process.process_env)
+									.map(([key, value]) => `${key}="${escapeForDoubleQuotes(value)}"`)
+									.join(' ') + ' '
+							: '') +
+							process.process_program +
+							' ' +
+							process.process_args
+								.map((arg) => (needsDoubleQuotes(arg) ? `"${escapeForDoubleQuotes(arg)}"` : arg))
+								.join(' ')}
+					/>
+				{:else}
+					<p>No process information</p>
+				{/if}
+
+				{#if process.nix_errors && process.nix_errors.length > 0}
+					<p>Nix errors:</p>
+					<MonospaceText code={process.nix_errors.map((error) => error.msg).join('\n')} />
+				{/if}
+
+				{#if process.nix_error_logs && process.nix_error_logs.length > 0}
+					<p>Nix error logs:</p>
+					<MonospaceText code={process.nix_error_logs.join('\n')} />
+				{/if}
+
+				{#if process.nix_warning_logs && process.nix_warning_logs.length > 0}
+					<p>Nix warnings:</p>
+					<MonospaceText code={process.nix_warning_logs.join('\n')} />
+				{/if}
+
+				{#if process.nix_notice_logs && process.nix_notice_logs.length > 0}
+					<p>Nix notices:</p>
+					<MonospaceText code={process.nix_notice_logs.join('\n')} />
+				{/if}
+
+				{#if process.nix_info_logs && process.nix_info_logs.length > 0}
+					<p>Nix infos:</p>
+					<MonospaceText code={process.nix_info_logs.join('\n')} />
+				{/if}
+
+				{#if process.process_stdout}
+					<p>Standard output:</p>
+					<MonospaceText code={cleanStdOut(process.process_stdout)} />
+				{:else}
+					<p>No standard output</p>
+				{/if}
+
+				{#if process.process_stderr}
+					<p>Standard error:</p>
+					<MonospaceText code={cleanStdOut(process.process_stderr)} />
+				{:else}
+					<p>No standard error</p>
+				{/if}
+
+				{#if i < task.processes.length - 1}
+					<hr />
+				{/if}
+			{/each}
 		{:else}
-			<p>No process information</p>
-		{/if}
-
-		{#if task.nix_errors && task.nix_errors.length > 0}
-			<p>Nix errors:</p>
-			<MonospaceText code={task.nix_errors.map((error) => error.msg).join('\n')} />
-		{/if}
-
-		{#if task.nix_error_logs && task.nix_error_logs.length > 0}
-			<p>Nix errors:</p>
-			<MonospaceText code={task.nix_error_logs.join('\n')} />
-		{/if}
-
-		{#if task.nix_warning_logs && task.nix_warning_logs.length > 0}
-			<p>Nix warnings:</p>
-			<MonospaceText code={task.nix_warning_logs.join('\n')} />
-		{/if}
-
-		{#if task.nix_notice_logs && task.nix_notice_logs.length > 0}
-			<p>Nix notices:</p>
-			<MonospaceText code={task.nix_notice_logs.join('\n')} />
-		{/if}
-
-		{#if task.nix_info_logs && task.nix_info_logs.length > 0}
-			<p>Nix infos:</p>
-			<MonospaceText code={task.nix_info_logs.join('\n')} />
-		{/if}
-
-		{#if task.process_stdout}
-			<p>Standard output:</p>
-			<MonospaceText code={cleanStdOut(task.process_stdout)} />
-		{:else}
-			<p>No standard output</p>
-		{/if}
-
-		{#if task.process_stderr}
-			<p>Standard error:</p>
-			<MonospaceText code={cleanStdOut(task.process_stderr)} />
-		{:else}
-			<p>No standard error</p>
+			<p>No processes</p>
 		{/if}
 	</div>
 

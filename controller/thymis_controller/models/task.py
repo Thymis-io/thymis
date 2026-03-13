@@ -28,20 +28,8 @@ class NixProcessStatus(BaseModel):
     failed: int
 
 
-class Task(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: uuid.UUID  # uuid
-    start_time: datetime.datetime
-    end_time: Optional[datetime.datetime]
-    state: TaskState
-    exception: Optional[str]
-    task_type: str
-    task_submission_data: Optional["TaskSubmissionData"] = None
-    task_submission_data_raw: Optional[JsonValue]
-
-    parent_task_id: Optional[uuid.UUID] = None
-    children: Optional[list[uuid.UUID]] = None
+class TaskProcess(BaseModel):
+    process_index: int
 
     process_program: Optional[str]
     process_args: Optional[list[str]]
@@ -59,6 +47,45 @@ class Task(BaseModel):
     nix_warning_logs: Optional[JsonValue]
     nix_notice_logs: Optional[JsonValue]
     nix_info_logs: Optional[JsonValue]
+
+    @classmethod
+    def from_orm_task(cls, task_process: "db_models.TaskProcess") -> "TaskProcess":
+        return cls(
+            process_index=task_process.process_index,
+            process_program=task_process.process_program,
+            process_args=task_process.process_args,
+            process_env=task_process.process_env,
+            process_stdout=task_process.process_stdout,
+            process_stderr=task_process.process_stderr,
+            nix_status=task_process.nix_status,
+            nix_errors=task_process.nix_errors,
+            nix_files_linked=task_process.nix_files_linked,
+            nix_bytes_linked=task_process.nix_bytes_linked,
+            nix_corrupted_paths=task_process.nix_corrupted_paths,
+            nix_untrusted_paths=task_process.nix_untrusted_paths,
+            nix_error_logs=task_process.nix_error_logs,
+            nix_warning_logs=task_process.nix_warning_logs,
+            nix_notice_logs=task_process.nix_notice_logs,
+            nix_info_logs=task_process.nix_info_logs,
+        )
+
+
+class Task(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID  # uuid
+    start_time: datetime.datetime
+    end_time: Optional[datetime.datetime]
+    state: TaskState
+    exception: Optional[str]
+    task_type: str
+    task_submission_data: Optional["TaskSubmissionData"] = None
+    task_submission_data_raw: Optional[JsonValue]
+
+    parent_task_id: Optional[uuid.UUID] = None
+    children: Optional[list[uuid.UUID]] = None
+
+    processes: list[TaskProcess] = []
 
     @field_serializer("start_time", "end_time")
     def _ser_dt(self, dt: datetime.datetime | None) -> str | None:
@@ -93,21 +120,7 @@ class Task(BaseModel):
             task_submission_data_raw=submission_data_raw,
             parent_task_id=task.parent_task_id,
             children=task.children,
-            process_program=task.process_program,
-            process_args=task.process_args,
-            process_env=task.process_env,
-            process_stdout=task.process_stdout,
-            process_stderr=task.process_stderr,
-            nix_status=task.nix_status,
-            nix_errors=task.nix_errors,
-            nix_files_linked=task.nix_files_linked,
-            nix_bytes_linked=task.nix_bytes_linked,
-            nix_corrupted_paths=task.nix_corrupted_paths,
-            nix_untrusted_paths=task.nix_untrusted_paths,
-            nix_error_logs=task.nix_error_logs,
-            nix_warning_logs=task.nix_warning_logs,
-            nix_notice_logs=task.nix_notice_logs,
-            nix_info_logs=task.nix_info_logs,
+            processes=[TaskProcess.from_orm_task(tp) for tp in task.processes],
         )
 
 
@@ -149,7 +162,11 @@ class TaskShort(BaseModel):
             end_time=task.end_time,
             exception=task.exception,
             task_submission_data=submission_data,
-            nix_status=task.nix_status,
+            nix_status=(
+                TaskProcess.from_orm_task(task.processes[-1]).nix_status
+                if task.processes
+                else None
+            ),
         )
 
 
@@ -288,12 +305,14 @@ class TaskRejectedUpdate(BaseModel):
 
 class TaskStdOutErrUpdate(BaseModel):
     type: Literal["task_stdout_err"] = "task_stdout_err"
+    process_index: int
     stdoutb64: str  # base64 encoded
     stderrb64: str  # base64 encoded
 
 
 class TaskNixStatusUpdate(BaseModel):
     type: Literal["task_nix_status"] = "task_nix_status"
+    process_index: int
     status: ParsedNixProcess
 
 
@@ -308,6 +327,7 @@ class TaskFailedUpdate(BaseModel):
 
 class CommandRunUpdate(BaseModel):
     type: Literal["command_run"] = "command_run"
+    process_index: int
     args: list[str]
     env: Optional[dict[str, str]] = None
     cwd: Optional[str] = None
