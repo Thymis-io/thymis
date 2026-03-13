@@ -20,23 +20,11 @@ if TYPE_CHECKING:
     from thymis_controller.db_models.agent_token import AccessClientToken
 
 
-class Task(Base):
-    __tablename__ = "tasks"
+class TaskProcess(Base):
+    __tablename__ = "task_processes"
 
-    id = Column(Uuid(as_uuid=True), primary_key=True, index=True)
-    start_time = Column(DateTime, nullable=False)
-    end_time = Column(DateTime, nullable=True)
-    state = Column(String(50), nullable=False)
-    exception = Column(Text, nullable=True)
-    task_type = Column(String(50), nullable=False)
-    user_session_id = Column(
-        Uuid(as_uuid=True), ForeignKey("sessions.id"), nullable=True
-    )
-    task_submission_data = Column(JSON, nullable=True)  # New field for submission data
-
-    # Composite Task Fields
-    parent_task_id = Column(Uuid(as_uuid=True), ForeignKey("tasks.id"), nullable=True)
-    children = Column(JSON, nullable=True)
+    task_id = Column(Uuid(as_uuid=True), ForeignKey("tasks.id"), primary_key=True)
+    process_index = Column(Integer, primary_key=True)
 
     # Unified Process Fields
     process_program = Column(String(255), nullable=True)
@@ -57,12 +45,41 @@ class Task(Base):
     nix_notice_logs = Column(JSON, nullable=True)
     nix_info_logs = Column(JSON, nullable=True)
 
+    task = relationship("Task", back_populates="processes")
+
+
+class Task(Base):
+    __tablename__ = "tasks"
+
+    id = Column(Uuid(as_uuid=True), primary_key=True, index=True)
+    start_time = Column(DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=True)
+    state = Column(String(50), nullable=False)
+    exception = Column(Text, nullable=True)
+    task_type = Column(String(50), nullable=False)
+    user_session_id = Column(
+        Uuid(as_uuid=True), ForeignKey("sessions.id"), nullable=True
+    )
+    task_submission_data = Column(JSON, nullable=True)  # New field for submission data
+
+    # Composite Task Fields
+    parent_task_id = Column(Uuid(as_uuid=True), ForeignKey("tasks.id"), nullable=True)
+    children = Column(JSON, nullable=True)
+
     access_client_tokens: Mapped[List["AccessClientToken"]] = relationship(
         back_populates="deploy_device_task"
     )
+
+    processes: Mapped[List["TaskProcess"]] = relationship("TaskProcess")
 
     def add_exception(self, exception: str):
         if self.exception is None:
             self.exception = exception
         else:
             self.exception += "\n" + exception
+
+    def get_process_by_index(self, process_index: int) -> TaskProcess:
+        for process in self.processes:
+            if process.process_index == process_index:
+                return process
+        return None

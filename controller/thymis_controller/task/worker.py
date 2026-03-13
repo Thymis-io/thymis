@@ -242,6 +242,7 @@ def deploy_device_task(
             ],
             env,
             cwd=tmpdir,
+            process_index=0,
         )
 
         if returncode != 0:
@@ -309,6 +310,7 @@ def deploy_device_task(
                 ],
                 env,
                 cwd=tmpdir,
+                process_index=1,
             )
         else:
             # Fallback to direct nix copy without systemd-run
@@ -326,6 +328,7 @@ def deploy_device_task(
                 env,
                 cwd=tmpdir,
                 stderr_read_size=1,
+                process_index=1,
             )
 
         if returncode != 0:
@@ -357,6 +360,7 @@ def deploy_device_task(
                 models_task.RunnerToControllerTaskUpdate(
                     id=task.id,
                     update=models_task.TaskStdOutErrUpdate(
+                        process_index=2,
                         stdoutb64=base64.b64encode(
                             message.inner.stdout.encode("utf-8")
                         ).decode("utf-8"),
@@ -455,6 +459,7 @@ def build_device_image_task(
                 "--allow-dirty-locks",
             ],
             cwd=repo_path,
+            process_index=0,
         )
 
         if returncode != 0:
@@ -525,6 +530,7 @@ def build_device_image_task(
             process_list,
             [secrets_builder_dest, secrets_dir, final_image_dest_base],
             cwd=repo_path,
+            process_index=1,
         )
         if returncode != 0:
             report_task_finished(task, conn, False, "Image secrets builder failed")
@@ -649,6 +655,7 @@ def run_command(
     cwd: str = None,
     input: AnyStr = None,
     stderr_read_size: int = 1024,
+    process_index: int = 0,
 ):
     if process_list.terminated:
         return -1
@@ -659,6 +666,7 @@ def run_command(
         models_task.RunnerToControllerTaskUpdate(
             id=task.id,
             update=models_task.CommandRunUpdate(
+                process_index=process_index,
                 args=args,
                 env=env_without_none,
                 cwd=str(cwd),
@@ -714,7 +722,7 @@ def run_command(
                     models_task.RunnerToControllerTaskUpdate(
                         id=task.id,
                         update=models_task.TaskNixStatusUpdate(
-                            status=nix_parser.get_model()
+                            process_index=process_index, status=nix_parser.get_model()
                         ),
                     )
                 )
@@ -723,6 +731,7 @@ def run_command(
                     models_task.RunnerToControllerTaskUpdate(
                         id=task.id,
                         update=models_task.TaskStdOutErrUpdate(
+                            process_index=process_index,
                             stdoutb64=base64.b64encode(stdout).decode("utf-8"),
                             stderrb64=base64.b64encode(stderr).decode("utf-8"),
                         ),

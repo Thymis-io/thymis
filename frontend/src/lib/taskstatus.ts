@@ -4,18 +4,9 @@ import { fetchWithNotify } from './fetchWithNotify';
 
 export type TaskState = 'pending' | 'running' | 'completed' | 'failed';
 
-export type Task = {
-	id: string;
-	start_time: string;
-	end_time?: string;
-	state: TaskState;
-	exception?: string;
-	task_type: string;
-	task_submission_data: Record<string, unknown> | null;
-	task_submission_data_raw: Record<string, unknown> | null;
-
-	parent_task_id?: string;
-	children?: string[];
+export type TaskProcess = {
+	task_id: string;
+	process_index: number;
 
 	process_program?: string;
 	process_args?: string[];
@@ -47,6 +38,21 @@ export type Task = {
 	nix_warning_logs?: string[];
 	nix_notice_logs?: string[];
 	nix_info_logs?: string[];
+};
+
+export type Task = {
+	id: string;
+	start_time: string;
+	end_time?: string;
+	state: TaskState;
+	exception?: string;
+	task_type: string;
+	task_submission_data: Record<string, unknown> | null;
+	task_submission_data_raw: Record<string, unknown> | null;
+	processes: TaskProcess[];
+
+	parent_task_id?: string;
+	children?: string[];
 };
 
 export type TaskShort = {
@@ -137,6 +143,30 @@ let socketPromise = new Promise<void>((resolve) => {
 	resolvePromise = resolve;
 });
 
+const mergeProcesses = (existingProcesses: TaskProcess[], incomingProcesses: TaskProcess[]) => {
+	for (const incoming of incomingProcesses) {
+		const existing = existingProcesses.find(
+			(p) => p.task_id === incoming.task_id && p.process_index === incoming.process_index
+		);
+		if (!existing) {
+			existingProcesses.push(incoming);
+			continue;
+		}
+		existing.process_stdout = (existing.process_stdout ?? '') + (incoming.process_stdout ?? '');
+		existing.process_stderr = (existing.process_stderr ?? '') + (incoming.process_stderr ?? '');
+		existing.nix_errors = (existing.nix_errors ?? []).concat(incoming.nix_errors ?? []);
+		existing.nix_error_logs = (existing.nix_error_logs ?? []).concat(incoming.nix_error_logs ?? []);
+		existing.nix_warning_logs = (existing.nix_warning_logs ?? []).concat(
+			incoming.nix_warning_logs ?? []
+		);
+		existing.nix_notice_logs = (existing.nix_notice_logs ?? []).concat(
+			incoming.nix_notice_logs ?? []
+		);
+		existing.nix_info_logs = (existing.nix_info_logs ?? []).concat(incoming.nix_info_logs ?? []);
+	}
+	return existingProcesses;
+};
+
 const startSocket = () => {
 	console.log('starting task_status socket');
 	// get schemed from current location
@@ -172,27 +202,7 @@ const startSocket = () => {
 				if (task && task.id === data.task_id) {
 					return {
 						...data.task,
-						process_stdout: task.process_stdout
-							? task.process_stdout + data.task.process_stdout
-							: data.task.process_stdout,
-						process_stderr: task.process_stderr
-							? task.process_stderr + data.task.process_stderr
-							: data.task.process_stderr,
-						nix_errors: task.nix_errors
-							? task.nix_errors.concat(data.task.nix_errors ?? [])
-							: data.task.nix_errors,
-						nix_error_logs: task.nix_error_logs
-							? task.nix_error_logs.concat(data.task.nix_error_logs ?? [])
-							: data.task.nix_error_logs,
-						nix_warning_logs: task.nix_warning_logs
-							? task.nix_warning_logs.concat(data.task.nix_warning_logs ?? [])
-							: data.task.nix_warning_logs,
-						nix_notice_logs: task.nix_notice_logs
-							? task.nix_notice_logs.concat(data.task.nix_notice_logs ?? [])
-							: data.task.nix_notice_logs,
-						nix_info_logs: task.nix_info_logs
-							? task.nix_info_logs.concat(data.task.nix_info_logs ?? [])
-							: data.task.nix_info_logs
+						processes: mergeProcesses(task.processes ?? [], data.task.processes ?? [])
 					};
 				}
 				return task;

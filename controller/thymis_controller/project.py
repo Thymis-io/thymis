@@ -66,7 +66,7 @@ def del_path(path: os.PathLike):
 startup_python_path = sys.path.copy()
 
 
-def get_module_class_instance_by_type(module_type: str):
+def get_module_class_instance_by_type(module_type: str) -> "modules.Module":
     # split the module_type by .
     module_type = module_type.rsplit(".", 1)
     # import the module
