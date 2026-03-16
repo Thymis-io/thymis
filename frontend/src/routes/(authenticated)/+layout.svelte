@@ -97,7 +97,7 @@
 			bind:drawerHidden
 		/>
 	</header>
-	<div class="h-screen block z-50 {drawerHidden ? 'hidden' : ''} lg:hidden">
+	<div class="h-screen z-50 {drawerHidden ? 'hidden' : ''} lg:hidden">
 		<Sidebar
 			globalState={data.globalState}
 			asideClass="h-full pt-[calc(var(--navbar-height))]"
