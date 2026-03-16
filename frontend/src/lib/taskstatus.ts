@@ -143,18 +143,16 @@ let socketPromise = new Promise<void>((resolve) => {
 	resolvePromise = resolve;
 });
 
+const isSameProcess = (a: TaskProcess, b: TaskProcess) => {
+	return a.task_id === b.task_id && a.process_index === b.process_index;
+};
+
 const mergeProcesses = (existingProcesses: TaskProcess[], incomingProcesses: TaskProcess[]) => {
-	const results: TaskProcess[] = [];
-	for (const incoming of incomingProcesses) {
-		const existing = existingProcesses.find(
-			(p) => p.task_id === incoming.task_id && p.process_index === incoming.process_index
-		);
-		results.push({
-			task_id: incoming.task_id,
-			process_index: incoming.process_index,
-			process_program: incoming.process_program ?? existing?.process_program,
-			process_args: incoming.process_args ?? existing?.process_args,
-			process_env: incoming.process_env ?? existing?.process_env,
+	const results: TaskProcess[] = incomingProcesses.map((incoming) => {
+		const existing = existingProcesses.find((p) => isSameProcess(p, incoming));
+		return {
+			...existing,
+			...incoming,
 			process_stdout: (existing?.process_stdout ?? '') + (incoming.process_stdout ?? ''),
 			process_stderr: (existing?.process_stderr ?? '') + (incoming.process_stderr ?? ''),
 			nix_errors: (existing?.nix_errors ?? []).concat(incoming.nix_errors ?? []),
@@ -162,8 +160,15 @@ const mergeProcesses = (existingProcesses: TaskProcess[], incomingProcesses: Tas
 			nix_warning_logs: (existing?.nix_warning_logs ?? []).concat(incoming.nix_warning_logs ?? []),
 			nix_notice_logs: (existing?.nix_notice_logs ?? []).concat(incoming.nix_notice_logs ?? []),
 			nix_info_logs: (existing?.nix_info_logs ?? []).concat(incoming.nix_info_logs ?? [])
-		});
+		};
+	});
+
+	for (const existing of existingProcesses) {
+		if (!incomingProcesses.some((incoming) => isSameProcess(incoming, existing))) {
+			results.push(existing);
+		}
 	}
+
 	return results;
 };
 
