@@ -162,10 +162,8 @@ class TaskShort(BaseModel):
             end_time=task.end_time,
             exception=task.exception,
             task_submission_data=submission_data,
-            nix_status=(
-                TaskProcess.from_orm_task(task.processes[-1]).nix_status
-                if task.processes
-                else None
+            nix_status=next(
+                (p.nix_status for p in reversed(task.processes) if p.nix_status), None
             ),
         )
 

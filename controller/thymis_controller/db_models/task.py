@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import (
     JSON,
@@ -70,7 +70,9 @@ class Task(Base):
         back_populates="deploy_device_task"
     )
 
-    processes: Mapped[List["TaskProcess"]] = relationship("TaskProcess")
+    processes: Mapped[List["TaskProcess"]] = relationship(
+        "TaskProcess", order_by="TaskProcess.process_index"
+    )
 
     def add_exception(self, exception: str):
         if self.exception is None:
@@ -78,7 +80,7 @@ class Task(Base):
         else:
             self.exception += "\n" + exception
 
-    def get_process_by_index(self, process_index: int) -> TaskProcess:
+    def get_process_by_index(self, process_index: int) -> Optional[TaskProcess]:
         for process in self.processes:
             if process.process_index == process_index:
                 return process
