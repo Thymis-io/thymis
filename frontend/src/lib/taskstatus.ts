@@ -144,27 +144,27 @@ let socketPromise = new Promise<void>((resolve) => {
 });
 
 const mergeProcesses = (existingProcesses: TaskProcess[], incomingProcesses: TaskProcess[]) => {
+	const results: TaskProcess[] = [];
 	for (const incoming of incomingProcesses) {
 		const existing = existingProcesses.find(
 			(p) => p.task_id === incoming.task_id && p.process_index === incoming.process_index
 		);
-		if (!existing) {
-			existingProcesses.push(incoming);
-			continue;
-		}
-		existing.process_stdout = (existing.process_stdout ?? '') + (incoming.process_stdout ?? '');
-		existing.process_stderr = (existing.process_stderr ?? '') + (incoming.process_stderr ?? '');
-		existing.nix_errors = (existing.nix_errors ?? []).concat(incoming.nix_errors ?? []);
-		existing.nix_error_logs = (existing.nix_error_logs ?? []).concat(incoming.nix_error_logs ?? []);
-		existing.nix_warning_logs = (existing.nix_warning_logs ?? []).concat(
-			incoming.nix_warning_logs ?? []
-		);
-		existing.nix_notice_logs = (existing.nix_notice_logs ?? []).concat(
-			incoming.nix_notice_logs ?? []
-		);
-		existing.nix_info_logs = (existing.nix_info_logs ?? []).concat(incoming.nix_info_logs ?? []);
+		results.push({
+			task_id: incoming.task_id,
+			process_index: incoming.process_index,
+			process_program: incoming.process_program ?? existing?.process_program,
+			process_args: incoming.process_args ?? existing?.process_args,
+			process_env: incoming.process_env ?? existing?.process_env,
+			process_stdout: (existing?.process_stdout ?? '') + (incoming.process_stdout ?? ''),
+			process_stderr: (existing?.process_stderr ?? '') + (incoming.process_stderr ?? ''),
+			nix_errors: (existing?.nix_errors ?? []).concat(incoming.nix_errors ?? []),
+			nix_error_logs: (existing?.nix_error_logs ?? []).concat(incoming.nix_error_logs ?? []),
+			nix_warning_logs: (existing?.nix_warning_logs ?? []).concat(incoming.nix_warning_logs ?? []),
+			nix_notice_logs: (existing?.nix_notice_logs ?? []).concat(incoming.nix_notice_logs ?? []),
+			nix_info_logs: (existing?.nix_info_logs ?? []).concat(incoming.nix_info_logs ?? [])
+		});
 	}
-	return existingProcesses;
+	return results;
 };
 
 const startSocket = () => {

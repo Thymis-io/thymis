@@ -39,14 +39,14 @@ class SubscribedTaskOutput(TaskMessage):
     task: models.Task
 
 
-class SubscribedTaskProcessProgress:
-    stdout_count: int = 0
-    stderr_count: int = 0
-    nix_errors_count: int = 0
-    nix_error_logs_count: int = 0
-    nix_warning_logs_count: int = 0
-    nix_notice_logs_count: int = 0
-    nix_info_logs_count: int = 0
+class SubscribedTaskProcessCounter(BaseModel):
+    send_stdout: int = 0
+    send_stderr: int = 0
+    send_nix_errors: int = 0
+    send_nix_error_logs: int = 0
+    send_nix_warning_logs: int = 0
+    send_nix_notice_logs: int = 0
+    send_nix_info_logs: int = 0
 
 
 class TaskWebsocketSubscriber:
@@ -65,7 +65,7 @@ class TaskWebsocketSubscriber:
 
     def reset_subscribed_task(self, task_id: uuid.UUID | None):
         self.subscribed_task = task_id
-        self.process_counter: list[SubscribedTaskProcessProgress] = []
+        self.process_counter: dict[int, SubscribedTaskProcessCounter] = {}
 
     def connect(self):
         self.controller.executor.on_new_task.subscribe(self.notify_new_task)
@@ -122,59 +122,50 @@ class TaskWebsocketSubscriber:
     def create_subscribed_task(self, db_task: db_models.Task):
         # pylint: disable=attribute-defined-outside-init
         task = models.Task.from_orm_task(db_task)
-        while len(self.process_counter) < len(task.processes):
-            self.process_counter.append(SubscribedTaskProcessProgress())
 
-        for i, process in enumerate(task.processes):
+        for process in task.processes:
+            if process.process_index not in self.process_counter:
+                self.process_counter[
+                    process.process_index
+                ] = SubscribedTaskProcessCounter()
+
+            counter = self.process_counter[process.process_index]
             if process.process_stdout:
-                process.process_stdout = process.process_stdout[
-                    self.process_counter[i].stdout_count :
-                ]
-                self.process_counter[i].stdout_count = len(
-                    db_task.processes[i].process_stdout
-                )
+                size = len(process.process_stdout)
+                process.process_stdout = process.process_stdout[counter.send_stdout :]
+                counter.send_stdout = size
             if process.process_stderr:
-                process.process_stderr = process.process_stderr[
-                    self.process_counter[i].stderr_count :
-                ]
-                self.process_counter[i].stderr_count = len(
-                    db_task.processes[i].process_stderr
-                )
+                size = len(process.process_stderr)
+                process.process_stderr = process.process_stderr[counter.send_stderr :]
+                counter.send_stderr = size
             if process.nix_errors:
-                process.nix_errors = process.nix_errors[
-                    self.process_counter[i].nix_errors_count :
-                ]
-                self.process_counter[i].nix_errors_count = len(
-                    db_task.processes[i].nix_errors
-                )
+                size = len(process.nix_errors)
+                process.nix_errors = process.nix_errors[counter.send_nix_errors :]
+                counter.send_nix_errors = size
             if process.nix_error_logs:
+                size = len(process.nix_error_logs)
                 process.nix_error_logs = process.nix_error_logs[
-                    self.process_counter[i].nix_error_logs_count :
+                    counter.send_nix_error_logs :
                 ]
-                self.process_counter[i].nix_error_logs_count = len(
-                    db_task.processes[i].nix_error_logs
-                )
+                counter.send_nix_error_logs = size
             if process.nix_warning_logs:
+                size = len(process.nix_warning_logs)
                 process.nix_warning_logs = process.nix_warning_logs[
-                    self.process_counter[i].nix_warning_logs_count :
+                    counter.send_nix_warning_logs :
                 ]
-                self.process_counter[i].nix_warning_logs_count = len(
-                    db_task.processes[i].nix_warning_logs
-                )
+                counter.send_nix_warning_logs = size
             if process.nix_notice_logs:
+                size = len(process.nix_notice_logs)
                 process.nix_notice_logs = process.nix_notice_logs[
-                    self.process_counter[i].nix_notice_logs_count :
+                    counter.send_nix_notice_logs :
                 ]
-                self.process_counter[i].nix_notice_logs_count = len(
-                    db_task.processes[i].nix_notice_logs
-                )
+                counter.send_nix_notice_logs = size
             if process.nix_info_logs:
+                size = len(process.nix_info_logs)
                 process.nix_info_logs = process.nix_info_logs[
-                    self.process_counter[i].nix_info_logs_count :
+                    counter.send_nix_info_logs :
                 ]
-                self.process_counter[i].nix_info_logs_count = len(
-                    db_task.processes[i].nix_info_logs
-                )
+                counter.send_nix_info_logs = size
         return task
 
     def enqueue_task(self, task_message: TaskMessage):
