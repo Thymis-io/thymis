@@ -2,7 +2,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { t, locale } from 'svelte-i18n';
-
+	import { Sidebar, SidebarGroup, SidebarWrapper } from 'flowbite-svelte';
 	import Settings from 'lucide-svelte/icons/settings';
 	import ChartBar from 'lucide-svelte/icons/chart-bar';
 	import Server from 'lucide-svelte/icons/server';
@@ -27,6 +27,7 @@
 		drawerHidden = true;
 	};
 
+	let spanClass = 'ms-4';
 	let childClass =
 		'p-1 hover:bg-gray-100 text-gray-500 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 ';
 
@@ -108,14 +109,20 @@
 	]);
 </script>
 
-<aside
-	class="{drawerHidden
-		? 'hidden'
-		: ''} {asideClass} lg:sticky lg:top-0 border-e border-gray-200 dark:border-gray-600 lg:block"
+<Sidebar
+	class={drawerHidden ? 'hidden' : ''}
+	{nonActiveClass}
+	{activeClass}
+	activeUrl={activeMainSidebar + $page.url.search}
+	asideClass="{asideClass} lg:sticky lg:top-0 border-e border-gray-200 dark:border-gray-600 lg:block"
 >
-	<div class="overflow-y-auto bg-white scrolling-touch h-full lg:block dark:bg-gray-800 lg:me-0">
+	<SidebarWrapper
+		divClass="overflow-y-auto bg-white scrolling-touch h-full lg:block dark:bg-gray-800 lg:me-0"
+	>
 		<nav class="flex dark:divide-gray-600 text-base font-medium h-full">
-			<ul class="list-none p-4 mt-2 lg:p-1 py-2 space-y-2 w-full">
+			<SidebarGroup
+				ulClass="list-unstyled fw-normal p-4  mt-2 lg:p-1 py-2 space-y-2 bg-gray-850 w-full"
+			>
 				{#each navItems as { name, icon, children, href, hidden } (name)}
 					{#if !hidden}
 						{@const SvelteComponent = icon}
@@ -130,7 +137,7 @@
 						</a>
 					{/if}
 				{/each}
-			</ul>
+			</SidebarGroup>
 		</nav>
-	</div>
-</aside>
+	</SidebarWrapper>
+</Sidebar>
