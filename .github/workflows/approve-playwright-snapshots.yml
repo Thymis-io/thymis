@@ -19,7 +19,7 @@ jobs:
         with:
           app-id: ${{ vars.THYMIS_APP_ID }}
           private-key: ${{ secrets.THYMIS_APP_PRIVATE_KEY }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           token: ${{ steps.generate-token.outputs.token }}
           ref: ${{ steps.comment-branch.outputs.head_ref }}
@@ -52,7 +52,7 @@ jobs:
         with:
           app-id: ${{ vars.THYMIS_APP_ID }}
           private-key: ${{ secrets.THYMIS_APP_PRIVATE_KEY }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           token: ${{ steps.generate-token.outputs.token }}
           ref: ${{ steps.comment-branch.outputs.head_ref }}
@@ -116,7 +116,7 @@ jobs:
         with:
           app-id: ${{ vars.THYMIS_APP_ID }}
           private-key: ${{ secrets.THYMIS_APP_PRIVATE_KEY }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           token: ${{ steps.generate-token.outputs.token }}
           ref: ${{ steps.comment-branch.outputs.head_ref }}
@@ -167,7 +167,7 @@ jobs:
         with:
           app-id: ${{ vars.THYMIS_APP_ID }}
           private-key: ${{ secrets.THYMIS_APP_PRIVATE_KEY }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           token: ${{ steps.generate-token.outputs.token }}
           ref: ${{ needs.comment-action-start.outputs.pr_head }}
