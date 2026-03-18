@@ -51,6 +51,9 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 		.first()
 		.click({ force: true });
 
+	// Wait for config detail page to load
+	await page.locator('h1', { hasText: 'VM Test x64 1' }).waitFor();
+
 	// select button "Build and start VM"
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
 	await page.locator('div').filter({ hasText: '4 internal file changes' }).first().waitFor();
@@ -284,8 +287,8 @@ test('Create and use artifacts', async ({ page, request }, testInfo) => {
 	await page.locator('button', { hasText: 'Add Artifact' }).scrollIntoViewIfNeeded();
 	await page.locator("button:near(:text('Artifact')):text('Select an option')").click();
 	await page.locator('option', { hasText: 'test.txt' }).click();
-	await page.locator("input:near(:text('Path'))").fill('/root/test-file.txt');
-	await page.locator("input:near(:text('Path'))").blur();
+	await page.getByRole('textbox', { name: 'Path' }).fill('/root/test-file.txt');
+	await page.getByRole('textbox', { name: 'Path' }).blur();
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 

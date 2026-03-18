@@ -97,13 +97,15 @@
 			bind:drawerHidden
 		/>
 	</header>
-	<div class="h-screen block z-50 {drawerHidden ? 'hidden' : ''} lg:hidden">
-		<Sidebar
-			globalState={data.globalState}
-			asideClass="h-full pt-[calc(var(--navbar-height))]"
-			bind:drawerHidden
-		/>
-	</div>
+	{#if !drawerHidden}
+		<div class="h-screen z-50 lg:hidden">
+			<Sidebar
+				globalState={data.globalState}
+				asideClass="h-full pt-[calc(var(--navbar-height))]"
+				bind:drawerHidden
+			/>
+		</div>
+	{/if}
 	<div class="{drawerHidden ? '' : 'hidden'} lg:block pt-[calc(var(--navbar-height))] h-full">
 		<div class="flex flex-row h-full">
 			<SplitPane
