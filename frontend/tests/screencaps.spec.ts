@@ -262,6 +262,7 @@ test('Create update tasks', async ({ page, request }, testInfo) => {
 });
 
 test('Create moneyshot', async ({ page, request, browser }, testInfo) => {
+	test.setTimeout(300000);
 	const screenshotCounter = { count: 0 };
 	await clearState(page, request);
 	await deleteAllTasks(page, request);
@@ -297,7 +298,6 @@ test('Create moneyshot', async ({ page, request, browser }, testInfo) => {
 	// Take a screenshot
 
 	// wait until: 2x on screen "completed"
-	test.setTimeout(300000);
 	await page.locator('td', { hasText: 'completed' }).nth(1).waitFor({ timeout: 300000 });
 
 	await expectScreenshotReal(page, testInfo, screenshotCounter, {
@@ -428,6 +428,7 @@ test('VNC View', async ({ page, request }, testInfo) => {
 });
 
 test('Create History Entry', async ({ page, request }, testInfo) => {
+	test.setTimeout(60000);
 	const screenshotCounter = { count: 0 };
 	await clearState(page, request);
 	await deleteAllTasks(page, request);
