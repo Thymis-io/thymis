@@ -19,15 +19,24 @@ inputs:
     description: "Nix store signing key (cache.thymis.io-1:...) for cache upload."
     required: false
     default: ""
+  github_token:
+    description: "GitHub token (unused, accepted for compatibility)."
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
+    - name: Snapshot store before build
+      if: ${{ inputs.signing_key != '' }}
+      shell: bash
+      run: |
+        nix path-info --all 2>/dev/null | sort > /tmp/nix-store-before.txt
     - name: Run script
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: ${{ inputs.script }}
     - if: ${{ inputs.signing_key != '' }}
-      name: Upload to Nix cache
+      name: Upload new store paths to Nix cache
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
@@ -37,8 +46,17 @@ runs:
         KEY_FILE=$(mktemp)
         trap 'rm -f "$KEY_FILE"' EXIT
         echo "${{ inputs.signing_key }}" > "$KEY_FILE"
-        if [ -e result ]; then
-          nix copy \
-            --to "s3://thymis-nix-cache?endpoint=nbg1.your-objectstorage.com&region=nbg1&secret-key=${KEY_FILE}" \
-            ./result
+
+        # Find all store paths added during this job
+        nix path-info --all 2>/dev/null | sort > /tmp/nix-store-after.txt
+        NEW_PATHS=$(comm -13 /tmp/nix-store-before.txt /tmp/nix-store-after.txt)
+
+        if [ -z "$NEW_PATHS" ]; then
+          echo "No new store paths to upload."
+          exit 0
         fi
+
+        echo "Uploading $(echo "$NEW_PATHS" | wc -l) new store paths to cache..."
+        echo "$NEW_PATHS" | xargs nix copy \
+          --to "s3://thymis-nix-cache?endpoint=nbg1.your-objectstorage.com&region=nbg1&secret-key=${KEY_FILE}" \
+          --no-check-sigs
