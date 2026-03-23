@@ -30,7 +30,7 @@ export default defineConfig({
 	},
 	server: {
 		hmr: {
-			port: 33100
+			port: parseInt(process.env.VITE_HMR_PORT || '0') || undefined
 		}
 	},
 	define: {
