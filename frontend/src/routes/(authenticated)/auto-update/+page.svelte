@@ -4,6 +4,13 @@
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import { onMount } from 'svelte';
+	import type { PageData } from './$types';
+
+	interface Props {
+		data: PageData;
+	}
+
+	let { data }: Props = $props();
 
 	type Frequency = 'hourly' | 'daily' | 'weekly' | 'monthly';
 
@@ -30,9 +37,9 @@
 		try {
 			const res = await fetch('/api/controller-settings');
 			if (res.ok) {
-				const data = await res.json();
-				enabled = data.auto_update_enabled;
-				const s = data.auto_update_schedule;
+				const settings = await res.json();
+				enabled = settings.auto_update_enabled;
+				const s = settings.auto_update_schedule;
 				frequency = s.frequency ?? 'daily';
 				time = s.time ?? '03:00';
 				weekdays = s.weekdays ?? [0, 1, 2, 3, 4];
@@ -87,7 +94,12 @@
 	}));
 </script>
 
-<PageHead title={$t('nav.auto-update')} />
+<PageHead
+	title={$t('nav.auto-update')}
+	repoStatus={data.repoStatus}
+	globalState={data.globalState}
+	nav={data.nav}
+/>
 
 <div class="max-w-lg flex flex-col gap-6">
 	<Card>
