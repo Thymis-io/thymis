@@ -1,0 +1,8 @@
+name: "Snapshot Nix Store"
+description: "Record current store paths so a later upload-nix-store-diff step can upload everything new."
+runs:
+  using: "composite"
+  steps:
+    - name: Snapshot Nix store
+      shell: bash
+      run: nix path-info --all 2>/dev/null | sort > /tmp/nix-store-before.txt

@@ -1,0 +1,37 @@
+name: "Upload Nix Store Diff"
+description: "Upload all store paths added since the last snapshot-nix-store step."
+inputs:
+  aws_access_key_id:
+    description: "Hetzner S3 access key ID."
+    required: true
+  aws_secret_access_key:
+    description: "Hetzner S3 secret access key."
+    required: true
+  signing_key:
+    description: "Nix store signing key (cache.thymis.io-1:...)."
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Upload new store paths to Nix cache
+      shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
+      run: |
+        KEY_FILE=$(mktemp)
+        trap 'rm -f "$KEY_FILE"' EXIT
+        echo "${{ inputs.signing_key }}" > "$KEY_FILE"
+
+        nix path-info --all 2>/dev/null | sort > /tmp/nix-store-after.txt
+        NEW_PATHS=$(comm -13 /tmp/nix-store-before.txt /tmp/nix-store-after.txt)
+
+        if [ -z "$NEW_PATHS" ]; then
+          echo "No new store paths to upload."
+          exit 0
+        fi
+
+        echo "Uploading $(echo "$NEW_PATHS" | wc -l) new store paths to cache..."
+        echo "$NEW_PATHS" | xargs nix copy \
+          --to "s3://thymis-nix-cache?endpoint=nbg1.your-objectstorage.com&region=nbg1&secret-key=${KEY_FILE}" \
+          --no-check-sigs

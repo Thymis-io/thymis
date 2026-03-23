@@ -28,6 +28,7 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ./.github/actions/snapshot-nix-store
 
       - name: Cache the virtualenv
         uses: actions/cache@v5
@@ -55,6 +56,14 @@ jobs:
           nix develop .#ci --command uv run python -m pytest -sxv
         working-directory: controller
 
+      - name: Upload new store paths to Nix cache
+        if: always()
+        uses: ./.github/actions/upload-nix-store-diff
+        with:
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
+
   test-frontend-integration:
     runs-on: ubuntu-22.04-arm
     needs: changes
@@ -64,6 +73,7 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ./.github/actions/snapshot-nix-store
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
@@ -86,6 +96,13 @@ jobs:
           export THYMIS_FLAKE_ROOT='..'
           ../.github/npm_test_integration.sh
         working-directory: frontend
+      - name: Upload new store paths to Nix cache
+        if: always()
+        uses: ./.github/actions/upload-nix-store-diff
+        with:
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
       - uses: actions/upload-artifact@v4
         id: artifact-upload
         if: always()
@@ -157,6 +174,7 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ./.github/actions/snapshot-nix-store
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
@@ -179,6 +197,13 @@ jobs:
           # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
           ../.github/npm_test_integration.sh
         working-directory: frontend
+      - name: Upload new store paths to Nix cache
+        if: always()
+        uses: ./.github/actions/upload-nix-store-diff
+        with:
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
       - uses: actions/upload-artifact@v4
         id: artifact-upload
         if: always()
@@ -209,6 +234,7 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ./.github/actions/snapshot-nix-store
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
@@ -231,6 +257,13 @@ jobs:
           export THYMIS_FLAKE_ROOT='..'
           ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
         working-directory: frontend
+      - name: Upload new store paths to Nix cache
+        if: always()
+        uses: ./.github/actions/upload-nix-store-diff
+        with:
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
       - uses: actions/upload-artifact@v4
         id: artifact-upload
         if: always()
@@ -261,6 +294,7 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ./.github/actions/snapshot-nix-store
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
@@ -283,6 +317,13 @@ jobs:
           # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
           ../.github/npm_test_integration.sh -- tests/x86_vm.spec.ts
         working-directory: frontend
+      - name: Upload new store paths to Nix cache
+        if: always()
+        uses: ./.github/actions/upload-nix-store-diff
+        with:
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
       - uses: actions/upload-artifact@v4
         id: artifact-upload
         if: always()
