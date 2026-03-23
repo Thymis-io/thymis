@@ -58,7 +58,6 @@ jobs:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
       - uses: ./.github/actions/setup-nix
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install Node.js
         uses: actions/setup-node@v6
@@ -122,7 +121,6 @@ jobs:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
       - uses: ./.github/actions/setup-nix
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install Node.js
         uses: actions/setup-node@v6
