@@ -566,6 +566,10 @@
 		},
 		"weekday": {
 			"label": "Day of the week"
-		}
+		},
+		"local-day": "local",
+		"local-next-day": "next day",
+		"local-prev-day": "prev day",
+		"weekday-day-shift-note": "Days shown in UTC. In your timezone ({tz}) the update may fall on a different day."
 	}
 }
