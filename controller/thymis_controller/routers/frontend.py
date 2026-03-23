@@ -3,6 +3,7 @@ import logging
 import os
 import pathlib
 import re
+import socket
 import subprocess
 import sys
 from urllib.parse import urlparse
@@ -19,7 +20,15 @@ from thymis_controller.config import global_settings
 logger = logging.getLogger(__name__)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
-FRONTEND_PORT = 33100 + (int(os.environ.get("UVICORN_PORT", 0)) % 10000)
+
+def _find_free_port() -> int:
+    """Ask the OS for an available loopback port by binding to port 0."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+FRONTEND_PORT = _find_free_port()
 
 
 def is_reload_enabled():
@@ -93,6 +102,7 @@ class Frontend:
                 stderr=subprocess.PIPE,
                 env={
                     "PATH": os.environ["PATH"],
+                    "VITE_HMR_PORT": str(FRONTEND_PORT),
                     **env(),
                 },
             )
