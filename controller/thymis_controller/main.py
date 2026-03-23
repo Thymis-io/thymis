@@ -8,6 +8,14 @@ import sys
 from contextlib import asynccontextmanager
 from importlib.metadata import version
 
+if sys.version_info < (3, 13):
+    print(
+        f"ERROR: Python 3.13+ is required (you are running {sys.version}). "
+        "Your dev runtime is likely wrong — check your uv/venv python.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
 import sqlalchemy.orm
 import thymis_controller.lib  # pylint: disable=unused-import
 from alembic import command
