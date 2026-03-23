@@ -60,8 +60,8 @@ runs:
           NEW_PATHS=$(echo "$NEW_PATHS" | grep -v "^${RESULT_PATH}$" || true)
         fi
 
-        # Always exclude fill-image-with-secrets and .img paths (large, not useful in cache)
-        NEW_PATHS=$(echo "$NEW_PATHS" | grep -v "fill-image-with-secrets" | grep -v "\.img" || true)
+        # Always exclude large/unnecessary paths from cache
+        NEW_PATHS=$(echo "$NEW_PATHS" | grep -v "fill-image-with-secrets" | grep -v "\.img" | grep -v "nixos-vm" || true)
 
         if [ -z "$NEW_PATHS" ]; then
           echo "No new store paths to upload."
