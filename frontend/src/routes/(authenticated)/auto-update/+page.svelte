@@ -180,7 +180,7 @@
 		if (!base) return 0;
 		const utcDay = base.getUTCDay();
 		const localDay = base.getDay();
-		const diff = ((localDay - utcDay) + 7) % 7;
+		const diff = (localDay - utcDay + 7) % 7;
 		// diff is 0, 1 (next day), or 6 (previous day → -1)
 		if (diff === 0) return 0;
 		if (diff === 1) return 1;
@@ -292,7 +292,7 @@
 		<div>
 			<Label class="mb-2">{$t('auto-update.weekdays.label')}</Label>
 			<div class="flex flex-wrap gap-2">
-				{#each localWeekdayLabels as { value, labelKey, localLabelKey, shifted }}
+				{#each localWeekdayLabels as { value, labelKey, localLabelKey, shifted } (labelKey)}
 					<button
 						type="button"
 						onclick={() => toggleWeekday(value)}
@@ -302,7 +302,10 @@
 							? 'border-primary-500 bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
 							: 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}"
 					>
-						{$t(labelKey)}{#if shifted}&nbsp;<span class="opacity-60 text-xs">({$t(localLabelKey)})</span>{/if}
+						{$t(labelKey)}
+						{#if shifted}
+							<span class="opacity-60 text-xs">({$t(localLabelKey)})</span>
+						{/if}
 					</button>
 				{/each}
 			</div>
