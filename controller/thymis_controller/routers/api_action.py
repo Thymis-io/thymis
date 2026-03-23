@@ -266,3 +266,73 @@ def update(
     project.create_update_task(task_controller, user_session_id, db_session)
 
     return {"message": "update started"}
+
+
+@router.post("/action/auto-update")
+async def auto_update(
+    session: DBSessionAD,
+    project: ProjectAD,
+    task_controller: TaskControllerAD,
+    network_relay: NetworkRelayAD,
+    user_session_id: UserSessionIDAD,
+    db_session: DBSessionAD,
+):
+    devices: list[models.DeployDeviceInformation] = []
+
+    for deployment_info in crud.deployment_info.get_all(session):
+        if network_relay.public_key_to_connection_id.get(
+            deployment_info.ssh_public_key
+        ):
+            state = project.read_state()
+            config = next(
+                (
+                    config
+                    for config in state.configs
+                    if config.identifier == deployment_info.deployed_config_id
+                ),
+                None,
+            )
+            if config is None:
+                continue
+            modules = project.get_modules_for_config(state, config)
+            secrets = []
+            for module, settings in modules:
+                for secret_type, secret in module.register_secret_settings(
+                    settings, project
+                ):
+                    project.get_secret(db_session, uuid.UUID(secret))
+                    secrets.append(
+                        agent.SecretForDevice(
+                            secret_id=secret,
+                            path=secret_type.on_device_path,
+                            owner=secret_type.on_device_owner,
+                            group=secret_type.on_device_group,
+                            mode=secret_type.on_device_mode,
+                        )
+                    )
+            devices.append(
+                models.DeployDeviceInformation(
+                    identifier=deployment_info.deployed_config_id,
+                    deployment_info_id=deployment_info.id,
+                    deployment_public_key=deployment_info.ssh_public_key,
+                    secrets=secrets,
+                )
+            )
+
+    project.update_known_hosts(session)
+    access_tokens = project.nix_access_tokens()
+
+    task_controller.submit(
+        models.AutoUpdateTaskSubmission(
+            project_path=str(project.path),
+            nix_access_tokens=access_tokens,
+            devices=devices,
+            ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
+            known_hosts_path=str(project.known_hosts_path),
+            controller_ssh_pubkey=project.public_key,
+        ),
+        user_session_id=user_session_id,
+        db_session=session,
+    )
+
+    return {"message": "auto-update started"}

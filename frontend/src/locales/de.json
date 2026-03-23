@@ -201,6 +201,7 @@
 		"build": "Bauen",
 		"deploy": "Ausrollen",
 		"update": "Updaten",
+		"auto-update": "Auto-Update",
 		"open-changes": "Offene Änderungen",
 		"no-changes": "Keine Änderungen, Arbeitsverzeichnis ist sauber",
 		"add-all-configs": "Alle Konfigurationen hinzufügen",
@@ -352,7 +353,8 @@
 			"deploy_device": "Gerät Ausrollen: {device}",
 			"build_device_image": "Geräte-Image Bauen: {device}",
 			"ssh_command": "SSH Befehl Ausführen",
-			"run_nixos_vm_task": "NixOS VM für {device} ausführen"
+			"run_nixos_vm_task": "NixOS VM für {device} ausführen",
+			"auto_update": "Auto-Update"
 		},
 		"version": "Thymis Version: {version}",
 		"version-short": "v{version}"
@@ -521,5 +523,15 @@
 				"1-month": "1 Monat"
 			}
 		}
+	},
+	"auto-update": {
+		"title": "Auto-Update Einstellungen",
+		"enabled": "Auto-Update aktivieren",
+		"schedule": "Zeitplan (systemd OnCalendar)",
+		"schedule-placeholder": "z.B. daily oder *-*-* 03:00:00",
+		"save": "Speichern",
+		"trigger-now": "Jetzt ausführen",
+		"trigger-success": "Auto-Update gestartet",
+		"save-success": "Einstellungen gespeichert"
 	}
 }

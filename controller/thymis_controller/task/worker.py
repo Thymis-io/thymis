@@ -216,7 +216,7 @@ def deploy_device_task(
             f"-o KbdInteractiveAuthentication=no "
             f"-o ConnectTimeout=10 "
             f"-o BatchMode=yes "
-            f"-o 'ProxyCommand {(os.getenv('PYTHONENV')+'/bin/python') if ('PYTHONENV' in os.environ) else 'python' } -m thymis_controller.access_client {task_data.controller_access_client_endpoint} {task_data.device.deployment_info_id}' "
+            f"-o 'ProxyCommand {(os.getenv('PYTHONENV') + '/bin/python') if ('PYTHONENV' in os.environ) else 'python'} -m thymis_controller.access_client {task_data.controller_access_client_endpoint} {task_data.device.deployment_info_id}' "
             "-T",
             "PATH": os.getenv("PATH"),
             "HOME": os.getenv("HOME"),
@@ -618,7 +618,7 @@ def ssh_command_task(
                 "-o",
                 "BatchMode=yes",
                 "-o",
-                f"ProxyCommand={(os.getenv('PYTHONENV')+'/bin/python') if ('PYTHONENV' in os.environ) else 'python' } -m thymis_controller.access_client {task_data.controller_access_client_endpoint} {task_data.deployment_info_id}",
+                f"ProxyCommand={(os.getenv('PYTHONENV') + '/bin/python') if ('PYTHONENV' in os.environ) else 'python'} -m thymis_controller.access_client {task_data.controller_access_client_endpoint} {task_data.deployment_info_id}",
                 f"{task_data.target_user}@localhost",
                 task_data.command,
             ],
@@ -635,6 +635,131 @@ def ssh_command_task(
             report_task_finished(task, conn, False, "SSH command failed")
 
 
+def auto_update_task(
+    task: models_task.TaskSubmission, conn: Connection, process_list: ProcessList
+):
+    """
+    Auto-update task: stash all changes except flake.lock, run nix flake update,
+    commit flake.lock, then signal the controller to spawn a deploy task, and
+    finally pop the stash.
+    """
+    task_data = task.data
+    assert task_data.type == "auto_update_task"
+    repo_path = (pathlib.Path(task_data.project_path) / "repository").resolve()
+
+    git_env = {
+        "PATH": os.getenv("PATH"),
+        "GIT_TERMINAL_PROMPT": "0",
+        "HOME": os.getenv("HOME"),
+    }
+    # Remove None values
+    git_env = {k: v for k, v in git_env.items() if v is not None}
+
+    stash_created = False
+
+    try:
+        # Step 1: stash all changes except flake.lock
+        # We use `git stash push -- $(git ls-files --modified --others --exclude-standard | grep -v flake.lock)`
+        # to stash everything except flake.lock.
+        # First, find files to stash (modified tracked files, excluding flake.lock)
+        list_proc = subprocess.run(
+            ["git", "diff", "--name-only"],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+        )
+        staged_proc = subprocess.run(
+            ["git", "diff", "--cached", "--name-only"],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+        )
+        files_to_stash = [
+            f
+            for f in (list_proc.stdout.splitlines() + staged_proc.stdout.splitlines())
+            if f != "flake.lock"
+        ]
+
+        if files_to_stash:
+            stash_returncode = run_command(
+                task,
+                conn,
+                process_list,
+                ["git", "stash", "push", "--include-untracked", "--", *files_to_stash],
+                env=git_env,
+                cwd=str(repo_path),
+                process_index=0,
+            )
+            if stash_returncode == 0:
+                stash_created = True
+            else:
+                report_task_finished(task, conn, False, "git stash push failed")
+                return
+
+        # Step 2: nix flake update
+        flake_update_returncode = run_command(
+            task,
+            conn,
+            process_list,
+            [*NIX_CMD, "flake", "update", "--allow-dirty-locks"],
+            cwd=str(repo_path),
+            env={
+                "PATH": os.getenv("PATH"),
+                "NIX_SSHOPTS": NIX_SSHOPTS,
+                "GIT_TERMINAL_PROMPT": "0",
+                "NIX_CONFIG": task_data.nix_access_tokens,
+            },
+            process_index=1,
+        )
+        if flake_update_returncode != 0:
+            report_task_finished(task, conn, False, "nix flake update failed")
+            return
+
+        # Step 3: git add flake.lock && git commit
+        add_returncode = run_command(
+            task,
+            conn,
+            process_list,
+            ["git", "add", "flake.lock"],
+            env=git_env,
+            cwd=str(repo_path),
+            process_index=2,
+        )
+        if add_returncode != 0:
+            report_task_finished(task, conn, False, "git add flake.lock failed")
+            return
+
+        commit_returncode = run_command(
+            task,
+            conn,
+            process_list,
+            ["git", "commit", "--allow-empty", "-m", "flake.lock: Auto-update"],
+            env=git_env,
+            cwd=str(repo_path),
+            process_index=3,
+        )
+        if commit_returncode != 0:
+            report_task_finished(task, conn, False, "git commit failed")
+            return
+
+    finally:
+        # Step 5 (always): git stash pop if we created a stash
+        if stash_created:
+            run_command(
+                task,
+                conn,
+                process_list,
+                ["git", "stash", "pop"],
+                env=git_env,
+                cwd=str(repo_path),
+                process_index=4,
+            )
+
+    # Step 4: signal controller to deploy — done via TaskCompletedUpdate;
+    # the controller's task/controller.py spawns deploy_devices_task as a child.
+    report_task_finished(task, conn)
+
+
 SUPPORTED_TASK_TYPES = {
     "project_flake_update_task": project_flake_update_task,
     "build_project_task": build_project_task,
@@ -643,6 +768,7 @@ SUPPORTED_TASK_TYPES = {
     "build_device_image_task": build_device_image_task,
     "ssh_command_task": ssh_command_task,
     "run_nixos_vm_task": run_nixos_vm_task,
+    "auto_update_task": auto_update_task,
 }
 
 

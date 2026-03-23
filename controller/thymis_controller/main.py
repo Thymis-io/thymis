@@ -17,6 +17,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from thymis_controller import crud
+from thymis_controller.auto_update_scheduler import auto_update_scheduler_loop
 from thymis_controller.config import global_settings
 from thymis_controller.database.connection import (
     create_sqlalchemy_engine,
@@ -180,6 +181,11 @@ async def lifespan(app: FastAPI):
         await frontend.frontend.run()
         logger.info("frontend started")
         logger.info("Starting controller at \033[1m%s\033[0m", global_settings.BASE_URL)
+        auto_update_task = asyncio.create_task(
+            auto_update_scheduler_loop(
+                db_engine, project, task_controller, network_relay
+            )
+        )
         yield {
             "notification_manager": notification_manager,
             "task_controller": task_controller,
@@ -189,6 +195,11 @@ async def lifespan(app: FastAPI):
             "host": host,
             "port": port,
         }
+        auto_update_task.cancel()
+        try:
+            await auto_update_task
+        except asyncio.CancelledError:
+            pass
     with sqlalchemy.orm.Session(db_engine) as db_session:
         connected_agents = crud.agent_connection.get_all_connected(db_session)
         for connected_agent in connected_agents:

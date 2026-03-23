@@ -192,6 +192,7 @@ TaskSubmissionData = Union[
     "BuildDeviceImageTaskSubmission",
     "SSHCommandTaskSubmission",
     "RunNixOSVMTaskSubmission",
+    "AutoUpdateTaskSubmission",
 ]
 
 
@@ -266,6 +267,17 @@ class RunNixOSVMTaskSubmission(BaseModel):
     type: Literal["run_nixos_vm_task"] = "run_nixos_vm_task"
     configuration_id: str
     project_path: str
+    parent_task_id: Optional[uuid.UUID] = None
+
+
+class AutoUpdateTaskSubmission(BaseModel):
+    type: Literal["auto_update_task"] = "auto_update_task"
+    project_path: str
+    nix_access_tokens: str
+    devices: list[DeployDeviceInformation]
+    ssh_key_path: str
+    known_hosts_path: str
+    controller_ssh_pubkey: str
     parent_task_id: Optional[uuid.UUID] = None
 
 
@@ -419,6 +431,7 @@ __all__ = [
     "BuildProjectTaskSubmission",
     "BuildDeviceImageTaskSubmission",
     "SSHCommandTaskSubmission",
+    "AutoUpdateTaskSubmission",
     "RunnerToControllerTaskUpdate",
     "TaskUpdate",
     "TaskPickedUpdate",
