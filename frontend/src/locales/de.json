@@ -20,7 +20,8 @@
 		"tags": "Konfig. Tags",
 		"device-details": "Details",
 		"secrets": "Secrets",
-		"artifacts": "Artefakte"
+		"artifacts": "Artefakte",
+		"auto-update": "Auto-Update"
 	},
 	"common": {
 		"search": "Suchen...",
@@ -201,7 +202,6 @@
 		"build": "Bauen",
 		"deploy": "Ausrollen",
 		"update": "Updaten",
-		"auto-update": "Auto-Update",
 		"open-changes": "Offene Änderungen",
 		"no-changes": "Keine Änderungen, Arbeitsverzeichnis ist sauber",
 		"add-all-configs": "Alle Konfigurationen hinzufügen",
@@ -532,6 +532,25 @@
 		"save": "Speichern",
 		"trigger-now": "Jetzt ausführen",
 		"trigger-success": "Auto-Update gestartet",
-		"save-success": "Einstellungen gespeichert"
+		"save-success": "Einstellungen gespeichert",
+		"frequency": {
+			"label": "Häufigkeit",
+			"hourly": "Stündlich",
+			"daily": "Täglich",
+			"weekly": "Wöchentlich",
+			"monthly": "Monatlich"
+		},
+		"time-of-day": "Uhrzeit",
+		"weekdays": {
+			"label": "Wochentage",
+			"mon": "Mo",
+			"tue": "Di",
+			"wed": "Mi",
+			"thu": "Do",
+			"fri": "Fr",
+			"sat": "Sa",
+			"sun": "So"
+		},
+		"day-of-month": "Tag des Monats"
 	}
 }

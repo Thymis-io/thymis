@@ -20,7 +20,8 @@
 		"tags": "Config-Tags",
 		"device-details": "Details",
 		"secrets": "Secrets",
-		"artifacts": "Artifacts"
+		"artifacts": "Artifacts",
+		"auto-update": "Auto-Update"
 	},
 	"common": {
 		"search": "Search...",
@@ -203,7 +204,6 @@
 		"commit-deploy": "Commit & Deploy",
 		"update": "Update",
 		"commit": "Commit",
-		"auto-update": "Auto-Update",
 		"open-changes": "Open Changes",
 		"no-changes": "No changes to commit, working on a clean state",
 		"add-all-configs": "Add all configs",
@@ -533,6 +533,25 @@
 		"save": "Save",
 		"trigger-now": "Run Now",
 		"trigger-success": "Auto-update started",
-		"save-success": "Settings saved"
+		"save-success": "Settings saved",
+		"frequency": {
+			"label": "Frequency",
+			"hourly": "Hourly",
+			"daily": "Daily",
+			"weekly": "Weekly",
+			"monthly": "Monthly"
+		},
+		"time-of-day": "Time of Day",
+		"weekdays": {
+			"label": "Days of the Week",
+			"mon": "Mon",
+			"tue": "Tue",
+			"wed": "Wed",
+			"thu": "Thu",
+			"fri": "Fri",
+			"sat": "Sat",
+			"sun": "Sun"
+		},
+		"day-of-month": "Day of Month"
 	}
 }

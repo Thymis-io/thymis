@@ -1,5 +1,8 @@
 import sqlalchemy.orm
-from thymis_controller.db_models.controller_settings import ControllerSettings
+from thymis_controller.db_models.controller_settings import (
+    DEFAULT_SCHEDULE,
+    ControllerSettings,
+)
 
 
 def get(db_session: sqlalchemy.orm.Session) -> ControllerSettings:
@@ -8,7 +11,7 @@ def get(db_session: sqlalchemy.orm.Session) -> ControllerSettings:
         settings = ControllerSettings(
             id=1,
             auto_update_enabled=False,
-            auto_update_schedule="daily",
+            auto_update_schedule=DEFAULT_SCHEDULE,
         )
         db_session.add(settings)
         db_session.commit()
