@@ -15,6 +15,7 @@ layout: summary
   - [Sharing settings via a Tag](device-lifecycle/tags.md)
   - [Setting up a Kiosk with VNC](device-lifecycle/kiosk.md)
   - [Deploy an Update](device-lifecycle/update.md)
+  - [Auto-Update](device-lifecycle/auto-update.md)
   - [Troubleshooting](device-lifecycle/troubleshooting.md)
   - [Deploying Secrets to devices](device-lifecycle/secrets.md)
   - [Deploying Files using Artifacts](device-lifecycle/artifacts.md)

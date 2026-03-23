@@ -10,10 +10,14 @@ router = APIRouter()
 
 
 class AutoUpdateSchedule(BaseModel):
-    frequency: Literal["hourly", "daily", "weekly", "monthly"] = "daily"
+    frequency: Literal[
+        "hourly", "daily", "weekly", "monthly", "monthly_weekday"
+    ] = "daily"
     time: str = "03:00"  # HH:MM, used for daily/weekly/monthly
     weekdays: Optional[List[int]] = None  # 0=Mon … 6=Sun, for weekly
     day_of_month: Optional[int] = None  # 1–28, for monthly
+    nth_weekday: Optional[int] = None  # 1–5 or -1 (last), for monthly_weekday
+    weekday: Optional[int] = None  # 0=Mon … 6=Sun, for monthly_weekday
 
 
 class ControllerSettingsResponse(BaseModel):
@@ -60,6 +64,14 @@ def patch_controller_settings(body: ControllerSettingsPatch, db_session: DBSessi
         ):
             raise HTTPException(
                 status_code=422, detail="day_of_month required for monthly frequency"
+            )
+        if body.auto_update_schedule.frequency == "monthly_weekday" and (
+            body.auto_update_schedule.nth_weekday is None
+            or body.auto_update_schedule.weekday is None
+        ):
+            raise HTTPException(
+                status_code=422,
+                detail="nth_weekday and weekday required for monthly_weekday frequency",
             )
         schedule_raw = body.auto_update_schedule.model_dump_json(exclude_none=True)
 

@@ -526,6 +526,8 @@
 	},
 	"auto-update": {
 		"title": "Auto-Update Einstellungen",
+		"description": "Auto-Update führt automatisch ein Nix-Flake-Update durch, committet die aktualisierte flake.lock und rollt die neue Konfiguration nach dem konfigurierten Zeitplan auf alle verbundenen Geräte aus.",
+		"working-state-warning": "Warnung: Nicht committete Änderungen im Projekt-Repository werden vor dem Update gespeichert (git stash) und danach wiederhergestellt. Stellen Sie sicher, dass Sie keine wichtigen uncommitteten Änderungen haben, wenn das geplante Update ausgelöst wird.",
 		"enabled": "Auto-Update aktivieren",
 		"schedule": "Zeitplan (systemd OnCalendar)",
 		"schedule-placeholder": "z.B. daily oder *-*-* 03:00:00",
@@ -538,7 +540,8 @@
 			"hourly": "Stündlich",
 			"daily": "Täglich",
 			"weekly": "Wöchentlich",
-			"monthly": "Monatlich"
+			"monthly": "Monatlich",
+			"monthly-weekday": "Monatlich (nach Wochentag)"
 		},
 		"time-of-day": "Uhrzeit",
 		"weekdays": {
@@ -551,6 +554,18 @@
 			"sat": "Sa",
 			"sun": "So"
 		},
-		"day-of-month": "Tag des Monats"
+		"day-of-month": "Tag des Monats",
+		"nth-weekday": {
+			"label": "Welches Vorkommen",
+			"first": "Erstes",
+			"second": "Zweites",
+			"third": "Drittes",
+			"fourth": "Viertes",
+			"fifth": "Fünftes",
+			"last": "Letztes"
+		},
+		"weekday": {
+			"label": "Wochentag"
+		}
 	}
 }
