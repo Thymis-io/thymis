@@ -526,7 +526,7 @@
 	},
 	"auto-update": {
 		"title": "Auto-Update Einstellungen",
-		"description": "Auto-Update führt automatisch ein Nix-Flake-Update durch, committet die aktualisierte flake.lock und rollt die neue Konfiguration nach dem konfigurierten Zeitplan auf alle verbundenen Geräte aus. Es werden nur committete Änderungen aktualisiert und ausgerollt — uncommittete Änderungen werden während des Updates sicher zur Seite gelegt und danach wiederhergestellt.",
+		"description": "Auto-Update führt automatisch ein Nix-Flake-Update durch, committet die aktualisierte flake.lock und rollt die neue Konfiguration nach dem konfigurierten Zeitplan auf alle verbundenen Geräte aus. Es werden nur committete Änderungen aktualisiert und ausgerollt. Uncommittete Änderungen werden während des Updates sicher zur Seite gelegt und danach wiederhergestellt.",
 		"enabled": "Auto-Update aktivieren",
 		"schedule": "Zeitplan (systemd OnCalendar)",
 		"schedule-placeholder": "z.B. daily oder *-*-* 03:00:00",
@@ -542,26 +542,26 @@
 			"monthly": "Monatlich",
 			"monthly-weekday": "Monatlich (nach Wochentag)"
 		},
-		"time-of-day": "Uhrzeit",
+		"time-of-day": "Uhrzeit (UTC)",
 		"weekdays": {
 			"label": "Wochentage",
-			"mon": "Mo",
-			"tue": "Di",
-			"wed": "Mi",
-			"thu": "Do",
-			"fri": "Fr",
-			"sat": "Sa",
-			"sun": "So"
+			"mon": "Montag",
+			"tue": "Dienstag",
+			"wed": "Mittwoch",
+			"thu": "Donnerstag",
+			"fri": "Freitag",
+			"sat": "Samstag",
+			"sun": "Sonntag"
 		},
 		"day-of-month": "Tag des Monats",
 		"nth-weekday": {
-			"label": "Welches Vorkommen",
-			"first": "Erstes",
-			"second": "Zweites",
-			"third": "Drittes",
-			"fourth": "Viertes",
-			"fifth": "Fünftes",
-			"last": "Letztes"
+			"label": "Welches Ereignis",
+			"first": "Ersten",
+			"second": "Zweiten",
+			"third": "Dritten",
+			"fourth": "Vierten",
+			"fifth": "Fünften",
+			"last": "Letzten"
 		},
 		"weekday": {
 			"label": "Wochentag"
