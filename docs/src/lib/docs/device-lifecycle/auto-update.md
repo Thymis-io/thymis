@@ -6,6 +6,8 @@ Auto-Update lets Thymis automatically keep your devices up to date without manua
 2. Commits the updated `flake.lock` to the project repository.
 3. Deploys the new configuration to every connected device.
 
+The Auto-Update task shows as **Completed** only once all device deploys have finished.
+
 ## Enabling Auto-Update
 
 1. In the sidebar, click **Auto-Update**.
@@ -19,23 +21,26 @@ Auto-Update lets Thymis automatically keep your devices up to date without manua
 
 | Frequency | Description |
 |---|---|
-| **Hourly** | Fires every hour at the configured minute. |
-| **Daily** | Fires once per day at the configured time. |
-| **Weekly** | Fires on the selected days of the week at the configured time. |
+| **Daily** | Fires on the selected days of the week at the configured time. Select one or more days. |
+| **Weekly** | Fires once per week on a single selected day at the configured time. |
 | **Monthly** | Fires on a specific day of the month (1–28) at the configured time. |
 | **Monthly (by weekday)** | Fires on the *n*th occurrence of a specific weekday in the month (e.g. "first Monday", "last Friday"). |
 
 ### Default schedule
 
-The default schedule fires weekly on **Monday through Thursday at 03:00 UTC**. This avoids weekend fire times while leaving Friday–Sunday free for manual work.
+The default schedule fires daily on **Monday through Thursday at 03:00 UTC**. This avoids weekend fire times while leaving Friday–Sunday free for manual work.
 
 ### Time of Day
 
-For all frequencies except **Hourly**, you can set the **Time of Day** (UTC). The controller always interprets this time as UTC regardless of the timezone of the devices.
+You can set the **Time of Day** (UTC) for all frequencies. The controller always interprets this time as UTC regardless of the timezone of the devices.
 
-### Weekly: Days of the Week
+### Daily: Days of the Week
 
-When **Weekly** is selected, choose one or more days to fire on. At least one day must be selected.
+When **Daily** is selected, choose one or more days to fire on using the day chip-buttons. At least one day must be selected.
+
+### Weekly: Day of the Week
+
+When **Weekly** is selected, choose exactly one day from the dropdown. The update fires once every week on that day.
 
 ### Monthly: Day of Month
 

@@ -215,6 +215,7 @@ class DeployDevicesTaskSubmission(BaseModel):
     known_hosts_path: str
     controller_ssh_pubkey: str
     config_commit: str
+    parent_task_id: Optional[uuid.UUID] = None
 
 
 class DeployDeviceTaskSubmission(BaseModel):
