@@ -129,12 +129,10 @@
 		{$t('auto-update.description')}
 	</p>
 
-	<!-- Warning about working state -->
-	<div
-		class="rounded-lg border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-300"
-	>
+	<!-- Info about working state -->
+	<p class="text-sm text-gray-600 dark:text-gray-400">
 		{$t('auto-update.working-state-warning')}
-	</div>
+	</p>
 
 	<!-- Enabled toggle -->
 	<div class="flex items-center gap-3">
