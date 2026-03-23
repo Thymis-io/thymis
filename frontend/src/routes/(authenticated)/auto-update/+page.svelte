@@ -33,6 +33,19 @@
 	let weekday = $state(0);
 	let loading = $state(false);
 	let saving = $state(false);
+	let dirty = $state(false);
+
+	// Track the last saved snapshot to detect unsaved changes
+	let savedSnapshot = $state('');
+
+	function snapshot() {
+		return JSON.stringify({ enabled, frequency, time, weekdays, dayOfMonth, nthWeekday, weekday });
+	}
+
+	$effect(() => {
+		// Re-run whenever any form value changes
+		dirty = snapshot() !== savedSnapshot;
+	});
 
 	async function loadSettings() {
 		loading = true;
@@ -48,6 +61,8 @@
 				dayOfMonth = s.day_of_month ?? 1;
 				nthWeekday = s.nth_weekday ?? 1;
 				weekday = s.weekday ?? 0;
+				savedSnapshot = snapshot();
+				dirty = false;
 			}
 		} finally {
 			loading = false;
@@ -65,11 +80,15 @@
 				schedule.weekday = weekday;
 			}
 
-			await fetchWithNotify('/api/controller-settings', {
+			const response = await fetchWithNotify('/api/controller-settings', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ auto_update_enabled: enabled, auto_update_schedule: schedule })
 			});
+			if (response.ok) {
+				savedSnapshot = snapshot();
+				dirty = false;
+			}
 		} finally {
 			saving = false;
 		}
@@ -123,15 +142,10 @@
 	nav={data.nav}
 />
 
-<div class="flex flex-col gap-6">
+<div class="max-w-xl mx-auto flex flex-col gap-6">
 	<!-- Description -->
 	<p class="text-sm text-gray-600 dark:text-gray-400">
 		{$t('auto-update.description')}
-	</p>
-
-	<!-- Info about working state -->
-	<p class="text-sm text-gray-600 dark:text-gray-400">
-		{$t('auto-update.working-state-warning')}
 	</p>
 
 	<!-- Enabled toggle -->
@@ -206,12 +220,19 @@
 	{/if}
 
 	<!-- Actions -->
-	<div class="flex justify-between gap-2">
+	<div class="flex items-center justify-between gap-2">
 		<Button color="alternative" onclick={triggerNow} disabled={loading}>
 			{$t('auto-update.trigger-now')}
 		</Button>
-		<Button onclick={saveSettings} disabled={saving || loading}>
-			{$t('auto-update.save')}
-		</Button>
+		<div class="flex items-center gap-3">
+			{#if dirty}
+				<span class="text-sm text-gray-500 dark:text-gray-400"
+					>{$t('auto-update.unsaved-changes')}</span
+				>
+			{/if}
+			<Button onclick={saveSettings} disabled={saving || loading || !dirty}>
+				{$t('auto-update.save')}
+			</Button>
+		</div>
 	</div>
 </div>
