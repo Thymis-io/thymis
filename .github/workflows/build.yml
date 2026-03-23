@@ -170,8 +170,12 @@ jobs:
       - name: run command with nix cache upload
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
-            script: |
-              nix build .#thymis-controller-pi-3-sd-image --print-build-logs --fallback
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            nix build .#thymis-controller-pi-3-sd-image --print-build-logs --fallback
       - uses: ./.github/actions/assemble-image-and-assert-existence
 
   build-thymis-controller-pi-4-sd-image:
