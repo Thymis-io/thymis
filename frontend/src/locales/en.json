@@ -221,7 +221,37 @@
 	"overview": {
 		"configs": "Configs ({count})",
 		"tags": "Tags ({count})",
-		"modules": "Modules ({count})"
+		"modules": "Modules ({count})",
+		"no-commit": "No commit",
+		"unknown-device-type": "Unknown type",
+		"unknown-config": "Unknown config",
+		"online": "Online",
+		"offline": "Offline",
+		"no-configs": "No device configurations yet.",
+		"no-instances": "No physical devices registered.",
+		"instances-online": "online",
+		"stat": {
+			"total-devices": "Total Devices",
+			"connected-devices": "Devices Online",
+			"configs-online": "Configs Online",
+			"configs": "Configurations",
+			"tags": "Tags",
+			"modules": "Available Modules"
+		},
+		"chart": {
+			"deployed-commits": "Deployed Commits",
+			"hardware-types": "Hardware Types",
+			"online-status": "Online / Offline"
+		},
+		"table": {
+			"title": "All Devices",
+			"no-devices": "No devices registered yet.",
+			"config": "Configuration",
+			"commit": "Commit",
+			"device-type": "Device Type",
+			"status": "Status",
+			"last-seen": "Last Seen"
+		}
 	},
 	"taskbar": {
 		"pending": "Pending",

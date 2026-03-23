@@ -220,7 +220,37 @@
 	"overview": {
 		"configs": "Konfigurationen ({count})",
 		"tags": "Tags ({count})",
-		"modules": "Modules ({count})"
+		"modules": "Modules ({count})",
+		"no-commit": "Kein Commit",
+		"unknown-device-type": "Unbekannter Typ",
+		"unknown-config": "Unbekannte Konfiguration",
+		"online": "Online",
+		"offline": "Offline",
+		"no-configs": "Noch keine Gerätekonfigurationen.",
+		"no-instances": "Keine physischen Geräte registriert.",
+		"instances-online": "online",
+		"stat": {
+			"total-devices": "Geräte gesamt",
+			"connected-devices": "Geräte Online",
+			"configs-online": "Konfigurationen Online",
+			"configs": "Konfigurationen",
+			"tags": "Tags",
+			"modules": "Verfügbare Module"
+		},
+		"chart": {
+			"deployed-commits": "Deployte Commits",
+			"hardware-types": "Hardware-Typen",
+			"online-status": "Online / Offline"
+		},
+		"table": {
+			"title": "Alle Geräte",
+			"no-devices": "Noch keine Geräte registriert.",
+			"config": "Konfiguration",
+			"commit": "Commit",
+			"device-type": "Gerätetyp",
+			"status": "Status",
+			"last-seen": "Zuletzt gesehen"
+		}
 	},
 	"config": {
 		"header": {
