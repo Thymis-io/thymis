@@ -31,7 +31,6 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
       - uses: ./.github/actions/setup-nix
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Set git config
         env:
@@ -46,7 +45,9 @@ jobs:
       - name: Update flake lock
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix flake update --commit-lock-file

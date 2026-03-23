@@ -1,10 +1,6 @@
 name: "Setup Nix"
 description: "Installs Nix with extra configuration."
 inputs:
-  attic_token:
-    description: "The token to use for authenticating with the Attic cache."
-    required: false
-    default: ""
   github_token:
     description: "The GitHub token to use for authenticating with the GitHub API."
     required: false
@@ -19,7 +15,7 @@ runs:
     - name: Install Nix
       uses: cachix/install-nix-action@v31
       with:
-        github_access_token: ${{ inputs.GITHUB_TOKEN }}
+        github_access_token: ${{ inputs.github_token }}
         install_url: https://releases.nixos.org/nix/nix-2.26.1/install
         extra_nix_config: |
           system-features = kvm
@@ -31,19 +27,4 @@ runs:
       run: |
         echo "$HOME/.nix-profile/bin" >> $GITHUB_PATH
         mkdir -p $HOME/.config/nix
-        echo "access-tokens = github.com=${{ inputs.GITHUB_TOKEN }}" >> $HOME/.config/nix/nix.conf
-    - if: ${{ inputs.ATTIC_TOKEN != '' }}
-      name: Install Attic
-      shell: bash
-      run: |
-        nix profile install nixpkgs#attic-client
-        attic login thymis-cache https://attic-cache.thymis.io ${{ inputs.ATTIC_TOKEN }} --set-default
-    - if: ${{ inputs.ATTIC_TOKEN == '' }}
-      name: Print Attic Token Warning
-      shell: bash
-      run: echo "ATTIC_TOKEN not set, skipping Attic installation."
-# use this magic invocation to push generated and used paths to the cache
-# attic watch-store "thymis-cache:public-cache" &
-# ATTIC_PID=$!
-# trap 'kill $ATTIC_PID' EXIT
-# YOUR_NIX_STORE_PATHS_GENERATING_COMMAND_HERE
+        echo "access-tokens = github.com=${{ inputs.github_token }}" >> $HOME/.config/nix/nix.conf

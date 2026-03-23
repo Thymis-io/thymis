@@ -31,12 +31,13 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-nix
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: build thymis-agent
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix build .#thymis-agent --print-build-logs --fallback
@@ -47,12 +48,13 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-nix
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: build thymis-agent-aarch64
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix build .#thymis-agent --print-build-logs --fallback
@@ -65,12 +67,13 @@ jobs:
           path: thymis
       - uses: ./thymis/.github/actions/setup-nix
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build thymis-frontend
         uses: ./thymis/.github/actions/run-command-with-nix-cache-upload
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             cd thymis
@@ -146,7 +149,9 @@ jobs:
       - name: build thymis-controller
         uses: ./thymis/.github/actions/run-command-with-nix-cache-upload
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             cd thymis
@@ -161,7 +166,6 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-nix
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: run command with nix cache upload
         uses: ./.github/actions/run-command-with-nix-cache-upload
@@ -178,12 +182,13 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-nix
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: build thymis-controller-pi-4-sd-image
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix build .#thymis-controller-pi-4-sd-image --print-build-logs --fallback
@@ -197,12 +202,13 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-nix
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: build thymis-controller-pi-5-sd-image
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix build .#thymis-controller-pi-5-sd-image --print-build-logs --fallback
@@ -216,14 +222,15 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-nix
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: pin nixpkgs
         run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-25.05
       - name: build thymis-controller-generic-x86_64-image
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix build .#thymis-controller-generic-x86_64-image --print-build-logs --fallback
@@ -240,12 +247,13 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-nix
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: build thymis-controller-container-x86_64
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix build .#thymis-controller-container --print-build-logs --fallback
@@ -284,12 +292,13 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-nix
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: build thymis-controller-container-aarch64
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:
-          attic_token: ${{ secrets.ATTIC_TOKEN }}
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             nix build .#thymis-controller-container --print-build-logs --fallback

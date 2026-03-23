@@ -1,6 +1,5 @@
 name: "Run command with Nix cache upload"
 inputs:
-  # The script to run
   script:
     description: "The script to run"
     required: true
@@ -8,34 +7,38 @@ inputs:
     description: "The working directory to run the script in"
     required: false
     default: "."
-  attic_token:
-    description: "The token to use for authenticating with the Attic cache."
+  aws_access_key_id:
+    description: "Hetzner S3 access key ID for cache upload."
+    required: false
+    default: ""
+  aws_secret_access_key:
+    description: "Hetzner S3 secret access key for cache upload."
+    required: false
+    default: ""
+  signing_key:
+    description: "Nix store signing key (cache.thymis.io-1:...) for cache upload."
     required: false
     default: ""
 runs:
   using: "composite"
-  # env:
-  #   ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
   steps:
-    - if: ${{ inputs.ATTIC_TOKEN != '' }}
-      name: Run script
+    - name: Run script
       shell: bash
-      run: |
-        ATTIC_PUSH_PID=
-        attic watch-store "thymis-cache:public-cache" &
-        ATTIC_PID=$!
-        trap 'kill $ATTIC_PID || true; if [ -n "$ATTIC_PUSH_PID" ]; then kill $ATTIC_PUSH_PID || true; fi; true' EXIT
-        ${{ inputs.script }}
-        EXIT_CODE=$?
-        if [ -e result ]; then
-          attic push thymis-cache:public-cache result &
-          ATTIC_PUSH_PID=$!
-          sleep 5
-        fi
-        exit $EXIT_CODE
       working-directory: ${{ inputs.working-directory }}
-    - if: ${{ inputs.ATTIC_TOKEN == '' }}
-      name: Run script
-      shell: bash
       run: ${{ inputs.script }}
+    - if: ${{ inputs.signing_key != '' }}
+      name: Upload to Nix cache
+      shell: bash
       working-directory: ${{ inputs.working-directory }}
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
+      run: |
+        KEY_FILE=$(mktemp)
+        trap 'rm -f "$KEY_FILE"' EXIT
+        echo "${{ inputs.signing_key }}" > "$KEY_FILE"
+        if [ -e result ]; then
+          nix copy \
+            --to "s3://thymis-nix-cache?endpoint=nbg1.your-objectstorage.com&region=nbg1&secret-key=${KEY_FILE}" \
+            ./result
+        fi
