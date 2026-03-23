@@ -7,6 +7,10 @@ inputs:
     description: "The working directory to run the script in"
     required: false
     default: "."
+  exclude_result:
+    description: "If 'true', exclude the ./result store path (and its outputs) from the cache upload. Useful for large build outputs like SD images."
+    required: false
+    default: "false"
   aws_access_key_id:
     description: "Hetzner S3 access key ID for cache upload."
     required: false
@@ -50,6 +54,11 @@ runs:
         # Find all store paths added during this job
         nix path-info --all 2>/dev/null | sort > /tmp/nix-store-after.txt
         NEW_PATHS=$(comm -13 /tmp/nix-store-before.txt /tmp/nix-store-after.txt)
+
+        if [ "${{ inputs.exclude_result }}" = "true" ] && [ -L ./result ]; then
+          RESULT_PATH=$(readlink -f ./result)
+          NEW_PATHS=$(echo "$NEW_PATHS" | grep -v "^${RESULT_PATH}$" || true)
+        fi
 
         if [ -z "$NEW_PATHS" ]; then
           echo "No new store paths to upload."
