@@ -283,9 +283,7 @@ class TaskWorkerPoolManager:
                                         message.update.configuration_id,
                                         message.update.image_format,
                                     )
-                            case (
-                                models_task.AgentShouldSwitchToNewConfigurationUpdate()
-                            ):
+                            case models_task.AgentShouldSwitchToNewConfigurationUpdate():
                                 deployment_info = crud.deployment_info.get_by_id(
                                     db_session, message.update.deployment_info_id
                                 )
@@ -450,6 +448,38 @@ class TaskWorkerPoolManager:
                     self.on_task_update.notify(parent_task)
 
             logger.info("Task %s finished with state %s", task_id, task.state)
+
+            # If an auto_update_task completed successfully, spawn the deploy child
+            if task.state == "completed" and task.task_type == "auto_update_task":
+                try:
+                    task_data = models_task.AutoUpdateTaskSubmission.model_validate(
+                        task.task_submission_data
+                    )
+                    if task_data.devices:
+                        deploy_submission = models_task.DeployDevicesTaskSubmission(
+                            devices=task_data.devices,
+                            project_path=task_data.project_path,
+                            ssh_key_path=task_data.ssh_key_path,
+                            known_hosts_path=task_data.known_hosts_path,
+                            controller_ssh_pubkey=task_data.controller_ssh_pubkey,
+                            config_commit=self.controller.project.repo.head_commit(),
+                        )
+                        self.controller.submit(
+                            deploy_submission,
+                            task.user_session_id,
+                            db_session,
+                        )
+                        logger.info(
+                            "Spawned deploy_devices_task after auto_update_task %s",
+                            task_id,
+                        )
+                except Exception as e:
+                    logger.error(
+                        "Failed to spawn deploy after auto_update_task %s: %s",
+                        task_id,
+                        e,
+                    )
+
             if "RUNNING_IN_PLAYWRIGHT" in os.environ and task.state == "failed":
                 logger.error("Task submission data for task %s:", task_id)
                 logger.error(task.task_submission_data)

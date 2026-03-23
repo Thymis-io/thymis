@@ -203,6 +203,7 @@
 		"commit-deploy": "Commit & Deploy",
 		"update": "Update",
 		"commit": "Commit",
+		"auto-update": "Auto-Update",
 		"open-changes": "Open Changes",
 		"no-changes": "No changes to commit, working on a clean state",
 		"add-all-configs": "Add all configs",
@@ -246,7 +247,8 @@
 			"deploy_device": "Deploy to {device}",
 			"build_device_image": "Build Image for {device}",
 			"ssh_command": "Run SSH Command",
-			"run_nixos_vm_task": "Run NixOS VM for {device}"
+			"run_nixos_vm_task": "Run NixOS VM for {device}",
+			"auto_update": "Auto-Update"
 		},
 		"version": "Thymis version: {version}",
 		"version-short": "v{version}"
@@ -522,5 +524,15 @@
 				"1-month": "1 month"
 			}
 		}
+	},
+	"auto-update": {
+		"title": "Auto-Update Settings",
+		"enabled": "Enable Auto-Update",
+		"schedule": "Schedule (systemd OnCalendar)",
+		"schedule-placeholder": "e.g. daily or *-*-* 03:00:00",
+		"save": "Save",
+		"trigger-now": "Run Now",
+		"trigger-success": "Auto-update started",
+		"save-success": "Settings saved"
 	}
 }

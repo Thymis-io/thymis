@@ -5,8 +5,10 @@
 	import Refresh from 'lucide-svelte/icons/refresh-ccw';
 	import Boxes from 'lucide-svelte/icons/boxes';
 	import GitCommitVertical from 'lucide-svelte/icons/git-commit-vertical';
+	import Timer from 'lucide-svelte/icons/timer';
 	import DeployModal from '$lib/repo/DeployModal.svelte';
 	import CommitModal from '$lib/repo/CommitModal.svelte';
+	import AutoUpdateSettings from '$lib/components/layout/AutoUpdateSettings.svelte';
 	import { invalidateButDeferUntilNavigation } from '$lib/notification';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import { type RepoStatus } from '$lib/repo/repo';
@@ -44,6 +46,7 @@
 
 	let openDeploy = $state(false);
 	let openCommit = $state(false);
+	let openAutoUpdate = $state(false);
 </script>
 
 <div class="flex flex-wrap justify-end align-start ml-2 my-1.5 gap-1 sm:gap-2 w-[38rem]">
@@ -68,6 +71,11 @@
 		<Boxes size={'1rem'} class="min-w-4" />
 		<span class={textClass}>{$t('deploy.deploy')}</span>
 	</Button>
+	<Button color="alternative" class={buttonClass} on:click={() => (openAutoUpdate = true)}>
+		<Timer size={'1rem'} class="min-w-4" />
+		<span class={textClass}>{$t('deploy.auto-update')}</span>
+	</Button>
 	<DeployModal bind:open={openDeploy} {repoStatus} {globalState} {nav} />
 	<CommitModal bind:open={openCommit} {repoStatus} onAction={commit} />
+	<AutoUpdateSettings bind:open={openAutoUpdate} />
 </div>
