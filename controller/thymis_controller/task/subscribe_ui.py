@@ -1,4 +1,5 @@
 import asyncio
+import asyncio.queues
 import logging
 import threading
 import uuid
@@ -82,7 +83,7 @@ class TaskWebsocketSubscriber:
 
         try:
             await asyncio.gather(send_task, receive_task)
-        except (WebSocketDisconnect, asyncio.CancelledError):
+        except (WebSocketDisconnect, asyncio.QueueShutDown, asyncio.CancelledError):
             return
         except Exception:
             return
