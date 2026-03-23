@@ -123,7 +123,7 @@
 	nav={data.nav}
 />
 
-<div class="max-w-lg flex flex-col gap-6">
+<div class="flex flex-col gap-6">
 	<!-- Description -->
 	<p class="text-sm text-gray-600 dark:text-gray-400">
 		{$t('auto-update.description')}

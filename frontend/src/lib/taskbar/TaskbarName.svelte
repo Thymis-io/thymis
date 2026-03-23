@@ -6,6 +6,7 @@
 	import Box from 'lucide-svelte/icons/box';
 	import Play from 'lucide-svelte/icons/play';
 	import Command from 'lucide-svelte/icons/square-chevron-right';
+	import RefreshCcwDot from 'lucide-svelte/icons/refresh-ccw-dot';
 	import type { TaskShort } from '$lib/taskstatus';
 	import type { GlobalState } from '$lib/state.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
@@ -62,6 +63,9 @@
 	{:else if task.task_type === 'ssh_command_task'}
 		<Command size={iconSize} class={iconClass} />
 		{$t('taskbar.task-types.ssh_command')}
+	{:else if task.task_type === 'auto_update_task'}
+		<RefreshCcwDot size="18" class={iconClass} />
+		{$t('taskbar.task-types.auto_update')}
 	{:else if task.task_type === 'run_nixos_vm_task'}
 		<Play size={iconSize} class={iconClass} />
 		{@const [before, after] = $t('taskbar.task-types.run_nixos_vm_task').split('{device}')}
