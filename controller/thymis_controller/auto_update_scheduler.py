@@ -1,17 +1,25 @@
 """Background scheduler for the auto-update feature.
 
-Reads controller settings from the DB, parses the systemd OnCalendar
-expression using ``systemd-analyze calendar``, and submits an
-``AutoUpdateTaskSubmission`` at the scheduled time.
+Reads controller settings from the DB and fires AutoUpdateTaskSubmission
+at the scheduled time.  All scheduling is done in pure Python — no
+dependency on systemd-analyze at runtime.
+
+Schedule is stored as a JSON string in the auto_update_schedule column:
+
+  {"frequency": "hourly"}
+  {"frequency": "daily",   "time": "03:00"}
+  {"frequency": "weekly",  "time": "03:00", "weekdays": [0, 1, 2, 3, 4]}
+  {"frequency": "monthly", "time": "03:00", "day_of_month": 1}
+
+weekdays: 0=Monday … 6=Sunday  (ISO weekday - 1)
 """
 
 import asyncio
+import json
 import logging
-import subprocess
-import uuid
 import uuid as _uuid
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING
+from datetime import datetime, timedelta, timezone
+from typing import TYPE_CHECKING, Literal
 
 import sqlalchemy.orm
 from thymis_agent import agent
@@ -26,68 +34,99 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # Sentinel user session id used for scheduler-originated tasks
-SCHEDULER_USER_SESSION_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
+SCHEDULER_USER_SESSION_ID = _uuid.UUID("00000000-0000-0000-0000-000000000001")
+
+# Default schedule: daily at 03:00 UTC
+DEFAULT_SCHEDULE = {"frequency": "daily", "time": "03:00"}
 
 
-def _next_elapse_from_schedule(schedule: str) -> datetime | None:
-    """Return the next UTC elapse time for a systemd OnCalendar expression.
-
-    Returns ``None`` if ``systemd-analyze`` is unavailable or the expression
-    is invalid.
-    """
+def parse_schedule(raw: str) -> dict:
+    """Parse the schedule JSON string, falling back to the default."""
     try:
-        result = subprocess.run(
-            ["systemd-analyze", "calendar", "--iterations=1", schedule],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-        if result.returncode != 0:
-            logger.warning(
-                "systemd-analyze calendar failed for %r: %s", schedule, result.stderr
-            )
-            return None
-        for line in result.stdout.splitlines():
-            line = line.strip()
-            if line.startswith("Next elapse:"):
-                # Format: "Next elapse: Mon 2026-03-23 03:00:00 UTC"
-                # or with a local timezone like "Wed 2026-03-25 03:00:00 CET"
-                # We try to parse the datetime portion.
-                raw = line.removeprefix("Next elapse:").strip()
-                # raw is like "Mon 2026-03-23 03:00:00 UTC"
-                # Also handle "(in …)" suffix:
-                raw = raw.split(" (")[0].strip()
-                # Drop the weekday prefix (first token)
-                parts = raw.split()
-                if len(parts) >= 3:
-                    dt_str = " ".join(parts[1:])  # e.g. "2026-03-23 03:00:00 UTC"
-                    # Try with timezone abbreviation
-                    try:
-                        from datetime import datetime as _dt
+        data = json.loads(raw)
+        if isinstance(data, dict) and data.get("frequency") in (
+            "hourly",
+            "daily",
+            "weekly",
+            "monthly",
+        ):
+            return data
+    except Exception:
+        pass
+    logger.warning("Invalid schedule %r, using default", raw)
+    return DEFAULT_SCHEDULE
 
-                        import dateutil.parser  # type: ignore[import]
 
-                        return dateutil.parser.parse(dt_str).astimezone(timezone.utc)
-                    except Exception:
-                        pass
-                    # Fallback: strip tz token, treat as UTC
-                    try:
-                        from datetime import datetime as _dt
+def next_fire_time(schedule: dict, after: datetime) -> datetime:
+    """Return the next UTC fire time for *schedule* strictly after *after*.
 
-                        dt_no_tz = " ".join(parts[1:3])
-                        return _dt.strptime(dt_no_tz, "%Y-%m-%d %H:%M:%S").replace(
-                            tzinfo=timezone.utc
-                        )
-                    except Exception:
-                        pass
-        logger.warning("Could not parse next elapse from systemd-analyze output")
-        return None
-    except FileNotFoundError:
-        logger.warning("systemd-analyze not found; auto-update scheduler disabled")
-        return None
-    except Exception as e:
-        logger.warning("Error calling systemd-analyze: %s", e)
-        return None
+    *after* must be timezone-aware (UTC).
+    """
+    freq: Literal["hourly", "daily", "weekly", "monthly"] = schedule.get(
+        "frequency", "daily"
+    )
+
+    # Parse HH:MM — default 03:00
+    time_str: str = schedule.get("time", "03:00")
+    try:
+        hh, mm = (int(x) for x in time_str.split(":"))
+    except Exception:
+        hh, mm = 3, 0
+
+    now = after.astimezone(timezone.utc)
+
+    if freq == "hourly":
+        # Next occurrence at :mm of the next hour (or this hour if not yet reached)
+        candidate = now.replace(minute=mm, second=0, microsecond=0)
+        if candidate <= now:
+            candidate += timedelta(hours=1)
+        return candidate
+
+    if freq == "daily":
+        candidate = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
+        if candidate <= now:
+            candidate += timedelta(days=1)
+        return candidate
+
+    if freq == "weekly":
+        weekdays: list[int] = schedule.get("weekdays", list(range(7)))
+        if not weekdays:
+            weekdays = list(range(7))
+        # Try each of the next 7 days
+        candidate = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
+        for _ in range(8):
+            if candidate > now and candidate.weekday() in weekdays:
+                return candidate
+            candidate += timedelta(days=1)
+        # Fallback: next day in weekdays
+        return candidate
+
+    if freq == "monthly":
+        day: int = max(1, min(28, schedule.get("day_of_month", 1)))
+        # Try this month, then next month
+        for delta_months in range(2):
+            month = now.month + delta_months
+            year = now.year + (month - 1) // 12
+            month = (month - 1) % 12 + 1
+            try:
+                candidate = now.replace(
+                    year=year,
+                    month=month,
+                    day=day,
+                    hour=hh,
+                    minute=mm,
+                    second=0,
+                    microsecond=0,
+                )
+                if candidate > now:
+                    return candidate
+            except ValueError:
+                pass  # day out of range for month, try next month
+        # Fallback: 30 days from now
+        return now + timedelta(days=30)
+
+    # Unknown frequency — default to 24 h
+    return now + timedelta(days=1)
 
 
 def _collect_devices(
@@ -148,37 +187,32 @@ async def auto_update_scheduler_loop(
     """Async loop that fires auto-update tasks according to the configured schedule."""
     logger.info("Auto-update scheduler started")
     next_fire: datetime | None = None
+    last_schedule_raw: str | None = None
 
     while True:
         try:
             with sqlalchemy.orm.Session(db_engine) as db_session:
                 settings = crud.controller_settings.get(db_session)
                 enabled = settings.auto_update_enabled
-                schedule = settings.auto_update_schedule
+                schedule_raw = settings.auto_update_schedule
 
             if not enabled:
-                # Disabled — check again in 60 s
                 await asyncio.sleep(60)
                 next_fire = None
+                last_schedule_raw = None
                 continue
 
             now = datetime.now(timezone.utc)
+            schedule = parse_schedule(schedule_raw)
 
-            # (Re-)compute next fire time if we don't have one yet
-            if next_fire is None:
-                next_fire = _next_elapse_from_schedule(schedule)
-                if next_fire is None:
-                    logger.warning(
-                        "Could not determine next elapse for schedule %r; "
-                        "retrying in 60 s",
-                        schedule,
-                    )
-                    await asyncio.sleep(60)
-                    continue
+            # Recompute if schedule changed or not yet set
+            if next_fire is None or schedule_raw != last_schedule_raw:
+                next_fire = next_fire_time(schedule, now)
+                last_schedule_raw = schedule_raw
                 logger.info(
                     "Auto-update scheduled: next fire at %s (schedule=%r)",
                     next_fire.isoformat(),
-                    schedule,
+                    schedule_raw,
                 )
 
             sleep_seconds = (next_fire - now).total_seconds()
@@ -188,9 +222,10 @@ async def auto_update_scheduler_loop(
                 await asyncio.sleep(min(sleep_seconds, 30))
                 continue
 
-            # It's time — fire the auto-update
-            logger.info("Firing scheduled auto-update (schedule=%r)", schedule)
-            next_fire = None  # will be recomputed after submission
+            # Time to fire
+            logger.info("Firing scheduled auto-update (schedule=%r)", schedule_raw)
+            next_fire = None
+            last_schedule_raw = None
 
             try:
                 with sqlalchemy.orm.Session(db_engine) as db_session:
@@ -217,11 +252,11 @@ async def auto_update_scheduler_loop(
                 logger.error("Failed to submit scheduled auto-update task: %s", e)
 
             # Compute next fire time after submission
-            next_fire = _next_elapse_from_schedule(schedule)
-            if next_fire:
-                logger.info("Next scheduled auto-update at %s", next_fire.isoformat())
+            now = datetime.now(timezone.utc)
+            next_fire = next_fire_time(schedule, now)
+            last_schedule_raw = schedule_raw
+            logger.info("Next scheduled auto-update at %s", next_fire.isoformat())
 
-            # Small sleep to avoid tight-looping if next_fire couldn't be computed
             await asyncio.sleep(5)
 
         except asyncio.CancelledError:

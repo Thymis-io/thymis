@@ -12,6 +12,7 @@
 	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import FileLock from 'lucide-svelte/icons/file-lock-2';
 	import FolderOpen from 'lucide-svelte/icons/folder-open';
+	import RefreshCcwDot from 'lucide-svelte/icons/refresh-ccw-dot';
 	import type { GlobalState } from '$lib/state.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
@@ -105,6 +106,11 @@
 			name: $t('nav.artifacts'),
 			icon: FolderOpen,
 			href: '/artifacts'
+		},
+		{
+			name: $t('nav.auto-update'),
+			icon: RefreshCcwDot,
+			href: '/auto-update'
 		}
 	]);
 </script>
