@@ -54,13 +54,11 @@ If the selected occurrence does not exist in a given month (e.g. "fifth Monday" 
 
 Click **Run Now** on the Auto-Update page to trigger an auto-update immediately, regardless of the configured schedule.
 
-## Working State Warning
+## Uncommitted Work
 
-Before running, Thymis stashes any uncommitted changes in the project repository with `git stash`, performs the update and deploy, then restores the stash with `git stash pop`. This means:
+Only committed changes are updated and deployed. Before running, Thymis temporarily sets aside any uncommitted changes in the project repository (`git stash`), performs the update and deploy using the committed state, then restores your work-in-progress (`git stash pop`).
 
-- **Uncommitted changes will be temporarily hidden** during the update. They are restored afterwards.
-- If the update fails mid-run, the stash is still present and can be restored manually with `git stash pop`.
-- It is best practice to commit or discard any open changes before a scheduled update fires.
+Your uncommitted changes are not affected and will be waiting for you exactly as you left them.
 
 ## See also
 

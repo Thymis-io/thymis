@@ -528,7 +528,7 @@
 	"auto-update": {
 		"title": "Auto-Update Settings",
 		"description": "Auto-Update automatically runs a Nix flake update, commits the updated flake.lock, and deploys the new configuration to all connected devices on the configured schedule.",
-		"working-state-warning": "Warning: Any uncommitted changes in the project repository will be stashed before the update runs and restored afterwards. Ensure you do not have important uncommitted work when the scheduled update fires.",
+		"working-state-warning": "Only committed changes are updated and deployed. Any uncommitted work in progress is safely set aside during the update and restored afterwards — it will not be affected.",
 		"enabled": "Enable Auto-Update",
 		"schedule": "Schedule (systemd OnCalendar)",
 		"schedule-placeholder": "e.g. daily or *-*-* 03:00:00",
