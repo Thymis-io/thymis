@@ -12,9 +12,9 @@ router = APIRouter()
 class AutoUpdateSchedule(BaseModel):
     frequency: Literal[
         "hourly", "daily", "weekly", "monthly", "monthly_weekday"
-    ] = "daily"
+    ] = "weekly"
     time: str = "03:00"  # HH:MM, used for daily/weekly/monthly
-    weekdays: Optional[List[int]] = None  # 0=Mon … 6=Sun, for weekly
+    weekdays: Optional[List[int]] = [0, 1, 2, 3]  # 0=Mon … 6=Sun, for weekly
     day_of_month: Optional[int] = None  # 1–28, for monthly
     nth_weekday: Optional[int] = None  # 1–5 or -1 (last), for monthly_weekday
     weekday: Optional[int] = None  # 0=Mon … 6=Sun, for monthly_weekday
