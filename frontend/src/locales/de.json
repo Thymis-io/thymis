@@ -565,6 +565,10 @@
 		},
 		"weekday": {
 			"label": "Wochentag"
-		}
+		},
+		"local-day": "lokal",
+		"local-next-day": "nächster Tag",
+		"local-prev-day": "vorheriger Tag",
+		"weekday-day-shift-note": "Tage werden in UTC angezeigt. In Ihrer Zeitzone ({tz}) kann das Update auf einen anderen Tag fallen."
 	}
 }

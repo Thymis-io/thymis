@@ -69,7 +69,9 @@ class TaskWorkerPoolManager:
     async def start(self, db_engine: sqlalchemy.Engine):
         self._db_engine = db_engine
 
-        with (sqlalchemy.orm.Session(bind=self.db_engine) as db_session,):
+        with (
+            sqlalchemy.orm.Session(bind=self.db_engine) as db_session,
+        ):
             amount_running_when_shut_down = crud_task.fail_running_tasks(db_session)
             logger.info(
                 "Failed %d tasks that were running when the controller shut down",
@@ -397,6 +399,10 @@ class TaskWorkerPoolManager:
                 task.state = "failed"
                 db_session.commit()
                 self.on_task_update.notify(task)
+                # Propagate failure up to grandparent
+                if task.parent_task_id:
+                    self.update_composite_task(task.parent_task_id)
+                return
 
             if "pending" in child_states or "running" in child_states:
                 return
@@ -409,6 +415,11 @@ class TaskWorkerPoolManager:
 
             db_session.commit()
             self.on_task_update.notify(task)
+
+            # Propagate completion up to grandparent (e.g. auto_update_task waiting
+            # for its deploy_devices_task child to finish)
+            if task.parent_task_id:
+                self.update_composite_task(task.parent_task_id)
 
     def format_nix_error_list(self, errors: list[dict]) -> str:
         return "\n".join([error["msg"] for error in errors if "msg" in error])

@@ -120,6 +120,88 @@
 
 	onMount(loadSettings);
 
+	// ---------------------------------------------------------------------------
+	// Local-time helpers
+	// ---------------------------------------------------------------------------
+
+	/**
+	 * Parse "HH:MM" UTC time and return a Date on the Unix epoch day (1970-01-05,
+	 * which is a Monday) so weekday arithmetic works cleanly.
+	 * Returns null on bad input.
+	 */
+	function utcTimeToDate(utcTime: string): Date | null {
+		const match = utcTime.match(/^(\d{1,2}):(\d{2})$/);
+		if (!match) return null;
+		const hh = parseInt(match[1], 10);
+		const mm = parseInt(match[2], 10);
+		if (hh > 23 || mm > 59) return null;
+		// 1970-01-05 is a Monday (weekday index 0 in our 0=Mon scheme)
+		return new Date(Date.UTC(1970, 0, 5, hh, mm, 0));
+	}
+
+	/**
+	 * Format a Date to "HH:MM" in the local timezone.
+	 */
+	function formatLocalTime(d: Date): string {
+		return d.toLocaleTimeString(undefined, {
+			hour: '2-digit',
+			minute: '2-digit',
+			hour12: false
+		});
+	}
+
+	/**
+	 * Return the local timezone abbreviation (e.g. "CET", "EST").
+	 */
+	function localTzName(): string {
+		return Intl.DateTimeFormat().resolvedOptions().timeZone;
+	}
+
+	/**
+	 * Given a UTC weekday index (0=Mon) and the UTC time string, compute the local
+	 * weekday index accounting for midnight crossings.
+	 * Returns the local weekday index (0=Mon … 6=Sun).
+	 */
+	function utcWeekdayToLocal(utcWeekdayIdx: number, utcTime: string): number {
+		const base = utcTimeToDate(utcTime);
+		if (!base) return utcWeekdayIdx;
+		// 1970-01-05 is Monday=0, so offset by utcWeekdayIdx days
+		const d = new Date(base.getTime() + utcWeekdayIdx * 86400000);
+		// getDay(): 0=Sun,1=Mon...6=Sat → convert to 0=Mon…6=Sun
+		const jsDay = d.getDay(); // local day
+		return (jsDay + 6) % 7;
+	}
+
+	/**
+	 * Returns the day-shift caused by UTC→local conversion: -1, 0, or +1.
+	 */
+	function dayShift(utcTime: string): number {
+		const base = utcTimeToDate(utcTime);
+		if (!base) return 0;
+		const utcDay = base.getUTCDay();
+		const localDay = base.getDay();
+		const diff = ((localDay - utcDay) + 7) % 7;
+		// diff is 0, 1 (next day), or 6 (previous day → -1)
+		if (diff === 0) return 0;
+		if (diff === 1) return 1;
+		return -1;
+	}
+
+	// Reactive derived values
+	const localTimeDate = $derived(utcTimeToDate(time));
+	const localTimeStr = $derived(localTimeDate ? formatLocalTime(localTimeDate) : null);
+	const tzName = $derived(localTzName());
+	const shift = $derived(dayShift(time));
+
+	// For each UTC weekday chip, what is its local weekday label?
+	const localWeekdayLabels = $derived(
+		WEEKDAYS.map(({ value, labelKey }) => {
+			const localIdx = utcWeekdayToLocal(value, time);
+			const localLabelKey = WEEKDAYS[localIdx]?.labelKey ?? labelKey;
+			return { value, labelKey, localLabelKey, shifted: localIdx !== value };
+		})
+	);
+
 	const frequencyOptions = $derived([
 		{ value: 'daily', name: $t('auto-update.frequency.daily') },
 		{ value: 'weekly', name: $t('auto-update.frequency.weekly') },
@@ -143,6 +225,16 @@
 
 	const weekdayOptions = $derived(
 		WEEKDAYS.map(({ value, labelKey }) => ({ value, name: $t(labelKey) }))
+	);
+
+	// weekday options annotated with local day name when shifted
+	const weekdayOptionsLocal = $derived(
+		localWeekdayLabels.map(({ value, labelKey, localLabelKey, shifted }) => ({
+			value,
+			name: shifted
+				? `${$t(labelKey)} (${$t('auto-update.local-day')}: ${$t(localLabelKey)})`
+				: $t(labelKey)
+		}))
 	);
 </script>
 
@@ -173,7 +265,7 @@
 		<Select bind:value={frequency} items={frequencyOptions} disabled={loading} />
 	</div>
 
-	<!-- Time of day -->
+	<!-- Time of day (UTC) with local-time hint -->
 	<div>
 		<Label class="mb-2">{$t('auto-update.time-of-day')}</Label>
 		<input
@@ -182,6 +274,17 @@
 			disabled={loading}
 			class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50"
 		/>
+		{#if localTimeStr}
+			<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+				{localTimeStr}
+				{tzName}
+				{#if shift === 1}
+					(+1 {$t('auto-update.local-next-day')})
+				{:else if shift === -1}
+					(−1 {$t('auto-update.local-prev-day')})
+				{/if}
+			</p>
+		{/if}
 	</div>
 
 	<!-- Weekday chip-buttons (daily = multi-select) -->
@@ -189,7 +292,7 @@
 		<div>
 			<Label class="mb-2">{$t('auto-update.weekdays.label')}</Label>
 			<div class="flex flex-wrap gap-2">
-				{#each WEEKDAYS as { value, labelKey }}
+				{#each localWeekdayLabels as { value, labelKey, localLabelKey, shifted }}
 					<button
 						type="button"
 						onclick={() => toggleWeekday(value)}
@@ -199,10 +302,15 @@
 							? 'border-primary-500 bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
 							: 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}"
 					>
-						{$t(labelKey)}
+						{$t(labelKey)}{#if shifted}&nbsp;<span class="opacity-60 text-xs">({$t(localLabelKey)})</span>{/if}
 					</button>
 				{/each}
 			</div>
+			{#if shift !== 0}
+				<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+					{$t('auto-update.weekday-day-shift-note', { values: { tz: tzName } })}
+				</p>
+			{/if}
 		</div>
 	{/if}
 
@@ -210,7 +318,12 @@
 	{#if frequency === 'weekly'}
 		<div>
 			<Label class="mb-2">{$t('auto-update.weekday.label')}</Label>
-			<Select bind:value={weekday} items={weekdayOptions} disabled={loading} />
+			<Select bind:value={weekday} items={weekdayOptionsLocal} disabled={loading} />
+			{#if shift !== 0}
+				<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+					{$t('auto-update.weekday-day-shift-note', { values: { tz: tzName } })}
+				</p>
+			{/if}
 		</div>
 	{/if}
 
@@ -231,9 +344,14 @@
 			</div>
 			<div class="flex-1">
 				<Label class="mb-2">{$t('auto-update.weekday.label')}</Label>
-				<Select bind:value={monthlyWeekday} items={weekdayOptions} disabled={loading} />
+				<Select bind:value={monthlyWeekday} items={weekdayOptionsLocal} disabled={loading} />
 			</div>
 		</div>
+		{#if shift !== 0}
+			<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+				{$t('auto-update.weekday-day-shift-note', { values: { tz: tzName } })}
+			</p>
+		{/if}
 	{/if}
 
 	<!-- Actions -->
