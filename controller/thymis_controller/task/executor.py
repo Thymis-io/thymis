@@ -395,19 +395,13 @@ class TaskWorkerPoolManager:
                 db_session, [uuid.UUID(child) for child in task.children]
             )
 
-            if "failed" in child_states and task.state != "failed":
-                task.state = "failed"
-                db_session.commit()
-                self.on_task_update.notify(task)
-                # Propagate failure up to grandparent
-                if task.parent_task_id:
-                    self.update_composite_task(task.parent_task_id)
-                return
-
             if "pending" in child_states or "running" in child_states:
                 return
 
-            if set(["completed"]) == child_states:
+            # All children are terminal — determine final state
+            if "failed" in child_states and task.state != "failed":
+                task.state = "failed"
+            elif set(["completed"]) == child_states:
                 task.state = "completed"
 
             if not task.end_time:
@@ -416,8 +410,7 @@ class TaskWorkerPoolManager:
             db_session.commit()
             self.on_task_update.notify(task)
 
-            # Propagate completion up to grandparent (e.g. auto_update_task waiting
-            # for its deploy_devices_task child to finish)
+            # Propagate up to grandparent
             if task.parent_task_id:
                 self.update_composite_task(task.parent_task_id)
 
