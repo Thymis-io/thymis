@@ -7,11 +7,13 @@ dependency on systemd-analyze at runtime.
 Schedule is stored as a JSON string in the auto_update_schedule column:
 
   {"frequency": "hourly"}
-  {"frequency": "daily",   "time": "03:00"}
-  {"frequency": "weekly",  "time": "03:00", "weekdays": [0, 1, 2, 3, 4]}
-  {"frequency": "monthly", "time": "03:00", "day_of_month": 1}
+  {"frequency": "daily",            "time": "03:00"}
+  {"frequency": "weekly",           "time": "03:00", "weekdays": [0, 1, 2, 3, 4]}
+  {"frequency": "monthly",          "time": "03:00", "day_of_month": 1}
+  {"frequency": "monthly_weekday",  "time": "03:00", "nth_weekday": 1, "weekday": 0}
 
-weekdays: 0=Monday … 6=Sunday  (ISO weekday - 1)
+weekdays / weekday: 0=Monday … 6=Sunday  (ISO weekday - 1)
+nth_weekday: 1=first, 2=second, 3=third, 4=fourth, 5=fifth, -1=last
 """
 
 import asyncio
@@ -36,8 +38,8 @@ logger = logging.getLogger(__name__)
 # Sentinel user session id used for scheduler-originated tasks
 SCHEDULER_USER_SESSION_ID = _uuid.UUID("00000000-0000-0000-0000-000000000001")
 
-# Default schedule: daily at 03:00 UTC
-DEFAULT_SCHEDULE = {"frequency": "daily", "time": "03:00"}
+# Default schedule: weekly Mon–Thu at 03:00 UTC
+DEFAULT_SCHEDULE = {"frequency": "weekly", "time": "03:00", "weekdays": [0, 1, 2, 3]}
 
 
 def parse_schedule(raw: str) -> dict:
@@ -49,6 +51,7 @@ def parse_schedule(raw: str) -> dict:
             "daily",
             "weekly",
             "monthly",
+            "monthly_weekday",
         ):
             return data
     except Exception:
@@ -62,9 +65,9 @@ def next_fire_time(schedule: dict, after: datetime) -> datetime:
 
     *after* must be timezone-aware (UTC).
     """
-    freq: Literal["hourly", "daily", "weekly", "monthly"] = schedule.get(
-        "frequency", "daily"
-    )
+    freq: Literal[
+        "hourly", "daily", "weekly", "monthly", "monthly_weekday"
+    ] = schedule.get("frequency", "daily")
 
     # Parse HH:MM — default 03:00
     time_str: str = schedule.get("time", "03:00")
@@ -122,6 +125,53 @@ def next_fire_time(schedule: dict, after: datetime) -> datetime:
                     return candidate
             except ValueError:
                 pass  # day out of range for month, try next month
+        # Fallback: 30 days from now
+        return now + timedelta(days=30)
+
+    if freq == "monthly_weekday":
+        # nth occurrence of a weekday in a month.
+        # nth_weekday: 1=first, 2=second, 3=third, 4=fourth, 5=fifth, -1=last
+        # weekday: 0=Monday … 6=Sunday
+        nth: int = schedule.get("nth_weekday", 1)
+        target_weekday: int = schedule.get("weekday", 0)
+
+        def nth_weekday_of_month(year: int, month: int) -> datetime | None:
+            import calendar
+
+            cal = calendar.monthcalendar(year, month)
+            # collect all days matching target_weekday (col index = weekday)
+            days = [week[target_weekday] for week in cal if week[target_weekday] != 0]
+            if not days:
+                return None
+            if nth == -1:
+                day = days[-1]
+            else:
+                idx = nth - 1
+                if idx >= len(days):
+                    return None
+                day = days[idx]
+            try:
+                return now.replace(
+                    year=year,
+                    month=month,
+                    day=day,
+                    hour=hh,
+                    minute=mm,
+                    second=0,
+                    microsecond=0,
+                )
+            except ValueError:
+                return None
+
+        # Try this month and the next 12 months
+        for delta_months in range(13):
+            month = now.month + delta_months
+            year = now.year + (month - 1) // 12
+            month = (month - 1) % 12 + 1
+            candidate = nth_weekday_of_month(year, month)
+            if candidate is not None and candidate > now:
+                return candidate
+
         # Fallback: 30 days from now
         return now + timedelta(days=30)
 

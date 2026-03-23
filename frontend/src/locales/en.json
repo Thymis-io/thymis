@@ -527,6 +527,8 @@
 	},
 	"auto-update": {
 		"title": "Auto-Update Settings",
+		"description": "Auto-Update automatically runs a Nix flake update, commits the updated flake.lock, and deploys the new configuration to all connected devices on the configured schedule.",
+		"working-state-warning": "Warning: Any uncommitted changes in the project repository will be stashed before the update runs and restored afterwards. Ensure you do not have important uncommitted work when the scheduled update fires.",
 		"enabled": "Enable Auto-Update",
 		"schedule": "Schedule (systemd OnCalendar)",
 		"schedule-placeholder": "e.g. daily or *-*-* 03:00:00",
@@ -539,7 +541,8 @@
 			"hourly": "Hourly",
 			"daily": "Daily",
 			"weekly": "Weekly",
-			"monthly": "Monthly"
+			"monthly": "Monthly",
+			"monthly-weekday": "Monthly (by weekday)"
 		},
 		"time-of-day": "Time of Day",
 		"weekdays": {
@@ -552,6 +555,18 @@
 			"sat": "Sat",
 			"sun": "Sun"
 		},
-		"day-of-month": "Day of Month"
+		"day-of-month": "Day of Month",
+		"nth-weekday": {
+			"label": "Which occurrence",
+			"first": "First",
+			"second": "Second",
+			"third": "Third",
+			"fourth": "Fourth",
+			"fifth": "Fifth",
+			"last": "Last"
+		},
+		"weekday": {
+			"label": "Day of the week"
+		}
 	}
 }
