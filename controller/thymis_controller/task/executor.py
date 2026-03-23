@@ -463,14 +463,28 @@ class TaskWorkerPoolManager:
                             known_hosts_path=task_data.known_hosts_path,
                             controller_ssh_pubkey=task_data.controller_ssh_pubkey,
                             config_commit=self.controller.project.repo.head_commit(),
+                            parent_task_id=task_id,
                         )
-                        self.controller.submit(
+                        # Mark auto_update_task as running again while deploy is pending
+                        task.state = "running"
+                        task.end_time = None
+                        db_session.commit()
+                        self.on_task_update.notify(task)
+
+                        deploy_task = self.controller.submit(
                             deploy_submission,
                             task.user_session_id,
                             db_session,
                         )
+                        # Register deploy task as a child so update_composite_task
+                        # will flip the parent to completed when all deploys finish
+                        children = list(task.children or [])
+                        children.append(str(deploy_task.id))
+                        task.children = children
+                        db_session.commit()
                         logger.info(
-                            "Spawned deploy_devices_task after auto_update_task %s",
+                            "Spawned deploy_devices_task %s as child of auto_update_task %s",
+                            deploy_task.id,
                             task_id,
                         )
                 except Exception as e:
