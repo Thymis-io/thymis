@@ -3,7 +3,6 @@
 import calendar
 from datetime import datetime, timezone
 
-import pytest
 from thymis_controller.auto_update_scheduler import (
     DEFAULT_SCHEDULE,
     next_fire_time,
@@ -21,19 +20,16 @@ def utc(year, month, day, hour=0, minute=0, second=0) -> datetime:
 
 
 class TestParseSchedule:
-    def test_valid_hourly(self):
-        assert parse_schedule('{"frequency": "hourly"}') == {"frequency": "hourly"}
-
     def test_valid_daily(self):
-        s = parse_schedule('{"frequency": "daily", "time": "04:30"}')
+        s = parse_schedule(
+            '{"frequency": "daily", "time": "04:30", "weekdays": [0, 1]}'
+        )
         assert s["frequency"] == "daily"
         assert s["time"] == "04:30"
 
     def test_valid_weekly(self):
-        s = parse_schedule(
-            '{"frequency": "weekly", "time": "03:00", "weekdays": [0, 1]}'
-        )
-        assert s["weekdays"] == [0, 1]
+        s = parse_schedule('{"frequency": "weekly", "time": "03:00", "weekday": 0}')
+        assert s["weekday"] == 0
 
     def test_valid_monthly(self):
         s = parse_schedule(
@@ -47,6 +43,10 @@ class TestParseSchedule:
         )
         assert s["nth_weekday"] == 1
 
+    def test_hourly_falls_back_to_default(self):
+        # hourly is no longer a valid frequency
+        assert parse_schedule('{"frequency": "hourly"}') == DEFAULT_SCHEDULE
+
     def test_invalid_json_falls_back_to_default(self):
         assert parse_schedule("not-json") == DEFAULT_SCHEDULE
 
@@ -58,115 +58,101 @@ class TestParseSchedule:
 
 
 # ---------------------------------------------------------------------------
-# next_fire_time — hourly
-# ---------------------------------------------------------------------------
-
-
-class TestHourly:
-    def test_fires_at_next_minute_mark_same_hour(self):
-        # schedule: hourly at :30 (time field ignored for hourly — uses mm from "time")
-        schedule = {"frequency": "hourly", "time": "00:30"}
-        after = utc(2024, 3, 15, 10, 0, 0)  # 10:00 UTC
-        result = next_fire_time(schedule, after)
-        assert result == utc(2024, 3, 15, 10, 30, 0)
-
-    def test_fires_next_hour_when_minute_already_passed(self):
-        schedule = {"frequency": "hourly", "time": "00:30"}
-        after = utc(2024, 3, 15, 10, 31, 0)  # 10:31, past :30
-        result = next_fire_time(schedule, after)
-        assert result == utc(2024, 3, 15, 11, 30, 0)
-
-    def test_fires_next_hour_when_exactly_on_time(self):
-        # "strictly after" — equal should not fire
-        schedule = {"frequency": "hourly", "time": "00:00"}
-        after = utc(2024, 3, 15, 10, 0, 0)
-        result = next_fire_time(schedule, after)
-        assert result == utc(2024, 3, 15, 11, 0, 0)
-
-    def test_wraps_across_midnight(self):
-        schedule = {"frequency": "hourly", "time": "00:45"}
-        after = utc(2024, 3, 15, 23, 50, 0)  # past :45 in last hour
-        result = next_fire_time(schedule, after)
-        assert result == utc(2024, 3, 16, 0, 45, 0)
-
-
-# ---------------------------------------------------------------------------
-# next_fire_time — daily
+# next_fire_time — daily (multi-weekday, like old "weekly")
 # ---------------------------------------------------------------------------
 
 
 class TestDaily:
-    def test_fires_today_when_time_not_yet_reached(self):
-        schedule = {"frequency": "daily", "time": "03:00"}
-        after = utc(2024, 3, 15, 2, 0, 0)
-        result = next_fire_time(schedule, after)
-        assert result == utc(2024, 3, 15, 3, 0, 0)
-
-    def test_fires_tomorrow_when_time_passed(self):
-        schedule = {"frequency": "daily", "time": "03:00"}
-        after = utc(2024, 3, 15, 4, 0, 0)
-        result = next_fire_time(schedule, after)
-        assert result == utc(2024, 3, 16, 3, 0, 0)
-
-    def test_fires_tomorrow_when_exactly_on_time(self):
-        schedule = {"frequency": "daily", "time": "03:00"}
-        after = utc(2024, 3, 15, 3, 0, 0)
-        result = next_fire_time(schedule, after)
-        assert result == utc(2024, 3, 16, 3, 0, 0)
-
-    def test_default_time_used_when_missing(self):
-        schedule = {"frequency": "daily"}
-        after = utc(2024, 3, 15, 2, 0, 0)
-        result = next_fire_time(schedule, after)
-        assert result == utc(2024, 3, 15, 3, 0, 0)
-
-
-# ---------------------------------------------------------------------------
-# next_fire_time — weekly
-# ---------------------------------------------------------------------------
-
-
-class TestWeekly:
     def test_fires_today_when_weekday_matches_and_time_not_yet_reached(self):
         # 2024-03-11 is Monday (weekday 0)
-        schedule = {"frequency": "weekly", "time": "03:00", "weekdays": [0]}
+        schedule = {"frequency": "daily", "time": "03:00", "weekdays": [0]}
         after = utc(2024, 3, 11, 2, 0, 0)
         result = next_fire_time(schedule, after)
         assert result == utc(2024, 3, 11, 3, 0, 0)
 
     def test_skips_today_when_weekday_matches_but_time_passed(self):
         # Monday, 03:00 already passed — next Monday
-        schedule = {"frequency": "weekly", "time": "03:00", "weekdays": [0]}
+        schedule = {"frequency": "daily", "time": "03:00", "weekdays": [0]}
         after = utc(2024, 3, 11, 4, 0, 0)
         result = next_fire_time(schedule, after)
         assert result == utc(2024, 3, 18, 3, 0, 0)
 
     def test_fires_on_next_matching_weekday(self):
         # Monday (0) — fires next Wednesday (2)
-        schedule = {"frequency": "weekly", "time": "03:00", "weekdays": [2]}
+        schedule = {"frequency": "daily", "time": "03:00", "weekdays": [2]}
         after = utc(2024, 3, 11, 4, 0, 0)  # Monday after 03:00
         result = next_fire_time(schedule, after)
         assert result == utc(2024, 3, 13, 3, 0, 0)  # Wednesday
 
-    def test_fires_mon_to_thu_default_skips_weekend(self):
+    def test_fires_mon_to_thu_skips_weekend(self):
         # Friday — next Mon
-        schedule = {"frequency": "weekly", "time": "03:00", "weekdays": [0, 1, 2, 3]}
+        schedule = {"frequency": "daily", "time": "03:00", "weekdays": [0, 1, 2, 3]}
         after = utc(2024, 3, 15, 4, 0, 0)  # Friday
         result = next_fire_time(schedule, after)
         assert result == utc(2024, 3, 18, 3, 0, 0)  # Monday
 
     def test_empty_weekdays_falls_back_to_all_days(self):
-        schedule = {"frequency": "weekly", "time": "03:00", "weekdays": []}
+        schedule = {"frequency": "daily", "time": "03:00", "weekdays": []}
         after = utc(2024, 3, 15, 4, 0, 0)
         result = next_fire_time(schedule, after)
         assert result == utc(2024, 3, 16, 3, 0, 0)  # next day
 
     def test_result_is_strictly_after(self):
         # Exactly on time on a matching weekday → next week
-        schedule = {"frequency": "weekly", "time": "03:00", "weekdays": [0]}
+        schedule = {"frequency": "daily", "time": "03:00", "weekdays": [0]}
         after = utc(2024, 3, 11, 3, 0, 0)  # Monday 03:00 exactly
         result = next_fire_time(schedule, after)
         assert result > after
+
+
+# ---------------------------------------------------------------------------
+# next_fire_time — weekly (single weekday)
+# ---------------------------------------------------------------------------
+
+
+class TestWeekly:
+    def test_fires_today_when_weekday_matches_and_time_not_yet_reached(self):
+        # 2024-03-11 is Monday (weekday 0)
+        schedule = {"frequency": "weekly", "time": "03:00", "weekday": 0}
+        after = utc(2024, 3, 11, 2, 0, 0)
+        result = next_fire_time(schedule, after)
+        assert result == utc(2024, 3, 11, 3, 0, 0)
+
+    def test_skips_today_when_weekday_matches_but_time_passed(self):
+        # Monday, 03:00 already passed — next Monday
+        schedule = {"frequency": "weekly", "time": "03:00", "weekday": 0}
+        after = utc(2024, 3, 11, 4, 0, 0)
+        result = next_fire_time(schedule, after)
+        assert result == utc(2024, 3, 18, 3, 0, 0)
+
+    def test_fires_on_correct_day_when_today_is_different(self):
+        # Today is Monday (0), scheduled for Wednesday (2)
+        schedule = {"frequency": "weekly", "time": "03:00", "weekday": 2}
+        after = utc(2024, 3, 11, 4, 0, 0)  # Monday after 03:00
+        result = next_fire_time(schedule, after)
+        assert result == utc(2024, 3, 13, 3, 0, 0)  # Wednesday
+
+    def test_fires_exactly_one_day_per_week(self):
+        # Friday (4) — even though multiple weekdays exist, only one fires
+        schedule = {"frequency": "weekly", "time": "03:00", "weekday": 4}
+        after = utc(2024, 3, 11, 4, 0, 0)  # Monday
+        result = next_fire_time(schedule, after)
+        assert result == utc(2024, 3, 15, 3, 0, 0)  # Friday
+
+    def test_result_is_strictly_after(self):
+        # Exactly on time on the matching weekday → next week
+        schedule = {"frequency": "weekly", "time": "03:00", "weekday": 0}
+        after = utc(2024, 3, 11, 3, 0, 0)  # Monday 03:00 exactly
+        result = next_fire_time(schedule, after)
+        assert result > after
+
+    def test_result_lands_on_correct_weekday(self):
+        # Sunday (6) — from a Wednesday
+        schedule = {"frequency": "weekly", "time": "03:00", "weekday": 6}
+        after = utc(2024, 3, 13, 4, 0, 0)  # Wednesday
+        result = next_fire_time(schedule, after)
+        assert result.weekday() == 6
+        assert result == utc(2024, 3, 17, 3, 0, 0)  # Sunday
 
 
 # ---------------------------------------------------------------------------
