@@ -12,7 +12,7 @@
 
 	let { data }: Props = $props();
 
-	type Frequency = 'hourly' | 'daily' | 'weekly' | 'monthly' | 'monthly_weekday';
+	type Frequency = 'daily' | 'weekly' | 'monthly' | 'monthly_weekday';
 
 	const WEEKDAYS = [
 		{ value: 0, labelKey: 'auto-update.weekdays.mon' },
@@ -25,12 +25,13 @@
 	];
 
 	let enabled = $state(false);
-	let frequency = $state<Frequency>('weekly');
+	let frequency = $state<Frequency>('daily');
 	let time = $state('03:00');
-	let weekdays = $state<number[]>([0, 1, 2, 3]);
+	let weekdays = $state<number[]>([0, 1, 2, 3]); // for daily (multi)
+	let weekday = $state(0); // for weekly (single)
 	let dayOfMonth = $state(1);
 	let nthWeekday = $state(1);
-	let weekday = $state(0);
+	let monthlyWeekday = $state(0); // weekday for monthly_weekday
 	let loading = $state(false);
 	let saving = $state(false);
 	let dirty = $state(false);
@@ -39,7 +40,16 @@
 	let savedSnapshot = $state('');
 
 	function snapshot() {
-		return JSON.stringify({ enabled, frequency, time, weekdays, dayOfMonth, nthWeekday, weekday });
+		return JSON.stringify({
+			enabled,
+			frequency,
+			time,
+			weekdays,
+			weekday,
+			dayOfMonth,
+			nthWeekday,
+			monthlyWeekday
+		});
 	}
 
 	$effect(() => {
@@ -55,12 +65,13 @@
 				const settings = await res.json();
 				enabled = settings.auto_update_enabled;
 				const s = settings.auto_update_schedule;
-				frequency = s.frequency ?? 'weekly';
+				frequency = s.frequency ?? 'daily';
 				time = s.time ?? '03:00';
 				weekdays = s.weekdays ?? [0, 1, 2, 3];
+				weekday = s.weekday ?? 0;
 				dayOfMonth = s.day_of_month ?? 1;
 				nthWeekday = s.nth_weekday ?? 1;
-				weekday = s.weekday ?? 0;
+				monthlyWeekday = s.weekday ?? 0;
 				savedSnapshot = snapshot();
 				dirty = false;
 			}
@@ -73,11 +84,12 @@
 		saving = true;
 		try {
 			const schedule: Record<string, unknown> = { frequency, time };
-			if (frequency === 'weekly') schedule.weekdays = weekdays;
+			if (frequency === 'daily') schedule.weekdays = weekdays;
+			if (frequency === 'weekly') schedule.weekday = weekday;
 			if (frequency === 'monthly') schedule.day_of_month = dayOfMonth;
 			if (frequency === 'monthly_weekday') {
 				schedule.nth_weekday = nthWeekday;
-				schedule.weekday = weekday;
+				schedule.weekday = monthlyWeekday;
 			}
 
 			const response = await fetchWithNotify('/api/controller-settings', {
@@ -109,7 +121,6 @@
 	onMount(loadSettings);
 
 	const frequencyOptions = $derived([
-		{ value: 'hourly', name: $t('auto-update.frequency.hourly') },
 		{ value: 'daily', name: $t('auto-update.frequency.daily') },
 		{ value: 'weekly', name: $t('auto-update.frequency.weekly') },
 		{ value: 'monthly', name: $t('auto-update.frequency.monthly') },
@@ -162,21 +173,19 @@
 		<Select bind:value={frequency} items={frequencyOptions} disabled={loading} />
 	</div>
 
-	<!-- Time of day (not shown for hourly) -->
-	{#if frequency !== 'hourly'}
-		<div>
-			<Label class="mb-2">{$t('auto-update.time-of-day')}</Label>
-			<input
-				type="time"
-				bind:value={time}
-				disabled={loading}
-				class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50"
-			/>
-		</div>
-	{/if}
+	<!-- Time of day -->
+	<div>
+		<Label class="mb-2">{$t('auto-update.time-of-day')}</Label>
+		<input
+			type="time"
+			bind:value={time}
+			disabled={loading}
+			class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50"
+		/>
+	</div>
 
-	<!-- Weekday picker (weekly) -->
-	{#if frequency === 'weekly'}
+	<!-- Weekday chip-buttons (daily = multi-select) -->
+	{#if frequency === 'daily'}
 		<div>
 			<Label class="mb-2">{$t('auto-update.weekdays.label')}</Label>
 			<div class="flex flex-wrap gap-2">
@@ -197,6 +206,14 @@
 		</div>
 	{/if}
 
+	<!-- Single weekday selector (weekly = pick one) -->
+	{#if frequency === 'weekly'}
+		<div>
+			<Label class="mb-2">{$t('auto-update.weekday.label')}</Label>
+			<Select bind:value={weekday} items={weekdayOptions} disabled={loading} />
+		</div>
+	{/if}
+
 	<!-- Day of month picker (monthly) -->
 	{#if frequency === 'monthly'}
 		<div>
@@ -214,7 +231,7 @@
 			</div>
 			<div class="flex-1">
 				<Label class="mb-2">{$t('auto-update.weekday.label')}</Label>
-				<Select bind:value={weekday} items={weekdayOptions} disabled={loading} />
+				<Select bind:value={monthlyWeekday} items={weekdayOptions} disabled={loading} />
 			</div>
 		</div>
 	{/if}

@@ -538,7 +538,6 @@
 		"save-success": "Settings saved",
 		"frequency": {
 			"label": "Frequency",
-			"hourly": "Hourly",
 			"daily": "Daily",
 			"weekly": "Weekly",
 			"monthly": "Monthly",

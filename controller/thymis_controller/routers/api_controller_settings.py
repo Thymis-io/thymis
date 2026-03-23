@@ -10,14 +10,14 @@ router = APIRouter()
 
 
 class AutoUpdateSchedule(BaseModel):
-    frequency: Literal[
-        "hourly", "daily", "weekly", "monthly", "monthly_weekday"
-    ] = "weekly"
+    frequency: Literal["daily", "weekly", "monthly", "monthly_weekday"] = "daily"
     time: str = "03:00"  # HH:MM, used for daily/weekly/monthly
-    weekdays: Optional[List[int]] = [0, 1, 2, 3]  # 0=Mon … 6=Sun, for weekly
+    weekdays: Optional[List[int]] = [0, 1, 2, 3]  # 0=Mon … 6=Sun, for daily (multi)
+    weekday: Optional[
+        int
+    ] = None  # 0=Mon … 6=Sun, for weekly (single) and monthly_weekday
     day_of_month: Optional[int] = None  # 1–28, for monthly
     nth_weekday: Optional[int] = None  # 1–5 or -1 (last), for monthly_weekday
-    weekday: Optional[int] = None  # 0=Mon … 6=Sun, for monthly_weekday
 
 
 class ControllerSettingsResponse(BaseModel):
@@ -52,11 +52,18 @@ def patch_controller_settings(body: ControllerSettingsPatch, db_session: DBSessi
     schedule_raw = None
     if body.auto_update_schedule is not None:
         if (
-            body.auto_update_schedule.frequency == "weekly"
+            body.auto_update_schedule.frequency == "daily"
             and not body.auto_update_schedule.weekdays
         ):
             raise HTTPException(
-                status_code=422, detail="weekdays required for weekly frequency"
+                status_code=422, detail="weekdays required for daily frequency"
+            )
+        if (
+            body.auto_update_schedule.frequency == "weekly"
+            and body.auto_update_schedule.weekday is None
+        ):
+            raise HTTPException(
+                status_code=422, detail="weekday required for weekly frequency"
             )
         if (
             body.auto_update_schedule.frequency == "monthly"

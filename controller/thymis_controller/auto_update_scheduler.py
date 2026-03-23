@@ -6,12 +6,13 @@ dependency on systemd-analyze at runtime.
 
 Schedule is stored as a JSON string in the auto_update_schedule column:
 
-  {"frequency": "hourly"}
-  {"frequency": "daily",            "time": "03:00"}
-  {"frequency": "weekly",           "time": "03:00", "weekdays": [0, 1, 2, 3, 4]}
+  {"frequency": "daily",            "time": "03:00", "weekdays": [0, 1, 2, 3, 4]}
+  {"frequency": "weekly",           "time": "03:00", "weekday": 0}
   {"frequency": "monthly",          "time": "03:00", "day_of_month": 1}
   {"frequency": "monthly_weekday",  "time": "03:00", "nth_weekday": 1, "weekday": 0}
 
+daily: runs on each of the selected weekdays (multiple allowed)
+weekly: runs on exactly one weekday per week
 weekdays / weekday: 0=Monday … 6=Sunday  (ISO weekday - 1)
 nth_weekday: 1=first, 2=second, 3=third, 4=fourth, 5=fifth, -1=last
 """
@@ -38,8 +39,8 @@ logger = logging.getLogger(__name__)
 # Sentinel user session id used for scheduler-originated tasks
 SCHEDULER_USER_SESSION_ID = _uuid.UUID("00000000-0000-0000-0000-000000000001")
 
-# Default schedule: weekly Mon–Thu at 03:00 UTC
-DEFAULT_SCHEDULE = {"frequency": "weekly", "time": "03:00", "weekdays": [0, 1, 2, 3]}
+# Default schedule: daily Mon–Thu at 03:00 UTC
+DEFAULT_SCHEDULE = {"frequency": "daily", "time": "03:00", "weekdays": [0, 1, 2, 3]}
 
 
 def parse_schedule(raw: str) -> dict:
@@ -47,7 +48,6 @@ def parse_schedule(raw: str) -> dict:
     try:
         data = json.loads(raw)
         if isinstance(data, dict) and data.get("frequency") in (
-            "hourly",
             "daily",
             "weekly",
             "monthly",
@@ -65,9 +65,9 @@ def next_fire_time(schedule: dict, after: datetime) -> datetime:
 
     *after* must be timezone-aware (UTC).
     """
-    freq: Literal[
-        "hourly", "daily", "weekly", "monthly", "monthly_weekday"
-    ] = schedule.get("frequency", "daily")
+    freq: Literal["daily", "weekly", "monthly", "monthly_weekday"] = schedule.get(
+        "frequency", "daily"
+    )
 
     # Parse HH:MM — default 03:00
     time_str: str = schedule.get("time", "03:00")
@@ -78,20 +78,8 @@ def next_fire_time(schedule: dict, after: datetime) -> datetime:
 
     now = after.astimezone(timezone.utc)
 
-    if freq == "hourly":
-        # Next occurrence at :mm of the next hour (or this hour if not yet reached)
-        candidate = now.replace(minute=mm, second=0, microsecond=0)
-        if candidate <= now:
-            candidate += timedelta(hours=1)
-        return candidate
-
     if freq == "daily":
-        candidate = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
-        if candidate <= now:
-            candidate += timedelta(days=1)
-        return candidate
-
-    if freq == "weekly":
+        # Runs on selected weekdays (multiple allowed), like old "weekly"
         weekdays: list[int] = schedule.get("weekdays", list(range(7)))
         if not weekdays:
             weekdays = list(range(7))
@@ -102,6 +90,18 @@ def next_fire_time(schedule: dict, after: datetime) -> datetime:
                 return candidate
             candidate += timedelta(days=1)
         # Fallback: next day in weekdays
+        return candidate
+
+    if freq == "weekly":
+        # Runs on exactly one weekday per week
+        target_day: int = schedule.get("weekday", 0)
+        # Try each of the next 7 days
+        candidate = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
+        for _ in range(8):
+            if candidate > now and candidate.weekday() == target_day:
+                return candidate
+            candidate += timedelta(days=1)
+        # Fallback
         return candidate
 
     if freq == "monthly":

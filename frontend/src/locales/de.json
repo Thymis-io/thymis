@@ -537,7 +537,6 @@
 		"save-success": "Einstellungen gespeichert",
 		"frequency": {
 			"label": "Häufigkeit",
-			"hourly": "Stündlich",
 			"daily": "Täglich",
 			"weekly": "Wöchentlich",
 			"monthly": "Monatlich",
