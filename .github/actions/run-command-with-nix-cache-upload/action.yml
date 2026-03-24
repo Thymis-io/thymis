@@ -85,7 +85,7 @@ runs:
 
         # Filter out store paths larger than 500MB; oversized paths waste cache space and
         # can trigger S3 timeouts that are harder to distinguish from real errors.
-        MAX_SIZE=$((500 * 1024 * 1024))
+        MAX_SIZE=$((1024 * 1024 * 1024))
         NEW_PATHS=$(echo "$NEW_PATHS" | while IFS= read -r path; do
           [ -z "$path" ] && continue
           size=$(du -sb "$path" 2>/dev/null | awk '{print $1}')
