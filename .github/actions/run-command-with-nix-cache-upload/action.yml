@@ -63,6 +63,16 @@ runs:
         # Always exclude large/unnecessary paths from cache
         NEW_PATHS=$(echo "$NEW_PATHS" | grep -v "fill-image-with-secrets" | grep -v "\.img" | grep -v "nixos-vm" || true)
 
+        # Exclude paths already available in upstream caches (cache.nixos.org or cache.thymis.io)
+        if [ -n "$NEW_PATHS" ]; then
+          UPSTREAM_SIGNED=$(echo "$NEW_PATHS" | xargs nix path-info --sigs 2>/dev/null \
+            | grep -E $'\t'.+"(cache\.nixos\.org-1:|cache\.thymis\.io-1:)" \
+            | awk -F'\t' '{print $1}' | sort)
+          if [ -n "$UPSTREAM_SIGNED" ]; then
+            NEW_PATHS=$(comm -23 <(echo "$NEW_PATHS") <(echo "$UPSTREAM_SIGNED"))
+          fi
+        fi
+
         if [ -z "$NEW_PATHS" ]; then
           echo "No new store paths to upload."
           exit 0
