@@ -73,6 +73,19 @@ runs:
           fi
         fi
 
+        # Filter out store paths larger than 500MB; oversized paths waste cache space and
+        # can trigger S3 timeouts that are harder to distinguish from real errors.
+        MAX_SIZE=$((500 * 1024 * 1024))
+        NEW_PATHS=$(echo "$NEW_PATHS" | while IFS= read -r path; do
+          [ -z "$path" ] && continue
+          size=$(du -sb "$path" 2>/dev/null | awk '{print $1}')
+          if [ -z "$size" ] || [ "$size" -ge "$MAX_SIZE" ]; then
+            echo "Skipping $path (too large: ${size:-unknown} bytes)" >&2
+            continue
+          fi
+          echo "$path"
+        done)
+
         if [ -z "$NEW_PATHS" ]; then
           echo "No new store paths to upload."
           exit 0
