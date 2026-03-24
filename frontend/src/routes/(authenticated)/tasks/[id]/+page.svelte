@@ -3,6 +3,9 @@
 	import MonospaceText from '$lib/components/MonospaceText.svelte';
 	import RenderUnixTimestamp from '$lib/components/RenderUnixTimestamp.svelte';
 	import { subscribedTask, subscribeTask, type Task } from '$lib/taskstatus';
+	import PageHead from '$lib/components/layout/PageHead.svelte';
+	import TaskbarName from '$lib/taskbar/TaskbarName.svelte';
+	import TaskbarStatus from '$lib/taskbar/TaskbarStatus.svelte';
 
 	interface Props {
 		data: PageData;
@@ -32,28 +35,19 @@
 	});
 </script>
 
+<PageHead repoStatus={data.repoStatus} globalState={data.globalState} nav={data.nav}>
+	{#if task}
+		<div class="text-3xl font-bold">
+			<TaskbarName globalState={data.globalState} {task} iconSize={24} />
+		</div>
+	{/if}
+</PageHead>
+
 {#if task}
-	<h1>Task type={task.task_type}, id={task.id}</h1>
+	<div class="flex flex-wrap items-center gap-4 mb-4">
+		<TaskbarStatus {task} showProgress={false} />
+		<h1>id: {task.id}</h1>
 
-	<p>Current status: {task.state}</p>
-
-	{#if task.state === 'pending'}
-		<p>Task is pending</p>
-	{:else if task.state === 'running'}
-		<p>Task is running</p>
-	{:else if task.state === 'completed'}
-		<p>Task is completed</p>
-	{:else if task.state === 'failed'}
-		<p>Task has failed</p>
-	{/if}
-
-	{#if task.exception}
-		<p>Exception:</p>
-		<MonospaceText code={task.exception} />
-	{/if}
-
-	<div>
-		<h2>Task times</h2>
 		<p>Start time: <RenderUnixTimestamp timestamp={task.start_time} /></p>
 		{#if task.end_time}
 			<p>End time: <RenderUnixTimestamp timestamp={task.end_time} /></p>
@@ -62,9 +56,12 @@
 		{/if}
 	</div>
 
-	<hr />
+	{#if task.exception}
+		<p>Exception:</p>
+		<MonospaceText code={task.exception} />
+	{/if}
 
-	<div>
+	<div class="my-4">
 		<h2>Task submission data</h2>
 		<MonospaceText
 			code={JSON.stringify(task.task_submission_data || task.task_submission_data_raw, null, 2)}
@@ -73,25 +70,21 @@
 
 	<hr />
 
-	<div>
-		<h2>Parent and children</h2>
-		{#if task.parent_task_id}
-			<p>Parent task: {task.parent_task_id}</p>
-		{:else}
-			<p>No parent task</p>
-		{/if}
+	{#if task.parent_task_id || (task.children && task.children.length > 0)}
+		<div class="my-4">
+			{#if task.parent_task_id}
+				<p>Parent task: {task.parent_task_id}</p>
+			{/if}
 
-		{#if task.children && task.children.length > 0}
-			<p>Children tasks: {task.children.join(', ')}</p>
-		{:else}
-			<p>No children tasks</p>
-		{/if}
-	</div>
+			{#if task.children && task.children.length > 0}
+				<p>Children tasks: {task.children.join(', ')}</p>
+			{/if}
+		</div>
 
-	<hr />
+		<hr />
+	{/if}
 
-	<div>
-		<h2>Processes</h2>
+	<div class="my-4">
 		{#if task.processes && task.processes.length > 0}
 			{#each task.processes as process, i (process.process_index)}
 				<h3 class="mt-4">Process {i + 1}</h3>
@@ -152,7 +145,7 @@
 				{/if}
 
 				{#if i < task.processes.length - 1}
-					<hr />
+					<hr class="mt-4" />
 				{/if}
 			{/each}
 		{:else}

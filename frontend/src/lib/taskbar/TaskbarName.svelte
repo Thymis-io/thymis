@@ -13,9 +13,10 @@
 	interface Props {
 		globalState: GlobalState;
 		task: TaskShort;
+		iconSize?: number;
 	}
 
-	let { globalState, task }: Props = $props();
+	let { globalState, task, iconSize = 18 }: Props = $props();
 
 	const configToDisplayName = (identifier: string | undefined) => {
 		if (!identifier) return '';
@@ -28,45 +29,48 @@
 
 <div class="flex gap-2 items-center">
 	{#if task.task_type === 'project_flake_update_task'}
-		<Refresh size="18" class={iconClass} />
+		<Refresh size={iconSize} class={iconClass} />
 		{$t('taskbar.task-types.project_flake_update')}
 	{:else if task.task_type === 'build_project_task'}
-		<Hammer size="18" class={iconClass} />
+		<Hammer size={iconSize} class={iconClass} />
 		{$t('taskbar.task-types.build_project')}
 	{:else if task.task_type === 'deploy_devices_task'}
-		<Boxes size="18" class={iconClass} />
+		<Boxes size={iconSize} class={iconClass} />
 		{$t('taskbar.task-types.deploy_devices')}
 	{:else if task.task_type === 'deploy_device_task'}
-		<Box size="18" class={iconClass} />
+		<Box size={iconSize} class={iconClass} />
 		{@const [before, after] = $t('taskbar.task-types.deploy_device').split('{device}')}
 		{before}
 		<IdentifierLink
 			{globalState}
 			identifier={task.task_submission_data?.device?.identifier}
 			context="config"
+			{iconSize}
 		/>
 		{after}
 	{:else if task.task_type === 'build_device_image_task'}
-		<Hammer size="18" class={iconClass} />
+		<Hammer size={iconSize} class={iconClass} />
 		{@const [before, after] = $t('taskbar.task-types.build_device_image').split('{device}')}
 		{before}
 		<IdentifierLink
 			{globalState}
 			identifier={task.task_submission_data?.configuration_id}
 			context="config"
+			{iconSize}
 		/>
 		{after}
 	{:else if task.task_type === 'ssh_command_task'}
-		<Command size="18" class={iconClass} />
+		<Command size={iconSize} class={iconClass} />
 		{$t('taskbar.task-types.ssh_command')}
 	{:else if task.task_type === 'run_nixos_vm_task'}
-		<Play size="18" class={iconClass} />
+		<Play size={iconSize} class={iconClass} />
 		{@const [before, after] = $t('taskbar.task-types.run_nixos_vm_task').split('{device}')}
 		{before}
 		<IdentifierLink
 			{globalState}
 			identifier={task.task_submission_data?.configuration_id}
 			context="config"
+			{iconSize}
 		/>
 		{after}
 	{:else}
