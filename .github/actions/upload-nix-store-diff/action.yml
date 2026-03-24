@@ -26,18 +26,43 @@ runs:
         nix path-info --all 2>/dev/null | sort > /tmp/nix-store-after.txt
         NEW_PATHS=$(comm -13 /tmp/nix-store-before.txt /tmp/nix-store-after.txt)
 
-        # Filter out store paths larger than 500MB; oversized paths waste cache space and
-        # can trigger S3 timeouts that are harder to distinguish from real errors.
+        # Build the excluded set: paths matching unwanted patterns or over the size limit.
+        # We track excluded paths explicitly because nix copy traverses closures —
+        # a candidate whose closure contains an excluded dep will still trigger its upload.
         MAX_SIZE=$((1024 * 1024 * 1024))
-        NEW_PATHS=$(echo "$NEW_PATHS" | while IFS= read -r path; do
+        _EXCL=$(mktemp)
+        _CAND=$(mktemp)
+        echo "$NEW_PATHS" | while IFS= read -r path; do
           [ -z "$path" ] && continue
+          if echo "$path" | grep -qE '(fill-image-with-secrets|\.img$|nixos-vm)'; then
+            echo "$path" >> "$_EXCL"
+            continue
+          fi
           size=$(du -sb "$path" 2>/dev/null | awk '{print $1}')
           if [ -z "$size" ] || [ "$size" -ge "$MAX_SIZE" ]; then
             echo "Skipping $path (too large: ${size:-unknown} bytes)" >&2
+            echo "$path" >> "$_EXCL"
             continue
           fi
-          echo "$path"
-        done)
+          echo "$path" >> "$_CAND"
+        done
+
+        # Drop candidates whose closure would pull in an excluded dep.
+        _SAFE=$(mktemp)
+        if [ -s "$_EXCL" ]; then
+          while IFS= read -r path; do
+            [ -z "$path" ] && continue
+            if nix-store --query --requisites "$path" 2>/dev/null | grep -qFf "$_EXCL"; then
+              echo "Skipping $path (closure contains excluded dep)" >&2
+            else
+              echo "$path" >> "$_SAFE"
+            fi
+          done < "$_CAND"
+        else
+          cp "$_CAND" "$_SAFE"
+        fi
+        NEW_PATHS=$(cat "$_SAFE")
+        rm -f "$_EXCL" "$_CAND" "$_SAFE"
 
         if [ -z "$NEW_PATHS" ]; then
           echo "No new store paths to upload."

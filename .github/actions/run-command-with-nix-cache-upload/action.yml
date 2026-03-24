@@ -65,36 +65,61 @@ runs:
         nix path-info --all 2>/dev/null | sort > /tmp/nix-store-after.txt
         NEW_PATHS=$(comm -13 /tmp/nix-store-before.txt /tmp/nix-store-after.txt)
 
-        if [ "${{ inputs.exclude_result }}" = "true" ] && [ -L ./result ]; then
-          RESULT_PATH=$(readlink -f ./result)
-          NEW_PATHS=$(echo "$NEW_PATHS" | grep -v "^${RESULT_PATH}$" || true)
-        fi
-
-        # Always exclude large/unnecessary paths from cache
-        NEW_PATHS=$(echo "$NEW_PATHS" | grep -v "fill-image-with-secrets" | grep -v "\.img" | grep -v "nixos-vm" || true)
-
-        # Exclude paths already available in upstream caches (cache.nixos.org or cache.thymis.io)
-        if [ -n "$NEW_PATHS" ]; then
-          UPSTREAM_SIGNED=$(echo "$NEW_PATHS" | xargs nix path-info --sigs 2>/dev/null \
-            | grep -E "(cache\.nixos\.org-1:|cache\.thymis\.io-1:)" \
-            | awk -F'\t' '{print $1}' | sort)
-          if [ -n "$UPSTREAM_SIGNED" ]; then
-            NEW_PATHS=$(comm -23 <(echo "$NEW_PATHS") <(echo "$UPSTREAM_SIGNED"))
-          fi
-        fi
-
-        # Filter out store paths larger than 500MB; oversized paths waste cache space and
-        # can trigger S3 timeouts that are harder to distinguish from real errors.
+        # Build the excluded set: result path, unwanted patterns, and over-size paths.
+        # We track excluded paths explicitly because nix copy traverses closures —
+        # a candidate whose closure contains an excluded dep will still trigger its upload.
         MAX_SIZE=$((1024 * 1024 * 1024))
-        NEW_PATHS=$(echo "$NEW_PATHS" | while IFS= read -r path; do
+        _EXCL=$(mktemp)
+        _CAND=$(mktemp)
+
+        if [ "${{ inputs.exclude_result }}" = "true" ] && [ -L ./result ]; then
+          readlink -f ./result >> "$_EXCL"
+        fi
+
+        echo "$NEW_PATHS" | while IFS= read -r path; do
           [ -z "$path" ] && continue
+          if grep -qFx "$path" "$_EXCL" 2>/dev/null || \
+             echo "$path" | grep -qE '(fill-image-with-secrets|\.img$|nixos-vm)'; then
+            echo "$path" >> "$_EXCL"
+            continue
+          fi
           size=$(du -sb "$path" 2>/dev/null | awk '{print $1}')
           if [ -z "$size" ] || [ "$size" -ge "$MAX_SIZE" ]; then
             echo "Skipping $path (too large: ${size:-unknown} bytes)" >&2
+            echo "$path" >> "$_EXCL"
             continue
           fi
-          echo "$path"
-        done)
+          echo "$path" >> "$_CAND"
+        done
+
+        # Exclude paths already available in upstream caches (cache.nixos.org or cache.thymis.io)
+        if [ -s "$_CAND" ]; then
+          UPSTREAM_SIGNED=$(cat "$_CAND" | xargs nix path-info --sigs 2>/dev/null \
+            | grep -E '(cache\.nixos\.org-1:|cache\.thymis\.io-1:)' \
+            | awk -F'\t' '{print $1}' | sort)
+          if [ -n "$UPSTREAM_SIGNED" ]; then
+            _CAND2=$(mktemp)
+            comm -23 "$_CAND" <(echo "$UPSTREAM_SIGNED") > "$_CAND2"
+            mv "$_CAND2" "$_CAND"
+          fi
+        fi
+
+        # Drop candidates whose closure would pull in an excluded dep.
+        _SAFE=$(mktemp)
+        if [ -s "$_EXCL" ]; then
+          while IFS= read -r path; do
+            [ -z "$path" ] && continue
+            if nix-store --query --requisites "$path" 2>/dev/null | grep -qFf "$_EXCL"; then
+              echo "Skipping $path (closure contains excluded dep)" >&2
+            else
+              echo "$path" >> "$_SAFE"
+            fi
+          done < "$_CAND"
+        else
+          cp "$_CAND" "$_SAFE"
+        fi
+        NEW_PATHS=$(cat "$_SAFE")
+        rm -f "$_EXCL" "$_CAND" "$_SAFE"
 
         if [ -z "$NEW_PATHS" ]; then
           echo "No new store paths to upload."
