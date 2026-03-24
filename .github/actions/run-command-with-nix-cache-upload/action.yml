@@ -27,6 +27,10 @@ inputs:
     description: "GitHub token (unused, accepted for compatibility)."
     required: false
     default: ""
+  timeout_minutes:
+    description: "Maximum minutes to allow the script to run before timing out."
+    required: false
+    default: "60"
 runs:
   using: "composite"
   steps:
@@ -38,7 +42,13 @@ runs:
     - name: Run script
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      run: ${{ inputs.script }}
+      env:
+        THYMIS_SCRIPT: ${{ inputs.script }}
+      run: |
+        _SCRIPT_FILE=$(mktemp)
+        trap 'rm -f "$_SCRIPT_FILE"' EXIT
+        printf '%s\n' "$THYMIS_SCRIPT" > "$_SCRIPT_FILE"
+        timeout ${{ inputs.timeout_minutes }}m bash "$_SCRIPT_FILE"
     - if: ${{ inputs.signing_key != '' }}
       name: Upload new store paths to Nix cache
       shell: bash
