@@ -32,6 +32,9 @@ runs:
         fi
 
         echo "Uploading $(echo "$NEW_PATHS" | wc -l) new store paths to cache..."
+        # Cache upload is best-effort: transient S3 errors (e.g. GatewayTimeout) must not
+        # fail the job — the build result is valid regardless of whether all paths were cached.
         echo "$NEW_PATHS" | xargs nix copy \
           --to "s3://thymis-nix-cache?endpoint=nbg1.your-objectstorage.com&region=nbg1&secret-key=${KEY_FILE}" \
-          --no-check-sigs
+          --no-check-sigs \
+          || echo "Warning: nix copy exited $? — transient S3 error likely; some paths may not have been cached. Non-fatal."
