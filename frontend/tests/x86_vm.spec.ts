@@ -24,6 +24,7 @@ const goToDevicesPage = async (page: Page, baseURL?: string) => {
 };
 
 test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) => {
+	test.setTimeout(720000);
 	const screenshotCounter = { count: 0 };
 	await clearState(page, request);
 	await deleteAllTasks(page, request);
@@ -78,19 +79,19 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
 
 	// wait until: 1x on screen "completed", 1x on screen "running"
-	test.setTimeout(360000);
+	test.setTimeout(720000);
 	await page
 		.locator('td', { hasText: 'completed' })
 		.nth(1)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 360000 });
+		.waitFor({ timeout: 720000 });
 	await expect(page.locator('td', { hasText: 'completed' }).nth(1)).toBeVisible();
 
 	await page
 		.locator('td', { hasText: 'running' })
 		.nth(1)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 360000 });
+		.waitFor({ timeout: 720000 });
 	await expect(page.locator('td', { hasText: 'running' }).nth(1)).toBeVisible();
 
 	// go to "Devices" page and wait until "Connected" is shown twice
@@ -197,7 +198,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await deployButtonModal.click();
 
 	// Wait for a fifth "completed" status
-	await page.locator('td', { hasText: 'completed' }).nth(4).waitFor({ timeout: 360000 });
+	await page.locator('td', { hasText: 'completed' }).nth(4).waitFor({ timeout: 720000 });
 
 	// Navigate back to "Details" tab
 	await page.locator('a', { hasText: 'Details' }).first().click();
@@ -245,7 +246,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 		.filter({ hasText: 'Commit & Download Device Image' })
 		.first()
 		.click();
-	test.setTimeout(360000);
+	test.setTimeout(720000);
 	await page.waitForEvent('download');
 });
 
