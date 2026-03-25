@@ -424,7 +424,14 @@ class TaskWorkerPoolManager:
         logger.info("Task %s worker finished execution", task_id)
         # if task is still running in the database, mark it as failed due to worker finishing before signalling success
         with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
-            task = crud_task.get_task_by_id(db_session, task_id)
+            try:
+                task = crud_task.get_task_by_id(db_session, task_id)
+            except ValueError:
+                logger.error(
+                    "Task %s not found in DB during finish_task (already deleted?)",
+                    task_id,
+                )
+                return
 
             if task.children:
                 self.update_composite_task(task_id)
