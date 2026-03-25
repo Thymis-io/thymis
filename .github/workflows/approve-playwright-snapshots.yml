@@ -143,11 +143,6 @@ jobs:
           name: playwright-report-x86_64
           path: frontend/playwright-report/
           retention-days: 30
-      - name: Upload updated snapshots
-        uses: actions/upload-artifact@v4
-        with:
-          name: updated-snapshots-x86_vm
-          path: frontend/tests/x86_vm.spec.ts-snapshots/
 
   upload-artifacts:
     name: Upload Artifacts
@@ -169,11 +164,6 @@ jobs:
         with:
           name: updated-snapshots-aarch64-screencaps
           path: frontend/tests/screencaps.spec.ts-snapshots/
-      - name: Download updated snapshots x86_vm
-        uses: actions/download-artifact@v5
-        with:
-          name: updated-snapshots-x86_vm
-          path: frontend/tests/x86_vm.spec.ts-snapshots/
       - name: commit and push
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
@@ -186,5 +176,5 @@ jobs:
           git config user.name $USER_NAME
 
           git add .
-          git commit -m "Update e2e snapshots"
+          git diff --staged --quiet || git commit -m "Update e2e snapshots"
           git push
