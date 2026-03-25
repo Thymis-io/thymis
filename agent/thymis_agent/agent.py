@@ -309,7 +309,6 @@ class Agent(ea.EdgeAgent):
                     "--collect",
                     "--no-ask-password",
                     "--pipe",
-                    "--quiet",
                     "--service-type=exec",
                     "--unit=thymis-nixos-rebuild-switch-to-configuration",
                     "--wait",
