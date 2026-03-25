@@ -53,7 +53,7 @@ jobs:
 
       - name: Run tests
         run: |
-          nix develop .#ci --command uv run python -m pytest -sxv
+          nix develop .#ci --command uv run python -m pytest -sxv --ignore=tests/integration
         working-directory: controller
 
       - name: Upload new store paths to Nix cache

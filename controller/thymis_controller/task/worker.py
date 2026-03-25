@@ -204,8 +204,13 @@ def deploy_device_task(
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # write deployment_public_key to tmpfile
+        # Use 127.0.0.1 (not "localhost") because Nix's SSHMaster sets
+        # fakeSSH=true when host=="localhost", which bypasses SSH entirely and
+        # connects to the local nix daemon instead of the remote VM.
+        # See: src/libstore/ssh.cc — `fakeSSH(authority.host == "localhost")`
         hostfile_path = f"{tmpdir}/known_hosts"
         with open(hostfile_path, "w", encoding="utf-8") as hostfile:
+            hostfile.write(f"127.0.0.1 {task_data.device.deployment_public_key}\n")
             hostfile.write(f"localhost {task_data.device.deployment_public_key}\n")
             hostfile.flush()
         env = {
@@ -300,11 +305,15 @@ def deploy_device_task(
                     "--service-type=exec",
                     f"--unit=thymis-nix-copy-closure-{random.randbytes(8).hex()}",
                     "--wait",
-                    shutil.which("nix-copy-closure"),
+                    # Resolve nix to an absolute path so systemd-run can find it
+                    # without PATH search; systemd on newer Ubuntu/NixOS does not
+                    # use the unit's PATH env var to resolve ExecStart.
+                    shutil.which(NIX_CMD[0]) or NIX_CMD[0],
                     *NIX_CMD[1:],
+                    "copy",
+                    "--no-check-sigs",
                     "--to",
-                    "root@localhost",
-                    "--gzip",
+                    "ssh-ng://root@127.0.0.1",
                     config_path,
                 ],
                 env,
@@ -320,8 +329,9 @@ def deploy_device_task(
                 [
                     *NIX_CMD,
                     "copy",
+                    "--no-check-sigs",
                     "--to",
-                    "ssh://root@localhost",
+                    "ssh-ng://root@127.0.0.1",
                     config_path,
                 ],
                 env,

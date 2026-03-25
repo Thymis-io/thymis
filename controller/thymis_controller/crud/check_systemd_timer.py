@@ -22,7 +22,7 @@ def check_calendar(value: str, iterations: int) -> list[str]:
         if len(result) != iterations:
             raise ValueError("Could not parse all calendar outputs")
         return result
-    except subprocess.CalledProcessError as e:
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
         raise ValueError(f"Invalid calendar value: {value}") from e
 
 
@@ -43,5 +43,5 @@ def check_timespan(value: str) -> str:
                 time = line.split(":", 1)[1].strip()
                 return time
         raise ValueError("Could not parse time-span output")
-    except subprocess.CalledProcessError as e:
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
         raise ValueError(f"Invalid timespan value: {value}") from e
