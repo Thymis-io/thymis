@@ -2,9 +2,8 @@
   description = "Thymis";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
-    nix.url = "github:NixOS/nix/2.26.1";
-    home-manager.url = "github:nix-community/home-manager/release-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    home-manager.url = "github:nix-community/home-manager/release-25.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nixos-generators.url = "github:nix-community/nixos-generators";
     nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
@@ -75,7 +74,7 @@
         services.thymis-controller.enable = true;
         services.thymis-controller.base-url = "https://thymis.example.com";
         services.thymis-controller.agent-access-url = "https://thymis.example.com";
-        system.stateVersion = "25.05";
+        system.stateVersion = "25.11";
       };
 
       thymis-controller-pi-3-sd-image = (nixpkgs.lib.nixosSystem {
@@ -148,14 +147,12 @@
               pkgs.playwright-driver.browsers
               pkgs.mdbook
               pkgs.nixpkgs-fmt
-              (inputs.nix.packages."${system}".nix)
             ];
             shellHook = ''
               export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
               export THYMIS_DEV_SHELL=true
               export THYMIS_FLAKE_ROOT=$(git rev-parse --show-toplevel)
-              export PATH=${inputs.nix.packages."${system}".nix}/bin:$PATH
               alias run-dev="(cd $THYMIS_FLAKE_ROOT/controller && UVICORN_PORT=8080 uv run uvicorn thymis_controller.main:app --reload --host 0.0.0.0 --port 8080)"
             '';
           };
@@ -201,7 +198,6 @@
               pyproject-nix
               uv2nix;
             thymis-frontend = thymis-frontend;
-            nix = inputs.nix.packages."${system}".nix;
           };
           thymis-agent = pkgs.callPackage ./agent {
             inherit (inputs)
