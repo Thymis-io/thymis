@@ -69,9 +69,7 @@ class TaskWorkerPoolManager:
     async def start(self, db_engine: sqlalchemy.Engine):
         self._db_engine = db_engine
 
-        with (
-            sqlalchemy.orm.Session(bind=self.db_engine) as db_session,
-        ):
+        with (sqlalchemy.orm.Session(bind=self.db_engine) as db_session,):
             amount_running_when_shut_down = crud_task.fail_running_tasks(db_session)
             logger.info(
                 "Failed %d tasks that were running when the controller shut down",
@@ -285,7 +283,9 @@ class TaskWorkerPoolManager:
                                         message.update.configuration_id,
                                         message.update.image_format,
                                     )
-                            case models_task.AgentShouldSwitchToNewConfigurationUpdate():
+                            case (
+                                models_task.AgentShouldSwitchToNewConfigurationUpdate()
+                            ):
                                 deployment_info = crud.deployment_info.get_by_id(
                                     db_session, message.update.deployment_info_id
                                 )
