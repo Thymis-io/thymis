@@ -88,11 +88,6 @@ jobs:
         with:
           name: updated-snapshots-aarch64-screencaps
           path: frontend/tests/screencaps.spec.ts-snapshots/
-      - name: Upload snapshots unauthenticated
-        uses: actions/upload-artifact@v4
-        with:
-          name: updated-snapshots-aarch64-unauthenticated
-          path: frontend/tests/unauthenticated.spec.ts-snapshots/
 
   update-snapshots-x86_64:
     name: Update Snapshots x86_64
@@ -174,11 +169,6 @@ jobs:
         with:
           name: updated-snapshots-aarch64-screencaps
           path: frontend/tests/screencaps.spec.ts-snapshots/
-      - name: Download updated snapshots aarch64-unauthenticated
-        uses: actions/download-artifact@v5
-        with:
-          name: updated-snapshots-aarch64-unauthenticated
-          path: frontend/tests/unauthenticated.spec.ts-snapshots/
       - name: Download updated snapshots x86_vm
         uses: actions/download-artifact@v5
         with:
