@@ -1,4 +1,6 @@
 <script lang="ts">
+	import HeadTag from './HeadTag.svelte';
+
 	export type PieSlice = {
 		label: string;
 		value: number;
@@ -125,19 +127,16 @@
 	{/if}
 
 	<!-- Legend -->
-	<ul class="flex flex-col gap-1 w-full max-w-[240px]">
+	<ul class="flex flex-row flex-wrap justify-center gap-x-6 gap-y-2 w-full">
 		{#each slices as slice, i (slice.label)}
-			<li class="flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
+			<li class="flex items-center gap-1 text-xs text-gray-700 dark:text-gray-300">
 				<span
 					class="inline-block rounded-sm flex-shrink-0"
 					style="width:12px;height:12px;background:{slice.color || COLORS[i % COLORS.length]}"
 				></span>
 				<span class="truncate flex-1">{slice.label}</span>
 				{#if slice.isHead}
-					<span
-						class="flex-shrink-0 rounded bg-emerald-100 px-1 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
-						>HEAD</span
-					>
+					<HeadTag />
 				{/if}
 				<span class="font-mono font-semibold flex-shrink-0">{slice.value}</span>
 			</li>

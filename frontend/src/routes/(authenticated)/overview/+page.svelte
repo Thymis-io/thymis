@@ -6,13 +6,11 @@
 	import PieChart from '$lib/components/PieChart.svelte';
 	import type { PieSlice } from '$lib/components/PieChart.svelte';
 	import { getDeviceType, getDeviceTypesMap } from '$lib/config/configUtils';
-	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
 	import MonitorCheck from 'lucide-svelte/icons/monitor-check';
 	import Server from 'lucide-svelte/icons/server';
 	import Layers from 'lucide-svelte/icons/layers';
 	import Tag from 'lucide-svelte/icons/tag';
-	import GitCommit from 'lucide-svelte/icons/git-commit-horizontal';
+	import OverviewConfigCard from '$lib/components/OverviewConfigCard.svelte';
 
 	interface Props {
 		data: PageData;
@@ -71,16 +69,16 @@
 		onlineCount: number;
 	};
 
-	// Normalise to 8-char short hash so comparisons work regardless of
+	// Normalise to 7-char short hash so comparisons work regardless of
 	// whether the API returns a full SHA1 or an already-shortened hash.
-	let shortHeadCommit = $derived(data.headCommit?.slice(0, 8) ?? null);
+	let shortHeadCommit = $derived(data.headCommit?.slice(0, 7) ?? null);
 
 	let configCards = $derived((): ConfigCard[] => {
 		return data.globalState.configs.map((cfg) => {
 			const allInstances: ConfigInstance[] = data.deploymentInfos
 				.filter((di) => di.deployed_config_id === cfg.identifier)
 				.map((di) => {
-					const shortCommit = di.deployed_config_commit?.slice(0, 8) ?? null;
+					const shortCommit = di.deployed_config_commit?.slice(0, 7) ?? null;
 					return {
 						id: di.id,
 						online: isOnline(di.last_seen),
@@ -237,132 +235,9 @@
 			<p class="text-sm text-gray-500 dark:text-gray-400">{$t('overview.no-configs')}</p>
 		</Card>
 	{:else}
-		<div class="grid min-w-0 flex-1 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-			{#each configCards() as card (card.identifier)}
-				{@const anyOnline = card.onlineCount > 0}
-				{@const activeCount = card.activeInstances.length}
-				<Card padding="none" class="flex flex-col overflow-hidden">
-					<!-- Card header: status dot + name + optional multi-instance badge -->
-					<div class="flex items-start gap-3 border-b border-gray-100 p-4 dark:border-gray-700">
-						<!-- Status dot -->
-						<div class="mt-0.5 flex-shrink-0">
-							{#if anyOnline}
-								<span class="relative flex h-3 w-3">
-									<span
-										class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"
-									></span>
-									<span class="relative inline-flex h-3 w-3 rounded-full bg-emerald-500"></span>
-								</span>
-							{:else if activeCount === 0}
-								<span class="inline-flex h-3 w-3 rounded-full bg-gray-200 dark:bg-gray-600"></span>
-							{:else}
-								<span class="inline-flex h-3 w-3 rounded-full bg-gray-400 dark:bg-gray-500"></span>
-							{/if}
-						</div>
-
-						<div class="min-w-0 flex-1">
-							<IdentifierLink
-								identifier={card.identifier}
-								context="config"
-								globalState={data.globalState}
-								class="block truncate text-sm font-semibold text-gray-900 dark:text-white"
-							/>
-							<span
-								class="mt-1 inline-block rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500 dark:bg-gray-700 dark:text-gray-400"
-							>
-								{card.deviceTypeLabel}
-							</span>
-						</div>
-
-						<!-- Only show N/M badge when there are genuinely multiple active instances -->
-						{#if activeCount > 1}
-							<span
-								class={[
-									'flex-shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
-									anyOnline
-										? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200'
-										: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
-								].join(' ')}
-							>
-								{card.onlineCount}/{activeCount}
-							</span>
-						{/if}
-					</div>
-
-					<!-- Card body: commit + last seen for active instances -->
-					<div class="flex flex-1 flex-col p-4">
-						{#if activeCount === 0}
-							<p class="text-xs text-gray-400 dark:text-gray-500">{$t('overview.no-instances')}</p>
-						{:else if activeCount === 1}
-							{@const inst = card.activeInstances[0]}
-							<div class="flex items-center justify-between text-xs">
-								<div class="flex items-center gap-1 font-mono text-gray-600 dark:text-gray-300">
-									<GitCommit class="h-3.5 w-3.5 flex-shrink-0" />
-									{#if inst.shortCommit}
-										<span
-											class={inst.isCurrentCommit
-												? 'font-semibold text-emerald-600 dark:text-emerald-400'
-												: ''}
-										>
-											{inst.shortCommit}
-										</span>
-										{#if inst.isCurrentCommit}
-											<span class="text-emerald-500">✦</span>
-										{/if}
-									{:else}
-										<span class="text-gray-400">{$t('overview.no-commit')}</span>
-									{/if}
-								</div>
-								<div class="text-gray-400 dark:text-gray-500">
-									{#if inst.lastSeen}
-										<RenderTimeAgo timestamp={inst.lastSeen} />
-									{:else}
-										{$t('hardware-devices.table.never-seen')}
-									{/if}
-								</div>
-							</div>
-						{:else}
-							<!-- Multiple active instances -->
-							<div class="space-y-1">
-								{#each card.activeInstances as inst (inst.id)}
-									<div
-										class="flex items-center justify-between rounded bg-gray-50 px-2 py-1 text-xs dark:bg-gray-700/50"
-									>
-										<div class="flex items-center gap-1.5">
-											<span
-												class={[
-													'h-1.5 w-1.5 flex-shrink-0 rounded-full',
-													inst.online ? 'bg-emerald-500' : 'bg-gray-400'
-												].join(' ')}
-											></span>
-											{#if inst.shortCommit}
-												<span
-													class={[
-														'font-mono',
-														inst.isCurrentCommit
-															? 'text-emerald-600 dark:text-emerald-400 font-semibold'
-															: 'text-gray-600 dark:text-gray-300'
-													].join(' ')}
-												>
-													{inst.shortCommit}{inst.isCurrentCommit ? ' ✦' : ''}
-												</span>
-											{:else}
-												<span class="text-gray-400">{$t('overview.no-commit')}</span>
-											{/if}
-										</div>
-										<span class="text-gray-400 dark:text-gray-500">
-											{#if inst.lastSeen}
-												<RenderTimeAgo timestamp={inst.lastSeen} />
-											{:else}
-												{$t('hardware-devices.table.never-seen')}
-											{/if}
-										</span>
-									</div>
-								{/each}
-							</div>
-						{/if}
-					</div>
-				</Card>
+		<div class="flex flex-row flex-wrap w-full gap-4">
+			{#each configCards() as config (config.identifier)}
+				<OverviewConfigCard {config} globalState={data.globalState} />
 			{/each}
 		</div>
 	{/if}
