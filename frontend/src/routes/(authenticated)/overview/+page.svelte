@@ -10,7 +10,7 @@
 	import Server from 'lucide-svelte/icons/server';
 	import Layers from 'lucide-svelte/icons/layers';
 	import Tag from 'lucide-svelte/icons/tag';
-	import OverviewConfigCard from '$lib/components/OverviewConfigCard.svelte';
+	import OverviewConfigCard, { type ConfigCard } from '$lib/components/OverviewConfigCard.svelte';
 
 	interface Props {
 		data: PageData;
@@ -31,51 +31,25 @@
 		'#84cc16' // lime-500
 	];
 
-	const ONLINE_THRESHOLD_MS = 30_000;
-	// DeploymentInfos older than this are stale ghosts (e.g. SD card reflashed)
-	// and should not inflate the "N/M online" count.
+	const ONLINE_THRESHOLD_MS = 30 * 1000;
 	const STALE_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
 
-	// ── Helpers ──────────────────────────────────────────────────────────
-	function isOnline(lastSeen: string | null): boolean {
+	const isOnline = (lastSeen: string | null): boolean => {
 		return !!lastSeen && Date.now() - new Date(lastSeen).getTime() < ONLINE_THRESHOLD_MS;
-	}
-	function isActive(lastSeen: string | null): boolean {
+	};
+	const isActive = (lastSeen: string | null): boolean => {
 		return !!lastSeen && Date.now() - new Date(lastSeen).getTime() < STALE_THRESHOLD_MS;
-	}
+	};
 
-	// ── Device type map ───────────────────────────────────────────────────
 	let deviceTypesMap = $derived(getDeviceTypesMap(data.availableModules));
-
-	// ── Per-config enriched data ──────────────────────────────────────────
-	// The right mental model: a Config IS the "device" the user thinks about.
-	// DeploymentInfos are the physical hardware instances running that config.
-	// "Active" = seen within 7 days. Older records are stale ghosts from
-	// previous SD card flashes and must not inflate the online/offline count.
-	type ConfigInstance = {
-		id: string;
-		online: boolean;
-		active: boolean;
-		lastSeen: string | null;
-		shortCommit: string | null;
-		isCurrentCommit: boolean;
-	};
-
-	type ConfigCard = {
-		identifier: string;
-		displayName: string;
-		deviceTypeLabel: string;
-		activeInstances: ConfigInstance[];
-		onlineCount: number;
-	};
 
 	// Normalise to 7-char short hash so comparisons work regardless of
 	// whether the API returns a full SHA1 or an already-shortened hash.
 	let shortHeadCommit = $derived(data.headCommit?.slice(0, 7) ?? null);
 
-	let configCards = $derived((): ConfigCard[] => {
+	let configCards: ConfigCard[] = $derived.by(() => {
 		return data.globalState.configs.map((cfg) => {
-			const allInstances: ConfigInstance[] = data.deploymentInfos
+			const allInstances = data.deploymentInfos
 				.filter((di) => di.deployed_config_id === cfg.identifier)
 				.map((di) => {
 					const shortCommit = di.deployed_config_commit?.slice(0, 7) ?? null;
@@ -89,7 +63,6 @@
 					};
 				});
 
-			// Only count instances seen within 7 days — stale ghosts are invisible
 			const activeInstances = allInstances.filter((i) => i.active || i.online);
 
 			const rawType = getDeviceType(cfg);
@@ -112,15 +85,15 @@
 	});
 
 	// ── Summary stats ─────────────────────────────────────────────────────
-	let onlineConfigsCount = $derived(configCards().filter((c) => c.onlineCount > 0).length);
+	let onlineConfigsCount = $derived(configCards.filter((c) => c.onlineCount > 0).length);
 	let totalConfigsCount = $derived(data.globalState.configs.length);
 	let onlineInstancesCount = $derived(data.connectedDeploymentInfos.length);
 	let tagsCount = $derived(data.globalState.tags.length);
 
 	// ── Pie 1: deployed commit — active instances only, HEAD highlighted ──
-	let commitSlices = $derived((): PieSlice[] => {
+	let commitSlices: PieSlice[] = $derived.by(() => {
 		const counts = new Map<string, number>();
-		for (const card of configCards()) {
+		for (const card of configCards) {
 			for (const inst of card.activeInstances) {
 				const commit = inst.shortCommit ?? $t('overview.no-commit');
 				counts.set(commit, (counts.get(commit) ?? 0) + 1);
@@ -140,8 +113,8 @@
 	});
 
 	// ── Pie 2: online vs offline — only among active instances ───────────
-	let onlineStatusSlices = $derived((): PieSlice[] => {
-		const activeTotal = configCards().reduce((sum, c) => sum + c.activeInstances.length, 0);
+	let onlineStatusSlices: PieSlice[] = $derived.by(() => {
+		const activeTotal = configCards.reduce((sum, c) => sum + c.activeInstances.length, 0);
 		const offline = activeTotal - onlineInstancesCount;
 		const slices: PieSlice[] = [];
 		if (onlineInstancesCount > 0)
@@ -160,7 +133,7 @@
 />
 
 <!-- ── Row 1: stat cards ──────────────────────────────────────────────── -->
-<div class="mb-4 flex flex-wrap items-start gap-4">
+<div class="flex flex-wrap items-start gap-4 mb-4">
 	<Card padding="none" class="p-4">
 		<div class="flex items-center gap-3">
 			<div
@@ -210,34 +183,31 @@
 	</Card>
 </div>
 
-<!-- ── Row 2: charts + device grid side by side ───────────────────────── -->
-<div class="flex flex-wrap items-start gap-4">
+<div class="flex flex-wrap items-start gap-4 mb-4 items-stretch">
 	<!-- Deployed commits chart -->
 	<Card padding="none" class="flex flex-col items-center gap-2 p-4">
-		<span class="text-xs font-semibold text-gray-600 dark:text-gray-300"
-			>{$t('overview.chart.deployed-commits')}</span
-		>
-		<PieChart slices={commitSlices()} size={180} />
+		<PieChart slices={commitSlices} size={180} title={$t('overview.chart.deployed-commits')} />
 	</Card>
 
 	<!-- Online / offline chart -->
 	<Card padding="none" class="flex flex-col items-center gap-2 p-4">
-		<span class="text-xs font-semibold text-gray-600 dark:text-gray-300"
-			>{$t('overview.chart.online-status')}</span
-		>
-		<PieChart slices={onlineStatusSlices()} size={180} />
+		<PieChart slices={onlineStatusSlices} size={180} title={$t('overview.chart.online-status')} />
 	</Card>
+</div>
 
+<div class="flex flex-wrap items-start gap-4">
 	<!-- Device grid -->
-	{#if configCards().length === 0}
+	{#if configCards.length === 0}
 		<Card padding="none" class="p-8 text-center">
 			<Server class="mx-auto mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
 			<p class="text-sm text-gray-500 dark:text-gray-400">{$t('overview.no-configs')}</p>
 		</Card>
 	{:else}
-		<div class="flex flex-row flex-wrap w-full gap-4">
-			{#each configCards() as config (config.identifier)}
-				<OverviewConfigCard {config} globalState={data.globalState} />
+		<div class="flex w-full flex-row flex-wrap gap-4">
+			{#each configCards as config (config.identifier)}
+				<Card padding="none" class="flex flex-col overflow-hidden">
+					<OverviewConfigCard {config} globalState={data.globalState} />
+				</Card>
 			{/each}
 		</div>
 	{/if}
