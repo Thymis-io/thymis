@@ -45,7 +45,7 @@
 
 	let total = $derived(slices.reduce((sum, s) => sum + s.value, 0));
 
-	let arcs = $derived((): ArcPath[] => {
+	let arcs: ArcPath[] = $derived.by(() => {
 		if (total === 0) return [];
 		const paths: ArcPath[] = [];
 		let startAngle = -Math.PI / 2;
@@ -92,7 +92,7 @@
 
 <div class="flex flex-col items-center gap-3">
 	{#if title}
-		<h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200 text-center">{title}</h3>
+		<p class="text-xs font-semibold text-gray-600 dark:text-gray-300 text-center">{title}</p>
 	{/if}
 
 	{#if total === 0}
@@ -104,7 +104,7 @@
 		</div>
 	{:else}
 		<svg width={size} height={size} viewBox="0 0 {size} {size}">
-			{#each arcs() as arc (arc.label)}
+			{#each arcs as arc (arc.label)}
 				<path d={arc.path} fill={arc.color} stroke="white" stroke-width="1.5">
 					<title>{arc.label}: {arc.value} ({arc.percentage}%)</title>
 				</path>
