@@ -104,13 +104,15 @@
 							<span class="text-gray-400">{$t('overview.no-commit')}</span>
 						{/if}
 					</div>
-					<span class="text-gray-400 dark:text-gray-500">
-						{#if inst.lastSeen}
-							<RenderTimeAgo timestamp={inst.lastSeen} />
-						{:else}
-							{$t('hardware-devices.table.never-seen')}
-						{/if}
-					</span>
+					{#if !inst.online}
+						<span class="text-gray-400 dark:text-gray-500">
+							{#if inst.lastSeen}
+								<RenderTimeAgo timestamp={inst.lastSeen} />
+							{:else}
+								{$t('hardware-devices.table.never-seen')}
+							{/if}
+						</span>
+					{/if}
 				</div>
 			{/each}
 		</div>
