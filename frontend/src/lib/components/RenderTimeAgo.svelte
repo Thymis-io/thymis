@@ -11,7 +11,7 @@
 	let { timestamp, minSeconds = 0, class: customClass = '' }: Props = $props();
 
 	let currentDate = $state(new Date());
-	let date = $state<Date | undefined>(timestamp ? new Date(timestamp) : undefined);
+	let date = $derived(timestamp ? new Date(timestamp) : undefined);
 
 	onMount(() => {
 		const interval = setInterval(() => {
