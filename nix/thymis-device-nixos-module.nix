@@ -138,6 +138,7 @@ in
       };
       serviceConfig.Restart = "always";
       serviceConfig.Type = "notify";
+      serviceConfig.LimitNOFILE = "infinity";
     };
     systemd.services.thymis-agent-place-secrets = lib.mkIf cfg.agent.enable {
       description = "Thymis agent - place secrets";
