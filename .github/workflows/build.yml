@@ -231,7 +231,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: pin nixpkgs
-        run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-25.05
+        run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-25.11
       - name: build thymis-controller-generic-x86_64-image
         uses: ./.github/actions/run-command-with-nix-cache-upload
         with:

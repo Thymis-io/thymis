@@ -311,6 +311,18 @@ let
           virtualisation.useEFIBoot = true;
           boot.growPartition = true;
           boot.loader.systemd-boot.enable = true;
+          # Mount the EFI System Partition at /boot so switch-to-configuration-ng
+          # can update boot entries.  qemu-vm.nix with useBootLoader=true sets
+          # useDefaultFilesystems=false, which means no /boot fstab entry is
+          # generated automatically.  Without this mount the systemd-boot builder's
+          # check-mountpoints script exits 1, causing switch-to-configuration switch
+          # to fail in NixOS 25.11 (where the exit-status bug was fixed by nixpkgs
+          # PR #369867).  The ESP label "ESP" is hard-coded by make-disk-image.nix.
+          fileSystems."/boot" = lib.mkDefault {
+            device = "/dev/disk/by-label/ESP";
+            fsType = "vfat";
+            options = [ "umask=0077" ];
+          };
           system.build.thymis-image-with-secrets-builder-aarch64 =
             let
               hostPkgs = inputs.nixpkgs.legacyPackages.aarch64-linux;

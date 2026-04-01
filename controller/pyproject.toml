@@ -49,3 +49,8 @@ include-package-data = true
 
 [tool.uv.sources]
 thymis-agent = { path = "../agent" }
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks tests as integration tests requiring KVM and a pre-built controller",
+]
