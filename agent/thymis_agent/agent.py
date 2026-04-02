@@ -10,7 +10,8 @@ import socket
 import subprocess
 import sys
 import uuid
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from datetime import timezone
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 import http_network_relay.edge_agent
 import http_network_relay.edge_agent as ea
@@ -167,7 +168,10 @@ def load_controller_public_key_into_root_authorized_keys():
 
 class AgentToRelayMessage(BaseModel):
     # This is a custom message that the agent sends to the relay
-    inner: Union["EtRSwitchToNewConfigResultMessage",] = Field(discriminator="kind")
+    inner: Union[
+        "EtRSwitchToNewConfigResultMessage",
+        "EtRMetricsMessage",
+    ] = Field(discriminator="kind")
 
 
 class EtRSwitchToNewConfigResultMessage(BaseModel):
@@ -180,6 +184,14 @@ class EtRSwitchToNewConfigResultMessage(BaseModel):
     switch_success: bool | None = None  # in v3 final
     stdout: str | None = None  # in v3 final
     stderr: str | None = None  # in v3 final
+
+
+class EtRMetricsMessage(BaseModel):
+    kind: Literal["metrics"] = "metrics"
+    timestamp: datetime.datetime
+    cpu_percent: float
+    ram_percent: float
+    disk_percent: float
 
 
 class RelayToAgentMessage(BaseModel):
@@ -226,7 +238,7 @@ class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
     hardware_ids: Dict[str, str]
     public_key: str
     deployed_config_id: str
-    ip_addresses: List[str]
+    network_interfaces: List[Dict[str, Any]]
     last_error: Optional[str] = None
 
 
@@ -664,6 +676,7 @@ class Agent(ea.EdgeAgent):
 
     async def on_connected(self):
         self.systemd_notifier.status("Connected to relay")
+        asyncio.create_task(self.collect_and_send_metrics())
 
     async def create_start_message(self, last_error: Optional[str] = None):
         return EdgeAgentToRelayStartMessage(
@@ -671,7 +684,7 @@ class Agent(ea.EdgeAgent):
             hardware_ids=self.detect_hardware_id(),
             public_key=self.detect_public_key(),
             deployed_config_id=self.detect_system_config()[0],
-            ip_addresses=self.detect_ip_addresses(),
+            network_interfaces=self.detect_network_interfaces(),
             last_error=last_error,
         )
 
@@ -679,6 +692,24 @@ class Agent(ea.EdgeAgent):
         self.signal_ssh_connected.clear()
         self.systemd_notifier.status("Connection closed, reconnecting...")
         await super().on_connection_closed()
+
+    async def collect_and_send_metrics(self):
+        """Collect system metrics every 60s and send to controller."""
+        while True:
+            try:
+                msg = AgentToRelayMessage(
+                    inner=EtRMetricsMessage(
+                        timestamp=datetime.datetime.now(timezone.utc),
+                        cpu_percent=psutil.cpu_percent(interval=1),
+                        ram_percent=psutil.virtual_memory().percent,
+                        disk_percent=psutil.disk_usage("/").percent,
+                    )
+                )
+                if self.websocket and not self.websocket.closed:
+                    await self.websocket.send(msg.model_dump_json())
+            except Exception as e:
+                logger.error("Failed to collect/send metrics: %s", e)
+            await asyncio.sleep(60)
 
     def update_config_commit(self, new_commit: str):
         self.agent_metadata["configuration_commit"] = new_commit
@@ -740,6 +771,27 @@ class Agent(ea.EdgeAgent):
             for key, path in HARDWARE_ID_FILE_PATHS.items()
         }
         return {key: value for key, value in hardware_ids.items() if value}
+
+    def detect_network_interfaces(self):
+        interfaces = {}
+        for interface, snics in psutil.net_if_addrs().items():
+            if interface == "lo":
+                continue
+            if interface not in interfaces:
+                interfaces[interface] = {
+                    "interface": interface,
+                    "ipv4_addresses": [],
+                    "ipv6_addresses": [],
+                    "mac_address": None,
+                }
+            for snic in snics:
+                if snic.family == socket.AF_INET:
+                    interfaces[interface]["ipv4_addresses"].append(snic.address)
+                elif snic.family == socket.AF_INET6:
+                    interfaces[interface]["ipv6_addresses"].append(snic.address)
+                elif snic.family == psutil.AF_LINK:
+                    interfaces[interface]["mac_address"] = snic.address
+        return list(interfaces.values())
 
     def detect_ip_addresses(self):
         def get_ip_addresses(family):

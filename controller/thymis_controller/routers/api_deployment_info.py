@@ -1,9 +1,15 @@
 import logging
 import os
 import uuid
+from datetime import datetime, timedelta, timezone
+from enum import Enum
 
-from fastapi import APIRouter, HTTPException
-from thymis_controller import crud, models
+import thymis_controller.crud.agent_connection as crud_agent_connection
+import thymis_controller.crud.device_metric as crud_device_metric
+import thymis_controller.crud.logs as crud_logs
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel as PydanticBaseModel
+from thymis_controller import crud, db_models, models
 from thymis_controller.dependencies import DBSessionAD, NetworkRelayAD, ProjectAD
 from thymis_controller.models import device
 
@@ -144,3 +150,87 @@ def get_hardware_devices(db_session: DBSessionAD):
     Get all hardware devices
     """
     return crud.hardware_device.get_all(db_session)
+
+
+class MetricGranularity(str, Enum):
+    one_min = "1min"
+    fifteen_min = "15min"
+    one_hour = "1h"
+
+
+class LocationUpdate(PydanticBaseModel):
+    location: str | None
+
+
+class NameUpdate(PydanticBaseModel):
+    name: str | None
+
+
+@router.put("/deployment_info/{id}/name", response_model=models.DeploymentInfo)
+def update_device_name(
+    id: uuid.UUID, body: NameUpdate, db_session: DBSessionAD
+) -> models.DeploymentInfo:
+    """Update the user-provided name for a device."""
+    result = crud.deployment_info.update_name(db_session, id, body.name)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Device not found")
+    return models.DeploymentInfo.from_deployment_info(result)
+
+
+@router.get("/deployment_info/{id}/connection_history")
+def get_connection_history(id: uuid.UUID, db_session: DBSessionAD) -> list:
+    """Get the last 10 connection events for a device."""
+    connections = crud_agent_connection.get_by_deployment_info(db_session, id)
+    return [
+        {
+            "connected_at": conn.connected_at,
+            "disconnected_at": conn.disconnected_at,
+            "duration_seconds": (
+                (conn.disconnected_at - conn.connected_at).total_seconds()
+                if conn.disconnected_at
+                else None
+            ),
+        }
+        for conn in connections
+    ]
+
+
+@router.get("/deployment_info/{id}/metrics")
+def get_device_metrics(
+    id: uuid.UUID,
+    db_session: DBSessionAD,
+    hours: int = Query(default=168, ge=1, le=168),
+    granularity: MetricGranularity = Query(default=MetricGranularity.one_hour),
+) -> list:
+    """Get downsampled device metrics for the past N hours."""
+    now = datetime.now(timezone.utc)
+    from_time = now - timedelta(hours=hours)
+    return crud_device_metric.get_metrics_downsampled(
+        db_session, id, from_time, now, granularity.value
+    )
+
+
+@router.put("/deployment_info/{id}/location", response_model=models.DeploymentInfo)
+def update_device_location(
+    id: uuid.UUID, body: LocationUpdate, db_session: DBSessionAD
+) -> models.DeploymentInfo:
+    """Update the user-provided location label for a device."""
+    result = crud.deployment_info.update_location(db_session, id, body.location)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Device not found")
+    return models.DeploymentInfo.from_deployment_info(result)
+
+
+@router.get("/deployment_info/{id}/error_logs")
+def get_error_logs(id: uuid.UUID, db_session: DBSessionAD) -> list:
+    """Get the last 50 Error/Critical log entries for a device."""
+    deployment_info = db_session.get(db_models.DeploymentInfo, id)
+    if deployment_info is None:
+        raise HTTPException(status_code=404, detail="Device not found")
+    log_list = crud_logs.get_logs(
+        db_session,
+        deployment_info,
+        limit=50,
+        max_severity=3,  # syslog: 0=Emergency, 1=Alert, 2=Critical, 3=Error
+    )
+    return [log.model_dump() for log in log_list.logs]

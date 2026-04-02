@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
-	import { Table, TableBodyCell, TableHead, TableHeadCell, Toggle } from 'flowbite-svelte';
+	import { Button, Table, TableBodyCell, TableHead, TableHeadCell, Toggle } from 'flowbite-svelte';
 	import { getDeviceTypesMap, getDeviceType } from '$lib/config/configUtils';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import { goto } from '$app/navigation';
 
 	interface Props {
 		data: PageData;
@@ -53,6 +54,7 @@
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.device-type')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.hardware-ids')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.connected')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('device-details.details')}</TableHeadCell>
 	</TableHead>
 	<tbody>
 		{#each data.deploymentInfos as deploymentInfo (deploymentInfo.id)}
@@ -62,7 +64,8 @@
 				)}
 				{@const deviceType = deployedConfig && getDeviceType(deployedConfig)}
 				<tr
-					class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
+					class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+					onclick={() => goto('/devices/' + deploymentInfo.id)}
 				>
 					<TableBodyCell tdClass="p-2"></TableBodyCell>
 					<TableBodyCell tdClass="p-2">
@@ -112,6 +115,17 @@
 								<span>{$t('hardware-devices.table.never-seen')}</span>
 							{/if}
 						{/if}
+					</TableBodyCell>
+					<TableBodyCell tdClass="p-2">
+						<Button
+							size="xs"
+							onclick={(e: MouseEvent) => {
+								e.stopPropagation();
+								goto('/devices/' + deploymentInfo.id);
+							}}
+						>
+							{$t('device-details.details')}
+						</Button>
 					</TableBodyCell>
 				</tr>
 			{/if}
