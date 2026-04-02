@@ -62,10 +62,22 @@ def compact_database(db_session: Session):
     logger.info("Vacuum and WAL checkpoint completed")
 
 
+def _delete_expired_metrics(session: Session) -> None:
+    from datetime import datetime, timedelta, timezone
+
+    cutoff = datetime.now(timezone.utc) - timedelta(
+        days=global_settings.METRICS_RETENTION_DAYS
+    )
+    deleted = crud.device_metric.delete_expired_metrics(session, cutoff)
+    if deleted:
+        logger.info("Deleted %d expired device metrics", deleted)
+
+
 async def initialize_cleanup(db_engine: Engine):
     with Session(db_engine) as session:
         enable_auto_vacuum(session)
         await crud.logs.remove_expired_logs(session)
+        _delete_expired_metrics(session)
         compact_database(session)
     # Also do initial image cleanup
     await images.periodic_image_cleanup()
@@ -78,5 +90,6 @@ async def periodic_cleanup_loop(db_engine: Engine):
         await asyncio.sleep(global_settings.LOG_CLEANUP_INTERVAL_SECONDS)
         with Session(db_engine) as session:
             await crud.logs.remove_expired_logs(session)
+            _delete_expired_metrics(session)
         # Clean up old images periodically
         await images.periodic_image_cleanup()

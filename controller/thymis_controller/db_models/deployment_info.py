@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import Uuid
+from sqlalchemy import JSON, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from thymis_controller.database.base import Base
 
@@ -34,3 +34,7 @@ class DeploymentInfo(Base):
 
     last_seen: Mapped[datetime] = mapped_column(nullable=True)
     first_seen: Mapped[Optional[datetime]] = mapped_column(nullable=True)
+
+    network_interfaces: Mapped[list] = mapped_column(JSON, nullable=True, default=None)
+    location: Mapped[str] = mapped_column(Text, nullable=True, default=None)
+    name: Mapped[str] = mapped_column(Text, nullable=True, default=None)

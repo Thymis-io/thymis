@@ -10,6 +10,14 @@ export type DeploymentInfo = {
 	last_seen: string | null;
 	first_seen: string | null;
 	hardware_devices: HardwareDevice[];
+	network_interfaces?: Array<{
+		interface: string;
+		ipv4_addresses: string[];
+		ipv6_addresses: string[];
+		mac_address: string | null;
+	}> | null;
+	location?: string | null;
+	name?: string | null;
 };
 
 export const getDeploymentInfoByConfigId = async (
@@ -103,4 +111,97 @@ export const getAllDeploymentInfosAsMapFromConfigId = async (fetch: typeof windo
 		}
 	}
 	return deploymentInfosMap;
+};
+
+export const getDeploymentInfo = async (fetch: typeof window.fetch, id: string) => {
+	const response = await fetchWithNotify(
+		`/api/deployment_info/${id}`,
+		undefined,
+		{ 404: 'Device not found' },
+		fetch
+	);
+	if (response.ok) return (await response.json()) as DeploymentInfo;
+	return null;
+};
+
+export const getConnectionHistory = async (
+	fetch: typeof window.fetch,
+	id: string
+): Promise<
+	Array<{ connected_at: string; disconnected_at?: string; duration_seconds?: number }>
+> => {
+	const response = await fetchWithNotify(
+		`/api/deployment_info/${id}/connection_history`,
+		undefined,
+		{},
+		fetch
+	);
+	if (response.ok) return response.json();
+	return [];
+};
+
+export const getDeviceMetrics = async (
+	fetch: typeof window.fetch,
+	id: string,
+	hours: number = 168,
+	granularity: '1min' | '15min' | '1h' = '1h'
+): Promise<
+	Array<{ timestamp: string; cpu_percent: number; ram_percent: number; disk_percent: number }>
+> => {
+	const response = await fetchWithNotify(
+		`/api/deployment_info/${id}/metrics?hours=${hours}&granularity=${granularity}`,
+		undefined,
+		{},
+		fetch
+	);
+	if (response.ok) return response.json();
+	return [];
+};
+
+export const getErrorLogs = async (
+	fetch: typeof window.fetch,
+	id: string
+): Promise<Array<{ timestamp: string; message: string; severity: number; syslogtag: string }>> => {
+	const response = await fetchWithNotify(
+		`/api/deployment_info/${id}/error_logs`,
+		undefined,
+		{},
+		fetch
+	);
+	if (response.ok) return response.json();
+	return [];
+};
+
+export const updateLocation = async (
+	fetch: typeof window.fetch,
+	id: string,
+	location: string | null
+): Promise<Response> => {
+	return fetchWithNotify(
+		`/api/deployment_info/${id}/location`,
+		{
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ location })
+		},
+		{},
+		fetch
+	);
+};
+
+export const updateName = async (
+	fetch: typeof window.fetch,
+	id: string,
+	name: string | null
+): Promise<Response> => {
+	return fetchWithNotify(
+		`/api/deployment_info/${id}/name`,
+		{
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ name })
+		},
+		{},
+		fetch
+	);
 };

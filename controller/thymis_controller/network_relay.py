@@ -12,6 +12,7 @@ import thymis_agent.agent as agent
 import thymis_controller.crud.agent_connection as crud_agent_connection
 import thymis_controller.crud.agent_token as crud_agent_token
 import thymis_controller.crud.deployment_info as crud_deployment_info
+import thymis_controller.crud.device_metric as crud_device_metric
 import thymis_controller.crud.hardware_device as crud_hardware_device
 import thymis_controller.models.task as models_task
 from fastapi import WebSocket
@@ -136,6 +137,22 @@ class NetworkRelay(nr.NetworkRelay):
                         )
                     ),
                 )
+            case agent.EtRMetricsMessage():
+                inner = message.inner
+                with sqlalchemy.orm.Session(self.db_engine) as db_session:
+                    deployment_infos = crud_deployment_info.get_by_ssh_public_key(
+                        db_session,
+                        self.connection_id_to_public_key[connection_id],
+                    )
+                    if deployment_infos:
+                        crud_device_metric.create_metric(
+                            db_session,
+                            deployment_infos[0].id,
+                            cpu_percent=inner.cpu_percent,
+                            ram_percent=inner.ram_percent,
+                            disk_percent=inner.disk_percent,
+                            timestamp=inner.timestamp,
+                        )
             case _:
                 assert_never(message.inner)
 
@@ -339,6 +356,14 @@ class NetworkRelay(nr.NetworkRelay):
                 self.connection_id_to_public_key[connection_id],
                 self.connection_id_to_start_message[connection_id].deployed_config_id,
                 None,
+            )
+
+            deployment_info = crud_deployment_info.update(
+                db_session,
+                deployment_info.id,
+                network_interfaces=self.connection_id_to_start_message[
+                    connection_id
+                ].network_interfaces,
             )
 
             deployment_info_id = deployment_info.id

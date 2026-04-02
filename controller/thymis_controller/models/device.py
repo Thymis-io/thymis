@@ -48,6 +48,9 @@ class DeploymentInfo(BaseModel):
     last_seen: Optional[datetime]
     first_seen: Optional[datetime]
     hardware_devices: List["HardwareDevice"]
+    network_interfaces: list[dict] | None = None
+    location: str | None = None
+    name: str | None = None
 
     @field_serializer("last_seen", "first_seen")
     def _ser_dt(self, dt: datetime | None) -> str | None:
@@ -73,6 +76,9 @@ class DeploymentInfo(BaseModel):
             hardware_devices=deployment_info.hardware_devices,
             last_seen=deployment_info.last_seen,
             first_seen=deployment_info.first_seen,
+            network_interfaces=deployment_info.network_interfaces,
+            location=deployment_info.location,
+            name=deployment_info.name,
         )
 
 
