@@ -27,6 +27,9 @@ class GlobalSettings(BaseSettings):
     LOG_RETENTION_DAYS: int = 7
     LOG_CLEANUP_INTERVAL_SECONDS: int = 60 * 60  # 1 hour
 
+    METRICS_RETENTION_DAYS: int = 30
+    METRICS_CLEANUP_INTERVAL_SECONDS: int = 60 * 60 * 24  # 24 hours
+
     model_config = ConfigDict(
         env_prefix="THYMIS_", env_file=".env", env_file_encoding="utf-8"
     )

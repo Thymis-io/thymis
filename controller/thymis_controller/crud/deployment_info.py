@@ -40,6 +40,7 @@ def update(
     deployed_config_id: str | None = None,
     reachable_deployed_host: str | None = None,
     last_seen: str | None = None,
+    network_interfaces: list | None = None,
 ) -> db_models.DeploymentInfo:
     deployment_info = (
         session.query(db_models.DeploymentInfo)
@@ -58,6 +59,8 @@ def update(
         deployment_info.last_seen = last_seen
     if deployment_info.first_seen is None:
         deployment_info.first_seen = last_seen
+    if network_interfaces is not None:
+        deployment_info.network_interfaces = network_interfaces
     session.commit()
     session.refresh(deployment_info)
     return deployment_info
@@ -180,6 +183,34 @@ def get_connected_deployment_infos(db_session: Session, network_relay: "NetworkR
         for deployment_info in get_all_stable(db_session)
         if network_relay.public_key_to_connection_id.get(deployment_info.ssh_public_key)
     ]
+
+
+def update_location(
+    session: Session,
+    deployment_info_id: uuid.UUID,
+    location: str | None,
+) -> db_models.DeploymentInfo | None:
+    deployment_info = session.get(db_models.DeploymentInfo, deployment_info_id)
+    if deployment_info is None:
+        return None
+    deployment_info.location = location
+    session.commit()
+    session.refresh(deployment_info)
+    return deployment_info
+
+
+def update_name(
+    session: Session,
+    deployment_info_id: uuid.UUID,
+    name: str | None,
+) -> db_models.DeploymentInfo | None:
+    deployment_info = session.get(db_models.DeploymentInfo, deployment_info_id)
+    if deployment_info is None:
+        return None
+    deployment_info.name = name
+    session.commit()
+    session.refresh(deployment_info)
+    return deployment_info
 
 
 if "RUNNING_IN_PLAYWRIGHT" in os.environ:

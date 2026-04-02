@@ -4,6 +4,7 @@ from . import (
     check_systemd_timer,
     controller_settings,
     deployment_info,
+    device_metric,
     hardware_device,
     logs,
     secrets,

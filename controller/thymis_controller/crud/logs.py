@@ -72,6 +72,7 @@ def get_logs(
     exact_program_name: bool = False,
     limit: int = 100,
     offset: int = 0,
+    max_severity: int | None = None,  # syslog severity (0=Emergency, 3=Error, 7=Debug)
 ) -> models.LogList:
     # where ID equals or ssh public key equals
 
@@ -91,6 +92,8 @@ def get_logs(
             stmt = stmt.filter(db_models.LogEntry.programname == program_name)
         else:
             stmt = stmt.filter(db_models.LogEntry.programname.contains(program_name))
+    if max_severity is not None:
+        stmt = stmt.filter(db_models.LogEntry.severity <= max_severity)
     stmt = stmt.order_by(nullslast(db_models.LogEntry.timestamp.desc()))
     stmt = stmt.limit(limit).offset(offset)
 
