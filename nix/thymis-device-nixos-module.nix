@@ -92,14 +92,6 @@ in
     services.openssh = {
       enable = true;
       settings.PermitRootLogin = "yes";
-      # Non-interactive SSH sessions (e.g. `nix copy --to ssh-ng://` run by the
-      # controller) do not source /etc/profile.d/*.sh, so /run/current-system/sw/bin
-      # is absent from PATH.  Nix 2.26 (controller) invokes `nix-daemon --stdio`
-      # on the remote via SSH; without this the copy fails with
-      # "Could not find executable 'nix-daemon'".
-      extraConfig = ''
-        SetEnv PATH=/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/bin
-      '';
     };
     networking.hostName = cfg.device-name;
     networking.wireless = lib.mkIf use-wifi {
