@@ -153,6 +153,12 @@ class NetworkRelay(nr.NetworkRelay):
                             disk_percent=inner.disk_percent,
                             timestamp=inner.timestamp,
                         )
+                        self.notification_manager.broadcast_invalidate_notification(
+                            [
+                                f"/api/deployment_info/{info.id}/metrics"
+                                for info in deployment_infos
+                            ]
+                        )
             case _:
                 assert_never(message.inner)
 
