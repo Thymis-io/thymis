@@ -1,45 +1,36 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { onMount } from 'svelte';
 	import { Badge, Button, Input, Modal, Spinner } from 'flowbite-svelte';
 	import Pen from 'lucide-svelte/icons/pen';
 	import type { PageData } from './$types';
-	import {
-		getConnectionHistory,
-		getDeviceMetrics,
-		getErrorLogs,
-		updateName
-	} from '$lib/deploymentInfo';
+	import { updateName } from '$lib/deploymentInfo';
 	import SectionDeviceInfo from './SectionDeviceInfo.svelte';
 	import SectionOnlineStatus from './SectionOnlineStatus.svelte';
 	import SectionMetrics from './SectionMetrics.svelte';
 	import SectionErrorLogs from './SectionErrorLogs.svelte';
 	import Section from './Section.svelte';
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
+	import { queryParameters } from 'sveltekit-search-params';
+
+	const params = queryParameters();
 
 	interface Props {
 		data: PageData;
 	}
 	let { data }: Props = $props();
 
-	let deploymentInfo = $state(data.deploymentInfo);
+	let deploymentInfo = $derived(data.deploymentInfo);
 
 	type TimeWindow = '1h' | '24h' | '7d';
 
-	let connectionHistory: Array<{ connected_at: string; disconnected_at?: string }> = $state([]);
-	let metrics: Array<{
-		timestamp: string;
-		cpu_percent: number;
-		ram_percent: number;
-		disk_percent: number;
-	}> = $state([]);
-	let errorLogs: Array<{
-		timestamp: string;
-		message: string;
-		severity: number;
-		syslogtag: string;
-	}> = $state([]);
-	let metricsTimewindow: TimeWindow = $state('7d');
-	let metricsLoading = $state(false);
+	let metricsTimeWindow: TimeWindow = $derived.by(() => {
+		const tw = params['timewindow'];
+		if (tw === '1h' || tw === '24h' || tw === '7d') {
+			return tw;
+		}
+		return '24h';
+	});
 
 	let nameModalOpen = $state(false);
 	let nameInput = $state('');
@@ -63,31 +54,19 @@
 		}
 	}
 
-	const hoursMap: Record<TimeWindow, number> = { '1h': 1, '24h': 24, '7d': 168 };
+	const hoursMap: Record<TimeWindow, number> = { '1h': 1, '24h': 24, '7d': 7 * 24 };
 	const granularityMap: Record<TimeWindow, '1min' | '15min' | '1h'> = {
 		'1h': '1min',
 		'24h': '15min',
 		'7d': '1h'
 	};
 
-	onMount(async () => {
-		[connectionHistory, metrics, errorLogs] = await Promise.all([
-			getConnectionHistory(fetch, deploymentInfo.id),
-			getDeviceMetrics(fetch, deploymentInfo.id, 168, '1h'),
-			getErrorLogs(fetch, deploymentInfo.id)
-		]);
-	});
-
 	async function handleTimeWindowChange(window: TimeWindow) {
-		metricsTimewindow = window;
-		metricsLoading = true;
-		metrics = await getDeviceMetrics(
-			fetch,
-			deploymentInfo.id,
-			hoursMap[window],
-			granularityMap[window]
-		);
-		metricsLoading = false;
+		const searchParams = new URLSearchParams(page.url.search);
+		searchParams.set('timewindow', window);
+		searchParams.set('hours', hoursMap[window].toString());
+		searchParams.set('granularity', granularityMap[window]);
+		goto(`?${searchParams.toString()}`, { replaceState: true });
 	}
 </script>
 
@@ -128,18 +107,14 @@
 				<div class="mb-4 flex gap-2">
 					{#each ['1h', '24h', '7d'] as w (w)}
 						<Button
-							color={metricsTimewindow === w ? 'blue' : 'light'}
+							color={metricsTimeWindow === w ? 'blue' : 'light'}
 							onclick={() => handleTimeWindowChange(w as TimeWindow)}
 						>
 							{w}
 						</Button>
 					{/each}
 				</div>
-				{#if metricsLoading}
-					<Spinner />
-				{:else}
-					<SectionMetrics {metrics} timewindow={metricsTimewindow} />
-				{/if}
+				<SectionMetrics metrics={data.metrics} timewindow={metricsTimeWindow} />
 			</Section>
 		</div>
 
@@ -150,7 +125,7 @@
 	</div>
 
 	<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-		<SectionOnlineStatus {connectionHistory} />
-		<SectionErrorLogs {errorLogs} />
+		<SectionOnlineStatus connectionHistory={data.connectionHistory} />
+		<SectionErrorLogs errorLogs={data.errorLogs} />
 	</div>
 </div>
