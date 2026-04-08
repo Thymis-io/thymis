@@ -239,7 +239,8 @@ class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
     hardware_ids: Dict[str, str]
     public_key: str
     deployed_config_id: str
-    network_interfaces: List[Dict[str, Any]]
+    ip_addresses: List[str] = []  # deprecated, used for backwards compatibility
+    network_interfaces: List[Dict[str, Any]] = []
     last_error: Optional[str] = None
 
 
