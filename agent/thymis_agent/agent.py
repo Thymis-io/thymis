@@ -20,6 +20,7 @@ import psutil
 import requests
 from pydantic import BaseModel, Field, ValidationError
 from pyrage import decrypt, passphrase, ssh
+from websockets import ConnectionClosed
 
 ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
@@ -264,6 +265,10 @@ class Agent(ea.EdgeAgent):
         self.agent_metadata = agent_metadata
         self.signal_ssh_connected = asyncio.Event()
         self.systemd_notifier = systemd_notifier
+
+    async def async_main(self):
+        asyncio.create_task(self.collect_and_send_metrics())
+        await super().async_main()
 
     async def handle_custom_relay_message(self, message: RelayToAgentMessage):
         logger.info("Received custom relay message: %s", message.inner.kind)
@@ -674,10 +679,6 @@ class Agent(ea.EdgeAgent):
                     "/bin/sh -c 'echo \"root:$(cat /run/thymis/root_password_hash)\" | chpasswd -e'"
                 )
 
-    async def on_connected(self):
-        self.systemd_notifier.status("Connected to relay")
-        asyncio.create_task(self.collect_and_send_metrics())
-
     async def create_start_message(self, last_error: Optional[str] = None):
         return EdgeAgentToRelayStartMessage(
             token=self.token,
@@ -695,18 +696,22 @@ class Agent(ea.EdgeAgent):
 
     async def collect_and_send_metrics(self):
         """Collect system metrics every 60s and send to controller."""
+        while not self.websocket:
+            await asyncio.sleep(10)
         while True:
             try:
-                msg = AgentToRelayMessage(
-                    inner=EtRMetricsMessage(
-                        timestamp=datetime.datetime.now(timezone.utc),
-                        cpu_percent=psutil.cpu_percent(interval=1),
-                        ram_percent=psutil.virtual_memory().percent,
-                        disk_percent=psutil.disk_usage("/").percent,
+                if self.websocket:
+                    msg = AgentToRelayMessage(
+                        inner=EtRMetricsMessage(
+                            timestamp=datetime.datetime.now(timezone.utc),
+                            cpu_percent=psutil.cpu_percent(interval=1),
+                            ram_percent=psutil.virtual_memory().percent,
+                            disk_percent=psutil.disk_usage("/").percent,
+                        )
                     )
-                )
-                if self.websocket and not self.websocket.closed:
                     await self.websocket.send(msg.model_dump_json())
+            except ConnectionClosed:
+                pass
             except Exception as e:
                 logger.error("Failed to collect/send metrics: %s", e)
             await asyncio.sleep(60)
