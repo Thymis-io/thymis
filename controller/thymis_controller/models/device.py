@@ -33,10 +33,12 @@ class Hostkey(BaseModel):
         )
 
 
-class CreateDeploymentInfoLegacyHostkeyRequest(BaseModel):
-    deployed_config_id: str
-    ssh_public_key: str
-    reachable_deployed_host: str
+class UpdateDeploymentInfo(BaseModel):
+    deployed_config_id: str | None = None
+    ssh_public_key: str | None = None
+    reachable_deployed_host: str | None = None
+    name: str | None = None
+    location: str | None = None
 
 
 class DeploymentInfo(BaseModel):
@@ -102,6 +104,6 @@ __all__ = [
     "DeviceHeartbeatRequest",
     "CreateHostkeyRequest",
     "DeploymentInfo",
-    "CreateDeploymentInfoLegacyHostkeyRequest",
+    "UpdateDeploymentInfo",
     "HardwareDevice",
 ]

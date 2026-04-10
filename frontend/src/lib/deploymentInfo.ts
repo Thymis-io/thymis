@@ -184,30 +184,25 @@ export const getErrorLogs = async (fetch: typeof window.fetch, id: string) => {
 	return [];
 };
 
-export const updateLocation = async (
-	fetch: typeof window.fetch,
-	id: string,
-	location: string | null
-) => {
-	return fetchWithNotify(
-		`/api/deployment_info/${id}/location`,
-		{
-			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ location })
-		},
-		{},
-		fetch
-	);
+export type DeploymentInfoUpdate = {
+	ssh_public_key?: string | null;
+	deployed_config_id?: string | null;
+	reachable_deployed_host?: string | null;
+	name?: string | null;
+	location?: string | null;
 };
 
-export const updateName = async (fetch: typeof window.fetch, id: string, name: string | null) => {
+export const updateDeploymentInfo = async (
+	fetch: typeof window.fetch,
+	id: string,
+	update: DeploymentInfoUpdate
+) => {
 	return fetchWithNotify(
-		`/api/deployment_info/${id}/name`,
+		`/api/deployment_info/${id}`,
 		{
-			method: 'PUT',
+			method: 'PATCH',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ name })
+			body: JSON.stringify(update)
 		},
 		{},
 		fetch

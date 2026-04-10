@@ -7,6 +7,11 @@ from sqlalchemy import nullslast
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
 
+# Sentinel distinguishing "caller passed no value" from "caller explicitly passed None".
+# Required for update() fields that are nullable: None must mean "set to NULL",
+# not "leave unchanged" (which is what None means for the other update() params).
+_UNSET = object()
+
 if TYPE_CHECKING:
     from thymis_controller.network_relay import NetworkRelay
 
@@ -41,12 +46,12 @@ def update(
     reachable_deployed_host: str | None = None,
     last_seen: str | None = None,
     network_interfaces: list | None = None,
-) -> db_models.DeploymentInfo:
-    deployment_info = (
-        session.query(db_models.DeploymentInfo)
-        .filter(db_models.DeploymentInfo.id == id)
-        .first()
-    )
+    location: str | None = _UNSET,
+    name: str | None = _UNSET,
+) -> db_models.DeploymentInfo | None:
+    deployment_info = session.get(db_models.DeploymentInfo, id)
+    if deployment_info is None:
+        return None
     if ssh_public_key is not None:
         deployment_info.ssh_public_key = ssh_public_key
     if deployed_config_commit is not None:
@@ -61,6 +66,10 @@ def update(
         deployment_info.first_seen = last_seen
     if network_interfaces is not None:
         deployment_info.network_interfaces = network_interfaces
+    if location is not _UNSET:
+        deployment_info.location = location
+    if name is not _UNSET:
+        deployment_info.name = name
     session.commit()
     session.refresh(deployment_info)
     return deployment_info
@@ -183,34 +192,6 @@ def get_connected_deployment_infos(db_session: Session, network_relay: "NetworkR
         for deployment_info in get_all_stable(db_session)
         if network_relay.public_key_to_connection_id.get(deployment_info.ssh_public_key)
     ]
-
-
-def update_location(
-    session: Session,
-    deployment_info_id: uuid.UUID,
-    location: str | None,
-) -> db_models.DeploymentInfo | None:
-    deployment_info = session.get(db_models.DeploymentInfo, deployment_info_id)
-    if deployment_info is None:
-        return None
-    deployment_info.location = location
-    session.commit()
-    session.refresh(deployment_info)
-    return deployment_info
-
-
-def update_name(
-    session: Session,
-    deployment_info_id: uuid.UUID,
-    name: str | None,
-) -> db_models.DeploymentInfo | None:
-    deployment_info = session.get(db_models.DeploymentInfo, deployment_info_id)
-    if deployment_info is None:
-        return None
-    deployment_info.name = name
-    session.commit()
-    session.refresh(deployment_info)
-    return deployment_info
 
 
 if "RUNNING_IN_PLAYWRIGHT" in os.environ:
