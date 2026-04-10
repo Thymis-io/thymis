@@ -12,6 +12,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { queryParameters } from 'sveltekit-search-params';
+	import PageHead from '$lib/components/layout/PageHead.svelte';
 
 	const params = queryParameters();
 
@@ -70,62 +71,59 @@
 	}
 </script>
 
-<div class="space-y-6 p-6">
-	<header class="flex items-center gap-3">
-		<div>
-			<div class="flex items-center gap-2">
-				<h1 class="text-3xl font-bold">{deploymentInfo.name ?? deploymentInfo.id}</h1>
-				<Badge color={isOnline ? 'green' : 'red'}>
-					{isOnline ? $t('device-details.online') : $t('device-details.offline')}
-				</Badge>
+<PageHead
+	title={deploymentInfo.name ?? deploymentInfo.id}
+	repoStatus={data.repoStatus}
+	globalState={data.globalState}
+	nav={data.nav}
+>
+	<button
+		onclick={openNameModal}
+		class="rounded p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+		title={$t('device-details.edit')}
+	>
+		<Pen class="h-5 w-5" />
+	</button>
+	<Badge color={isOnline ? 'green' : 'red'}>
+		{isOnline ? $t('device-details.online') : $t('device-details.offline')}
+	</Badge>
+</PageHead>
+
+<Modal bind:open={nameModalOpen} title={$t('device-details.edit')}>
+	<Input bind:value={nameInput} placeholder={$t('device-details.name-placeholder')} />
+	<div class="mt-4 flex gap-2">
+		<Button onclick={saveName}>{$t('device-details.save')}</Button>
+		<Button color="light" onclick={() => (nameModalOpen = false)}>{$t('common.cancel')}</Button>
+	</div>
+</Modal>
+
+<div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+	<!-- System metrics: 3/4 width -->
+	<div class="lg:col-span-3">
+		<Section title={$t('device-details.system-metrics')} class="h-full">
+			<div class="mb-4 flex gap-2">
+				{#each ['1h', '24h', '7d'] as w (w)}
+					<Button
+						color={metricsTimeWindow === w ? 'blue' : 'light'}
+						onclick={() => handleTimeWindowChange(w as TimeWindow)}
+					>
+						{w}
+					</Button>
+				{/each}
 			</div>
-			{#if deploymentInfo.name}
-				<p class="mt-1 font-mono text-sm text-gray-500">{deploymentInfo.id}</p>
-			{/if}
-		</div>
-		<button
-			onclick={openNameModal}
-			class="rounded p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-			title={$t('device-details.edit')}
-		>
-			<Pen class="h-5 w-5" />
-		</button>
-	</header>
-
-	<Modal bind:open={nameModalOpen} title={$t('device-details.edit')}>
-		<Input bind:value={nameInput} placeholder={$t('device-details.name-placeholder')} />
-		<div class="mt-4 flex gap-2">
-			<Button onclick={saveName}>{$t('device-details.save')}</Button>
-			<Button color="light" onclick={() => (nameModalOpen = false)}>{$t('common.cancel')}</Button>
-		</div>
-	</Modal>
-
-	<div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
-		<!-- System metrics: 3/4 width -->
-		<div class="lg:col-span-3">
-			<Section title={$t('device-details.system-metrics')} class="h-full">
-				<div class="mb-4 flex gap-2">
-					{#each ['1h', '24h', '7d'] as w (w)}
-						<Button
-							color={metricsTimeWindow === w ? 'blue' : 'light'}
-							onclick={() => handleTimeWindowChange(w as TimeWindow)}
-						>
-							{w}
-						</Button>
-					{/each}
-				</div>
-				<SectionMetrics metrics={data.metrics} timewindow={metricsTimeWindow} />
-			</Section>
-		</div>
-
-		<!-- Right sidebar: device info -->
-		<div class="flex flex-col gap-6">
-			<SectionDeviceInfo bind:deploymentInfo globalState={data.globalState} />
-		</div>
+			<SectionMetrics metrics={data.metrics} timewindow={metricsTimeWindow} />
+		</Section>
 	</div>
 
-	<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+	<!-- Right sidebar: device info -->
+	<div class="flex flex-col gap-6 h-full">
+		<SectionDeviceInfo bind:deploymentInfo globalState={data.globalState} />
+	</div>
+
+	<div class="lg:col-span-2">
 		<SectionOnlineStatus connectionHistory={data.connectionHistory} />
+	</div>
+	<div class="lg:col-span-2">
 		<SectionErrorLogs errorLogs={data.errorLogs} />
 	</div>
 </div>

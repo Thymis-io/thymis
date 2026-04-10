@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Progressbar } from 'flowbite-svelte';
+	import type { DeviceMetricsEntry } from '$lib/deploymentInfo';
 	import { Line } from 'svelte-chartjs';
 	import {
 		Chart as ChartJS,
@@ -16,12 +17,7 @@
 	ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 	interface Props {
-		metrics: Array<{
-			timestamp: string;
-			cpu_percent: number;
-			ram_percent: number;
-			disk_percent: number;
-		}>;
+		metrics: DeviceMetricsEntry[];
 		timewindow: '1h' | '24h' | '7d';
 	}
 	let { metrics, timewindow }: Props = $props();

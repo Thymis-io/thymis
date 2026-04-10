@@ -17,7 +17,7 @@
 </script>
 
 <div class="flex justify-between mb-4">
-	<div class="flex gap-4">
+	<div class="flex gap-4 items-center">
 		{#if title}
 			<h1 class="text-3xl font-bold dark:text-white">{title}</h1>
 		{/if}

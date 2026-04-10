@@ -1,14 +1,10 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import Section from './Section.svelte';
+	import type { ErrorLogEntry } from '$lib/deploymentInfo';
 
 	interface Props {
-		errorLogs: Array<{
-			timestamp: string;
-			message: string;
-			severity: number;
-			syslogtag: string;
-		}>;
+		errorLogs: ErrorLogEntry[];
 	}
 	let { errorLogs }: Props = $props();
 
@@ -26,7 +22,7 @@
 	{:else}
 		<div class="space-y-2">
 			{#each errorLogs as log}
-				<div class="rounded border border-red-200 bg-red-50 p-3">
+				<div class="rounded border border-red-200 bg-red-50 dark:bg-red-700/10 p-3">
 					<div class="flex items-center justify-between">
 						<span class="text-xs font-semibold text-red-700">
 							{severityLabel[log.severity] ?? 'Error'}

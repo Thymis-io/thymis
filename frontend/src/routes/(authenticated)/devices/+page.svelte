@@ -64,8 +64,7 @@
 				)}
 				{@const deviceType = deployedConfig && getDeviceType(deployedConfig)}
 				<tr
-					class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
-					onclick={() => goto('/devices/' + deploymentInfo.id)}
+					class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
 				>
 					<TableBodyCell tdClass="p-2"></TableBodyCell>
 					<TableBodyCell tdClass="p-2">
@@ -117,13 +116,7 @@
 						{/if}
 					</TableBodyCell>
 					<TableBodyCell tdClass="p-2">
-						<Button
-							size="xs"
-							onclick={(e: MouseEvent) => {
-								e.stopPropagation();
-								goto('/devices/' + deploymentInfo.id);
-							}}
-						>
+						<Button size="sm" color="alternative" href={'/devices/' + deploymentInfo.id}>
 							{$t('device-details.details')}
 						</Button>
 					</TableBodyCell>

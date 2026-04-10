@@ -104,7 +104,7 @@
 >
 	<Button
 		color="alternative"
-		class="whitespace-nowrap gap-2 px-2 py-1 m-1"
+		class="whitespace-nowrap gap-2 px-2 py-2"
 		on:click={() => (newConfigModalOpen = true)}
 		disabled={configs.length >= 5}
 	>
