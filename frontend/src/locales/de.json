@@ -555,6 +555,7 @@
 		}
 	},
 	"device-details": {
+		"id": "ID",
 		"network-info": "Netzwerkinformationen",
 		"no-network-info": "Keine Netzwerk-Interfaces gefunden",
 		"online-status": "Online-Status",
