@@ -3,10 +3,11 @@
 	import { Button, Card, Input, Label, Modal } from 'flowbite-svelte';
 	import Pen from 'lucide-svelte/icons/pen';
 	import type { DeploymentInfo } from '$lib/deploymentInfo';
-	import { updateLocation } from '$lib/deploymentInfo';
+	import { updateDeploymentInfo } from '$lib/deploymentInfo';
 	import type { GlobalState } from '$lib/state.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
+	import { invalidate } from '$app/navigation';
 
 	interface Props {
 		deploymentInfo: DeploymentInfo;
@@ -23,10 +24,12 @@
 	}
 
 	async function save() {
-		const response = await updateLocation(fetch, deploymentInfo.id, locationInput || null);
+		const response = await updateDeploymentInfo(fetch, deploymentInfo.id, {
+			location: locationInput || null
+		});
 		if (response.ok) {
-			deploymentInfo = { ...deploymentInfo, location: locationInput || null };
 			modalOpen = false;
+			await invalidate(`/api/deployment_info/${deploymentInfo.id}`);
 		}
 	}
 </script>

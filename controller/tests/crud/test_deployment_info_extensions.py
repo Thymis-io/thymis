@@ -17,14 +17,14 @@ def _make_di(db_session):
 
 def test_update_location(db_session):
     di = _make_di(db_session)
-    updated = crud.update_location(db_session, di.id, "Server Room A")
+    updated = crud.update(db_session, di.id, location="Server Room A")
     assert updated.location == "Server Room A"
 
 
 def test_update_location_to_none(db_session):
     di = _make_di(db_session)
-    crud.update_location(db_session, di.id, "Old Location")
-    updated = crud.update_location(db_session, di.id, None)
+    crud.update(db_session, di.id, location="Old Location")
+    updated = crud.update(db_session, di.id, location=None)
     assert updated.location is None
 
 
