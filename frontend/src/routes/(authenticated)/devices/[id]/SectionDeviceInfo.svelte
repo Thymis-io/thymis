@@ -31,9 +31,13 @@
 	}
 </script>
 
-<Card>
+<Card class="w-full !max-w-full h-full">
 	<h2 class="mb-4 text-xl font-semibold">{$t('device-details.device-info')}</h2>
-	<div class="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-2 text-sm">
+	<div class="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-2 text-sm items-center">
+		<!-- ID -->
+		<span class="font-medium text-gray-500">{$t('device-details.id')}</span>
+		<span class="font-mono">{deploymentInfo.id}</span>
+
 		<!-- Location -->
 		<span class="font-medium text-gray-500">{$t('device-details.location')}</span>
 		<div class="flex items-center gap-2">
@@ -57,7 +61,7 @@
 					{globalState}
 				/>
 			{:else}
-				<span class="text-gray-400">—</span>
+				<span class="text-gray-400">-</span>
 			{/if}
 		</div>
 
@@ -67,7 +71,7 @@
 			{#if deploymentInfo.deployed_config_commit}
 				<span class="font-mono">{deploymentInfo.deployed_config_commit.slice(0, 8)}</span>
 			{:else}
-				<span class="text-gray-400">—</span>
+				<span class="text-gray-400">-</span>
 			{/if}
 		</span>
 
@@ -87,7 +91,7 @@
 			{#if deploymentInfo.first_seen}
 				<RenderTimeAgo timestamp={deploymentInfo.first_seen} />
 			{:else}
-				<span class="text-gray-400">—</span>
+				<span class="text-gray-400">-</span>
 			{/if}
 		</span>
 
@@ -97,7 +101,7 @@
 			{#if deploymentInfo.last_seen}
 				<RenderTimeAgo timestamp={deploymentInfo.last_seen} />
 			{:else}
-				<span class="text-gray-400">—</span>
+				<span class="text-gray-400">-</span>
 			{/if}
 		</span>
 	</div>

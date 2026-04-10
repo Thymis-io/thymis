@@ -1,6 +1,13 @@
 import { fetchWithNotify } from './fetchWithNotify';
 import type { HardwareDevice } from './hardwareDevices';
 
+export type NetworkInterface = {
+	interface: string;
+	ipv4_addresses: string[];
+	ipv6_addresses: string[];
+	mac_address: string | null;
+};
+
 export type DeploymentInfo = {
 	id: string;
 	ssh_public_key: string;
@@ -10,14 +17,29 @@ export type DeploymentInfo = {
 	last_seen: string | null;
 	first_seen: string | null;
 	hardware_devices: HardwareDevice[];
-	network_interfaces?: Array<{
-		interface: string;
-		ipv4_addresses: string[];
-		ipv6_addresses: string[];
-		mac_address: string | null;
-	}> | null;
+	network_interfaces?: NetworkInterface[] | null;
 	location?: string | null;
 	name?: string | null;
+};
+
+export type ConnectionHistoryEntry = {
+	connected_at: string;
+	disconnected_at?: string;
+	duration_seconds?: number;
+};
+
+export type DeviceMetricsEntry = {
+	timestamp: string;
+	cpu_percent: number;
+	ram_percent: number;
+	disk_percent: number;
+};
+
+export type ErrorLogEntry = {
+	timestamp: string;
+	message: string;
+	severity: number;
+	syslogtag: string;
 };
 
 export const getDeploymentInfoByConfigId = async (
@@ -124,19 +146,14 @@ export const getDeploymentInfo = async (fetch: typeof window.fetch, id: string) 
 	return null;
 };
 
-export const getConnectionHistory = async (
-	fetch: typeof window.fetch,
-	id: string
-): Promise<
-	Array<{ connected_at: string; disconnected_at?: string; duration_seconds?: number }>
-> => {
+export const getConnectionHistory = async (fetch: typeof window.fetch, id: string) => {
 	const response = await fetchWithNotify(
 		`/api/deployment_info/${id}/connection_history`,
 		undefined,
 		{},
 		fetch
 	);
-	if (response.ok) return response.json();
+	if (response.ok) return (await response.json()) as ConnectionHistoryEntry[];
 	return [];
 };
 
@@ -145,30 +162,25 @@ export const getDeviceMetrics = async (
 	id: string,
 	hours: number = 168,
 	granularity: '1min' | '15min' | '1h' = '1h'
-): Promise<
-	Array<{ timestamp: string; cpu_percent: number; ram_percent: number; disk_percent: number }>
-> => {
+) => {
 	const response = await fetchWithNotify(
 		`/api/deployment_info/${id}/metrics?hours=${hours}&granularity=${granularity}`,
 		undefined,
 		{},
 		fetch
 	);
-	if (response.ok) return response.json();
+	if (response.ok) return (await response.json()) as DeviceMetricsEntry[];
 	return [];
 };
 
-export const getErrorLogs = async (
-	fetch: typeof window.fetch,
-	id: string
-): Promise<Array<{ timestamp: string; message: string; severity: number; syslogtag: string }>> => {
+export const getErrorLogs = async (fetch: typeof window.fetch, id: string) => {
 	const response = await fetchWithNotify(
 		`/api/deployment_info/${id}/error_logs`,
 		undefined,
 		{},
 		fetch
 	);
-	if (response.ok) return response.json();
+	if (response.ok) return (await response.json()) as ErrorLogEntry[];
 	return [];
 };
 
@@ -176,7 +188,7 @@ export const updateLocation = async (
 	fetch: typeof window.fetch,
 	id: string,
 	location: string | null
-): Promise<Response> => {
+) => {
 	return fetchWithNotify(
 		`/api/deployment_info/${id}/location`,
 		{
@@ -189,11 +201,7 @@ export const updateLocation = async (
 	);
 };
 
-export const updateName = async (
-	fetch: typeof window.fetch,
-	id: string,
-	name: string | null
-): Promise<Response> => {
+export const updateName = async (fetch: typeof window.fetch, id: string, name: string | null) => {
 	return fetchWithNotify(
 		`/api/deployment_info/${id}/name`,
 		{
