@@ -68,8 +68,8 @@ def test_get_metrics(test_client, db_session):
 
 def test_update_location(test_client, db_session):
     di = _make_di(db_session)
-    response = test_client.put(
-        f"/api/deployment_info/{di.id}/location",
+    response = test_client.patch(
+        f"/api/deployment_info/{di.id}",
         json={"location": "Server Room B"},
     )
     assert response.status_code == 200
@@ -78,8 +78,8 @@ def test_update_location(test_client, db_session):
 
 def test_update_location_to_null(test_client, db_session):
     di = _make_di(db_session, location="Old Location")
-    response = test_client.put(
-        f"/api/deployment_info/{di.id}/location",
+    response = test_client.patch(
+        f"/api/deployment_info/{di.id}",
         json={"location": None},
     )
     assert response.status_code == 200

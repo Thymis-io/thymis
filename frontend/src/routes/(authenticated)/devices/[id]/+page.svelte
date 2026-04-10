@@ -3,14 +3,14 @@
 	import { Badge, Button, Input, Modal, Spinner } from 'flowbite-svelte';
 	import Pen from 'lucide-svelte/icons/pen';
 	import type { PageData } from './$types';
-	import { updateName } from '$lib/deploymentInfo';
+	import { updateDeploymentInfo } from '$lib/deploymentInfo';
 	import SectionDeviceInfo from './SectionDeviceInfo.svelte';
 	import SectionOnlineStatus from './SectionOnlineStatus.svelte';
 	import SectionMetrics from './SectionMetrics.svelte';
 	import SectionErrorLogs from './SectionErrorLogs.svelte';
 	import Section from './Section.svelte';
 	import { page } from '$app/state';
-	import { goto } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import { queryParameters } from 'sveltekit-search-params';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 
@@ -48,10 +48,12 @@
 	}
 
 	async function saveName() {
-		const response = await updateName(fetch, deploymentInfo.id, nameInput || null);
+		const response = await updateDeploymentInfo(fetch, deploymentInfo.id, {
+			name: nameInput || null
+		});
 		if (response.ok) {
-			deploymentInfo = { ...deploymentInfo, name: nameInput || null };
 			nameModalOpen = false;
+			await invalidate(`/api/deployment_info/${deploymentInfo.id}`);
 		}
 	}
 

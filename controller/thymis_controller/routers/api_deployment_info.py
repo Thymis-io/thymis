@@ -8,7 +8,6 @@ import thymis_controller.crud.agent_connection as crud_agent_connection
 import thymis_controller.crud.device_metric as crud_device_metric
 import thymis_controller.crud.logs as crud_logs
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel as PydanticBaseModel
 from thymis_controller import crud, db_models, models
 from thymis_controller.dependencies import DBSessionAD, NetworkRelayAD, ProjectAD
 from thymis_controller.models import device
@@ -107,23 +106,33 @@ def get_all_deployment_infos(db_session: DBSessionAD):
 def update_deployment_info(
     db_session: DBSessionAD,
     id: uuid.UUID,
-    deployment_info: models.CreateDeploymentInfoLegacyHostkeyRequest,
+    deployment_info: models.UpdateDeploymentInfo,
     project: ProjectAD,
 ):
     """
     Update a deployment_info
     """
-    deployment_info = crud.deployment_info.update(
-        db_session,
-        id,
-        ssh_public_key=deployment_info.ssh_public_key,
-        deployed_config_id=deployment_info.deployed_config_id,
-        reachable_deployed_host=deployment_info.reachable_deployed_host,
-    )
-    if not deployment_info:
+    fields = {}
+    if "ssh_public_key" in deployment_info.model_fields_set:
+        fields["ssh_public_key"] = deployment_info.ssh_public_key
+    if "deployed_config_id" in deployment_info.model_fields_set:
+        fields["deployed_config_id"] = deployment_info.deployed_config_id
+    if "reachable_deployed_host" in deployment_info.model_fields_set:
+        fields["reachable_deployed_host"] = deployment_info.reachable_deployed_host
+    if "name" in deployment_info.model_fields_set:
+        fields["name"] = deployment_info.name
+    if "location" in deployment_info.model_fields_set:
+        fields["location"] = deployment_info.location
+    result = crud.deployment_info.update(db_session, id, **fields)
+    if not result:
         raise HTTPException(status_code=404, detail="Deployment info not found")
-    project.update_known_hosts(db_session)
-    return deployment_info
+    # SSH-related field changes require rebuilding known_hosts.
+    if (
+        "ssh_public_key" in deployment_info.model_fields_set
+        or "reachable_deployed_host" in deployment_info.model_fields_set
+    ):
+        project.update_known_hosts(db_session)
+    return result
 
 
 if "RUNNING_IN_PLAYWRIGHT" in os.environ:
@@ -131,7 +140,7 @@ if "RUNNING_IN_PLAYWRIGHT" in os.environ:
     @router.post("/create_deployment_info", response_model=models.DeploymentInfo)
     def create_deployment_info(
         db_session: DBSessionAD,
-        deployment_info: models.CreateDeploymentInfoLegacyHostkeyRequest,
+        deployment_info: models.UpdateDeploymentInfo,
         project: ProjectAD,
     ):
         result = crud.deployment_info.create(
@@ -156,25 +165,6 @@ class MetricGranularity(str, Enum):
     one_min = "1min"
     fifteen_min = "15min"
     one_hour = "1h"
-
-
-class LocationUpdate(PydanticBaseModel):
-    location: str | None
-
-
-class NameUpdate(PydanticBaseModel):
-    name: str | None
-
-
-@router.put("/deployment_info/{id}/name", response_model=models.DeploymentInfo)
-def update_device_name(
-    id: uuid.UUID, body: NameUpdate, db_session: DBSessionAD
-) -> models.DeploymentInfo:
-    """Update the user-provided name for a device."""
-    result = crud.deployment_info.update_name(db_session, id, body.name)
-    if result is None:
-        raise HTTPException(status_code=404, detail="Device not found")
-    return models.DeploymentInfo.from_deployment_info(result)
 
 
 @router.get("/deployment_info/{id}/connection_history")
@@ -208,17 +198,6 @@ def get_device_metrics(
     return crud_device_metric.get_metrics_downsampled(
         db_session, id, from_time, now, granularity.value
     )
-
-
-@router.put("/deployment_info/{id}/location", response_model=models.DeploymentInfo)
-def update_device_location(
-    id: uuid.UUID, body: LocationUpdate, db_session: DBSessionAD
-) -> models.DeploymentInfo:
-    """Update the user-provided location label for a device."""
-    result = crud.deployment_info.update_location(db_session, id, body.location)
-    if result is None:
-        raise HTTPException(status_code=404, detail="Device not found")
-    return models.DeploymentInfo.from_deployment_info(result)
 
 
 @router.get("/deployment_info/{id}/error_logs")
