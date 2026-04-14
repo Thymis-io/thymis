@@ -25,7 +25,7 @@ def test_get_connection_history(test_client, db_session):
         deployment_info_id=di.id,
         connected_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
     )
-    # Connection with both timestamps so duration_seconds can be computed
+    # Connection with both timestamps
     conn_closed = db_models.AgentConnection(
         deployment_info_id=di.id,
         connected_at=datetime(2026, 1, 2, tzinfo=timezone.utc),
@@ -41,15 +41,15 @@ def test_get_connection_history(test_client, db_session):
     assert len(data) == 2
     assert "connected_at" in data[0]
 
-    # Find the closed connection entry and verify duration_seconds is populated
+    # Closed connection has both timestamps
     closed_entries = [e for e in data if e.get("disconnected_at") is not None]
     assert len(closed_entries) == 1
-    assert closed_entries[0]["duration_seconds"] == 3600.0
+    assert closed_entries[0]["connected_at"] is not None
 
-    # The open connection should have duration_seconds == None
+    # Open connection has no disconnected_at
     open_entries = [e for e in data if e.get("disconnected_at") is None]
     assert len(open_entries) == 1
-    assert open_entries[0]["duration_seconds"] is None
+    assert open_entries[0]["disconnected_at"] is None
 
 
 def test_get_metrics(test_client, db_session):

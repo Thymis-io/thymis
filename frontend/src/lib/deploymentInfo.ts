@@ -23,9 +23,9 @@ export type DeploymentInfo = {
 };
 
 export type ConnectionHistoryEntry = {
+	id: string;
 	connected_at: string;
 	disconnected_at?: string;
-	duration_seconds?: number;
 };
 
 export type DeviceMetricsEntry = {

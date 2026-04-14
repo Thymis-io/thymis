@@ -27,7 +27,7 @@ def test_get_by_deployment_info_returns_last_10(db_session):
         db_session.add(conn)
     db_session.commit()
 
-    results = crud.get_by_deployment_info(db_session, di.id)
+    results = crud.get_by_deployment_info(db_session, di.id, limit=10)
     assert len(results) == 10
     # Most recent first
     assert results[0].connected_at > results[-1].connected_at
