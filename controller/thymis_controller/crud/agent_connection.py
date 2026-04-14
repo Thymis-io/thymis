@@ -138,7 +138,7 @@ def get_max_concurrent_connections(
 def get_by_deployment_info(
     db_session: Session,
     deployment_info_id: uuid.UUID,
-    limit: int = 10,
+    limit: int,
 ) -> list[db_models.AgentConnection]:
     """Return the most recent N connections for a device."""
     return (

@@ -15,6 +15,13 @@ class AgentConnection(BaseModel):
     deployment_info: "DeploymentInfo"
 
 
+class AgentConnectionShort(BaseModel):
+    id: uuid.UUID
+    connected_at: datetime
+    disconnected_at: Optional[datetime]
+
+
 __all__ = [
     "AgentConnection",
+    "AgentConnectionShort",
 ]

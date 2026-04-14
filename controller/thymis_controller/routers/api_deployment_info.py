@@ -160,22 +160,15 @@ def get_hardware_devices(db_session: DBSessionAD):
     return crud.hardware_device.get_all(db_session)
 
 
-@router.get("/deployment_info/{id}/connection_history")
-def get_connection_history(id: uuid.UUID, db_session: DBSessionAD) -> list:
-    """Get the last 10 connection events for a device."""
-    connections = crud_agent_connection.get_by_deployment_info(db_session, id)
-    return [
-        {
-            "connected_at": conn.connected_at,
-            "disconnected_at": conn.disconnected_at,
-            "duration_seconds": (
-                (conn.disconnected_at - conn.connected_at).total_seconds()
-                if conn.disconnected_at
-                else None
-            ),
-        }
-        for conn in connections
-    ]
+@router.get(
+    "/deployment_info/{id}/connection_history",
+    response_model=list[models.AgentConnectionShort],
+)
+def get_connection_history(id: uuid.UUID, db_session: DBSessionAD):
+    deployment_info = db_session.get(db_models.DeploymentInfo, id)
+    if deployment_info is None:
+        raise HTTPException(status_code=404, detail="Device not found")
+    return crud_agent_connection.get_by_deployment_info(db_session, id, limit=10)
 
 
 @router.get(
@@ -189,16 +182,18 @@ def get_device_metrics(
         default=models.MetricGranularity.one_hour
     ),
 ):
-    """Get downsampled device metrics for the past N hours."""
+    deployment_info = db_session.get(db_models.DeploymentInfo, id)
+    if deployment_info is None:
+        raise HTTPException(status_code=404, detail="Device not found")
     now = datetime.now(timezone.utc)
     from_time = now - timedelta(hours=hours)
     return crud_device_metric.get_metrics_downsampled(
-        db_session, id, from_time, now, granularity.value
+        db_session, id, from_time, now, granularity
     )
 
 
 @router.get("/deployment_info/{id}/error_logs", response_model=list[models.LogEntry])
-def get_error_logs(id: uuid.UUID, db_session: DBSessionAD) -> list:
+def get_error_logs(id: uuid.UUID, db_session: DBSessionAD):
     """Get the last 50 Error/Critical log entries for a device."""
     deployment_info = db_session.get(db_models.DeploymentInfo, id)
     if deployment_info is None:
@@ -209,4 +204,4 @@ def get_error_logs(id: uuid.UUID, db_session: DBSessionAD) -> list:
         limit=50,
         max_severity=3,  # syslog: 0=Emergency, 1=Alert, 2=Critical, 3=Error
     )
-    return [log.model_dump() for log in log_list.logs]
+    return log_list.logs
