@@ -697,6 +697,7 @@ class Agent(ea.EdgeAgent):
 
     async def collect_and_send_metrics(self):
         """Collect system metrics every 60s and send to controller."""
+        psutil.cpu_percent(interval=None)  # call once to initialize
         while not self.websocket:
             await asyncio.sleep(10)
         while True:
@@ -705,7 +706,7 @@ class Agent(ea.EdgeAgent):
                     msg = AgentToRelayMessage(
                         inner=EtRMetricsMessage(
                             timestamp=datetime.datetime.now(timezone.utc),
-                            cpu_percent=psutil.cpu_percent(interval=1),
+                            cpu_percent=psutil.cpu_percent(interval=None),
                             ram_percent=psutil.virtual_memory().percent,
                             disk_percent=psutil.disk_usage("/").percent,
                         )
