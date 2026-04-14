@@ -248,6 +248,90 @@ async def download_image(
     )
 
 
+@router.post("/action/switch-config")
+async def switch_config(
+    deployment_info_id: uuid.UUID,
+    new_config_id: str,
+    session: DBSessionAD,
+    project: ProjectAD,
+    task_controller: TaskControllerAD,
+    network_relay: NetworkRelayAD,
+    user_session_id: UserSessionIDAD,
+    db_session: DBSessionAD,
+):
+    """
+    Reassign a deployed device to a different config identifier,
+    then immediately deploy the new config to it if the device is connected.
+    """
+    if project.repo.is_dirty():
+        raise HTTPException(
+            status_code=409,
+            detail="Repository is dirty. Please commit your changes first.",
+        )
+
+    state = project.read_state()
+    config = next((c for c in state.configs if c.identifier == new_config_id), None)
+    if config is None:
+        raise HTTPException(
+            status_code=404, detail=f"Config '{new_config_id}' not found"
+        )
+
+    deployment_info = crud.deployment_info.get_by_id(session, deployment_info_id)
+    if deployment_info is None:
+        raise HTTPException(status_code=404, detail="Deployment info not found")
+
+    # Reassign the device — pending_config_id communicates the pending state.
+    crud.deployment_info.update(
+        session,
+        deployment_info_id,
+        pending_config_id=new_config_id,
+    )
+
+    project.update_known_hosts(session)
+
+    if not network_relay.public_key_to_connection_id.get(
+        deployment_info.ssh_public_key
+    ):
+        return {"message": "config switched; device not connected, skipping deploy"}
+
+    modules = project.get_modules_for_config(state, config)
+    secrets = []
+    for module, settings in modules:
+        for secret_type, secret in module.register_secret_settings(settings, project):
+            project.get_secret(db_session, uuid.UUID(secret))
+            secrets.append(
+                agent.SecretForDevice(
+                    secret_id=secret,
+                    path=secret_type.on_device_path,
+                    owner=secret_type.on_device_owner,
+                    group=secret_type.on_device_group,
+                    mode=secret_type.on_device_mode,
+                )
+            )
+
+    task = task_controller.submit(
+        models.DeployDevicesTaskSubmission(
+            devices=[
+                models.DeployDeviceInformation(
+                    identifier=new_config_id,
+                    deployment_info_id=deployment_info.id,
+                    deployment_public_key=deployment_info.ssh_public_key,
+                    secrets=secrets,
+                )
+            ],
+            project_path=str(project.path),
+            ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
+            known_hosts_path=str(project.known_hosts_path),
+            controller_ssh_pubkey=project.public_key,
+            config_commit=project.repo.head_commit(),
+        ),
+        user_session_id=user_session_id,
+        db_session=session,
+    )
+
+    return {"message": "config switched and deploy started", "task_id": str(task.id)}
+
+
 @router.post("/action/commit")
 def commit(project: ProjectAD, message: str):
     project.repo.add(".")

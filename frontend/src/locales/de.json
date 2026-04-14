@@ -461,7 +461,10 @@
 		"refresh-hostkey": "Hostkey Aktualisieren",
 		"edit-tags": "Tags Bearbeiten",
 		"no-deployment-info": "Kein Gerät verbunden",
-		"no-commit": "Keine Commit Info"
+		"no-commit": "Keine Commit Info",
+		"switch-config": "Konfiguration wechseln",
+		"switch-config-select": "Neue Konfiguration wählen...",
+		"switching-to": "Wechselt zu {config}..."
 	},
 	"edit-hostkey": {
 		"create": "Erstellen",

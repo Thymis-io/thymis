@@ -48,6 +48,8 @@ def update(
     network_interfaces: list | None = None,
     location: str | None = _UNSET,
     name: str | None = _UNSET,
+    pending_config_id: str | None = None,
+    clear_pending_config_id: bool = False,
 ) -> db_models.DeploymentInfo | None:
     deployment_info = session.get(db_models.DeploymentInfo, id)
     if deployment_info is None:
@@ -70,6 +72,10 @@ def update(
         deployment_info.location = location
     if name is not _UNSET:
         deployment_info.name = name
+    if pending_config_id is not None:
+        deployment_info.pending_config_id = pending_config_id
+    if clear_pending_config_id:
+        deployment_info.pending_config_id = None
     session.commit()
     session.refresh(deployment_info)
     return deployment_info
@@ -80,6 +86,7 @@ def create_or_update_by_public_key(
     ssh_public_key: str,
     deployed_config_id: str,
     reachable_deployed_host: str | None = None,
+    network_interfaces: list | None = None,
 ) -> db_models.DeploymentInfo:
     deployment_info = (
         session.query(db_models.DeploymentInfo)
@@ -87,6 +94,9 @@ def create_or_update_by_public_key(
         .first()
     )
     if deployment_info:
+        # Accept the device-reported id as ground truth.
+        # pending_config_id is cleared only when the device confirms activation
+        # via EtRSwitchToNewConfigResultMessage (is_activated=True).
         return update(
             session,
             deployment_info.id,
@@ -95,6 +105,7 @@ def create_or_update_by_public_key(
             deployed_config_id=deployed_config_id,
             reachable_deployed_host=reachable_deployed_host,
             last_seen=datetime.now(timezone.utc),
+            network_interfaces=network_interfaces,
         )
     return create(
         session,

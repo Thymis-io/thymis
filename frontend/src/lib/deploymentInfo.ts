@@ -22,6 +22,7 @@ export type DeploymentInfo = {
 	ssh_public_key: string;
 	deployed_config_commit: string | null;
 	deployed_config_id: string | null;
+	pending_config_id: string | null;
 	reachable_deployed_host: string | null;
 	last_seen: string | null;
 	first_seen: string | null;

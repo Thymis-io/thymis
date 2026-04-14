@@ -122,10 +122,13 @@ class NetworkRelay(nr.NetworkRelay):
                         )
                         raise ValueError("Deployment info not found")
                     if inner.is_activated:
+                        # Clear the pending indicator; the device will self-report the new
+                        # deployed_config_id on reconnect.
                         crud_deployment_info.update(
                             db_session,
                             deployment_info[0].id,
                             deployed_config_commit=inner.config_commit,
+                            clear_pending_config_id=True,
                         )
                 self.task_controller.executor.send_message_to_task(
                     inner.task_id,
@@ -438,50 +441,60 @@ class NetworkRelay(nr.NetworkRelay):
                 secrets = []
                 secret_infos = []
                 state = self.task_controller.project.read_state()
+                start_message = self.connection_id_to_start_message[connection_id]
                 config = next(
-                    config
-                    for config in state.configs
-                    if config.identifier
-                    == self.connection_id_to_start_message[
-                        connection_id
-                    ].deployed_config_id
-                )
-                modules = self.task_controller.project.get_modules_for_config(
-                    state, config
-                )
-                for module, settings in modules:
-                    for secret_type, secret in module.register_secret_settings(
-                        settings, self.task_controller.project
-                    ):
-                        secrets.append(uuid.UUID(secret))
-                        secret_infos.append(
-                            agent.SecretForDevice(
-                                secret_id=secret,
-                                path=secret_type.on_device_path,
-                                owner=secret_type.on_device_owner,
-                                group=secret_type.on_device_group,
-                                mode=secret_type.on_device_mode,
-                            )
-                        )
-                processed_secrets = self.task_controller.project.get_processed_secrets(
-                    db_session,
-                    secrets,
-                    ssh.Recipient.from_str(
-                        self.connection_id_to_public_key[connection_id]
+                    (
+                        config
+                        for config in state.configs
+                        if config.identifier == start_message.deployed_config_id
                     ),
+                    None,
                 )
-
-                await edge_agent_connection.send_text(
-                    agent.RelayToAgentMessage(
-                        inner=agent.RtESendSecretsMessage(
-                            secrets={
-                                k: base64.b64encode(v).decode("utf-8")
-                                for k, v in processed_secrets.items()
-                            },
-                            secret_infos=secret_infos,
+                if config is None:
+                    logger.warning(
+                        "Config '%s' not found for deployment_info %s; skipping secret push",
+                        start_message.deployed_config_id,
+                        deployment_info_id,
+                    )
+                else:
+                    modules = self.task_controller.project.get_modules_for_config(
+                        state, config
+                    )
+                    for module, settings in modules:
+                        for secret_type, secret in module.register_secret_settings(
+                            settings, self.task_controller.project
+                        ):
+                            secrets.append(uuid.UUID(secret))
+                            secret_infos.append(
+                                agent.SecretForDevice(
+                                    secret_id=secret,
+                                    path=secret_type.on_device_path,
+                                    owner=secret_type.on_device_owner,
+                                    group=secret_type.on_device_group,
+                                    mode=secret_type.on_device_mode,
+                                )
+                            )
+                    processed_secrets = (
+                        self.task_controller.project.get_processed_secrets(
+                            db_session,
+                            secrets,
+                            ssh.Recipient.from_str(
+                                self.connection_id_to_public_key[connection_id]
+                            ),
                         )
-                    ).model_dump_json()
-                )
+                    )
+
+                    await edge_agent_connection.send_text(
+                        agent.RelayToAgentMessage(
+                            inner=agent.RtESendSecretsMessage(
+                                secrets={
+                                    k: base64.b64encode(v).decode("utf-8")
+                                    for k, v in processed_secrets.items()
+                                },
+                                secret_infos=secret_infos,
+                            )
+                        ).model_dump_json()
+                    )
 
                 await edge_agent_connection.send_text(
                     agent.RelayToAgentMessage(
