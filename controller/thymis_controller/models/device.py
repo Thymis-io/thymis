@@ -47,6 +47,7 @@ class DeploymentInfo(BaseModel):
     deployed_config_commit: str | None
     deployed_config_id: str | None
     reachable_deployed_host: str | None
+    pending_config_id: str | None
     last_seen: Optional[datetime]
     first_seen: Optional[datetime]
     hardware_devices: List["HardwareDevice"]
@@ -74,6 +75,7 @@ class DeploymentInfo(BaseModel):
             ssh_public_key=deployment_info.ssh_public_key,
             deployed_config_commit=deployment_info.deployed_config_commit,
             deployed_config_id=deployment_info.deployed_config_id,
+            pending_config_id=deployment_info.pending_config_id,
             reachable_deployed_host=deployment_info.reachable_deployed_host,
             hardware_devices=deployment_info.hardware_devices,
             last_seen=deployment_info.last_seen,

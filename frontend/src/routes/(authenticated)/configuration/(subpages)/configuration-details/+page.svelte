@@ -27,6 +27,7 @@
 			deploymentInfos={data.deploymentInfos}
 			globalState={data.globalState}
 			headCommit={data.headCommit}
+			repoStatus={data.repoStatus}
 		/>
 		<SectionActions class="col-span-1" config={data.nav.selectedConfig} />
 		<SectionConfiguration

@@ -462,7 +462,10 @@
 		"delete-hostkey": "Delete Hostkey",
 		"edit-tags": "Edit Tags",
 		"no-deployment-info": "No devices currently connected",
-		"no-commit": "No commit info"
+		"no-commit": "No commit info",
+		"switch-config": "Switch Config",
+		"switch-config-select": "Select new config...",
+		"switching-to": "Switching to {config}..."
 	},
 	"edit-hostkey": {
 		"title": "Edit Hostkey",
