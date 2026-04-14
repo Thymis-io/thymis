@@ -2,7 +2,6 @@ import logging
 import os
 import uuid
 from datetime import datetime, timedelta, timezone
-from enum import Enum
 
 import thymis_controller.crud.agent_connection as crud_agent_connection
 import thymis_controller.crud.device_metric as crud_device_metric
@@ -161,12 +160,6 @@ def get_hardware_devices(db_session: DBSessionAD):
     return crud.hardware_device.get_all(db_session)
 
 
-class MetricGranularity(str, Enum):
-    one_min = "1min"
-    fifteen_min = "15min"
-    one_hour = "1h"
-
-
 @router.get("/deployment_info/{id}/connection_history")
 def get_connection_history(id: uuid.UUID, db_session: DBSessionAD) -> list:
     """Get the last 10 connection events for a device."""
@@ -185,13 +178,17 @@ def get_connection_history(id: uuid.UUID, db_session: DBSessionAD) -> list:
     ]
 
 
-@router.get("/deployment_info/{id}/metrics")
+@router.get(
+    "/deployment_info/{id}/metrics", response_model=list[models.DeviceMetricPoint]
+)
 def get_device_metrics(
     id: uuid.UUID,
     db_session: DBSessionAD,
     hours: int = Query(default=168, ge=1, le=168),
-    granularity: MetricGranularity = Query(default=MetricGranularity.one_hour),
-) -> list:
+    granularity: models.MetricGranularity = Query(
+        default=models.MetricGranularity.one_hour
+    ),
+):
     """Get downsampled device metrics for the past N hours."""
     now = datetime.now(timezone.utc)
     from_time = now - timedelta(hours=hours)
@@ -200,7 +197,7 @@ def get_device_metrics(
     )
 
 
-@router.get("/deployment_info/{id}/error_logs")
+@router.get("/deployment_info/{id}/error_logs", response_model=list[models.LogEntry])
 def get_error_logs(id: uuid.UUID, db_session: DBSessionAD) -> list:
     """Get the last 50 Error/Critical log entries for a device."""
     deployment_info = db_session.get(db_models.DeploymentInfo, id)
