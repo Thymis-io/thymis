@@ -1,29 +1,19 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import Integer, func, literal
+from sqlalchemy import Integer, cast, func
 from sqlalchemy.orm import Session
-from thymis_controller import db_models
+from thymis_controller import db_models, models
 
 
 def _bucket_expr(granularity: str):
-    """Return a SQLite strftime expression grouping timestamps into buckets."""
-    ts = db_models.DeviceMetric.timestamp
-    if granularity == "1min":
-        return func.strftime("%Y-%m-%d %H:%M", ts)
-    elif granularity == "15min":
-        minute_bucket = (
-            func.cast(func.strftime("%M", ts), Integer)
-            .op("/")(literal(15, Integer))
-            .op("*")(literal(15, Integer))
-        )
-        return func.strftime("%Y-%m-%d %H:", ts).op("||")(
-            func.printf("%02d", minute_bucket)
-        )
-    elif granularity == "1h":
-        return func.strftime("%Y-%m-%d %H", ts)
-    else:
-        raise ValueError(f"Unknown granularity: {granularity!r}")
+    """Floor each timestamp to its bucket boundary via epoch integer division."""
+    bucket_seconds = models.MetricGranularity.to_seconds(granularity)
+    epoch = cast(func.strftime("%s", db_models.DeviceMetric.timestamp), Integer)
+    bucket_epoch = cast(epoch / bucket_seconds, Integer) * bucket_seconds
+    return func.strftime(
+        "%Y-%m-%dT%H:%M:%S+00:00", func.datetime(bucket_epoch, "unixepoch")
+    )
 
 
 def create_metric(
@@ -52,8 +42,8 @@ def get_metrics_downsampled(
     deployment_info_id: UUID,
     from_datetime: datetime,
     to_datetime: datetime,
-    granularity: str,  # "1min" | "15min" | "1h"
-) -> list[dict]:
+    granularity: models.MetricGranularity,
+) -> list[models.DeviceMetricPoint]:
     """Return averaged metrics grouped by time bucket."""
     bucket = _bucket_expr(granularity)
     rows = (
@@ -73,12 +63,12 @@ def get_metrics_downsampled(
         .all()
     )
     return [
-        {
-            "timestamp": row.bucket,
-            "cpu_percent": row.cpu_percent,
-            "ram_percent": row.ram_percent,
-            "disk_percent": row.disk_percent,
-        }
+        models.DeviceMetricPoint(
+            timestamp=row.bucket,
+            cpu_percent=row.cpu_percent,
+            ram_percent=row.ram_percent,
+            disk_percent=row.disk_percent,
+        )
         for row in rows
     ]
 

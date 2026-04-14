@@ -57,7 +57,8 @@ def test_get_metrics_downsampled_returns_averaged_buckets(db_session):
         granularity="1h",
     )
     assert len(results) == 1
-    assert abs(results[0]["cpu_percent"] - 50.0) < 0.01  # average of 40 and 60
+    assert results[0].timestamp == datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    assert abs(results[0].cpu_percent - 50.0) < 0.01  # average of 40 and 60
 
 
 def test_get_metrics_downsampled_1min_granularity(db_session):
@@ -76,7 +77,8 @@ def test_get_metrics_downsampled_1min_granularity(db_session):
         granularity="1min",
     )
     assert len(results) == 1
-    assert abs(results[0]["cpu_percent"] - 40.0) < 0.01  # average of 30 and 50
+    assert results[0].timestamp == datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    assert abs(results[0].cpu_percent - 40.0) < 0.01  # average of 30 and 50
 
 
 def test_get_metrics_downsampled_15min_granularity(db_session):
@@ -94,7 +96,8 @@ def test_get_metrics_downsampled_15min_granularity(db_session):
         granularity="15min",
     )
     assert len(results) == 1
-    assert abs(results[0]["cpu_percent"] - 30.0) < 0.01  # average of 20 and 40
+    assert results[0].timestamp == datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    assert abs(results[0].cpu_percent - 30.0) < 0.01  # average of 20 and 40
 
 
 def test_delete_expired_metrics(db_session):
