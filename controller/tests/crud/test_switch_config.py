@@ -9,9 +9,9 @@ Invariants under test:
 4. Full switch round-trip:
    - switch-config sets pending_config_id
    - device reconnects reporting old id  → deployed_config_id stays old, pending intact
-   - activation clears pending_config_id; deployed_config_id stays as device last reported
+   - activation promotes deployed_config_id to the target and clears pending_config_id
+   - future reconnects should report the new id because agent metadata is updated
 """
-
 
 from thymis_controller import crud, db_models
 
@@ -108,20 +108,18 @@ def test_full_switch_round_trip(db_session):
     assert di_mid.deployed_config_id == "config-a"
     assert di_mid.pending_config_id == "config-b"
 
-    # Step 3: deploy succeeds, is_activated=True — clear pending;
-    # deployed_config_id stays as device last reported (config-a here, device will
-    # self-report config-b on next reconnect after activation)
+    # Step 3: deploy succeeds, is_activated=True — promote target config and clear pending
     crud.deployment_info.update(
         db_session,
         di.id,
+        deployed_config_id="config-b",
         deployed_config_commit="abc123",
         clear_pending_config_id=True,
     )
     di_activated = crud.deployment_info.get_by_id(db_session, di.id)
     assert di_activated.pending_config_id is None
     assert di_activated.deployed_config_commit == "abc123"
-    # deployed_config_id is NOT updated here — device will report config-b on reconnect
-    assert di_activated.deployed_config_id == "config-a"
+    assert di_activated.deployed_config_id == "config-b"
 
     # Step 4: device reconnects after activation reporting new config
     crud.deployment_info.create_or_update_by_public_key(
