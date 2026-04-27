@@ -411,6 +411,7 @@ class NetworkRelay(nr.NetworkRelay):
                 self.connection_id_to_public_key[connection_id],
                 self.connection_id_to_start_message[connection_id].deployed_config_id,
                 None,
+                preserve_confirmed_switch=True,
             )
 
             deployment_info = crud_deployment_info.update(

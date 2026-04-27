@@ -1,6 +1,6 @@
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
 from sqlalchemy import nullslast
@@ -81,12 +81,41 @@ def update(
     return deployment_info
 
 
+def _latest_completed_switch_for_deployment_info(
+    session: Session, deployment_info_id: uuid.UUID
+) -> tuple[str, str] | None:
+    recent_cutoff = datetime.now(timezone.utc) - timedelta(minutes=10)
+    tasks = (
+        session.query(db_models.Task)
+        .filter(
+            db_models.Task.task_type == "deploy_device_task",
+            db_models.Task.state == "completed",
+            db_models.Task.end_time >= recent_cutoff,
+        )
+        .order_by(db_models.Task.start_time.desc())
+        .limit(50)
+        .all()
+    )
+    for task in tasks:
+        task_data = task.task_submission_data or {}
+        device = task_data.get("device", {})
+        if device.get("deployment_info_id") != str(deployment_info_id):
+            continue
+        source_identifier = device.get("source_identifier")
+        target_identifier = device.get("identifier")
+        if source_identifier and target_identifier:
+            return source_identifier, target_identifier
+    return None
+
+
 def create_or_update_by_public_key(
     session: Session,
     ssh_public_key: str,
     deployed_config_id: str,
     reachable_deployed_host: str | None = None,
     network_interfaces: list | None = None,
+    *,
+    preserve_confirmed_switch: bool = False,
 ) -> db_models.DeploymentInfo:
     deployment_info = (
         session.query(db_models.DeploymentInfo)
@@ -94,15 +123,22 @@ def create_or_update_by_public_key(
         .first()
     )
     if deployment_info:
-        # Accept the device-reported id as ground truth.
-        # pending_config_id is cleared only when the device confirms activation
-        # via EtRSwitchToNewConfigResultMessage (is_activated=True).
+        effective_deployed_config_id = deployed_config_id
+        if preserve_confirmed_switch and deployment_info.pending_config_id is None:
+            latest_switch = _latest_completed_switch_for_deployment_info(
+                session, deployment_info.id
+            )
+            if latest_switch is not None:
+                source_identifier, target_identifier = latest_switch
+                if deployed_config_id == source_identifier:
+                    effective_deployed_config_id = target_identifier
+
         return update(
             session,
             deployment_info.id,
             ssh_public_key,
             deployed_config_commit=None,
-            deployed_config_id=deployed_config_id,
+            deployed_config_id=effective_deployed_config_id,
             reachable_deployed_host=reachable_deployed_host,
             last_seen=datetime.now(timezone.utc),
             network_interfaces=network_interfaces,
