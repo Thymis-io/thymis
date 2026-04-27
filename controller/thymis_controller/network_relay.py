@@ -159,6 +159,37 @@ class NetworkRelay(nr.NetworkRelay):
                                 for info in deployment_infos
                             ]
                         )
+            case agent.EtRNetworkInterfacesMessage():
+                logger.info(
+                    "Received network interfaces update from agent with public key %s: %s",
+                    self.connection_id_to_public_key[connection_id],
+                    message.inner.network_interfaces,
+                )
+                inner = message.inner
+                with sqlalchemy.orm.Session(self.db_engine) as db_session:
+                    deployment_infos = crud_deployment_info.get_by_ssh_public_key(
+                        db_session,
+                        self.connection_id_to_public_key[connection_id],
+                    )
+                    if deployment_infos:
+                        crud_deployment_info.update(
+                            db_session,
+                            deployment_infos[0].id,
+                            network_interfaces=inner.network_interfaces,
+                        )
+                        self.notification_manager.broadcast_invalidate_notification(
+                            [
+                                "/api/all_deployment_infos",
+                                "/api/all_connected_deployment_info",
+                                f"/api/deployment_info/{deployment_infos[0].id}",
+                            ]
+                        )
+                    else:
+                        logger.error(
+                            "Deployment info not found for public key %s (network interfaces update)",
+                            self.connection_id_to_public_key[connection_id],
+                        )
+
             case _:
                 assert_never(message.inner)
 
@@ -477,6 +508,7 @@ class NetworkRelay(nr.NetworkRelay):
                 "/api/all_connected_deployment_info",
                 "/api/deployment_infos_by_config_id",
                 "/api/connected_deployment_infos_by_config_id",
+                f"/api/deployment_info/{deployment_info_id}",
             ]
         )
 
@@ -523,6 +555,13 @@ class NetworkRelay(nr.NetworkRelay):
                     db_session,
                     connection_type="disconnect",
                     deployment_info_id=deployment_info[0].id,
+                )
+                self.notification_manager.broadcast_invalidate_notification(
+                    [
+                        "/api/all_deployment_infos",
+                        "/api/all_connected_deployment_info",
+                        f"/api/deployment_info/{deployment_info[0].id}",
+                    ]
                 )
             else:
                 logger.error(
