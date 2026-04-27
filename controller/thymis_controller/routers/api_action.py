@@ -313,6 +313,7 @@ async def switch_config(
             devices=[
                 models.DeployDeviceInformation(
                     identifier=new_config_id,
+                    source_identifier=deployment_info.deployed_config_id,
                     deployment_info_id=deployment_info.id,
                     deployment_public_key=deployment_info.ssh_public_key,
                     secrets=secrets,

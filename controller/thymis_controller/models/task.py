@@ -202,6 +202,7 @@ class TaskSubmissionDataWrapper(BaseModel):
 
 class DeployDeviceInformation(BaseModel):
     identifier: str
+    source_identifier: str | None = None
     deployment_info_id: uuid.UUID
     deployment_public_key: str
     secrets: list[agent.SecretForDevice] = []
