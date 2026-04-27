@@ -2,34 +2,52 @@
 	import { t } from 'svelte-i18n';
 	import Section from './Section.svelte';
 	import type { DeploymentInfo } from '$lib/deploymentInfo';
-	import type { Config } from '$lib/state';
+	import { isOnline, isActive } from '$lib/deploymentInfo';
+	import type { GlobalState } from '$lib/state.svelte';
+	import DeploymentInstanceRow, {
+		type ConfigInstance
+	} from '$lib/components/DeploymentInstanceRow.svelte';
 
 	interface Props {
 		deploymentInfos?: DeploymentInfo[];
-		config: Config;
+		globalState: GlobalState;
+		headCommit?: string | null;
 		class?: string;
 	}
 
-	let { deploymentInfos = [], config, class: className = '' }: Props = $props();
+	let {
+		deploymentInfos = [],
+		globalState,
+		headCommit = null,
+		class: className = ''
+	}: Props = $props();
+
+	// Normalise HEAD to 7-char short hash so comparisons are consistent
+	// regardless of whether the caller supplies a full SHA1 or a short hash.
+	let shortHead = $derived(headCommit?.slice(0, 7) ?? null);
+
+	let instances: ConfigInstance[] = $derived(
+		deploymentInfos
+			.filter((di) => isActive(di.last_seen) || isOnline(di.last_seen))
+			.map((di) => {
+				const shortCommit = di.deployed_config_commit?.slice(0, 7) ?? null;
+				return {
+					id: di.id,
+					online: isOnline(di.last_seen),
+					active: isActive(di.last_seen),
+					lastSeen: di.last_seen,
+					shortCommit,
+					isCurrentCommit: !!shortCommit && shortCommit === shortHead
+				};
+			})
+			.sort((a, b) => Number(b.online) - Number(a.online))
+	);
 </script>
 
 <Section class={className} title={$t('configuration-details.deployment-info')}>
-	<div class="flex flex-col gap-2">
-		{#each deploymentInfos as deploymentInfo}
-			{#if deploymentInfo}
-				<div class="grid grid-cols-[max-content_max-content_max-content_1fr] gap-x-2">
-					<p class="break-all text-base">{$t('configuration-details.deployed-at')}:</p>
-					{#if deploymentInfo.deployed_config_commit}
-						<p class="break-all text-base playwright-snapshot-unstable font-mono">
-							{deploymentInfo.deployed_config_commit.slice(0, 8)}
-						</p>
-					{:else}
-						<p class="break-all text-base">{$t('configuration-details.no-commit')}</p>
-					{/if}
-				</div>
-			{/if}
-		{:else}
-			<p class="text-base">{$t('configuration-details.no-deployment-info')}</p>
+	<div class="flex flex-col gap-2 max-w-96">
+		{#each instances as inst (inst.id)}
+			<DeploymentInstanceRow {inst} {globalState} {deploymentInfos} />
 		{/each}
 	</div>
 </Section>

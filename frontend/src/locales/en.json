@@ -454,7 +454,7 @@
 		"danger": "Danger",
 		"modules": "Modules",
 		"hostkey": "Hostkey",
-		"deployment-info": "Deployment Info",
+		"deployment-info": "Deployed Devices",
 		"publicKey": "Public Key",
 		"edit-hostkey": "Edit Hostkey",
 		"add-hostkey": "Set Hostkey",
