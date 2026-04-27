@@ -246,9 +246,11 @@ class TestSwitchConfigAPI:
 
         assert len(client._fake_task_controller.submissions) == 1
         submission = client._fake_task_controller.submissions[0]
-        assert submission["model"].devices[0].identifier == "config-b"
-        assert submission["model"].devices[0].source_identifier == "config-a"
-        assert submission["model"].devices[0].deployment_info_id == uuid.UUID(dep["id"])
+        assert submission["model"].type == "deploy_device_task"
+        assert submission["model"].parent_task_id is None
+        assert submission["model"].device.identifier == "config-b"
+        assert submission["model"].device.source_identifier == "config-a"
+        assert submission["model"].device.deployment_info_id == uuid.UUID(dep["id"])
 
     def test_switch_config_missing_config_returns_404(self, switch_test_client):
         client = switch_test_client
