@@ -381,6 +381,7 @@
 			"build_project": "Projekt Bauen",
 			"deploy_devices": "Geräte Ausrollen",
 			"deploy_device": "Gerät Ausrollen: {device}",
+			"switch_device_config": "Wechsel von {source} zu {target}",
 			"build_device_image": "Geräte-Image Bauen: {device}",
 			"ssh_command": "SSH Befehl Ausführen",
 			"run_nixos_vm_task": "NixOS VM für {device} ausführen",
