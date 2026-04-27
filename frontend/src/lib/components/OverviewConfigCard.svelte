@@ -1,19 +1,9 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import type { GlobalState } from '$lib/state.svelte';
-	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
-	import GitCommit from 'lucide-svelte/icons/git-commit-horizontal';
-	import HeadTag from './HeadTag.svelte';
-
-	export type ConfigInstance = {
-		id: string;
-		online: boolean;
-		active: boolean;
-		lastSeen: string | null;
-		shortCommit: string | null;
-		isCurrentCommit: boolean;
-	};
+	import DeploymentInstanceRow, { type ConfigInstance } from './DeploymentInstanceRow.svelte';
+	import { type DeploymentInfo } from '$lib/deploymentInfo';
 
 	export type ConfigCard = {
 		identifier: string;
@@ -26,9 +16,10 @@
 	interface Props {
 		config: ConfigCard;
 		globalState: GlobalState;
+		deploymentInfos: DeploymentInfo[];
 	}
 
-	let { config, globalState }: Props = $props();
+	let { config, globalState, deploymentInfos }: Props = $props();
 
 	const anyOnline = $derived(config.onlineCount > 0);
 	const activeCount = $derived(config.activeInstances.length);
@@ -84,36 +75,7 @@
 	{:else}
 		<div class="space-y-1">
 			{#each config.activeInstances as inst (inst.id)}
-				<div class="flex items-center justify-between text-xs">
-					<div class="flex items-center gap-1 font-mono text-gray-600 dark:text-gray-300">
-						<span
-							class={[
-								'h-1.5 w-1.5 flex-shrink-0 rounded-full',
-								inst.online ? 'bg-emerald-500' : 'bg-gray-400'
-							].join(' ')}
-						></span>
-						<GitCommit class="ml-2 h-3.5 w-3.5 flex-shrink-0" />
-						{#if inst.shortCommit}
-							<span class="font-mono text-gray-600 dark:text-gray-300">
-								{inst.shortCommit}
-								{#if inst.isCurrentCommit}
-									<HeadTag />
-								{/if}
-							</span>
-						{:else}
-							<span class="text-gray-400">{$t('overview.no-commit')}</span>
-						{/if}
-					</div>
-					{#if !inst.online}
-						<span class="text-gray-400 dark:text-gray-500">
-							{#if inst.lastSeen}
-								<RenderTimeAgo timestamp={inst.lastSeen} />
-							{:else}
-								{$t('hardware-devices.table.never-seen')}
-							{/if}
-						</span>
-					{/if}
-				</div>
+				<DeploymentInstanceRow {inst} {globalState} {deploymentInfos} />
 			{/each}
 		</div>
 	{/if}

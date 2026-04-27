@@ -3,7 +3,7 @@
 	import { Badge, Button, Input, Modal, Spinner } from 'flowbite-svelte';
 	import Pen from 'lucide-svelte/icons/pen';
 	import type { PageData } from './$types';
-	import { updateDeploymentInfo } from '$lib/deploymentInfo';
+	import { updateDeploymentInfo, isOnline as checkOnline } from '$lib/deploymentInfo';
 	import SectionDeviceInfo from './SectionDeviceInfo.svelte';
 	import SectionOnlineStatus from './SectionOnlineStatus.svelte';
 	import SectionMetrics from './SectionMetrics.svelte';
@@ -36,11 +36,7 @@
 	let nameModalOpen = $state(false);
 	let nameInput = $state('');
 
-	const ONLINE_THRESHOLD_MS = 30 * 1000;
-	let isOnline = $derived(
-		!!deploymentInfo.last_seen &&
-			Date.now() - new Date(deploymentInfo.last_seen).getTime() < ONLINE_THRESHOLD_MS
-	);
+	let isOnline = $derived(checkOnline(deploymentInfo.last_seen));
 
 	function openNameModal() {
 		nameInput = deploymentInfo.name ?? '';

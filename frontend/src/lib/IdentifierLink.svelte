@@ -3,14 +3,17 @@
 	import { page } from '$app/state';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
+	import HardDrive from 'lucide-svelte/icons/hard-drive';
 	import type { ContextType } from './state';
 	import type { GlobalState } from './state.svelte';
 	import { buildGlobalNavSearchParam } from './searchParamHelpers';
+	import type { DeploymentInfo } from './deploymentInfo';
 
 	interface Props {
 		globalState: GlobalState;
+		deploymentInfos?: DeploymentInfo[];
 		identifier?: string | null;
-		context?: ContextType | null;
+		context?: ContextType | 'device' | null;
 		showLinkHover?: boolean;
 		solidBackground?: boolean;
 		iconSize?: number | string;
@@ -19,6 +22,7 @@
 
 	let {
 		identifier,
+		deploymentInfos,
 		context,
 		globalState,
 		showLinkHover = true,
@@ -33,9 +37,16 @@
 			return globalState.tag(identifier);
 		} else if (context === 'config') {
 			return globalState.config(identifier);
+		} else if (context === 'device') {
+			return null;
 		} else {
 			const _: never = context;
 		}
+	});
+
+	let deviceDeploymentInfo = $derived.by(() => {
+		if (context !== 'device' || !identifier || !deploymentInfos) return null;
+		return deploymentInfos.find((d) => d.id === identifier) ?? null;
 	});
 </script>
 
@@ -72,6 +83,20 @@
 		</div>
         -->
 	</div>
+{/if}
+
+{#if context == 'device'}
+	<a
+		href={`/devices/${identifier}`}
+		class={'min-h-6 flex items-center gap-1 w-fit ' +
+			(showLinkHover ? 'hover:underline ' : '') +
+			(solidBackground
+				? 'p-1 px-2 bg-primary-700 hover:bg-primary-800 dark:bg-primary-600 dark:hover:bg-primary-700 rounded text-white '
+				: '')}
+	>
+		<HardDrive size={iconSize} class="shrink-0" />
+		{deviceDeploymentInfo?.name ?? deviceDeploymentInfo?.id ?? identifier}
+	</a>
 {/if}
 
 <style>

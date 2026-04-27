@@ -24,8 +24,9 @@
 	<div class="grid grid-cols-4 grid-flow-row gap-x-2 gap-y-6">
 		<SectionDeploymentInfo
 			class="col-span-3"
-			deploymentInfos={data.connectedDeploymentInfos}
-			config={data.nav.selectedConfig}
+			deploymentInfos={data.deploymentInfos}
+			globalState={data.globalState}
+			headCommit={data.headCommit}
 		/>
 		<SectionActions class="col-span-1" config={data.nav.selectedConfig} />
 		<SectionConfiguration

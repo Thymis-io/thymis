@@ -1,18 +1,22 @@
 import type { PageLoad, PageParentData } from './$types';
-import { getConnectedDeploymentInfosByConfigId, type DeploymentInfo } from '$lib/deploymentInfo';
+import type { Commit } from '$lib/history';
+import { fetchWithNotify } from '$lib/fetchWithNotify';
 import { redirect } from '@sveltejs/kit';
 
 export const load: PageLoad = async ({ fetch, url, parent }) => {
-	let deploymentInfos: DeploymentInfo[];
 	const identifier = url.searchParams.get('global-nav-target');
 	if (identifier) {
-		deploymentInfos = await getConnectedDeploymentInfosByConfigId(fetch, identifier);
-		const parentData: PageParentData = await parent();
+		const [parentData, historyResponse] = await Promise.all([
+			parent() as Promise<PageParentData>,
+			fetchWithNotify('/api/history', undefined, {}, fetch)
+		]);
 		// if config is not in parentData state, redirect to '/configuration/list'
 		if (!parentData.globalState.configs.find((config) => config.identifier === identifier)) {
 			redirect(303, '/configuration/list');
 		}
-		return { deploymentInfos: deploymentInfos };
+		const history = (await historyResponse.json()) as Commit[];
+		const headCommit = history[0]?.SHA1 ?? null;
+		return { headCommit };
 	} else {
 		throw new Error('No identifier provided');
 	}

@@ -453,7 +453,7 @@
 		"targetHost": "Ziel Host",
 		"deployed-at": "Deployed",
 		"hostkey": "Hostkey",
-		"deployment-info": "Deploy-Informationen",
+		"deployment-info": "Ausgerollte Geräte",
 		"publicKey": "Public Key",
 		"add-hostkey": "Hostkey Setzen",
 		"delete-hostkey": "Hostkey Löschen",

@@ -1,6 +1,15 @@
 import { fetchWithNotify } from './fetchWithNotify';
 import type { HardwareDevice } from './hardwareDevices';
 
+export const ONLINE_THRESHOLD_MS = 30 * 1000;
+export const STALE_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
+
+export const isOnline = (lastSeen: string | null): boolean =>
+	!!lastSeen && Date.now() - new Date(lastSeen).getTime() < ONLINE_THRESHOLD_MS;
+
+export const isActive = (lastSeen: string | null): boolean =>
+	!!lastSeen && Date.now() - new Date(lastSeen).getTime() < STALE_THRESHOLD_MS;
+
 export type NetworkInterface = {
 	interface: string;
 	ipv4_addresses: string[];

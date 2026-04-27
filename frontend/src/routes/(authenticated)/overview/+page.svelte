@@ -11,6 +11,7 @@
 	import Layers from 'lucide-svelte/icons/layers';
 	import Tag from 'lucide-svelte/icons/tag';
 	import OverviewConfigCard, { type ConfigCard } from '$lib/components/OverviewConfigCard.svelte';
+	import { isOnline, isActive } from '$lib/deploymentInfo';
 
 	interface Props {
 		data: PageData;
@@ -30,16 +31,6 @@
 		'#6366f1', // indigo-500
 		'#84cc16' // lime-500
 	];
-
-	const ONLINE_THRESHOLD_MS = 30 * 1000;
-	const STALE_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
-
-	const isOnline = (lastSeen: string | null): boolean => {
-		return !!lastSeen && Date.now() - new Date(lastSeen).getTime() < ONLINE_THRESHOLD_MS;
-	};
-	const isActive = (lastSeen: string | null): boolean => {
-		return !!lastSeen && Date.now() - new Date(lastSeen).getTime() < STALE_THRESHOLD_MS;
-	};
 
 	let deviceTypesMap = $derived(getDeviceTypesMap(data.availableModules));
 
@@ -206,7 +197,11 @@
 		<div class="flex w-full flex-row flex-wrap gap-4">
 			{#each configCards as config (config.identifier)}
 				<Card padding="none" class="flex flex-col overflow-hidden">
-					<OverviewConfigCard {config} globalState={data.globalState} />
+					<OverviewConfigCard
+						{config}
+						globalState={data.globalState}
+						deploymentInfos={data.deploymentInfos}
+					/>
 				</Card>
 			{/each}
 		</div>
