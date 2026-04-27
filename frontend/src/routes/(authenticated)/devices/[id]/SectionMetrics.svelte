@@ -65,6 +65,7 @@
 	const chartOptions = $derived({
 		responsive: true,
 		maintainAspectRatio: false,
+		animation: false as const,
 		plugins: {
 			tooltip: {
 				callbacks: {
