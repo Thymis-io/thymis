@@ -172,6 +172,7 @@ class AgentToRelayMessage(BaseModel):
     inner: Union[
         "EtRSwitchToNewConfigResultMessage",
         "EtRMetricsMessage",
+        "EtRNetworkInterfacesMessage",
     ] = Field(discriminator="kind")
 
 
@@ -193,6 +194,11 @@ class EtRMetricsMessage(BaseModel):
     cpu_percent: float
     ram_percent: float
     disk_percent: float
+
+
+class EtRNetworkInterfacesMessage(BaseModel):
+    kind: Literal["network_interfaces"] = "network_interfaces"
+    network_interfaces: List[Dict[str, Any]]
 
 
 class RelayToAgentMessage(BaseModel):
@@ -269,6 +275,7 @@ class Agent(ea.EdgeAgent):
 
     async def async_main(self):
         asyncio.create_task(self.collect_and_send_metrics())
+        asyncio.create_task(self.collect_and_send_network_interfaces())
         await super().async_main()
 
     async def handle_custom_relay_message(self, message: RelayToAgentMessage):
@@ -718,6 +725,29 @@ class Agent(ea.EdgeAgent):
                 logger.error("Failed to collect/send metrics: %s", e)
             await asyncio.sleep(60)
 
+    async def collect_and_send_network_interfaces(self):
+        """Detect network interface changes every 20 s; send only when state differs."""
+        last_sent: Optional[List[Dict[str, Any]]] = None
+        while not self.websocket:
+            await asyncio.sleep(10)
+        while True:
+            try:
+                if self.websocket:
+                    current = self.detect_network_interfaces()
+                    if current != last_sent:
+                        msg = AgentToRelayMessage(
+                            inner=EtRNetworkInterfacesMessage(
+                                network_interfaces=current,
+                            )
+                        )
+                        await self.websocket.send(msg.model_dump_json())
+                        last_sent = current
+            except ConnectionClosed:
+                pass
+            except Exception as e:
+                logger.error("Failed to collect/send network interfaces: %s", e)
+            await asyncio.sleep(20)
+
     def update_config_commit(self, new_commit: str):
         self.agent_metadata["configuration_commit"] = new_commit
         metadata_path = find_file(AGENT_DATA_PATHS, AGENT_METADATA_FILENAME)
@@ -798,7 +828,18 @@ class Agent(ea.EdgeAgent):
                     interfaces[interface]["ipv6_addresses"].append(snic.address)
                 elif snic.family == psutil.AF_LINK:
                     interfaces[interface]["mac_address"] = snic.address
-        return list(interfaces.values())
+        return sorted(
+            (
+                {
+                    "interface": iface["interface"],
+                    "ipv4_addresses": sorted(iface["ipv4_addresses"]),
+                    "ipv6_addresses": sorted(iface["ipv6_addresses"]),
+                    "mac_address": iface["mac_address"],
+                }
+                for iface in interfaces.values()
+            ),
+            key=lambda x: x["interface"],
+        )
 
     def detect_ip_addresses(self):
         def get_ip_addresses(family):

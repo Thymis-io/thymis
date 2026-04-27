@@ -232,7 +232,7 @@ class NixParser:
                     parsed = self.handle_line(line)
                     if hasattr(parsed.nix_line, "msg") and parsed.nix_line.msg:
                         self.msg_output += str(parsed.nix_line.msg) + "\n"
-                except json.JSONDecodeError as e:
+                except (json.JSONDecodeError, Exception) as e:
                     logger.warning(
                         "Failed to parse @nix line (len=%d): %s",
                         len(line),
