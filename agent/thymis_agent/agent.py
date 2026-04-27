@@ -181,6 +181,7 @@ class EtRSwitchToNewConfigResultMessage(BaseModel):
     task_id: uuid.UUID
     success: Optional[bool] = None  # in v3 dev
     error: Optional[str] = None  # in v3 dev
+    configuration_id: str | None = None  # v3 final
     config_commit: str | None = None  # in v3 final
     is_activated: bool | None = None  # in v3 final
     switch_success: bool | None = None  # in v3 final
@@ -218,6 +219,7 @@ class RtEUpdatePublicKeyMessage(BaseModel):
 class RtESwitchToNewConfigMessage(BaseModel):
     kind: Literal["switch_to_new_config"] = "switch_to_new_config"
     new_path_to_config: str
+    configuration_id: str
     config_commit: str
     task_id: uuid.UUID
 
@@ -313,6 +315,7 @@ class Agent(ea.EdgeAgent):
                         AgentToRelayMessage(
                             inner=EtRSwitchToNewConfigResultMessage(
                                 task_id=message.inner.task_id,
+                                configuration_id=message.inner.configuration_id,
                                 config_commit=message.inner.config_commit,
                                 is_activated=False,
                                 switch_success=False,
@@ -370,7 +373,10 @@ class Agent(ea.EdgeAgent):
                     )
                 try:
                     if is_activated:
-                        self.update_config_commit(message.inner.config_commit)
+                        self.update_config_metadata(
+                            message.inner.configuration_id,
+                            message.inner.config_commit,
+                        )
                 except Exception as e:
                     logger.error("Failed to update config commit: %s", e)
 
@@ -445,6 +451,7 @@ class Agent(ea.EdgeAgent):
                             AgentToRelayMessage(
                                 inner=EtRSwitchToNewConfigResultMessage(
                                     task_id=message.inner.task_id,
+                                    configuration_id=message.inner.configuration_id,
                                     config_commit=message.inner.config_commit,
                                     is_activated=False,
                                     switch_success=False,
@@ -463,6 +470,7 @@ class Agent(ea.EdgeAgent):
                         AgentToRelayMessage(
                             inner=EtRSwitchToNewConfigResultMessage(
                                 task_id=message.inner.task_id,
+                                configuration_id=message.inner.configuration_id,
                                 config_commit=message.inner.config_commit,
                                 is_activated=is_activated,
                                 switch_success=switch_success,
@@ -748,7 +756,8 @@ class Agent(ea.EdgeAgent):
                 logger.error("Failed to collect/send network interfaces: %s", e)
             await asyncio.sleep(20)
 
-    def update_config_commit(self, new_commit: str):
+    def update_config_metadata(self, new_config_id: str, new_commit: str):
+        self.agent_metadata["configuration_id"] = new_config_id
         self.agent_metadata["configuration_commit"] = new_commit
         metadata_path = find_file(AGENT_DATA_PATHS, AGENT_METADATA_FILENAME)
         if metadata_path:

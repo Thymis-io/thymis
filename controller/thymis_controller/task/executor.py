@@ -304,6 +304,7 @@ class TaskWorkerPoolManager:
                                         agent.RelayToAgentMessage(
                                             inner=agent.RtESwitchToNewConfigMessage(
                                                 new_path_to_config=message.update.path_to_configuration,
+                                                configuration_id=message.update.configuration_id,
                                                 config_commit=message.update.config_commit,
                                                 task_id=task_id,
                                             )

@@ -14,6 +14,7 @@ import thymis_controller.crud.agent_token as crud_agent_token
 import thymis_controller.crud.deployment_info as crud_deployment_info
 import thymis_controller.crud.device_metric as crud_device_metric
 import thymis_controller.crud.hardware_device as crud_hardware_device
+import thymis_controller.crud.task as crud_task
 import thymis_controller.models.task as models_task
 from fastapi import WebSocket
 from fastapi.concurrency import run_in_threadpool
@@ -122,11 +123,25 @@ class NetworkRelay(nr.NetworkRelay):
                         )
                         raise ValueError("Deployment info not found")
                     if inner.is_activated:
-                        # Clear the pending indicator; the device will self-report the new
-                        # deployed_config_id on reconnect.
+                        activated_config_id = inner.configuration_id
+                        if activated_config_id is None:
+                            try:
+                                task = crud_task.get_task_by_id(
+                                    db_session, inner.task_id
+                                )
+                                task_data = models_task.DeployDeviceTaskSubmission.model_validate(
+                                    task.task_submission_data
+                                )
+                                activated_config_id = task_data.device.identifier
+                            except Exception:
+                                logger.exception(
+                                    "Could not infer activated config id for switch task %s",
+                                    inner.task_id,
+                                )
                         crud_deployment_info.update(
                             db_session,
                             deployment_info[0].id,
+                            deployed_config_id=activated_config_id,
                             deployed_config_commit=inner.config_commit,
                             clear_pending_config_id=True,
                         )

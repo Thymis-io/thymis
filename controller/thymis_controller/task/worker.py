@@ -359,6 +359,7 @@ def deploy_device_task(
             models_task.RunnerToControllerTaskUpdate(
                 id=task.id,
                 update=models_task.AgentShouldSwitchToNewConfigurationUpdate(
+                    configuration_id=task_data.device.identifier,
                     deployment_info_id=task_data.device.deployment_info_id,
                     path_to_configuration=config_path,
                     config_commit=task_data.config_commit,

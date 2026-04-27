@@ -357,6 +357,7 @@ class AgentShouldSwitchToNewConfigurationUpdate(BaseModel):
     type: Literal[
         "agent_should_switch_to_new_configuration"
     ] = "agent_should_switch_to_new_configuration"
+    configuration_id: str
     path_to_configuration: str
     deployment_info_id: uuid.UUID
     config_commit: str
