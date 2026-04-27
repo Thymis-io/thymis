@@ -10,8 +10,11 @@ Invariants under test:
    - switch-config sets pending_config_id
    - device reconnects reporting old id  → deployed_config_id stays old, pending intact
    - activation promotes deployed_config_id to the target and clears pending_config_id
-   - future reconnects should report the new id because agent metadata is updated
+   - the immediate reconnect report cannot bounce a confirmed switch back
 """
+
+import uuid
+from datetime import datetime, timezone
 
 from thymis_controller import crud, db_models
 
@@ -27,6 +30,32 @@ def make_deployment_info(
     db_session.commit()
     db_session.refresh(di)
     return di
+
+
+def make_completed_switch_task(
+    db_session, deployment_info_id, source_identifier, target_identifier
+):
+    task = db_models.Task(
+        id=uuid.uuid4(),
+        start_time=datetime.now(timezone.utc),
+        end_time=datetime.now(timezone.utc),
+        state="completed",
+        task_type="deploy_device_task",
+        user_session_id=uuid.uuid4(),
+        task_submission_data={
+            "type": "deploy_device_task",
+            "device": {
+                "identifier": target_identifier,
+                "source_identifier": source_identifier,
+                "deployment_info_id": str(deployment_info_id),
+                "deployment_public_key": "key-a",
+                "secrets": [],
+            },
+        },
+    )
+    db_session.add(task)
+    db_session.commit()
+    return task
 
 
 # ---------------------------------------------------------------------------
@@ -121,7 +150,22 @@ def test_full_switch_round_trip(db_session):
     assert di_activated.deployed_config_commit == "abc123"
     assert di_activated.deployed_config_id == "config-b"
 
-    # Step 4: device reconnects after activation reporting new config
+    make_completed_switch_task(db_session, di.id, "config-a", "config-b")
+
+    # Step 4: the agent reconnect for the just-completed switch can still report
+    # the source config until its local metadata has been updated. The
+    # controller-confirmed switch target remains authoritative for that case.
+    crud.deployment_info.create_or_update_by_public_key(
+        db_session,
+        ssh_public_key="key-a",
+        deployed_config_id="config-a",
+        preserve_confirmed_switch=True,
+    )
+    di_reconnected = crud.deployment_info.get_by_id(db_session, di.id)
+    assert di_reconnected.deployed_config_id == "config-b"
+    assert di_reconnected.pending_config_id is None
+
+    # Step 5: device reconnects after activation reporting new config
     crud.deployment_info.create_or_update_by_public_key(
         db_session, ssh_public_key="key-a", deployed_config_id="config-b"
     )
