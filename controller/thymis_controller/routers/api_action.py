@@ -308,26 +308,32 @@ async def switch_config(
                 )
             )
 
+    access_client_token = get_or_create_access_client_token(
+        session, deployment_info_id=deployment_info.id
+    )
     task = task_controller.submit(
-        models.DeployDevicesTaskSubmission(
-            devices=[
-                models.DeployDeviceInformation(
-                    identifier=new_config_id,
-                    source_identifier=deployment_info.deployed_config_id,
-                    deployment_info_id=deployment_info.id,
-                    deployment_public_key=deployment_info.ssh_public_key,
-                    secrets=secrets,
-                )
-            ],
+        models.DeployDeviceTaskSubmission(
+            device=models.DeployDeviceInformation(
+                identifier=new_config_id,
+                source_identifier=deployment_info.deployed_config_id,
+                deployment_info_id=deployment_info.id,
+                deployment_public_key=deployment_info.ssh_public_key,
+                secrets=secrets,
+            ),
             project_path=str(project.path),
             ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
             known_hosts_path=str(project.known_hosts_path),
             controller_ssh_pubkey=project.public_key,
+            controller_access_client_endpoint=task_controller.access_client_endpoint,
+            access_client_token=access_client_token.token,
             config_commit=project.repo.head_commit(),
         ),
         user_session_id=user_session_id,
         db_session=session,
     )
+    access_client_token.deploy_device_task_id = task.id
+    session.add(access_client_token)
+    session.commit()
 
     return {"message": "config switched and deploy started", "task_id": str(task.id)}
 
