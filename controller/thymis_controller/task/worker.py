@@ -10,6 +10,7 @@ import random
 import shutil
 import signal
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -22,6 +23,15 @@ from pydantic import BaseModel
 from thymis_agent import agent
 from thymis_controller.nix import NIX_CMD, NIX_SSHOPTS
 from thymis_controller.nix.log_parse import NixParser
+
+
+def access_client_proxy_command(
+    endpoint: str, deployment_info_id: uuid.UUID | str
+) -> str:
+    return (
+        f"{sys.executable} -m thymis_controller.access_client "
+        f"{endpoint} {deployment_info_id}"
+    )
 
 
 class ProcessList:
@@ -221,7 +231,7 @@ def deploy_device_task(
             f"-o KbdInteractiveAuthentication=no "
             f"-o ConnectTimeout=10 "
             f"-o BatchMode=yes "
-            f"-o 'ProxyCommand {(os.getenv('PYTHONENV') + '/bin/python') if ('PYTHONENV' in os.environ) else 'python'} -m thymis_controller.access_client {task_data.controller_access_client_endpoint} {task_data.device.deployment_info_id}' "
+            f"-o 'ProxyCommand {access_client_proxy_command(task_data.controller_access_client_endpoint, task_data.device.deployment_info_id)}' "
             "-T",
             "PATH": os.getenv("PATH"),
             "HOME": os.getenv("HOME"),
@@ -627,7 +637,7 @@ def ssh_command_task(
                 "-o",
                 "BatchMode=yes",
                 "-o",
-                f"ProxyCommand={(os.getenv('PYTHONENV') + '/bin/python') if ('PYTHONENV' in os.environ) else 'python'} -m thymis_controller.access_client {task_data.controller_access_client_endpoint} {task_data.deployment_info_id}",
+                f"ProxyCommand={access_client_proxy_command(task_data.controller_access_client_endpoint, task_data.deployment_info_id)}",
                 f"{task_data.target_user}@localhost",
                 task_data.command,
             ],
