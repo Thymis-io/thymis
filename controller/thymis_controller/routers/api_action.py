@@ -257,7 +257,6 @@ async def switch_config(
     task_controller: TaskControllerAD,
     network_relay: NetworkRelayAD,
     user_session_id: UserSessionIDAD,
-    db_session: DBSessionAD,
 ):
     """
     Reassign a deployed device to a different config identifier,
@@ -298,7 +297,7 @@ async def switch_config(
     secrets = []
     for module, settings in modules:
         for secret_type, secret in module.register_secret_settings(settings, project):
-            project.get_secret(db_session, uuid.UUID(secret))
+            project.get_secret(session, uuid.UUID(secret))
             secrets.append(
                 agent.SecretForDevice(
                     secret_id=secret,
