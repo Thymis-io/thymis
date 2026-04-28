@@ -202,7 +202,14 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 
 	// Navigate back to "Details" tab
 	await page.locator('a', { hasText: 'Details' }).first().click();
-	await page.locator('p', { hasText: 'Deployed:' }).first().waitFor();
+
+	// Wait for the device to be connected
+	await page
+		.locator('div')
+		.filter({ has: page.locator('h1', { hasText: 'Deployed Devices' }) })
+		.locator('a[href^="/devices/"]')
+		.first()
+		.waitFor();
 
 	await page.getByTitle('Minimize Taskbar').first().click();
 
