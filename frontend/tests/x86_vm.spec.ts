@@ -24,7 +24,6 @@ const goToDevicesPage = async (page: Page, baseURL?: string) => {
 };
 
 test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) => {
-	test.setTimeout(720000);
 	const screenshotCounter = { count: 0 };
 	await clearState(page, request);
 	await deleteAllTasks(page, request);
@@ -51,6 +50,9 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 		.getByRole('button', { name: 'View Details' })
 		.first()
 		.click({ force: true });
+
+	// Wait for config detail page to load
+	await page.locator('h1', { hasText: 'VM Test x64 1' }).waitFor();
 
 	// select button "Build and start VM"
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
@@ -79,19 +81,19 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
 
 	// wait until: 1x on screen "completed", 1x on screen "running"
-	test.setTimeout(720000);
+	test.setTimeout(360000);
 	await page
 		.locator('td', { hasText: 'completed' })
 		.nth(1)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 720000 });
+		.waitFor({ timeout: 360000 });
 	await expect(page.locator('td', { hasText: 'completed' }).nth(1)).toBeVisible();
 
 	await page
 		.locator('td', { hasText: 'running' })
 		.nth(1)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 720000 });
+		.waitFor({ timeout: 360000 });
 	await expect(page.locator('td', { hasText: 'running' }).nth(1)).toBeVisible();
 
 	// go to "Devices" page and wait until "Connected" is shown twice
@@ -198,7 +200,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await deployButtonModal.click();
 
 	// Wait for a fifth "completed" status
-	await page.locator('td', { hasText: 'completed' }).nth(4).waitFor({ timeout: 720000 });
+	await page.locator('td', { hasText: 'completed' }).nth(4).waitFor({ timeout: 360000 });
 
 	// Navigate back to "Details" tab
 	await page.locator('a', { hasText: 'Details' }).first().click();
@@ -253,7 +255,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 		.filter({ hasText: 'Commit & Download Device Image' })
 		.first()
 		.click();
-	test.setTimeout(720000);
+	test.setTimeout(360000);
 	await page.waitForEvent('download');
 });
 
@@ -292,8 +294,8 @@ test('Create and use artifacts', async ({ page, request }, testInfo) => {
 	await page.locator('button', { hasText: 'Add Artifact' }).scrollIntoViewIfNeeded();
 	await page.locator("button:near(:text('Artifact')):text('Select an option')").click();
 	await page.locator('option', { hasText: 'test.txt' }).click();
-	await page.locator("input:near(:text('Path'))").fill('/root/test-file.txt');
-	await page.locator("input:near(:text('Path'))").blur();
+	await page.getByRole('textbox', { name: 'Path' }).fill('/root/test-file.txt');
+	await page.getByRole('textbox', { name: 'Path' }).blur();
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 

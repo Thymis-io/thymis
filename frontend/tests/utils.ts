@@ -168,7 +168,7 @@ export const clearState = async (page: Page, request: APIRequestContext) => {
 	const stateRequest = await page.request.get('/api/state');
 	const state = await stateRequest.json();
 	state['tags'] = [];
-	state['devices'] = [];
+	state['configs'] = [];
 	await page.request.patch('/api/state', { data: state });
 	await page.evaluate(() => {
 		if (window.toast) {
