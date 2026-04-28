@@ -6,6 +6,7 @@ calling the CRUD update path directly. Test setup seeds deployment_info rows
 directly so the test does not depend on Playwright-only routes.
 """
 
+import asyncio
 import subprocess
 import tempfile
 import uuid
@@ -145,6 +146,8 @@ def switch_test_client(monkeypatch):
         text=True,
     )
     monkeypatch.setattr(global_settings, "PROJECT_PATH", project_path)
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     project = Project(project_path, NotificationManager(), engine)
 
     fake_network_relay = FakeNetworkRelay()
@@ -182,7 +185,11 @@ def switch_test_client(monkeypatch):
     client._fake_task_controller = fake_task_controller
     client._project = project
     client._testing_session = TestingSession
-    yield client
+    try:
+        yield client
+    finally:
+        asyncio.set_event_loop(None)
+        loop.close()
 
     tmpdir.cleanup()
     for key in [

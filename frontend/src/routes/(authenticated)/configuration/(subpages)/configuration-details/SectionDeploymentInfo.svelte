@@ -73,7 +73,7 @@
 
 <CommitModal
 	bind:open={openCommitModal}
-	repoStatus={repoStatus}
+	{repoStatus}
 	defaultMessage="switch config"
 	onAction={async (message) => {
 		await fetchWithNotify(`/api/action/commit?message=${encodeURIComponent(message)}`, {

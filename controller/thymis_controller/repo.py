@@ -40,7 +40,11 @@ class StateEventHandler(FileSystemEventHandler):
         self.base_path = base_path
         self.notification_manager = notification_manager
         self.last_event = datetime.datetime.min
-        self.event_loop = asyncio.get_event_loop()
+        try:
+            self.event_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            self.event_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.event_loop)
         self.debounce_task = None
         self.paused = False
         self.lock = threading.Lock()
