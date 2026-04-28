@@ -76,7 +76,7 @@ jobs:
           nix develop .#forNpmTesting --command npm run test:integration -- --update-snapshots
         working-directory: frontend
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         id: artifact-upload-aarch64
         if: always()
         with:
@@ -84,7 +84,7 @@ jobs:
           path: frontend/playwright-report/
           retention-days: 30
       - name: Upload snapshots screencaps
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: updated-snapshots-aarch64-screencaps
           path: frontend/tests/screencaps.spec.ts-snapshots/
@@ -136,7 +136,7 @@ jobs:
           fi
         working-directory: frontend
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         id: artifact-upload-x86_64
         if: always()
         with:
@@ -160,7 +160,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
           ref: ${{ needs.comment-action-start.outputs.pr_head }}
       - name: Download updated snapshots aarch64-screencaps
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: updated-snapshots-aarch64-screencaps
           path: frontend/tests/screencaps.spec.ts-snapshots/
