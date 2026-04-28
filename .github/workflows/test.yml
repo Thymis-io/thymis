@@ -103,7 +103,7 @@ jobs:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         id: artifact-upload
         if: always()
         with:
@@ -204,7 +204,7 @@ jobs:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         id: artifact-upload
         if: always()
         with:
@@ -264,7 +264,7 @@ jobs:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         id: artifact-upload
         if: always()
         with:
@@ -324,7 +324,7 @@ jobs:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         id: artifact-upload
         if: always()
         with:
