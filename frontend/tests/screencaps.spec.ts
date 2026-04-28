@@ -262,8 +262,8 @@ test('Create update tasks', async ({ page, request }, testInfo) => {
 });
 
 test('Create moneyshot', async ({ page, request, browser }, testInfo) => {
+	test.setTimeout(300000);
 	const screenshotCounter = { count: 0 };
-	test.setTimeout(600000);
 	await clearState(page, request);
 	await deleteAllTasks(page, request);
 
@@ -428,6 +428,7 @@ test('VNC View', async ({ page, request }, testInfo) => {
 });
 
 test('Create History Entry', async ({ page, request }, testInfo) => {
+	test.setTimeout(60000);
 	const screenshotCounter = { count: 0 };
 	await clearState(page, request);
 	await deleteAllTasks(page, request);
