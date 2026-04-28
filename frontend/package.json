@@ -45,7 +45,7 @@
 		"flowbite-svelte": "^0.48.6",
 		"lucide-svelte": "^1.0.0",
 		"monaco-editor": "^0.55.1",
-		"postcss": "^8.5.8",
+		"postcss": "^8.5.12",
 		"postcss-load-config": "^6.0.1",
 		"prettier": "^3.8.1",
 		"prettier-plugin-svelte": "^3.5.1",
