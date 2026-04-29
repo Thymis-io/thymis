@@ -14,6 +14,7 @@
 	import ArrowRightLeft from 'lucide-svelte/icons/arrow-right-left';
 	import type { RepoStatus } from '$lib/repo/repo';
 	import { getDeviceType } from '$lib/config/configUtils';
+	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
 	interface Props {
 		deploymentInfos?: DeploymentInfo[];
@@ -107,22 +108,14 @@
 />
 
 <Section class={className} title={$t('configuration-details.deployment-info')}>
-	<div class="flex flex-col gap-2 max-w-96">
+	<div class="flex flex-col gap-2">
 		{#each instances as inst (inst.id)}
 			{@const deploymentInfo = deploymentInfos.find((di) => di.id === inst.id)}
-			{#if deploymentInfo}
-				<DeploymentInstanceRow {inst} {globalState} {deploymentInfos} />
-				{#if deploymentInfo.pending_config_id}
-					{@const pendingConfig = globalState.configs.find(
-						(c) => c.identifier === deploymentInfo.pending_config_id
-					)}
-					<p class="text-sm text-yellow-600 dark:text-yellow-400">
-						{$t('configuration-details.switching-to', {
-							values: { config: pendingConfig?.displayName ?? deploymentInfo.pending_config_id }
-						})}
-					</p>
-				{/if}
-				<div class="flex flex-row items-center gap-2 flex-wrap">
+			<div class="flex flex-row items-center gap-2 flex-wrap">
+				{#if deploymentInfo}
+					<div class="flex flex-col gap-2 max-w-96 mr-4">
+						<DeploymentInstanceRow {inst} {globalState} {deploymentInfos} />
+					</div>
 					<Select
 						class="max-w-xs text-sm"
 						items={switchableConfigsFor(deploymentInfo).map((c) => ({
@@ -141,8 +134,20 @@
 						<ArrowRightLeft size="16" />
 						{$t('configuration-details.switch-config')}
 					</Button>
-				</div>
-			{/if}
+					{#if deploymentInfo.pending_config_id}
+						{@const [before, after] = $t('configuration-details.switching-to').split('{config}')}
+						<div class="text-sm text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
+							{before}
+							<IdentifierLink
+								{globalState}
+								identifier={deploymentInfo.pending_config_id}
+								context="config"
+							/>
+							{after}
+						</div>
+					{/if}
+				{/if}
+			</div>
 		{:else}
 			<p class="text-base">{$t('configuration-details.no-deployment-info')}</p>
 		{/each}
