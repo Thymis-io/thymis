@@ -143,7 +143,7 @@ class NetworkRelay(nr.NetworkRelay):
                             deployment_info[0].id,
                             deployed_config_id=activated_config_id,
                             deployed_config_commit=inner.config_commit,
-                            clear_pending_config_id=True,
+                            pending_config_id=None,
                         )
                 self.task_controller.executor.send_message_to_task(
                     inner.task_id,
