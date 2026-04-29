@@ -16,7 +16,7 @@ from thymis_controller.dependencies import (
     TaskControllerAD,
     UserSessionIDAD,
 )
-from thymis_controller.models.state import State
+from thymis_controller.models.state import Config, State
 
 logger = logging.getLogger(__name__)
 
@@ -248,6 +248,16 @@ async def download_image(
     )
 
 
+THYMIS_DEVICE_MODULE_TYPE = "thymis_controller.modules.thymis.ThymisDevice"
+
+
+def get_config_device_type(config: Config):
+    for module in config.modules:
+        if module.type == THYMIS_DEVICE_MODULE_TYPE:
+            return module.settings.get("device_type")
+    return None
+
+
 @router.post("/action/switch-config")
 async def switch_config(
     deployment_info_id: uuid.UUID,
@@ -268,16 +278,40 @@ async def switch_config(
             detail="Repository is dirty. Please commit your changes first.",
         )
 
+    deployment_info = crud.deployment_info.get_by_id(session, deployment_info_id)
+    if deployment_info is None:
+        raise HTTPException(status_code=404, detail="Deployment info not found")
+
     state = project.read_state()
-    config = next((c for c in state.configs if c.identifier == new_config_id), None)
-    if config is None:
+    source_config = next(
+        (
+            c
+            for c in state.configs
+            if c.identifier == deployment_info.deployed_config_id
+        ),
+        None,
+    )
+    if source_config is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Current config '{deployment_info.deployed_config_id}' not found",
+        )
+
+    target_config = next(
+        (c for c in state.configs if c.identifier == new_config_id), None
+    )
+    if target_config is None:
         raise HTTPException(
             status_code=404, detail=f"Config '{new_config_id}' not found"
         )
 
-    deployment_info = crud.deployment_info.get_by_id(session, deployment_info_id)
-    if deployment_info is None:
-        raise HTTPException(status_code=404, detail="Deployment info not found")
+    source_device_type = get_config_device_type(source_config)
+    target_device_type = get_config_device_type(target_config)
+    if not source_device_type or source_device_type != target_device_type:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot switch configs with different device types",
+        )
 
     # Reassign the device — pending_config_id communicates the pending state.
     crud.deployment_info.update(
@@ -293,7 +327,7 @@ async def switch_config(
     ):
         return {"message": "config switched; device not connected, skipping deploy"}
 
-    modules = project.get_modules_for_config(state, config)
+    modules = project.get_modules_for_config(state, target_config)
     secrets = []
     for module, settings in modules:
         for secret_type, secret in module.register_secret_settings(settings, project):

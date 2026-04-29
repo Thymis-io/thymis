@@ -46,11 +46,16 @@ def _write_state(project, configs):
     return state
 
 
-def _make_config(identifier, displayName=None):
+def _make_config(identifier, displayName=None, device_type="generic-x86_64"):
     return Config(
         displayName=displayName or identifier.replace("-", " ").title(),
         identifier=identifier,
-        modules=[],
+        modules=[
+            {
+                "type": "thymis_controller.modules.thymis.ThymisDevice",
+                "settings": {"device_type": device_type},
+            }
+        ],
         tags=[],
     )
 
@@ -258,6 +263,31 @@ class TestSwitchConfigAPI:
         assert submission["model"].device.identifier == "config-b"
         assert submission["model"].device.source_identifier == "config-a"
         assert submission["model"].device.deployment_info_id == uuid.UUID(dep["id"])
+
+    def test_switch_config_different_device_type_returns_400(self, switch_test_client):
+        """Switching is only valid between configs for the same device type."""
+        client = switch_test_client
+        _write_state(
+            client._project,
+            [
+                _make_config("config-a", device_type="raspberry-pi-4"),
+                _make_config("config-b", device_type="generic-x86_64"),
+            ],
+        )
+
+        dep = _create_deployment_info(client, "config-a")
+
+        resp = client.post(
+            "/api/action/switch-config",
+            params={"deployment_info_id": dep["id"], "new_config_id": "config-b"},
+        )
+
+        assert resp.status_code == 400
+        assert "different device types" in resp.json()["detail"]
+
+        updated = _get_deployment_info(client, dep["id"])
+        assert updated["pending_config_id"] is None
+        assert len(client._fake_task_controller.submissions) == 0
 
     def test_switch_config_missing_config_returns_404(self, switch_test_client):
         client = switch_test_client
