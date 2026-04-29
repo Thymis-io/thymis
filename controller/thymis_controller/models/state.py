@@ -17,11 +17,20 @@ class ModuleSettings(BaseModel):
     settings: Dict[str, JsonValue]
 
 
+THYMIS_DEVICE_MODULE_TYPE = "thymis_controller.modules.thymis.ThymisDevice"
+
+
 class Config(BaseModel):
     displayName: str
     identifier: str
     modules: List[ModuleSettings]
     tags: List[str]
+
+    def device_type(self):
+        for module in self.modules:
+            if module.type == THYMIS_DEVICE_MODULE_TYPE:
+                return module.settings.get("device_type")
+        return None
 
 
 class Tag(BaseModel):
