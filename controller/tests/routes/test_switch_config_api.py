@@ -215,8 +215,10 @@ def switch_test_client(monkeypatch):
 class TestSwitchConfigAPI:
     """Exercise POST /api/action/switch-config through the HTTP layer."""
 
-    def test_switch_config_sets_pending(self, switch_test_client):
-        """Switching sets pending_config_id; device is NOT connected so deploy is skipped."""
+    def test_switch_config_offline_device_does_not_set_pending(
+        self, switch_test_client
+    ):
+        """Offline devices cannot have an in-flight switch, so pending stays clear."""
         client = switch_test_client
         project = client._project
         _write_state(project, [_make_config("config-a"), _make_config("config-b")])
@@ -228,12 +230,11 @@ class TestSwitchConfigAPI:
             "/api/action/switch-config",
             params={"deployment_info_id": dep_id, "new_config_id": "config-b"},
         )
-        assert resp.status_code == 200
-        body = resp.json()
-        assert "not connected" in body["message"]
+        assert resp.status_code == 409
+        assert "Device is offline" in resp.json()["detail"]
 
         updated = _get_deployment_info(client, dep_id)
-        assert updated["pending_config_id"] == "config-b"
+        assert updated["pending_config_id"] is None
         assert updated["deployed_config_id"] == "config-a"
         assert len(client._fake_task_controller.submissions) == 0
 
@@ -289,6 +290,25 @@ class TestSwitchConfigAPI:
         assert updated["pending_config_id"] is None
         assert len(client._fake_task_controller.submissions) == 0
 
+    def test_switch_config_connected_task_submission_sets_pending(
+        self, switch_test_client
+    ):
+        client = switch_test_client
+        _write_state(
+            client._project, [_make_config("config-a"), _make_config("config-b")]
+        )
+        dep = _create_deployment_info(client, "config-a", ssh_public_key="ssh-key-1")
+        client._fake_network_relay.public_key_to_connection_id["ssh-key-1"] = "conn-1"
+
+        resp = client.post(
+            "/api/action/switch-config",
+            params={"deployment_info_id": dep["id"], "new_config_id": "config-b"},
+        )
+
+        assert resp.status_code == 200
+        updated = _get_deployment_info(client, dep["id"])
+        assert updated["pending_config_id"] == "config-b"
+
     def test_switch_config_missing_config_returns_404(self, switch_test_client):
         client = switch_test_client
         _write_state(client._project, [_make_config("config-a")])
@@ -343,6 +363,9 @@ class TestSwitchConfigAPI:
         dep = _create_deployment_info(client, "config-a")
         assert dep["pending_config_id"] is None
 
+        client._fake_network_relay.public_key_to_connection_id[
+            dep["ssh_public_key"]
+        ] = "conn-1"
         client.post(
             "/api/action/switch-config",
             params={"deployment_info_id": dep["id"], "new_config_id": "config-b"},
@@ -360,6 +383,9 @@ class TestSwitchConfigAPI:
 
         dep = _create_deployment_info(client, "config-a")
 
+        client._fake_network_relay.public_key_to_connection_id[
+            dep["ssh_public_key"]
+        ] = "conn-1"
         client.post(
             "/api/action/switch-config",
             params={"deployment_info_id": dep["id"], "new_config_id": "config-b"},

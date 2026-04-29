@@ -230,6 +230,20 @@ class TaskWorkerPoolManager:
                                 conn.close()
                                 break
                             case models_task.TaskFailedUpdate(reason=reason):
+                                submission_data = task.task_submission_data or {}
+                                device = submission_data.get("device", {})
+                                deployment_info_id = device.get("deployment_info_id")
+                                source_identifier = device.get("source_identifier")
+                                if (
+                                    task.task_type == "deploy_device_task"
+                                    and source_identifier
+                                    and deployment_info_id
+                                ):
+                                    crud.deployment_info.update(
+                                        db_session,
+                                        uuid.UUID(deployment_info_id),
+                                        pending_config_id=None,
+                                    )
                                 task.state = "failed"
                                 task.add_exception(reason)
                                 task.end_time = datetime.now(timezone.utc)
