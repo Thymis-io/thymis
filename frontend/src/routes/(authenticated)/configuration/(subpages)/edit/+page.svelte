@@ -3,7 +3,7 @@
 	import { Card } from 'flowbite-svelte';
 	import ModuleList from '$lib/config/ModuleList.svelte';
 	import { getTagByIdentifier } from '$lib/state';
-	import type { ModuleSettingsWithOrigin, Tag, Config, Module, Origin } from '$lib/state';
+	import type { ModuleSettingsWithOrigin, Tag, Config, Module, Origin, Setting } from '$lib/state';
 	import type { PageData } from './$types';
 	import ModuleCard from '$lib/config/ModuleCard.svelte';
 
@@ -53,6 +53,18 @@
 	const getOtherSettings = (target: Config | Tag | undefined, module: Module | undefined) => {
 		return getModuleSettings(target)?.filter((s) => s.type === module?.type);
 	};
+
+	const selectedConfigHasConnectedDevices = () =>
+		data.connectedDeploymentInfos.some(
+			(deploymentInfo) =>
+				deploymentInfo.deployed_config_id === data.nav.selectedModuleContextIdentifier
+		);
+
+	const shouldLockSetting = (settingKey: string, setting: Setting) =>
+		data.nav.selectedModuleContextType === 'config' &&
+		data.nav.selectedModule?.type === 'thymis_controller.modules.thymis.ThymisDevice' &&
+		settingKey === 'device_type' &&
+		selectedConfigHasConnectedDevices();
 </script>
 
 <div class="grid grid-flow-row grid-cols-1 md:grid-cols-[250px_auto] gap-4">
@@ -89,6 +101,7 @@
 			showRouting={data.nav.selectedTargetType === 'config'}
 			canEdit={data.nav.selectedTarget === data.nav.selectedModuleContext}
 			artifacts={data.artifacts}
+			{shouldLockSetting}
 		/>
 	{/if}
 </div>

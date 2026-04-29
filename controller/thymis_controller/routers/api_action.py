@@ -16,7 +16,7 @@ from thymis_controller.dependencies import (
     TaskControllerAD,
     UserSessionIDAD,
 )
-from thymis_controller.models.state import Config, State
+from thymis_controller.models.state import State
 
 logger = logging.getLogger(__name__)
 
@@ -248,16 +248,6 @@ async def download_image(
     )
 
 
-THYMIS_DEVICE_MODULE_TYPE = "thymis_controller.modules.thymis.ThymisDevice"
-
-
-def get_config_device_type(config: Config):
-    for module in config.modules:
-        if module.type == THYMIS_DEVICE_MODULE_TYPE:
-            return module.settings.get("device_type")
-    return None
-
-
 @router.post("/action/switch-config")
 async def switch_config(
     deployment_info_id: uuid.UUID,
@@ -305,8 +295,8 @@ async def switch_config(
             status_code=404, detail=f"Config '{new_config_id}' not found"
         )
 
-    source_device_type = get_config_device_type(source_config)
-    target_device_type = get_config_device_type(target_config)
+    source_device_type = source_config.device_type()
+    target_device_type = target_config.device_type()
     if not source_device_type or source_device_type != target_device_type:
         raise HTTPException(
             status_code=400,

@@ -1,12 +1,24 @@
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Body, Depends, Request
-from thymis_controller import dependencies, models, modules
-from thymis_controller.dependencies import ProjectAD
-from thymis_controller.models.state import State
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Request
+from thymis_controller import crud, dependencies, models, modules
+from thymis_controller.dependencies import DBSessionAD, NetworkRelayAD, ProjectAD
+from thymis_controller.models.state import Config, State
 from thymis_controller.repo import RepoStatus
 
 router = APIRouter()
+
+
+def changed_device_type_configs(old_state: State, new_state: State) -> list[Config]:
+    old_configs = {config.identifier: config for config in old_state.configs}
+    changed_configs = []
+
+    for new_config in new_state.configs:
+        old_config = old_configs.get(new_config.identifier)
+        if old_config and old_config.device_type() != new_config.device_type():
+            changed_configs.append(new_config)
+
+    return changed_configs
 
 
 @router.get("/state")
@@ -18,9 +30,26 @@ def get_state(state: State = Depends(dependencies.get_state)):
 def update_state(
     payload: Annotated[dict, Body()],
     project: ProjectAD,
+    db_session: DBSessionAD,
+    network_relay: NetworkRelayAD,
     background_tasks: BackgroundTasks,
 ):
     new_state = State.model_validate(payload)
+    for config in changed_device_type_configs(project.read_state(), new_state):
+        connected_devices = [
+            deployment_info
+            for deployment_info in crud.deployment_info.get_by_config_id(
+                db_session, config.identifier
+            )
+            if network_relay.public_key_to_connection_id.get(
+                deployment_info.ssh_public_key
+            )
+        ]
+        if connected_devices:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot change device type for config '{config.identifier}' while devices are connected",
+            )
     project.write_state(new_state)
     background_tasks.add_task(project.reload_state, new_state)
     return new_state

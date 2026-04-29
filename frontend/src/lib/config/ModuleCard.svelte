@@ -23,6 +23,7 @@
 		showRouting: boolean;
 		canEdit: boolean;
 		artifacts: Artifact[];
+		shouldLockSetting?: (settingKey: string, setting: Setting) => boolean;
 	}
 
 	let {
@@ -33,7 +34,8 @@
 		otherSettings,
 		showRouting,
 		canEdit,
-		artifacts
+		artifacts,
+		shouldLockSetting = () => false
 	}: Props = $props();
 
 	const setSetting = async (setting: Setting<SettingType>, key: string, value: any) => {
@@ -75,6 +77,9 @@
 			!setting.type.extra_data.only_editable_on_target_type.includes(nav.selectedModuleContextType)
 		);
 
+	const canEditSetting = (canEdit: boolean, key: string, setting: Setting) =>
+		canReallyEditSetting(canEdit, setting) && !shouldLockSetting(key, setting);
+
 	const canPaste = (clipboardText: string, setting: Setting<SettingType>) => {
 		if (clipboardText === undefined) return;
 		try {
@@ -112,13 +117,13 @@
 				{$t(setting.displayName)}
 			</P>
 			<div class="flex gap-1">
-				{#key (module.type, globalState.selectedModuleSettings?.settings[key], !canReallyEditSetting(canEdit, setting))}
+				{#key (module.type, globalState.selectedModuleSettings?.settings[key], !canEditSetting(canEdit, key, setting))}
 					<ConfigRenderer
 						key="config-{key}"
 						{setting}
 						moduleSettings={settings}
 						value={globalState.selectedModuleSettings?.settings[key]}
-						disabled={!canReallyEditSetting(canEdit, setting)}
+						disabled={!canEditSetting(canEdit, key, setting)}
 						onChange={(value) => setSetting(setting, key, value)}
 						{artifacts}
 					/>
@@ -135,7 +140,7 @@
 					<Copy size="20" />
 				</button>
 				<Tooltip type="auto">{$t('config.copy')}</Tooltip>
-				{#if canEdit}
+				{#if canEditSetting(canEdit, key, setting)}
 					<button
 						class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 						onclick={async () => {
@@ -149,7 +154,7 @@
 					</button>
 					<Tooltip type="auto">{$t('config.paste')}</Tooltip>
 				{/if}
-				{#if canEdit}
+				{#if canEditSetting(canEdit, key, setting)}
 					{#if settings?.settings[key] !== undefined}
 						<button
 							class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
@@ -158,7 +163,7 @@
 							<X size="20" />
 						</button>
 						<Tooltip type="auto">{$t('config.clear')}</Tooltip>
-					{:else if canReallyEditSetting(canEdit, setting)}
+					{:else if canEditSetting(canEdit, key, setting)}
 						<button
 							class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
 							onclick={() =>
