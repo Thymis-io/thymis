@@ -303,7 +303,16 @@ async def switch_config(
             detail="Cannot switch configs with different device types",
         )
 
-    # Reassign the device — pending_config_id communicates the pending state.
+    if not network_relay.public_key_to_connection_id.get(
+        deployment_info.ssh_public_key
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail="Device is offline. Cannot switch config until it is connected.",
+        )
+
+    # Reassign the device only after we know a deploy task can be submitted.
+    # pending_config_id reflects an in-flight switch, not a queued offline intent.
     crud.deployment_info.update(
         session,
         deployment_info_id,
@@ -311,11 +320,6 @@ async def switch_config(
     )
 
     project.update_known_hosts(session)
-
-    if not network_relay.public_key_to_connection_id.get(
-        deployment_info.ssh_public_key
-    ):
-        return {"message": "config switched; device not connected, skipping deploy"}
 
     modules = project.get_modules_for_config(state, target_config)
     secrets = []

@@ -116,35 +116,38 @@
 					<div class="flex flex-col gap-2 max-w-96 mr-4">
 						<DeploymentInstanceRow {inst} {globalState} {deploymentInfos} />
 					</div>
-					<Select
-						class="max-w-xs text-sm"
-						items={switchableConfigsFor(deploymentInfo).map((c) => ({
-							name: c.displayName,
-							value: c.identifier
-						}))}
-						bind:value={switchConfigSelections[deploymentInfo.id]}
-						placeholder={$t('configuration-details.switch-config-select')}
-					/>
-					<Button
-						class="px-2 py-1.5 gap-2"
-						color="alternative"
-						disabled={!switchConfigSelections[deploymentInfo.id]}
-						on:click={() => switchConfig(deploymentInfo, switchConfigSelections[deploymentInfo.id])}
-					>
-						<ArrowRightLeft size="16" />
-						{$t('configuration-details.switch-config')}
-					</Button>
-					{#if deploymentInfo.pending_config_id}
-						{@const [before, after] = $t('configuration-details.switching-to').split('{config}')}
-						<div class="text-sm text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
-							{before}
-							<IdentifierLink
-								{globalState}
-								identifier={deploymentInfo.pending_config_id}
-								context="config"
-							/>
-							{after}
-						</div>
+					{#if inst.online}
+						<Select
+							class="max-w-xs text-sm"
+							items={switchableConfigsFor(deploymentInfo).map((c) => ({
+								name: c.displayName,
+								value: c.identifier
+							}))}
+							bind:value={switchConfigSelections[deploymentInfo.id]}
+							placeholder={$t('configuration-details.switch-config-select')}
+						/>
+						<Button
+							class="px-2 py-1.5 gap-2"
+							color="alternative"
+							disabled={!switchConfigSelections[deploymentInfo.id]}
+							on:click={() =>
+								switchConfig(deploymentInfo, switchConfigSelections[deploymentInfo.id])}
+						>
+							<ArrowRightLeft size="16" />
+							{$t('configuration-details.switch-config')}
+						</Button>
+						{#if deploymentInfo.pending_config_id}
+							{@const [before, after] = $t('configuration-details.switching-to').split('{config}')}
+							<div class="text-sm text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
+								{before}
+								<IdentifierLink
+									{globalState}
+									identifier={deploymentInfo.pending_config_id}
+									context="config"
+								/>
+								{after}
+							</div>
+						{/if}
 					{/if}
 				{/if}
 			</div>
