@@ -13,6 +13,7 @@
 	import FileLock from 'lucide-svelte/icons/file-lock-2';
 	import FolderOpen from 'lucide-svelte/icons/folder-open';
 	import RefreshCcwDot from 'lucide-svelte/icons/refresh-ccw-dot';
+	import Sparkles from 'lucide-svelte/icons/sparkles';
 	import type { GlobalState } from '$lib/state.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 
@@ -111,6 +112,11 @@
 			name: $t('nav.auto-update'),
 			icon: RefreshCcwDot,
 			href: '/auto-update'
+		},
+		{
+			name: $t('nav.ai-assistant'),
+			icon: Sparkles,
+			href: '/ai-assistant'
 		}
 	]);
 </script>

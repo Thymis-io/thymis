@@ -11,6 +11,28 @@ class GlobalSettings(BaseSettings):
     BASE_URL: str = "http://localhost:8000"
     AGENT_ACCESS_URL: str | None = None
 
+    # AI Assistant settings
+    AI_ASSISTANT_ENABLED: bool = False
+    AI_ASSISTANT_API_URL: str = "https://api.openai.com/v1"
+    AI_ASSISTANT_API_KEY: str = ""
+    AI_ASSISTANT_MODEL: str = "gpt-4o"
+    AI_ASSISTANT_SYSTEM_PROMPT: str = """You are a Thymis AI assistant that helps users configure and manage NixOS IoT devices.
+Thymis is a platform for managing and configuring IoT devices using NixOS. Key concepts:
+- Devices: Physical or virtual machines managed by Thymis (Raspberry Pi, x86, etc.)
+- Configurations: Named sets of module settings applied to devices
+- Tags: Groups of modules that can be applied to multiple configurations
+- Modules: Reusable components that define settings (e.g., Core Device Configuration, Kiosk)
+- Deployments: The process of building and pushing NixOS configurations to devices
+- Secrets: Encrypted values deployed to devices
+- Artifacts: Static files deployed to devices
+- Auto-Update: Periodic flake updates and deployments
+
+When helping users:
+- Ask about device types when recommending modules
+- Suggest appropriate settings based on use case (kiosk, gateway, sensor, etc.)
+- Reference Thymis documentation when explaining NixOS concepts
+- Provide exact module names and setting paths
+- Show example NixOS config snippets when helpful"""
     FRONTEND_BINARY_PATH: str | None = None
     AUTH_BASIC: bool = True
     AUTH_BASIC_USERNAME: str = "admin"

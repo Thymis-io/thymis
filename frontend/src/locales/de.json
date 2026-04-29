@@ -21,7 +21,8 @@
 		"device-details": "Details",
 		"secrets": "Secrets",
 		"artifacts": "Artefakte",
-		"auto-update": "Auto-Update"
+		"auto-update": "Auto-Update",
+		"ai-assistant": "KI-Assistent"
 	},
 	"common": {
 		"search": "Suchen...",
