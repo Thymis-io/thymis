@@ -3,7 +3,7 @@ Integration tests for the switch-config / pending_config_id feature.
 
 Invariants under test:
 1. update() with pending_config_id sets the field.
-2. update() with clear_pending_config_id=True clears it without touching deployed_config_id.
+2. update() with pending_config_id=None clears it without touching deployed_config_id.
 3. create_or_update_by_public_key() does NOT auto-promote pending_config_id;
    the device-reported deployed_config_id always wins on reconnect.
 4. Full switch round-trip:
@@ -76,7 +76,7 @@ def test_update_sets_pending_config_id(db_session):
 
 
 # ---------------------------------------------------------------------------
-# 2. clear_pending_config_id=True nulls the field without touching deployed
+# 2. update() with pending_config_id=None nulls the field without touching deployed
 # ---------------------------------------------------------------------------
 
 
@@ -84,9 +84,7 @@ def test_clear_pending_config_id(db_session):
     di = make_deployment_info(db_session)
     crud.deployment_info.update(db_session, di.id, pending_config_id="config-b")
 
-    updated = crud.deployment_info.update(
-        db_session, di.id, clear_pending_config_id=True
-    )
+    updated = crud.deployment_info.update(db_session, di.id, pending_config_id=None)
 
     assert updated.pending_config_id is None
     assert updated.deployed_config_id == "config-a"
@@ -143,7 +141,7 @@ def test_full_switch_round_trip(db_session):
         di.id,
         deployed_config_id="config-b",
         deployed_config_commit="abc123",
-        clear_pending_config_id=True,
+        pending_config_id=None,
     )
     di_activated = crud.deployment_info.get_by_id(db_session, di.id)
     assert di_activated.pending_config_id is None

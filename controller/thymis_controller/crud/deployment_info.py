@@ -48,8 +48,7 @@ def update(
     network_interfaces: list | None = None,
     location: str | None = _UNSET,
     name: str | None = _UNSET,
-    pending_config_id: str | None = None,
-    clear_pending_config_id: bool = False,
+    pending_config_id: str | None = _UNSET,
 ) -> db_models.DeploymentInfo | None:
     deployment_info = session.get(db_models.DeploymentInfo, id)
     if deployment_info is None:
@@ -72,10 +71,8 @@ def update(
         deployment_info.location = location
     if name is not _UNSET:
         deployment_info.name = name
-    if pending_config_id is not None:
+    if pending_config_id is not _UNSET:
         deployment_info.pending_config_id = pending_config_id
-    if clear_pending_config_id:
-        deployment_info.pending_config_id = None
     session.commit()
     session.refresh(deployment_info)
     return deployment_info
