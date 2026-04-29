@@ -13,6 +13,7 @@
 	import { invalidateButDeferUntilNavigation } from '$lib/notification';
 	import ArrowRightLeft from 'lucide-svelte/icons/arrow-right-left';
 	import type { RepoStatus } from '$lib/repo/repo';
+	import { getDeviceType } from '$lib/config/configUtils';
 
 	interface Props {
 		deploymentInfos?: DeploymentInfo[];
@@ -55,6 +56,21 @@
 	let switchConfigSelections = $state<Record<string, string>>({});
 	let openCommitModal = $state(false);
 	let pendingSwitch: { deploymentInfo: DeploymentInfo; newConfigId: string } | undefined = $state();
+
+	const switchableConfigsFor = (deploymentInfo: DeploymentInfo) => {
+		const sourceConfig = globalState.configs.find(
+			(c) => c.identifier === deploymentInfo.deployed_config_id
+		);
+		const sourceDeviceType = getDeviceType(sourceConfig);
+		if (!sourceDeviceType) {
+			return [];
+		}
+
+		return globalState.configs.filter(
+			(c) =>
+				c.identifier !== deploymentInfo.deployed_config_id && getDeviceType(c) === sourceDeviceType
+		);
+	};
 
 	const switchConfig = async (deploymentInfo: DeploymentInfo, newConfigId: string) => {
 		const response = await fetchWithNotify(
@@ -109,9 +125,10 @@
 				<div class="flex flex-row items-center gap-2 flex-wrap">
 					<Select
 						class="max-w-xs text-sm"
-						items={globalState.configs
-							.filter((c) => c.identifier !== deploymentInfo.deployed_config_id)
-							.map((c) => ({ name: c.displayName, value: c.identifier }))}
+						items={switchableConfigsFor(deploymentInfo).map((c) => ({
+							name: c.displayName,
+							value: c.identifier
+						}))}
 						bind:value={switchConfigSelections[deploymentInfo.id]}
 						placeholder={$t('configuration-details.switch-config-select')}
 					/>
