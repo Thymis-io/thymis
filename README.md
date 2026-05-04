@@ -140,7 +140,11 @@ The controller takes care of running the frontend for you. You can access thymis
   - Added Bash + Python Module
   - Update to nixpkgs/NixOS 25.05
 
-- [ ] Release 0.8.0
+- [x] Release [0.8.0](https://github.com/Thymis-io/thymis/releases/tag/0.8.0)
+  - Added device details page, auto updates and reworked overview page
+  - Update to nixpkgs/NixOS 25.11
+
+- [ ] Release 0.9.0
   - Rework module system for outside developers
   - New features and bug fixes, possibly containing breaking changes
 
