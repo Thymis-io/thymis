@@ -6,6 +6,7 @@
 	const isDevelopment = false;
 
     const versions: Record<string, string> = {
+        "v0.8": "https://github.com/Thymis-io/thymis/blob/v0.8/docs/src/lib/docs/SUMMARY.md",
         "v0.7": "https://github.com/Thymis-io/thymis/blob/v0.7/docs/src/lib/docs/SUMMARY.md",
         "v0.6": "https://github.com/Thymis-io/thymis/blob/v0.6/docs/src/lib/docs/SUMMARY.md",
         "v0.5": "https://github.com/Thymis-io/thymis/blob/v0.5/docs/src/SUMMARY.md",
