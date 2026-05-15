@@ -247,8 +247,8 @@ class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
     deployed_config_id: str
     ip_addresses: List[str] = []  # deprecated, used for backwards compatibility
     network_interfaces: List[Dict[str, Any]] = []
+    ram_bytes: Optional[int] = None
     last_error: Optional[str] = None
-
 
 def replace_url_protocol_with_ws(url: str) -> str:
     return url.replace("http://", "ws://").replace("https://", "wss://").rstrip("/")
@@ -694,6 +694,7 @@ class Agent(ea.EdgeAgent):
             public_key=self.detect_public_key(),
             deployed_config_id=self.detect_system_config()[0],
             network_interfaces=self.detect_network_interfaces(),
+            ram_bytes=self.detect_ram_bytes(),
             last_error=last_error,
         )
 
@@ -808,6 +809,14 @@ class Agent(ea.EdgeAgent):
             for key, path in HARDWARE_ID_FILE_PATHS.items()
         }
         return {key: value for key, value in hardware_ids.items() if value}
+    def detect_ram_bytes(self) -> Optional[int]:
+        """Detect total RAM in bytes using psutil."""
+        try:
+            return psutil.virtual_memory().total
+        except Exception as e:
+            logger.debug("Failed to detect RAM: %s", e)
+            return None
+
 
     def detect_network_interfaces(self):
         interfaces = {}

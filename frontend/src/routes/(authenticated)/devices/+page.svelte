@@ -2,7 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
 	import { Button, Table, TableBodyCell, TableHead, TableHeadCell, Toggle } from 'flowbite-svelte';
-	import { getDeviceTypesMap, getDeviceType } from '$lib/config/configUtils';
+	import { getDeviceTypesMap, getDeviceType, formatRamSize } from '$lib/config/configUtils';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
@@ -53,7 +53,9 @@
 		</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.device-type')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.hardware-ids')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('hardware-devices.table.ram-size')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.connected')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('hardware-devices.table.notes')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('device-details.details')}</TableHeadCell>
 	</TableHead>
 	<tbody>
@@ -66,7 +68,11 @@
 				<tr
 					class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
 				>
-					<TableBodyCell tdClass="p-2"></TableBodyCell>
+					<TableBodyCell tdClass="p-2">
+						<a href="/devices/{deploymentInfo.id}" class="text-blue-600 hover:underline font-mono text-xs">
+							{deploymentInfo.name ?? deploymentInfo.id.slice(0, 8)}
+						</a>
+					</TableBodyCell>
 					<TableBodyCell tdClass="p-2">
 						<IdentifierLink
 							identifier={deploymentInfo.deployed_config_id}
@@ -89,6 +95,9 @@
 						{:else}
 							<span>{$t('hardware-devices.table.unknown-device-type')}</span>
 						{/if}
+					</TableBodyCell>
+					<TableBodyCell tdClass="p-2">
+						{formatRamSize(deploymentInfo.ram_bytes) ?? '-'}
 					</TableBodyCell>
 					<TableBodyCell tdClass="p-2">
 						{#if deploymentInfo.hardware_devices.length === 1}
@@ -114,6 +123,9 @@
 								<span>{$t('hardware-devices.table.never-seen')}</span>
 							{/if}
 						{/if}
+					</TableBodyCell>
+					<TableBodyCell tdClass="p-2">
+						{deploymentInfo.notes ?? '-'}
 					</TableBodyCell>
 					<TableBodyCell tdClass="p-2">
 						<Button size="sm" color="alternative" href={'/devices/' + deploymentInfo.id}>

@@ -39,9 +39,11 @@ class UpdateDeploymentInfo(BaseModel):
     reachable_deployed_host: str | None = None
     name: str | None = None
     location: str | None = None
+    notes: str | None = None
 
 
 class DeploymentInfo(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
     ssh_public_key: str | None
     deployed_config_commit: str | None
@@ -53,6 +55,8 @@ class DeploymentInfo(BaseModel):
     network_interfaces: list[dict] | None = None
     location: str | None = None
     name: str | None = None
+    ram_bytes: int | None = None
+    notes: str | None = None
 
     @field_serializer("last_seen", "first_seen")
     def _ser_dt(self, dt: datetime | None) -> str | None:
@@ -81,6 +85,8 @@ class DeploymentInfo(BaseModel):
             network_interfaces=deployment_info.network_interfaces,
             location=deployment_info.location,
             name=deployment_info.name,
+            ram_bytes=deployment_info.ram_bytes,
+            notes=deployment_info.notes,
         )
 
 

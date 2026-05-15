@@ -48,6 +48,8 @@ def update(
     network_interfaces: list | None = None,
     location: str | None = _UNSET,
     name: str | None = _UNSET,
+    ram_bytes: int | None = None,
+    notes: str | None = _UNSET,
 ) -> db_models.DeploymentInfo | None:
     deployment_info = session.get(db_models.DeploymentInfo, id)
     if deployment_info is None:
@@ -70,6 +72,10 @@ def update(
         deployment_info.location = location
     if name is not _UNSET:
         deployment_info.name = name
+    if ram_bytes is not None:
+        deployment_info.ram_bytes = ram_bytes
+    if notes is not _UNSET:
+        deployment_info.notes = notes
     session.commit()
     session.refresh(deployment_info)
     return deployment_info

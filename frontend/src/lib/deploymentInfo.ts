@@ -29,6 +29,8 @@ export type DeploymentInfo = {
 	network_interfaces?: NetworkInterface[] | null;
 	location?: string | null;
 	name?: string | null;
+	ram_bytes?: number | null;
+	notes?: string | null;
 };
 
 export type ConnectionHistoryEntry = {
@@ -199,6 +201,7 @@ export type DeploymentInfoUpdate = {
 	reachable_deployed_host?: string | null;
 	name?: string | null;
 	location?: string | null;
+	notes?: string | null;
 };
 
 export const updateDeploymentInfo = async (

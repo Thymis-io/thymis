@@ -4,6 +4,7 @@
 	import Pen from 'lucide-svelte/icons/pen';
 	import type { DeploymentInfo } from '$lib/deploymentInfo';
 	import { updateDeploymentInfo } from '$lib/deploymentInfo';
+	import { formatRamSize } from '$lib/config/configUtils';
 	import type { GlobalState } from '$lib/state.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
@@ -29,6 +30,24 @@
 		});
 		if (response.ok) {
 			modalOpen = false;
+			await invalidate(`/api/deployment_info/${deploymentInfo.id}`);
+		}
+	}
+
+	let notesModalOpen = $state(false);
+	let notesInput = $state('');
+
+	function openNotesModal() {
+		notesInput = deploymentInfo.notes ?? '';
+		notesModalOpen = true;
+	}
+
+	async function saveNotes() {
+		const response = await updateDeploymentInfo(fetch, deploymentInfo.id, {
+			notes: notesInput || null
+		});
+		if (response.ok) {
+			notesModalOpen = false;
 			await invalidate(`/api/deployment_info/${deploymentInfo.id}`);
 		}
 	}
@@ -88,6 +107,10 @@
 			</div>
 		{/if}
 
+		<!-- RAM -->
+		<span class="font-medium text-gray-500">{$t('device-details.ram-size')}</span>
+		<span>{formatRamSize(deploymentInfo.ram_bytes) ?? '-'}</span>
+
 		<!-- First seen -->
 		<span class="font-medium text-gray-500">{$t('device-details.first-seen')}</span>
 		<span>
@@ -107,6 +130,19 @@
 				<span class="text-gray-400">-</span>
 			{/if}
 		</span>
+
+		<!-- Notes -->
+		<span class="font-medium text-gray-500">{$t('device-details.notes')}</span>
+		<div class="flex items-center gap-2">
+			<span>{deploymentInfo.notes ?? '-'}</span>
+			<button
+				onclick={openNotesModal}
+				class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+				title={$t('device-details.edit-notes')}
+			>
+				<Pen size="0.875rem" />
+			</button>
+		</div>
 	</div>
 
 	<!-- Network Interfaces -->
@@ -145,5 +181,14 @@
 	<div class="mt-4 flex gap-2">
 		<Button onclick={save}>{$t('device-details.save')}</Button>
 		<Button color="light" onclick={() => (modalOpen = false)}>{$t('common.cancel')}</Button>
+	</div>
+</Modal>
+
+<Modal bind:open={notesModalOpen} title={$t('device-details.edit-notes')}>
+	<Label class="mb-1">{$t('device-details.notes')}</Label>
+	<Input bind:value={notesInput} placeholder={$t('device-details.notes-placeholder')} />
+	<div class="mt-4 flex gap-2">
+		<Button onclick={saveNotes}>{$t('device-details.save')}</Button>
+		<Button color="light" onclick={() => (notesModalOpen = false)}>{$t('common.cancel')}</Button>
 	</div>
 </Modal>
