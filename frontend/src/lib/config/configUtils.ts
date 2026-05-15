@@ -52,3 +52,10 @@ export const getConfigImageFormat = (config: Config | undefined) => {
 		(module) => module.type === 'thymis_controller.modules.thymis.ThymisDevice'
 	)?.settings['image_format'] as string | undefined;
 };
+export const formatRamSize = (ramBytes: number | null | undefined) => {
+	if (!ramBytes) return null;
+	const gb = ramBytes / 1024 ** 3;
+	if (gb >= 1) return `${Math.round(gb)}GB`;
+	const mb = ramBytes / 1024 ** 2;
+	return `${Math.round(mb)}MB`;
+};

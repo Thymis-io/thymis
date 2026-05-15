@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import JSON, Text, Uuid
+from sqlalchemy import JSON, Integer, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from thymis_controller.database.base import Base
 
@@ -40,3 +40,5 @@ class DeploymentInfo(Base):
     network_interfaces: Mapped[list] = mapped_column(JSON, nullable=True, default=None)
     location: Mapped[str] = mapped_column(Text, nullable=True, default=None)
     name: Mapped[str] = mapped_column(Text, nullable=True, default=None)
+    ram_bytes: Mapped[int] = mapped_column(Integer, nullable=True, default=None)
+    notes: Mapped[str] = mapped_column(Text, nullable=True, default=None)

@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Input, Label, Modal } from 'flowbite-svelte';
+	import { Input, Label, Modal, Textarea } from 'flowbite-svelte';
 	import Pen from 'lucide-svelte/icons/pen';
 	import type { DeploymentInfo } from '$lib/deploymentInfo';
 	import { updateDeploymentInfo } from '$lib/deploymentInfo';
+	import { formatRamSize } from '$lib/config/configUtils';
 	import type { GlobalState } from '$lib/state.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
@@ -29,6 +30,24 @@
 		});
 		if (response.ok) {
 			modalOpen = false;
+			await invalidate(`/api/deployment_info/${deploymentInfo.id}`);
+		}
+	}
+
+	let notesModalOpen = $state(false);
+	let notesInput = $state('');
+
+	function openNotesModal() {
+		notesInput = deploymentInfo.notes ?? '';
+		notesModalOpen = true;
+	}
+
+	async function saveNotes() {
+		const response = await updateDeploymentInfo(fetch, deploymentInfo.id, {
+			notes: notesInput || null
+		});
+		if (response.ok) {
+			notesModalOpen = false;
 			await invalidate(`/api/deployment_info/${deploymentInfo.id}`);
 		}
 	}
@@ -156,6 +175,32 @@
 				{$t('device-details.no-network-info')}
 			</p>
 		{/if}
+
+		<!-- RAM -->
+		{#if deploymentInfo.ram_bytes != null}
+			<div class="ds-kv-row">
+				<span class="ds-kv-key">{$t('device-details.ram-size')}</span>
+				<span class="ds-kv-val">{formatRamSize(deploymentInfo.ram_bytes)}</span>
+			</div>
+		{/if}
+
+		<!-- Notes -->
+		<div class="ds-kv-row">
+			<span class="ds-kv-key">{$t('device-details.notes')}</span>
+			<span class="ds-kv-val flex items-start gap-2">
+				<span class="whitespace-pre-wrap"
+					>{deploymentInfo.notes ?? $t('device-details.no-notes')}</span
+				>
+				<button
+					onclick={openNotesModal}
+					class="shrink-0 mt-0.5"
+					style="color: var(--ds-text-mute)"
+					title={$t('device-details.edit-notes')}
+				>
+					<Pen size="0.875rem" />
+				</button>
+			</span>
+		</div>
 	</div>
 </div>
 
@@ -165,5 +210,14 @@
 	<div class="mt-4 flex justify-end gap-2">
 		<button class="ds-btn" onclick={() => (modalOpen = false)}>{$t('common.cancel')}</button>
 		<button class="ds-btn ds-btn-primary" onclick={save}>{$t('device-details.save')}</button>
+	</div>
+</Modal>
+
+<Modal bind:open={notesModalOpen} title={$t('device-details.edit-notes')}>
+	<Label class="mb-1">{$t('device-details.notes')}</Label>
+	<Textarea bind:value={notesInput} placeholder={$t('device-details.notes-placeholder')} />
+	<div class="mt-4 flex justify-end gap-2">
+		<button class="ds-btn" onclick={() => (notesModalOpen = false)}>{$t('common.cancel')}</button>
+		<button class="ds-btn ds-btn-primary" onclick={saveNotes}>{$t('device-details.save')}</button>
 	</div>
 </Modal>
