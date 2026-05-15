@@ -420,6 +420,7 @@ class NetworkRelay(nr.NetworkRelay):
                 network_interfaces=self.connection_id_to_start_message[
                     connection_id
                 ].network_interfaces,
+                ram_bytes=self.connection_id_to_start_message[connection_id].ram_bytes,
             )
 
             deployment_info_id = deployment_info.id

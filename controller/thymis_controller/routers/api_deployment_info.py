@@ -133,6 +133,8 @@ async def update_deployment_info(
         fields["location"] = deployment_info.location
     if "archived" in deployment_info.model_fields_set:
         fields["archived"] = deployment_info.archived
+    if "notes" in deployment_info.model_fields_set:
+        fields["notes"] = deployment_info.notes
     result = crud.deployment_info.update(db_session, id, **fields)
     if not result:
         raise HTTPException(status_code=404, detail="Deployment info not found")

@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { invalidate } from '$app/navigation';
 	import type { PageData } from './$types';
-	import { getDeviceTypesMap, getDeviceType } from '$lib/config/configUtils';
+	import { getDeviceTypesMap, getDeviceType, formatRamSize } from '$lib/config/configUtils';
 	import DataTable from '$lib/components/layout/DataTable.svelte';
 	import FilterChips from '$lib/components/layout/FilterChips.svelte';
 	import RowActions from '$lib/components/layout/RowActions.svelte';
@@ -76,7 +76,9 @@
 		{ label: $t('hardware-devices.table.configuration-name') },
 		{ label: $t('hardware-devices.table.deployed-config-commit') },
 		{ label: $t('hardware-devices.table.device-type') },
+		{ label: $t('hardware-devices.table.ram-size') },
 		{ label: $t('hardware-devices.table.hardware-ids') },
+		{ label: $t('hardware-devices.table.notes') },
 		{}
 	]}
 	rows={visibleDevices}
@@ -135,6 +137,7 @@
 				>
 			{/if}
 		</td>
+		<td>{deploymentInfo.ram_bytes != null ? formatRamSize(deploymentInfo.ram_bytes) : ''}</td>
 		<td>
 			{#if deploymentInfo.hardware_devices.length === 1}
 				{#each Object.entries(deploymentInfo.hardware_devices[0].hardware_ids) as [hardwareIdKey, hardwareValue]}
@@ -148,6 +151,10 @@
 				>
 			{/if}
 		</td>
+		<td
+			class="max-w-96 overflow-hidden whitespace-nowrap text-ellipsis"
+			title={deploymentInfo.notes}>{deploymentInfo.notes ?? ''}</td
+		>
 		<td>
 			<RowActions>
 				<RowMenu

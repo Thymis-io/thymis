@@ -23,6 +23,8 @@ export type DeploymentInfo = {
 	location?: string | null;
 	name?: string | null;
 	connected: boolean;
+	ram_bytes?: number | null;
+	notes?: string | null;
 };
 
 export type ConnectionHistoryEntry = {
@@ -165,6 +167,7 @@ export type DeploymentInfoUpdate = {
 	name?: string | null;
 	location?: string | null;
 	archived?: boolean | null;
+	notes?: string | null;
 };
 
 export const updateDeploymentInfo = async (
