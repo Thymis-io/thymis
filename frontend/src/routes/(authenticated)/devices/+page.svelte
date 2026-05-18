@@ -46,17 +46,16 @@
 </div>
 <Table shadow>
 	<TableHead theadClass="text-xs normal-case">
-		<TableHeadCell padding="p-2 w-12" />
+		<TableHeadCell padding="p-2 w-12">{$t('hardware-devices.table.device')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.configuration-name')}</TableHeadCell>
 		<TableHeadCell padding="p-2">
 			{$t('hardware-devices.table.deployed-config-commit')}
 		</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.device-type')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('hardware-devices.table.hardware-ids')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.ram-size')}</TableHeadCell>
+		<TableHeadCell padding="p-2">{$t('hardware-devices.table.hardware-ids')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.connected')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.notes')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('device-details.details')}</TableHeadCell>
 	</TableHead>
 	<tbody>
 		{#each data.deploymentInfos as deploymentInfo (deploymentInfo.id)}
@@ -68,10 +67,13 @@
 				<tr
 					class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
 				>
-					<TableBodyCell tdClass="p-2">
-						<a href="/devices/{deploymentInfo.id}" class="text-blue-600 hover:underline font-mono text-xs">
-							{deploymentInfo.name ?? deploymentInfo.id.slice(0, 8)}
-						</a>
+					<TableBodyCell tdClass="p-2 pl-4">
+						<IdentifierLink
+							identifier={deploymentInfo.id}
+							context="device"
+							globalState={data.globalState}
+							deploymentInfos={data.deploymentInfos}
+						/>
 					</TableBodyCell>
 					<TableBodyCell tdClass="p-2">
 						<IdentifierLink
@@ -126,11 +128,6 @@
 					</TableBodyCell>
 					<TableBodyCell tdClass="p-2">
 						{deploymentInfo.notes ?? '-'}
-					</TableBodyCell>
-					<TableBodyCell tdClass="p-2">
-						<Button size="sm" color="alternative" href={'/devices/' + deploymentInfo.id}>
-							{$t('device-details.details')}
-						</Button>
 					</TableBodyCell>
 				</tr>
 			{/if}

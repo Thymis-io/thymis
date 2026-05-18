@@ -100,6 +100,7 @@
 	},
 	"hardware-devices": {
 		"table": {
+			"device": "Gerät",
 			"configuration-name": "Genutzte Konfiguration",
 			"hardware-ids": "Hardware-IDs",
 			"ram-size": "RAM",
