@@ -10,13 +10,15 @@
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 	import RenderTimeDuration from '$lib/components/RenderTimeDuration.svelte';
 	import type { GlobalState } from '$lib/state.svelte';
+	import type { DeploymentInfo } from '$lib/deploymentInfo';
 
 	interface Props {
 		globalState: GlobalState;
+		deploymentInfos: DeploymentInfo[];
 		taskbarMinimized: boolean;
 	}
 
-	let { globalState, taskbarMinimized = $bindable() }: Props = $props();
+	let { globalState, deploymentInfos, taskbarMinimized = $bindable() }: Props = $props();
 
 	let taskList = $derived(
 		Object.values($taskStatus).sort((a, b) => (a.start_time < b.start_time ? 1 : -1))
@@ -54,7 +56,7 @@
 			{#each taskList as task (task.id)}
 				<tr>
 					<td class={tdClass}>
-						<TaskbarName {globalState} {task} />
+						<TaskbarName {globalState} {deploymentInfos} {task} />
 					</td>
 					<td class={tdClass}>
 						<TaskbarStatus {task} />

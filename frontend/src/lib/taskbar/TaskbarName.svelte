@@ -10,10 +10,12 @@
 	import type { TaskShort } from '$lib/taskstatus';
 	import type { GlobalState } from '$lib/state.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import type { DeploymentInfo } from '$lib/deploymentInfo';
 
 	type DeployDeviceInfo = {
 		identifier?: string;
 		source_identifier?: string | null;
+		deployment_info_id?: string;
 	};
 
 	type DeployDeviceTaskData = {
@@ -30,11 +32,12 @@
 
 	interface Props {
 		globalState: GlobalState;
+		deploymentInfos: DeploymentInfo[];
 		task: TaskShort;
 		iconSize?: number;
 	}
 
-	let { globalState, task, iconSize = 18 }: Props = $props();
+	let { globalState, deploymentInfos, task, iconSize = 18 }: Props = $props();
 
 	const configToDisplayName = (identifier: string | undefined) => {
 		if (!identifier) return '';
@@ -45,9 +48,10 @@
 	const iconClass = 'flex-shrink-0';
 
 	const splitSwitchLabel = (label: string) => {
-		const [beforeSource, afterSource = ''] = label.split('{source}');
+		const [beforeDevice, afterDevice = ''] = label.split('{device}');
+		const [beforeSource, afterSource = ''] = afterDevice.split('{source}');
 		const [between, afterTarget = ''] = afterSource.split('{target}');
-		return { beforeSource, between, afterTarget };
+		return { beforeDevice, beforeSource, between, afterTarget };
 	};
 
 	const getDeployDevice = (task: TaskShort) => {
@@ -66,7 +70,7 @@
 	};
 </script>
 
-<div class="flex gap-2 items-center">
+<div class="flex gap-2 items-center whitespace-nowrap">
 	{#if task.task_type === 'project_flake_update_task'}
 		<Refresh size={iconSize} class={iconClass} />
 		{$t('taskbar.task-types.project_flake_update')}
@@ -78,6 +82,14 @@
 		{@const deployDevices = getDeployDevices(task)}
 		{#if deployDevices.length === 1 && deployDevices[0]?.source_identifier}
 			{@const switchLabel = splitSwitchLabel($t('taskbar.task-types.switch_device_config'))}
+			{switchLabel.beforeDevice}
+			<IdentifierLink
+				{globalState}
+				{deploymentInfos}
+				identifier={deployDevices[0].deployment_info_id}
+				context="device"
+				{iconSize}
+			/>
 			{switchLabel.beforeSource}
 			<IdentifierLink
 				{globalState}
@@ -101,6 +113,14 @@
 		{@const deployDevice = getDeployDevice(task)}
 		{#if deployDevice?.source_identifier}
 			{@const switchLabel = splitSwitchLabel($t('taskbar.task-types.switch_device_config'))}
+			{switchLabel.beforeDevice}
+			<IdentifierLink
+				{globalState}
+				{deploymentInfos}
+				identifier={deployDevice.deployment_info_id}
+				context="device"
+				{iconSize}
+			/>
 			{switchLabel.beforeSource}
 			<IdentifierLink
 				{globalState}
@@ -121,8 +141,9 @@
 			{before}
 			<IdentifierLink
 				{globalState}
-				identifier={deployDevice?.identifier}
-				context="config"
+				identifier={deployDevice?.deployment_info_id}
+				{deploymentInfos}
+				context="device"
 				{iconSize}
 			/>
 			{after}

@@ -126,12 +126,20 @@
 								id="taskbar"
 								class="flex-1 overflow-y-auto border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900"
 							>
-								<Taskbar globalState={data.globalState} bind:taskbarMinimized />
+								<Taskbar
+									globalState={data.globalState}
+									deploymentInfos={data.deploymentInfos}
+									bind:taskbarMinimized
+								/>
 							</div>
 						{/if}
 						<div class="h-[40px]">
 							<TaskbarMinimize bind:taskbarMinimized class="mt-2" />
-							<TaskbarSmall globalState={data.globalState} inPlaywright={data.inPlaywright} />
+							<TaskbarSmall
+								globalState={data.globalState}
+								deploymentInfos={data.deploymentInfos}
+								inPlaywright={data.inPlaywright}
+							/>
 						</div>
 					</div>
 				{/snippet}

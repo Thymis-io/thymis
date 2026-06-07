@@ -12,13 +12,15 @@
 	import TaskbarName from './TaskbarName.svelte';
 	import TaskbarStatus from './TaskbarStatus.svelte';
 	import type { GlobalState } from '$lib/state.svelte';
+	import type { DeploymentInfo } from '$lib/deploymentInfo';
 
 	interface Props {
 		globalState: GlobalState;
+		deploymentInfos: DeploymentInfo[];
 		inPlaywright: boolean;
 	}
 
-	let { globalState, inPlaywright }: Props = $props();
+	let { globalState, deploymentInfos, inPlaywright }: Props = $props();
 
 	const tasks = $derived(Object.values($taskStatus));
 	const pendingTasks = $derived(tasks.filter((task) => task.state === 'pending'));
@@ -86,7 +88,7 @@
 				{$t('taskbar.latest-task')}:
 			</span>
 			<span class="text-xs md:text-sm truncate max-w-64">
-				<TaskbarName {globalState} task={latestTask} />
+				<TaskbarName {globalState} {deploymentInfos} task={latestTask} />
 			</span>
 			<span class="text-xs md:text-sm">
 				<TaskbarStatus task={latestTask} showText={false} showProgress={false} />

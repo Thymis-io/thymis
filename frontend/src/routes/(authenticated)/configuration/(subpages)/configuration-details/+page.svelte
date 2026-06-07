@@ -10,6 +10,7 @@
 	import VncView from '$lib/vnc/VncView.svelte';
 	import Section from './Section.svelte';
 	import Terminal from '$lib/terminal/Terminal.svelte';
+	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
 	interface Props {
 		data: PageData;
@@ -41,15 +42,31 @@
 			config={data.nav.selectedConfig}
 			globalState={data.globalState}
 		/>
-		{#if targetShouldShowVNC(currentConfig, data.globalState)}
-			{#each data.connectedDeploymentInfos as deploymentInfo}
+		{#each data.connectedDeploymentInfos as deploymentInfo}
+			{#if targetShouldShowVNC(currentConfig, data.globalState)}
 				<Section class="col-span-2" title={$t('nav.device-vnc')}>
+					{#snippet header()}
+						<IdentifierLink
+							globalState={data.globalState}
+							deploymentInfos={data.deploymentInfos}
+							identifier={deploymentInfo.id}
+							context="device"
+							class="flex justify-center my-1"
+						/>
+					{/snippet}
 					<VncView globalState={data.globalState} config={currentConfig} {deploymentInfo} />
 				</Section>
-			{/each}
-		{/if}
-		{#each data.connectedDeploymentInfos as deploymentInfo}
+			{/if}
 			<Section class="col-span-2" title={$t('nav.terminal')}>
+				{#snippet header()}
+					<IdentifierLink
+						globalState={data.globalState}
+						deploymentInfos={data.deploymentInfos}
+						identifier={deploymentInfo.id}
+						context="device"
+						class="flex justify-center my-1"
+					/>
+				{/snippet}
 				<Card class="w-full max-w-none" padding="sm">
 					<Terminal {deploymentInfo} />
 				</Card>

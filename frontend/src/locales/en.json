@@ -100,6 +100,7 @@
 	},
 	"hardware-devices": {
 		"table": {
+			"device": "Device",
 			"configuration-name": "Deployed Configuration",
 			"hardware-ids": "Hardware IDs",
 			"reachable-deployed-host": "Target Host",
@@ -275,7 +276,7 @@
 			"build_project": "Build Project",
 			"deploy_devices": "Deploy Devices",
 			"deploy_device": "Deploy to {device}",
-			"switch_device_config": "Switch from {source} to {target}",
+			"switch_device_config": "Switch {device} from {source} to {target}",
 			"build_device_image": "Build Image for {device}",
 			"ssh_command": "Run SSH Command",
 			"run_nixos_vm_task": "Run NixOS VM for {device}",
