@@ -53,9 +53,17 @@
 		{#if config && targetShouldShowVNC(config, data.globalState)}
 			<div>
 				<IdentifierLink
+					globalState={data.globalState}
+					deploymentInfos={data.deploymentInfos}
 					identifier={deploymentInfo.deployed_config_id}
 					context="config"
+					class="flex justify-center my-2"
+				/>
+				<IdentifierLink
 					globalState={data.globalState}
+					deploymentInfos={data.deploymentInfos}
+					identifier={deploymentInfo.id}
+					context="device"
 					class="flex justify-center my-2"
 				/>
 				<VncView globalState={data.globalState} {config} {deploymentInfo} />

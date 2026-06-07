@@ -46,7 +46,7 @@
 </div>
 <Table shadow>
 	<TableHead theadClass="text-xs normal-case">
-		<TableHeadCell padding="p-2 w-12" />
+		<TableHeadCell padding="p-2 w-12">{$t('hardware-devices.table.device')}</TableHeadCell>
 		<TableHeadCell padding="p-2">{$t('hardware-devices.table.configuration-name')}</TableHeadCell>
 		<TableHeadCell padding="p-2">
 			{$t('hardware-devices.table.deployed-config-commit')}
@@ -66,7 +66,14 @@
 				<tr
 					class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
 				>
-					<TableBodyCell tdClass="p-2"></TableBodyCell>
+					<TableBodyCell tdClass="p-2 pl-4">
+						<IdentifierLink
+							identifier={deploymentInfo.id}
+							context="device"
+							globalState={data.globalState}
+							deploymentInfos={data.deploymentInfos}
+						/>
+					</TableBodyCell>
 					<TableBodyCell tdClass="p-2">
 						<IdentifierLink
 							identifier={deploymentInfo.deployed_config_id}

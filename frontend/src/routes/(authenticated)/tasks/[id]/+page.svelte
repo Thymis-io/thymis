@@ -38,7 +38,12 @@
 <PageHead repoStatus={data.repoStatus} globalState={data.globalState} nav={data.nav}>
 	{#if task}
 		<div class="text-3xl font-bold">
-			<TaskbarName globalState={data.globalState} {task} iconSize={24} />
+			<TaskbarName
+				globalState={data.globalState}
+				deploymentInfos={data.deploymentInfos}
+				{task}
+				iconSize={24}
+			/>
 		</div>
 	{/if}
 </PageHead>

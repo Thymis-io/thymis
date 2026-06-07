@@ -19,6 +19,7 @@ import { type RepoStatus } from '$lib/repo/repo';
 import { GlobalState } from '$lib/state.svelte';
 import { toast } from '@zerodevx/svelte-toast';
 import { redirectToLogin } from '$lib/login';
+import { getAllDeploymentInfos } from '$lib/deploymentInfo';
 
 export type Nav = {
 	selectedTargetType: ContextType | null;
@@ -139,6 +140,8 @@ export const load = (async ({ fetch, url, data }) => {
 	// is uuid -> secret
 	const secrets = (await secretsResponse.json()) as Record<string, Secret>;
 
+	const deploymentInfos = await getAllDeploymentInfos(fetch);
+
 	const taskPage = parseInt(url.searchParams.get('task-page') || '1');
 	const tasksPerPage = 20;
 	const { tasks: allTasks, totalCount: totalTaskCount } = await getAllTasks(
@@ -194,6 +197,7 @@ export const load = (async ({ fetch, url, data }) => {
 
 	return {
 		globalState: new GlobalState(globalState, url.searchParams, availableModules),
+		deploymentInfos: deploymentInfos,
 		secrets: secrets,
 		nav: nav,
 		availableModules: availableModules,

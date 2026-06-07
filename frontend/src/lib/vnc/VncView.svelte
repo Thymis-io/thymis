@@ -102,7 +102,7 @@
 
 {#if hasVNC}
 	<Card class="w-full max-w-none" padding="sm">
-		<div class="flex flex-wrap justify-between h-12 content-start gap-2">
+		<div class="flex flex-wrap justify-between h-10 content-start gap-2">
 			<pre class="text-base"></pre>
 			<div class="flex items-center gap-2">
 				<P>{$t('vnc.control-device')}</P>

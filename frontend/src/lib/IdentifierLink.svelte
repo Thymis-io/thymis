@@ -12,6 +12,7 @@
 	interface Props {
 		globalState: GlobalState;
 		deploymentInfos?: DeploymentInfo[];
+		deploymentInfo?: DeploymentInfo;
 		identifier?: string | null;
 		context?: ContextType | 'device' | null;
 		showLinkHover?: boolean;
@@ -23,6 +24,7 @@
 	let {
 		identifier,
 		deploymentInfos,
+		deploymentInfo,
 		context,
 		globalState,
 		showLinkHover = true,
@@ -45,6 +47,9 @@
 	});
 
 	let deviceDeploymentInfo = $derived.by(() => {
+		if (context === 'device' && deploymentInfo) {
+			return deploymentInfo;
+		}
 		if (context !== 'device' || !identifier || !deploymentInfos) return null;
 		return deploymentInfos.find((d) => d.id === identifier) ?? null;
 	});
@@ -86,17 +91,23 @@
 {/if}
 
 {#if context == 'device'}
-	<a
-		href={`/devices/${identifier}`}
-		class={'min-h-6 flex items-center gap-1 w-fit ' +
-			(showLinkHover ? 'hover:underline ' : '') +
-			(solidBackground
-				? 'p-1 px-2 bg-primary-700 hover:bg-primary-800 dark:bg-primary-600 dark:hover:bg-primary-700 rounded text-white '
-				: '')}
-	>
-		<HardDrive size={iconSize} class="shrink-0" />
-		{deviceDeploymentInfo?.name ?? deviceDeploymentInfo?.id ?? identifier}
-	</a>
+	<div class={className}>
+		<a
+			href={`/devices/${identifier}`}
+			class={'min-h-6 flex items-center gap-1 w-fit font-mono ' +
+				(showLinkHover ? 'hover:underline ' : '') +
+				(solidBackground
+					? 'p-1 px-2 bg-primary-700 hover:bg-primary-800 dark:bg-primary-600 dark:hover:bg-primary-700 rounded text-white '
+					: '')}
+		>
+			<HardDrive size={iconSize} class="shrink-0" />
+			{#if deviceDeploymentInfo?.name}
+				{deviceDeploymentInfo?.name}
+			{:else}
+				{deviceDeploymentInfo?.id ?? identifier}
+			{/if}
+		</a>
+	</div>
 {/if}
 
 <style>
