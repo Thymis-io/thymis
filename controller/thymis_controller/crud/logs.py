@@ -74,34 +74,42 @@ def get_logs(
     offset: int = 0,
     max_severity: int | None = None,  # syslog severity (0=Emergency, 3=Error, 7=Debug)
 ) -> models.LogList:
-    # where ID equals or ssh public key equals
-
-    stmt = session.query(db_models.LogEntry, func.count().over().label("total_count"))
-    stmt = stmt.filter(
+    # Build the base query (shared between count and data fetch)
+    base_query = session.query(db_models.LogEntry).filter(
         or_(
             db_models.LogEntry.deployment_info_id == deployment_info.id,
             db_models.LogEntry.ssh_public_key == deployment_info.ssh_public_key,
         )
     )
     if from_datetime is not None:
-        stmt = stmt.filter(db_models.LogEntry.timestamp >= from_datetime)
+        base_query = base_query.filter(db_models.LogEntry.timestamp >= from_datetime)
     if to_datetime is not None:
-        stmt = stmt.filter(db_models.LogEntry.timestamp <= to_datetime)
+        base_query = base_query.filter(db_models.LogEntry.timestamp <= to_datetime)
     if program_name is not None:
         if exact_program_name:
-            stmt = stmt.filter(db_models.LogEntry.programname == program_name)
+            base_query = base_query.filter(
+                db_models.LogEntry.programname == program_name
+            )
         else:
-            stmt = stmt.filter(db_models.LogEntry.programname.contains(program_name))
+            base_query = base_query.filter(
+                db_models.LogEntry.programname.contains(program_name)
+            )
     if max_severity is not None:
-        stmt = stmt.filter(db_models.LogEntry.severity <= max_severity)
-    stmt = stmt.order_by(nullslast(db_models.LogEntry.timestamp.desc()))
-    stmt = stmt.limit(limit).offset(offset)
+        base_query = base_query.filter(db_models.LogEntry.severity <= max_severity)
 
-    results = stmt.all()
-    if not results:
+    # Count matching rows (separate query - avoids scanning entire result set)
+    total_count = base_query.with_entities(func.count()).scalar()
+    if total_count == 0:
         return models.LogList(total_count=0, logs=[])
-    total_count = results[0].total_count
-    log_entries = [models.LogEntry.from_db_model(row.LogEntry) for row in results]
+
+    # Fetch only the requested page
+    results = (
+        base_query.order_by(nullslast(db_models.LogEntry.timestamp.desc()))
+        .limit(limit)
+        .offset(offset)
+        .all()
+    )
+    log_entries = [models.LogEntry.from_db_model(row) for row in results]
     return models.LogList(total_count=total_count, logs=log_entries)
 
 

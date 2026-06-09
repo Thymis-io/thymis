@@ -24,7 +24,7 @@
 	let { data }: Props = $props();
 
 	let downloadOpen = $state(false);
-	let refreshInterval = $state(1000);
+	let refreshInterval = $state(5000);
 
 	const refreshIntervals = [
 		{ label: $t('logs.refresh_off'), value: 0 },
