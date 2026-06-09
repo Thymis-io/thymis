@@ -31,7 +31,6 @@ export const load = (async ({ fetch, url, parent }) => {
 
 	return {
 		logs: logs?.logs ?? [],
-		totalLogCount: logs?.total_count ?? 0,
 		programNames: programNames
 	};
 }) satisfies PageLoad;
