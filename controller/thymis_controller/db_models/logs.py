@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
+import sqlalchemy
 from sqlalchemy import ForeignKey, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from thymis_controller.database.base import Base
@@ -13,6 +14,18 @@ if TYPE_CHECKING:
 
 class LogEntry(Base):
     __tablename__ = "log_entries"
+    __table_args__ = (
+        # Composite indexes for the common query pattern:
+        # filter by deployment_info_id/ssh_public_key + order by timestamp DESC
+        sqlalchemy.Index(
+            "ix_log_entries_deployment_info_id_timestamp",
+            "deployment_info_id",
+            "timestamp",
+        ),
+        sqlalchemy.Index(
+            "ix_log_entries_ssh_public_key_timestamp", "ssh_public_key", "timestamp"
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         Uuid(as_uuid=True), primary_key=True, index=True

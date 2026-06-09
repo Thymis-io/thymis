@@ -168,7 +168,9 @@ class Kiosk(modules.Module):
             users.users.thymiskiosk = lib.mkOverride {priority} {{
                 isNormalUser = true;
                 createHome = true;
+                group = "thymiskiosk";
             }};
+            users.groups.thymiskiosk = lib.mkOverride {priority} {{}};
             services.pipewire.enable = false;
             hardware.pulseaudio.enable = true;
             hardware.pulseaudio.support32Bit = true;
