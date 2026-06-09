@@ -12,7 +12,6 @@ export type LogLine = {
 };
 
 export type LogResponse = {
-	total_count: number;
 	logs: LogLine[];
 };
 

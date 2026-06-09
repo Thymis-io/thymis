@@ -97,11 +97,6 @@ def get_logs(
     if max_severity is not None:
         base_query = base_query.filter(db_models.LogEntry.severity <= max_severity)
 
-    # Count matching rows (separate query - avoids scanning entire result set)
-    total_count = base_query.with_entities(func.count()).scalar()
-    if total_count == 0:
-        return models.LogList(total_count=0, logs=[])
-
     # Fetch only the requested page
     results = (
         base_query.order_by(nullslast(db_models.LogEntry.timestamp.desc()))
@@ -110,7 +105,7 @@ def get_logs(
         .all()
     )
     log_entries = [models.LogEntry.from_db_model(row) for row in results]
-    return models.LogList(total_count=total_count, logs=log_entries)
+    return models.LogList(logs=log_entries)
 
 
 def get_log_text(

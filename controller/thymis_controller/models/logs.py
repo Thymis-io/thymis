@@ -41,5 +41,4 @@ class LogEntry(BaseModel):
 
 
 class LogList(BaseModel):
-    total_count: int
     logs: list[LogEntry]
