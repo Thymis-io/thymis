@@ -52,4 +52,13 @@ def read_into_base64(path: str):
             return f"data:image/{extension};base64,{encoded}"
     except FileNotFoundError:
         logger.error("File not found: %s", path)
+    return None
+
+
+def sanitize_hostname(name: str | None) -> str | None:
+    """Sanitize a display name into a valid hostname. Returns None if name is empty."""
+    if not name or not name.strip():
         return None
+    hostname = name.strip().lower()
+    hostname = "".join(c if c.isalnum() or c == "-" else "-" for c in hostname)[:63]
+    return hostname if hostname else None

@@ -209,6 +209,7 @@ class RelayToAgentMessage(BaseModel):
         "RtESwitchToNewConfigMessage",
         "RtESuccesfullySSHConnectedMessage",
         "RtESendSecretsMessage",
+        "RtEUpdateHostnameMessage",
     ] = Field(discriminator="kind")
 
 
@@ -240,6 +241,11 @@ class RtESendSecretsMessage(BaseModel):
     kind: Literal["send_secrets"] = "send_secrets"
     secrets: Dict[uuid.UUID, str]
     secret_infos: List[SecretForDevice]
+
+
+class RtEUpdateHostnameMessage(BaseModel):
+    kind: Literal["update_hostname"] = "update_hostname"
+    hostname: str
 
 
 class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
@@ -486,6 +492,25 @@ class Agent(ea.EdgeAgent):
 
                 asyncio.create_task(wait_for_reconnect_and_send_result())
 
+            case RtEUpdateHostnameMessage():
+                new_hostname = message.inner.hostname
+                logger.info("Updating hostname to: %s", new_hostname)
+                with open("/etc/hostname", "w") as f:
+                    f.write(new_hostname + "\n")
+                proc = await asyncio.create_subprocess_exec(
+                    "hostname",
+                    new_hostname,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+                stdout, stderr = await proc.communicate()
+                if proc.returncode != 0:
+                    logger.error(
+                        "Failed to set hostname: %s",
+                        stderr.decode(),
+                    )
+                else:
+                    logger.info("Hostname updated to: %s", new_hostname)
             case _:
                 logger.error("Unknown message: %s", message)
 

@@ -10,8 +10,38 @@ from fastapi import APIRouter, HTTPException, Query
 from thymis_controller import crud, db_models, models
 from thymis_controller.dependencies import DBSessionAD, NetworkRelayAD, ProjectAD
 from thymis_controller.models import device
+from thymis_controller.network_relay import NetworkRelay
 
 logger = logging.getLogger(__name__)
+
+
+async def _send_hostname_update(
+    network_relay: NetworkRelay, deployment_info: db_models.DeploymentInfo
+):
+    """Send hostname update to the connected agent for a deployment."""
+    import thymis_agent.agent as agent
+    from thymis_controller.lib import sanitize_hostname
+
+    hostname = sanitize_hostname(deployment_info.name)
+    if not hostname:
+        return
+    connection_id = network_relay.public_key_to_connection_id.get(
+        deployment_info.ssh_public_key
+    )
+    if not connection_id:
+        logger.info(
+            "Device %s not connected, skipping hostname update", deployment_info.id
+        )
+        return
+    ws = network_relay.registered_agent_connections.get(connection_id)
+    if not ws:
+        return
+    await ws.send_text(
+        agent.RelayToAgentMessage(
+            inner=agent.RtEUpdateHostnameMessage(hostname=hostname)
+        ).model_dump_json()
+    )
+
 
 router = APIRouter()
 
@@ -102,11 +132,12 @@ def get_all_deployment_infos(db_session: DBSessionAD):
 
 
 @router.patch("/deployment_info/{id}", response_model=models.DeploymentInfo)
-def update_deployment_info(
+async def update_deployment_info(
     db_session: DBSessionAD,
     id: uuid.UUID,
     deployment_info: models.UpdateDeploymentInfo,
     project: ProjectAD,
+    network_relay: NetworkRelayAD,
 ):
     """
     Update a deployment_info
@@ -131,6 +162,9 @@ def update_deployment_info(
         or "reachable_deployed_host" in deployment_info.model_fields_set
     ):
         project.update_known_hosts(db_session)
+    # Send hostname update to the agent if name changed
+    if "name" in deployment_info.model_fields_set:
+        await _send_hostname_update(network_relay, result)
     return result
 
 
