@@ -512,6 +512,17 @@ class NetworkRelay(nr.NetworkRelay):
                         ).model_dump_json()
                     )
 
+                # send current hostname to agent
+                from thymis_controller.lib import sanitize_hostname
+
+                hostname = sanitize_hostname(deployment_info.name)
+                if hostname:
+                    await edge_agent_connection.send_text(
+                        agent.RelayToAgentMessage(
+                            inner=agent.RtEUpdateHostnameMessage(hostname=hostname)
+                        ).model_dump_json()
+                    )
+
                 await edge_agent_connection.send_text(
                     agent.RelayToAgentMessage(
                         inner=agent.RtESuccesfullySSHConnectedMessage(

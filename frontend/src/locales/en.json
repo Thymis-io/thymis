@@ -588,7 +588,10 @@
 		"error-logs": "Error Logs",
 		"no-error-logs": "No errors recorded",
 		"details": "Details",
-		"name-placeholder": "e.g. Display 1, Rack A"
+		"name-placeholder": "e.g. Display 1, Rack A",
+		"hostname-updating": "Updating hostname on device...",
+		"hostname-updated": "Hostname updated successfully",
+		"name-helper": "Changing this will also update the device hostname."
 	},
 	"auto-update": {
 		"title": "Auto-Update Settings",

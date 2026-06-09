@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 from thymis_controller.dependencies import (
     get_db_session,
+    get_network_relay,
     get_project,
     require_valid_user_session,
 )
@@ -30,8 +31,16 @@ def test_client(db_session) -> TestClient:
     def override_authenticate():
         return True
 
+    class FakeNetworkRelay:
+        public_key_to_connection_id = {}
+        registered_agent_connections = {}
+
+    def override_get_network_relay():
+        return FakeNetworkRelay()
+
     app.dependency_overrides[get_db_session] = override_get_db
     app.dependency_overrides[get_project] = override_get_project
     app.dependency_overrides[require_valid_user_session] = override_authenticate
+    app.dependency_overrides[get_network_relay] = override_get_network_relay
     yield TestClient(app)
     app.dependency_overrides.clear()
