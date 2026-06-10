@@ -100,6 +100,164 @@ body {
 	--ds-shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.55);
 }
 
+/* ---------- Redesign reusable components ----------
+   Prefixed `ds-` to avoid collisions with Flowbite / existing classes.
+   Built on the tokens above so they follow the `.dark` theme. */
+.ds-page-head {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 20px;
+	flex-wrap: wrap;
+	margin-bottom: 22px;
+}
+.ds-page-title {
+	font-size: 22px;
+	font-weight: 600;
+	letter-spacing: -0.02em;
+	margin: 0;
+	color: var(--ds-text);
+}
+.ds-page-subtitle {
+	color: var(--ds-text-dim);
+	font-size: 13.5px;
+	margin: 4px 0 0;
+}
+
+.ds-card {
+	background: var(--ds-surface);
+	border: 1px solid var(--ds-border);
+	border-radius: var(--ds-radius);
+	box-shadow: var(--ds-shadow-md);
+}
+.ds-card-head {
+	padding: 14px 18px;
+	border-bottom: 1px solid var(--ds-border);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+.ds-card-title {
+	font-size: 14px;
+	font-weight: 600;
+	margin: 0;
+	color: var(--ds-text);
+}
+.ds-card-sub {
+	font-size: 12.5px;
+	color: var(--ds-text-dim);
+	margin-top: 2px;
+}
+.ds-card-pad {
+	padding: 18px 20px;
+}
+
+.ds-grid {
+	display: grid;
+	gap: 16px;
+}
+.ds-grid-stats {
+	grid-template-columns: repeat(4, 1fr);
+}
+@media (max-width: 1100px) {
+	.ds-grid-stats {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+@media (max-width: 560px) {
+	.ds-grid-stats {
+		grid-template-columns: 1fr;
+	}
+}
+
+.ds-stat {
+	background: var(--ds-surface);
+	border: 1px solid var(--ds-border);
+	border-radius: var(--ds-radius);
+	padding: 16px 18px;
+	position: relative;
+	overflow: hidden;
+}
+.ds-stat-label {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 12.5px;
+	color: var(--ds-text-dim);
+	font-weight: 500;
+}
+.ds-stat-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--ds-text-mute);
+	flex-shrink: 0;
+}
+.ds-stat-dot.online {
+	background: var(--ds-success);
+	box-shadow: 0 0 0 3px var(--ds-success-dim);
+}
+.ds-stat-dot.warning {
+	background: var(--ds-warning);
+	box-shadow: 0 0 0 3px var(--ds-warning-dim);
+}
+.ds-stat-dot.danger {
+	background: var(--ds-danger);
+	box-shadow: 0 0 0 3px var(--ds-danger-dim);
+}
+.ds-stat-dot.offline {
+	background: var(--ds-offline);
+	box-shadow: 0 0 0 3px var(--ds-offline-dim);
+}
+.ds-stat-dot.info {
+	background: var(--ds-accent);
+	box-shadow: 0 0 0 3px var(--ds-accent-dim);
+}
+.ds-stat-value {
+	font-size: 28px;
+	font-weight: 600;
+	margin-top: 8px;
+	letter-spacing: -0.02em;
+	color: var(--ds-text);
+	line-height: 1.1;
+}
+.ds-stat-value .ds-stat-sub {
+	font-size: 16px;
+	font-weight: 400;
+	color: var(--ds-text-mute);
+}
+.ds-stat-delta {
+	font-size: 12px;
+	color: var(--ds-text-mute);
+	margin-top: 2px;
+}
+
+.ds-icon-tile {
+	width: 36px;
+	height: 36px;
+	border-radius: 9px;
+	display: grid;
+	place-items: center;
+	flex-shrink: 0;
+}
+.ds-icon-tile.online {
+	background: var(--ds-success-dim);
+	color: var(--ds-success);
+}
+.ds-icon-tile.info {
+	background: var(--ds-accent-dim);
+	color: var(--ds-accent-strong);
+}
+.ds-icon-tile.warning {
+	background: var(--ds-warning-dim);
+	color: var(--ds-warning);
+}
+.ds-icon-tile.offline {
+	background: var(--ds-offline-dim);
+	color: var(--ds-text-dim);
+}
+
 div.multiselect {
 	@apply !p-2;
 	@apply !rounded-lg;
