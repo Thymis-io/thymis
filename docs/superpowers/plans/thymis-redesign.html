@@ -1,0 +1,2834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Thymis — Redesign Prototype</title>
+<style>
+  /* ---------- Design Tokens ---------- */
+  :root {
+    --bg: #0a0d13;
+    --surface: #11151d;
+    --surface-2: #161b25;
+    --surface-3: #1c222e;
+    --border: #232a37;
+    --border-strong: #303949;
+    --text: #e7eaf0;
+    --text-dim: #98a1b3;
+    --text-mute: #5d6679;
+    --accent: #4f8cff;
+    --accent-dim: rgba(79, 140, 255, 0.12);
+    --accent-strong: #6ea2ff;
+    --success: #2dd4a4;
+    --success-dim: rgba(45, 212, 164, 0.12);
+    --warning: #f5b248;
+    --warning-dim: rgba(245, 178, 72, 0.14);
+    --danger: #ef4f5e;
+    --danger-dim: rgba(239, 79, 94, 0.14);
+    --offline: #5d6679;
+    --offline-dim: rgba(93, 102, 121, 0.18);
+    --shadow-md: 0 4px 14px rgba(0,0,0,0.35);
+    --shadow-lg: 0 20px 50px rgba(0,0,0,0.55);
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  [data-theme="light"] {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --surface-2: #ffffff;
+    --surface-3: #f1f3f7;
+    --border: #e4e7ee;
+    --border-strong: #cdd3dd;
+    --text: #0b0e14;
+    --text-dim: #4a5263;
+    --text-mute: #7a8395;
+    --accent: #2563eb;
+    --accent-dim: rgba(37, 99, 235, 0.10);
+    --accent-strong: #1d4ed8;
+    --success: #15a373;
+    --success-dim: rgba(21, 163, 115, 0.12);
+    --warning: #d28116;
+    --warning-dim: rgba(210, 129, 22, 0.14);
+    --danger: #d93644;
+    --danger-dim: rgba(217, 54, 68, 0.12);
+    --offline: #7a8395;
+    --offline-dim: rgba(122, 131, 149, 0.14);
+    --shadow-md: 0 2px 8px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.12);
+  }
+
+  /* ---------- Reset ---------- */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  a { color: inherit; text-decoration: none; }
+  input, textarea, select { font-family: inherit; color: inherit; }
+
+  /* ---------- App Layout ---------- */
+  .app {
+    display: grid;
+    grid-template-columns: 232px 1fr;
+    height: 100vh;
+  }
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  /* ---------- Sidebar ---------- */
+  .brand {
+    padding: 18px 18px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-mark {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), #8a4fff);
+    display: grid; place-items: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(79, 140, 255, 0.25);
+  }
+  .brand-name {
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+  .brand-env {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-mute);
+    padding: 3px 7px;
+    background: var(--surface-3);
+    border-radius: 999px;
+    border: 1px solid var(--border);
+  }
+
+  .org-switcher {
+    margin: 0 14px 12px;
+    padding: 9px 11px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .org-switcher:hover { border-color: var(--border-strong); }
+  .org-logo {
+    width: 22px; height: 22px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, #2dd4a4, #4f8cff);
+    color: #001;
+    display: grid; place-items: center;
+    font-size: 11px; font-weight: 700;
+  }
+  .org-name { font-size: 13px; font-weight: 500; }
+  .org-meta { font-size: 11px; color: var(--text-mute); }
+
+  .nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 10px 10px;
+  }
+  .nav-section {
+    margin-top: 14px;
+  }
+  .nav-section-title {
+    padding: 0 8px 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-mute);
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 9px;
+    margin: 1px 0;
+    border-radius: 7px;
+    color: var(--text-dim);
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .nav-item:hover { background: var(--surface-2); color: var(--text); }
+  .nav-item.active {
+    background: var(--accent-dim);
+    color: var(--accent-strong);
+    font-weight: 500;
+  }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .nav-badge {
+    margin-left: auto;
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--surface-3);
+    color: var(--text-dim);
+  }
+  .nav-item.active .nav-badge { background: rgba(79, 140, 255, 0.18); color: var(--accent-strong); }
+  .nav-badge.danger { background: var(--danger-dim); color: var(--danger); }
+
+  .sidebar-footer {
+    border-top: 1px solid var(--border);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4f8cff, #8a4fff);
+    display: grid; place-items: center;
+    color: #fff;
+    font-weight: 600;
+    font-size: 12px;
+  }
+  .user-name { font-size: 13px; font-weight: 500; }
+  .user-email { font-size: 11px; color: var(--text-mute); }
+  .icon-btn {
+    width: 28px; height: 28px;
+    display: grid; place-items: center;
+    border-radius: 6px;
+    color: var(--text-dim);
+    transition: background 0.12s, color 0.12s;
+  }
+  .icon-btn:hover { background: var(--surface-2); color: var(--text); }
+  .icon-btn svg { width: 15px; height: 15px; }
+
+  /* ---------- Top Bar ---------- */
+  .topbar {
+    height: 52px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 12px;
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    color: var(--text-dim);
+  }
+  .breadcrumb b { color: var(--text); font-weight: 500; }
+  .breadcrumb-sep { color: var(--text-mute); }
+
+  .search-wrap {
+    margin-left: auto;
+    position: relative;
+    width: 320px;
+  }
+  .search-input {
+    width: 100%;
+    padding: 7px 11px 7px 33px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 13px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .search-input:focus { outline: none; border-color: var(--accent); background: var(--bg); }
+  .search-input::placeholder { color: var(--text-mute); }
+  .search-icon {
+    position: absolute;
+    left: 11px; top: 50%;
+    transform: translateY(-50%);
+    width: 14px; height: 14px;
+    color: var(--text-mute);
+  }
+  .search-kbd {
+    position: absolute;
+    right: 8px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 10.5px;
+    color: var(--text-mute);
+    background: var(--surface-3);
+    padding: 2px 5px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    font-family: var(--mono);
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ---------- Content ---------- */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px 40px;
+  }
+  .view { display: none; animation: fadeIn 0.18s ease; }
+  .view.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .page-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 22px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .page-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .page-subtitle {
+    color: var(--text-dim);
+    font-size: 13.5px;
+    margin: 4px 0 0;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 13px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+  }
+  .btn:hover { background: var(--surface-3); border-color: var(--border-strong); }
+  .btn svg { width: 14px; height: 14px; }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+  .btn-ghost { background: transparent; border-color: transparent; }
+  .btn-ghost:hover { background: var(--surface-2); border-color: var(--border); }
+  .btn-danger {
+    color: var(--danger);
+    background: var(--danger-dim);
+    border-color: transparent;
+  }
+
+  /* ---------- Cards ---------- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+  }
+  .card-pad { padding: 18px 20px; }
+  .card-head {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .card-title { font-size: 14px; font-weight: 600; margin: 0; }
+  .card-sub { font-size: 12.5px; color: var(--text-dim); margin-top: 2px; }
+
+  /* ---------- Dashboard ---------- */
+  .grid { display: grid; gap: 16px; }
+  .grid-stats { grid-template-columns: repeat(4, 1fr); margin-bottom: 18px; }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+  .stat-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--text-mute);
+  }
+  .stat-dot.online { background: var(--success); box-shadow: 0 0 0 3px var(--success-dim); }
+  .stat-dot.warning { background: var(--warning); box-shadow: 0 0 0 3px var(--warning-dim); }
+  .stat-dot.danger { background: var(--danger); box-shadow: 0 0 0 3px var(--danger-dim); }
+  .stat-dot.offline { background: var(--offline); box-shadow: 0 0 0 3px var(--offline-dim); }
+  .stat-value {
+    font-size: 28px;
+    font-weight: 600;
+    margin-top: 8px;
+    letter-spacing: -0.02em;
+  }
+  .stat-delta {
+    font-size: 12px;
+    color: var(--text-mute);
+    margin-top: 2px;
+  }
+  .stat-delta.up { color: var(--success); }
+  .stat-delta.down { color: var(--danger); }
+  .stat-spark {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 110px;
+    height: 36px;
+    opacity: 0.55;
+  }
+
+  .grid-main {
+    grid-template-columns: 2fr 1fr;
+    gap: 18px;
+  }
+
+  /* ---------- Status Bar Chart ---------- */
+  .health-bar {
+    height: 12px;
+    border-radius: 999px;
+    overflow: hidden;
+    display: flex;
+    margin-top: 18px;
+    background: var(--surface-3);
+  }
+  .health-seg { height: 100%; }
+  .health-seg.online { background: var(--success); }
+  .health-seg.warning { background: var(--warning); }
+  .health-seg.danger { background: var(--danger); }
+  .health-seg.offline { background: var(--offline); }
+  .health-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 18px;
+    margin-top: 14px;
+    font-size: 12.5px;
+    color: var(--text-dim);
+  }
+  .health-legend-item { display: flex; align-items: center; gap: 7px; }
+
+  /* ---------- Distribution Grid ---------- */
+  .dist-grid {
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    gap: 4px;
+    margin-top: 14px;
+  }
+  .dist-cell {
+    aspect-ratio: 1;
+    border-radius: 3px;
+    background: var(--success);
+    cursor: pointer;
+    position: relative;
+  }
+  .dist-cell.warning { background: var(--warning); }
+  .dist-cell.danger { background: var(--danger); }
+  .dist-cell.offline { background: var(--offline); opacity: 0.55; }
+  .dist-cell:hover { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  /* ---------- Activity Feed ---------- */
+  .activity-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .activity-item {
+    display: flex;
+    gap: 12px;
+    padding: 11px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-icon {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--surface-3);
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .activity-icon svg { width: 13px; height: 13px; }
+  .activity-icon.success { background: var(--success-dim); color: var(--success); }
+  .activity-icon.warning { background: var(--warning-dim); color: var(--warning); }
+  .activity-icon.danger { background: var(--danger-dim); color: var(--danger); }
+  .activity-icon.info { background: var(--accent-dim); color: var(--accent-strong); }
+  .activity-text { font-size: 13px; line-height: 1.45; }
+  .activity-text b { font-weight: 500; color: var(--text); }
+  .activity-meta { font-size: 11.5px; color: var(--text-mute); margin-top: 2px; }
+
+  /* ---------- Tables ---------- */
+  .filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    font-size: 12.5px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+  }
+  .chip:hover { border-color: var(--border-strong); color: var(--text); }
+  .chip.active { background: var(--accent-dim); border-color: rgba(79, 140, 255, 0.4); color: var(--accent-strong); }
+  .chip svg { width: 12px; height: 12px; }
+  .chip-x { color: var(--text-mute); margin-left: 3px; }
+  .chip-x:hover { color: var(--text); }
+
+  .filter-sep {
+    width: 1px;
+    align-self: stretch;
+    background: var(--border);
+    margin: 0 4px;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .table th, .table td {
+    text-align: left;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    vertical-align: middle;
+  }
+  .table th {
+    background: var(--surface-2);
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-mute);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .table tbody tr {
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .table tbody tr:hover { background: var(--surface-2); }
+  .table tbody tr.selected { background: var(--accent-dim); }
+  .table th:first-child, .table td:first-child { padding-left: 18px; }
+  .table th:last-child, .table td:last-child { padding-right: 18px; }
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .checkbox {
+    width: 15px; height: 15px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 4px;
+    display: inline-grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .checkbox.checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .checkbox.checked::after {
+    content: "";
+    width: 8px; height: 4px;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: rotate(-45deg) translate(1px, -1px);
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 500;
+    border: 1px solid transparent;
+  }
+  .status-pill.online { color: var(--success); background: var(--success-dim); }
+  .status-pill.warning { color: var(--warning); background: var(--warning-dim); }
+  .status-pill.danger { color: var(--danger); background: var(--danger-dim); }
+  .status-pill.offline { color: var(--text-dim); background: var(--offline-dim); }
+  .status-pill .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .status-pill.online .dot { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 500;
+    background: var(--surface-3);
+    color: var(--text-dim);
+    margin-right: 4px;
+  }
+  .tag.kiosk { background: rgba(138, 79, 255, 0.15); color: #b89cff; }
+  .tag.signage { background: rgba(79, 140, 255, 0.15); color: #6ea2ff; }
+  .tag.sensor { background: rgba(45, 212, 164, 0.15); color: #5fe3bb; }
+  .tag.gateway { background: rgba(245, 178, 72, 0.15); color: #f5c178; }
+  .tag.office { background: rgba(239, 79, 94, 0.15); color: #ff7d8a; }
+  .tag.berlin, .tag.munich, .tag.hamburg {
+    background: var(--surface-3); color: var(--text-dim);
+  }
+  [data-theme="light"] .tag.kiosk { color: #7c3aed; }
+  [data-theme="light"] .tag.signage { color: #2563eb; }
+  [data-theme="light"] .tag.sensor { color: #059669; }
+  [data-theme="light"] .tag.gateway { color: #b45309; }
+  [data-theme="light"] .tag.office { color: #be123c; }
+
+  .device-meta {
+    color: var(--text-mute);
+    font-size: 12px;
+    font-family: var(--mono);
+  }
+  .device-name { font-weight: 500; }
+
+  /* ---------- Floating action bar ---------- */
+  .float-actions {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120%);
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 8px 8px 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: var(--shadow-lg);
+    transition: transform 0.25s cubic-bezier(.4,.2,.2,1.2);
+    z-index: 50;
+  }
+  .float-actions.visible { transform: translateX(-50%) translateY(0); }
+  .float-actions-count {
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .float-actions-divider {
+    width: 1px;
+    height: 22px;
+    background: var(--border);
+  }
+
+  /* ---------- Device Detail ---------- */
+  .detail-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+  .detail-icon {
+    width: 56px; height: 56px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), #8a4fff);
+    display: grid; place-items: center;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .detail-icon svg { width: 26px; height: 26px; }
+  .detail-info { flex: 1; min-width: 0; }
+  .detail-title { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  .detail-sub {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: var(--text-dim);
+    flex-wrap: wrap;
+  }
+  .detail-sub code {
+    font-family: var(--mono);
+    background: var(--surface-2);
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    font-size: 11.5px;
+  }
+  .detail-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .tabs {
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 18px;
+  }
+  .tab {
+    padding: 9px 14px;
+    font-size: 13px;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.12s, border-color 0.12s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 500; }
+  .tab .count {
+    background: var(--surface-3);
+    color: var(--text-mute);
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    margin-left: 6px;
+  }
+  .tab.active .count { background: var(--accent-dim); color: var(--accent-strong); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: fadeIn 0.15s ease; }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 18px;
+  }
+
+  /* ---------- KV List ---------- */
+  .kv-list { display: flex; flex-direction: column; }
+  .kv-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    padding: 9px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 13px;
+  }
+  .kv-row:last-child { border-bottom: none; }
+  .kv-key { color: var(--text-dim); }
+  .kv-val { color: var(--text); }
+  .kv-val.mono { font-family: var(--mono); font-size: 12px; }
+
+  /* ---------- VNC Preview ---------- */
+  .vnc-preview {
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(135deg, #1a1f2c, #0d1018);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    margin-top: 12px;
+  }
+  .vnc-preview::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 30%, rgba(79, 140, 255, 0.25), transparent 60%),
+      radial-gradient(ellipse at 70% 70%, rgba(138, 79, 255, 0.18), transparent 60%);
+  }
+  .vnc-fake-content {
+    position: absolute;
+    inset: 16% 12%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: #fff;
+    opacity: 0.85;
+  }
+  .vnc-fake-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.18);
+  }
+  .vnc-fake-bar.short { width: 40%; }
+  .vnc-fake-bar.med { width: 70%; }
+  .vnc-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0);
+    transition: background 0.18s;
+    display: grid;
+    place-items: center;
+    opacity: 0;
+  }
+  .vnc-preview:hover .vnc-overlay {
+    background: rgba(0,0,0,0.5);
+    opacity: 1;
+  }
+  .vnc-overlay .btn { background: rgba(255,255,255,0.95); color: #000; border-color: transparent; }
+  .vnc-badge {
+    position: absolute;
+    top: 10px; left: 10px;
+    background: rgba(0,0,0,0.45);
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .vnc-badge .dot {
+    width: 6px; height: 6px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  /* ---------- Timeline ---------- */
+  .timeline {
+    position: relative;
+    padding-left: 22px;
+  }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 7px; top: 4px; bottom: 4px;
+    width: 1.5px;
+    background: var(--border);
+  }
+  .timeline-item {
+    position: relative;
+    padding: 4px 0 14px 4px;
+  }
+  .timeline-item::before {
+    content: "";
+    position: absolute;
+    left: -19px; top: 8px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--surface-3);
+    border: 2px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--border);
+  }
+  .timeline-item.success::before { background: var(--success); box-shadow: 0 0 0 1px var(--success); }
+  .timeline-item.warning::before { background: var(--warning); box-shadow: 0 0 0 1px var(--warning); }
+  .timeline-item.danger::before { background: var(--danger); box-shadow: 0 0 0 1px var(--danger); }
+  .timeline-item.info::before { background: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .timeline-title { font-size: 13px; font-weight: 500; }
+  .timeline-meta { font-size: 11.5px; color: var(--text-mute); margin-top: 1px; }
+
+  /* ---------- Modules / Config ---------- */
+  .module-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    cursor: grab;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .module-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-md); }
+  .module-card.inherited {
+    border-style: dashed;
+    background: var(--surface);
+  }
+  .module-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .module-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--accent-dim);
+    color: var(--accent-strong);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .module-icon svg { width: 16px; height: 16px; }
+  .module-title { font-size: 13.5px; font-weight: 500; }
+  .module-desc { font-size: 12px; color: var(--text-dim); margin-top: 1px; }
+  .module-actions { margin-left: auto; display: flex; gap: 4px; }
+  .module-handle {
+    color: var(--text-mute);
+    cursor: grab;
+    padding: 4px;
+    margin-right: 4px;
+  }
+  .inherited-badge {
+    font-size: 10.5px;
+    color: var(--text-mute);
+    padding: 1px 6px;
+    border: 1px dashed var(--border-strong);
+    border-radius: 4px;
+    margin-left: 6px;
+  }
+
+  .module-body {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+    display: none;
+  }
+  .module-card.open .module-body { display: block; }
+
+  .form-row {
+    margin-bottom: 12px;
+  }
+  .form-row:last-child { margin-bottom: 0; }
+  .form-label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  .form-input, .form-select {
+    width: 100%;
+    padding: 7px 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    font-size: 13px;
+  }
+  .form-input:focus, .form-select:focus { outline: none; border-color: var(--accent); }
+  .form-hint { font-size: 11.5px; color: var(--text-mute); margin-top: 4px; }
+  .form-hint.warning { color: var(--warning); }
+
+  /* ---------- Diff Preview ---------- */
+  .diff-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    overflow: hidden;
+  }
+  .diff-line {
+    display: flex;
+    padding: 2px 12px;
+    line-height: 1.55;
+  }
+  .diff-line .ln {
+    width: 28px;
+    color: var(--text-mute);
+    text-align: right;
+    margin-right: 12px;
+    user-select: none;
+    flex-shrink: 0;
+  }
+  .diff-line.add { background: rgba(45, 212, 164, 0.08); }
+  .diff-line.add .ln, .diff-line.add .mark { color: var(--success); }
+  .diff-line.del { background: rgba(239, 79, 94, 0.08); }
+  .diff-line.del .ln, .diff-line.del .mark { color: var(--danger); }
+  .diff-line .mark { width: 14px; flex-shrink: 0; }
+
+  /* ---------- Deployment ---------- */
+  .strategy-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .strategy {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color 0.12s, background 0.12s;
+    position: relative;
+  }
+  .strategy:hover { border-color: var(--border-strong); }
+  .strategy.selected {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .strategy-name { font-size: 13px; font-weight: 500; }
+  .strategy-desc { font-size: 11.5px; color: var(--text-dim); margin-top: 2px; }
+  .strategy-icon {
+    width: 22px; height: 22px;
+    margin-bottom: 6px;
+    color: var(--text-dim);
+  }
+  .strategy.selected .strategy-icon { color: var(--accent-strong); }
+
+  .rollout-stages {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .stage {
+    flex: 1;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    position: relative;
+  }
+  .stage.done {
+    background: var(--success-dim);
+    border-color: rgba(45, 212, 164, 0.35);
+  }
+  .stage.active {
+    background: var(--accent-dim);
+    border-color: rgba(79, 140, 255, 0.45);
+  }
+  .stage.failed {
+    background: var(--danger-dim);
+    border-color: rgba(239, 79, 94, 0.45);
+  }
+  .stage-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-mute);
+    font-weight: 600;
+  }
+  .stage.done .stage-label { color: var(--success); }
+  .stage.active .stage-label { color: var(--accent-strong); }
+  .stage.failed .stage-label { color: var(--danger); }
+  .stage-value { font-size: 16px; font-weight: 600; margin-top: 2px; }
+  .stage-sub { font-size: 11.5px; color: var(--text-dim); margin-top: 1px; }
+  .stage-arrow {
+    color: var(--text-mute);
+    flex-shrink: 0;
+  }
+
+  .progress {
+    height: 6px;
+    background: var(--surface-3);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width 0.4s;
+  }
+  .progress-bar.success { background: var(--success); }
+  .progress-bar.danger { background: var(--danger); }
+
+  .device-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
+    gap: 5px;
+    margin-top: 14px;
+  }
+  .device-tile {
+    aspect-ratio: 1;
+    border-radius: 5px;
+    background: var(--surface-3);
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.12s;
+  }
+  .device-tile.done { background: var(--success); }
+  .device-tile.progress {
+    background: var(--accent);
+    animation: tilePulse 1.4s infinite;
+  }
+  .device-tile.pending { background: var(--surface-3); border: 1px dashed var(--border-strong); }
+  .device-tile.failed { background: var(--danger); }
+  .device-tile:hover { transform: scale(1.15); z-index: 1; }
+  @keyframes tilePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+  /* ---------- Logs ---------- */
+  .logs-wrap {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    max-height: 560px;
+    overflow-y: auto;
+  }
+  .log-line {
+    padding: 4px 16px;
+    display: grid;
+    grid-template-columns: 96px 60px 90px 1fr;
+    gap: 12px;
+    border-bottom: 1px solid var(--surface-2);
+    line-height: 1.5;
+  }
+  .log-line:hover { background: var(--surface-2); }
+  .log-time { color: var(--text-mute); }
+  .log-level {
+    text-transform: uppercase;
+    font-size: 10.5px;
+    font-weight: 600;
+    align-self: center;
+    padding: 1px 6px;
+    border-radius: 4px;
+    text-align: center;
+    background: var(--surface-3);
+    color: var(--text-dim);
+  }
+  .log-level.info { color: var(--accent-strong); background: var(--accent-dim); }
+  .log-level.warn { color: var(--warning); background: var(--warning-dim); }
+  .log-level.error { color: var(--danger); background: var(--danger-dim); }
+  .log-level.debug { color: var(--text-mute); }
+  .log-device { color: var(--text-dim); }
+  .log-msg { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--success);
+  }
+  .live-dot {
+    width: 7px; height: 7px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: pulse 1.4s infinite;
+  }
+
+  /* ---------- Command Palette ---------- */
+  .cmdk-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: none;
+    z-index: 100;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 12vh;
+    backdrop-filter: blur(6px);
+  }
+  .cmdk-overlay.open { display: flex; animation: fadeIn 0.15s ease; }
+  .cmdk {
+    width: min(560px, 92vw);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+  .cmdk-input-wrap {
+    display: flex;
+    align-items: center;
+    padding: 4px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  .cmdk-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 14px 0;
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+  }
+  .cmdk-input::placeholder { color: var(--text-mute); }
+  .cmdk-list { max-height: 360px; overflow-y: auto; padding: 6px; }
+  .cmdk-group-title {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-mute);
+    padding: 10px 10px 4px;
+    font-weight: 600;
+  }
+  .cmdk-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13.5px;
+  }
+  .cmdk-item:hover, .cmdk-item.focus { background: var(--surface-2); }
+  .cmdk-item .icon { width: 22px; height: 22px; display: grid; place-items: center; color: var(--text-dim); }
+  .cmdk-item .icon svg { width: 14px; height: 14px; }
+  .cmdk-item .meta { margin-left: auto; font-size: 11px; color: var(--text-mute); }
+  .cmdk-footer {
+    border-top: 1px solid var(--border);
+    padding: 8px 14px;
+    font-size: 11.5px;
+    color: var(--text-mute);
+    display: flex;
+    gap: 16px;
+  }
+  .cmdk-footer kbd {
+    font-family: var(--mono);
+    background: var(--surface-3);
+    padding: 1px 5px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    font-size: 10.5px;
+    margin: 0 2px;
+  }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    max-width: 340px;
+    transform: translateX(120%);
+    transition: transform 0.3s cubic-bezier(.4,.2,.2,1.2);
+    z-index: 80;
+  }
+  .toast.visible { transform: none; }
+  .toast-icon {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--success-dim);
+    color: var(--success);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .toast-icon svg { width: 13px; height: 13px; }
+  .toast-title { font-size: 13.5px; font-weight: 500; }
+  .toast-msg { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+  /* ---------- Empty / Hidden ---------- */
+  .hidden { display: none !important; }
+
+  /* ---------- Scrollbar ---------- */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+</style>
+</head>
+<body>
+
+<!-- =================== APP =================== -->
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">T</div>
+      <div class="brand-name">Thymis</div>
+      <div class="brand-env">PROD</div>
+    </div>
+
+    <div class="org-switcher" title="Switch organization">
+      <div class="org-logo">U</div>
+      <div style="flex:1; min-width: 0;">
+        <div class="org-name">Udysseus GmbH</div>
+        <div class="org-meta">412 devices · 3 sites</div>
+      </div>
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-mute)"><path d="M7 10l5 5 5-5"/></svg>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Overview</div>
+        <div class="nav-item active" data-view="dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          Dashboard
+        </div>
+        <div class="nav-item" data-view="devices">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 22h12"/><path d="M12 18v4"/></svg>
+          Devices
+          <span class="nav-badge">412</span>
+        </div>
+        <div class="nav-item" data-view="configurations">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Configurations
+          <span class="nav-badge">14</span>
+        </div>
+        <div class="nav-item" data-view="deployments">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Deployments
+          <span class="nav-badge danger">1</span>
+        </div>
+        <div class="nav-item" data-view="logs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="11" x2="15" y2="11"/></svg>
+          Logs
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Resources</div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          Modules
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          Secrets
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Artifacts
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          Repositories
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Admin</div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Team & Access
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="avatar">FA</div>
+      <div style="flex:1; min-width: 0;">
+        <div class="user-name">Florian A.</div>
+        <div class="user-email">falzock@gmail.com</div>
+      </div>
+      <button class="icon-btn" id="themeToggle" title="Toggle theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="breadcrumb" id="breadcrumb">
+        <b>Dashboard</b>
+      </div>
+
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" placeholder="Search devices, configs, modules…" id="searchInput" />
+        <span class="search-kbd">⌘K</span>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="icon-btn" title="Notifications" style="position: relative;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span style="position: absolute; top: 5px; right: 5px; width: 6px; height: 6px; background: var(--danger); border-radius: 50%; border: 1.5px solid var(--surface);"></span>
+        </button>
+        <button class="icon-btn" title="Help">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ========== DASHBOARD VIEW ========== -->
+      <section class="view active" id="view-dashboard">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">Fleet overview</h1>
+            <p class="page-subtitle">Health, deployments and activity across your 412 devices.</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export
+            </button>
+            <button class="btn btn-primary" onclick="switchView('deployments')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New deployment
+            </button>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-stats">
+          <div class="stat">
+            <div class="stat-label"><span class="stat-dot online"></span>Online</div>
+            <div class="stat-value">387</div>
+            <div class="stat-delta up">▲ 4 since yesterday</div>
+            <svg class="stat-spark" viewBox="0 0 110 36"><polyline fill="none" stroke="var(--success)" stroke-width="1.5" points="0,28 12,22 24,24 36,18 48,20 60,12 72,14 84,8 96,10 110,4"/></svg>
+          </div>
+          <div class="stat">
+            <div class="stat-label"><span class="stat-dot warning"></span>Needs update</div>
+            <div class="stat-value">18</div>
+            <div class="stat-delta">v0.7.1 → v0.8.0 available</div>
+            <svg class="stat-spark" viewBox="0 0 110 36"><polyline fill="none" stroke="var(--warning)" stroke-width="1.5" points="0,12 12,16 24,14 36,18 48,15 60,20 72,18 84,22 96,25 110,28"/></svg>
+          </div>
+          <div class="stat">
+            <div class="stat-label"><span class="stat-dot danger"></span>Errored</div>
+            <div class="stat-value">3</div>
+            <div class="stat-delta down">▼ 2 from last week</div>
+            <svg class="stat-spark" viewBox="0 0 110 36"><polyline fill="none" stroke="var(--danger)" stroke-width="1.5" points="0,10 12,8 24,14 36,12 48,16 60,18 72,22 84,24 96,28 110,30"/></svg>
+          </div>
+          <div class="stat">
+            <div class="stat-label"><span class="stat-dot offline"></span>Offline &gt; 24h</div>
+            <div class="stat-value">4</div>
+            <div class="stat-delta">2 awaiting cellular reconnect</div>
+            <svg class="stat-spark" viewBox="0 0 110 36"><polyline fill="none" stroke="var(--offline)" stroke-width="1.5" points="0,20 12,22 24,18 36,22 48,20 60,24 72,22 84,24 96,22 110,24"/></svg>
+          </div>
+        </div>
+
+        <!-- Health distribution + Activity -->
+        <div class="grid grid-main">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Fleet health distribution</h3>
+                <p class="card-sub">Hover a tile to inspect a device.</p>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button class="chip active">All sites</button>
+                <button class="chip">Berlin</button>
+                <button class="chip">Munich</button>
+                <button class="chip">Hamburg</button>
+              </div>
+            </div>
+            <div class="card-pad">
+              <div class="health-bar">
+                <div class="health-seg online" style="width: 94%"></div>
+                <div class="health-seg warning" style="width: 4.4%"></div>
+                <div class="health-seg danger" style="width: 0.7%"></div>
+                <div class="health-seg offline" style="width: 0.9%"></div>
+              </div>
+              <div class="health-legend">
+                <div class="health-legend-item"><span class="stat-dot online"></span>387 online (93.9%)</div>
+                <div class="health-legend-item"><span class="stat-dot warning"></span>18 needs update (4.4%)</div>
+                <div class="health-legend-item"><span class="stat-dot danger"></span>3 errored (0.7%)</div>
+                <div class="health-legend-item"><span class="stat-dot offline"></span>4 offline (1.0%)</div>
+              </div>
+              <div class="dist-grid" id="distGrid"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Recent activity</h3>
+                <p class="card-sub">Live · last 24h</p>
+              </div>
+              <a class="btn btn-ghost" style="font-size: 12px;">View all →</a>
+            </div>
+            <div class="activity-list">
+              <div class="activity-item">
+                <div class="activity-icon success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div>
+                  <div class="activity-text"><b>Rollout v0.8.0-rc2</b> completed on canary group <b>kiosk-berlin</b> · 10/10 succeeded</div>
+                  <div class="activity-meta">12 min ago · by Florian A.</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+                <div>
+                  <div class="activity-text"><b>signage-muc-04</b> failed health check (3 consecutive · auto-rollback armed)</div>
+                  <div class="activity-meta">38 min ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div>
+                  <div class="activity-text"><b>3 new devices</b> joined under tag <span class="tag sensor">sensor</span></div>
+                  <div class="activity-meta">2 hr ago</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+                <div>
+                  <div class="activity-text"><b>18 devices</b> running outdated NixOS module (CVE-2026-1042)</div>
+                  <div class="activity-meta">4 hr ago · auto-detected</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div>
+                  <div class="activity-text">Configuration <b>kiosk-default</b> updated by <b>Mara K.</b></div>
+                  <div class="activity-meta">5 hr ago · adds nginx 1.27 module</div>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12l2 2 4-4"/></svg></div>
+                <div>
+                  <div class="activity-text"><b>signage-hh-12</b> rebooted (planned)</div>
+                  <div class="activity-meta">9 hr ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Two more cards -->
+        <div class="grid" style="grid-template-columns: 1fr 1fr; margin-top: 18px;">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Active rollouts</h3>
+                <p class="card-sub">2 in progress, 1 paused</p>
+              </div>
+              <button class="btn btn-ghost" style="font-size: 12px;" onclick="switchView('deployments')">Open →</button>
+            </div>
+            <div class="card-pad">
+              <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border);">
+                <div style="flex: 1;">
+                  <div style="font-size: 13px; font-weight: 500;">v0.8.0-rc2 → Production</div>
+                  <div style="font-size: 12px; color: var(--text-dim);">Canary 10% → 50% → 100%</div>
+                  <div class="progress"><div class="progress-bar" style="width: 32%"></div></div>
+                </div>
+                <div style="font-size: 12px; color: var(--text-dim); text-align: right;">
+                  <div style="font-weight: 500; color: var(--text);">132 / 412</div>
+                  <div>ETA 14 min</div>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                <div style="flex: 1;">
+                  <div style="font-size: 13px; font-weight: 500;">Wifi credentials rotation</div>
+                  <div style="font-size: 12px; color: var(--text-dim);">All-at-once · office-wifi tag</div>
+                  <div class="progress"><div class="progress-bar success" style="width: 100%"></div></div>
+                </div>
+                <div style="font-size: 12px; color: var(--text-dim); text-align: right;">
+                  <div style="font-weight: 500; color: var(--success);">204 / 204</div>
+                  <div>Just now</div>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0;">
+                <div style="flex: 1;">
+                  <div style="font-size: 13px; font-weight: 500;">Display rotation hotfix</div>
+                  <div style="font-size: 12px; color: var(--warning);">⏸ Paused — awaiting approval</div>
+                  <div class="progress"><div class="progress-bar" style="width: 18%; background: var(--warning);"></div></div>
+                </div>
+                <div style="font-size: 12px; color: var(--text-dim); text-align: right;">
+                  <div style="font-weight: 500; color: var(--text);">8 / 45</div>
+                  <div>2 hr ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Top tags</h3>
+                <p class="card-sub">Most used device groupings</p>
+              </div>
+            </div>
+            <div class="card-pad" style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="tag signage">signage</span>
+                <div class="progress" style="flex: 1; margin: 0;"><div class="progress-bar" style="width: 70%; background: #6ea2ff;"></div></div>
+                <span style="font-size: 12px; color: var(--text-dim); width: 50px; text-align: right;">204</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="tag kiosk">kiosk</span>
+                <div class="progress" style="flex: 1; margin: 0;"><div class="progress-bar" style="width: 42%; background: #b89cff;"></div></div>
+                <span style="font-size: 12px; color: var(--text-dim); width: 50px; text-align: right;">112</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="tag sensor">sensor</span>
+                <div class="progress" style="flex: 1; margin: 0;"><div class="progress-bar" style="width: 28%; background: #5fe3bb;"></div></div>
+                <span style="font-size: 12px; color: var(--text-dim); width: 50px; text-align: right;">62</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="tag gateway">gateway</span>
+                <div class="progress" style="flex: 1; margin: 0;"><div class="progress-bar" style="width: 12%; background: #f5c178;"></div></div>
+                <span style="font-size: 12px; color: var(--text-dim); width: 50px; text-align: right;">26</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="tag office">office-wifi</span>
+                <div class="progress" style="flex: 1; margin: 0;"><div class="progress-bar" style="width: 72%; background: #ff7d8a;"></div></div>
+                <span style="font-size: 12px; color: var(--text-dim); width: 50px; text-align: right;">204</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== DEVICES VIEW ========== -->
+      <section class="view" id="view-devices">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">Devices</h1>
+            <p class="page-subtitle">412 devices across 3 sites · filtered list with bulk actions</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+              Group by tag
+            </button>
+            <button class="btn btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add device
+            </button>
+          </div>
+        </div>
+
+        <div class="filters">
+          <div class="chip active">All <span style="color: var(--text-mute);">412</span></div>
+          <div class="chip"><span class="stat-dot online"></span>Online <span style="color: var(--text-mute);">387</span></div>
+          <div class="chip"><span class="stat-dot warning"></span>Needs update <span style="color: var(--text-mute);">18</span></div>
+          <div class="chip"><span class="stat-dot danger"></span>Errored <span style="color: var(--text-mute);">3</span></div>
+          <div class="chip"><span class="stat-dot offline"></span>Offline <span style="color: var(--text-mute);">4</span></div>
+
+          <div class="filter-sep"></div>
+
+          <div class="chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg>
+            Tag: signage <span class="chip-x">×</span>
+          </div>
+          <div class="chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg>
+            Site: Berlin <span class="chip-x">×</span>
+          </div>
+          <div class="chip">+ Add filter</div>
+
+          <div style="margin-left: auto; display: flex; gap: 8px;">
+            <button class="btn btn-ghost" style="font-size: 12.5px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              Sort: Last seen
+            </button>
+            <button class="btn btn-ghost" style="font-size: 12.5px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="width: 32px;"><div class="checkbox" id="selectAll"></div></th>
+                <th>Device</th>
+                <th>Status</th>
+                <th>Configuration</th>
+                <th>Tags</th>
+                <th>Version</th>
+                <th>Last seen</th>
+                <th>Site</th>
+                <th style="width: 32px;"></th>
+              </tr>
+            </thead>
+            <tbody id="deviceTbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ========== DEVICE DETAIL VIEW ========== -->
+      <section class="view" id="view-device-detail">
+        <div class="page-head" style="margin-bottom: 14px;">
+          <button class="btn btn-ghost" style="font-size: 12.5px;" onclick="switchView('devices')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back to devices
+          </button>
+        </div>
+
+        <div class="detail-head">
+          <div class="detail-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <div class="detail-info">
+            <h1 class="detail-title">kiosk-berlin-08</h1>
+            <div class="detail-sub">
+              <span class="status-pill online"><span class="dot"></span>Online</span>
+              <code>00:14:5E:8B:42:1A</code>
+              <span>·</span>
+              <span>10.42.18.108</span>
+              <span>·</span>
+              <span>Raspberry Pi 4 · 4GB</span>
+              <span>·</span>
+              <span>Last seen 4s ago</span>
+            </div>
+            <div style="margin-top: 8px;">
+              <span class="tag kiosk">kiosk</span>
+              <span class="tag office">office-wifi</span>
+              <span class="tag">berlin</span>
+              <span class="tag">+2</span>
+            </div>
+          </div>
+          <div class="detail-actions">
+            <button class="btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+              Reboot
+            </button>
+            <button class="btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+              SSH
+            </button>
+            <button class="btn btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Deploy config
+            </button>
+          </div>
+        </div>
+
+        <div class="tabs" id="detailTabs">
+          <div class="tab active" data-tab="overview">Overview</div>
+          <div class="tab" data-tab="config">Configuration <span class="count">7 modules</span></div>
+          <div class="tab" data-tab="logs">Logs <span class="count">live</span></div>
+          <div class="tab" data-tab="remote">Remote view</div>
+          <div class="tab" data-tab="history">History</div>
+        </div>
+
+        <!-- OVERVIEW TAB -->
+        <div class="tab-panel active" data-panel="overview">
+          <div class="detail-grid">
+            <div>
+              <div class="card">
+                <div class="card-head"><h3 class="card-title">System</h3></div>
+                <div class="card-pad">
+                  <div class="kv-list">
+                    <div class="kv-row"><div class="kv-key">Hostname</div><div class="kv-val mono">kiosk-berlin-08</div></div>
+                    <div class="kv-row"><div class="kv-key">NixOS</div><div class="kv-val">25.05 (Warbler)</div></div>
+                    <div class="kv-row"><div class="kv-key">Thymis agent</div><div class="kv-val">v0.8.0-rc2 <span style="color: var(--warning); margin-left: 6px;">⚠ pre-release</span></div></div>
+                    <div class="kv-row"><div class="kv-key">Kernel</div><div class="kv-val mono">6.6.18-rpi</div></div>
+                    <div class="kv-row"><div class="kv-key">Uptime</div><div class="kv-val">14 days · 6 hr · 22 min</div></div>
+                    <div class="kv-row"><div class="kv-key">Temperature</div><div class="kv-val">47 °C <span style="color: var(--success); margin-left: 6px;">● normal</span></div></div>
+                    <div class="kv-row"><div class="kv-key">Disk</div><div class="kv-val">3.2 / 14.6 GB used (22%)</div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card" style="margin-top: 16px;">
+                <div class="card-head">
+                  <h3 class="card-title">Health checks</h3>
+                  <span class="status-pill online"><span class="dot"></span>All passing</span>
+                </div>
+                <div class="card-pad" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: var(--surface-2); border-radius: 8px;">
+                    <div style="width: 26px; height: 26px; background: var(--success-dim); color: var(--success); border-radius: 50%; display: grid; place-items: center;">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div>
+                      <div style="font-size: 13px; font-weight: 500;">Network reachable</div>
+                      <div style="font-size: 11.5px; color: var(--text-dim);">12ms · controller</div>
+                    </div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: var(--surface-2); border-radius: 8px;">
+                    <div style="width: 26px; height: 26px; background: var(--success-dim); color: var(--success); border-radius: 50%; display: grid; place-items: center;">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div>
+                      <div style="font-size: 13px; font-weight: 500;">Display active</div>
+                      <div style="font-size: 11.5px; color: var(--text-dim);">HDMI · 1920×1080</div>
+                    </div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: var(--surface-2); border-radius: 8px;">
+                    <div style="width: 26px; height: 26px; background: var(--success-dim); color: var(--success); border-radius: 50%; display: grid; place-items: center;">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div>
+                      <div style="font-size: 13px; font-weight: 500;">Browser process</div>
+                      <div style="font-size: 11.5px; color: var(--text-dim);">chromium 124</div>
+                    </div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: var(--surface-2); border-radius: 8px;">
+                    <div style="width: 26px; height: 26px; background: var(--success-dim); color: var(--success); border-radius: 50%; display: grid; place-items: center;">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div>
+                      <div style="font-size: 13px; font-weight: 500;">Disk space</div>
+                      <div style="font-size: 11.5px; color: var(--text-dim);">22% used</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="card">
+                <div class="card-head">
+                  <h3 class="card-title">Remote view</h3>
+                  <span class="status-pill online" style="font-size: 11px;"><span class="dot"></span>LIVE</span>
+                </div>
+                <div class="card-pad" style="padding-top: 6px;">
+                  <div class="vnc-preview">
+                    <div class="vnc-badge"><span class="dot"></span>1920 × 1080</div>
+                    <div class="vnc-fake-content">
+                      <div class="vnc-fake-bar med"></div>
+                      <div class="vnc-fake-bar short"></div>
+                      <div style="height: 60%; background: rgba(255,255,255,0.10); border-radius: 6px;"></div>
+                      <div class="vnc-fake-bar"></div>
+                    </div>
+                    <div class="vnc-overlay">
+                      <button class="btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Open remote session
+                      </button>
+                    </div>
+                  </div>
+                  <div style="font-size: 11.5px; color: var(--text-dim); margin-top: 8px;">
+                    Showing kiosk content · displays.thymis.io/dashboard
+                  </div>
+                </div>
+              </div>
+
+              <div class="card" style="margin-top: 16px;">
+                <div class="card-head"><h3 class="card-title">Recent activity</h3></div>
+                <div class="card-pad">
+                  <div class="timeline">
+                    <div class="timeline-item success">
+                      <div class="timeline-title">Configuration applied</div>
+                      <div class="timeline-meta">kiosk-default v34 · 12 min ago</div>
+                    </div>
+                    <div class="timeline-item info">
+                      <div class="timeline-title">Rebooted (planned)</div>
+                      <div class="timeline-meta">14 hr ago · weekly cycle</div>
+                    </div>
+                    <div class="timeline-item warning">
+                      <div class="timeline-title">High temperature briefly</div>
+                      <div class="timeline-meta">52 °C · yesterday 16:21</div>
+                    </div>
+                    <div class="timeline-item">
+                      <div class="timeline-title">Tag added: <span class="tag office">office-wifi</span></div>
+                      <div class="timeline-meta">2 days ago · by Mara K.</div>
+                    </div>
+                    <div class="timeline-item success">
+                      <div class="timeline-title">Joined fleet</div>
+                      <div class="timeline-meta">42 days ago</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONFIG TAB -->
+        <div class="tab-panel" data-panel="config">
+          <div style="display: grid; grid-template-columns: 1fr 360px; gap: 18px;">
+            <div>
+              <div class="card">
+                <div class="card-head">
+                  <div>
+                    <h3 class="card-title">Modules</h3>
+                    <p class="card-sub">
+                      Inherits from <span style="color: var(--accent-strong); cursor: pointer; text-decoration: underline; text-decoration-color: var(--border-strong); text-underline-offset: 3px;">kiosk-default</span> · drag to reorder
+                    </p>
+                  </div>
+                  <button class="btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add module
+                  </button>
+                </div>
+                <div class="card-pad">
+                  <div class="module-card inherited">
+                    <div class="module-head">
+                      <span class="module-handle">⋮⋮</span>
+                      <div class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+                      <div>
+                        <div class="module-title">ThymisDevice <span class="inherited-badge">inherited</span></div>
+                        <div class="module-desc">device_type: raspberry-pi-4 · hostname: kiosk-berlin-08</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="module-card inherited">
+                    <div class="module-head">
+                      <span class="module-handle">⋮⋮</span>
+                      <div class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+                      <div>
+                        <div class="module-title">Wi-Fi <span class="inherited-badge">inherited</span></div>
+                        <div class="module-desc">SSID: office-wifi · WPA2 · auto-reconnect</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="module-card open">
+                    <div class="module-head">
+                      <span class="module-handle">⋮⋮</span>
+                      <div class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg></div>
+                      <div>
+                        <div class="module-title">Kiosk Browser</div>
+                        <div class="module-desc">chromium 124 · fullscreen · auto-refresh 4h</div>
+                      </div>
+                      <div class="module-actions">
+                        <button class="icon-btn" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg></button>
+                      </div>
+                    </div>
+                    <div class="module-body">
+                      <div class="form-row">
+                        <label class="form-label">URL</label>
+                        <input class="form-input" value="https://displays.thymis.io/dashboard" />
+                        <div class="form-hint">Will reload every 4 hours.</div>
+                      </div>
+                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-row">
+                          <label class="form-label">Browser</label>
+                          <select class="form-select"><option>chromium 124</option><option>firefox 122</option></select>
+                        </div>
+                        <div class="form-row">
+                          <label class="form-label">Display rotation</label>
+                          <select class="form-select"><option>0° (landscape)</option><option>90°</option><option>270°</option></select>
+                        </div>
+                      </div>
+                      <div class="form-row">
+                        <label class="form-label">Refresh interval</label>
+                        <input class="form-input" value="4h" />
+                        <div class="form-hint warning">⚠ Change will be deployed to <b>this device only</b>. Inheritance will be broken for this module.</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="module-card">
+                    <div class="module-head">
+                      <span class="module-handle">⋮⋮</span>
+                      <div class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div>
+                      <div>
+                        <div class="module-title">SSH Keys</div>
+                        <div class="module-desc">3 authorized keys</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="module-card">
+                    <div class="module-head">
+                      <span class="module-handle">⋮⋮</span>
+                      <div class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                      <div>
+                        <div class="module-title">Monitoring (Prometheus exporter)</div>
+                        <div class="module-desc">port 9100 · all default collectors</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="module-card">
+                    <div class="module-head">
+                      <span class="module-handle">⋮⋮</span>
+                      <div class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+                      <div>
+                        <div class="module-title">Automatic updates</div>
+                        <div class="module-desc">channel: stable · window: Sun 04:00 UTC</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="card" style="border-color: rgba(79,140,255, 0.35); box-shadow: 0 0 0 4px var(--accent-dim);">
+                <div class="card-head">
+                  <h3 class="card-title">Pending changes</h3>
+                  <span style="font-size: 11px; color: var(--accent-strong); font-weight: 500;">1 module</span>
+                </div>
+                <div class="card-pad">
+                  <p style="font-size: 12.5px; color: var(--text-dim); margin: 0 0 10px;">Live diff against currently running configuration on the device:</p>
+                  <div class="diff-box">
+                    <div class="diff-line"><span class="ln">23</span><span class="mark">&nbsp;</span><span>kiosk-browser:</span></div>
+                    <div class="diff-line"><span class="ln">24</span><span class="mark">&nbsp;</span><span>&nbsp;&nbsp;url: "https://displays.thymis.io/dashboard"</span></div>
+                    <div class="diff-line del"><span class="ln">25</span><span class="mark">−</span><span>&nbsp;&nbsp;refresh_interval: "8h"</span></div>
+                    <div class="diff-line add"><span class="ln">25</span><span class="mark">+</span><span>&nbsp;&nbsp;refresh_interval: "4h"</span></div>
+                    <div class="diff-line"><span class="ln">26</span><span class="mark">&nbsp;</span><span>&nbsp;&nbsp;rotation: 0</span></div>
+                  </div>
+                  <div style="margin-top: 14px; padding: 10px 12px; background: var(--surface-2); border-radius: 8px; font-size: 12.5px;">
+                    <div style="display: flex; align-items: center; gap: 6px; color: var(--text-dim);">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                      Estimated impact
+                    </div>
+                    <div style="margin-top: 6px;">No reboot required · <b>est. downtime &lt;2s</b> while browser restarts.</div>
+                  </div>
+                  <div style="display: flex; gap: 8px; margin-top: 14px;">
+                    <button class="btn" style="flex: 1;">Discard</button>
+                    <button class="btn btn-primary" style="flex: 1;" onclick="showToast('Deployed', 'Change pushed to kiosk-berlin-08')">Deploy</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOGS TAB -->
+        <div class="tab-panel" data-panel="logs">
+          <div class="filters">
+            <div class="chip active">All levels</div>
+            <div class="chip">info</div>
+            <div class="chip">warn</div>
+            <div class="chip">error</div>
+            <div class="filter-sep"></div>
+            <div class="chip">Last 1 hour</div>
+            <div style="margin-left: auto;" class="live-indicator">
+              <span class="live-dot"></span>Live tail
+            </div>
+          </div>
+          <div class="logs-wrap" id="deviceLogs"></div>
+        </div>
+
+        <!-- REMOTE TAB -->
+        <div class="tab-panel" data-panel="remote">
+          <div class="card">
+            <div class="card-head">
+              <h3 class="card-title">Remote desktop · VNC</h3>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                  Take screenshot
+                </button>
+                <button class="btn btn-primary">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+                  Fullscreen
+                </button>
+              </div>
+            </div>
+            <div class="card-pad" style="padding-top: 6px;">
+              <div class="vnc-preview" style="aspect-ratio: 16 / 9;">
+                <div class="vnc-badge"><span class="dot"></span>Connected · 1920 × 1080 · 24 fps</div>
+                <div class="vnc-fake-content">
+                  <div class="vnc-fake-bar med"></div>
+                  <div class="vnc-fake-bar short"></div>
+                  <div style="height: 65%; background: rgba(255,255,255,0.10); border-radius: 8px;"></div>
+                  <div class="vnc-fake-bar"></div>
+                </div>
+              </div>
+              <div style="margin-top: 12px; font-size: 12.5px; color: var(--text-dim);">
+                You have full keyboard and pointer control. Activity will be logged for audit.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HISTORY TAB -->
+        <div class="tab-panel" data-panel="history">
+          <div class="card">
+            <div class="card-head"><h3 class="card-title">Deployment history</h3></div>
+            <table class="table">
+              <thead><tr><th>Time</th><th>Action</th><th>By</th><th>Result</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>12 min ago</td><td>Apply config <code style="font-family: var(--mono); font-size: 12px;">kiosk-default@v34</code></td><td>Florian A.</td><td><span class="status-pill online"><span class="dot"></span>Success</span></td><td><button class="btn btn-ghost" style="font-size: 12px;">Roll back</button></td></tr>
+                <tr><td>2 days ago</td><td>Add tag <span class="tag office">office-wifi</span></td><td>Mara K.</td><td><span class="status-pill online"><span class="dot"></span>Success</span></td><td></td></tr>
+                <tr><td>14 days ago</td><td>OTA agent upgrade v0.7.1 → v0.8.0-rc2</td><td>auto-schedule</td><td><span class="status-pill online"><span class="dot"></span>Success</span></td><td></td></tr>
+                <tr><td>28 days ago</td><td>Apply config <code style="font-family: var(--mono); font-size: 12px;">kiosk-default@v33</code></td><td>Florian A.</td><td><span class="status-pill danger"><span class="dot"></span>Rolled back</span></td><td></td></tr>
+                <tr><td>42 days ago</td><td>Provisioned</td><td>system</td><td><span class="status-pill online"><span class="dot"></span>Success</span></td><td></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== CONFIGURATIONS VIEW ========== -->
+      <section class="view" id="view-configurations">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">Configurations</h1>
+            <p class="page-subtitle">Composable, inheritable configurations. Edit once — applied across the fleet.</p>
+          </div>
+          <button class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New configuration
+          </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 280px 1fr; gap: 18px; min-height: 70vh;">
+          <!-- Tree -->
+          <div class="card">
+            <div class="card-head"><h3 class="card-title">Inheritance tree</h3></div>
+            <div style="padding: 8px 0;">
+              <div class="cfg-tree-item" style="padding: 8px 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; border-left: 2px solid transparent;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-mute);"><polyline points="6 9 12 15 18 9"/></svg>
+                <span style="font-weight: 500; font-size: 13px;">base</span>
+                <span class="tag" style="font-size: 10.5px; margin-left: auto;">412 devices</span>
+              </div>
+              <div style="padding-left: 14px;">
+                <div class="cfg-tree-item active" style="padding: 8px 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; background: var(--accent-dim); border-left: 2px solid var(--accent); color: var(--accent-strong); font-weight: 500;">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                  <span style="font-size: 13px;">kiosk-default</span>
+                  <span class="tag kiosk" style="font-size: 10.5px; margin-left: auto;">112</span>
+                </div>
+                <div style="padding-left: 14px;">
+                  <div class="cfg-tree-item" style="padding: 8px 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--text-dim);">
+                    <span style="width: 12px;"></span>
+                    <span>kiosk-berlin</span>
+                    <span class="tag" style="font-size: 10.5px; margin-left: auto;">42</span>
+                  </div>
+                  <div class="cfg-tree-item" style="padding: 8px 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--text-dim);">
+                    <span style="width: 12px;"></span>
+                    <span>kiosk-munich</span>
+                    <span class="tag" style="font-size: 10.5px; margin-left: auto;">38</span>
+                  </div>
+                </div>
+                <div class="cfg-tree-item" style="padding: 8px 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                  <span style="width: 12px;"></span>
+                  <span style="font-weight: 500;">signage-default</span>
+                  <span class="tag signage" style="font-size: 10.5px; margin-left: auto;">204</span>
+                </div>
+                <div class="cfg-tree-item" style="padding: 8px 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                  <span style="width: 12px;"></span>
+                  <span style="font-weight: 500;">sensor-default</span>
+                  <span class="tag sensor" style="font-size: 10.5px; margin-left: auto;">62</span>
+                </div>
+                <div class="cfg-tree-item" style="padding: 8px 14px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                  <span style="width: 12px;"></span>
+                  <span style="font-weight: 500;">gateway-default</span>
+                  <span class="tag gateway" style="font-size: 10.5px; margin-left: auto;">26</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Editor -->
+          <div>
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <h3 class="card-title">kiosk-default <span style="color: var(--text-mute); font-size: 12px; font-weight: 400; margin-left: 4px;">v34 · 4 modules · 112 devices</span></h3>
+                  <p class="card-sub">Inherits from <span style="color: var(--accent-strong);">base</span> · last edited by Mara K. · 5 hr ago</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    History
+                  </button>
+                  <button class="btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    Duplicate
+                  </button>
+                </div>
+              </div>
+              <div class="card-pad">
+                <div class="module-card open">
+                  <div class="module-head">
+                    <span class="module-handle">⋮⋮</span>
+                    <div class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+                    <div>
+                      <div class="module-title">Kiosk Browser</div>
+                      <div class="module-desc">chromium 124 · fullscreen</div>
+                    </div>
+                  </div>
+                  <div class="module-body">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                      <div class="form-row">
+                        <label class="form-label">Default URL</label>
+                        <input class="form-input" value="https://displays.thymis.io/dashboard" />
+                      </div>
+                      <div class="form-row">
+                        <label class="form-label">Refresh interval</label>
+                        <input class="form-input" value="8h" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="module-card">
+                  <div class="module-head">
+                    <span class="module-handle">⋮⋮</span>
+                    <div class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+                    <div>
+                      <div class="module-title">Display rotation</div>
+                      <div class="module-desc">landscape · auto-detect</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="module-card">
+                  <div class="module-head">
+                    <span class="module-handle">⋮⋮</span>
+                    <div class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+                    <div>
+                      <div class="module-title">Automatic updates</div>
+                      <div class="module-desc">channel: stable · Sun 04:00 UTC</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="module-card" style="background: transparent; border-style: dashed; text-align: center; padding: 16px; color: var(--text-mute); cursor: pointer;">
+                  + Add module (browse 47 available)
+                </div>
+
+                <div style="margin-top: 18px; padding: 14px 16px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; gap: 14px;">
+                  <div style="font-size: 13px; color: var(--text-dim);">
+                    <b style="color: var(--text);">Changes pending.</b> Will be deployed to <b style="color: var(--text);">112 devices</b> across <b style="color: var(--text);">3 sites</b>.
+                  </div>
+                  <button class="btn" style="margin-left: auto;">Preview diff</button>
+                  <button class="btn btn-primary" onclick="switchView('deployments')">Deploy…</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== DEPLOYMENTS VIEW ========== -->
+      <section class="view" id="view-deployments">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">Deployments</h1>
+            <p class="page-subtitle">Roll out configuration changes with safety rails — canary, staged, or all-at-once.</p>
+          </div>
+          <button class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            New deployment
+          </button>
+        </div>
+
+        <div class="card" style="margin-bottom: 18px;">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">In progress — v0.8.0-rc2 → Production</h3>
+              <p class="card-sub">Started by Florian A. · 14 min ago · target: 412 devices</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn">Pause</button>
+              <button class="btn btn-danger">Roll back</button>
+            </div>
+          </div>
+          <div class="card-pad">
+            <!-- Strategy summary -->
+            <div style="display: grid; grid-template-columns: 200px 1fr; gap: 24px; margin-bottom: 18px;">
+              <div>
+                <div style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; margin-bottom: 6px;">Strategy</div>
+                <div style="font-size: 14px; font-weight: 500;">Canary · staged</div>
+                <div style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">10% → 50% → 100%</div>
+                <div style="margin-top: 14px; font-size: 11.5px; color: var(--text-mute);">Auto-rollback at &gt; 2% failure</div>
+              </div>
+              <div>
+                <div style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; margin-bottom: 6px;">Progress</div>
+                <div class="rollout-stages">
+                  <div class="stage done">
+                    <div class="stage-label">Stage 1 · Canary</div>
+                    <div class="stage-value">10 / 10</div>
+                    <div class="stage-sub">All passing · 8 min</div>
+                    <div class="progress" style="margin-top: 10px;"><div class="progress-bar success" style="width: 100%"></div></div>
+                  </div>
+                  <svg class="stage-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  <div class="stage active">
+                    <div class="stage-label">Stage 2 · 50%</div>
+                    <div class="stage-value">122 / 196</div>
+                    <div class="stage-sub">In progress · ETA 4 min</div>
+                    <div class="progress" style="margin-top: 10px;"><div class="progress-bar" style="width: 62%"></div></div>
+                  </div>
+                  <svg class="stage-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  <div class="stage">
+                    <div class="stage-label">Stage 3 · Full</div>
+                    <div class="stage-value">0 / 206</div>
+                    <div class="stage-sub">Pending</div>
+                    <div class="progress" style="margin-top: 10px;"><div class="progress-bar" style="width: 0%"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Per device grid -->
+            <div style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; margin-bottom: 8px;">Per-device status · stage 2</div>
+            <div class="device-grid" id="deployGrid"></div>
+            <div style="display: flex; gap: 18px; margin-top: 14px; font-size: 12px; color: var(--text-dim);">
+              <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; background: var(--success); border-radius: 3px;"></span>Updated · 122</div>
+              <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; background: var(--accent); border-radius: 3px;"></span>In progress · 12</div>
+              <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; background: var(--danger); border-radius: 3px;"></span>Failed · 1</div>
+              <div style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; background: var(--surface-3); border: 1px dashed var(--border-strong); border-radius: 3px;"></span>Pending · 61</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- New deployment wizard preview -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">Plan a deployment</h3>
+              <p class="card-sub">Pick a strategy and review impact before pushing.</p>
+            </div>
+          </div>
+          <div class="card-pad">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+              <div>
+                <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px; font-weight: 500;">Configuration</div>
+                <div style="padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; gap: 10px;">
+                  <div class="module-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+                  <div>
+                    <div style="font-size: 13px; font-weight: 500;">kiosk-default <span style="color: var(--text-mute); font-size: 11.5px;">v34 → v35 (draft)</span></div>
+                    <div style="font-size: 11.5px; color: var(--text-dim);">112 devices targeted</div>
+                  </div>
+                </div>
+
+                <div style="font-size: 12px; color: var(--text-dim); margin: 18px 0 8px; font-weight: 500;">Rollout strategy</div>
+                <div class="strategy-grid">
+                  <div class="strategy">
+                    <svg class="strategy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+                    <div class="strategy-name">All at once</div>
+                    <div class="strategy-desc">Fastest · all devices</div>
+                  </div>
+                  <div class="strategy selected">
+                    <svg class="strategy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg>
+                    <div class="strategy-name">Canary (recommended)</div>
+                    <div class="strategy-desc">10 → 50 → 100%</div>
+                  </div>
+                  <div class="strategy">
+                    <svg class="strategy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                    <div class="strategy-name">By tag/site</div>
+                    <div class="strategy-desc">Berlin → Munich → Hamburg</div>
+                  </div>
+                </div>
+
+                <div style="font-size: 12px; color: var(--text-dim); margin: 18px 0 8px; font-weight: 500;">Safety rails</div>
+                <label style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; cursor: pointer;">
+                  <div class="checkbox checked"></div>
+                  <div>
+                    <div style="font-size: 13px; font-weight: 500;">Auto-rollback on &gt; 2% failure</div>
+                    <div style="font-size: 11.5px; color: var(--text-dim);">Devices that fail health checks within 5 min trigger rollback.</div>
+                  </div>
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; cursor: pointer;">
+                  <div class="checkbox checked"></div>
+                  <div>
+                    <div style="font-size: 13px; font-weight: 500;">Skip devices currently in use</div>
+                    <div style="font-size: 11.5px; color: var(--text-dim);">Defer if VNC session is active or load &gt; 80%.</div>
+                  </div>
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; cursor: pointer;">
+                  <div class="checkbox"></div>
+                  <div>
+                    <div style="font-size: 13px; font-weight: 500;">Require approval between stages</div>
+                    <div style="font-size: 11.5px; color: var(--text-dim);">Wait for human approval before each stage.</div>
+                  </div>
+                </label>
+              </div>
+
+              <div>
+                <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px; font-weight: 500;">Impact preview</div>
+                <div class="card" style="box-shadow: none; border-color: var(--border);">
+                  <div class="card-pad">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                      <div>
+                        <div style="font-size: 11.5px; color: var(--text-mute);">Targets</div>
+                        <div style="font-size: 22px; font-weight: 600; margin-top: 2px;">112</div>
+                        <div style="font-size: 11.5px; color: var(--text-dim);">devices · 3 sites</div>
+                      </div>
+                      <div>
+                        <div style="font-size: 11.5px; color: var(--text-mute);">Est. duration</div>
+                        <div style="font-size: 22px; font-weight: 600; margin-top: 2px;">18 min</div>
+                        <div style="font-size: 11.5px; color: var(--text-dim);">across 3 stages</div>
+                      </div>
+                      <div>
+                        <div style="font-size: 11.5px; color: var(--text-mute);">Reboot</div>
+                        <div style="font-size: 22px; font-weight: 600; margin-top: 2px;">No</div>
+                        <div style="font-size: 11.5px; color: var(--text-dim);">browser restart only</div>
+                      </div>
+                      <div>
+                        <div style="font-size: 11.5px; color: var(--text-mute);">Bandwidth</div>
+                        <div style="font-size: 22px; font-weight: 600; margin-top: 2px;">~4 MB</div>
+                        <div style="font-size: 11.5px; color: var(--text-dim);">per device · changed paths</div>
+                      </div>
+                    </div>
+                    <div style="margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border);">
+                      <div style="font-size: 11.5px; color: var(--text-mute); margin-bottom: 8px;">Diff summary</div>
+                      <div class="diff-box">
+                        <div class="diff-line del"><span class="ln">25</span><span class="mark">−</span><span>refresh_interval: "8h"</span></div>
+                        <div class="diff-line add"><span class="ln">25</span><span class="mark">+</span><span>refresh_interval: "4h"</span></div>
+                        <div class="diff-line"><span class="ln" style="color: var(--text-mute);">…</span><span class="mark">&nbsp;</span><span style="color: var(--text-mute);">1 change in kiosk-browser module</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="margin-top: 14px; padding: 12px 14px; background: var(--warning-dim); border: 1px solid rgba(245, 178, 72, 0.35); border-radius: 8px; font-size: 12.5px; color: var(--text);">
+                  <b style="color: var(--warning);">⚠ Heads up</b> · 3 devices in this group are currently offline. They will receive the update when they reconnect.
+                </div>
+
+                <button class="btn btn-primary" style="width: 100%; margin-top: 14px; padding: 11px;" onclick="showToast('Rollout queued', 'v35 → 112 devices · canary 10%')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                  Start rollout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== LOGS VIEW ========== -->
+      <section class="view" id="view-logs">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">Logs</h1>
+            <p class="page-subtitle">Live aggregated log stream across all 412 devices.</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export
+            </button>
+            <button class="btn">
+              Saved view ▾
+            </button>
+          </div>
+        </div>
+
+        <div class="filters">
+          <div class="chip active">All <span style="color: var(--text-mute);">∞</span></div>
+          <div class="chip">info <span style="color: var(--text-mute);">2.1k</span></div>
+          <div class="chip">warn <span style="color: var(--text-mute);">42</span></div>
+          <div class="chip">error <span style="color: var(--text-mute);">8</span></div>
+          <div class="filter-sep"></div>
+          <div class="chip">device: kiosk-* <span class="chip-x">×</span></div>
+          <div class="chip">last 1 hour</div>
+          <div class="chip">+ Add filter</div>
+          <div style="margin-left: auto;" class="live-indicator">
+            <span class="live-dot"></span>Live tail
+          </div>
+        </div>
+
+        <!-- Error clustering insight -->
+        <div class="card" style="margin-bottom: 16px;">
+          <div class="card-head">
+            <h3 class="card-title">Error clusters <span style="color: var(--text-mute); font-size: 12px; font-weight: 400;">8 errors grouped into 2 patterns · last 1h</span></h3>
+          </div>
+          <div style="display: flex; flex-direction: column;">
+            <div style="display: flex; align-items: center; gap: 14px; padding: 12px 18px; border-bottom: 1px solid var(--border); cursor: pointer;">
+              <div class="activity-icon danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+              <div style="flex: 1;">
+                <div style="font-size: 13.5px; font-weight: 500; font-family: var(--mono);">browser.crash: chromium oom (rss=1.8GB)</div>
+                <div style="font-size: 11.5px; color: var(--text-dim); margin-top: 2px;">6 devices affected · first seen 38 min ago · all on signage-default v33</div>
+              </div>
+              <span class="status-pill danger">6 events</span>
+              <button class="btn" style="font-size: 12px;">Investigate</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 14px; padding: 12px 18px; cursor: pointer;">
+              <div class="activity-icon warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg></div>
+              <div style="flex: 1;">
+                <div style="font-size: 13.5px; font-weight: 500; font-family: var(--mono);">wifi: DHCP timeout, retrying</div>
+                <div style="font-size: 11.5px; color: var(--text-dim); margin-top: 2px;">2 devices · all on tag office-wifi · likely transient</div>
+              </div>
+              <span class="status-pill warning">2 events</span>
+              <button class="btn" style="font-size: 12px;">View</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="logs-wrap" id="globalLogs"></div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ============ FLOATING BULK ACTION BAR ============ -->
+<div class="float-actions" id="floatActions">
+  <span class="float-actions-count"><b id="selectedCount">3</b> devices selected</span>
+  <div class="float-actions-divider"></div>
+  <button class="btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Deploy
+  </button>
+  <button class="btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+    Reboot
+  </button>
+  <button class="btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg>
+    Tag…
+  </button>
+  <button class="btn btn-ghost" onclick="clearSelection()">Cancel</button>
+</div>
+
+<!-- ============ COMMAND PALETTE ============ -->
+<div class="cmdk-overlay" id="cmdk">
+  <div class="cmdk">
+    <div class="cmdk-input-wrap">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-mute);"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="cmdk-input" placeholder="Search or jump to…" id="cmdkInput" />
+      <button class="icon-btn" onclick="closeCmdk()" title="Close (Esc)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="cmdk-list">
+      <div class="cmdk-group-title">Navigate</div>
+      <div class="cmdk-item focus" data-action="view:dashboard">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/></svg></div>
+        Go to Dashboard
+        <span class="meta">G then D</span>
+      </div>
+      <div class="cmdk-item" data-action="view:devices">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/></svg></div>
+        Go to Devices
+        <span class="meta">G then V</span>
+      </div>
+      <div class="cmdk-item" data-action="view:deployments">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        Go to Deployments
+        <span class="meta">G then R</span>
+      </div>
+
+      <div class="cmdk-group-title">Devices</div>
+      <div class="cmdk-item" data-action="device:kiosk-berlin-08">
+        <div class="icon"><span class="stat-dot online"></span></div>
+        kiosk-berlin-08
+        <span class="meta">online · Berlin</span>
+      </div>
+      <div class="cmdk-item" data-action="device:signage-muc-04">
+        <div class="icon"><span class="stat-dot danger"></span></div>
+        signage-muc-04
+        <span class="meta">errored · Munich</span>
+      </div>
+
+      <div class="cmdk-group-title">Actions</div>
+      <div class="cmdk-item" data-action="action:deploy">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        Start new deployment
+      </div>
+      <div class="cmdk-item" data-action="action:theme">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/></svg></div>
+        Toggle light / dark mode
+        <span class="meta">⌘ ⇧ L</span>
+      </div>
+    </div>
+    <div class="cmdk-footer">
+      <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+      <span><kbd>⏎</kbd> select</span>
+      <span><kbd>Esc</kbd> close</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast">
+  <div class="toast-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+  <div>
+    <div class="toast-title" id="toastTitle">Saved</div>
+    <div class="toast-msg" id="toastMsg">Configuration applied.</div>
+  </div>
+</div>
+
+<script>
+// =================== Data ===================
+const DEVICES = [
+  { name: 'kiosk-berlin-08', status: 'online', config: 'kiosk-berlin', tags: ['kiosk','office-wifi','berlin'], version: 'v0.8.0-rc2', seen: '4s ago', site: 'Berlin' },
+  { name: 'kiosk-berlin-09', status: 'online', config: 'kiosk-berlin', tags: ['kiosk','office-wifi','berlin'], version: 'v0.8.0-rc2', seen: '2s ago', site: 'Berlin' },
+  { name: 'signage-muc-04', status: 'danger', config: 'signage-default', tags: ['signage','munich'], version: 'v0.7.1', seen: '38 min ago', site: 'Munich' },
+  { name: 'signage-hh-12', status: 'warning', config: 'signage-default', tags: ['signage','hamburg'], version: 'v0.7.1', seen: '11s ago', site: 'Hamburg' },
+  { name: 'sensor-floor3-a', status: 'online', config: 'sensor-default', tags: ['sensor','berlin'], version: 'v0.8.0', seen: '1s ago', site: 'Berlin' },
+  { name: 'gateway-edge-01', status: 'online', config: 'gateway-default', tags: ['gateway','berlin'], version: 'v0.8.0', seen: '3s ago', site: 'Berlin' },
+  { name: 'kiosk-muc-22', status: 'online', config: 'kiosk-munich', tags: ['kiosk','munich'], version: 'v0.8.0-rc2', seen: '6s ago', site: 'Munich' },
+  { name: 'signage-berlin-aula', status: 'offline', config: 'signage-default', tags: ['signage','berlin'], version: 'v0.7.0', seen: '2 d ago', site: 'Berlin' },
+  { name: 'kiosk-hh-foyer', status: 'online', config: 'kiosk-default', tags: ['kiosk','hamburg'], version: 'v0.8.0-rc2', seen: '5s ago', site: 'Hamburg' },
+  { name: 'sensor-roof-w', status: 'warning', config: 'sensor-default', tags: ['sensor','munich'], version: 'v0.7.1', seen: '4 min ago', site: 'Munich' },
+  { name: 'signage-muc-lobby', status: 'online', config: 'signage-default', tags: ['signage','munich'], version: 'v0.8.0-rc2', seen: '8s ago', site: 'Munich' },
+  { name: 'gateway-edge-02', status: 'online', config: 'gateway-default', tags: ['gateway','hamburg'], version: 'v0.8.0', seen: '2s ago', site: 'Hamburg' },
+];
+
+const LOG_LINES = [
+  ['12:42:18', 'info', 'kiosk-berlin-08', 'chromium: tab restored after 4h refresh'],
+  ['12:42:14', 'info', 'signage-muc-lobby', 'displayed slide deck rev 4f8b'],
+  ['12:42:09', 'warn', 'sensor-roof-w', 'wifi: DHCP timeout, retrying (1/3)'],
+  ['12:42:05', 'info', 'gateway-edge-01', 'mqtt: 412 messages forwarded last 60s'],
+  ['12:41:58', 'error', 'signage-muc-04', 'browser.crash: chromium oom (rss=1.8GB)'],
+  ['12:41:55', 'info', 'kiosk-hh-foyer', 'health: all probes passing'],
+  ['12:41:51', 'debug', 'kiosk-berlin-09', 'nix: store path verified b3f...c0a1'],
+  ['12:41:42', 'info', 'kiosk-muc-22', 'config applied: kiosk-default@v34 (no reboot)'],
+  ['12:41:38', 'warn', 'sensor-floor3-a', 'high latency to controller: 412 ms'],
+  ['12:41:31', 'info', 'gateway-edge-02', 'firmware verified · signed by Thymis CA'],
+  ['12:41:24', 'error', 'signage-muc-04', 'browser.crash: chromium oom (rss=1.8GB)'],
+  ['12:41:18', 'info', 'kiosk-berlin-08', 'metrics: cpu 12% · mem 38% · temp 47C'],
+  ['12:41:11', 'info', 'signage-hh-12', 'rotation 0deg · resolution 1920x1080'],
+  ['12:41:04', 'debug', 'sensor-floor3-a', 'i2c read: 0x48 = 0x2c1a'],
+  ['12:40:58', 'info', 'kiosk-berlin-09', 'tab activated: dashboard'],
+  ['12:40:52', 'warn', 'signage-berlin-aula', 'offline > 24h, suppressing health alerts'],
+  ['12:40:45', 'info', 'gateway-edge-01', 'tunnel reestablished after 3s blip'],
+  ['12:40:38', 'info', 'kiosk-muc-22', 'system: uptime 6d 4h 12m'],
+];
+
+const STATUS_MAP = {
+  online: { label: 'Online' },
+  warning: { label: 'Needs update' },
+  danger: { label: 'Errored' },
+  offline: { label: 'Offline' },
+};
+
+// =================== View Switching ===================
+function switchView(viewName) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const target = document.getElementById('view-' + viewName);
+  if (target) target.classList.add('active');
+
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.nav-item[data-view="' + viewName + '"]').forEach(n => n.classList.add('active'));
+
+  // Breadcrumb
+  const breadcrumbs = {
+    dashboard: 'Dashboard',
+    devices: 'Devices',
+    'device-detail': 'Devices <span class="breadcrumb-sep">/</span> <b>kiosk-berlin-08</b>',
+    configurations: 'Configurations',
+    deployments: 'Deployments',
+    logs: 'Logs',
+  };
+  const bc = document.getElementById('breadcrumb');
+  if (viewName === 'device-detail') {
+    bc.innerHTML = '<span style="color: var(--text-dim); cursor: pointer;" onclick="switchView(\'devices\')">Devices</span> <span class="breadcrumb-sep">/</span> <b>kiosk-berlin-08</b>';
+  } else {
+    bc.innerHTML = '<b>' + (breadcrumbs[viewName] || viewName) + '</b>';
+  }
+
+  document.querySelector('.content').scrollTop = 0;
+}
+
+document.querySelectorAll('.nav-item[data-view]').forEach(n => {
+  n.addEventListener('click', () => switchView(n.dataset.view));
+});
+
+// =================== Dashboard fleet distribution grid ===================
+(function buildDistGrid(){
+  const grid = document.getElementById('distGrid');
+  const total = 200;
+  const cells = [];
+  for (let i=0; i<total; i++){
+    const r = Math.random();
+    let cls = 'online';
+    if (r > 0.99) cls = 'danger';
+    else if (r > 0.95) cls = 'warning';
+    else if (r > 0.93) cls = 'offline';
+    cells.push('<div class="dist-cell ' + cls + '" title="Device ' + (i+1) + '"></div>');
+  }
+  grid.innerHTML = cells.join('');
+})();
+
+// =================== Device table ===================
+function statusPill(s) {
+  return '<span class="status-pill ' + s + '"><span class="dot"></span>' + STATUS_MAP[s].label + '</span>';
+}
+function tagPills(tags) {
+  return tags.map(t => '<span class="tag ' + t.replace(/[^a-z]/g, '') + '">' + t + '</span>').join('');
+}
+
+(function buildDeviceTable(){
+  const tbody = document.getElementById('deviceTbody');
+  tbody.innerHTML = DEVICES.map((d, i) => `
+    <tr data-idx="${i}">
+      <td><div class="checkbox row-check"></div></td>
+      <td><div class="device-name">${d.name}</div><div class="device-meta">${d.tags[0]}</div></td>
+      <td>${statusPill(d.status)}</td>
+      <td><code style="font-family: var(--mono); font-size: 12px; color: var(--text-dim);">${d.config}</code></td>
+      <td>${tagPills(d.tags)}</td>
+      <td><span style="font-family: var(--mono); font-size: 12px;">${d.version}</span></td>
+      <td><span style="color: var(--text-dim);">${d.seen}</span></td>
+      <td>${d.site}</td>
+      <td><button class="icon-btn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button></td>
+    </tr>
+  `).join('');
+
+  tbody.querySelectorAll('tr').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('.checkbox')) return;
+      switchView('device-detail');
+    });
+  });
+  tbody.querySelectorAll('.row-check').forEach(cb => {
+    cb.addEventListener('click', (e) => {
+      e.stopPropagation();
+      cb.classList.toggle('checked');
+      updateFloatBar();
+    });
+  });
+})();
+
+function updateFloatBar() {
+  const checked = document.querySelectorAll('#deviceTbody .row-check.checked').length;
+  const bar = document.getElementById('floatActions');
+  document.getElementById('selectedCount').textContent = checked;
+  if (checked > 0) bar.classList.add('visible');
+  else bar.classList.remove('visible');
+}
+function clearSelection() {
+  document.querySelectorAll('#deviceTbody .row-check.checked').forEach(c => c.classList.remove('checked'));
+  document.getElementById('selectAll').classList.remove('checked');
+  updateFloatBar();
+}
+document.getElementById('selectAll').addEventListener('click', () => {
+  const allChecked = document.getElementById('selectAll').classList.toggle('checked');
+  document.querySelectorAll('#deviceTbody .row-check').forEach(c => {
+    if (allChecked) c.classList.add('checked');
+    else c.classList.remove('checked');
+  });
+  updateFloatBar();
+});
+
+// =================== Detail tabs ===================
+document.querySelectorAll('#detailTabs .tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('#detailTabs .tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelector('.tab-panel[data-panel="' + t.dataset.tab + '"]').classList.add('active');
+  });
+});
+
+// Module expand/collapse
+document.querySelectorAll('.module-card').forEach(card => {
+  card.addEventListener('click', (e) => {
+    if (e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
+    if (card.classList.contains('inherited')) return;
+    if (card.querySelector('.module-body')) {
+      card.classList.toggle('open');
+    }
+  });
+});
+
+// =================== Deployment grid ===================
+(function buildDeployGrid(){
+  const grid = document.getElementById('deployGrid');
+  const cells = [];
+  // 196 devices in stage 2; 122 done, 12 in progress, 1 failed, 61 pending
+  const dist = Array(122).fill('done').concat(Array(12).fill('progress'), Array(1).fill('failed'), Array(61).fill('pending'));
+  // Shuffle for visual interest
+  dist.sort(() => Math.random() - 0.5);
+  dist.forEach((s, i) => cells.push('<div class="device-tile ' + s + '" title="device-' + (i+1) + ' · ' + s + '"></div>'));
+  grid.innerHTML = cells.join('');
+})();
+
+// =================== Logs ===================
+function buildLogs(containerId, count){
+  const c = document.getElementById(containerId);
+  const out = [];
+  for (let i=0; i<count; i++){
+    const line = LOG_LINES[i % LOG_LINES.length];
+    out.push(`<div class="log-line"><span class="log-time">${line[0]}</span><span class="log-level ${line[1]}">${line[1]}</span><span class="log-device">${line[2]}</span><span class="log-msg">${line[3]}</span></div>`);
+  }
+  c.innerHTML = out.join('');
+}
+buildLogs('globalLogs', 30);
+buildLogs('deviceLogs', 14);
+
+// =================== Theme toggle ===================
+const themeToggle = document.getElementById('themeToggle');
+themeToggle.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme');
+  if (current === 'light') {
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
+});
+
+// =================== Strategy selection ===================
+document.querySelectorAll('.strategy').forEach(s => {
+  s.addEventListener('click', () => {
+    s.parentElement.querySelectorAll('.strategy').forEach(x => x.classList.remove('selected'));
+    s.classList.add('selected');
+  });
+});
+
+// =================== Chips ===================
+document.querySelectorAll('.chip').forEach(c => {
+  c.addEventListener('click', (e) => {
+    if (e.target.classList.contains('chip-x')) {
+      c.style.display = 'none';
+      return;
+    }
+    // For filter chips at the top - allow simple toggle behavior in same group
+    const siblings = c.parentElement.querySelectorAll(':scope > .chip');
+    if (Array.from(siblings).every(s => s.querySelector('.stat-dot') || s.textContent.includes('All') || s.textContent.includes('levels'))) {
+      siblings.forEach(s => s.classList.remove('active'));
+      c.classList.add('active');
+    } else {
+      c.classList.toggle('active');
+    }
+  });
+});
+
+// Checkboxes in deployment safety rails
+document.querySelectorAll('.checkbox').forEach(cb => {
+  if (cb.id === 'selectAll' || cb.classList.contains('row-check')) return;
+  cb.addEventListener('click', (e) => {
+    e.stopPropagation();
+    cb.classList.toggle('checked');
+  });
+});
+
+// =================== Command palette ===================
+const cmdk = document.getElementById('cmdk');
+const cmdkInput = document.getElementById('cmdkInput');
+function openCmdk() {
+  cmdk.classList.add('open');
+  setTimeout(() => cmdkInput.focus(), 50);
+}
+function closeCmdk() {
+  cmdk.classList.remove('open');
+  cmdkInput.value = '';
+}
+document.getElementById('searchInput').addEventListener('focus', (e) => {
+  e.target.blur();
+  openCmdk();
+});
+window.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    if (cmdk.classList.contains('open')) closeCmdk();
+    else openCmdk();
+  } else if (e.key === 'Escape' && cmdk.classList.contains('open')) {
+    closeCmdk();
+  }
+});
+cmdk.addEventListener('click', (e) => {
+  if (e.target === cmdk) closeCmdk();
+});
+document.querySelectorAll('.cmdk-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const action = item.dataset.action || '';
+    if (action.startsWith('view:')) {
+      switchView(action.split(':')[1]);
+    } else if (action.startsWith('device:')) {
+      switchView('device-detail');
+    } else if (action === 'action:theme') {
+      themeToggle.click();
+    } else if (action === 'action:deploy') {
+      switchView('deployments');
+    }
+    closeCmdk();
+  });
+});
+
+// =================== Toast ===================
+const toast = document.getElementById('toast');
+function showToast(title, msg) {
+  document.getElementById('toastTitle').textContent = title;
+  document.getElementById('toastMsg').textContent = msg;
+  toast.classList.add('visible');
+  setTimeout(() => toast.classList.remove('visible'), 3200);
+}
+
+// Welcome toast
+setTimeout(() => showToast('Welcome', 'Try ⌘K for the command palette.'), 800);
+
+</script>
+</body>
+</html>

@@ -44,6 +44,62 @@ body {
 	@apply h-full;
 }
 
+/* ---------- Redesign design tokens ----------
+   Light values at :root, dark values under the existing `.dark` class
+   so the current theme toggle keeps driving them. */
+:root {
+	--ds-bg: #f6f7f9;
+	--ds-surface: #ffffff;
+	--ds-surface-2: #ffffff;
+	--ds-surface-3: #f1f3f7;
+	--ds-border: #e4e7ee;
+	--ds-border-strong: #cdd3dd;
+	--ds-text: #0b0e14;
+	--ds-text-dim: #4a5263;
+	--ds-text-mute: #7a8395;
+	--ds-accent: #2563eb;
+	--ds-accent-dim: rgba(37, 99, 235, 0.1);
+	--ds-accent-strong: #1d4ed8;
+	--ds-success: #15a373;
+	--ds-success-dim: rgba(21, 163, 115, 0.12);
+	--ds-warning: #d28116;
+	--ds-warning-dim: rgba(210, 129, 22, 0.14);
+	--ds-danger: #d93644;
+	--ds-danger-dim: rgba(217, 54, 68, 0.12);
+	--ds-offline: #7a8395;
+	--ds-offline-dim: rgba(122, 131, 149, 0.14);
+	--ds-shadow-md: 0 2px 8px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+	--ds-shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.12);
+	--ds-radius-sm: 6px;
+	--ds-radius: 10px;
+	--ds-radius-lg: 14px;
+	--ds-mono: ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, Consolas, monospace;
+}
+.dark {
+	--ds-bg: #0a0d13;
+	--ds-surface: #11151d;
+	--ds-surface-2: #161b25;
+	--ds-surface-3: #1c222e;
+	--ds-border: #232a37;
+	--ds-border-strong: #303949;
+	--ds-text: #e7eaf0;
+	--ds-text-dim: #98a1b3;
+	--ds-text-mute: #5d6679;
+	--ds-accent: #4f8cff;
+	--ds-accent-dim: rgba(79, 140, 255, 0.12);
+	--ds-accent-strong: #6ea2ff;
+	--ds-success: #2dd4a4;
+	--ds-success-dim: rgba(45, 212, 164, 0.12);
+	--ds-warning: #f5b248;
+	--ds-warning-dim: rgba(245, 178, 72, 0.14);
+	--ds-danger: #ef4f5e;
+	--ds-danger-dim: rgba(239, 79, 94, 0.14);
+	--ds-offline: #5d6679;
+	--ds-offline-dim: rgba(93, 102, 121, 0.18);
+	--ds-shadow-md: 0 4px 14px rgba(0, 0, 0, 0.35);
+	--ds-shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.55);
+}
+
 div.multiselect {
 	@apply !p-2;
 	@apply !rounded-lg;

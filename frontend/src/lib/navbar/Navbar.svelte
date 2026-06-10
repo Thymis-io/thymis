@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { DarkMode, NavBrand, NavHamburger, ToolbarButton } from 'flowbite-svelte';
+	import { page } from '$app/stores';
 	import BookOpen from 'lucide-svelte/icons/book-open';
 	import Globe from 'lucide-svelte/icons/globe';
-	import UserMenu from './UserMenu.svelte';
+	import Menu from 'lucide-svelte/icons/menu';
 	import GlobalSearch from './GlobalSearch.svelte';
 	import GithubIcon from './GithubIcon.svelte';
 	import type { GlobalState } from '$lib/state.svelte';
@@ -24,59 +24,138 @@
 		drawerHidden = $bindable(),
 		class: clazz = ''
 	}: Props = $props();
+
+	// Map the current route to a readable breadcrumb label.
+	const titleFor = (path: string): string => {
+		const map: [string, string][] = [
+			['/overview', $t('nav.overview')],
+			['/configuration/list', $t('nav.configurations')],
+			['/configuration', $t('nav.configure')],
+			['/tags', $t('nav.tags')],
+			['/devices', $t('nav.devices')],
+			['/vnc', $t('nav.global-vnc')],
+			['/history', $t('nav.history')],
+			['/external-repositories', $t('nav.external-repositories')],
+			['/secrets', $t('nav.secrets')],
+			['/artifacts', $t('nav.artifacts')],
+			['/auto-update', $t('nav.auto-update')]
+		];
+		for (const [prefix, label] of map) {
+			if (path === prefix || path.startsWith(prefix + '/')) return label;
+		}
+		return $t('nav.overview');
+	};
+
+	let pageTitle = $derived(titleFor($page.url.pathname));
 </script>
 
-<div class="flex flex-nowrap justify-between mx-2 sm:mx-4 {clazz || ''}" color="default">
-	<div class="flex items-center gap-2 sm:gap-4">
-		{#if authenticated}
-			<NavHamburger onClick={() => (drawerHidden = !drawerHidden)} class="m-0 md:block lg:hidden" />
-		{/if}
-		<NavBrand href="/" aria-label="Thymis Home">
-			<img src="/favicon.png" class="w-6 min-w-6 sm:w-6 sm:min-w-6" alt="Thymis Logo" />
-			<span class="ml-2 text-xl sm:text-2xl font-semibold dark:text-white hidden sm:block">
-				Thymis
-			</span>
-		</NavBrand>
-		{#if authenticated && globalState && nav}
-			<div class="ms-2 w-2 sm:w-48 lg:w-64 xl:w-96 block">
-				<GlobalSearch {globalState} {nav} />
-			</div>
-		{/if}
+<div class="ds-topbar {clazz || ''}">
+	{#if authenticated}
+		<button
+			class="ds-icon-btn ds-hamburger"
+			aria-label="Toggle navigation"
+			onclick={() => (drawerHidden = !drawerHidden)}
+		>
+			<Menu size={18} />
+		</button>
+	{/if}
+
+	<div class="breadcrumb">
+		<b>{pageTitle}</b>
 	</div>
-	<div class="flex items-center sm:gap-2 p-1">
-		<ToolbarButton
-			size="lg"
-			class="flex items-center gap-1 text-base"
+
+	{#if authenticated && globalState && nav}
+		<div class="search-wrap">
+			<GlobalSearch {globalState} {nav} />
+		</div>
+	{/if}
+
+	<div class="topbar-actions">
+		<a
+			class="ds-icon-btn"
 			href="https://thymis.io/"
-			ariaLabel="Thymis Website"
+			aria-label="Thymis Website"
 			title={$t('common.website')}
 		>
-			<Globe size="1.2em" />
-			<span class="hidden lg:block">{$t('common.website')}</span>
-		</ToolbarButton>
-		<ToolbarButton
-			size="lg"
-			class="flex items-center gap-1 text-base"
+			<Globe size={18} />
+		</a>
+		<a
+			class="ds-icon-btn"
 			href="https://thymis.io/docs/"
-			ariaLabel="Thymis Documentation"
+			aria-label="Thymis Documentation"
 			title={$t('common.documentation')}
 		>
-			<BookOpen size="18" />
-			<span class="hidden lg:block">{$t('common.documentation')}</span>
-		</ToolbarButton>
-		<ToolbarButton
-			size="lg"
-			class="flex items-center gap-1 text-base"
+			<BookOpen size={18} />
+		</a>
+		<a
+			class="ds-icon-btn"
 			href="https://github.com/thymis-io/thymis"
-			ariaLabel="Star Thymis on GitHub"
+			aria-label="Star Thymis on GitHub"
 			title={$t('common.github')}
 		>
 			<GithubIcon />
-			<span class="hidden lg:block">{$t('common.github')}</span>
-		</ToolbarButton>
-		<DarkMode />
-		{#if authenticated}
-			<UserMenu />
-		{/if}
+		</a>
 	</div>
 </div>
+
+<style lang="postcss">
+	.ds-topbar {
+		height: var(--navbar-height);
+		border-bottom: 1px solid var(--ds-border);
+		background: var(--ds-surface);
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 0 16px;
+		flex-shrink: 0;
+	}
+	.breadcrumb {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 13.5px;
+		color: var(--ds-text-dim);
+		flex-shrink: 0;
+	}
+	.breadcrumb b {
+		color: var(--ds-text);
+		font-weight: 500;
+	}
+	.search-wrap {
+		margin-left: auto;
+		min-width: 0;
+		flex: 1;
+		max-width: 360px;
+		display: flex;
+		justify-content: flex-end;
+	}
+	.topbar-actions {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		flex-shrink: 0;
+	}
+	.ds-icon-btn {
+		width: 32px;
+		height: 32px;
+		display: grid;
+		place-items: center;
+		border-radius: 7px;
+		color: var(--ds-text-dim);
+		transition:
+			background 0.12s,
+			color 0.12s;
+	}
+	.ds-icon-btn:hover {
+		background: var(--ds-surface-2);
+		color: var(--ds-text);
+	}
+	.dark .ds-icon-btn:hover {
+		background: var(--ds-surface-3);
+	}
+	@media (min-width: 1024px) {
+		.ds-hamburger {
+			display: none;
+		}
+	}
+</style>
