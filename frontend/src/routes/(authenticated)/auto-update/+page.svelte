@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Button, Label, Select, Toggle } from 'flowbite-svelte';
+	import { Label, Select, Toggle } from 'flowbite-svelte';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import { onMount } from 'svelte';
@@ -245,9 +245,9 @@
 	nav={data.nav}
 />
 
-<div class="max-w-xl mx-auto flex flex-col gap-6">
+<div class="ds-card ds-card-pad mx-auto flex max-w-xl flex-col gap-6">
 	<!-- Description -->
-	<p class="text-sm text-gray-600 dark:text-gray-400">
+	<p class="text-sm" style="color: var(--ds-text-dim)">
 		{$t('auto-update.description')}
 	</p>
 
@@ -272,7 +272,7 @@
 			type="time"
 			bind:value={time}
 			disabled={loading}
-			class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50"
+			class="block w-full rounded-lg border border-[var(--ds-border)] bg-[var(--ds-bg)] p-2.5 text-sm text-[var(--ds-text)] focus:border-[var(--ds-accent)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 		/>
 		{#if localTimeStr}
 			<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -299,8 +299,8 @@
 						disabled={loading}
 						class="rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50
 							{weekdays.includes(value)
-							? 'border-primary-500 bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
-							: 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}"
+							? 'border-[var(--ds-accent)] bg-[var(--ds-accent-dim)] text-[var(--ds-accent-strong)]'
+							: 'border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text-dim)] hover:bg-[var(--ds-surface-2)]'}"
 					>
 						{$t(labelKey)}
 						{#if shifted}
@@ -358,19 +358,27 @@
 	{/if}
 
 	<!-- Actions -->
-	<div class="flex items-center justify-between gap-2">
-		<Button color="alternative" onclick={triggerNow} disabled={loading}>
+	<div class="flex items-center justify-between gap-2 border-t border-[var(--ds-border)] pt-5">
+		<button
+			class="ds-btn disabled:cursor-not-allowed disabled:opacity-50"
+			onclick={triggerNow}
+			disabled={loading}
+		>
 			{$t('auto-update.trigger-now')}
-		</Button>
+		</button>
 		<div class="flex items-center gap-3">
 			{#if dirty}
-				<span class="text-sm text-gray-500 dark:text-gray-400"
+				<span class="text-sm" style="color: var(--ds-text-mute)"
 					>{$t('auto-update.unsaved-changes')}</span
 				>
 			{/if}
-			<Button onclick={saveSettings} disabled={saving || loading || !dirty}>
+			<button
+				class="ds-btn ds-btn-primary disabled:cursor-not-allowed disabled:opacity-50"
+				onclick={saveSettings}
+				disabled={saving || loading || !dirty}
+			>
 				{$t('auto-update.save')}
-			</Button>
+			</button>
 		</div>
 	</div>
 </div>

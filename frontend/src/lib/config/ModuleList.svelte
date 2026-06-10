@@ -129,8 +129,8 @@
 						nav.selectedModuleContextType,
 						nav.selectedModuleContext
 					)
-						? 'bg-gray-300 dark:bg-gray-600'
-						: 'hover:bg-gray-200 dark:hover:bg-gray-700'
+						? 'bg-[var(--ds-accent-dim)] text-[var(--ds-accent-strong)]'
+						: 'hover:bg-[var(--ds-surface-2)]'
 				}`}
 			>
 				<a

@@ -6,13 +6,7 @@
 	import type { PageData } from './$types';
 	import { invalidateButDeferUntilNavigation } from '$lib/notification';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
-	import {
-		Button,
-		Card,
-		Toggle,
-		Dropdown as FlowbiteDropdown,
-		DropdownItem
-	} from 'flowbite-svelte';
+	import { Toggle, Dropdown as FlowbiteDropdown, DropdownItem } from 'flowbite-svelte';
 	import AutoComplete from '$lib/components/AutoComplete.svelte';
 	import { calcTimeSince } from '$lib/hardwareDevices';
 	import { onMount } from 'svelte';
@@ -138,10 +132,10 @@
 			params['exact-program-name'] = (e.target as HTMLInputElement).checked.toString();
 		}}
 	/>
-	<Button>
+	<button class="ds-btn">
 		{$t('logs.download')}
 		<ChevronDown class="h-4 w-4 ml-1" />
-	</Button>
+	</button>
 	<FlowbiteDropdown bind:open={downloadOpen}>
 		{#each downloadOptions as { minutes, label }}
 			<DropdownItem
@@ -154,13 +148,13 @@
 		{/each}
 	</FlowbiteDropdown>
 </div>
-<Card class="w-full max-w-full overflow-x-auto">
+<div class="ds-card ds-card-pad w-full overflow-x-auto" style="color: var(--ds-text)">
 	{#if data.logs.length === 0}
-		<p class="italic text-gray-500">{$t('logs.no-logs')}</p>
+		<p class="italic" style="color: var(--ds-text-mute)">{$t('logs.no-logs')}</p>
 	{/if}
 	{#each data.logs.toReversed() as line (line.uuid)}
-		<p class="font-mono whitespace-pre">
+		<p class="whitespace-pre font-mono text-[12.5px] leading-relaxed">
 			{`${new Date(line.timestamp).toUTCString()} ${line.programname}: ${line.message}`}
 		</p>
 	{/each}
-</Card>
+</div>
