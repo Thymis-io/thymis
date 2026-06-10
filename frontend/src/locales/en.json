@@ -345,6 +345,7 @@
 	"settings": {
 		"repo": {
 			"title": "Repositories",
+			"add": "Add Repository",
 			"name": "Input Name",
 			"url": "URL",
 			"secret": "API Key Secret",

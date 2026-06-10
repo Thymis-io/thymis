@@ -2,7 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
 	import { saveState, type Tag } from '$lib/state';
-	import { Button, Table, TableBodyCell, TableHead, TableHeadCell, Helper } from 'flowbite-svelte';
+	import { Helper } from 'flowbite-svelte';
 	import Trash from 'lucide-svelte/icons/trash';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Pen from 'lucide-svelte/icons/pen';
@@ -118,14 +118,15 @@
 	globalState={data.globalState}
 	nav={data.nav}
 >
-	<Button
-		color="alternative"
-		class="whitespace-nowrap gap-2 px-2 py-2"
-		on:click={() => (createTagModalOpen = true)}
-	>
-		<Plus size={20} />
-		{$t('tags.actions.create')}
-	</Button>
+	{#snippet actions()}
+		<button
+			class="ds-btn ds-btn-primary whitespace-nowrap"
+			onclick={() => (createTagModalOpen = true)}
+		>
+			<Plus size={16} />
+			{$t('tags.actions.create')}
+		</button>
+	{/snippet}
 </PageHead>
 <DeleteConfirm
 	target={deleteTag?.displayName}
@@ -138,110 +139,106 @@
 	on:cancel={() => (deleteTag = undefined)}
 />
 <CreateTagModal globalState={data.globalState} bind:open={createTagModalOpen} />
-<Table shadow>
-	<TableHead theadClass="text-xs normal-case">
-		<TableHeadCell padding="p-2 w-12" />
-		<TableHeadCell padding="p-2">{$t('tags.table.name')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('tags.table.configs')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('tags.table.actions')}</TableHeadCell>
-	</TableHead>
-	<tbody
-		use:dndzone={{ items: tags, dragDisabled, flipDurationMs }}
-		onconsider={handleConsider}
-		onfinalize={handleFinalize}
-	>
-		{#each tags as tag (tag.id)}
-			{@const displayName = tag.data.displayName}
-			<tr
-				class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
-				animate:flip={{ duration: flipDurationMs }}
-			>
-				<TableBodyCell tdClass="p-2">
-					<div class="flex items-center justify-center">
-						<div
-							tabindex={dragDisabled ? 0 : -1}
-							aria-label="drag-handle"
-							role="button"
-							class="handle"
-							style={dragDisabled ? 'cursor: grab' : 'cursor: grabbing'}
-							onmousedown={startDrag}
-							ontouchstart={startDrag}
-							onkeydown={handleKeyDown}
-						>
-							<GripVertical size={'1rem'} class="min-w-4" />
+<div class="ds-table-wrap">
+	<table class="ds-table">
+		<thead>
+			<tr>
+				<th class="w-12"></th>
+				<th>{$t('tags.table.name')}</th>
+				<th>{$t('tags.table.configs')}</th>
+				<th class="text-right">{$t('tags.table.actions')}</th>
+			</tr>
+		</thead>
+		<tbody
+			use:dndzone={{ items: tags, dragDisabled, flipDurationMs }}
+			onconsider={handleConsider}
+			onfinalize={handleFinalize}
+		>
+			{#each tags as tag (tag.id)}
+				{@const displayName = tag.data.displayName}
+				{@const configsWithTag = data.globalState.configs.filter((config) =>
+					config.tags.includes(tag.data.identifier)
+				)}
+				<tr animate:flip={{ duration: flipDurationMs }}>
+					<td>
+						<div class="flex items-center justify-center">
+							<div
+								tabindex={dragDisabled ? 0 : -1}
+								aria-label="drag-handle"
+								role="button"
+								class="handle"
+								style={dragDisabled ? 'cursor: grab' : 'cursor: grabbing'}
+								onmousedown={startDrag}
+								ontouchstart={startDrag}
+								onkeydown={handleKeyDown}
+							>
+								<GripVertical size={'1rem'} class="min-w-4" style="color: var(--ds-text-mute)" />
+							</div>
 						</div>
-					</div>
-				</TableBodyCell>
-				<TableBodyEditCell
-					value={displayName}
-					onEnter={(value) => {
-						const success = renameTag(tag.data.identifier, value);
+					</td>
+					<TableBodyEditCell
+						value={displayName}
+						onEnter={(value) => {
+							const success = renameTag(tag.data.identifier, value);
 
-						if (!success) {
-							// Reset the display name if the rename was unsuccessful
-							tag.data.displayName = tag.data.displayName;
-						}
-					}}
-				>
-					{#snippet bottom({ value: newTagDisplayName })}
-						{#if nameValidation(data.globalState, newTagDisplayName, 'tag')}
-							{#if newTagDisplayName !== displayName}
-								<Helper color="red">
-									{nameValidation(data.globalState, newTagDisplayName, 'tag')}
+							if (!success) {
+								// Reset the display name if the rename was unsuccessful
+								tag.data.displayName = tag.data.displayName;
+							}
+						}}
+					>
+						{#snippet bottom({ value: newTagDisplayName })}
+							{#if nameValidation(data.globalState, newTagDisplayName, 'tag')}
+								{#if newTagDisplayName !== displayName}
+									<Helper color="red">
+										{nameValidation(data.globalState, newTagDisplayName, 'tag')}
+									</Helper>
+								{/if}
+							{:else}
+								<Helper color="green">
+									{$t('create-configuration.name-helper-tag', {
+										values: { identifier: nameToIdentifier(newTagDisplayName) }
+									})}
 								</Helper>
 							{/if}
-						{:else}
-							<Helper color="green">
-								{$t('create-configuration.name-helper-tag', {
-									values: { identifier: nameToIdentifier(newTagDisplayName) }
-								})}
-							</Helper>
-						{/if}
-					{/snippet}
-					{#snippet children()}
-						<IdentifierLink
-							identifier={tag.data.identifier}
-							context="tag"
-							globalState={data.globalState}
-						/>
-					{/snippet}
-				</TableBodyEditCell>
-				<TableBodyCell tdClass="p-2 px-2 md:px-4">
-					{@const configsWithTag = data.globalState.configs.filter((config) =>
-						config.tags.includes(tag.data.identifier)
-					)}
-					<div class="flex flex-wrap gap-2">
-						{#each configsWithTag as config}
+						{/snippet}
+						{#snippet children()}
 							<IdentifierLink
-								identifier={config.identifier}
-								context="config"
+								identifier={tag.data.identifier}
+								context="tag"
 								globalState={data.globalState}
-								solidBackground
 							/>
-						{/each}
-					</div>
-				</TableBodyCell>
-				<TableBodyCell tdClass="p-1">
-					<Button
-						size="sm"
-						color="alternative"
-						class="p-3 py-1.5 gap-2"
-						href={`/configuration/edit?${buildGlobalNavSearchParam(data.globalState, $page.url.search, 'tag', tag.data.identifier)}`}
-					>
-						<Pen size={18} />
-						{$t('tags.actions.edit')}
-					</Button>
-					<Button
-						size="sm"
-						color="alternative"
-						on:click={() => (deleteTag = tag.data)}
-						class="ml-8 p-3 py-1.5 gap-2"
-					>
-						<Trash size={18} />
-						{$t('tags.actions.delete')}
-					</Button>
-				</TableBodyCell>
-			</tr>
-		{/each}
-	</tbody>
-</Table>
+						{/snippet}
+					</TableBodyEditCell>
+					<td>
+						<div class="flex flex-wrap gap-2">
+							{#each configsWithTag as config}
+								<IdentifierLink
+									identifier={config.identifier}
+									context="config"
+									globalState={data.globalState}
+									solidBackground
+								/>
+							{/each}
+						</div>
+					</td>
+					<td>
+						<div class="flex justify-end gap-2">
+							<a
+								class="ds-btn ds-btn-sm"
+								href={`/configuration/edit?${buildGlobalNavSearchParam(data.globalState, $page.url.search, 'tag', tag.data.identifier)}`}
+							>
+								<Pen size={15} />
+								{$t('tags.actions.edit')}
+							</a>
+							<button class="ds-btn ds-btn-sm ds-btn-danger" onclick={() => (deleteTag = tag.data)}>
+								<Trash size={15} />
+								{$t('tags.actions.delete')}
+							</button>
+						</div>
+					</td>
+				</tr>
+			{/each}
+		</tbody>
+	</table>
+</div>

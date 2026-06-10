@@ -313,6 +313,7 @@
 	"settings": {
 		"repo": {
 			"title": "Repositories",
+			"add": "Repository hinzufügen",
 			"name": "Input Name",
 			"url": "URL",
 			"secret": "API Key Secret",

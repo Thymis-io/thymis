@@ -3,15 +3,7 @@
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import type { PageData } from './$types';
 	import { invalidate } from '$app/navigation';
-	import {
-		Button,
-		Helper,
-		Modal,
-		Table,
-		TableBodyCell,
-		TableHead,
-		TableHeadCell
-	} from 'flowbite-svelte';
+	import { Button, Helper, Modal } from 'flowbite-svelte';
 	import Trash from 'lucide-svelte/icons/trash-2';
 	import Download from 'lucide-svelte/icons/download';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
@@ -133,114 +125,107 @@
 	</div>
 </Modal>
 
-<Table shadow>
-	<TableHead theadClass="text-xs normal-case">
-		<TableHeadCell padding="p-2 w-12" />
-		<TableHeadCell padding="p-2">{$t('artifacts.table.name')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('artifacts.table.type')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('artifacts.table.size')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('artifacts.table.usage')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('artifacts.table.created-at')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('artifacts.table.modified-at')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('artifacts.table.actions')}</TableHeadCell>
-	</TableHead>
-	<tbody>
-		{#each data.artifacts as artifact (artifact.name)}
-			<tr
-				class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
-			>
-				<TableBodyCell tdClass="p-2"></TableBodyCell>
-				<TableBodyEditCell
-					value={artifact.name}
-					onEnter={async (value) => {
-						if (isUnusedName(artifact, value)) {
-							renameArtifact(artifact, value);
-						}
-
-						// Reset the input field after renaming
-						await invalidate((url) => url.pathname.startsWith('/api/artifacts'));
-					}}
-				>
-					{#snippet bottom({ value: newName })}
-						{#if !isUnusedName(artifact, newName)}
-							<Helper color="red">
-								{$t('artifacts.name-already-used')}
-							</Helper>
-						{/if}
-					{/snippet}
-				</TableBodyEditCell>
-				<TableBodyCell tdClass="p-2">
-					{artifact.media_type || $t('artifacts.table.unknown-type')}
-				</TableBodyCell>
-				<TableBodyCell tdClass="p-2">
-					{bytesToHumanReadable(artifact.size)}
-				</TableBodyCell>
-				<TableBodyCell tdClass="p-2 ">
-					<div class="flex flex-row flex-wrap gap-2 items-center">
-						{#each data.globalState.configs as config}
-							{#if config.modules.some((module) => hasArtifactUsages(artifact, module))}
-								<IdentifierLink
-									identifier={config.identifier}
-									context="config"
-									globalState={data.globalState}
-									solidBackground
-								/>
-							{/if}
-						{/each}
-						{#each data.globalState.tags as tag}
-							{#if tag.modules.some((module) => hasArtifactUsages(artifact, module))}
-								<IdentifierLink
-									identifier={tag.identifier}
-									context="tag"
-									globalState={data.globalState}
-									solidBackground
-								/>
-							{/if}
-						{/each}
-					</div>
-				</TableBodyCell>
-				<TableBodyCell tdClass="p-2 w-[10rem] playwright-snapshot-unstable">
-					{new Date(artifact.created_at).toLocaleString()}
-				</TableBodyCell>
-				<TableBodyCell tdClass="p-2 w-[10rem] playwright-snapshot-unstable">
-					{new Date(artifact.modified_at).toLocaleString()}
-				</TableBodyCell>
-				<TableBodyCell tdClass="p-2">
-					<Button
-						class="px-2 py-1.5 gap-2 justify-start"
-						color="alternative"
-						href={`/api/artifacts/${artifact.name}`}
-						download
-					>
-						<Download size={16} class="inline mr-1" />
-						{$t('artifacts.table.download')}
-					</Button>
-					<Button
-						class="px-2 py-1.5 gap-2 justify-start"
-						color="alternative"
-						onclick={() => (deleteConfirmTarget = artifact)}
-					>
-						<Trash size={16} class="inline mr-1" />
-						{$t('artifacts.table.delete')}
-					</Button>
-				</TableBodyCell>
+<div class="ds-table-wrap">
+	<table class="ds-table">
+		<thead>
+			<tr>
+				<th class="w-12"></th>
+				<th>{$t('artifacts.table.name')}</th>
+				<th>{$t('artifacts.table.type')}</th>
+				<th>{$t('artifacts.table.size')}</th>
+				<th>{$t('artifacts.table.usage')}</th>
+				<th>{$t('artifacts.table.created-at')}</th>
+				<th>{$t('artifacts.table.modified-at')}</th>
+				<th class="text-right">{$t('artifacts.table.actions')}</th>
 			</tr>
-		{/each}
-	</tbody>
-</Table>
+		</thead>
+		<tbody>
+			{#each data.artifacts as artifact (artifact.name)}
+				<tr>
+					<td></td>
+					<TableBodyEditCell
+						value={artifact.name}
+						onEnter={async (value) => {
+							if (isUnusedName(artifact, value)) {
+								renameArtifact(artifact, value);
+							}
 
-<div class="flex gap-2 mt-2">
+							// Reset the input field after renaming
+							await invalidate((url) => url.pathname.startsWith('/api/artifacts'));
+						}}
+					>
+						{#snippet bottom({ value: newName })}
+							{#if !isUnusedName(artifact, newName)}
+								<Helper color="red">
+									{$t('artifacts.name-already-used')}
+								</Helper>
+							{/if}
+						{/snippet}
+					</TableBodyEditCell>
+					<td>{artifact.media_type || $t('artifacts.table.unknown-type')}</td>
+					<td>{bytesToHumanReadable(artifact.size)}</td>
+					<td>
+						<div class="flex flex-row flex-wrap items-center gap-2">
+							{#each data.globalState.configs as config}
+								{#if config.modules.some((module) => hasArtifactUsages(artifact, module))}
+									<IdentifierLink
+										identifier={config.identifier}
+										context="config"
+										globalState={data.globalState}
+										solidBackground
+									/>
+								{/if}
+							{/each}
+							{#each data.globalState.tags as tag}
+								{#if tag.modules.some((module) => hasArtifactUsages(artifact, module))}
+									<IdentifierLink
+										identifier={tag.identifier}
+										context="tag"
+										globalState={data.globalState}
+										solidBackground
+									/>
+								{/if}
+							{/each}
+						</div>
+					</td>
+					<td class="playwright-snapshot-unstable w-[10rem]">
+						{new Date(artifact.created_at).toLocaleString()}
+					</td>
+					<td class="playwright-snapshot-unstable w-[10rem]">
+						{new Date(artifact.modified_at).toLocaleString()}
+					</td>
+					<td>
+						<div class="flex justify-end gap-2">
+							<a class="ds-btn ds-btn-sm" href={`/api/artifacts/${artifact.name}`} download>
+								<Download size={15} />
+								{$t('artifacts.table.download')}
+							</a>
+							<button
+								class="ds-btn ds-btn-sm ds-btn-danger"
+								onclick={() => (deleteConfirmTarget = artifact)}
+							>
+								<Trash size={15} />
+								{$t('artifacts.table.delete')}
+							</button>
+						</div>
+					</td>
+				</tr>
+			{/each}
+		</tbody>
+	</table>
+</div>
+
+<div class="mt-4 flex items-center gap-2">
 	<input
 		id="fileUpload"
 		type="file"
 		bind:files
-		class="rounded-md border border-dashed border-gray-300 dark:border-gray-600 playwright-snapshot-unstable"
+		class="playwright-snapshot-unstable rounded-md border border-dashed border-[var(--ds-border-strong)] p-2 text-sm"
 	/>
-	<Button
-		class="whitespace-nowrap"
-		color="alternative"
+	<button
+		class="ds-btn whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
 		disabled={!files || files.length === 0}
-		on:click={() => {
+		onclick={() => {
 			if (!files) return;
 			if (isUnusedName(null, files[0].name)) {
 				uploadFiles();
@@ -250,5 +235,5 @@
 		}}
 	>
 		{$t('artifacts.upload-file')}
-	</Button>
+	</button>
 </div>

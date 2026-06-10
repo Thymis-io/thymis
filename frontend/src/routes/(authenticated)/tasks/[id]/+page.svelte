@@ -37,27 +37,31 @@
 
 <PageHead repoStatus={data.repoStatus} globalState={data.globalState} nav={data.nav}>
 	{#if task}
-		<div class="text-3xl font-bold">
+		<div class="ds-page-title">
 			<TaskbarName
 				globalState={data.globalState}
 				deploymentInfos={data.deploymentInfos}
 				{task}
-				iconSize={24}
+				iconSize={22}
 			/>
 		</div>
 	{/if}
 </PageHead>
 
 {#if task}
-	<div class="flex flex-wrap items-center gap-4 mb-4">
+	<div class="ds-card ds-card-pad mb-4 flex flex-wrap items-center gap-4">
 		<TaskbarStatus {task} showProgress={false} />
-		<h1>id: {task.id}</h1>
+		<span class="ds-mono">id: {task.id}</span>
 
-		<p>Start time: <RenderUnixTimestamp timestamp={task.start_time} /></p>
+		<p style="color: var(--ds-text-dim)">
+			Start time: <RenderUnixTimestamp timestamp={task.start_time} />
+		</p>
 		{#if task.end_time}
-			<p>End time: <RenderUnixTimestamp timestamp={task.end_time} /></p>
+			<p style="color: var(--ds-text-dim)">
+				End time: <RenderUnixTimestamp timestamp={task.end_time} />
+			</p>
 		{:else}
-			<p>Task is still running, no end time</p>
+			<p style="color: var(--ds-text-dim)">Task is still running, no end time</p>
 		{/if}
 	</div>
 

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Card } from 'flowbite-svelte';
 	import ModuleList from '$lib/config/ModuleList.svelte';
 	import { getTagByIdentifier } from '$lib/state';
 	import type { ModuleSettingsWithOrigin, Tag, Config, Module, Origin, Setting } from '$lib/state';
@@ -68,7 +67,7 @@
 </script>
 
 <div class="grid grid-flow-row grid-cols-1 md:grid-cols-[250px_auto] gap-4">
-	<Card class="max-w-none" padding={'sm'}>
+	<div class="ds-card ds-card-pad max-w-none self-start">
 		<ModuleList
 			nav={data.nav}
 			globalState={data.globalState}
@@ -88,7 +87,7 @@
 				/>
 			</div>
 		{/each}
-	</Card>
+	</div>
 	{#if data.nav.selectedModule && data.nav.selectedModuleContextType && data.nav.selectedModuleContext?.modules.find((m) => m.type === data.nav.selectedModule?.type)}
 		<ModuleCard
 			nav={data.nav}

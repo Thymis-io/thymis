@@ -1,15 +1,5 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
-	import {
-		Button,
-		Table,
-		TableHead,
-		TableHeadCell,
-		TableBody,
-		TableBodyRow,
-		TableBodyCell
-	} from 'flowbite-svelte';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import type { PageData } from './$types';
 	import { invalidate } from '$app/navigation';
@@ -185,84 +175,85 @@
 	globalState={data.globalState}
 	nav={data.globalState}
 	repoStatus={data.repoStatus}
-/>
+>
+	{#snippet actions()}
+		<button class="ds-btn ds-btn-primary whitespace-nowrap" onclick={() => addSecret()}>
+			+ {$t('secrets.create')}
+		</button>
+	{/snippet}
+</PageHead>
 
-<!-- Table structure remains the same -->
-<Table shadow>
-	<TableHead theadClass="text-xs normal-case">
-		<TableHeadCell padding="p-2">{$t('secrets.name')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('secrets.type')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('secrets.processing')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('secrets.include-in-image')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('secrets.issues')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('secrets.actions')}</TableHeadCell>
-	</TableHead>
-	<TableBody>
-		{#each Object.entries(secrets) as [id, secret]}
-			<TableBodyRow>
-				<TableBodyCell>{secret.display_name}</TableBodyCell>
-				<TableBodyCell tdClass="p-2">
-					{#if secret.type === 'single_line'}
-						{$t('secrets.type-single-line')}
-					{:else if secret.type === 'multi_line'}
-						{$t('secrets.type-multi-line')}
-					{:else if secret.type === 'env_list'}
-						{$t('secrets.type-env-list')}
-					{:else if secret.type === 'file'}
-						{$t('secrets.type-file')}
-					{/if}
-				</TableBodyCell>
-				<TableBodyCell tdClass="p-2">
-					{#if secret.processing_type === 'none'}
-						{$t('secrets.processing-none')}
-					{:else if secret.processing_type === 'mkpasswd-yescrypt'}
-						{$t('secrets.processing-mkpasswd-yescrypt')}
-					{/if}
-				</TableBodyCell>
-				<TableBodyCell tdClass="p-2">
-					{secret.include_in_image ? $t('common.yes') : $t('common.no')}
-				</TableBodyCell>
-				<TableBodyCell tdClass="p-2">
-					{#if secret.error}
-						<div class="flex items-center gap-1 text-yellow-600">
-							<Alert size="16" />
-							{secret.error}
+<div class="ds-table-wrap">
+	<table class="ds-table">
+		<thead>
+			<tr>
+				<th>{$t('secrets.name')}</th>
+				<th>{$t('secrets.type')}</th>
+				<th>{$t('secrets.processing')}</th>
+				<th>{$t('secrets.include-in-image')}</th>
+				<th>{$t('secrets.issues')}</th>
+				<th class="text-right">{$t('secrets.actions')}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{#each Object.entries(secrets) as [id, secret]}
+				<tr>
+					<td>{secret.display_name}</td>
+					<td>
+						{#if secret.type === 'single_line'}
+							{$t('secrets.type-single-line')}
+						{:else if secret.type === 'multi_line'}
+							{$t('secrets.type-multi-line')}
+						{:else if secret.type === 'env_list'}
+							{$t('secrets.type-env-list')}
+						{:else if secret.type === 'file'}
+							{$t('secrets.type-file')}
+						{/if}
+					</td>
+					<td>
+						{#if secret.processing_type === 'none'}
+							{$t('secrets.processing-none')}
+						{:else if secret.processing_type === 'mkpasswd-yescrypt'}
+							{$t('secrets.processing-mkpasswd-yescrypt')}
+						{/if}
+					</td>
+					<td>
+						{secret.include_in_image ? $t('common.yes') : $t('common.no')}
+					</td>
+					<td>
+						{#if secret.error}
+							<div class="flex items-center gap-1" style="color: var(--ds-warning)">
+								<Alert size="16" />
+								{secret.error}
+							</div>
+						{/if}
+					</td>
+					<td>
+						<div class="flex justify-end gap-2">
+							<button class="ds-btn ds-btn-sm" onclick={() => openEditSecret(id)}>
+								{$t('secrets.edit')}
+							</button>
+							<button
+								class="ds-btn ds-btn-sm"
+								onclick={() => copySecretId(id)}
+								title={`Copy ${secret.display_name} ID`}
+								aria-label={`Copy ${secret.display_name} ID`}
+							>
+								{$t('secrets.copy-id')}
+							</button>
+							<button class="ds-btn ds-btn-sm ds-btn-danger" onclick={() => deleteSecret(id)}>
+								{$t('secrets.delete')}
+							</button>
 						</div>
-					{/if}
-				</TableBodyCell>
-				<TableBodyCell tdClass="p-2">
-					<div class="flex gap-1">
-						<Button size="xs" on:click={() => openEditSecret(id)}>
-							{$t('secrets.edit')}
-						</Button>
-						<Button
-							size="xs"
-							on:click={() => copySecretId(id)}
-							title={`Copy ${secret.display_name} ID`}
-							aria-label={`Copy ${secret.display_name} ID`}
-						>
-							{$t('secrets.copy-id')}
-						</Button>
-
-						<Button size="xs" color="red" on:click={() => deleteSecret(id)}>
-							{$t('secrets.delete')}
-						</Button>
-					</div>
-				</TableBodyCell>
-			</TableBodyRow>
-		{:else}
-			<TableBodyRow>
-				<TableBodyCell colspan={6} class="text-center p-4">
-					{$t('secrets.no-secrets')}
-				</TableBodyCell>
-			</TableBodyRow>
-		{/each}
-	</TableBody>
-</Table>
-<div class="flex justify-between mt-4">
-	<Button color="alternative" on:click={() => addSecret()}>
-		+ {$t('secrets.create')}
-	</Button>
+					</td>
+				</tr>
+			{:else}
+				<tr>
+					<td colspan={6} class="ds-table-empty">{$t('secrets.no-secrets')}</td>
+				</tr>
+			{/each}
+		</tbody>
+	</table>
 </div>
 
 <!-- Create Secret Modal -->
