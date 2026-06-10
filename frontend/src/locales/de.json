@@ -229,6 +229,8 @@
 		"offline": "Offline",
 		"no-configs": "Noch keine Gerätekonfigurationen.",
 		"no-instances": "Keine physischen Geräte registriert.",
+		"subtitle": "Flottenzustand und Bereitstellungsstatus über alle Konfigurationen.",
+		"section-configurations": "Konfigurationen",
 		"instances-online": "online",
 		"stat": {
 			"total-devices": "Geräte gesamt",

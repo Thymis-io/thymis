@@ -230,6 +230,8 @@
 		"offline": "Offline",
 		"no-configs": "No device configurations yet.",
 		"no-instances": "No physical devices registered.",
+		"subtitle": "Fleet health and deployment status across your configurations.",
+		"section-configurations": "Configurations",
 		"instances-online": "online",
 		"stat": {
 			"total-devices": "Total Devices",

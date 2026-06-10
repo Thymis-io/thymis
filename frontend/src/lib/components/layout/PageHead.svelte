@@ -11,6 +11,7 @@
 		globalState: GlobalState;
 		repoStatus: RepoStatus;
 		title?: string;
+		subtitle?: string;
 		children?: Snippet;
 		selectedDeploymentInfo?: DeploymentInfo | undefined;
 	}
@@ -20,15 +21,21 @@
 		globalState,
 		repoStatus,
 		title,
+		subtitle,
 		children,
 		selectedDeploymentInfo = undefined
 	}: Props = $props();
 </script>
 
-<div class="flex justify-between mb-4">
-	<div class="flex gap-4 items-center">
+<div class="ds-page-head">
+	<div class="flex gap-4 items-center min-w-0">
 		{#if title}
-			<h1 class="text-3xl font-bold dark:text-white">{title}</h1>
+			<div class="min-w-0">
+				<h1 class="ds-page-title">{title}</h1>
+				{#if subtitle}
+					<p class="ds-page-subtitle">{subtitle}</p>
+				{/if}
+			</div>
 		{/if}
 		{@render children?.()}
 	</div>

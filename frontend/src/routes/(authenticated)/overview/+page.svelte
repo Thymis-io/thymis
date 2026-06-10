@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
-	import { Card } from 'flowbite-svelte';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import PieChart from '$lib/components/PieChart.svelte';
 	import type { PieSlice } from '$lib/components/PieChart.svelte';
 	import { getDeviceType, getDeviceTypesMap } from '$lib/config/configUtils';
 	import MonitorCheck from 'lucide-svelte/icons/monitor-check';
+	import MonitorX from 'lucide-svelte/icons/monitor-x';
 	import Server from 'lucide-svelte/icons/server';
 	import Layers from 'lucide-svelte/icons/layers';
 	import Tag from 'lucide-svelte/icons/tag';
@@ -80,6 +80,10 @@
 	let totalConfigsCount = $derived(data.globalState.configs.length);
 	let onlineInstancesCount = $derived(data.connectedDeploymentInfos.length);
 	let tagsCount = $derived(data.globalState.tags.length);
+	let activeInstancesTotal = $derived(
+		configCards.reduce((sum, c) => sum + c.activeInstances.length, 0)
+	);
+	let offlineInstancesCount = $derived(Math.max(0, activeInstancesTotal - onlineInstancesCount));
 
 	// ── Pie 1: deployed commit — active instances only, HEAD highlighted ──
 	let commitSlices: PieSlice[] = $derived.by(() => {
@@ -118,92 +122,105 @@
 
 <PageHead
 	title={$t('nav.overview')}
+	subtitle={$t('overview.subtitle')}
 	repoStatus={data.repoStatus}
 	globalState={data.globalState}
 	nav={data.nav}
 />
 
 <!-- ── Row 1: stat cards ──────────────────────────────────────────────── -->
-<div class="flex flex-wrap items-start gap-4 mb-4">
-	<Card padding="none" class="p-4">
-		<div class="flex items-center gap-3">
-			<div
-				class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900"
-			>
-				<MonitorCheck class="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-			</div>
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-4">
+	<div class="ds-stat">
+		<div class="flex items-start justify-between gap-3">
 			<div>
-				<p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-					{onlineInstancesCount}
-				</p>
-				<p class="text-xs text-gray-500 dark:text-gray-400">
-					{$t('overview.stat.connected-devices')}
-				</p>
+				<div class="ds-stat-label">
+					<span class="ds-stat-dot online"></span>{$t('overview.stat.connected-devices')}
+				</div>
+				<div class="ds-stat-value">{onlineInstancesCount}</div>
 			</div>
+			<div class="ds-icon-tile online"><MonitorCheck class="h-[18px] w-[18px]" /></div>
 		</div>
-	</Card>
-	<Card padding="none" class="p-4">
-		<div class="flex items-center gap-3">
-			<div
-				class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary-100 dark:bg-primary-900"
-			>
-				<Layers class="h-5 w-5 text-primary-600 dark:text-primary-400" />
-			</div>
+	</div>
+
+	<div class="ds-stat">
+		<div class="flex items-start justify-between gap-3">
 			<div>
-				<p class="text-2xl font-bold text-primary-600 dark:text-primary-400">
-					{onlineConfigsCount}<span class="text-base font-normal text-gray-400 dark:text-gray-500"
-						>/{totalConfigsCount}</span
-					>
-				</p>
-				<p class="text-xs text-gray-500 dark:text-gray-400">{$t('overview.stat.configs-online')}</p>
+				<div class="ds-stat-label">
+					<span class="ds-stat-dot offline"></span>{$t('overview.offline')}
+				</div>
+				<div class="ds-stat-value">{offlineInstancesCount}</div>
 			</div>
+			<div class="ds-icon-tile offline"><MonitorX class="h-[18px] w-[18px]" /></div>
 		</div>
-	</Card>
-	<Card padding="none" class="p-4">
-		<div class="flex items-center gap-3">
-			<div
-				class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900"
-			>
-				<Tag class="h-5 w-5 text-amber-600 dark:text-amber-400" />
-			</div>
+	</div>
+
+	<div class="ds-stat">
+		<div class="flex items-start justify-between gap-3">
 			<div>
-				<p class="text-2xl font-bold text-amber-600 dark:text-amber-400">{tagsCount}</p>
-				<p class="text-xs text-gray-500 dark:text-gray-400">{$t('overview.stat.tags')}</p>
+				<div class="ds-stat-label">
+					<span class="ds-stat-dot info"></span>{$t('overview.stat.configs-online')}
+				</div>
+				<div class="ds-stat-value">
+					{onlineConfigsCount}<span class="ds-stat-sub">/{totalConfigsCount}</span>
+				</div>
 			</div>
+			<div class="ds-icon-tile info"><Layers class="h-[18px] w-[18px]" /></div>
 		</div>
-	</Card>
+	</div>
+
+	<div class="ds-stat">
+		<div class="flex items-start justify-between gap-3">
+			<div>
+				<div class="ds-stat-label"><span class="ds-stat-dot"></span>{$t('overview.stat.tags')}</div>
+				<div class="ds-stat-value">{tagsCount}</div>
+			</div>
+			<div class="ds-icon-tile warning"><Tag class="h-[18px] w-[18px]" /></div>
+		</div>
+	</div>
 </div>
 
-<div class="flex flex-wrap items-start gap-4 mb-4 items-stretch">
-	<!-- Deployed commits chart -->
-	<Card padding="none" class="flex flex-col items-center gap-2 p-4">
-		<PieChart slices={commitSlices} size={180} title={$t('overview.chart.deployed-commits')} />
-	</Card>
-
-	<!-- Online / offline chart -->
-	<Card padding="none" class="flex flex-col items-center gap-2 p-4">
-		<PieChart slices={onlineStatusSlices} size={180} title={$t('overview.chart.online-status')} />
-	</Card>
-</div>
-
-<div class="flex flex-wrap items-start gap-4">
-	<!-- Device grid -->
-	{#if configCards.length === 0}
-		<Card padding="none" class="p-8 text-center">
-			<Server class="mx-auto mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
-			<p class="text-sm text-gray-500 dark:text-gray-400">{$t('overview.no-configs')}</p>
-		</Card>
-	{:else}
-		<div class="flex w-full flex-row flex-wrap gap-4">
-			{#each configCards as config (config.identifier)}
-				<Card padding="none" class="flex flex-col overflow-hidden">
-					<OverviewConfigCard
-						{config}
-						globalState={data.globalState}
-						deploymentInfos={data.deploymentInfos}
-					/>
-				</Card>
-			{/each}
+<!-- ── Row 2: charts ──────────────────────────────────────────────────── -->
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2 mb-4">
+	<div class="ds-card flex flex-col">
+		<div class="ds-card-head">
+			<h3 class="ds-card-title">{$t('overview.chart.deployed-commits')}</h3>
 		</div>
-	{/if}
+		<div class="ds-card-pad flex flex-1 items-center justify-center">
+			<PieChart slices={commitSlices} size={180} />
+		</div>
+	</div>
+
+	<div class="ds-card flex flex-col">
+		<div class="ds-card-head">
+			<h3 class="ds-card-title">{$t('overview.chart.online-status')}</h3>
+		</div>
+		<div class="ds-card-pad flex flex-1 items-center justify-center">
+			<PieChart slices={onlineStatusSlices} size={180} />
+		</div>
+	</div>
 </div>
+
+<!-- ── Row 3: configurations ──────────────────────────────────────────── -->
+<div class="mb-3 flex items-baseline gap-2">
+	<h2 class="ds-card-title" style="font-size: 15px">{$t('overview.section-configurations')}</h2>
+	<span class="ds-card-sub">{totalConfigsCount}</span>
+</div>
+
+{#if configCards.length === 0}
+	<div class="ds-card ds-card-pad py-10 text-center">
+		<Server class="mx-auto mb-3 h-10 w-10" style="color: var(--ds-text-mute)" />
+		<p class="text-sm" style="color: var(--ds-text-dim)">{$t('overview.no-configs')}</p>
+	</div>
+{:else}
+	<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+		{#each configCards as config (config.identifier)}
+			<div class="ds-card flex flex-col overflow-hidden">
+				<OverviewConfigCard
+					{config}
+					globalState={data.globalState}
+					deploymentInfos={data.deploymentInfos}
+				/>
+			</div>
+		{/each}
+	</div>
+{/if}
