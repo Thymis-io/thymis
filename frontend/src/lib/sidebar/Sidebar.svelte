@@ -2,7 +2,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { t, locale } from 'svelte-i18n';
-	import { Sidebar, SidebarGroup, SidebarWrapper } from 'flowbite-svelte';
+	import { DarkMode, Popover } from 'flowbite-svelte';
 	import Settings from 'lucide-svelte/icons/settings';
 	import ChartBar from 'lucide-svelte/icons/chart-bar';
 	import Server from 'lucide-svelte/icons/server';
@@ -13,8 +13,10 @@
 	import FileLock from 'lucide-svelte/icons/file-lock-2';
 	import FolderOpen from 'lucide-svelte/icons/folder-open';
 	import RefreshCcwDot from 'lucide-svelte/icons/refresh-ccw-dot';
+	import Logout from 'lucide-svelte/icons/log-out';
 	import type { GlobalState } from '$lib/state.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
+	import LanguageSelect from '$lib/navbar/LanguageSelect.svelte';
 
 	interface Props {
 		globalState: GlobalState;
@@ -28,31 +30,29 @@
 		drawerHidden = true;
 	};
 
-	let spanClass = 'ms-4';
-	let childClass =
-		'p-1 hover:bg-gray-100 text-gray-500 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 ';
-
-	let nonActiveClass =
-		childClass + ' hover:cursor-pointer dark:text-gray-400 hover:text-black dark:hover:text-white';
-	let activeClass = childClass + ' cursor-default text-primary-600 dark:text-primary-400';
-
-	let mainSidebarUrl = $derived($page.url.pathname);
-	let activeMainSidebar: string = $state('');
+	let activeUrl: string = $state($page.url.pathname);
 
 	afterNavigate((navigation) => {
 		// this fixes https://github.com/themesberg/flowbite-svelte/issues/364
 		document.getElementById('svelte')?.scrollTo({ top: 0 });
 		closeDrawer();
-
-		activeMainSidebar = navigation.to?.url.pathname ?? '';
+		activeUrl = navigation.to?.url.pathname ?? '';
 	});
+
+	const isActive = (href: string) => activeUrl === href || activeUrl.startsWith(href + '/');
 
 	type NavItem = {
 		name: string;
 		icon: any;
 		href: string;
 		hidden?: boolean;
-		children?: Record<string, string>;
+		badge?: string | number;
+		badgeDanger?: boolean;
+	};
+
+	type NavSection = {
+		title: string;
+		items: NavItem[];
 	};
 
 	let anyTargetHasVNC = $derived(
@@ -60,90 +60,302 @@
 			globalState.tags.some((tag) => targetShouldShowVNC(tag, globalState))
 	);
 
-	let navItems: NavItem[] = $derived([
+	let sections: NavSection[] = $derived([
 		{
-			name: $t('nav.overview'),
-			icon: ChartBar,
-			href: '/overview'
+			title: $t('nav.overview'),
+			items: [
+				{ name: $t('nav.overview'), icon: ChartBar, href: '/overview' },
+				{
+					name: $t('nav.configurations'),
+					icon: FileCode,
+					href: '/configuration/list',
+					badge: globalState.configs.length
+				},
+				{
+					name: $t('nav.tags'),
+					icon: TagIcon,
+					href: '/tags',
+					badge: globalState.tags.length
+				},
+				{ name: $t('nav.devices'), icon: Server, href: '/devices' },
+				{
+					name: $t('nav.global-vnc'),
+					icon: ScreenShare,
+					href: '/vnc',
+					hidden: !anyTargetHasVNC
+				},
+				{ name: $t('nav.history'), icon: GitBranch, href: '/history' }
+			]
 		},
 		{
-			name: $t('nav.configurations'),
-			icon: FileCode,
-			href: '/configuration/list'
+			title: $t('nav.secrets'),
+			items: [
+				{ name: $t('nav.secrets'), icon: FileLock, href: '/secrets' },
+				{ name: $t('nav.artifacts'), icon: FolderOpen, href: '/artifacts' },
+				{
+					name: $t('nav.external-repositories'),
+					icon: Settings,
+					href: '/external-repositories'
+				}
+			]
 		},
 		{
-			name: $t('nav.tags'),
-			icon: TagIcon,
-			href: '/tags'
-		},
-		{
-			name: $t('nav.devices'),
-			icon: Server,
-			href: '/devices'
-		},
-		{
-			name: $t('nav.global-vnc'),
-			icon: ScreenShare,
-			href: '/vnc',
-			hidden: !anyTargetHasVNC
-		},
-		{
-			name: $t('nav.history'),
-			icon: GitBranch,
-			href: '/history'
-		},
-		{
-			name: $t('nav.external-repositories'),
-			icon: Settings,
-			href: '/external-repositories'
-		},
-		{
-			name: $t('nav.secrets'),
-			icon: FileLock,
-			href: '/secrets'
-		},
-		{
-			name: $t('nav.artifacts'),
-			icon: FolderOpen,
-			href: '/artifacts'
-		},
-		{
-			name: $t('nav.auto-update'),
-			icon: RefreshCcwDot,
-			href: '/auto-update'
+			title: $t('nav.auto-update'),
+			items: [{ name: $t('nav.auto-update'), icon: RefreshCcwDot, href: '/auto-update' }]
 		}
 	]);
 </script>
 
-<Sidebar
-	class={drawerHidden ? 'hidden' : ''}
-	{nonActiveClass}
-	{activeClass}
-	activeUrl={activeMainSidebar + $page.url.search}
-	asideClass="{asideClass} lg:sticky lg:top-0 border-e border-gray-200 dark:border-gray-600 lg:block"
->
-	<SidebarWrapper
-		divClass="overflow-y-auto bg-white scrolling-touch h-full lg:block dark:bg-gray-800 lg:me-0"
-	>
-		<nav class="flex dark:divide-gray-600 text-base font-medium h-full">
-			<SidebarGroup
-				ulClass="list-unstyled fw-normal p-4  mt-2 lg:p-1 py-2 space-y-2 bg-gray-850 w-full"
-			>
-				{#each navItems as { name, icon, children, href, hidden } (name)}
-					{#if !hidden}
-						{@const SvelteComponent = icon}
+<aside class="ds-sidebar {drawerHidden ? 'drawer-hidden' : ''} {asideClass}">
+	<div class="brand">
+		<a href="/" class="brand-link" aria-label="Thymis Home">
+			<img src="/favicon.png" class="brand-mark" alt="Thymis Logo" />
+			<span class="brand-name">Thymis</span>
+		</a>
+	</div>
+
+	<nav class="nav">
+		{#each sections as section (section.title)}
+			<div class="nav-section">
+				<div class="nav-section-title">{section.title}</div>
+				{#each section.items as item (item.name)}
+					{#if !item.hidden}
+						{@const Icon = item.icon}
 						<a
-							{href}
+							href={item.href}
 							lang={$locale}
-							class={'flex flex-row lg:flex-col items-center text-center gap-2 text-xs hyphens-auto ' +
-								(activeMainSidebar === href ? activeClass : nonActiveClass)}
+							class="nav-item {isActive(item.href) ? 'active' : ''}"
 						>
-							<SvelteComponent size={20} />
-							{name}
+							<Icon size={16} />
+							<span class="nav-label">{item.name}</span>
+							{#if item.badge !== undefined}
+								<span class="nav-badge {item.badgeDanger ? 'danger' : ''}">{item.badge}</span>
+							{/if}
 						</a>
 					{/if}
 				{/each}
-			</SidebarGroup>
-		</nav>
-	</SidebarWrapper>
-</Sidebar>
+			</div>
+		{/each}
+	</nav>
+
+	<div class="sidebar-footer">
+		<button class="user-trigger" id="sidebar-user-trigger" aria-label="User menu">
+			<span class="avatar">A</span>
+			<span class="user-info">
+				<span class="user-name">Admin</span>
+				<span class="user-email">{$t('common.logout')}</span>
+			</span>
+		</button>
+		<DarkMode class="ds-icon-btn" />
+	</div>
+	<Popover
+		triggeredBy="#sidebar-user-trigger"
+		arrow={false}
+		trigger="click"
+		placement="top"
+		class="z-50"
+	>
+		<div class="flex flex-col gap-2 p-2">
+			<div class="flex items-center justify-center w-max">
+				<LanguageSelect />
+			</div>
+			<a
+				href="/auth/logout"
+				class="flex p-2 gap-2 items-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+			>
+				<Logout size={18} />
+				{$t('common.logout')}
+			</a>
+		</div>
+	</Popover>
+</aside>
+
+<style lang="postcss">
+	.ds-sidebar {
+		width: 232px;
+		background: var(--ds-surface);
+		border-right: 1px solid var(--ds-border);
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		height: 100%;
+	}
+
+	/* ---- Brand ---- */
+	.brand {
+		padding: 16px 18px 12px;
+		display: flex;
+		align-items: center;
+	}
+	.brand-link {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+	.brand-mark {
+		width: 28px;
+		height: 28px;
+		min-width: 28px;
+		object-fit: contain;
+		display: block;
+	}
+	.brand-name {
+		font-weight: 600;
+		font-size: 15px;
+		letter-spacing: -0.01em;
+		color: var(--ds-text);
+	}
+
+	/* ---- Nav ---- */
+	.nav {
+		flex: 1;
+		overflow-y: auto;
+		padding: 4px 10px 10px;
+	}
+	.nav-section {
+		margin-top: 14px;
+	}
+	.nav-section-title {
+		padding: 0 8px 6px;
+		font-size: 10.5px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.07em;
+		color: var(--ds-text-mute);
+	}
+	.nav-item {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 7px 9px;
+		margin: 1px 0;
+		border-radius: 7px;
+		color: var(--ds-text-dim);
+		font-size: 13.5px;
+		cursor: pointer;
+		transition:
+			background 0.12s,
+			color 0.12s;
+	}
+	.nav-item:hover {
+		background: var(--ds-surface-2);
+		color: var(--ds-text);
+	}
+	.dark .nav-item:hover {
+		background: var(--ds-surface-2);
+	}
+	.nav-item.active {
+		background: var(--ds-accent-dim);
+		color: var(--ds-accent-strong);
+		font-weight: 500;
+	}
+	.nav-item :global(svg) {
+		width: 16px;
+		height: 16px;
+		flex-shrink: 0;
+	}
+	.nav-label {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.nav-badge {
+		margin-left: auto;
+		font-size: 11px;
+		padding: 1px 6px;
+		border-radius: 999px;
+		background: var(--ds-surface-3);
+		color: var(--ds-text-dim);
+	}
+	.nav-item.active .nav-badge {
+		background: var(--ds-accent-dim);
+		color: var(--ds-accent-strong);
+	}
+	.nav-badge.danger {
+		background: var(--ds-danger-dim);
+		color: var(--ds-danger);
+	}
+
+	/* ---- Footer ---- */
+	.sidebar-footer {
+		border-top: 1px solid var(--ds-border);
+		padding: 10px 12px;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+	.user-trigger {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		flex: 1;
+		min-width: 0;
+		padding: 2px;
+		border-radius: 8px;
+		text-align: left;
+	}
+	.user-trigger:hover {
+		background: var(--ds-surface-2);
+	}
+	.avatar {
+		width: 28px;
+		height: 28px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #4f8cff, #8a4fff);
+		display: grid;
+		place-items: center;
+		color: #fff;
+		font-weight: 600;
+		font-size: 12px;
+		flex-shrink: 0;
+	}
+	.user-info {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		line-height: 1.2;
+	}
+	.user-name {
+		font-size: 13px;
+		font-weight: 500;
+		color: var(--ds-text);
+	}
+	.user-email {
+		font-size: 11px;
+		color: var(--ds-text-mute);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.sidebar-footer :global(.ds-icon-btn) {
+		width: 30px;
+		height: 30px;
+		display: grid;
+		place-items: center;
+		border-radius: 6px;
+		color: var(--ds-text-dim);
+		flex-shrink: 0;
+	}
+	.sidebar-footer :global(.ds-icon-btn:hover) {
+		background: var(--ds-surface-2);
+		color: var(--ds-text);
+	}
+
+	/* ---- Mobile drawer ---- */
+	@media (max-width: 1023px) {
+		.ds-sidebar {
+			position: fixed;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			z-index: 60;
+			box-shadow: var(--ds-shadow-lg);
+			transition: transform 0.2s ease;
+		}
+		.ds-sidebar.drawer-hidden {
+			transform: translateX(-100%);
+		}
+	}
+</style>

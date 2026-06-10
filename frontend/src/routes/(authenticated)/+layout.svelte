@@ -86,26 +86,21 @@
 
 <ProgressBar class="text-primary-500" zIndex={100} />
 
-<div class="contents bg-gray-50 dark:bg-gray-900 dark:text-white">
-	<header
-		class="fixed top-0 z-40 mx-auto w-full flex-none border-b border-gray-200 bg-white dark:border-gray-600 dark:bg-gray-800"
-	>
-		<Navbar
-			globalState={data.globalState}
-			nav={data.nav}
-			class="h-[calc(var(--navbar-height))] max-h-[calc(var(--navbar-height))]"
-			bind:drawerHidden
-		/>
-	</header>
-	<div class="h-screen block z-50 {drawerHidden ? 'hidden' : ''} lg:hidden">
-		<Sidebar
-			globalState={data.globalState}
-			asideClass="h-full pt-[calc(var(--navbar-height))]"
-			bind:drawerHidden
-		/>
-	</div>
-	<div class="{drawerHidden ? '' : 'hidden'} lg:block pt-[calc(var(--navbar-height))] h-full">
-		<div class="flex flex-row h-full">
+<div class="ds-shell">
+	<Sidebar globalState={data.globalState} bind:drawerHidden />
+
+	{#if !drawerHidden}
+		<button
+			class="ds-backdrop lg:hidden"
+			aria-label="Close navigation"
+			onclick={() => (drawerHidden = true)}
+		></button>
+	{/if}
+
+	<div class="ds-main">
+		<Navbar globalState={data.globalState} nav={data.nav} bind:drawerHidden />
+
+		<div class="ds-body">
 			<SplitPane
 				type="vertical"
 				reverse={true}
@@ -115,7 +110,7 @@
 				onchange={onSplitpaneChange}
 			>
 				{#snippet a()}
-					<MainWindow globalState={data.globalState} bind:drawerHidden>
+					<MainWindow globalState={data.globalState}>
 						{@render children?.()}
 					</MainWindow>
 				{/snippet}
@@ -159,6 +154,33 @@
 
 <style lang="postcss">
 	:root {
-		--navbar-height: 50px;
+		--navbar-height: 52px;
+	}
+
+	.ds-shell {
+		display: flex;
+		height: 100vh;
+		width: 100%;
+		overflow: hidden;
+		background: var(--ds-bg);
+		color: var(--ds-text);
+	}
+	.ds-main {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-width: 0;
+		overflow: hidden;
+	}
+	.ds-body {
+		flex: 1;
+		min-height: 0;
+	}
+	.ds-backdrop {
+		position: fixed;
+		inset: 0;
+		z-index: 55;
+		background: rgba(0, 0, 0, 0.45);
+		border: none;
 	}
 </style>
