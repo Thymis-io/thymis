@@ -74,9 +74,9 @@
 
 <Tabs
 	contentClass="mb-4"
-	defaultClass="flex flex-wrap gap-x-2"
-	activeClasses="inline-block text-sm font-medium text-center rounded-t-lg disabled:cursor-not-allowed p-2 bg-gray-100 dark:bg-gray-800 text-primary-600 dark:text-primary-400"
-	inactiveClasses="inline-block text-sm font-medium text-center rounded-t-lg disabled:cursor-not-allowed p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+	defaultClass="flex flex-wrap gap-1 border-b border-[var(--ds-border)] mb-4"
+	activeClasses="inline-block text-sm font-medium text-center disabled:cursor-not-allowed p-2 px-3 -mb-px border-b-2 border-[var(--ds-accent)] text-[var(--ds-accent-strong)]"
+	inactiveClasses="inline-block text-sm font-medium text-center disabled:cursor-not-allowed p-2 px-3 -mb-px border-b-2 border-transparent text-[var(--ds-text-dim)] hover:text-[var(--ds-text)]"
 >
 	{#each dynamicNavItems as item}
 		{#if !item.hidden}

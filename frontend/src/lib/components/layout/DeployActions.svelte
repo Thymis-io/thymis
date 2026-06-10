@@ -23,7 +23,7 @@
 
 	let { nav, globalState, repoStatus, selectedDeploymentInfo = undefined }: Props = $props();
 
-	const buttonClass = 'flex-auto sm:flex-[0_1_100px] gap-2 px-2 py-1.5 h-min';
+	const buttonClass = 'gap-2 px-3 py-1.5 h-min whitespace-nowrap';
 	const textClass = 'text-base whitespace-nowrap';
 
 	const build = async () => {
@@ -48,7 +48,7 @@
 	let openCommit = $state(false);
 </script>
 
-<div class="flex flex-wrap justify-end align-start ml-2 my-1.5 gap-1 sm:gap-2 w-[38rem]">
+<div class="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
 	<Button color="alternative" class={buttonClass} on:click={build}>
 		<Hammer size={'1rem'} class="min-w-4" />
 		<span class={textClass}>{$t('deploy.build')}</span>

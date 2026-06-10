@@ -8,7 +8,6 @@
 	import { type Config } from '$lib/state';
 	import { getConfigImageFormat } from '$lib/config/configUtils';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
-	import { Button } from 'flowbite-svelte';
 	import CommitModal from '$lib/repo/CommitModal.svelte';
 	import { invalidateButDeferUntilNavigation } from '$lib/notification';
 	import type { LayoutData } from './$types';
@@ -72,41 +71,40 @@
 	}}
 />
 <PageHead repoStatus={data.repoStatus} globalState={data.globalState} nav={data.nav}>
-	<h1 class="flex text-3xl font-bold dark:text-white items-center">
+	<h1 class="ds-page-title flex items-center">
 		<IdentifierLink
 			identifier={data.globalState.selectedTargetIdentifier}
 			context={data.globalState.selectedTargetType}
 			globalState={data.globalState}
 			showLinkHover={false}
-			iconSize={'1.75rem'}
+			iconSize={'1.5rem'}
 		/>
 	</h1>
-	{#if data.nav.selectedConfig}
-		<Button
-			color="alternative"
-			class="whitespace-nowrap gap-2 px-2 py-2"
-			on:click={async () => {
-				await saveState(data.globalState);
-				await invalidateButDeferUntilNavigation((url) => url.pathname === '/api/repo_status');
+	{#snippet actions()}
+		{#if data.nav.selectedConfig}
+			<button
+				class="ds-btn whitespace-nowrap"
+				onclick={async () => {
+					await saveState(data.globalState);
+					await invalidateButDeferUntilNavigation((url) => url.pathname === '/api/repo_status');
 
-				if (data.repoStatus.changes.length > 0) {
-					openCommitModal = true;
-				} else {
-					await buildAndDownloadImage(data.nav.selectedConfig);
-				}
-			}}
-		>
-			{#if isVM}
-				<Play size={'1rem'} class="min-w-4" />
-				<span class="text-base whitespace-nowrap">
+					if (data.repoStatus.changes.length > 0) {
+						openCommitModal = true;
+					} else {
+						await buildAndDownloadImage(data.nav.selectedConfig);
+					}
+				}}
+			>
+				{#if isVM}
+					<Play size={'1rem'} class="min-w-4" />
 					{$t('configurations.actions.build-vm-and-start')}
-				</span>
-			{:else}
-				<Download size={'1rem'} class="min-w-4" />
-				<span class="text-base whitespace-nowrap">{$t('configurations.actions.download')}</span>
-			{/if}
-		</Button>
-	{/if}
+				{:else}
+					<Download size={'1rem'} class="min-w-4" />
+					{$t('configurations.actions.download')}
+				{/if}
+			</button>
+		{/if}
+	{/snippet}
 </PageHead>
 <Tabbar globalState={data.globalState} deploymentInfos={data.deploymentInfos} nav={data.nav} />
 {@render children?.()}

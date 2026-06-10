@@ -62,6 +62,7 @@
 	},
 	"configurations": {
 		"title": "Gerätekonfigurationen",
+		"subtitle": "Zusammensetzbare, vererbbare Konfigurationen für die gesamte Flotte.",
 		"details-title": "Konfiguration",
 		"create-new": "Neue Konfiguration Erstellen ({configCount}/{configLimit})",
 		"table": {
@@ -118,6 +119,7 @@
 		},
 		"known-devices-with-deployment": "Derzeit deployed",
 		"known-devices-without-deployment": "Bekannte Geräte ohne aktuelles deployment",
+		"subtitle": "Physische Geräte und ihre bereitgestellten Konfigurationen.",
 		"hide-old-devices": "Alte Geräte verstecken",
 		"no-known-hardware-devices-without-known-deployment": "Keine bekannten Hardware-Geräte ohne Deployment"
 	},

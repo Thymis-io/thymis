@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import { saveState, type Config, type Tag } from '$lib/state';
 	import Pen from 'lucide-svelte/icons/pen';
-	import { Button, Table, TableBodyCell, TableHead, TableHeadCell, Tooltip } from 'flowbite-svelte';
+	import { Tooltip } from 'flowbite-svelte';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Search from 'lucide-svelte/icons/search';
 	import Trash from 'lucide-svelte/icons/trash-2';
@@ -98,33 +98,35 @@
 
 <PageHead
 	title={$t('configurations.title')}
+	subtitle={$t('configurations.subtitle')}
 	repoStatus={data.repoStatus}
 	globalState={data.globalState}
 	nav={data.nav}
 >
-	<Button
-		color="alternative"
-		class="whitespace-nowrap gap-2 px-2 py-2"
-		on:click={() => (newConfigModalOpen = true)}
-		disabled={configs.length >= 5}
-	>
-		<Plus size={20} />
-		{$t('configurations.create-new', {
-			values: {
-				configCount: configs.length,
-				configLimit: 5
-			}
-		})}
-	</Button>
-	{#if configs.length >= 5}
-		<Tooltip class="z-50 whitespace-pre">
-			{$t('configurations.limit-explain', {
+	{#snippet actions()}
+		<button
+			class="ds-btn ds-btn-primary whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
+			onclick={() => (newConfigModalOpen = true)}
+			disabled={configs.length >= 5}
+		>
+			<Plus size={16} />
+			{$t('configurations.create-new', {
 				values: {
+					configCount: configs.length,
 					configLimit: 5
 				}
 			})}
-		</Tooltip>
-	{/if}
+		</button>
+		{#if configs.length >= 5}
+			<Tooltip class="z-50 whitespace-pre">
+				{$t('configurations.limit-explain', {
+					values: {
+						configLimit: 5
+					}
+				})}
+			</Tooltip>
+		{/if}
+	{/snippet}
 </PageHead>
 <DeleteConfirm
 	target={configToDelete?.displayName}
@@ -136,112 +138,114 @@
 />
 <CreateConfigModal globalState={data.globalState} bind:open={newConfigModalOpen} />
 <EditTagModal globalState={data.globalState} bind:currentlyEditingConfig />
-<Table shadow>
-	<TableHead theadClass="text-xs normal-case">
-		<TableHeadCell padding="p-2 w-12" />
-		<TableHeadCell padding="p-2">{$t('configurations.table.name')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('configurations.table.tags')}</TableHeadCell>
-		<TableHeadCell padding="p-2">{$t('configurations.table.actions')}</TableHeadCell>
-	</TableHead>
-	<tbody
-		use:dndzone={{ items: configs, dragDisabled, flipDurationMs }}
-		onconsider={handleConsider}
-		onfinalize={handleFinalize}
-	>
-		{#each configs as config (config.id)}
-			<tr
-				class="h-12 border-b last:border-b-0 bg-white dark:bg-gray-800 dark:border-gray-700 whitespace-nowrap"
-				animate:flip={{ duration: flipDurationMs }}
-			>
-				<TableBodyCell tdClass="p-2">
-					<div class="flex items-center justify-center">
-						<div
-							tabindex={dragDisabled ? 0 : -1}
-							aria-label="drag-handle"
-							role="button"
-							class="handle"
-							style={dragDisabled ? 'cursor: grab' : 'cursor: grabbing'}
-							onmousedown={startDrag}
-							ontouchstart={startDrag}
-							onkeydown={handleKeyDown}
-						>
-							<GripVertical size={'1rem'} class="min-w-4" />
-						</div>
-					</div>
-				</TableBodyCell>
-				<TableBodyEditCell
-					value={config.data.displayName}
-					onEnter={async (value) => {
-						const success = await renameConfig(config.data, value);
-
-						if (!success) {
-							// Reset the display name if the rename was unsuccessful
-							config.data.displayName = config.data.displayName;
-						}
-					}}
-				>
-					<IdentifierLink
-						identifier={config.data.identifier}
-						context="config"
-						globalState={data.globalState}
-					/>
-				</TableBodyEditCell>
-				<TableBodyCell tdClass="p-2 px-2 md:px-4">
-					<div class="flex gap-4">
-						<div class="flex gap-2">
-							{#each config.data.tags as tag, i}
-								<IdentifierLink
-									identifier={tag}
-									context="tag"
-									globalState={data.globalState}
-									solidBackground
-								/>
-							{/each}
-						</div>
-						<button class="p-0" onclick={() => (currentlyEditingConfig = config.data)}>
-							<Pen size={'1rem'} class="min-w-4" />
-						</button>
-					</div>
-				</TableBodyCell>
-				<TableBodyCell tdClass="p-1 px-2 md:px-4">
-					<div class="flex gap-2">
-						<Button
-							class="px-3 py-1.5 gap-2"
-							color="alternative"
-							href={`/configuration/configuration-details?${buildGlobalNavSearchParam(
-								data.globalState,
-								$page.url.search,
-								'config',
-								config.data.identifier
-							)}`}
-						>
-							<Search size={18} class="min-w-3" />
-							{$t('configurations.actions.view-details')}
-						</Button>
-						<Button
-							class="px-3 py-1.5 gap-2"
-							color="alternative"
-							href={`/configuration/edit?${buildGlobalNavSearchParam(
-								data.globalState,
-								$page.url.search,
-								'config',
-								config.data.identifier
-							)}`}
-						>
-							<Sliders size={18} class="min-w-3" />
-							{$t('nav.configure')}
-						</Button>
-						<Button
-							class="ml-8 px-2 py-1.5 gap-2 justify-start"
-							color="alternative"
-							on:click={() => (configToDelete = config.data)}
-						>
-							<Trash size="16" />
-							{$t('configurations.actions.delete')}
-						</Button>
-					</div>
-				</TableBodyCell>
+<div class="ds-table-wrap">
+	<table class="ds-table">
+		<thead>
+			<tr>
+				<th class="w-12"></th>
+				<th>{$t('configurations.table.name')}</th>
+				<th>{$t('configurations.table.tags')}</th>
+				<th class="text-right">{$t('configurations.table.actions')}</th>
 			</tr>
-		{/each}
-	</tbody>
-</Table>
+		</thead>
+		<tbody
+			use:dndzone={{ items: configs, dragDisabled, flipDurationMs }}
+			onconsider={handleConsider}
+			onfinalize={handleFinalize}
+		>
+			{#each configs as config (config.id)}
+				<tr animate:flip={{ duration: flipDurationMs }}>
+					<td>
+						<div class="flex items-center justify-center">
+							<div
+								tabindex={dragDisabled ? 0 : -1}
+								aria-label="drag-handle"
+								role="button"
+								class="handle"
+								style={dragDisabled ? 'cursor: grab' : 'cursor: grabbing'}
+								onmousedown={startDrag}
+								ontouchstart={startDrag}
+								onkeydown={handleKeyDown}
+							>
+								<GripVertical size={'1rem'} class="min-w-4" style="color: var(--ds-text-mute)" />
+							</div>
+						</div>
+					</td>
+					<TableBodyEditCell
+						value={config.data.displayName}
+						onEnter={async (value) => {
+							const success = await renameConfig(config.data, value);
+
+							if (!success) {
+								// Reset the display name if the rename was unsuccessful
+								config.data.displayName = config.data.displayName;
+							}
+						}}
+					>
+						<IdentifierLink
+							identifier={config.data.identifier}
+							context="config"
+							globalState={data.globalState}
+						/>
+					</TableBodyEditCell>
+					<td>
+						<div class="flex items-center gap-3">
+							<div class="flex flex-wrap gap-2">
+								{#each config.data.tags as tag, i}
+									<IdentifierLink
+										identifier={tag}
+										context="tag"
+										globalState={data.globalState}
+										solidBackground
+									/>
+								{/each}
+							</div>
+							<button
+								class="p-0 shrink-0"
+								style="color: var(--ds-text-mute)"
+								onclick={() => (currentlyEditingConfig = config.data)}
+							>
+								<Pen size={'0.875rem'} class="min-w-4" />
+							</button>
+						</div>
+					</td>
+					<td>
+						<div class="flex items-center justify-end gap-2">
+							<a
+								class="ds-btn ds-btn-sm"
+								href={`/configuration/configuration-details?${buildGlobalNavSearchParam(
+									data.globalState,
+									$page.url.search,
+									'config',
+									config.data.identifier
+								)}`}
+							>
+								<Search size={15} class="min-w-3" />
+								{$t('configurations.actions.view-details')}
+							</a>
+							<a
+								class="ds-btn ds-btn-sm"
+								href={`/configuration/edit?${buildGlobalNavSearchParam(
+									data.globalState,
+									$page.url.search,
+									'config',
+									config.data.identifier
+								)}`}
+							>
+								<Sliders size={15} class="min-w-3" />
+								{$t('nav.configure')}
+							</a>
+							<button
+								class="ds-btn ds-btn-sm ds-btn-danger"
+								onclick={() => (configToDelete = config.data)}
+							>
+								<Trash size={15} />
+								{$t('configurations.actions.delete')}
+							</button>
+						</div>
+					</td>
+				</tr>
+			{/each}
+		</tbody>
+	</table>
+</div>

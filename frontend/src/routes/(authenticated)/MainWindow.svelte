@@ -10,6 +10,10 @@
 	let { children }: Props = $props();
 </script>
 
-<div class="w-full h-full overflow-y-auto p-4 bg-[var(--ds-bg)] text-[var(--ds-text)]">
-	{@render children?.()}
+<!-- Outer div is the SplitPane's direct child (forced overflow:hidden, h-full);
+     the inner div is the actual scroll container. -->
+<div class="w-full h-full bg-[var(--ds-bg)] text-[var(--ds-text)]">
+	<div class="w-full h-full overflow-y-auto p-4">
+		{@render children?.()}
+	</div>
 </div>

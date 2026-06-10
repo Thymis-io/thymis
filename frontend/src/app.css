@@ -258,6 +258,233 @@ body {
 	color: var(--ds-text-dim);
 }
 
+.ds-section-title {
+	font-size: 15px;
+	font-weight: 600;
+	color: var(--ds-text);
+	margin: 0;
+}
+
+/* ---- Buttons ---- */
+.ds-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 7px 13px;
+	border-radius: 8px;
+	font-size: 13px;
+	font-weight: 500;
+	background: var(--ds-surface-2);
+	color: var(--ds-text);
+	border: 1px solid var(--ds-border);
+	transition:
+		background 0.12s,
+		border-color 0.12s,
+		color 0.12s;
+}
+.ds-btn:hover {
+	background: var(--ds-surface-3);
+	border-color: var(--ds-border-strong);
+}
+.ds-btn-primary {
+	background: var(--ds-accent);
+	color: #fff;
+	border-color: var(--ds-accent);
+}
+.ds-btn-primary:hover {
+	background: var(--ds-accent-strong);
+	border-color: var(--ds-accent-strong);
+}
+.ds-btn-ghost {
+	background: transparent;
+	border-color: transparent;
+}
+.ds-btn-ghost:hover {
+	background: var(--ds-surface-2);
+	border-color: var(--ds-border);
+}
+.ds-btn-sm {
+	padding: 5px 10px;
+	font-size: 12.5px;
+}
+.ds-btn-danger {
+	color: var(--ds-danger);
+	background: var(--ds-danger-dim);
+	border-color: transparent;
+}
+.ds-btn-danger:hover {
+	background: var(--ds-danger-dim);
+	border-color: var(--ds-danger);
+}
+
+/* ---- Tables ---- */
+.ds-table-wrap {
+	background: var(--ds-surface);
+	border: 1px solid var(--ds-border);
+	border-radius: var(--ds-radius);
+	overflow: hidden;
+	overflow-x: auto;
+}
+.ds-table {
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0;
+}
+.ds-table th,
+.ds-table td {
+	text-align: left;
+	padding: 11px 14px;
+	border-bottom: 1px solid var(--ds-border);
+	font-size: 13px;
+	vertical-align: middle;
+	color: var(--ds-text);
+	white-space: nowrap;
+}
+.ds-table thead th {
+	background: var(--ds-surface-2);
+	font-size: 11.5px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--ds-text-mute);
+}
+.ds-table tbody tr {
+	transition: background 0.12s;
+}
+.ds-table tbody tr:hover {
+	background: var(--ds-surface-2);
+}
+.ds-table tbody tr:last-child td {
+	border-bottom: none;
+}
+.ds-table th:first-child,
+.ds-table td:first-child {
+	padding-left: 18px;
+}
+.ds-table th:last-child,
+.ds-table td:last-child {
+	padding-right: 18px;
+}
+.ds-table-empty {
+	padding: 28px 18px;
+	text-align: center;
+	color: var(--ds-text-dim);
+	font-size: 13px;
+}
+
+/* ---- Status pill ---- */
+.ds-status-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 3px 8px;
+	border-radius: 999px;
+	font-size: 11.5px;
+	font-weight: 500;
+	border: 1px solid transparent;
+}
+.ds-status-pill.online {
+	color: var(--ds-success);
+	background: var(--ds-success-dim);
+}
+.ds-status-pill.warning {
+	color: var(--ds-warning);
+	background: var(--ds-warning-dim);
+}
+.ds-status-pill.danger {
+	color: var(--ds-danger);
+	background: var(--ds-danger-dim);
+}
+.ds-status-pill.offline {
+	color: var(--ds-text-dim);
+	background: var(--ds-offline-dim);
+}
+.ds-status-pill .ds-dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: currentColor;
+}
+.ds-status-pill.online .ds-dot {
+	animation: ds-pulse 2s infinite;
+}
+@keyframes ds-pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.4;
+	}
+}
+
+/* ---- Tag chip ---- */
+.ds-tag {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px 7px;
+	border-radius: 4px;
+	font-size: 11.5px;
+	font-weight: 500;
+	background: var(--ds-surface-3);
+	color: var(--ds-text-dim);
+}
+.ds-mono {
+	font-family: var(--ds-mono);
+	font-size: 12px;
+	color: var(--ds-text-dim);
+}
+
+/* ---- Key/value list ---- */
+.ds-kv {
+	display: flex;
+	flex-direction: column;
+}
+.ds-kv-row {
+	display: grid;
+	grid-template-columns: 130px 1fr;
+	gap: 12px;
+	padding: 9px 0;
+	border-bottom: 1px dashed var(--ds-border);
+	font-size: 13px;
+}
+.ds-kv-row:last-child {
+	border-bottom: none;
+}
+.ds-kv-key {
+	color: var(--ds-text-dim);
+}
+.ds-kv-val {
+	color: var(--ds-text);
+	min-width: 0;
+	word-break: break-word;
+}
+.ds-kv-val.mono {
+	font-family: var(--ds-mono);
+	font-size: 12px;
+}
+
+/* ---- Timeline / connection entries ---- */
+.ds-timeline-item {
+	border-left: 2px solid var(--ds-accent);
+	padding: 4px 0 4px 12px;
+	margin-bottom: 8px;
+}
+.ds-net-iface {
+	border: 1px solid var(--ds-border);
+	border-radius: 8px;
+	padding: 9px 11px;
+	background: var(--ds-surface-2);
+}
+
+/* ---- Toggle (matches the prototype accent) ---- */
+.ds-filterbar {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
 div.multiselect {
 	@apply !p-2;
 	@apply !rounded-lg;
