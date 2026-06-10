@@ -7,7 +7,7 @@
 	import DeploymentInstanceRow, {
 		type ConfigInstance
 	} from '$lib/components/DeploymentInstanceRow.svelte';
-	import { Button, Select } from 'flowbite-svelte';
+	import { Select } from 'flowbite-svelte';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import CommitModal from '$lib/repo/CommitModal.svelte';
 	import { invalidateButDeferUntilNavigation } from '$lib/notification';
@@ -126,16 +126,15 @@
 							bind:value={switchConfigSelections[deploymentInfo.id]}
 							placeholder={$t('configuration-details.switch-config-select')}
 						/>
-						<Button
-							class="px-2 py-1.5 gap-2"
-							color="alternative"
+						<button
+							class="ds-btn ds-btn-sm disabled:cursor-not-allowed disabled:opacity-50"
 							disabled={!switchConfigSelections[deploymentInfo.id]}
-							on:click={() =>
+							onclick={() =>
 								switchConfig(deploymentInfo, switchConfigSelections[deploymentInfo.id])}
 						>
 							<ArrowRightLeft size="16" />
 							{$t('configuration-details.switch-config')}
-						</Button>
+						</button>
 						{#if deploymentInfo.pending_config_id}
 							{@const [before, after] = $t('configuration-details.switching-to').split('{config}')}
 							<div class="text-sm text-yellow-600 dark:text-yellow-400 flex items-center gap-1">

@@ -2,7 +2,6 @@
 	import { t } from 'svelte-i18n';
 	import Section from './Section.svelte';
 	import { saveState, type Config } from '$lib/state';
-	import { Button } from 'flowbite-svelte';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import Trash from 'lucide-svelte/icons/trash-2';
 	import { goto } from '$app/navigation';
@@ -36,12 +35,11 @@
 	on:cancel={() => (configToDelete = undefined)}
 />
 <Section class={className} title={$t('configuration-details.danger')}>
-	<Button
-		class="px-2 py-1.5 gap-2 justify-start"
-		color="alternative"
-		on:click={() => (configToDelete = config)}
+	<button
+		class="ds-btn ds-btn-danger justify-start self-start"
+		onclick={() => (configToDelete = config)}
 	>
 		<Trash size="16" />
 		{$t('configurations.actions.delete')}
-	</Button>
+	</button>
 </Section>

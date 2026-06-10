@@ -4,7 +4,6 @@
 	import { type Config, type Module } from '$lib/state';
 	import { buildConfigSelectModuleSearchParam } from '$lib/searchParamHelpers';
 	import { page } from '$app/stores';
-	import { Button } from 'flowbite-svelte';
 	import Pen from 'lucide-svelte/icons/pen';
 	import EditTagModal from '$lib/EditTagModal.svelte';
 	import ModuleIcon from '$lib/config/ModuleIcon.svelte';
@@ -35,7 +34,9 @@
 
 <EditTagModal {globalState} bind:currentlyEditingConfig />
 <Section class={className} title={$t('configuration-details.config')}>
-	<p class="text-base">{$t('configuration-details.modules')}</p>
+	<p class="text-xs font-semibold uppercase tracking-wide" style="color: var(--ds-text-mute)">
+		{$t('configuration-details.modules')}
+	</p>
 	<div class="flex gap-2 items-center flex-wrap text-base">
 		{#each getOwnModules(config, availableModules) as module}
 			<a
@@ -56,20 +57,18 @@
 			</a>
 		{/each}
 	</div>
-	<p class="text-base">{$t('configuration-details.tags')}</p>
-	<div class="flex gap-2 items-center text-base">
+	<p class="mt-2 text-xs font-semibold uppercase tracking-wide" style="color: var(--ds-text-mute)">
+		{$t('configuration-details.tags')}
+	</p>
+	<div class="flex gap-3 items-center text-base">
 		<div class="flex gap-2 flex-wrap">
 			{#each config.tags as tag, i}
 				<IdentifierLink identifier={tag} context="tag" {globalState} solidBackground />
 			{/each}
 		</div>
-		<Button
-			color="alternative"
-			class="p-2 py-1.5 gap-2"
-			on:click={() => (currentlyEditingConfig = config)}
-		>
+		<button class="ds-btn ds-btn-sm" onclick={() => (currentlyEditingConfig = config)}>
 			<Pen size="16" />
-			<span class="text-sm">{$t('configuration-details.edit-tags')}</span>
-		</Button>
+			<span>{$t('configuration-details.edit-tags')}</span>
+		</button>
 	</div>
 </Section>

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
-	import { Card } from 'flowbite-svelte';
 	import SectionConfiguration from './SectionConfiguration.svelte';
 	import SectionActions from './SectionActions.svelte';
 	import SectionDanger from './SectionDanger.svelte';
@@ -22,7 +21,7 @@
 </script>
 
 {#if data.nav.selectedConfig}
-	<div class="grid grid-cols-4 grid-flow-row gap-x-2 gap-y-6">
+	<div class="grid grid-cols-4 grid-flow-row gap-4">
 		<SectionDeploymentInfo
 			class="col-span-3"
 			deploymentInfos={data.deploymentInfos}
@@ -67,9 +66,7 @@
 						class="flex justify-center my-1"
 					/>
 				{/snippet}
-				<Card class="w-full max-w-none" padding="sm">
-					<Terminal {deploymentInfo} />
-				</Card>
+				<Terminal {deploymentInfo} />
 			</Section>
 		{/each}
 	</div>

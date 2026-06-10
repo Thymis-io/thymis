@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Badge, Button, Input, Modal, Spinner } from 'flowbite-svelte';
+	import { Button, Input, Modal } from 'flowbite-svelte';
 	import Pen from 'lucide-svelte/icons/pen';
 	import type { PageData } from './$types';
 	import { updateDeploymentInfo, isOnline as checkOnline } from '$lib/deploymentInfo';
@@ -71,6 +71,7 @@
 
 <PageHead
 	title={deploymentInfo.name ?? deploymentInfo.id}
+	subtitle={deploymentInfo.reachable_deployed_host ?? undefined}
 	repoStatus={data.repoStatus}
 	globalState={data.globalState}
 	nav={data.nav}
@@ -78,14 +79,16 @@
 >
 	<button
 		onclick={openNameModal}
-		class="rounded p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+		class="rounded p-1"
+		style="color: var(--ds-text-mute)"
 		title={$t('device-details.edit')}
 	>
-		<Pen class="h-5 w-5" />
+		<Pen class="h-[18px] w-[18px]" />
 	</button>
-	<Badge color={isOnline ? 'green' : 'red'}>
+	<span class="ds-status-pill {isOnline ? 'online' : 'offline'}">
+		<span class="ds-dot"></span>
 		{isOnline ? $t('device-details.online') : $t('device-details.offline')}
-	</Badge>
+	</span>
 </PageHead>
 
 <Modal bind:open={nameModalOpen} title={$t('device-details.edit')}>
@@ -103,12 +106,12 @@
 		<Section title={$t('device-details.system-metrics')} class="h-full">
 			<div class="mb-4 flex gap-2">
 				{#each ['1h', '24h', '7d'] as w (w)}
-					<Button
-						color={metricsTimeWindow === w ? 'blue' : 'light'}
+					<button
+						class="ds-btn ds-btn-sm {metricsTimeWindow === w ? 'ds-btn-primary' : ''}"
 						onclick={() => handleTimeWindowChange(w as TimeWindow)}
 					>
 						{w}
-					</Button>
+					</button>
 				{/each}
 			</div>
 			<SectionMetrics metrics={data.metrics} timewindow={metricsTimeWindow} />

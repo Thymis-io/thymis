@@ -62,6 +62,7 @@
 	},
 	"configurations": {
 		"title": "Device Configurations",
+		"subtitle": "Composable, inheritable configurations applied across your fleet.",
 		"details-title": "Configuration",
 		"create-new": "Create New Configuration ({configCount}/{configLimit})",
 		"table": {
@@ -118,6 +119,7 @@
 		},
 		"known-devices-without-deployment": "Known devices without any current deployment",
 		"known-devices-with-deployment": "Currently deployed",
+		"subtitle": "Physical devices and their deployed configurations.",
 		"hide-old-devices": "Hide old devices",
 		"no-known-hardware-devices-without-known-deployment": "No known hardware devices without known deployment"
 	},

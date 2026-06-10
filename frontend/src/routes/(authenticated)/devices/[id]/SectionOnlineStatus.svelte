@@ -16,14 +16,14 @@
 <Section title={$t('device-details.connection-history')}>
 	<div class="space-y-2">
 		{#each connectionHistory as conn}
-			<div class="border-l-4 border-blue-500 py-2 pl-3">
-				<p class="text-sm">
-					<strong>{$t('device-details.connected')}:</strong>
+			<div class="ds-timeline-item">
+				<p class="text-sm" style="color: var(--ds-text)">
+					<strong style="font-weight: 600">{$t('device-details.connected')}:</strong>
 					{formatTime(conn.connected_at)}
 				</p>
 				{#if conn.disconnected_at}
-					<p class="text-sm">
-						<strong>{$t('device-details.disconnected')}:</strong>
+					<p class="text-sm" style="color: var(--ds-text-dim)">
+						<strong style="font-weight: 600">{$t('device-details.disconnected')}:</strong>
 						{formatTime(conn.disconnected_at)}
 					</p>
 				{/if}
