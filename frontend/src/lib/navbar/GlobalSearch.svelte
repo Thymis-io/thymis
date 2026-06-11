@@ -53,7 +53,7 @@
 		{#if isSearched(search, tag.displayName)}
 			<DropdownItem
 				href={`${subpage}?${buildGlobalNavSearchParam(globalState, $page.url.search, 'tag', tag.identifier)}`}
-				class={`flex gap-2 p-1 hover:bg-gray-100 items-center rounded ${active ? 'text-primary-600 dark:text-primary-400 hover:text-primary-600' : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'}`}
+				class={`flex gap-2 p-1 hover:bg-[var(--ds-surface-2)] items-center rounded ${active ? 'text-[var(--ds-accent-strong)]' : 'text-[var(--ds-text-dim)] hover:text-[var(--ds-text)]'}`}
 				on:click={() => (open = false)}
 			>
 				<TagIcon size={'1rem'} class="min-w-4" />
@@ -76,7 +76,7 @@
 		{#if isSearched(search, config.displayName)}
 			<DropdownItem
 				href={`${subpage}?${buildGlobalNavSearchParam(globalState, $page.url.search, 'config', config.identifier)}`}
-				class={`flex gap-2 p-1 hover:bg-gray-100 items-center rounded ${active ? 'text-primary-600 dark:text-primary-400 hover:text-primary-600' : 'text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white'}`}
+				class={`flex gap-2 p-1 hover:bg-[var(--ds-surface-2)] items-center rounded ${active ? 'text-[var(--ds-accent-strong)]' : 'text-[var(--ds-text-dim)] hover:text-[var(--ds-text)]'}`}
 				on:click={() => (open = false)}
 			>
 				<FileCode size={'1rem'} class="min-w-4" />

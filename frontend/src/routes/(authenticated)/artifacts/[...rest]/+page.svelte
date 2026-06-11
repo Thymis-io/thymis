@@ -21,6 +21,7 @@
 	let files = $state<FileList>();
 	let uploadReplaceFile = $state<File | null>(null);
 	let deleteConfirmTarget = $state<Artifact | undefined>();
+	let showUploadModal = $state(false);
 
 	const uploadFiles = async () => {
 		if (!files || files.length === 0) return;
@@ -36,7 +37,26 @@
 		});
 
 		await invalidate((url) => url.pathname.startsWith('/api/artifacts'));
-		(document.getElementById('fileUpload') as HTMLInputElement).value = '';
+		const input = document.getElementById('fileUpload') as HTMLInputElement | null;
+		if (input) input.value = '';
+		files = undefined;
+		showUploadModal = false;
+		uploadReplaceFile = null;
+	};
+
+	const submitUpload = () => {
+		if (!files || files.length === 0) return;
+		if (isUnusedName(null, files[0].name)) {
+			uploadFiles();
+		} else {
+			showUploadModal = false;
+			uploadReplaceFile = files[0];
+		}
+	};
+
+	const closeUploadModal = () => {
+		files = undefined;
+		showUploadModal = false;
 	};
 
 	const bytesToHumanReadable = (bytes: number): string => {
@@ -95,13 +115,53 @@
 	repoStatus={data.repoStatus}
 	globalState={data.globalState}
 	nav={data.nav}
-/>
+>
+	{#snippet actions()}
+		<button
+			class="ds-btn ds-btn-primary whitespace-nowrap"
+			onclick={() => {
+				files = undefined;
+				showUploadModal = true;
+			}}
+		>
+			+ {$t('artifacts.upload-file')}
+		</button>
+	{/snippet}
+</PageHead>
 
 <DeleteConfirm
 	target={deleteConfirmTarget?.name}
 	on:cancel={() => (deleteConfirmTarget = undefined)}
 	on:confirm={() => deleteConfirmTarget && deleteArtifact(deleteConfirmTarget)}
 />
+
+<Modal
+	bind:open={showUploadModal}
+	title={$t('artifacts.upload-title')}
+	outsideclose
+	on:close={closeUploadModal}
+>
+	<div class="space-y-4">
+		<p class="text-sm" style="color: var(--ds-text-dim)">
+			{$t('artifacts.upload-description')}
+		</p>
+		<input
+			id="fileUpload"
+			type="file"
+			multiple
+			bind:files
+			class="playwright-snapshot-unstable block w-full cursor-pointer rounded-lg border border-dashed border-[var(--ds-border-strong)] bg-[var(--ds-surface-2)] p-4 text-sm text-[var(--ds-text)]"
+		/>
+	</div>
+	<svelte:fragment slot="footer">
+		<Button color="alternative" on:click={closeUploadModal}>
+			{$t('artifacts.replace-file-cancel')}
+		</Button>
+		<Button on:click={submitUpload} disabled={!files || files.length === 0}>
+			{$t('artifacts.upload-file')}
+		</Button>
+	</svelte:fragment>
+</Modal>
 
 <Modal
 	open={!!uploadReplaceFile}
@@ -213,27 +273,4 @@
 			{/each}
 		</tbody>
 	</table>
-</div>
-
-<div class="mt-4 flex items-center gap-2">
-	<input
-		id="fileUpload"
-		type="file"
-		bind:files
-		class="playwright-snapshot-unstable rounded-md border border-dashed border-[var(--ds-border-strong)] p-2 text-sm"
-	/>
-	<button
-		class="ds-btn whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
-		disabled={!files || files.length === 0}
-		onclick={() => {
-			if (!files) return;
-			if (isUnusedName(null, files[0].name)) {
-				uploadFiles();
-			} else {
-				uploadReplaceFile = files[0];
-			}
-		}}
-	>
-		{$t('artifacts.upload-file')}
-	</button>
 </div>

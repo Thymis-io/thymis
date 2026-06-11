@@ -107,9 +107,7 @@
 			<h2 class="ds-card-title truncate">{module.displayName}</h2>
 		</div>
 	</div>
-	<div
-		class="ds-card-pad grid max-w-none grid-cols-[minmax(50px,3fr)_1fr] gap-x-4 gap-y-5 sm:grid-cols-[auto_250px] xl:grid-cols-[auto_350px]"
-	>
+	<div class="ds-card-pad flex flex-col divide-y divide-[var(--ds-border)]">
 		{#each settingEntries as [key, setting]}
 			{@const self = settings?.settings[key]}
 			{@const other = otherSettings
@@ -119,37 +117,38 @@
 					...o,
 					setting: o.settings[key]
 				}))}
-			<div class="flex flex-col">
-				<span id="config-{key}" class="ds-form-label">
+			<div class="flex flex-col gap-2 py-4 first:pt-0 last:pb-0">
+				<label for="config-{key}" class="ds-form-label">
 					{$t(setting.displayName)}
-				</span>
-				<div class="flex gap-1">
-					{#key (module.type, globalState.selectedModuleSettings?.settings[key], !canEditSetting(canEdit, key, setting))}
-						<ConfigRenderer
-							key="config-{key}"
-							{setting}
-							moduleSettings={settings}
-							value={globalState.selectedModuleSettings?.settings[key]}
-							disabled={!canEditSetting(canEdit, key, setting)}
-							onChange={(value) => setSetting(setting, key, value)}
-							{artifacts}
-						/>
-					{/key}
-					<div class="ml-auto"></div>
+				</label>
+				<div class="flex items-start gap-1">
+					<div class="min-w-0 flex-1">
+						{#key (module.type, globalState.selectedModuleSettings?.settings[key], !canEditSetting(canEdit, key, setting))}
+							<ConfigRenderer
+								key="config-{key}"
+								{setting}
+								moduleSettings={settings}
+								value={globalState.selectedModuleSettings?.settings[key]}
+								disabled={!canEditSetting(canEdit, key, setting)}
+								onChange={(value) => setSetting(setting, key, value)}
+								{artifacts}
+							/>
+						{/key}
+					</div>
 					<button
-						class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+						class="ds-icon-btn"
 						onclick={async (e) =>
 							await navigator.clipboard.writeText(
 								JSON.stringify({ type: setting.type, value: settings?.settings[key] })
 							)}
 						disabled={!settings?.settings[key]}
 					>
-						<Copy size="20" />
+						<Copy size="18" />
 					</button>
 					<Tooltip type="auto">{$t('config.copy')}</Tooltip>
 					{#if canEditSetting(canEdit, key, setting)}
 						<button
-							class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+							class="ds-icon-btn"
 							onclick={async () => {
 								const clipboardText = await navigator.clipboard.readText();
 								if (canPaste(clipboardText, setting)) {
@@ -157,22 +156,19 @@
 								}
 							}}
 						>
-							<Paste size="20" />
+							<Paste size="18" />
 						</button>
 						<Tooltip type="auto">{$t('config.paste')}</Tooltip>
 					{/if}
 					{#if canEditSetting(canEdit, key, setting)}
 						{#if settings?.settings[key] !== undefined}
-							<button
-								class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-								onclick={() => setSetting(setting, key, null)}
-							>
-								<X size="20" />
+							<button class="ds-icon-btn" onclick={() => setSetting(setting, key, null)}>
+								<X size="18" />
 							</button>
 							<Tooltip type="auto">{$t('config.clear')}</Tooltip>
 						{:else if canEditSetting(canEdit, key, setting)}
 							<button
-								class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+								class="ds-icon-btn"
 								onclick={() =>
 									setSetting(
 										setting,
@@ -182,7 +178,7 @@
 											: ''
 									)}
 							>
-								<Pen size="20" />
+								<Pen size="18" />
 							</button>
 							<Tooltip type="auto">{$t('config.edit')}</Tooltip>
 						{/if}
@@ -191,8 +187,8 @@
 						{#if other && other.length > 0}
 							{#if sameOrigin(settings, other[0])}
 								{@const otherDefinitions = other.filter((o) => !sameOrigin(settings, o))}
-								<button class="m-0 p-1" onclick={() => {}}>
-									<Route class="text-primary-600 dark:text-primary-400" size="20" />
+								<button class="ds-icon-btn" onclick={() => {}}>
+									<Route class="text-[var(--ds-accent-strong)]" size="18" />
 								</button>
 								<Tooltip type="auto" class="z-50">
 									<P size="sm" class="whitespace-pre-line">{$t('config.passed')}</P>
@@ -214,8 +210,8 @@
 								{@const otherDefinitions = other.filter(
 									(o) => !sameOrigin(o, settings) && !sameOrigin(o, other[0])
 								)}
-								<button class="m-0 p-1" onclick={() => {}}>
-									<RouteOff class="text-primary-600 dark:text-primary-400" size="20" />
+								<button class="ds-icon-btn" onclick={() => {}}>
+									<RouteOff class="text-[var(--ds-accent-strong)]" size="18" />
 								</button>
 								<Tooltip type="auto" class="z-50">
 									<P size="sm" class="whitespace-pre-line">{@html $t('config.notPassed')}</P>
@@ -235,16 +231,16 @@
 								</Tooltip>
 							{/if}
 						{:else if self !== undefined}
-							<button class="m-0 p-1" onclick={() => {}}>
-								<Route class="text-primary-600 dark:text-primary-400" size="20" />
+							<button class="ds-icon-btn" onclick={() => {}}>
+								<Route class="text-[var(--ds-accent-strong)]" size="18" />
 							</button>
 							<Tooltip type="auto" class="z-50">
 								<P size="sm" class="whitespace-pre-line">{@html $t('config.passed')}</P>
 								<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P>
 							</Tooltip>
 						{:else}
-							<button class="m-0 p-1" onclick={() => {}}>
-								<RouteOff class="text-primary-600 dark:text-primary-400" size="20" />
+							<button class="ds-icon-btn" onclick={() => {}}>
+								<RouteOff class="text-[var(--ds-accent-strong)]" size="18" />
 							</button>
 							<Tooltip type="auto" class="z-50">
 								<P size="sm" class="whitespace-pre-line">{@html $t('config.notSet')}</P>
@@ -253,10 +249,12 @@
 						{/if}
 					{/if}
 				</div>
+				{#if setting.description}
+					<p class="ds-form-hint whitespace-pre-line">{setting.description}</p>
+				{/if}
 			</div>
-			<p class="ds-form-hint mt-[1.7rem] whitespace-pre-line">{setting.description}</p>
 		{:else}
-			<div>{$t('config.no-settings')}</div>
+			<div class="ds-table-empty">{$t('config.no-settings')}</div>
 		{/each}
 	</div>
 </div>

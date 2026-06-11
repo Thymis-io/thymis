@@ -126,19 +126,18 @@
 	{#if isOpen && filteredOptions.length > 0}
 		<div
 			id="dropdown-list"
-			class="w-full max-h-[19rem] overflow-y-auto bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base border border-gray-300 dark:border-gray-700 rounded-lg shadow-md mt-1 z-10 {dropdownClass}"
+			class="w-full max-h-[19rem] overflow-y-auto bg-[var(--ds-surface)] text-[var(--ds-text)] text-base border border-[var(--ds-border)] rounded-lg shadow-md mt-1 z-10 {dropdownClass}"
 			role="listbox"
 			style={floatingStyle}
 		>
 			{#each filteredOptions as item, index}
-				{@const highlightedClass = index === highlightedIndex ? 'bg-gray-200 dark:bg-gray-600' : ''}
-				{@const selectedClass =
-					item.value === value ? 'text-primary-600 dark:text-primary-400' : ''}
+				{@const highlightedClass = index === highlightedIndex ? 'bg-[var(--ds-surface-3)]' : ''}
+				{@const selectedClass = item.value === value ? 'text-[var(--ds-accent-strong)]' : ''}
 				{@const Icon = item.icon}
 				<div
 					role="option"
 					aria-selected={item.value === value}
-					class="p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 {highlightedClass} {selectedClass}"
+					class="p-2 cursor-pointer hover:bg-[var(--ds-surface-2)] {highlightedClass} {selectedClass}"
 					onclick={() => selectItem(item)}
 					onkeydown={(event) => {
 						if (event.key === 'Enter') {

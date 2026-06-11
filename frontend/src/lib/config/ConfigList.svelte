@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Tooltip, Card, P } from 'flowbite-svelte';
+	import { Tooltip } from 'flowbite-svelte';
 	import Plus from 'lucide-svelte/icons/plus';
 	import X from 'lucide-svelte/icons/x';
 	import type { Setting, ListSettingType, ModuleSettings } from '$lib/state';
@@ -28,14 +28,18 @@
 	}: Props = $props();
 </script>
 
-<div class="flex flex-col gap-1 w-full">
+<div class="flex w-full flex-col gap-2">
 	{#each values as item, i}
-		<Card class="flex flex-row gap-1 p-4 w-full max-w-full drop-shadow" padding={'xs'}>
-			<div class="flex flex-col w-full gap-4">
+		<div
+			class="flex w-full max-w-full flex-row gap-2 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-2)] p-4"
+		>
+			<div class="flex w-full flex-col gap-4">
 				{#each Object.entries(setting.type['list-of']) as [keyEntry, settingEntry]}
-					<div>
+					<div class="flex flex-col gap-2">
 						{#if settingEntry.displayName}
-							<P id="{key}-{i}-{keyEntry}" class="p-0 pb-1">{$t(`${settingEntry.displayName}`)}</P>
+							<span id="{key}-{i}-{keyEntry}" class="ds-form-label"
+								>{$t(`${settingEntry.displayName}`)}</span
+							>
 						{/if}
 						<ConfigRenderer
 							key="{key}-{i}-{keyEntry}"
@@ -54,11 +58,11 @@
 				{/each}
 			</div>
 			<button
-				class="btn m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+				class="m-0 h-min rounded-lg p-1 text-[var(--ds-text-mute)] hover:bg-[var(--ds-surface-3)] hover:text-[var(--ds-text)] disabled:cursor-not-allowed disabled:opacity-50"
 				{disabled}
 				onclick={() => onChange(values.filter((v) => v !== item))}
 			>
-				<X />
+				<X size="20" />
 			</button>
 			<Tooltip type="auto" placement={'top'}>
 				{setting.type['element-name']
@@ -67,22 +71,20 @@
 						})
 					: $t('config.remove_list_element')}
 			</Tooltip>
-		</Card>
+		</div>
 	{/each}
-	<Card class="flex flex-row gap-1 w-full max-w-full drop-shadow" padding={'xs'}>
-		<button
-			class="p-1 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 gap-2"
-			{disabled}
-			onclick={() => onChange([...values, {}])}
-		>
-			<Plus size="20" />
-			<span class="text-base">
-				{setting.type['element-name']
-					? $t(`config.add-element`, { values: { element: $t(setting.type['element-name']) } })
-					: $t('config.add_list_element')}
-			</span>
-		</button>
-	</Card>
+	<button
+		class="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[var(--ds-border-strong)] p-2 text-sm font-medium text-[var(--ds-text-dim)] transition-colors hover:border-[var(--ds-accent)] hover:bg-[var(--ds-accent-dim)] hover:text-[var(--ds-accent-strong)] disabled:cursor-not-allowed disabled:opacity-50"
+		{disabled}
+		onclick={() => onChange([...values, {}])}
+	>
+		<Plus size="18" />
+		<span>
+			{setting.type['element-name']
+				? $t(`config.add-element`, { values: { element: $t(setting.type['element-name']) } })
+				: $t('config.add_list_element')}
+		</span>
+	</button>
 </div>
 {#if disabled}
 	<Tooltip type="auto" placement={'top'}>{$t('config.editDisabled')}</Tooltip>

@@ -8,6 +8,7 @@
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import MonospaceText from '$lib/components/MonospaceText.svelte';
 	import { diff } from 'svelte-highlight/languages';
+	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 
 	interface Props {
 		data: PageData;
@@ -16,6 +17,12 @@
 	let { data }: Props = $props();
 
 	let revertCommit: Commit | undefined = $state();
+
+	const formatCommitDate = (raw: string) => {
+		const date = new Date(raw);
+		if (isNaN(date.getTime())) return raw;
+		return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+	};
 
 	const fetchDiff = async (refA: string, refB: string) => {
 		const res = await fetchWithNotify(`/api/history/diff?refA=${refA}&refB=${refB}`);
@@ -37,11 +44,23 @@
 				<div class="flex items-start justify-between gap-4">
 					<div class="min-w-0">
 						<p class="text-sm font-semibold" style="color: var(--ds-text)">{history.message}</p>
-						<p class="mt-1 text-xs" style="color: var(--ds-text-dim)">
+						<p
+							class="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs"
+							style="color: var(--ds-text-dim)"
+						>
 							<span>by {history.author}</span>
-							<span>·</span>
-							<span class="playwright-snapshot-unstable">{history.date}</span>
-							<span>·</span>
+							<span aria-hidden="true">·</span>
+							<span
+								class="playwright-snapshot-unstable"
+								title={new Date(history.date).toISOString()}
+							>
+								{formatCommitDate(history.date)}
+							</span>
+							<span aria-hidden="true">·</span>
+							<span style="color: var(--ds-text-mute)">
+								<RenderTimeAgo timestamp={history.date} class="playwright-snapshot-unstable" />
+							</span>
+							<span aria-hidden="true">·</span>
 							<span class="playwright-snapshot-unstable ds-mono">{history.SHA1}</span>
 						</p>
 					</div>

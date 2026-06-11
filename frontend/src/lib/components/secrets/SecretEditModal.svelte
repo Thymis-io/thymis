@@ -299,8 +299,8 @@
 	</div>
 
 	<svelte:fragment slot="footer">
-		<Button on:click={onSave}>{$t('common.save')}</Button>
 		<Button color="alternative" on:click={onClose}>{$t('common.cancel')}</Button>
+		<Button on:click={onSave}>{$t('common.save')}</Button>
 	</svelte:fragment>
 </Modal>
 
