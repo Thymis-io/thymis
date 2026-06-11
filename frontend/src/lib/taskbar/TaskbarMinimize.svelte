@@ -11,10 +11,10 @@
 	let { class: className = '', taskbarMinimized = $bindable(false) }: Props = $props();
 </script>
 
-<div class={'absolute right-0 z-10 ' + className}>
+<div class={'absolute right-0 z-10 flex items-stretch ' + className}>
 	<button
 		title={taskbarMinimized ? $t('taskbar.maximize') : $t('taskbar.minimize')}
-		class="float-right px-2 hover:bg-gray-200 dark:hover:bg-gray-600"
+		class="flex h-full items-center justify-center px-3 text-[var(--ds-text-dim)] transition-colors hover:bg-[var(--ds-surface-2)] hover:text-[var(--ds-text)]"
 		onclick={() => (taskbarMinimized = !taskbarMinimized)}
 	>
 		{#if taskbarMinimized}

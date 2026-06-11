@@ -46,7 +46,7 @@
 </script>
 
 <div
-	class="border-2 dark:border-0 w-full h-full flex px-2 gap-2 sm:gap-4 xl:gap-10 pr-8 md:pr-16 items-center bg-gray-50 dark:bg-gray-700 overflow-y-auto"
+	class="w-full h-full flex px-3 gap-2 sm:gap-4 xl:gap-10 pr-8 md:pr-16 items-center overflow-y-auto border-t bg-[var(--ds-surface)] border-[var(--ds-border)] text-[var(--ds-text)]"
 >
 	<div class="text-xs md:text-sm playwright-snapshot-unstable">
 		<span class="hidden xl:block min-w-[14rem]">

@@ -399,6 +399,10 @@ body {
 	color: var(--ds-text-dim);
 	background: var(--ds-offline-dim);
 }
+.ds-status-pill.info {
+	color: var(--ds-accent-strong);
+	background: var(--ds-accent-dim);
+}
 .ds-status-pill .ds-dot {
 	width: 6px;
 	height: 6px;

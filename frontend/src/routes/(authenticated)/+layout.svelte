@@ -44,10 +44,10 @@
 	};
 
 	const onSplitpaneChange = (pos: Length) => {
-		if (!taskbarMinimized && convertLengthToPixels(pos) < convertLengthToPixels('50px')) {
+		if (!taskbarMinimized && convertLengthToPixels(pos) < convertLengthToPixels('80px')) {
 			taskbarMinimized = true;
 		}
-		if (taskbarMinimized && convertLengthToPixels(pos) > convertLengthToPixels('50px')) {
+		if (taskbarMinimized && convertLengthToPixels(pos) > convertLengthToPixels('80px')) {
 			taskbarMinimized = false;
 		}
 	};
@@ -104,9 +104,9 @@
 			<SplitPane
 				type="vertical"
 				reverse={true}
-				pos={taskbarMinimized ? '40px' : '30%'}
-				min={taskbarMinimized ? '40px' : '12rem'}
-				max={taskbarMinimized ? '40px' : '80%'}
+				pos={taskbarMinimized ? '54px' : '30%'}
+				min={taskbarMinimized ? '54px' : '12rem'}
+				max={taskbarMinimized ? '54px' : '80%'}
 				onchange={onSplitpaneChange}
 			>
 				{#snippet a()}
@@ -119,7 +119,7 @@
 						{#if !taskbarMinimized}
 							<div
 								id="taskbar"
-								class="flex-1 overflow-y-auto border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900"
+								class="flex-1 overflow-y-auto border-t bg-[var(--ds-surface)] border-[var(--ds-border)]"
 							>
 								<Taskbar
 									globalState={data.globalState}
@@ -128,8 +128,8 @@
 								/>
 							</div>
 						{/if}
-						<div class="h-[40px]">
-							<TaskbarMinimize bind:taskbarMinimized class="mt-2" />
+						<div class="relative h-[54px]">
+							<TaskbarMinimize bind:taskbarMinimized class="top-0 h-full" />
 							<TaskbarSmall
 								globalState={data.globalState}
 								deploymentInfos={data.deploymentInfos}
