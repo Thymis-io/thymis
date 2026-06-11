@@ -112,6 +112,7 @@
 </Modal>
 <PageHead
 	title={$t('nav.external-repositories')}
+	subtitle={$t('settings.repo.subtitle')}
 	repoStatus={data.repoStatus}
 	globalState={data.globalState}
 	nav={data.nav}

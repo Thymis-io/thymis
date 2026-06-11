@@ -38,6 +38,7 @@
 		"no": "No"
 	},
 	"artifacts": {
+		"subtitle": "Files and assets you can reference from device configurations.",
 		"table": {
 			"name": "Name",
 			"type": "Media Type",
@@ -60,9 +61,13 @@
 		"name-already-used": "Name already used"
 	},
 	"vnc": {
+		"subtitle": "Live remote screens for devices with VNC enabled.",
 		"connection-failed": "Connection failed",
 		"control-device": "Control Device",
-		"column-count": "Displays per Row:"
+		"column-count": "Displays per Row:",
+		"live": "Live",
+		"connecting": "Connecting…",
+		"disconnected": "Disconnected"
 	},
 	"configurations": {
 		"title": "Device Configurations",
@@ -194,6 +199,7 @@
 		"tag-with-display-name-name-exists": "Tag with display name \"{displayName}\" already exists in project."
 	},
 	"history": {
+		"subtitle": "Timeline of configuration changes and deployments across your project.",
 		"open-diff": "Show Changes",
 		"revert-commit": "Revert to this state",
 		"revert-commit-button": "Revert",
@@ -349,6 +355,7 @@
 	"settings": {
 		"repo": {
 			"title": "Repositories",
+			"subtitle": "External Nix flake repositories available to your configurations.",
 			"add": "Add Repository",
 			"name": "Input Name",
 			"url": "URL",
@@ -402,6 +409,7 @@
 		}
 	},
 	"tags": {
+		"subtitle": "Group configurations and devices to apply settings across the fleet.",
 		"actions": {
 			"edit": "Configure Tag",
 			"delete": "Delete",
@@ -434,6 +442,38 @@
 		"cancel": "Cancel"
 	},
 	"logs": {
+		"title": "Logs",
+		"viewing-logs-for": "Viewing logs for deployment {deploymentId}",
+		"refresh": "Refresh",
+		"time-range": "Time range",
+		"quick-select": "Quick select",
+		"search": "Search",
+		"search-placeholder": "Search log messages…",
+		"from-placeholder": "From",
+		"to-placeholder": "To",
+		"show-timestamps": "Show timestamps",
+		"wrap-lines": "Wrap lines",
+		"reverse-order": "Reverse order",
+		"auto-refresh": "Auto-refresh every {refreshInterval}s",
+		"per-page": "Per page",
+		"apply-filters": "Apply filters",
+		"loading": "Loading logs…",
+		"no-logs-found": "No logs found",
+		"no-logs-message": "No log entries match the current filters.",
+		"no-logs-match": "No logs match",
+		"adjust-filters": "Try adjusting your filters.",
+		"showing-logs": "Showing {count} log entries",
+		"time-range-to": "to",
+		"previous": "Previous",
+		"next": "Next",
+		"page": "Page {currentPage}",
+		"presets": {
+			"last-15-minutes": "Last 15 minutes",
+			"last-hour": "Last hour",
+			"last-4-hours": "Last 4 hours",
+			"last-24-hours": "Last 24 hours",
+			"last-7-days": "Last 7 days"
+		},
 		"filter-by-program-name": "Filter by program name",
 		"exact-program-name": "Exact match",
 		"no-logs": "--- No logs ---",
@@ -491,6 +531,7 @@
 		"create": "Create"
 	},
 	"secrets": {
+		"subtitle": "Encrypted credentials and values referenced by your configurations.",
 		"edit": "Edit Secret",
 		"create": "Create Secret",
 		"select": "Select a Secret...",
@@ -601,6 +642,7 @@
 		"name-helper": "Changing this will also update the device hostname."
 	},
 	"auto-update": {
+		"subtitle": "Schedule automatic updates and pick the release channel for your devices.",
 		"title": "Auto-Update Settings",
 		"description": "Auto-Update automatically runs a Nix flake update, commits the updated flake.lock, and deploys the new configuration to all connected devices on the configured schedule. Only committed changes are updated and deployed. Any uncommitted work in progress is safely set aside during the update and restored afterwards.",
 		"enabled": "Enable Auto-Update",

@@ -16,15 +16,22 @@
 	import Logout from 'lucide-svelte/icons/log-out';
 	import type { GlobalState } from '$lib/state.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
+	import { type DeploymentInfo } from '$lib/deploymentInfo';
 	import LanguageSelect from '$lib/navbar/LanguageSelect.svelte';
 
 	interface Props {
 		globalState: GlobalState;
+		deploymentInfos?: DeploymentInfo[];
 		drawerHidden: boolean;
 		asideClass?: string;
 	}
 
-	let { globalState, drawerHidden = $bindable(), asideClass = '' }: Props = $props();
+	let {
+		globalState,
+		deploymentInfos = [],
+		drawerHidden = $bindable(),
+		asideClass = ''
+	}: Props = $props();
 
 	const closeDrawer = () => {
 		drawerHidden = true;
@@ -60,6 +67,15 @@
 			globalState.tags.some((tag) => targetShouldShowVNC(tag, globalState))
 	);
 
+	let vncDeviceCount = $derived(
+		deploymentInfos.filter((deploymentInfo) => {
+			const config = globalState.configs.find(
+				(c) => c.identifier === deploymentInfo.deployed_config_id
+			);
+			return config && targetShouldShowVNC(config, globalState);
+		}).length
+	);
+
 	let sections: NavSection[] = $derived([
 		{
 			title: $t('nav.overview'),
@@ -77,12 +93,18 @@
 					href: '/tags',
 					badge: globalState.tags.length
 				},
-				{ name: $t('nav.devices'), icon: Server, href: '/devices' },
+				{
+					name: $t('nav.devices'),
+					icon: Server,
+					href: '/devices',
+					badge: deploymentInfos.length
+				},
 				{
 					name: $t('nav.global-vnc'),
 					icon: ScreenShare,
 					href: '/vnc',
-					hidden: !anyTargetHasVNC
+					hidden: !anyTargetHasVNC,
+					badge: vncDeviceCount
 				},
 				{ name: $t('nav.history'), icon: GitBranch, href: '/history' }
 			]

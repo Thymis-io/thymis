@@ -286,6 +286,10 @@ body {
 	background: var(--ds-surface-3);
 	border-color: var(--ds-border-strong);
 }
+.ds-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
 .ds-btn-primary {
 	background: var(--ds-accent);
 	color: #fff;
@@ -470,6 +474,39 @@ body {
 	color: var(--ds-text-dim);
 }
 
+/* ---- Form fields ---- */
+.ds-input,
+.ds-select,
+.ds-textarea {
+	width: 100%;
+	padding: 7px 10px;
+	background: var(--ds-surface-2);
+	border: 1px solid var(--ds-border);
+	border-radius: 8px;
+	color: var(--ds-text);
+	font-size: 13px;
+	transition:
+		border-color 0.12s,
+		box-shadow 0.12s;
+}
+.ds-input:focus,
+.ds-select:focus,
+.ds-textarea:focus {
+	outline: none;
+	border-color: var(--ds-accent);
+	box-shadow: 0 0 0 1px var(--ds-accent);
+}
+.ds-input::placeholder,
+.ds-textarea::placeholder {
+	color: var(--ds-text-mute);
+}
+.ds-input:disabled,
+.ds-select:disabled,
+.ds-textarea:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
 /* ---- Form label / hint (module settings) ---- */
 .ds-form-label {
 	display: block;
@@ -614,7 +651,13 @@ input[type='radio'][class*='text-primary-600'] {
 	color: var(--ds-accent) !important;
 }
 
-/* ---- Flowbite Modal -> ds design ---- */
+/* ---- Flowbite Modal -> ds design ----
+   NOTE: these rules target Flowbite's generated utility classes
+   (e.g. `button[class*='bg-primary-700']`, `[class*='rounded-b']`). They are
+   intentionally coupled to Flowbite's current markup. If Flowbite is upgraded
+   and changes the classes it emits for modals/buttons, re-verify these
+   selectors. Prefer migrating call sites to `ds-*` classes over extending the
+   attribute-selector overrides below. */
 /* backdrop overlay */
 div[class*='bg-gray-900'][class*='fixed'][class*='inset-0'] {
 	background-color: rgba(7, 10, 15, 0.6) !important;

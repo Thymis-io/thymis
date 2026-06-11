@@ -6,6 +6,7 @@
 	import { Button, Helper, Modal } from 'flowbite-svelte';
 	import Trash from 'lucide-svelte/icons/trash-2';
 	import Download from 'lucide-svelte/icons/download';
+	import Plus from 'lucide-svelte/icons/plus';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import type { Artifact } from './+page';
 	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
@@ -112,6 +113,7 @@
 
 <PageHead
 	title={$t('nav.artifacts')}
+	subtitle={$t('artifacts.subtitle')}
 	repoStatus={data.repoStatus}
 	globalState={data.globalState}
 	nav={data.nav}
@@ -124,7 +126,8 @@
 				showUploadModal = true;
 			}}
 		>
-			+ {$t('artifacts.upload-file')}
+			<Plus size={16} />
+			{$t('artifacts.upload-file')}
 		</button>
 	{/snippet}
 </PageHead>

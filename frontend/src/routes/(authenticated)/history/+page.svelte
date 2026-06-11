@@ -32,6 +32,7 @@
 
 <PageHead
 	title={$t('nav.history')}
+	subtitle={$t('history.subtitle')}
 	repoStatus={data.repoStatus}
 	globalState={data.globalState}
 	nav={data.nav}

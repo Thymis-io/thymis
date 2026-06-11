@@ -11,6 +11,7 @@
 	} from '$lib/components/secrets/secretUtils';
 	import type { SecretProcessingType, SecretType } from '$lib/state';
 	import Alert from 'lucide-svelte/icons/triangle-alert';
+	import Plus from 'lucide-svelte/icons/plus';
 
 	interface Props {
 		data: PageData;
@@ -172,13 +173,15 @@
 
 <PageHead
 	title={$t('nav.secrets')}
+	subtitle={$t('secrets.subtitle')}
 	globalState={data.globalState}
 	nav={data.globalState}
 	repoStatus={data.repoStatus}
 >
 	{#snippet actions()}
 		<button class="ds-btn ds-btn-primary whitespace-nowrap" onclick={() => addSecret()}>
-			+ {$t('secrets.create')}
+			<Plus size={16} />
+			{$t('secrets.create')}
 		</button>
 	{/snippet}
 </PageHead>

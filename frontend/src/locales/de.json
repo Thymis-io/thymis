@@ -38,6 +38,7 @@
 		"yes": "Ja"
 	},
 	"artifacts": {
+		"subtitle": "Dateien und Assets, die Sie in Gerätekonfigurationen referenzieren können.",
 		"table": {
 			"name": "Name",
 			"type": "Media Type",
@@ -60,9 +61,13 @@
 		"name-already-used": "Name bereits verwendet"
 	},
 	"vnc": {
+		"subtitle": "Live-Fernbildschirme für Geräte mit aktiviertem VNC.",
 		"connection-failed": "Verbindungsfehler",
 		"control-device": "Gerät Steuern",
-		"column-count": "Ansichten pro Zeile:"
+		"column-count": "Ansichten pro Zeile:",
+		"live": "Live",
+		"connecting": "Verbinden…",
+		"disconnected": "Getrennt"
 	},
 	"configurations": {
 		"title": "Gerätekonfigurationen",
@@ -194,6 +199,7 @@
 		"display-name-tag": "Anzeigename – Wie der Tag in der Benutzeroberfläche angezeigt wird"
 	},
 	"history": {
+		"subtitle": "Verlauf der Konfigurationsänderungen und Deployments in Ihrem Projekt.",
 		"open-diff": "Änderungen anzeigen",
 		"revert-commit": "Auf diesen Commit rückgängig machen",
 		"revert-commit-button": "Rückgängig machen",
@@ -317,6 +323,7 @@
 	"settings": {
 		"repo": {
 			"title": "Repositories",
+			"subtitle": "Externe Nix-Flake-Repositories, die Ihren Konfigurationen zur Verfügung stehen.",
 			"add": "Repository hinzufügen",
 			"name": "Input Name",
 			"url": "URL",
@@ -401,6 +408,7 @@
 		"version-short": "v{version}"
 	},
 	"tags": {
+		"subtitle": "Gruppieren Sie Konfigurationen und Geräte, um Einstellungen flottenweit anzuwenden.",
 		"actions": {
 			"edit": "Tag Konfigurieren",
 			"delete": "Löschen",
@@ -433,6 +441,38 @@
 		"confirm": "Löschen"
 	},
 	"logs": {
+		"title": "Protokolle",
+		"viewing-logs-for": "Protokolle für Deployment {deploymentId}",
+		"refresh": "Aktualisieren",
+		"time-range": "Zeitraum",
+		"quick-select": "Schnellauswahl",
+		"search": "Suche",
+		"search-placeholder": "Protokollmeldungen durchsuchen…",
+		"from-placeholder": "Von",
+		"to-placeholder": "Bis",
+		"show-timestamps": "Zeitstempel anzeigen",
+		"wrap-lines": "Zeilen umbrechen",
+		"reverse-order": "Reihenfolge umkehren",
+		"auto-refresh": "Alle {refreshInterval}s aktualisieren",
+		"per-page": "Pro Seite",
+		"apply-filters": "Filter anwenden",
+		"loading": "Protokolle werden geladen…",
+		"no-logs-found": "Keine Protokolle gefunden",
+		"no-logs-message": "Keine Protokolleinträge entsprechen den aktuellen Filtern.",
+		"no-logs-match": "Keine Protokolle gefunden",
+		"adjust-filters": "Passen Sie Ihre Filter an.",
+		"showing-logs": "{count} Protokolleinträge werden angezeigt",
+		"time-range-to": "bis",
+		"previous": "Zurück",
+		"next": "Weiter",
+		"page": "Seite {currentPage}",
+		"presets": {
+			"last-15-minutes": "Letzte 15 Minuten",
+			"last-hour": "Letzte Stunde",
+			"last-4-hours": "Letzte 4 Stunden",
+			"last-24-hours": "Letzte 24 Stunden",
+			"last-7-days": "Letzte 7 Tage"
+		},
 		"filter-by-program-name": "Filter nach Programmname",
 		"exact-program-name": "Exakt",
 		"no-logs": "--- Keine Logs ---",
@@ -490,6 +530,7 @@
 		"update": "Aktualisieren"
 	},
 	"secrets": {
+		"subtitle": "Verschlüsselte Zugangsdaten und Werte, die von Ihren Konfigurationen referenziert werden.",
 		"edit": "Secret bearbeiten",
 		"create": "Secret erstellen",
 		"select": "Secret auswählen...",
@@ -600,6 +641,7 @@
 		"name-helper": "Diese Änderung aktualisiert auch den Hostnamen des Geräts."
 	},
 	"auto-update": {
+		"subtitle": "Planen Sie automatische Updates und wählen Sie den Release-Kanal für Ihre Geräte.",
 		"title": "Auto-Update Einstellungen",
 		"description": "Auto-Update führt automatisch ein Nix-Flake-Update durch, committet die aktualisierte flake.lock und rollt die neue Konfiguration nach dem konfigurierten Zeitplan auf alle verbundenen Geräte aus. Es werden nur committete Änderungen aktualisiert und ausgerollt. Uncommittete Änderungen werden während des Updates sicher zur Seite gelegt und danach wiederhergestellt.",
 		"enabled": "Auto-Update aktivieren",
