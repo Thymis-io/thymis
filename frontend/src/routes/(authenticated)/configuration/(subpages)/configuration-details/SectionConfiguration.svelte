@@ -49,7 +49,7 @@
 					config.identifier,
 					module
 				)}`}
-				class={'text-nowrap min-h-6 flex items-center gap-1 w-fit hover:underline p-1 px-2 bg-primary-700 hover:bg-primary-800 dark:bg-primary-600 dark:hover:bg-primary-700 rounded text-white'}
+				class={'text-nowrap min-h-6 flex items-center gap-1 w-fit hover:underline p-1 px-2 bg-[var(--ds-accent)] hover:bg-[var(--ds-accent-strong)] rounded text-white'}
 			>
 				<ModuleIcon {module} theme="dark" />
 				{module.displayName}

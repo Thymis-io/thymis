@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { saveState, type Config, type Module, type ModuleSettings, type Tag } from '$lib/state';
-	import { Modal, P, Tooltip } from 'flowbite-svelte';
+	import { Modal, Tooltip } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import Pen from 'lucide-svelte/icons/pen';
 	import Plus from 'lucide-svelte/icons/plus';
@@ -90,7 +90,7 @@
 	on:cancel={() => (moduleToRemove = undefined)}
 />
 <div class="flex justify-between mb-2">
-	<div class="text-gray-900 dark:text-white font-semibold flex gap-2 items-center">
+	<div class="font-semibold text-[var(--ds-text)] flex gap-2 items-center">
 		<IdentifierLink
 			identifier={context?.identifier}
 			{globalState}
@@ -102,7 +102,7 @@
 	</div>
 	{#if nav.selectedTarget?.identifier !== context?.identifier || nav.selectedTargetType !== contextType}
 		<a
-			class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+			class="ds-icon-btn"
 			href="/configuration/edit?{buildConfigSelectModuleSearchParam(
 				globalState,
 				$page.url.search,
@@ -113,7 +113,7 @@
 				nav.selectedModule
 			)}"
 		>
-			<Pen size="20" />
+			<Pen size="18" />
 		</a>
 		<Tooltip type="auto">{$t('config.edit_tag_modules')}</Tooltip>
 	{/if}
@@ -122,7 +122,7 @@
 	{#if context && contextType}
 		{#each selfModules as module}
 			<div
-				class={`flex justify-between gap-1 rounded ${
+				class={`flex items-center justify-between gap-1 rounded ${
 					isSelected(
 						module,
 						nav.selectedModule,
@@ -147,14 +147,11 @@
 					data-sveltekit-noscroll
 				>
 					<ModuleIcon {module} />
-					<P>{module.displayName}</P>
+					<span class="truncate text-sm">{module.displayName}</span>
 				</a>
 				{#if canChangeModules && (nav.selectedTargetType !== 'config' || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}
-					<button
-						class="m-1 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-500"
-						onclick={() => (moduleToRemove = module)}
-					>
-						<Trash size={20} />
+					<button class="ds-icon-btn self-center mr-1" onclick={() => (moduleToRemove = module)}>
+						<Trash size={18} />
 					</button>
 					<Tooltip type="auto">{$t('config.remove_module')}</Tooltip>
 				{/if}
@@ -164,21 +161,21 @@
 	{#if canChangeModules}
 		<button
 			id="add-module"
-			class="p-2 w-full flex justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+			class="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[var(--ds-border-strong)] p-2 text-sm font-medium text-[var(--ds-text-dim)] transition-colors hover:border-[var(--ds-accent)] hover:bg-[var(--ds-accent-dim)] hover:text-[var(--ds-accent-strong)]"
 			onclick={() => (addModuleModalOpen = true)}
 		>
-			<Plus />
+			<Plus size={16} />
+			{$t('config.add_module')}
 		</button>
-		<Tooltip type="auto" triggeredBy="#add-module">{$t('config.add_module')}</Tooltip>
 		<Modal title={$t('config.add_module')} bind:open={addModuleModalOpen} autoclose outsideclose>
 			<div class="grid gap-1">
 				{#each availableModules as module}
 					<button
-						class="btn m-0 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2"
+						class="btn m-0 p-2 rounded-lg hover:bg-[var(--ds-surface-2)] flex items-center gap-2"
 						onclick={() => addModule(context, module)}
 					>
 						<ModuleIcon {module} />
-						<P>{module.displayName}</P>
+						<span class="text-sm">{module.displayName}</span>
 					</button>
 				{/each}
 			</div>

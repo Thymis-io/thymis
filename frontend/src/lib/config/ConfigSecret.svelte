@@ -2,7 +2,7 @@
 	import { run } from 'svelte/legacy';
 
 	import { t } from 'svelte-i18n';
-	import { Button } from 'flowbite-svelte';
+
 	import { invalidate } from '$app/navigation';
 	import SecretEditModal from '$lib/components/secrets/SecretEditModal.svelte';
 	import type { SecretProcessingType, SecretSettingType, SecretType, Setting } from '$lib/state';
@@ -231,13 +231,21 @@
 		/>
 	</div>
 	{#if value}
-		<Button on:click={openEditModal} {disabled} size="sm" class="whitespace-nowrap">
+		<button
+			class="ds-btn whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
+			onclick={openEditModal}
+			{disabled}
+		>
 			{$t('secrets.edit')}
-		</Button>
+		</button>
 	{:else}
-		<Button on:click={openCreateModal} {disabled} size="sm" class="whitespace-nowrap">
+		<button
+			class="ds-btn ds-btn-primary whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
+			onclick={openCreateModal}
+			{disabled}
+		>
 			{$t('secrets.create')}
-		</Button>
+		</button>
 	{/if}
 </div>
 

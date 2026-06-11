@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Button, Input, Modal } from 'flowbite-svelte';
+	import { Input, Modal } from 'flowbite-svelte';
 	import Pen from 'lucide-svelte/icons/pen';
 	import type { PageData } from './$types';
 	import { updateDeploymentInfo, isOnline as checkOnline } from '$lib/deploymentInfo';
@@ -93,10 +93,9 @@
 
 <Modal bind:open={nameModalOpen} title={$t('device-details.edit')}>
 	<Input bind:value={nameInput} placeholder={$t('device-details.name-placeholder')} />
-	<p class="mt-2 text-xs text-gray-500">{$t('device-details.name-helper')}</p>
-	<div class="mt-4 flex gap-2">
-		<Button onclick={saveName}>{$t('device-details.save')}</Button>
-		<Button color="light" onclick={() => (nameModalOpen = false)}>{$t('common.cancel')}</Button>
+	<div class="mt-4 flex justify-end gap-2">
+		<button class="ds-btn" onclick={() => (nameModalOpen = false)}>{$t('common.cancel')}</button>
+		<button class="ds-btn ds-btn-primary" onclick={saveName}>{$t('device-details.save')}</button>
 	</div>
 </Modal>
 

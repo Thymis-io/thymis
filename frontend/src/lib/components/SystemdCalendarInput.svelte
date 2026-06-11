@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Input, Button, Dropdown, DropdownItem, Tooltip } from 'flowbite-svelte';
+	import { Input, Dropdown, DropdownItem, Tooltip } from 'flowbite-svelte';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
 	import ChevronDownIcon from 'lucide-svelte/icons/chevron-down';
 	import CheckCircleIcon from 'lucide-svelte/icons/check-circle';
@@ -136,10 +136,14 @@
 			</Tooltip>
 		{/if}
 	</div>
-	<Button color="alternative" {disabled} class="px-3">
+	<button
+		type="button"
+		{disabled}
+		class="ds-btn px-3 disabled:cursor-not-allowed disabled:opacity-50"
+	>
 		<CalendarIcon size={16} />
 		<ChevronDownIcon size={16} class="ml-1" />
-	</Button>
+	</button>
 	<Dropdown class="w-64">
 		{#each commonExpressions as expr}
 			<DropdownItem on:click={() => selectCalendar(expr.value)}>

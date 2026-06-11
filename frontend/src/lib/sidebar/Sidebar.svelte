@@ -3,7 +3,6 @@
 	import { page } from '$app/stores';
 	import { t, locale } from 'svelte-i18n';
 	import { DarkMode, Popover } from 'flowbite-svelte';
-	import Settings from 'lucide-svelte/icons/settings';
 	import ChartBar from 'lucide-svelte/icons/chart-bar';
 	import Server from 'lucide-svelte/icons/server';
 	import GitBranch from 'lucide-svelte/icons/git-graph';
@@ -12,6 +11,7 @@
 	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import FileLock from 'lucide-svelte/icons/file-lock-2';
 	import FolderOpen from 'lucide-svelte/icons/folder-open';
+	import FolderGit2 from 'lucide-svelte/icons/folder-git-2';
 	import RefreshCcwDot from 'lucide-svelte/icons/refresh-ccw-dot';
 	import Logout from 'lucide-svelte/icons/log-out';
 	import type { GlobalState } from '$lib/state.svelte';
@@ -88,20 +88,22 @@
 			]
 		},
 		{
-			title: $t('nav.secrets'),
+			title: $t('nav.data'),
 			items: [
 				{ name: $t('nav.secrets'), icon: FileLock, href: '/secrets' },
-				{ name: $t('nav.artifacts'), icon: FolderOpen, href: '/artifacts' },
-				{
-					name: $t('nav.external-repositories'),
-					icon: Settings,
-					href: '/external-repositories'
-				}
+				{ name: $t('nav.artifacts'), icon: FolderOpen, href: '/artifacts' }
 			]
 		},
 		{
-			title: $t('nav.auto-update'),
-			items: [{ name: $t('nav.auto-update'), icon: RefreshCcwDot, href: '/auto-update' }]
+			title: $t('nav.settings'),
+			items: [
+				{
+					name: $t('nav.external-repositories'),
+					icon: FolderGit2,
+					href: '/external-repositories'
+				},
+				{ name: $t('nav.auto-update'), icon: RefreshCcwDot, href: '/auto-update' }
+			]
 		}
 	]);
 </script>

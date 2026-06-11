@@ -317,6 +317,37 @@ body {
 	border-color: var(--ds-danger);
 }
 
+/* ---- Icon button ---- */
+.ds-icon-btn {
+	display: inline-grid;
+	place-items: center;
+	width: 30px;
+	height: 30px;
+	flex-shrink: 0;
+	border-radius: 7px;
+	border: 1px solid transparent;
+	background: transparent;
+	color: var(--ds-text-mute);
+	transition:
+		background 0.12s,
+		color 0.12s,
+		border-color 0.12s;
+}
+.ds-icon-btn:hover {
+	background: var(--ds-surface-2);
+	border-color: var(--ds-border);
+	color: var(--ds-text);
+}
+.ds-icon-btn:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+.ds-icon-btn:disabled:hover {
+	background: transparent;
+	border-color: transparent;
+	color: var(--ds-text-mute);
+}
+
 /* ---- Tables ---- */
 .ds-table-wrap {
 	background: var(--ds-surface);
@@ -503,56 +534,177 @@ body {
 }
 
 div.multiselect {
-	@apply !p-2;
-	@apply !rounded-lg;
-	@apply !bg-gray-50;
-	@apply dark:!bg-gray-600;
-	@apply !border;
-	@apply !border-gray-300;
-	@apply dark:!border-gray-500;
+	padding: 8px !important;
+	border-radius: 8px !important;
+	background: var(--ds-surface-2) !important;
+	border: 1px solid var(--ds-border) !important;
+	color: var(--ds-text) !important;
 }
 div.multiselect.open {
-	@apply !border-primary-500;
-	@apply !ring-primary-500;
-	@apply dark:focus:!border-primary-500;
-	@apply dark:focus:!ring-primary-500;
+	border-color: var(--ds-accent) !important;
+	box-shadow: 0 0 0 1px var(--ds-accent) !important;
 }
 div.multiselect > svg {
 	width: 18px;
+	color: var(--ds-text-mute) !important;
 }
 div.multiselect > button.remove {
 	margin: 0 3pt;
 }
-div.multiselect > ul.options > li {
-	@apply bg-gray-100;
-	@apply dark:bg-gray-800;
+div.multiselect > ul.options {
+	background: var(--ds-surface) !important;
+	border: 1px solid var(--ds-border) !important;
+	border-radius: 8px !important;
+	box-shadow: var(--ds-shadow-md) !important;
 }
-div.multiselect > ul.options > li.active {
-	@apply bg-gray-200;
-	@apply dark:bg-gray-700;
+div.multiselect > ul.options > li {
+	background: var(--ds-surface) !important;
+	color: var(--ds-text) !important;
+}
+div.multiselect > ul.options > li.active,
+div.multiselect > ul.options > li:hover {
+	background: var(--ds-surface-2) !important;
 }
 div.multiselect > ul > input {
-	@apply !p-0;
-	@apply bg-gray-50;
-	@apply dark:bg-gray-600;
-	@apply text-gray-800;
-	@apply dark:text-gray-200;
+	padding: 0 !important;
+	background: transparent !important;
+	color: var(--ds-text) !important;
 	--tw-ring-shadow: none;
 }
+div.multiselect > ul > input::placeholder {
+	color: var(--ds-text-mute) !important;
+}
 div.multiselect > ul.selected > li {
-	@apply !p-1;
-	@apply !px-2;
-	@apply !m-[1px];
-	@apply !rounded-lg;
+	padding: 2px 8px !important;
+	margin: 1px !important;
+	border-radius: 6px !important;
+	background: var(--ds-accent-dim) !important;
+	color: var(--ds-accent-strong) !important;
 }
 div.multiselect > ul.selected > li > .remove {
-	@apply ml-1;
+	margin-left: 4px;
+	color: var(--ds-accent-strong) !important;
 }
 
-.page-button.active {
-	@apply bg-gray-300 dark:bg-gray-500;
-	@apply text-primary-500;
+/* ---- Flowbite form controls -> ds design (app-wide) ---- */
+input[class*='bg-gray-50'],
+select[class*='bg-gray-50'],
+textarea[class*='bg-gray-50'] {
+	background-color: var(--ds-surface-2) !important;
+	border-color: var(--ds-border) !important;
+	color: var(--ds-text) !important;
 }
-.page-button:hover {
-	@apply bg-gray-300 dark:bg-gray-500;
+input[class*='bg-gray-50']:focus,
+select[class*='bg-gray-50']:focus,
+textarea[class*='bg-gray-50']:focus {
+	border-color: var(--ds-accent) !important;
+	--tw-ring-color: var(--ds-accent) !important;
+}
+input[class*='bg-gray-50']::placeholder,
+textarea[class*='bg-gray-50']::placeholder {
+	color: var(--ds-text-mute) !important;
+}
+/* Flowbite Toggle -> ds accent when on */
+input.peer:checked + div {
+	background-color: var(--ds-accent) !important;
+}
+/* Flowbite checkbox / radio -> ds accent */
+input[type='checkbox'][class*='text-primary-600'],
+input[type='radio'][class*='text-primary-600'] {
+	color: var(--ds-accent) !important;
+}
+
+/* ---- Flowbite Modal -> ds design ---- */
+/* backdrop overlay */
+div[class*='bg-gray-900'][class*='fixed'][class*='inset-0'] {
+	background-color: rgba(7, 10, 15, 0.6) !important;
+}
+/* dialog panel */
+[role='dialog'] > div > div {
+	background: var(--ds-surface) !important;
+	color: var(--ds-text) !important;
+	border: 1px solid var(--ds-border) !important;
+	border-radius: var(--ds-radius-lg) !important;
+	box-shadow: var(--ds-shadow-lg) !important;
+}
+/* header row (holds title + close) */
+[role='dialog'] div:has(> h3) {
+	background: var(--ds-surface) !important;
+	border-color: var(--ds-border) !important;
+}
+[role='dialog'] h3 {
+	color: var(--ds-text) !important;
+	font-size: 16px !important;
+	font-weight: 600 !important;
+}
+/* close button */
+[role='dialog'] div:has(> h3) > button {
+	color: var(--ds-text-mute) !important;
+	background: transparent !important;
+	border-radius: 8px !important;
+}
+[role='dialog'] div:has(> h3) > button:hover {
+	background: var(--ds-surface-2) !important;
+	color: var(--ds-text) !important;
+}
+/* footer (Flowbite modal footer) */
+[role='dialog'] [class*='rounded-b'] {
+	border-color: var(--ds-border) !important;
+	background: var(--ds-surface) !important;
+	justify-content: flex-end !important;
+	gap: 8px !important;
+}
+/* action buttons inside modals -> ds buttons */
+[role='dialog'] button[class*='bg-primary-700'],
+[role='dialog'] button[class*='bg-red-700'],
+[role='dialog'] button[class*='bg-white'][class*='text-gray-900'] {
+	border-radius: 8px !important;
+	font-weight: 500 !important;
+	transition:
+		background 0.12s,
+		border-color 0.12s !important;
+}
+[role='dialog'] button[class*='bg-primary-700'] {
+	background: var(--ds-accent) !important;
+	color: #fff !important;
+}
+[role='dialog'] button[class*='bg-primary-700']:hover {
+	background: var(--ds-accent-strong) !important;
+}
+[role='dialog'] button[class*='bg-red-700'] {
+	background: var(--ds-danger) !important;
+	color: #fff !important;
+}
+[role='dialog'] button[class*='bg-red-700']:hover {
+	filter: brightness(0.93) !important;
+}
+[role='dialog'] button[class*='bg-white'][class*='text-gray-900'] {
+	background: var(--ds-surface-2) !important;
+	color: var(--ds-text) !important;
+	border: 1px solid var(--ds-border) !important;
+}
+[role='dialog'] button[class*='bg-white'][class*='text-gray-900']:hover {
+	background: var(--ds-surface-3) !important;
+	border-color: var(--ds-border-strong) !important;
+}
+[role='dialog'] button[disabled] {
+	opacity: 0.5 !important;
+	cursor: not-allowed !important;
+}
+/* form fields inside modals */
+[role='dialog']
+	input:where(
+		[type='text'],
+		[type='password'],
+		[type='number'],
+		[type='email'],
+		[type='search'],
+		:not([type])
+	),
+[role='dialog'] select,
+[role='dialog'] textarea {
+	background: var(--ds-surface-2) !important;
+	border: 1px solid var(--ds-border) !important;
+	color: var(--ds-text) !important;
+	border-radius: 8px !important;
 }

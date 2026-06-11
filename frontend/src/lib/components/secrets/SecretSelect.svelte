@@ -51,7 +51,7 @@
 	/>
 	{#if secret}
 		<button
-			class="m-0 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+			class="m-0 p-1 rounded-lg hover:bg-[var(--ds-surface-2)]"
 			{disabled}
 			onclick={() => {
 				secret = undefined;

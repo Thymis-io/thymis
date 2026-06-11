@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Button, Input, Label, Modal } from 'flowbite-svelte';
+	import { Input, Label, Modal } from 'flowbite-svelte';
 	import Pen from 'lucide-svelte/icons/pen';
 	import type { DeploymentInfo } from '$lib/deploymentInfo';
 	import { updateDeploymentInfo } from '$lib/deploymentInfo';
@@ -162,8 +162,8 @@
 <Modal bind:open={modalOpen} title={$t('device-details.edit-location')}>
 	<Label class="mb-1">{$t('device-details.location')}</Label>
 	<Input bind:value={locationInput} placeholder={$t('device-details.location-placeholder')} />
-	<div class="mt-4 flex gap-2">
-		<Button onclick={save}>{$t('device-details.save')}</Button>
-		<Button color="light" onclick={() => (modalOpen = false)}>{$t('common.cancel')}</Button>
+	<div class="mt-4 flex justify-end gap-2">
+		<button class="ds-btn" onclick={() => (modalOpen = false)}>{$t('common.cancel')}</button>
+		<button class="ds-btn ds-btn-primary" onclick={save}>{$t('device-details.save')}</button>
 	</div>
 </Modal>

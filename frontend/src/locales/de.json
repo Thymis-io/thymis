@@ -21,7 +21,9 @@
 		"device-details": "Details",
 		"secrets": "Secrets",
 		"artifacts": "Artefakte",
-		"auto-update": "Auto-Update"
+		"auto-update": "Auto-Update",
+		"settings": "Einstellungen",
+		"data": "Daten"
 	},
 	"common": {
 		"search": "Suchen...",
@@ -49,6 +51,8 @@
 			"delete": "Löschen"
 		},
 		"upload-file": "Datei Hochladen",
+		"upload-title": "Artefakt Hochladen",
+		"upload-description": "Wählen Sie eine oder mehrere Dateien zum Hochladen als Artefakte aus. Wird eine Datei mit einem bereits vorhandenen Namen hochgeladen, wird diese ersetzt.",
 		"replace-file-title": "Datei Ersetzen",
 		"replace-file-description": "Sie sind dabei, die Datei {name} durch eine neue Datei zu ersetzen. Dadurch wird die vorhandene Datei überschrieben.",
 		"replace-file-confirm": "Ersetzen",

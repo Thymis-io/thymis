@@ -245,7 +245,7 @@
 	nav={data.nav}
 />
 
-<div class="ds-card ds-card-pad mx-auto flex max-w-xl flex-col gap-6">
+<div class="ds-card ds-card-pad flex max-w-2xl flex-col gap-6">
 	<!-- Description -->
 	<p class="text-sm" style="color: var(--ds-text-dim)">
 		{$t('auto-update.description')}
