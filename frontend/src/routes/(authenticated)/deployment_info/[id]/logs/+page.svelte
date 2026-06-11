@@ -286,12 +286,7 @@
 	const showPagination = $derived(urlOffset > 0 || hasMorePages);
 </script>
 
-<PageHead
-	nav={data.nav}
-	globalState={data.globalState}
-	repoStatus={data.repoStatus}
-	title={$t('logs.title')}
-/>
+<PageHead title={$t('logs.title')} />
 
 <div class="flex flex-col gap-4 px-0 py-4 w-full">
 	<!-- Header with actions -->

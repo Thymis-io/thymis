@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import Section from './Section.svelte';
+	import Section from '$lib/components/layout/Section.svelte';
 	import { saveState, type Config } from '$lib/state';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import Trash from 'lucide-svelte/icons/trash-2';

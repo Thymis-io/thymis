@@ -238,13 +238,7 @@
 	);
 </script>
 
-<PageHead
-	title={$t('nav.auto-update')}
-	subtitle={$t('auto-update.subtitle')}
-	repoStatus={data.repoStatus}
-	globalState={data.globalState}
-	nav={data.nav}
-/>
+<PageHead title={$t('nav.auto-update')} subtitle={$t('auto-update.subtitle')} />
 
 <div class="ds-card ds-card-pad flex max-w-2xl flex-col gap-6">
 	<!-- Description -->

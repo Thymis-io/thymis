@@ -18,13 +18,7 @@
 	let columns = $state(data.vncDisplaysPerColumn);
 </script>
 
-<PageHead
-	title={$t('nav.global-vnc')}
-	subtitle={$t('vnc.subtitle')}
-	repoStatus={data.repoStatus}
-	globalState={data.globalState}
-	nav={data.nav}
-/>
+<PageHead title={$t('nav.global-vnc')} subtitle={$t('vnc.subtitle')} />
 <div class="ds-filterbar mb-3">
 	<span style="color: var(--ds-text-dim); font-size: 13px;">{$t('vnc.column-count')}</span>
 	<Dropdown

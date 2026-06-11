@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import PageHead from '$lib/components/layout/PageHead.svelte';
+	import Page from '$lib/components/layout/Page.svelte';
+	import CreateButton from '$lib/components/layout/CreateButton.svelte';
+	import DataTable from '$lib/components/layout/DataTable.svelte';
+	import RowActions from '$lib/components/layout/RowActions.svelte';
+	import ActionButton from '$lib/components/layout/ActionButton.svelte';
 	import type { PageData } from './$types';
 	import { invalidate } from '$app/navigation';
 	import SecretEditModal from '$lib/components/secrets/SecretEditModal.svelte';
@@ -11,7 +15,6 @@
 	} from '$lib/components/secrets/secretUtils';
 	import type { SecretProcessingType, SecretType } from '$lib/state';
 	import Alert from 'lucide-svelte/icons/triangle-alert';
-	import Plus from 'lucide-svelte/icons/plus';
 
 	interface Props {
 		data: PageData;
@@ -171,144 +174,124 @@
 	};
 </script>
 
-<PageHead
-	title={$t('nav.secrets')}
-	subtitle={$t('secrets.subtitle')}
-	globalState={data.globalState}
-	nav={data.globalState}
-	repoStatus={data.repoStatus}
->
+<Page title={$t('nav.secrets')} subtitle={$t('secrets.subtitle')}>
 	{#snippet actions()}
-		<button class="ds-btn ds-btn-primary whitespace-nowrap" onclick={() => addSecret()}>
-			<Plus size={16} />
-			{$t('secrets.create')}
-		</button>
+		<CreateButton label={$t('secrets.create')} onclick={() => addSecret()} />
 	{/snippet}
-</PageHead>
 
-<div class="ds-table-wrap">
-	<table class="ds-table">
-		<thead>
-			<tr>
-				<th>{$t('secrets.name')}</th>
-				<th>{$t('secrets.type')}</th>
-				<th>{$t('secrets.processing')}</th>
-				<th>{$t('secrets.include-in-image')}</th>
-				<th>{$t('secrets.issues')}</th>
-				<th class="text-right">{$t('secrets.actions')}</th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each Object.entries(secrets) as [id, secret]}
-				<tr>
-					<td>{secret.display_name}</td>
-					<td>
-						{#if secret.type === 'single_line'}
-							{$t('secrets.type-single-line')}
-						{:else if secret.type === 'multi_line'}
-							{$t('secrets.type-multi-line')}
-						{:else if secret.type === 'env_list'}
-							{$t('secrets.type-env-list')}
-						{:else if secret.type === 'file'}
-							{$t('secrets.type-file')}
-						{/if}
-					</td>
-					<td>
-						{#if secret.processing_type === 'none'}
-							{$t('secrets.processing-none')}
-						{:else if secret.processing_type === 'mkpasswd-yescrypt'}
-							{$t('secrets.processing-mkpasswd-yescrypt')}
-						{/if}
-					</td>
-					<td>
-						{secret.include_in_image ? $t('common.yes') : $t('common.no')}
-					</td>
-					<td>
-						{#if secret.error}
-							<div class="flex items-center gap-1" style="color: var(--ds-warning)">
-								<Alert size="16" />
-								{secret.error}
-							</div>
-						{/if}
-					</td>
-					<td>
-						<div class="flex justify-end gap-2">
-							<button class="ds-btn ds-btn-sm" onclick={() => openEditSecret(id)}>
-								{$t('secrets.edit')}
-							</button>
-							<button
-								class="ds-btn ds-btn-sm"
-								onclick={() => copySecretId(id)}
-								title={`Copy ${secret.display_name} ID`}
-								aria-label={`Copy ${secret.display_name} ID`}
-							>
-								{$t('secrets.copy-id')}
-							</button>
-							<button class="ds-btn ds-btn-sm ds-btn-danger" onclick={() => deleteSecret(id)}>
-								{$t('secrets.delete')}
-							</button>
-						</div>
-					</td>
-				</tr>
-			{:else}
-				<tr>
-					<td colspan={6} class="ds-table-empty">{$t('secrets.no-secrets')}</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
-</div>
+	<DataTable
+		columns={[
+			{ label: $t('secrets.name') },
+			{ label: $t('secrets.type') },
+			{ label: $t('secrets.processing') },
+			{ label: $t('secrets.include-in-image') },
+			{ label: $t('secrets.issues') },
+			{ label: $t('secrets.actions'), align: 'right' }
+		]}
+		rows={Object.entries(secrets)}
+		empty={$t('secrets.no-secrets')}
+	>
+		{#snippet row([id, secret])}
+			<td>{secret.display_name}</td>
+			<td>
+				{#if secret.type === 'single_line'}
+					{$t('secrets.type-single-line')}
+				{:else if secret.type === 'multi_line'}
+					{$t('secrets.type-multi-line')}
+				{:else if secret.type === 'env_list'}
+					{$t('secrets.type-env-list')}
+				{:else if secret.type === 'file'}
+					{$t('secrets.type-file')}
+				{/if}
+			</td>
+			<td>
+				{#if secret.processing_type === 'none'}
+					{$t('secrets.processing-none')}
+				{:else if secret.processing_type === 'mkpasswd-yescrypt'}
+					{$t('secrets.processing-mkpasswd-yescrypt')}
+				{/if}
+			</td>
+			<td>
+				{secret.include_in_image ? $t('common.yes') : $t('common.no')}
+			</td>
+			<td>
+				{#if secret.error}
+					<div class="flex items-center gap-1" style="color: var(--ds-warning)">
+						<Alert size="16" />
+						{secret.error}
+					</div>
+				{/if}
+			</td>
+			<td>
+				<RowActions>
+					<ActionButton label={$t('secrets.edit')} onclick={() => openEditSecret(id)} />
+					<ActionButton
+						label={$t('secrets.copy-id')}
+						onclick={() => copySecretId(id)}
+						title={`Copy ${secret.display_name} ID`}
+						aria-label={`Copy ${secret.display_name} ID`}
+					/>
+					<ActionButton
+						label={$t('secrets.delete')}
+						variant="danger"
+						onclick={() => deleteSecret(id)}
+					/>
+				</RowActions>
+			</td>
+		{/snippet}
+	</DataTable>
 
-<!-- Create Secret Modal -->
-<SecretEditModal
-	bind:open={showCreateModal}
-	isCreating={true}
-	secretId={null}
-	bind:editedSecretName
-	bind:editedSecretType
-	bind:editedSingleLineValue
-	bind:editedMultiLineValue
-	bind:editedFileValue
-	bind:editedEnvVarList
-	bind:editedFileInfo
-	bind:includeInImage
-	bind:editedProcessingType
-	bind:isLoadingFile
-	on:close={() => {
-		resetFileInputById('fileValue');
-		showCreateModal = false;
-	}}
-	on:saved={handleSaved}
-	on:error={handleError}
-	on:download={downloadFile}
-	on:fileChange={handleFileChange}
-	on:addEnvVariable={addEnvVariable}
-	on:removeEnvVariable={(e) => removeEnvVariable(e.detail)}
-/>
+	<!-- Create Secret Modal -->
+	<SecretEditModal
+		bind:open={showCreateModal}
+		isCreating={true}
+		secretId={null}
+		bind:editedSecretName
+		bind:editedSecretType
+		bind:editedSingleLineValue
+		bind:editedMultiLineValue
+		bind:editedFileValue
+		bind:editedEnvVarList
+		bind:editedFileInfo
+		bind:includeInImage
+		bind:editedProcessingType
+		bind:isLoadingFile
+		on:close={() => {
+			resetFileInputById('fileValue');
+			showCreateModal = false;
+		}}
+		on:saved={handleSaved}
+		on:error={handleError}
+		on:download={downloadFile}
+		on:fileChange={handleFileChange}
+		on:addEnvVariable={addEnvVariable}
+		on:removeEnvVariable={(e) => removeEnvVariable(e.detail)}
+	/>
 
-<!-- Edit Secret Modal -->
-<SecretEditModal
-	bind:open={showEditModal}
-	isCreating={false}
-	secretId={currentSecretId}
-	bind:editedSecretName
-	bind:editedSecretType
-	bind:editedSingleLineValue
-	bind:editedMultiLineValue
-	bind:editedFileValue
-	bind:editedEnvVarList
-	bind:editedFileInfo
-	bind:includeInImage
-	bind:editedProcessingType
-	bind:isLoadingFile
-	on:close={() => {
-		resetFileInputById('editFileValue');
-		showEditModal = false;
-	}}
-	on:saved={handleSaved}
-	on:error={handleError}
-	on:download={downloadFile}
-	on:fileChange={handleFileChange}
-	on:addEnvVariable={addEnvVariable}
-	on:removeEnvVariable={(e) => removeEnvVariable(e.detail)}
-/>
+	<!-- Edit Secret Modal -->
+	<SecretEditModal
+		bind:open={showEditModal}
+		isCreating={false}
+		secretId={currentSecretId}
+		bind:editedSecretName
+		bind:editedSecretType
+		bind:editedSingleLineValue
+		bind:editedMultiLineValue
+		bind:editedFileValue
+		bind:editedEnvVarList
+		bind:editedFileInfo
+		bind:includeInImage
+		bind:editedProcessingType
+		bind:isLoadingFile
+		on:close={() => {
+			resetFileInputById('editFileValue');
+			showEditModal = false;
+		}}
+		on:saved={handleSaved}
+		on:error={handleError}
+		on:download={downloadFile}
+		on:fileChange={handleFileChange}
+		on:addEnvVariable={addEnvVariable}
+		on:removeEnvVariable={(e) => removeEnvVariable(e.detail)}
+	/>
+</Page>

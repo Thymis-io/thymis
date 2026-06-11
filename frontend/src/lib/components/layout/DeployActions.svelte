@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { Button } from 'flowbite-svelte';
 	import Hammer from 'lucide-svelte/icons/hammer';
 	import Refresh from 'lucide-svelte/icons/refresh-ccw';
 	import Boxes from 'lucide-svelte/icons/boxes';
@@ -23,8 +22,7 @@
 
 	let { nav, globalState, repoStatus, selectedDeploymentInfo = undefined }: Props = $props();
 
-	const buttonClass = 'gap-2 px-3 py-1.5 h-min whitespace-nowrap';
-	const textClass = 'text-base whitespace-nowrap';
+	const textClass = 'whitespace-nowrap';
 
 	const build = async () => {
 		await fetchWithNotify(`/api/action/build`, { method: 'POST' });
@@ -49,27 +47,25 @@
 </script>
 
 <div class="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
-	<Button color="alternative" class={buttonClass} on:click={build}>
+	<button class="ds-btn" onclick={build}>
 		<Hammer size={'1rem'} class="min-w-4" />
 		<span class={textClass}>{$t('deploy.build')}</span>
-	</Button>
-	<Button color="alternative" class={buttonClass} on:click={update}>
+	</button>
+	<button class="ds-btn" onclick={update}>
 		<Refresh size={'1rem'} class="min-w-4" />
 		<span class={textClass}>{$t('deploy.update')}</span>
-	</Button>
-	<Button color="alternative" class={buttonClass} on:click={() => (openCommit = true)}>
-		<div class="flex">
+	</button>
+	<button class="ds-btn" onclick={() => (openCommit = true)}>
+		<span class="flex items-center">
 			<GitCommitVertical size={'1rem'} class="min-w-4" />
-			<span class="pt-1">
-				{repoStatus.changes.length}
-			</span>
-		</div>
+			<span>{repoStatus.changes.length}</span>
+		</span>
 		<span class={textClass}>{$t('deploy.commit')}</span>
-	</Button>
-	<Button color="alternative" class={buttonClass} on:click={() => (openDeploy = true)}>
+	</button>
+	<button class="ds-btn" onclick={() => (openDeploy = true)}>
 		<Boxes size={'1rem'} class="min-w-4" />
 		<span class={textClass}>{$t('deploy.deploy')}</span>
-	</Button>
+	</button>
 	<DeployModal bind:open={openDeploy} {repoStatus} {globalState} {nav} {selectedDeploymentInfo} />
 	<CommitModal bind:open={openCommit} {repoStatus} onAction={commit} />
 </div>

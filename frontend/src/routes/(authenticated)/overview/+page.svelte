@@ -120,13 +120,7 @@
 	});
 </script>
 
-<PageHead
-	title={$t('nav.overview')}
-	subtitle={$t('overview.subtitle')}
-	repoStatus={data.repoStatus}
-	globalState={data.globalState}
-	nav={data.nav}
-/>
+<PageHead title={$t('nav.overview')} subtitle={$t('overview.subtitle')} />
 
 <!-- ── Row 1: stat cards ──────────────────────────────────────────────── -->
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-4">
