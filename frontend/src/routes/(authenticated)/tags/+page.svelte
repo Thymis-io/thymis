@@ -114,6 +114,7 @@
 
 <PageHead
 	title={$t('nav.tags')}
+	subtitle={$t('tags.subtitle')}
 	repoStatus={data.repoStatus}
 	globalState={data.globalState}
 	nav={data.nav}

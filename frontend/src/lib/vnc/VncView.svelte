@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import type { Config, Module } from '$lib/state';
-	import { Card, Spinner, Toggle, P } from 'flowbite-svelte';
+	import { Spinner, Toggle } from 'flowbite-svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { configVNCPassword, targetShouldShowVNC } from '$lib/vnc/vnc';
 	import { page } from '$app/stores';
@@ -101,24 +101,34 @@
 </script>
 
 {#if hasVNC}
-	<Card class="w-full max-w-none" padding="sm">
-		<div class="flex flex-wrap justify-between h-10 content-start gap-2">
-			<pre class="text-base"></pre>
-			<div class="flex items-center gap-2">
-				<P>{$t('vnc.control-device')}</P>
+	<div class="ds-card w-full">
+		<div class="ds-card-head">
+			<span class="ds-status-pill {connectionFailed ? 'danger' : connected ? 'online' : 'offline'}">
+				<span class="ds-dot"></span>
+				{connectionFailed
+					? $t('vnc.disconnected')
+					: connected
+						? $t('vnc.live')
+						: $t('vnc.connecting')}
+			</span>
+			<label class="flex items-center gap-2" style="color: var(--ds-text-dim); font-size: 13px;">
+				{$t('vnc.control-device')}
 				<Toggle bind:checked={control} class="mr-[-10px]" size="small" on:click={toggleControl} />
+			</label>
+		</div>
+		<div class="ds-card-pad">
+			<div bind:this={div} class="relative w-full aspect-video">
+				{#if connectionFailed}
+					<p
+						class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+						style="color: var(--ds-danger);"
+					>
+						{$t('vnc.connection-failed')}
+					</p>
+				{:else if !connected}
+					<Spinner size="16" class="absolute top-1/2 left-1/2 -mt-8 -ml-8" />
+				{/if}
 			</div>
 		</div>
-		<div bind:this={div} class="relative w-full aspect-video mt-4">
-			{#if connectionFailed}
-				<p
-					class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-red-500"
-				>
-					{$t('vnc.connection-failed')}
-				</p>
-			{:else if !connected}
-				<Spinner size="16" class="absolute top-1/2 left-1/2 -mt-8 -ml-8" />
-			{/if}
-		</div>
-	</Card>
+	</div>
 {/if}

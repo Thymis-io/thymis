@@ -3,14 +3,13 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { invalidate } from '$app/navigation';
-	import { Button, Input, Label, Alert, Spinner, Toggle, Select } from 'flowbite-svelte';
+	import { Alert, Spinner, Toggle } from 'flowbite-svelte';
 	import Search from 'lucide-svelte/icons/search';
 	import RefreshCcw from 'lucide-svelte/icons/refresh-ccw';
 	import Download from 'lucide-svelte/icons/download';
 	import Calendar from 'lucide-svelte/icons/calendar';
 	import Clock from 'lucide-svelte/icons/clock';
 	import MonospaceText from '$lib/components/MonospaceText.svelte';
-	import Paginator from '$lib/components/Paginator.svelte';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 	import type { PageData } from './$types';
@@ -298,55 +297,54 @@
 	<!-- Header with actions -->
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4">
 		<div>
-			<p class="text-sm text-gray-600 dark:text-gray-400">
+			<p class="text-sm" style="color: var(--ds-text-dim);">
 				{$t('logs.viewing-logs-for', { values: { deploymentId } })}
 			</p>
 		</div>
 
 		<div class="flex flex-wrap gap-2">
-			<Button size="sm" color="blue" on:click={applyFilters} disabled={isLoading}>
+			<button class="ds-btn ds-btn-primary ds-btn-sm" onclick={applyFilters} disabled={isLoading}>
 				{#if isLoading}
-					<Spinner class="mr-2" size="4" />
+					<Spinner size="4" />
 				{:else}
-					<RefreshCcw class="mr-2 h-4 w-4" />
+					<RefreshCcw class="h-4 w-4" />
 				{/if}
 				{$t('logs.refresh')}
-			</Button>
+			</button>
 
-			<Button
-				size="sm"
-				color="green"
-				on:click={downloadLogs}
+			<button
+				class="ds-btn ds-btn-sm"
+				onclick={downloadLogs}
 				disabled={!data.logs || data.logs.length === 0}
 			>
-				<Download class="mr-2 h-4 w-4" />
+				<Download class="h-4 w-4" />
 				{$t('logs.download')}
-			</Button>
+			</button>
 		</div>
 	</div>
 
 	<!-- Filters and Controls -->
-	<div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+	<div class="ds-card p-4">
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 			<!-- Time Range -->
 			<div class="space-y-2">
-				<Label class="text-sm font-medium">{$t('logs.time-range')}</Label>
+				<div class="ds-form-label">{$t('logs.time-range')}</div>
 				<div class="flex flex-col gap-2">
 					<div class="flex items-center gap-2">
-						<Calendar class="h-4 w-4 text-gray-500" />
-						<Input
+						<Calendar class="h-4 w-4 shrink-0" style="color: var(--ds-text-mute);" />
+						<input
+							class="ds-input"
 							type="datetime-local"
 							bind:value={fromDateTime}
-							class="text-sm"
 							placeholder={$t('logs.from-placeholder')}
 						/>
 					</div>
 					<div class="flex items-center gap-2">
-						<Clock class="h-4 w-4 text-gray-500" />
-						<Input
+						<Clock class="h-4 w-4 shrink-0" style="color: var(--ds-text-mute);" />
+						<input
+							class="ds-input"
 							type="datetime-local"
 							bind:value={toDateTime}
-							class="text-sm"
 							placeholder={$t('logs.to-placeholder')}
 						/>
 					</div>
@@ -355,27 +353,31 @@
 
 			<!-- Quick Time Presets -->
 			<div class="space-y-2">
-				<Label class="text-sm font-medium">{$t('logs.quick-select')}</Label>
+				<div class="ds-form-label">{$t('logs.quick-select')}</div>
 				<div class="grid grid-cols-1 gap-1">
 					{#each timePresets as preset}
-						<Button size="xs" color="light" on:click={() => setTimePreset(preset.minutes)}>
+						<button
+							class="ds-btn ds-btn-sm w-full justify-center"
+							onclick={() => setTimePreset(preset.minutes)}
+						>
 							{preset.label}
-						</Button>
+						</button>
 					{/each}
 				</div>
 			</div>
 
 			<!-- Search -->
 			<div class="space-y-2">
-				<Label class="text-sm font-medium">{$t('logs.search')}</Label>
+				<div class="ds-form-label">{$t('logs.search')}</div>
 				<div class="relative">
 					<Search
-						class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500"
+						class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4"
+						style="color: var(--ds-text-mute);"
 					/>
-					<Input
+					<input
+						class="ds-input pl-10"
 						bind:value={searchQuery}
 						placeholder={$t('logs.search-placeholder')}
-						class="pl-10 text-sm"
 					/>
 				</div>
 			</div>
@@ -383,79 +385,83 @@
 
 		<!-- Display Options and Auto-refresh -->
 		<div
-			class="flex flex-wrap items-center justify-between gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-600"
+			class="flex flex-wrap items-center justify-between gap-4 mt-4 pt-4 border-t"
+			style="border-color: var(--ds-border);"
 		>
-			<div class="flex flex-wrap items-center gap-4">
-				<div class="flex items-center gap-2">
+			<div class="flex flex-wrap items-center gap-4" style="color: var(--ds-text);">
+				<label class="flex items-center gap-2 text-[13px]">
 					<Toggle bind:checked={showTimestamps} size="small" />
-					<Label class="text-sm">{$t('logs.show-timestamps')}</Label>
-				</div>
-				<div class="flex items-center gap-2">
+					{$t('logs.show-timestamps')}
+				</label>
+				<label class="flex items-center gap-2 text-[13px]">
 					<Toggle bind:checked={wrapLines} size="small" />
-					<Label class="text-sm">{$t('logs.wrap-lines')}</Label>
-				</div>
-				<div class="flex items-center gap-2">
+					{$t('logs.wrap-lines')}
+				</label>
+				<label class="flex items-center gap-2 text-[13px]">
 					<Toggle bind:checked={reverseOrder} size="small" />
-					<Label class="text-sm">{$t('logs.reverse-order')}</Label>
-				</div>
-				<div class="flex items-center gap-2">
+					{$t('logs.reverse-order')}
+				</label>
+				<label class="flex items-center gap-2 text-[13px]">
 					<Toggle bind:checked={autoRefresh} size="small" />
-					<Label class="text-sm">{$t('logs.auto-refresh', { values: { refreshInterval } })}</Label>
-				</div>
+					{$t('logs.auto-refresh', { values: { refreshInterval } })}
+				</label>
 			</div>
 
-			<div class="flex items-center gap-2">
-				<Label class="text-sm">{$t('logs.per-page')}</Label>
-				<Select bind:value={limit} items={limitOptions} size="sm" class="w-20" />
-			</div>
+			<label class="flex items-center gap-2 text-[13px]" style="color: var(--ds-text);">
+				{$t('logs.per-page')}
+				<select class="ds-select w-20" bind:value={limit}>
+					{#each limitOptions as opt}
+						<option value={opt.value}>{opt.name}</option>
+					{/each}
+				</select>
+			</label>
 		</div>
 
 		<!-- Apply Filters Button -->
 		<div class="flex justify-center mt-4">
-			<Button color="primary" on:click={applyFilters} disabled={isLoading}>
+			<button class="ds-btn ds-btn-primary" onclick={applyFilters} disabled={isLoading}>
 				{#if isLoading}
 					<Spinner class="mr-2" size="4" />
 				{/if}
 				{$t('logs.apply-filters')}
-			</Button>
+			</button>
 		</div>
 	</div>
 
 	<!-- Log Content -->
-	<div
-		class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex-1 min-h-0"
-	>
+	<div class="ds-card p-4 flex-1 min-h-0">
 		{#if isLoading}
 			<div class="flex items-center justify-center p-8">
 				<Spinner size="8" />
-				<span class="ml-3 text-gray-600 dark:text-gray-400">{$t('logs.loading')}</span>
+				<span class="ml-3" style="color: var(--ds-text-dim);">{$t('logs.loading')}</span>
 			</div>
 		{:else if !data.logs || data.logs.length === 0}
 			<div class="flex flex-col items-center justify-center p-8 text-center">
-				<div class="text-gray-400 dark:text-gray-500 mb-4">
+				<div class="mb-4" style="color: var(--ds-text-mute);">
 					<Search class="h-12 w-12 mx-auto" />
 				</div>
-				<h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+				<h3 class="text-lg font-medium mb-2" style="color: var(--ds-text);">
 					{$t('logs.no-logs-found')}
 				</h3>
-				<p class="text-gray-600 dark:text-gray-400 mb-4">
+				<p class="mb-4" style="color: var(--ds-text-dim);">
 					{$t('logs.no-logs-message')}
 				</p>
-				<Button color="light" on:click={applyFilters}>
-					<RefreshCcw class="mr-2 h-4 w-4" />
+				<button class="ds-btn" onclick={applyFilters}>
+					<RefreshCcw class="h-4 w-4" />
 					{$t('logs.refresh')}
-				</Button>
+				</button>
 			</div>
 		{:else}
 			<div class="space-y-4">
 				<!-- Log Stats -->
 				<div
-					class="flex flex-wrap items-center justify-between gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+					class="flex flex-wrap items-center justify-between gap-2 p-4 rounded-lg"
+					style="background: var(--ds-surface-2);"
 				>
-					<div class="text-sm text-gray-600 dark:text-gray-400">
+					<div class="text-sm" style="color: var(--ds-text-dim);">
 						{$t('logs.showing-logs', { values: { count: processedLogs.length } })}
 					</div>
-					<div class="text-sm text-gray-600 dark:text-gray-400">
+					<div class="text-sm" style="color: var(--ds-text-dim);">
 						{#if processedLogs.length > 0}
 							<RenderTimeAgo timestamp={processedLogs[0]?.timestamp} class="inline" />
 							{$t('logs.time-range-to')}
@@ -484,17 +490,17 @@
 					<div class="flex justify-center items-center gap-4 mt-6">
 						<div class="flex items-center gap-2">
 							{#if urlOffset > 0}
-								<Button size="sm" color="light" on:click={() => handlePageChange(currentPage - 1)}>
+								<button class="ds-btn ds-btn-sm" onclick={() => handlePageChange(currentPage - 1)}>
 									{$t('logs.previous')}
-								</Button>
+								</button>
 							{/if}
-							<span class="text-sm text-gray-600 dark:text-gray-400">
+							<span class="text-sm" style="color: var(--ds-text-dim);">
 								{$t('logs.page', { values: { currentPage } })}
 							</span>
 							{#if hasMorePages}
-								<Button size="sm" color="light" on:click={() => handlePageChange(currentPage + 1)}>
+								<button class="ds-btn ds-btn-sm" onclick={() => handlePageChange(currentPage + 1)}>
 									{$t('logs.next')}
-								</Button>
+								</button>
 							{/if}
 						</div>
 					</div>

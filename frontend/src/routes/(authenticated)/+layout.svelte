@@ -87,7 +87,11 @@
 <ProgressBar class="text-primary-500" zIndex={100} />
 
 <div class="ds-shell">
-	<Sidebar globalState={data.globalState} bind:drawerHidden />
+	<Sidebar
+		globalState={data.globalState}
+		deploymentInfos={data.deploymentInfos}
+		bind:drawerHidden
+	/>
 
 	{#if !drawerHidden}
 		<button
@@ -98,7 +102,12 @@
 	{/if}
 
 	<div class="ds-main">
-		<Navbar globalState={data.globalState} nav={data.nav} bind:drawerHidden />
+		<Navbar
+			globalState={data.globalState}
+			nav={data.nav}
+			deploymentInfos={data.deploymentInfos}
+			bind:drawerHidden
+		/>
 
 		<div class="ds-body">
 			<SplitPane

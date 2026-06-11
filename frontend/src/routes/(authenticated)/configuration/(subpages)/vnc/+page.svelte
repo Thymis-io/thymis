@@ -22,8 +22,8 @@
 	};
 </script>
 
-<div class="flex items-center mb-2">
-	{$t('vnc.column-count')}
+<div class="ds-filterbar mb-3">
+	<span style="color: var(--ds-text-dim); font-size: 13px;">{$t('vnc.column-count')}</span>
 	<Dropdown
 		values={[
 			{ label: '1', value: 1 },

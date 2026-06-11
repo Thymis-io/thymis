@@ -7,11 +7,13 @@
 	import GlobalSearch from './GlobalSearch.svelte';
 	import GithubIcon from './GithubIcon.svelte';
 	import type { GlobalState } from '$lib/state.svelte';
+	import { type DeploymentInfo } from '$lib/deploymentInfo';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
 
 	interface Props {
 		nav?: Nav;
 		globalState?: GlobalState;
+		deploymentInfos?: DeploymentInfo[];
 		authenticated?: boolean;
 		drawerHidden: boolean;
 		class?: string;
@@ -20,33 +22,53 @@
 	let {
 		nav,
 		globalState,
+		deploymentInfos = [],
 		authenticated = true,
 		drawerHidden = $bindable(),
 		class: clazz = ''
 	}: Props = $props();
 
-	// Map the current route to a readable breadcrumb label.
-	const titleFor = (path: string): string => {
-		const map: [string, string][] = [
-			['/overview', $t('nav.overview')],
-			['/configuration/list', $t('nav.configurations')],
-			['/configuration', $t('nav.configure')],
-			['/tags', $t('nav.tags')],
-			['/devices', $t('nav.devices')],
-			['/vnc', $t('nav.global-vnc')],
-			['/history', $t('nav.history')],
-			['/external-repositories', $t('nav.external-repositories')],
-			['/secrets', $t('nav.secrets')],
-			['/artifacts', $t('nav.artifacts')],
-			['/auto-update', $t('nav.auto-update')]
-		];
-		for (const [prefix, label] of map) {
-			if (path === prefix || path.startsWith(prefix + '/')) return label;
-		}
-		return $t('nav.overview');
-	};
+	type Crumb = { label: string; href?: string };
 
-	let pageTitle = $derived(titleFor($page.url.pathname));
+	// Build a breadcrumb trail (parent section + leaf) from the current route so
+	// the top bar shows hierarchy instead of just repeating the page title.
+	let crumbs = $derived.by<Crumb[]>(() => {
+		const path = $page.url.pathname;
+		const sections: { prefix: string; label: string; href?: string }[] = [
+			{ prefix: '/overview', label: $t('nav.overview') },
+			{ prefix: '/configuration', label: $t('nav.configurations'), href: '/configuration/list' },
+			{ prefix: '/tags', label: $t('nav.tags') },
+			{ prefix: '/devices', label: $t('nav.devices') },
+			{ prefix: '/deployment_info', label: $t('nav.devices'), href: '/devices' },
+			{ prefix: '/vnc', label: $t('nav.global-vnc') },
+			{ prefix: '/history', label: $t('nav.history') },
+			{ prefix: '/external-repositories', label: $t('nav.external-repositories') },
+			{ prefix: '/secrets', label: $t('nav.secrets') },
+			{ prefix: '/artifacts', label: $t('nav.artifacts') },
+			{ prefix: '/auto-update', label: $t('nav.auto-update') }
+		];
+		const section = sections.find((s) => path === s.prefix || path.startsWith(s.prefix + '/'));
+		if (!section) return [{ label: $t('nav.overview'), href: '/overview' }];
+
+		const trail: Crumb[] = [{ label: section.label, href: section.href ?? section.prefix }];
+
+		const deviceMatch = path.match(/^\/devices\/([^/]+)/);
+		if (deviceMatch) {
+			const id = decodeURIComponent(deviceMatch[1]);
+			const di = deploymentInfos.find((d) => d.id === id);
+			trail.push({ label: di?.name || id });
+		} else if (path.startsWith('/configuration/') && path !== '/configuration/list') {
+			const name = nav?.selectedConfig?.displayName ?? nav?.selectedTarget?.displayName;
+			if (name) trail.push({ label: name });
+		} else if (path.startsWith('/deployment_info/')) {
+			const segs = path.split('/').filter(Boolean); // [deployment_info, <id>, logs?]
+			const id = segs[1] ? decodeURIComponent(segs[1]) : '';
+			const di = deploymentInfos.find((d) => d.id === id);
+			if (id) trail.push({ label: di?.name || id, href: `/devices/${id}` });
+			if (segs[2] === 'logs') trail.push({ label: $t('logs.title') });
+		}
+		return trail;
+	});
 </script>
 
 <div class="ds-topbar {clazz || ''}">
@@ -60,9 +82,18 @@
 		</button>
 	{/if}
 
-	<div class="breadcrumb">
-		<b>{pageTitle}</b>
-	</div>
+	<nav class="breadcrumb" aria-label="Breadcrumb">
+		{#each crumbs as crumb, i (i)}
+			{#if i > 0}
+				<span class="breadcrumb-sep" aria-hidden="true">/</span>
+			{/if}
+			{#if crumb.href && i < crumbs.length - 1}
+				<a href={crumb.href}>{crumb.label}</a>
+			{:else}
+				<b aria-current="page">{crumb.label}</b>
+			{/if}
+		{/each}
+	</nav>
 
 	{#if authenticated && globalState && nav}
 		<div class="search-wrap">
@@ -116,10 +147,25 @@
 		font-size: 13.5px;
 		color: var(--ds-text-dim);
 		flex-shrink: 0;
+		min-width: 0;
+	}
+	.breadcrumb a {
+		color: var(--ds-text-dim);
+		transition: color 0.12s;
+	}
+	.breadcrumb a:hover {
+		color: var(--ds-text);
+		text-decoration: underline;
 	}
 	.breadcrumb b {
 		color: var(--ds-text);
 		font-weight: 500;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.breadcrumb-sep {
+		color: var(--ds-text-mute);
 	}
 	.search-wrap {
 		margin-left: auto;

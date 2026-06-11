@@ -240,6 +240,7 @@
 
 <PageHead
 	title={$t('nav.auto-update')}
+	subtitle={$t('auto-update.subtitle')}
 	repoStatus={data.repoStatus}
 	globalState={data.globalState}
 	nav={data.nav}
