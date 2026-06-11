@@ -7,7 +7,7 @@
 	import SectionDeploymentInfo from './SectionDeploymentInfo.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import VncView from '$lib/vnc/VncView.svelte';
-	import Section from './Section.svelte';
+	import Section from '$lib/components/layout/Section.svelte';
 	import Terminal from '$lib/terminal/Terminal.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
 

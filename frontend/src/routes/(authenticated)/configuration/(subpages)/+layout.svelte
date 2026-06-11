@@ -70,7 +70,7 @@
 		await buildAndDownloadImage(data.nav.selectedConfig);
 	}}
 />
-<PageHead repoStatus={data.repoStatus} globalState={data.globalState} nav={data.nav}>
+<PageHead>
 	<h1 class="ds-page-title flex items-center">
 		<IdentifierLink
 			identifier={data.globalState.selectedTargetIdentifier}

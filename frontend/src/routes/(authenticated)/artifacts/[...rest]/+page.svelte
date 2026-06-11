@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import PageHead from '$lib/components/layout/PageHead.svelte';
+	import Page from '$lib/components/layout/Page.svelte';
+	import DataTable from '$lib/components/layout/DataTable.svelte';
+	import CreateButton from '$lib/components/layout/CreateButton.svelte';
+	import ActionButton from '$lib/components/layout/ActionButton.svelte';
+	import RowActions from '$lib/components/layout/RowActions.svelte';
 	import type { PageData } from './$types';
 	import { invalidate } from '$app/navigation';
 	import { Button, Helper, Modal } from 'flowbite-svelte';
 	import Trash from 'lucide-svelte/icons/trash-2';
 	import Download from 'lucide-svelte/icons/download';
-	import Plus from 'lucide-svelte/icons/plus';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import type { Artifact } from './+page';
 	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
@@ -111,169 +114,153 @@
 	};
 </script>
 
-<PageHead
-	title={$t('nav.artifacts')}
-	subtitle={$t('artifacts.subtitle')}
-	repoStatus={data.repoStatus}
-	globalState={data.globalState}
-	nav={data.nav}
->
+<Page title={$t('nav.artifacts')} subtitle={$t('artifacts.subtitle')}>
 	{#snippet actions()}
-		<button
-			class="ds-btn ds-btn-primary whitespace-nowrap"
+		<CreateButton
+			label={$t('artifacts.upload-file')}
 			onclick={() => {
 				files = undefined;
 				showUploadModal = true;
 			}}
-		>
-			<Plus size={16} />
-			{$t('artifacts.upload-file')}
-		</button>
-	{/snippet}
-</PageHead>
-
-<DeleteConfirm
-	target={deleteConfirmTarget?.name}
-	on:cancel={() => (deleteConfirmTarget = undefined)}
-	on:confirm={() => deleteConfirmTarget && deleteArtifact(deleteConfirmTarget)}
-/>
-
-<Modal
-	bind:open={showUploadModal}
-	title={$t('artifacts.upload-title')}
-	outsideclose
-	on:close={closeUploadModal}
->
-	<div class="space-y-4">
-		<p class="text-sm" style="color: var(--ds-text-dim)">
-			{$t('artifacts.upload-description')}
-		</p>
-		<input
-			id="fileUpload"
-			type="file"
-			multiple
-			bind:files
-			class="playwright-snapshot-unstable block w-full cursor-pointer rounded-lg border border-dashed border-[var(--ds-border-strong)] bg-[var(--ds-surface-2)] p-4 text-sm text-[var(--ds-text)]"
 		/>
-	</div>
-	<svelte:fragment slot="footer">
-		<Button color="alternative" on:click={closeUploadModal}>
-			{$t('artifacts.replace-file-cancel')}
-		</Button>
-		<Button on:click={submitUpload} disabled={!files || files.length === 0}>
-			{$t('artifacts.upload-file')}
-		</Button>
-	</svelte:fragment>
-</Modal>
+	{/snippet}
 
-<Modal
-	open={!!uploadReplaceFile}
-	title={$t('artifacts.replace-file-title')}
-	autoclose
-	outsideclose
-	on:close={() => (uploadReplaceFile = null)}
->
-	<div class="text-lg whitespace-pre-line">
-		{$t('artifacts.replace-file-description', {
-			values: { name: uploadReplaceFile?.name }
-		})}
-	</div>
-	<div class="flex justify-end mt-4">
-		<Button on:click={() => (uploadReplaceFile = null)} color="alternative">
-			{$t('artifacts.replace-file-cancel')}
-		</Button>
-		<Button on:click={uploadFiles} color="red" class="ml-2">
-			{$t('artifacts.replace-file-confirm')}
-		</Button>
-	</div>
-</Modal>
+	<DeleteConfirm
+		target={deleteConfirmTarget?.name}
+		on:cancel={() => (deleteConfirmTarget = undefined)}
+		on:confirm={() => deleteConfirmTarget && deleteArtifact(deleteConfirmTarget)}
+	/>
 
-<div class="ds-table-wrap">
-	<table class="ds-table">
-		<thead>
-			<tr>
-				<th class="w-12"></th>
-				<th>{$t('artifacts.table.name')}</th>
-				<th>{$t('artifacts.table.type')}</th>
-				<th>{$t('artifacts.table.size')}</th>
-				<th>{$t('artifacts.table.usage')}</th>
-				<th>{$t('artifacts.table.created-at')}</th>
-				<th>{$t('artifacts.table.modified-at')}</th>
-				<th class="text-right">{$t('artifacts.table.actions')}</th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each data.artifacts as artifact (artifact.name)}
-				<tr>
-					<td></td>
-					<TableBodyEditCell
-						value={artifact.name}
-						onEnter={async (value) => {
-							if (isUnusedName(artifact, value)) {
-								renameArtifact(artifact, value);
-							}
+	<Modal
+		bind:open={showUploadModal}
+		title={$t('artifacts.upload-title')}
+		outsideclose
+		on:close={closeUploadModal}
+	>
+		<div class="space-y-4">
+			<p class="text-sm" style="color: var(--ds-text-dim)">
+				{$t('artifacts.upload-description')}
+			</p>
+			<input
+				id="fileUpload"
+				type="file"
+				multiple
+				bind:files
+				class="playwright-snapshot-unstable block w-full cursor-pointer rounded-lg border border-dashed border-[var(--ds-border-strong)] bg-[var(--ds-surface-2)] p-4 text-sm text-[var(--ds-text)]"
+			/>
+		</div>
+		<svelte:fragment slot="footer">
+			<Button color="alternative" on:click={closeUploadModal}>
+				{$t('artifacts.replace-file-cancel')}
+			</Button>
+			<Button on:click={submitUpload} disabled={!files || files.length === 0}>
+				{$t('artifacts.upload-file')}
+			</Button>
+		</svelte:fragment>
+	</Modal>
 
-							// Reset the input field after renaming
-							await invalidate((url) => url.pathname.startsWith('/api/artifacts'));
-						}}
-					>
-						{#snippet bottom({ value: newName })}
-							{#if !isUnusedName(artifact, newName)}
-								<Helper color="red">
-									{$t('artifacts.name-already-used')}
-								</Helper>
-							{/if}
-						{/snippet}
-					</TableBodyEditCell>
-					<td>{artifact.media_type || $t('artifacts.table.unknown-type')}</td>
-					<td>{bytesToHumanReadable(artifact.size)}</td>
-					<td>
-						<div class="flex flex-row flex-wrap items-center gap-2">
-							{#each data.globalState.configs as config}
-								{#if config.modules.some((module) => hasArtifactUsages(artifact, module))}
-									<IdentifierLink
-										identifier={config.identifier}
-										context="config"
-										globalState={data.globalState}
-										solidBackground
-									/>
-								{/if}
-							{/each}
-							{#each data.globalState.tags as tag}
-								{#if tag.modules.some((module) => hasArtifactUsages(artifact, module))}
-									<IdentifierLink
-										identifier={tag.identifier}
-										context="tag"
-										globalState={data.globalState}
-										solidBackground
-									/>
-								{/if}
-							{/each}
-						</div>
-					</td>
-					<td class="playwright-snapshot-unstable w-[10rem]">
-						{new Date(artifact.created_at).toLocaleString()}
-					</td>
-					<td class="playwright-snapshot-unstable w-[10rem]">
-						{new Date(artifact.modified_at).toLocaleString()}
-					</td>
-					<td>
-						<div class="flex justify-end gap-2">
-							<a class="ds-btn ds-btn-sm" href={`/api/artifacts/${artifact.name}`} download>
-								<Download size={15} />
-								{$t('artifacts.table.download')}
-							</a>
-							<button
-								class="ds-btn ds-btn-sm ds-btn-danger"
-								onclick={() => (deleteConfirmTarget = artifact)}
-							>
-								<Trash size={15} />
-								{$t('artifacts.table.delete')}
-							</button>
-						</div>
-					</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
-</div>
+	<Modal
+		open={!!uploadReplaceFile}
+		title={$t('artifacts.replace-file-title')}
+		autoclose
+		outsideclose
+		on:close={() => (uploadReplaceFile = null)}
+	>
+		<div class="text-lg whitespace-pre-line">
+			{$t('artifacts.replace-file-description', {
+				values: { name: uploadReplaceFile?.name }
+			})}
+		</div>
+		<div class="flex justify-end mt-4">
+			<Button on:click={() => (uploadReplaceFile = null)} color="alternative">
+				{$t('artifacts.replace-file-cancel')}
+			</Button>
+			<Button on:click={uploadFiles} color="red" class="ml-2">
+				{$t('artifacts.replace-file-confirm')}
+			</Button>
+		</div>
+	</Modal>
+
+	<DataTable
+		columns={[
+			{ class: 'w-12' },
+			{ label: $t('artifacts.table.name') },
+			{ label: $t('artifacts.table.type') },
+			{ label: $t('artifacts.table.size') },
+			{ label: $t('artifacts.table.usage') },
+			{ label: $t('artifacts.table.created-at') },
+			{ label: $t('artifacts.table.modified-at') },
+			{ label: $t('artifacts.table.actions'), align: 'right' }
+		]}
+		rows={data.artifacts}
+	>
+		{#snippet row(artifact)}
+			<td></td>
+			<TableBodyEditCell
+				value={artifact.name}
+				onEnter={async (value) => {
+					if (isUnusedName(artifact, value)) {
+						renameArtifact(artifact, value);
+					}
+
+					// Reset the input field after renaming
+					await invalidate((url) => url.pathname.startsWith('/api/artifacts'));
+				}}
+			>
+				{#snippet bottom({ value: newName })}
+					{#if !isUnusedName(artifact, newName)}
+						<Helper color="red">
+							{$t('artifacts.name-already-used')}
+						</Helper>
+					{/if}
+				{/snippet}
+			</TableBodyEditCell>
+			<td>{artifact.media_type || $t('artifacts.table.unknown-type')}</td>
+			<td>{bytesToHumanReadable(artifact.size)}</td>
+			<td>
+				<div class="flex flex-row flex-wrap items-center gap-2">
+					{#each data.globalState.configs as config}
+						{#if config.modules.some((module) => hasArtifactUsages(artifact, module))}
+							<IdentifierLink
+								identifier={config.identifier}
+								context="config"
+								globalState={data.globalState}
+								solidBackground
+							/>
+						{/if}
+					{/each}
+					{#each data.globalState.tags as tag}
+						{#if tag.modules.some((module) => hasArtifactUsages(artifact, module))}
+							<IdentifierLink
+								identifier={tag.identifier}
+								context="tag"
+								globalState={data.globalState}
+								solidBackground
+							/>
+						{/if}
+					{/each}
+				</div>
+			</td>
+			<td class="playwright-snapshot-unstable w-[10rem]">
+				{new Date(artifact.created_at).toLocaleString()}
+			</td>
+			<td class="playwright-snapshot-unstable w-[10rem]">
+				{new Date(artifact.modified_at).toLocaleString()}
+			</td>
+			<td>
+				<RowActions>
+					<a class="ds-btn ds-btn-sm" href={`/api/artifacts/${artifact.name}`} download>
+						<Download size={15} />
+						{$t('artifacts.table.download')}
+					</a>
+					<ActionButton
+						label={$t('artifacts.table.delete')}
+						icon={Trash}
+						variant="danger"
+						onclick={() => (deleteConfirmTarget = artifact)}
+					/>
+				</RowActions>
+			</td>
+		{/snippet}
+	</DataTable>
+</Page>

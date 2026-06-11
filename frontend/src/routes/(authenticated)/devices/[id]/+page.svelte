@@ -8,7 +8,7 @@
 	import SectionOnlineStatus from './SectionOnlineStatus.svelte';
 	import SectionMetrics from './SectionMetrics.svelte';
 	import SectionErrorLogs from './SectionErrorLogs.svelte';
-	import Section from './Section.svelte';
+	import Section from '$lib/components/layout/Section.svelte';
 	import { page } from '$app/state';
 	import { goto, invalidate } from '$app/navigation';
 	import { queryParameters } from 'sveltekit-search-params';
@@ -72,9 +72,6 @@
 <PageHead
 	title={deploymentInfo.name ?? deploymentInfo.id}
 	subtitle={deploymentInfo.reachable_deployed_host ?? undefined}
-	repoStatus={data.repoStatus}
-	globalState={data.globalState}
-	nav={data.nav}
 	selectedDeploymentInfo={deploymentInfo}
 >
 	<button

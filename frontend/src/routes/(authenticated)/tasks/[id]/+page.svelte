@@ -35,7 +35,7 @@
 	});
 </script>
 
-<PageHead repoStatus={data.repoStatus} globalState={data.globalState} nav={data.nav}>
+<PageHead>
 	{#if task}
 		<div class="ds-page-title">
 			<TaskbarName

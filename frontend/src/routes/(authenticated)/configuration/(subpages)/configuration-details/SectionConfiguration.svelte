@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import Section from './Section.svelte';
+	import Section from '$lib/components/layout/Section.svelte';
 	import { type Config, type Module } from '$lib/state';
 	import { buildConfigSelectModuleSearchParam } from '$lib/searchParamHelpers';
 	import { page } from '$app/stores';

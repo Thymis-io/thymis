@@ -30,13 +30,7 @@
 	};
 </script>
 
-<PageHead
-	title={$t('nav.history')}
-	subtitle={$t('history.subtitle')}
-	repoStatus={data.repoStatus}
-	globalState={data.globalState}
-	nav={data.nav}
-/>
+<PageHead title={$t('nav.history')} subtitle={$t('history.subtitle')} />
 <RollbackModal bind:commit={revertCommit} />
 <div class="flex flex-col gap-3">
 	{#each data.history as history, index}
