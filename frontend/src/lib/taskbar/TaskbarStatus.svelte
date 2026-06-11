@@ -16,6 +16,18 @@
 
 	let { task, showIcons = true, showText = true, showProgress = true }: Props = $props();
 
+	const pillClass = $derived(
+		task.state === 'pending'
+			? 'warning'
+			: task.state === 'running'
+				? 'info'
+				: task.state === 'completed'
+					? 'online'
+					: task.state === 'failed'
+						? 'danger'
+						: 'offline'
+	);
+
 	let progress = $state(0);
 	const progressScalingFunction = (done: number, expected: number) => {
 		const f = (x: number) => x * x + 1;
@@ -33,31 +45,31 @@
 	});
 </script>
 
-<div class="flex gap-2 items-center">
+<div class="ds-status-pill {pillClass}">
 	{#if task.state === 'pending'}
 		{#if showIcons}
-			<PendingIcon size="18" />
+			<PendingIcon size="14" />
 		{/if}
 		{#if showText}
 			{$t('taskbar.pending')}
 		{/if}
 	{:else if task.state === 'running'}
 		{#if showIcons}
-			<RunningIcon size="18" />
+			<RunningIcon size="14" />
 		{/if}
 		{#if showText}
 			{$t('taskbar.running')}
 		{/if}
 	{:else if task.state === 'completed'}
 		{#if showIcons}
-			<CompletedIcon size="18" />
+			<CompletedIcon size="14" />
 		{/if}
 		{#if showText}
 			{$t('taskbar.completed')}
 		{/if}
 	{:else if task.state === 'failed'}
 		{#if showIcons}
-			<FailedIcon size="18" />
+			<FailedIcon size="14" />
 		{/if}
 		{#if showText}
 			{$t('taskbar.failed')}

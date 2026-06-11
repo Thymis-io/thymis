@@ -32,7 +32,7 @@
 
 <div class="flex items-center paginate">
 	<button onclick={() => handlePageChange(page - 1)} class="page-button">
-		<ChevronLeft class="h-6" />
+		<ChevronLeft class="h-4" />
 	</button>
 	{#each visiblePages as i}
 		<button
@@ -44,24 +44,40 @@
 		</button>
 	{/each}
 	<button onclick={() => handlePageChange(page + 1)} class="page-button">
-		<ChevronRight class="h-6" />
+		<ChevronRight class="h-4" />
 	</button>
 </div>
 
 <style lang="postcss">
+	.paginate {
+		gap: 4px;
+	}
 	.page-button {
-		border: 1px solid rgb(128, 128, 128);
-		padding: 0.1rem;
-		height: 1.6rem;
-		width: 1.6rem;
+		border: 1px solid var(--ds-border);
+		background: var(--ds-surface-2);
+		color: var(--ds-text-dim);
+		border-radius: 7px;
+		padding: 0;
+		height: 1.75rem;
+		min-width: 1.75rem;
+		font-size: 12.5px;
+		font-weight: 500;
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		transition:
+			background 0.12s,
+			border-color 0.12s,
+			color 0.12s;
 	}
-	.paginate :first-child {
-		border-radius: 0.3rem 0 0 0.3rem;
+	.page-button:hover {
+		background: var(--ds-surface-3);
+		border-color: var(--ds-border-strong);
+		color: var(--ds-text);
 	}
-	.paginate :last-child {
-		border-radius: 0 0.3rem 0.3rem 0;
+	.page-button.active {
+		background: var(--ds-accent);
+		border-color: var(--ds-accent);
+		color: #fff;
 	}
 </style>

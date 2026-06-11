@@ -32,18 +32,15 @@
 		{ name: $t('taskbar.actions'), additionalStyle: 'width: 10em' }
 	]);
 
-	const tdClass = 'border border-gray-300 dark:border-gray-700 px-2';
+	const tdClass = 'px-3 py-1.5';
 </script>
 
-<div class="overflow-y-auto">
+<div class="ds-taskbar-table overflow-y-auto">
 	<table class="w-full border-collapse" use:ResizableColumns>
 		<thead>
-			<tr class="sticky top-0 bg-gray-100 dark:bg-gray-800">
+			<tr class="sticky top-0">
 				{#each headers.entries() as [i, header]}
-					<th
-						class="border border-l-2 border-r-2 border-t-0 border-gray-300 dark:border-gray-600 text-base"
-						style={header.additionalStyle}
-					>
+					<th style={header.additionalStyle}>
 						{#if i === headers.length - 1}
 							<TaskbarMinimize bind:taskbarMinimized />
 						{/if}
@@ -76,13 +73,34 @@
 	</table>
 </div>
 
-<style>
-	th:first-child,
-	td:first-child {
-		border-left: none;
+<style lang="postcss">
+	.ds-taskbar-table table {
+		font-size: 13px;
+		color: var(--ds-text);
 	}
-	th:last-child,
-	td:last-child {
+	.ds-taskbar-table thead th {
+		background: var(--ds-surface-2);
+		color: var(--ds-text-mute);
+		font-size: 11.5px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		text-align: left;
+		padding: 9px 12px;
+		border-bottom: 1px solid var(--ds-border);
+		border-right: 1px solid var(--ds-border);
+	}
+	.ds-taskbar-table thead th:last-child {
 		border-right: none;
+	}
+	.ds-taskbar-table tbody td {
+		border-bottom: 1px solid var(--ds-border);
+		vertical-align: middle;
+	}
+	.ds-taskbar-table tbody tr {
+		transition: background 0.12s;
+	}
+	.ds-taskbar-table tbody tr:hover {
+		background: var(--ds-surface-2);
 	}
 </style>
