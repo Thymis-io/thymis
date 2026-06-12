@@ -73,6 +73,88 @@ def get_metrics_downsampled(
     ]
 
 
+def get_fleet_metrics_downsampled(
+    db_session: Session,
+    from_datetime: datetime,
+    to_datetime: datetime,
+    granularity: models.MetricGranularity,
+) -> list[models.FleetMetricPoint]:
+    """Return fleet-wide averaged + max metrics grouped by time bucket."""
+    bucket = _bucket_expr(granularity)
+    rows = (
+        db_session.query(
+            bucket.label("bucket"),
+            func.avg(db_models.DeviceMetric.cpu_percent).label("cpu_avg"),
+            func.max(db_models.DeviceMetric.cpu_percent).label("cpu_max"),
+            func.avg(db_models.DeviceMetric.ram_percent).label("ram_avg"),
+            func.max(db_models.DeviceMetric.ram_percent).label("ram_max"),
+            func.avg(db_models.DeviceMetric.disk_percent).label("disk_avg"),
+            func.max(db_models.DeviceMetric.disk_percent).label("disk_max"),
+            func.count(func.distinct(db_models.DeviceMetric.deployment_info_id)).label(
+                "device_count"
+            ),
+        )
+        .filter(
+            db_models.DeviceMetric.timestamp >= from_datetime,
+            db_models.DeviceMetric.timestamp <= to_datetime,
+        )
+        .group_by(bucket)
+        .order_by(bucket.asc())
+        .all()
+    )
+    return [
+        models.FleetMetricPoint(
+            timestamp=row.bucket,
+            cpu_avg=row.cpu_avg,
+            cpu_max=row.cpu_max,
+            ram_avg=row.ram_avg,
+            ram_max=row.ram_max,
+            disk_avg=row.disk_avg,
+            disk_max=row.disk_max,
+            device_count=row.device_count,
+        )
+        for row in rows
+    ]
+
+
+def get_latest_per_device(
+    db_session: Session,
+) -> list[models.FleetDeviceMetric]:
+    """Return the most recent metric for each device, with the device name."""
+    latest_ts = (
+        db_session.query(
+            db_models.DeviceMetric.deployment_info_id.label("di_id"),
+            func.max(db_models.DeviceMetric.timestamp).label("max_ts"),
+        )
+        .group_by(db_models.DeviceMetric.deployment_info_id)
+        .subquery()
+    )
+    rows = (
+        db_session.query(db_models.DeviceMetric, db_models.DeploymentInfo)
+        .join(
+            latest_ts,
+            (db_models.DeviceMetric.deployment_info_id == latest_ts.c.di_id)
+            & (db_models.DeviceMetric.timestamp == latest_ts.c.max_ts),
+        )
+        .join(
+            db_models.DeploymentInfo,
+            db_models.DeploymentInfo.id == db_models.DeviceMetric.deployment_info_id,
+        )
+        .all()
+    )
+    return [
+        models.FleetDeviceMetric(
+            deployment_info_id=metric.deployment_info_id,
+            name=getattr(di, "name", None),
+            cpu_percent=metric.cpu_percent,
+            ram_percent=metric.ram_percent,
+            disk_percent=metric.disk_percent,
+            timestamp=metric.timestamp,
+        )
+        for metric, di in rows
+    ]
+
+
 def delete_expired_metrics(db_session: Session, cutoff_date: datetime) -> int:
     """Delete metrics older than cutoff_date. Returns number of deleted rows."""
     deleted = (

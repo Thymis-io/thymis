@@ -9,6 +9,7 @@ from thymis_controller.routers import (
     api_controller_settings,
     api_deployment_info,
     api_external_repositories,
+    api_fleet,
     api_logging,
     api_secrets,
     api_state,
@@ -28,6 +29,7 @@ router.include_router(api_secrets.router)
 router.include_router(api_state.router)
 router.include_router(api_action.router)
 router.include_router(api_deployment_info.router)
+router.include_router(api_fleet.router)
 router.include_router(api_external_repositories.router)
 router.include_router(api_config.router)
 router.include_router(api_ui_sockets.router)

@@ -256,7 +256,25 @@
 		"chart": {
 			"deployed-commits": "Deployed Commits",
 			"hardware-types": "Hardware Types",
-			"online-status": "Online / Offline"
+			"online-status": "Online / Offline",
+			"fleet-health": "Fleet Health",
+			"connectivity": "Connected Devices Over Time",
+			"update-compliance": "Update Compliance",
+			"top-load": "Top Resource Usage"
+		},
+		"fleet": {
+			"avg-cpu": "Avg CPU",
+			"avg-ram": "Avg RAM",
+			"avg-disk": "Avg Disk",
+			"on-head": "On HEAD",
+			"behind": "Behind",
+			"cpu": "CPU",
+			"ram": "RAM",
+			"disk": "Disk",
+			"no-metrics": "No fleet metrics yet.",
+			"no-load-data": "No usage data yet.",
+			"device-types": "Device Types",
+			"connected": "Connected"
 		},
 		"table": {
 			"title": "All Devices",

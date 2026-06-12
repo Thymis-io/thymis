@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { DeviceMetricsEntry } from '$lib/deploymentInfo';
+	import type { FleetMetricPoint } from '$lib/fleet';
 	import { Line } from 'svelte-chartjs';
 	import {
 		Chart as ChartJS,
@@ -17,12 +17,10 @@
 	ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 	interface Props {
-		metrics: DeviceMetricsEntry[];
+		metrics: FleetMetricPoint[];
 		timewindow: '1h' | '24h' | '7d';
 	}
 	let { metrics, timewindow }: Props = $props();
-
-	const latest = $derived(metrics.length ? metrics[metrics.length - 1] : null);
 
 	const TICK_STEP_MS: Record<string, number> = {
 		'1h': 10 * 60 * 1000,
@@ -40,9 +38,9 @@
 	}
 
 	const series = [
-		{ key: 'cpu_percent' as const, label: 'CPU', color: 'rgb(255, 99, 132)' },
-		{ key: 'ram_percent' as const, label: 'RAM', color: 'rgb(54, 162, 235)' },
-		{ key: 'disk_percent' as const, label: 'Disk', color: 'rgb(255, 193, 7)' }
+		{ key: 'cpu_avg' as const, label: 'CPU', color: 'rgb(255, 99, 132)' },
+		{ key: 'ram_avg' as const, label: 'RAM', color: 'rgb(54, 162, 235)' },
+		{ key: 'disk_avg' as const, label: 'Disk', color: 'rgb(255, 193, 7)' }
 	];
 
 	const data = $derived({
@@ -84,23 +82,9 @@
 </script>
 
 {#if !metrics.length}
-	<p class="text-sm" style="color: var(--ds-text-dim)">{$t('device-details.no-metrics')}</p>
+	<p class="text-sm" style="color: var(--ds-text-dim)">{$t('overview.fleet.no-metrics')}</p>
 {:else}
-	<div class="mb-4 grid grid-cols-3 gap-3">
-		{#each series as item (item.key)}
-			<div class="ds-stat">
-				<div class="ds-stat-label flex items-center gap-1.5">
-					<span
-						class="inline-block h-2 w-2 flex-shrink-0 rounded-full"
-						style="background: {item.color}"
-					></span>
-					{item.label}
-				</div>
-				<div class="ds-stat-value">{(latest?.[item.key] ?? 0).toFixed(1)}%</div>
-			</div>
-		{/each}
-	</div>
-	<div class="relative h-72 w-full">
+	<div class="relative h-64 w-full">
 		<Line {data} options={chartOptions} />
 	</div>
 {/if}

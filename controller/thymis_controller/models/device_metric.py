@@ -1,9 +1,16 @@
+import uuid
 from datetime import datetime, timezone
 from enum import Enum
+from typing import Optional
 
 from pydantic import BaseModel, field_serializer
 
-__all__ = ["DeviceMetricPoint", "MetricGranularity"]
+__all__ = [
+    "DeviceMetricPoint",
+    "MetricGranularity",
+    "FleetMetricPoint",
+    "FleetDeviceMetric",
+]
 
 
 class MetricGranularity(str, Enum):
@@ -33,6 +40,42 @@ class DeviceMetricPoint(BaseModel):
     def _ser_dt(self, dt: datetime) -> str:
         if dt.tzinfo is None:
             # treat stored naive values as UTC, matching the rest of the project
+            dt = dt.replace(tzinfo=timezone.utc)
+        else:
+            dt = dt.astimezone(timezone.utc)
+        return dt.isoformat().replace("+00:00", "Z")
+
+
+class FleetMetricPoint(BaseModel):
+    timestamp: datetime
+    cpu_avg: float
+    cpu_max: float
+    ram_avg: float
+    ram_max: float
+    disk_avg: float
+    disk_max: float
+    device_count: int
+
+    @field_serializer("timestamp")
+    def _ser_dt(self, dt: datetime) -> str:
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        else:
+            dt = dt.astimezone(timezone.utc)
+        return dt.isoformat().replace("+00:00", "Z")
+
+
+class FleetDeviceMetric(BaseModel):
+    deployment_info_id: uuid.UUID
+    name: Optional[str] = None
+    cpu_percent: float
+    ram_percent: float
+    disk_percent: float
+    timestamp: datetime
+
+    @field_serializer("timestamp")
+    def _ser_dt(self, dt: datetime) -> str:
+        if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)
         else:
             dt = dt.astimezone(timezone.utc)
