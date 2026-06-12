@@ -20,9 +20,17 @@
 	import { type DeploymentInfo } from '$lib/deploymentInfo';
 	import LanguageSelect from '$lib/navbar/LanguageSelect.svelte';
 
+	type UserInfo = {
+		username?: string | null;
+		given_name?: string | null;
+		family_name?: string | null;
+		email?: string | null;
+	};
+
 	interface Props {
 		globalState: GlobalState;
 		deploymentInfos?: DeploymentInfo[];
+		user?: UserInfo | null;
 		drawerHidden: boolean;
 		asideClass?: string;
 	}
@@ -30,9 +38,18 @@
 	let {
 		globalState,
 		deploymentInfos = [],
+		user = null,
 		drawerHidden = $bindable(),
 		asideClass = ''
 	}: Props = $props();
+
+	let userName = $derived(
+		[user?.given_name, user?.family_name].filter(Boolean).join(' ') ||
+			user?.username ||
+			$t('common.administrator')
+	);
+	let userSubtitle = $derived(user?.email ?? $t('common.administrator'));
+	let userInitial = $derived(userName.trim().charAt(0).toUpperCase() || 'U');
 
 	const closeDrawer = () => {
 		drawerHidden = true;
@@ -165,10 +182,10 @@
 
 	<div class="sidebar-footer">
 		<button class="user-trigger" id="sidebar-user-trigger" aria-label="User menu">
-			<span class="avatar">A</span>
+			<span class="avatar">{userInitial}</span>
 			<span class="user-info">
-				<span class="user-name">Admin</span>
-				<span class="user-role">{$t('common.administrator')}</span>
+				<span class="user-name">{userName}</span>
+				<span class="user-role">{userSubtitle}</span>
 			</span>
 			<ChevronUp size={16} class="user-chevron" />
 		</button>
@@ -182,10 +199,10 @@
 	>
 		<div class="user-menu">
 			<div class="user-menu-header">
-				<span class="avatar">A</span>
+				<span class="avatar">{userInitial}</span>
 				<span class="user-info">
-					<span class="user-name">Admin</span>
-					<span class="user-role">{$t('common.administrator')}</span>
+					<span class="user-name">{userName}</span>
+					<span class="user-role">{userSubtitle}</span>
 				</span>
 			</div>
 			<div class="user-menu-divider"></div>
@@ -362,6 +379,9 @@
 		font-size: 13px;
 		font-weight: 500;
 		color: var(--ds-text);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 	.user-role {
 		font-size: 11px;

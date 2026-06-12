@@ -152,6 +152,7 @@ export const load = (async ({ fetch, url, data }) => {
 	const minimizeTaskbar = data?.minimizeTaskbar === 'true';
 	const vncDisplaysPerColumn = parseInt(data?.vncDisplaysPerColumn || '3');
 	const inPlaywright = data?.inPlaywright || false;
+	const user = data?.user ?? null;
 
 	const selectedTargetType = url.searchParams.get('global-nav-target-type') as ContextType;
 	const selectedTargetIdentifier = url.searchParams.get('global-nav-target');
@@ -207,6 +208,7 @@ export const load = (async ({ fetch, url, data }) => {
 		tasksPerPage: tasksPerPage,
 		minimizeTaskbar: minimizeTaskbar,
 		vncDisplaysPerColumn: vncDisplaysPerColumn,
+		user: user,
 		inPlaywright: inPlaywright
 	};
 }) satisfies LayoutLoad;
