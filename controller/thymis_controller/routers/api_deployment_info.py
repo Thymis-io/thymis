@@ -16,15 +16,27 @@ logger = logging.getLogger(__name__)
 
 
 async def _send_hostname_update(
-    network_relay: NetworkRelay, deployment_info: db_models.DeploymentInfo
+    network_relay: NetworkRelay,
+    deployment_info: db_models.DeploymentInfo,
+    project,
 ):
     """Send hostname update to the connected agent for a deployment."""
     import thymis_agent.agent as agent
-    from thymis_controller.lib import sanitize_hostname
+    from thymis_controller.lib import effective_hostname, get_config_device_name
 
-    hostname = sanitize_hostname(deployment_info.name)
-    if not hostname:
-        return
+    state = project.read_state()
+    config = next(
+        (
+            c
+            for c in state.configs
+            if c.identifier == deployment_info.deployed_config_id
+        ),
+        None,
+    )
+    hostname = effective_hostname(
+        deployment_info.name, get_config_device_name(config, state)
+    )
+
     connection_id = network_relay.public_key_to_connection_id.get(
         deployment_info.ssh_public_key
     )
@@ -164,7 +176,7 @@ async def update_deployment_info(
         project.update_known_hosts(db_session)
     # Send hostname update to the agent if name changed
     if "name" in deployment_info.model_fields_set:
-        await _send_hostname_update(network_relay, result)
+        await _send_hostname_update(network_relay, result, project)
     return result
 
 

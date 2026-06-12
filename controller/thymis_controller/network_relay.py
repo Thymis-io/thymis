@@ -512,16 +512,20 @@ class NetworkRelay(nr.NetworkRelay):
                         ).model_dump_json()
                     )
 
-                # send current hostname to agent
-                from thymis_controller.lib import sanitize_hostname
+                # send hostname on every connect — no guard, effective_hostname never returns empty
+                from thymis_controller.lib import (
+                    effective_hostname,
+                    get_config_device_name,
+                )
 
-                hostname = sanitize_hostname(deployment_info.name)
-                if hostname:
-                    await edge_agent_connection.send_text(
-                        agent.RelayToAgentMessage(
-                            inner=agent.RtEUpdateHostnameMessage(hostname=hostname)
-                        ).model_dump_json()
-                    )
+                hostname = effective_hostname(
+                    deployment_info.name, get_config_device_name(config, state)
+                )
+                await edge_agent_connection.send_text(
+                    agent.RelayToAgentMessage(
+                        inner=agent.RtEUpdateHostnameMessage(hostname=hostname)
+                    ).model_dump_json()
+                )
 
                 await edge_agent_connection.send_text(
                     agent.RelayToAgentMessage(
