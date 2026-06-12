@@ -90,6 +90,7 @@
 	<Sidebar
 		globalState={data.globalState}
 		deploymentInfos={data.deploymentInfos}
+		user={data.user}
 		bind:drawerHidden
 	/>
 
