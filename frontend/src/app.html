@@ -4,6 +4,17 @@
 		<meta charset="utf-8" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<script>
+			// Apply persisted/preferred color theme before render to avoid a flash
+			// and so it works regardless of the DarkMode toggle being mounted.
+			if ('color-theme' in localStorage) {
+				localStorage.getItem('color-theme') === 'dark'
+					? document.documentElement.classList.add('dark')
+					: document.documentElement.classList.remove('dark');
+			} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+				document.documentElement.classList.add('dark');
+			}
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
