@@ -109,6 +109,8 @@ export type Module = {
 	icon: string | undefined;
 	iconDark: string | undefined;
 	displayName: string;
+	description?: string | null;
+	category?: string | null;
 	settings: Record<string, Setting>;
 };
 

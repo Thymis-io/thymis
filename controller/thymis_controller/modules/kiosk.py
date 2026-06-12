@@ -11,6 +11,16 @@ from thymis_controller.project import Project
 class Kiosk(modules.Module):
     display_name: str = "Kiosk"
 
+    category = modules.LocalizedString(
+        en="Applications",
+        de="Anwendungen",
+    )
+
+    description = modules.LocalizedString(
+        en="Display a single website fullscreen in a locked-down browser.",
+        de="Eine einzelne Website im Vollbild in einem gesperrten Browser anzeigen.",
+    )
+
     icon: str = read_into_base64(
         str(pathlib.Path(__file__).parent / "icons" / "Display.svg")
     )

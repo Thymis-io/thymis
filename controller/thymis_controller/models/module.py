@@ -79,6 +79,8 @@ class Setting(BaseModel):
 class Module(BaseModel):
     type: str
     displayName: str
+    description: Optional[str] = None
+    category: Optional[str] = None
     icon: Optional[str] = None
     iconDark: Optional[str] = None
     settings: dict[str, Setting]
