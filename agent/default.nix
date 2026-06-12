@@ -6,6 +6,7 @@
 , writeShellApplication
 , python313
 , shadow
+, inetutils
 }:
 let
   python = python313;
@@ -50,7 +51,7 @@ let
 
   app = writeShellApplication {
     name = "thymis-agent";
-    runtimeInputs = [ shadow ];
+    runtimeInputs = [ shadow inetutils ];
     text = ''
       exec ${env}/bin/thymis-agent "$@"
     '';

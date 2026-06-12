@@ -93,7 +93,7 @@ in
       enable = true;
       settings.PermitRootLogin = "yes";
     };
-    networking.hostName = cfg.device-name;
+    networking.hostName = lib.mkForce "";
     networking.wireless = lib.mkIf use-wifi {
       enable = true;
       networks = {
@@ -154,13 +154,17 @@ in
       serviceConfig.Type = "oneshot";
     };
     systemd.tmpfiles.rules = lib.mkIf cfg.agent.enable [
-      "C /etc/hostname 0644 root root - ${cfg.device-name}-????-????"
+      "f /etc/hostname 0644 root root - ${cfg.device-name}"
     ];
     systemd.services.thymis-apply-hostname = lib.mkIf cfg.agent.enable {
       description = "Apply hostname from /etc/hostname";
       wantedBy = [ "multi-user.target" "thymis-apply-hostname.path" ];
       serviceConfig.Type = "oneshot";
-      serviceConfig.ExecStart = "${pkgs.util-linux}/bin/hostname -F /etc/hostname";
+      script = ''
+        if [ -f /etc/hostname ]; then
+          ${pkgs.inetutils}/bin/hostname -F /etc/hostname
+        fi
+      '';
     };
     systemd.paths.thymis-apply-hostname = lib.mkIf cfg.agent.enable {
       description = "Watch /etc/hostname for changes";
