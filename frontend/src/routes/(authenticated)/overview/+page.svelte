@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
-	import PieChart from '$lib/components/PieChart.svelte';
-	import type { PieSlice } from '$lib/components/PieChart.svelte';
 	import { getDeviceType, getDeviceTypesMap } from '$lib/config/configUtils';
 	import MonitorCheck from 'lucide-svelte/icons/monitor-check';
 	import MonitorX from 'lucide-svelte/icons/monitor-x';
@@ -11,6 +11,10 @@
 	import Layers from 'lucide-svelte/icons/layers';
 	import Tag from 'lucide-svelte/icons/tag';
 	import OverviewConfigCard, { type ConfigCard } from '$lib/components/OverviewConfigCard.svelte';
+	import FleetHealthChart from '$lib/components/FleetHealthChart.svelte';
+	import FleetConnectivityChart from '$lib/components/FleetConnectivityChart.svelte';
+	import OverviewInventory from '$lib/components/OverviewInventory.svelte';
+	import OverviewTopDevices from '$lib/components/OverviewTopDevices.svelte';
 	import { isOnline, isActive } from '$lib/deploymentInfo';
 
 	interface Props {
@@ -18,19 +22,6 @@
 	}
 
 	let { data }: Props = $props();
-
-	const HEAD_COLOR = '#10b981'; // emerald-500
-	const SLICE_COLORS = [
-		'#3b82f6', // blue-500
-		'#f59e0b', // amber-500
-		'#ef4444', // red-500
-		'#8b5cf6', // violet-500
-		'#ec4899', // pink-500
-		'#14b8a6', // teal-500
-		'#f97316', // orange-500
-		'#6366f1', // indigo-500
-		'#84cc16' // lime-500
-	];
 
 	let deviceTypesMap = $derived(getDeviceTypesMap(data.availableModules));
 
@@ -85,39 +76,28 @@
 	);
 	let offlineInstancesCount = $derived(Math.max(0, activeInstancesTotal - onlineInstancesCount));
 
-	// ── Pie 1: deployed commit — active instances only, HEAD highlighted ──
-	let commitSlices: PieSlice[] = $derived.by(() => {
-		const counts = new Map<string, number>();
-		for (const card of configCards) {
-			for (const inst of card.activeInstances) {
-				const commit = inst.shortCommit ?? $t('overview.no-commit');
-				counts.set(commit, (counts.get(commit) ?? 0) + 1);
-			}
-		}
-		const entries = Array.from(counts.entries()).sort((a, b) => {
-			if (a[0] === shortHeadCommit) return -1;
-			if (b[0] === shortHeadCommit) return 1;
-			return b[1] - a[1];
-		});
-		let colorIndex = 0;
-		return entries.map(([label, value]) => {
-			const isHead = label === shortHeadCommit;
-			const color = isHead ? HEAD_COLOR : SLICE_COLORS[colorIndex++ % SLICE_COLORS.length];
-			return { label, value, color, isHead };
-		});
-	});
+	// ── Shared time-window control (fleet health + connectivity) ──────────
+	type TimeWindow = '1h' | '24h' | '7d';
+	let timewindow = $derived(data.timewindow as TimeWindow);
 
-	// ── Pie 2: online vs offline — only among active instances ───────────
-	let onlineStatusSlices: PieSlice[] = $derived.by(() => {
-		const activeTotal = configCards.reduce((sum, c) => sum + c.activeInstances.length, 0);
-		const offline = activeTotal - onlineInstancesCount;
-		const slices: PieSlice[] = [];
-		if (onlineInstancesCount > 0)
-			slices.push({ label: $t('overview.online'), value: onlineInstancesCount, color: '#10b981' });
-		if (offline > 0)
-			slices.push({ label: $t('overview.offline'), value: offline, color: '#6b7280' });
-		return slices;
-	});
+	const hoursMap: Record<TimeWindow, number> = { '1h': 1, '24h': 24, '7d': 7 * 24 };
+	const granularityMap: Record<TimeWindow, '1min' | '15min' | '1h'> = {
+		'1h': '1min',
+		'24h': '15min',
+		'7d': '1h'
+	};
+
+	function setTimeWindow(w: TimeWindow) {
+		const sp = new URLSearchParams(page.url.search);
+		sp.set('timewindow', w);
+		sp.set('hours', hoursMap[w].toString());
+		sp.set('granularity', granularityMap[w]);
+		goto(`?${sp.toString()}`, { replaceState: true, invalidateAll: true });
+	}
+
+	let latestFleet = $derived(
+		data.fleetMetrics.length ? data.fleetMetrics[data.fleetMetrics.length - 1] : null
+	);
 </script>
 
 <PageHead title={$t('nav.overview')} subtitle={$t('overview.subtitle')} />
@@ -173,25 +153,74 @@
 	</div>
 </div>
 
-<!-- ── Row 2: charts ──────────────────────────────────────────────────── -->
-<div class="grid grid-cols-1 gap-4 md:grid-cols-2 mb-4">
+<!-- ── Row 2: fleet average resource chips ────────────────────────────── -->
+{#if latestFleet}
+	<div class="mb-4 grid grid-cols-3 gap-4">
+		<div class="ds-stat">
+			<div class="ds-stat-label">{$t('overview.fleet.avg-cpu')}</div>
+			<div class="ds-stat-value">{latestFleet.cpu_avg.toFixed(0)}%</div>
+		</div>
+		<div class="ds-stat">
+			<div class="ds-stat-label">{$t('overview.fleet.avg-ram')}</div>
+			<div class="ds-stat-value">{latestFleet.ram_avg.toFixed(0)}%</div>
+		</div>
+		<div class="ds-stat">
+			<div class="ds-stat-label">{$t('overview.fleet.avg-disk')}</div>
+			<div class="ds-stat-value">{latestFleet.disk_avg.toFixed(0)}%</div>
+		</div>
+	</div>
+{/if}
+
+<!-- ── Row 3: fleet health (full width) with shared time-window switch ── -->
+<div class="ds-card mb-4 flex flex-col">
+	<div class="ds-card-head flex items-center justify-between">
+		<h3 class="ds-card-title">{$t('overview.chart.fleet-health')}</h3>
+		<div class="flex gap-1">
+			{#each ['1h', '24h', '7d'] as const as w}
+				<button
+					class="ds-btn ds-btn-sm {timewindow === w ? 'ds-btn-primary' : ''}"
+					onclick={() => setTimeWindow(w)}
+				>
+					{w}
+				</button>
+			{/each}
+		</div>
+	</div>
+	<div class="ds-card-pad">
+		<FleetHealthChart metrics={data.fleetMetrics} {timewindow} />
+	</div>
+</div>
+
+<!-- ── Row 4: connectivity + inventory/compliance ─────────────────────── -->
+<div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
 	<div class="ds-card flex flex-col">
 		<div class="ds-card-head">
-			<h3 class="ds-card-title">{$t('overview.chart.deployed-commits')}</h3>
+			<h3 class="ds-card-title">{$t('overview.chart.connectivity')}</h3>
 		</div>
-		<div class="ds-card-pad flex flex-1 items-center justify-center">
-			<PieChart slices={commitSlices} size={180} />
+		<div class="ds-card-pad">
+			<FleetConnectivityChart points={data.connectivity} {timewindow} />
 		</div>
 	</div>
 
 	<div class="ds-card flex flex-col">
 		<div class="ds-card-head">
-			<h3 class="ds-card-title">{$t('overview.chart.online-status')}</h3>
+			<h3 class="ds-card-title">{$t('overview.chart.update-compliance')}</h3>
 		</div>
-		<div class="ds-card-pad flex flex-1 items-center justify-center">
-			<PieChart slices={onlineStatusSlices} size={180} />
-		</div>
+		<OverviewInventory
+			deploymentInfos={data.deploymentInfos}
+			headCommit={data.headCommit}
+			globalState={data.globalState}
+			availableModules={data.availableModules}
+		/>
 	</div>
+</div>
+
+<!-- ── Row 5: top resource usage ──────────────────────────────────────── -->
+<div class="ds-card mb-4 flex flex-col">
+	<div class="ds-card-head">
+		<h3 class="ds-card-title">{$t('overview.chart.top-load')}</h3>
+	</div>
+	<OverviewTopDevices devices={data.topDevices} />
 </div>
 
 <!-- ── Row 3: configurations ──────────────────────────────────────────── -->

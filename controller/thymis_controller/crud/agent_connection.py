@@ -148,3 +148,40 @@ def get_by_deployment_info(
         .limit(limit)
         .all()
     )
+
+
+def get_connectivity_series(
+    db_session: Session,
+    from_datetime: datetime,
+    to_datetime: datetime,
+    buckets: int,
+) -> list[models.ConnectivityPoint]:
+    """Return the count of connected devices sampled at evenly spaced points."""
+    buckets = max(1, buckets)
+    span = (to_datetime - from_datetime) / buckets
+    sample_points = [from_datetime + span * i for i in range(buckets + 1)]
+
+    # Load connections overlapping the window.
+    conns = (
+        db_session.query(db_models.AgentConnection)
+        .filter(
+            db_models.AgentConnection.connected_at <= to_datetime,
+            (db_models.AgentConnection.disconnected_at.is_(None))
+            | (db_models.AgentConnection.disconnected_at >= from_datetime),
+        )
+        .all()
+    )
+
+    def _aware(dt):
+        return dt.replace(tzinfo=timezone.utc) if dt and dt.tzinfo is None else dt
+
+    points: list[models.ConnectivityPoint] = []
+    for t in sample_points:
+        count = 0
+        for c in conns:
+            connected_at = _aware(c.connected_at)
+            disconnected_at = _aware(c.disconnected_at)
+            if connected_at <= t and (disconnected_at is None or disconnected_at > t):
+                count += 1
+        points.append(models.ConnectivityPoint(timestamp=t, connected_count=count))
+    return points
