@@ -2,9 +2,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" fill="none">
 <g transform="translate(50 50) scale(1.25) translate(-50 -50)">
     <g fill="none" stroke="#1a1a1a" stroke-width="5.600" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="34,34 18,50 34,66" />
-      <polyline points="66,34 82,50 66,66" />
+      <circle cx="50" cy="50" r="32" />
+      <polyline points="50,50 50,30" />
+      <polyline points="50,50 65,58" />
     </g>
-    <line x1="58" y1="30" x2="42" y2="70" stroke="#2563eb" stroke-width="5.600" stroke-linecap="round" />
 </g>
 </svg>

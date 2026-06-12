@@ -21,7 +21,7 @@ def is_setting_whole_module(setting: str):
 
 
 class WhateverModule(modules.Module):
-    display_name: str = "Custom Module"
+    display_name: str = "Custom Nix"
 
     category = modules.LocalizedString(
         en="Advanced",

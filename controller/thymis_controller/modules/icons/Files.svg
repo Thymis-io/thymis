@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" fill="none">
-<g transform="translate(50 50) scale(1.25) translate(-50 -50)">
+<g transform="translate(50 50) scale(1.25) translate(-55 -50)">
     <g fill="none" stroke="#1a1a1a" stroke-width="5.600" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="34,34 18,50 34,66" />
-      <polyline points="66,34 82,50 66,66" />
+      <path d="M32 18 H60 L78 36 V82 H32 Z" />
+      <polyline points="60,18 60,36 78,36" />
+      <line x1="42" y1="54" x2="66" y2="54" />
+      <line x1="42" y1="66" x2="66" y2="66" />
     </g>
-    <line x1="58" y1="30" x2="42" y2="70" stroke="#2563eb" stroke-width="5.600" stroke-linecap="round" />
 </g>
 </svg>

@@ -21,11 +21,11 @@ class BashModule(modules.Module):
     )
 
     icon: str = read_into_base64(
-        str(pathlib.Path(__file__).parent / "icons" / "CustomCoding.svg")
+        str(pathlib.Path(__file__).parent / "icons" / "Bash.svg")
     )
 
     icon_dark: str = read_into_base64(
-        str(pathlib.Path(__file__).parent / "icons" / "CustomCoding_dark.svg")
+        str(pathlib.Path(__file__).parent / "icons" / "Bash_dark.svg")
     )
 
     timer_config = modules.Setting(
