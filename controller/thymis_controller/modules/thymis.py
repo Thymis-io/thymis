@@ -83,17 +83,21 @@ class ThymisDevice(modules.Module):
 
     device_name = modules.Setting(
         display_name=modules.LocalizedString(
-            en="Hostname",
-            de="Hostname",
+            en="Default Hostname",
+            de="Standard-Hostname",
         ),
-        nix_attr_name="thymis.config.device-name",
+        nix_attr_name=None,  # written explicitly in write_nix_settings; skipped if empty
         type="string",
         default="",
         description=modules.LocalizedString(
-            en="The hostname of the device.",
-            de="Der Hostname des Geräts.",
+            en="The hostname used for all devices in this configuration, "
+            "until a device-specific name is set via the device details page. "
+            "Leave blank to use the built-in default 'thymis'.",
+            de="Der Hostname, der für alle Geräte dieser Konfiguration verwendet wird, "
+            "bis ein gerätespezifischer Name über die Gerätedetailseite gesetzt wird. "
+            "Leer lassen, um den Standard-Hostnamen 'thymis' zu verwenden.",
         ),
-        example="",
+        example="my-raspberry-pi",
         order=20,
     )
 
@@ -995,6 +999,14 @@ Secrets sind perfekt für
                         f'    "C+ {result_path} {mode} {user} {group} - ${{pkgs.copyPathToStore (inputs.self + "/artifacts/{artifact_path}")}}"\n'
                     )
             f.write("  ];")
+
+        # omit device-name when blank so the Nix module default ("thymis") applies
+        device_name_value = module_settings.settings.get("device_name", "") or ""
+        if device_name_value:
+            f.write(
+                f"  thymis.config.device-name = lib.mkOverride {priority} "
+                f"{convert_python_value_to_nix(device_name_value)};\n"
+            )
 
         return super().write_nix_settings(f, path, module_settings, priority, project)
 

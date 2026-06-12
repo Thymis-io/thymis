@@ -19,6 +19,7 @@ import sqlalchemy.orm
 from pyrage import decrypt, encrypt, passphrase, ssh
 from thymis_controller import crud, db_models, migration, models
 from thymis_controller.config import global_settings
+from thymis_controller.lib import HOST_PRIORITY
 from thymis_controller.models.external_repo import ExternalRepoStatus
 from thymis_controller.models.state import State
 from thymis_controller.nix import (
@@ -50,8 +51,6 @@ BUILTIN_REPOSITORIES = {
     "thymis": thymis_repo,
     "nixpkgs": models.Repo(follows="thymis/nixpkgs"),
 }
-
-HOST_PRIORITY = 80
 
 
 def del_path(path: os.PathLike):
