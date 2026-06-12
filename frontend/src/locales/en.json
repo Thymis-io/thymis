@@ -70,7 +70,11 @@
 		"column-count": "Displays per Row:",
 		"live": "Live",
 		"connecting": "Connecting…",
-		"disconnected": "Disconnected"
+		"disconnected": "Disconnected",
+		"retry": "Retry",
+		"fullscreen": "Fullscreen",
+		"no-devices": "No devices with VNC enabled",
+		"no-devices-hint": "Enable VNC on a configuration to see its live screen here."
 	},
 	"configurations": {
 		"title": "Device Configurations",

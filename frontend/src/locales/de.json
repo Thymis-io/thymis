@@ -70,7 +70,11 @@
 		"column-count": "Ansichten pro Zeile:",
 		"live": "Live",
 		"connecting": "Verbinden…",
-		"disconnected": "Getrennt"
+		"disconnected": "Getrennt",
+		"retry": "Erneut versuchen",
+		"fullscreen": "Vollbild",
+		"no-devices": "Keine Geräte mit aktiviertem VNC",
+		"no-devices-hint": "Aktiviere VNC für eine Konfiguration, um hier den Live-Bildschirm zu sehen."
 	},
 	"configurations": {
 		"title": "Gerätekonfigurationen",
