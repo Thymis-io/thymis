@@ -33,6 +33,8 @@ def localize(locale: str, value: Optional[Localizable]) -> Optional[str]:
 
 class Module(ABC):
     display_name: Localizable
+    description: Optional[Localizable] = None
+    category: Optional[Localizable] = None
     icon: Optional[str] = None
     icon_dark: Optional[str] = None
 
@@ -47,6 +49,8 @@ class Module(ABC):
         return models.Module(
             type=self.type,
             displayName=localize(locale, self.display_name),
+            description=localize(locale, self.description),
+            category=localize(locale, self.category),
             settings=settings,
             icon=self.icon,
             iconDark=self.icon_dark,

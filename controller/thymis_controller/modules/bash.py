@@ -10,6 +10,16 @@ from thymis_controller.project import Project
 class BashModule(modules.Module):
     display_name: str = "Bash Module"
 
+    category = modules.LocalizedString(
+        en="Advanced",
+        de="Erweitert",
+    )
+
+    description = modules.LocalizedString(
+        en="Run a custom Bash script, optionally on a schedule.",
+        de="Ein eigenes Bash-Skript ausführen, optional zeitgesteuert.",
+    )
+
     icon: str = read_into_base64(
         str(pathlib.Path(__file__).parent / "icons" / "CustomCoding.svg")
     )

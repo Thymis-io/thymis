@@ -23,6 +23,16 @@ def is_setting_whole_module(setting: str):
 class WhateverModule(modules.Module):
     display_name: str = "Custom Module"
 
+    category = modules.LocalizedString(
+        en="Advanced",
+        de="Erweitert",
+    )
+
+    description = modules.LocalizedString(
+        en="Write freeform NixOS configuration directly.",
+        de="Freiform-NixOS-Konfiguration direkt schreiben.",
+    )
+
     icon: str = read_into_base64(
         str(pathlib.Path(__file__).parent / "icons" / "CustomCoding.svg")
     )

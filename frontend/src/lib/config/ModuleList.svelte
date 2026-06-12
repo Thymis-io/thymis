@@ -6,6 +6,7 @@
 	import Pen from 'lucide-svelte/icons/pen';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Trash from 'lucide-svelte/icons/trash';
+	import Search from 'lucide-svelte/icons/search';
 	import { buildConfigSelectModuleSearchParam } from '$lib/searchParamHelpers';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import { goto } from '$app/navigation';
@@ -70,6 +71,38 @@
 	);
 
 	let addModuleModalOpen = $state(false);
+	let moduleSearch = $state('');
+
+	// modules that can still be added to this target (already-present ones, incl. the
+	// mandatory Device module, are excluded)
+	let addableModules = $derived(
+		availableModules.filter((m) => !context?.modules?.find((cm) => cm.type === m.type))
+	);
+
+	let filteredModules = $derived(
+		addableModules.filter((m) => {
+			const q = moduleSearch.trim().toLowerCase();
+			if (!q) return true;
+			return (
+				m.displayName.toLowerCase().includes(q) || (m.description ?? '').toLowerCase().includes(q)
+			);
+		})
+	);
+
+	// group by category, preserving the order categories first appear in availableModules
+	let groupedModules = $derived.by(() => {
+		const groups = new Map<string, Module[]>();
+		for (const m of filteredModules) {
+			const cat = m.category || $t('config.module_category_other');
+			if (!groups.has(cat)) groups.set(cat, []);
+			groups.get(cat)!.push(m);
+		}
+		return [...groups.entries()];
+	});
+
+	$effect(() => {
+		if (!addModuleModalOpen) moduleSearch = '';
+	});
 
 	let isSelected = $derived(
 		(
@@ -167,16 +200,55 @@
 			<Plus size={16} />
 			{$t('config.add_module')}
 		</button>
-		<Modal title={$t('config.add_module')} bind:open={addModuleModalOpen} autoclose outsideclose>
-			<div class="grid gap-1">
-				{#each availableModules as module}
-					<button
-						class="btn m-0 p-2 rounded-lg hover:bg-[var(--ds-surface-2)] flex items-center gap-2"
-						onclick={() => addModule(context, module)}
-					>
-						<ModuleIcon {module} />
-						<span class="text-sm">{module.displayName}</span>
-					</button>
+		<Modal title={$t('config.add_module')} bind:open={addModuleModalOpen} outsideclose>
+			<div class="flex flex-col gap-3">
+				<div class="relative">
+					<Search
+						size={16}
+						class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ds-text-mute)]"
+					/>
+					<!-- svelte-ignore a11y_autofocus -->
+					<input
+						type="text"
+						bind:value={moduleSearch}
+						placeholder={$t('config.search_modules')}
+						autofocus
+						class="w-full rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface)] py-2 pl-9 pr-3 text-sm text-[var(--ds-text)] placeholder:text-[var(--ds-text-mute)] focus:border-[var(--ds-accent)] focus:outline-none"
+					/>
+				</div>
+
+				{#if groupedModules.length === 0}
+					<p class="py-6 text-center text-sm text-[var(--ds-text-mute)]">
+						{$t('config.no_modules_found')}
+					</p>
+				{/if}
+
+				{#each groupedModules as [category, mods] (category)}
+					<div class="flex flex-col gap-0.5">
+						<div
+							class="px-1 pb-1 text-[10.5px] font-semibold uppercase tracking-wider text-[var(--ds-text-mute)]"
+						>
+							{category}
+						</div>
+						{#each mods as module (module.type)}
+							<button
+								class="flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-[var(--ds-surface-2)]"
+								onclick={() => addModule(context, module)}
+							>
+								<ModuleIcon {module} />
+								<span class="flex min-w-0 flex-col">
+									<span class="truncate text-sm font-medium text-[var(--ds-text)]"
+										>{module.displayName}</span
+									>
+									{#if module.description}
+										<span class="truncate text-xs text-[var(--ds-text-mute)]"
+											>{module.description}</span
+										>
+									{/if}
+								</span>
+							</button>
+						{/each}
+					</div>
 				{/each}
 			</div>
 		</Modal>

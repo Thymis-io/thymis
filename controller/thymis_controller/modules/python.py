@@ -10,6 +10,16 @@ from thymis_controller.project import Project
 class PythonModule(modules.Module):
     display_name: str = "Python Module"
 
+    category = modules.LocalizedString(
+        en="Advanced",
+        de="Erweitert",
+    )
+
+    description = modules.LocalizedString(
+        en="Run a custom Python script, optionally on a schedule.",
+        de="Ein eigenes Python-Skript ausführen, optional zeitgesteuert.",
+    )
+
     icon: str = read_into_base64(
         str(pathlib.Path(__file__).parent / "icons" / "CustomCoding.svg")
     )

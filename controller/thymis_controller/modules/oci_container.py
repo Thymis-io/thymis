@@ -13,6 +13,16 @@ class OCIContainers(modules.Module):
         de="OCI Container",
     )
 
+    category = modules.LocalizedString(
+        en="Applications",
+        de="Anwendungen",
+    )
+
+    description = modules.LocalizedString(
+        en="Run Docker/OCI containers as managed services on the device.",
+        de="Docker-/OCI-Container als verwaltete Dienste auf dem Gerät ausführen.",
+    )
+
     icon: str = read_into_base64(
         str(pathlib.Path(__file__).parent / "icons" / "Containers.svg")
     )
