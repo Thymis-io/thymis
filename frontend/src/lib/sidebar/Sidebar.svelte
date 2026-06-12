@@ -14,6 +14,7 @@
 	import FolderGit2 from 'lucide-svelte/icons/folder-git-2';
 	import RefreshCcwDot from 'lucide-svelte/icons/refresh-ccw-dot';
 	import Logout from 'lucide-svelte/icons/log-out';
+	import ChevronUp from 'lucide-svelte/icons/chevron-up';
 	import type { GlobalState } from '$lib/state.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import { type DeploymentInfo } from '$lib/deploymentInfo';
@@ -167,26 +168,37 @@
 			<span class="avatar">A</span>
 			<span class="user-info">
 				<span class="user-name">Admin</span>
-				<span class="user-email">{$t('common.logout')}</span>
+				<span class="user-role">{$t('common.administrator')}</span>
 			</span>
+			<ChevronUp size={16} class="user-chevron" />
 		</button>
-		<DarkMode class="ds-icon-btn" />
 	</div>
 	<Popover
 		triggeredBy="#sidebar-user-trigger"
 		arrow={false}
 		trigger="click"
-		placement="top"
-		class="z-50"
+		placement="top-start"
+		class="z-50 user-popover"
 	>
-		<div class="flex flex-col gap-2 p-2">
-			<div class="flex items-center justify-center w-max">
+		<div class="user-menu">
+			<div class="user-menu-header">
+				<span class="avatar">A</span>
+				<span class="user-info">
+					<span class="user-name">Admin</span>
+					<span class="user-role">{$t('common.administrator')}</span>
+				</span>
+			</div>
+			<div class="user-menu-divider"></div>
+			<div class="user-menu-row">
+				<span class="user-menu-label">{$t('common.theme')}</span>
+				<DarkMode class="ds-icon-btn" />
+			</div>
+			<div class="user-menu-row">
+				<span class="user-menu-label">{$t('common.language')}</span>
 				<LanguageSelect />
 			</div>
-			<a
-				href="/auth/logout"
-				class="flex p-2 gap-2 items-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
-			>
+			<div class="user-menu-divider"></div>
+			<a href="/auth/logout" class="user-menu-logout">
 				<Logout size={18} />
 				{$t('common.logout')}
 			</a>
@@ -315,12 +327,18 @@
 		gap: 10px;
 		flex: 1;
 		min-width: 0;
-		padding: 2px;
+		padding: 6px 8px;
 		border-radius: 8px;
 		text-align: left;
+		transition: background 0.12s;
 	}
 	.user-trigger:hover {
 		background: var(--ds-surface-2);
+	}
+	.user-trigger :global(.user-chevron) {
+		margin-left: auto;
+		color: var(--ds-text-mute);
+		flex-shrink: 0;
 	}
 	.avatar {
 		width: 28px;
@@ -345,7 +363,7 @@
 		font-weight: 500;
 		color: var(--ds-text);
 	}
-	.user-email {
+	.user-role {
 		font-size: 11px;
 		color: var(--ds-text-mute);
 		overflow: hidden;
@@ -353,16 +371,71 @@
 		white-space: nowrap;
 	}
 
-	.sidebar-footer :global(.ds-icon-btn) {
-		width: 30px;
-		height: 30px;
-		display: grid;
-		place-items: center;
+	/* ---- User menu (popover) ---- */
+	.user-menu {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 220px;
+	}
+	.user-menu-header {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 4px 6px 6px;
+	}
+	.user-menu-divider {
+		height: 1px;
+		background: var(--ds-border);
+		margin: 4px 0;
+	}
+	.user-menu-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		padding: 4px 6px;
+		min-height: 36px;
+	}
+	.user-menu-label {
+		font-size: 13.5px;
+		font-weight: 500;
+		color: var(--ds-text);
+	}
+	.user-menu-logout {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 8px 6px;
+		border-radius: 7px;
+		color: var(--ds-text-dim);
+		font-size: 13.5px;
+		transition:
+			background 0.12s,
+			color 0.12s;
+	}
+	.user-menu-logout:hover {
+		background: var(--ds-surface-2);
+		color: var(--ds-text);
+	}
+
+	.user-menu :global(.ds-icon-btn) {
+		width: 32px;
+		height: 32px;
+		padding: 0;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 		border-radius: 6px;
 		color: var(--ds-text-dim);
 		flex-shrink: 0;
 	}
-	.sidebar-footer :global(.ds-icon-btn:hover) {
+	.user-menu :global(.ds-icon-btn svg) {
+		display: block;
+		width: 18px;
+		height: 18px;
+	}
+	.user-menu :global(.ds-icon-btn:hover) {
 		background: var(--ds-surface-2);
 		color: var(--ds-text);
 	}
