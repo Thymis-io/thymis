@@ -6,7 +6,6 @@
 	import DynamicGrid from '$lib/components/DynamicGrid.svelte';
 	import Dropdown from '$lib/components/Dropdown.svelte';
 	import { browser } from '$app/environment';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
 	interface Props {
 		data: PageData;
@@ -43,21 +42,12 @@
 		class="min-w-10"
 	/>
 </div>
-<DynamicGrid class={columns === 2 ? 'gap-4' : 'gap-2'} {columns}>
-	{#each data.connectedDeploymentInfos as deploymentInfo}
+<DynamicGrid class="gap-4" {columns}>
+	{#each data.connectedDeploymentInfos as deploymentInfo (deploymentInfo.id)}
 		{@const config = getConfigFromIdentifier(deploymentInfo.deployed_config_id)}
 		{@const showVNC = config && targetShouldShowVNC(config, data.globalState)}
 		{#if showVNC}
-			<div>
-				<IdentifierLink
-					globalState={data.globalState}
-					deploymentInfos={data.deploymentInfos}
-					identifier={deploymentInfo.id}
-					context="device"
-					class="flex justify-center my-2"
-				/>
-				<VncView globalState={data.globalState} {config} {deploymentInfo} />
-			</div>
+			<VncView globalState={data.globalState} {config} {deploymentInfo} showConfigLink={false} />
 		{/if}
 	{/each}
 </DynamicGrid>
