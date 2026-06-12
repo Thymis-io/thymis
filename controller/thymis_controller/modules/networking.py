@@ -52,11 +52,11 @@ class NetworkingModule(modules.Module):
     )
 
     icon: str = read_into_base64(
-        str(pathlib.Path(__file__).parent / "icons" / "CoreDevice.svg")
+        str(pathlib.Path(__file__).parent / "icons" / "Networking.svg")
     )
 
     icon_dark: str = read_into_base64(
-        str(pathlib.Path(__file__).parent / "icons" / "CoreDevice_dark.svg")
+        str(pathlib.Path(__file__).parent / "icons" / "Networking_dark.svg")
     )
 
     wifi_ssid = modules.Setting(

@@ -24,11 +24,11 @@ class LocalizationModule(modules.Module):
     )
 
     icon: str = read_into_base64(
-        str(pathlib.Path(__file__).parent / "icons" / "CoreDevice.svg")
+        str(pathlib.Path(__file__).parent / "icons" / "Localization.svg")
     )
 
     icon_dark: str = read_into_base64(
-        str(pathlib.Path(__file__).parent / "icons" / "CoreDevice_dark.svg")
+        str(pathlib.Path(__file__).parent / "icons" / "Localization_dark.svg")
     )
 
     timezone = modules.Setting(
