@@ -588,8 +588,6 @@
 		"no-error-logs": "Keine Fehler aufgezeichnet",
 		"details": "Details",
 		"name-placeholder": "z.B. Display 1, Rack A",
-		"hostname-updating": "Hostname wird auf dem Gerät aktualisiert...",
-		"hostname-updated": "Hostname erfolgreich aktualisiert",
 		"name-helper": "Diese Änderung aktualisiert auch den Hostnamen des Geräts."
 	},
 	"auto-update": {
