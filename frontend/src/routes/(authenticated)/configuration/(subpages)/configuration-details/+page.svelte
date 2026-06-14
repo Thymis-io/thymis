@@ -10,6 +10,7 @@
 	import Section from '$lib/components/layout/Section.svelte';
 	import Terminal from '$lib/terminal/Terminal.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import Copy from 'lucide-svelte/icons/copy';
 
 	interface Props {
 		data: PageData;
@@ -18,6 +19,9 @@
 	let { data }: Props = $props();
 
 	let currentConfig = $derived(data.nav.selectedConfig);
+	// one Terminal instance per connected device, keyed by id, so each card header
+	// can trigger that device's "Copy SSH Command".
+	let terminalRefs = $state<Record<string, Terminal>>({});
 </script>
 
 {#if data.nav.selectedConfig}
@@ -53,20 +57,34 @@
 							class="flex justify-center my-1"
 						/>
 					{/snippet}
-					<VncView globalState={data.globalState} config={currentConfig} {deploymentInfo} />
+					<VncView
+						globalState={data.globalState}
+						config={currentConfig}
+						{deploymentInfo}
+						embedded
+					/>
 				</Section>
 			{/if}
 			<Section class="col-span-2" title={$t('nav.terminal')}>
 				{#snippet header()}
-					<IdentifierLink
-						globalState={data.globalState}
-						deploymentInfos={data.deploymentInfos}
-						identifier={deploymentInfo.id}
-						context="device"
-						class="flex justify-center my-1"
-					/>
+					<div class="flex items-center gap-3">
+						<IdentifierLink
+							globalState={data.globalState}
+							deploymentInfos={data.deploymentInfos}
+							identifier={deploymentInfo.id}
+							context="device"
+							class="flex justify-center my-1"
+						/>
+						<button
+							class="ds-btn ds-btn-sm ds-btn-primary flex items-center gap-2"
+							onclick={() => terminalRefs[deploymentInfo.id]?.copySSHCommand()}
+						>
+							<Copy size={15} />
+							<span class="whitespace-nowrap">Copy SSH Command</span>
+						</button>
+					</div>
 				{/snippet}
-				<Terminal {deploymentInfo} />
+				<Terminal bind:this={terminalRefs[deploymentInfo.id]} {deploymentInfo} />
 			</Section>
 		{/each}
 	</div>
