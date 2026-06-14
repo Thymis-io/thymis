@@ -513,6 +513,7 @@
 	"deleteConfirm": {
 		"title": "Delete {target}",
 		"text": "Are you sure you want to delete {target}?",
+		"warning": "This action is permanent and cannot be undone.",
 		"confirm": "Delete",
 		"cancel": "Cancel"
 	},
@@ -591,7 +592,9 @@
 		"no-commit": "No commit info",
 		"switch-config": "Switch Config",
 		"switch-config-select": "Select new config...",
-		"switching-to": "Switching to {config}..."
+		"switching-to": "Switching to {config}...",
+		"no-tags": "No tags assigned",
+		"no-modules": "No modules configured"
 	},
 	"edit-hostkey": {
 		"title": "Edit Hostkey",

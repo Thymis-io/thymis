@@ -34,11 +34,10 @@
 
 <EditTagModal {globalState} bind:currentlyEditingConfig />
 <Section class={className} title={$t('configuration-details.config')}>
-	<p class="text-xs font-semibold uppercase tracking-wide" style="color: var(--ds-text-mute)">
-		{$t('configuration-details.modules')}
-	</p>
-	<div class="flex gap-2 items-center flex-wrap text-base">
-		{#each getOwnModules(config, availableModules) as module}
+	{@const ownModules = getOwnModules(config, availableModules)}
+	<p class="cfg-label">{$t('configuration-details.modules')}</p>
+	<div class="flex flex-wrap items-center gap-2 text-base">
+		{#each ownModules as module}
 			<a
 				href={`/configuration/edit?${buildConfigSelectModuleSearchParam(
 					globalState,
@@ -49,21 +48,24 @@
 					config.identifier,
 					module
 				)}`}
-				class={'text-nowrap min-h-6 flex items-center gap-1 w-fit hover:underline p-1 px-2 bg-[var(--ds-accent)] hover:bg-[var(--ds-accent-strong)] rounded text-white'}
+				class="cfg-module"
 			>
 				<ModuleIcon {module} theme="dark" />
-				{module.displayName}
-				<Pen size="16" />
+				<span class="text-nowrap">{module.displayName}</span>
+				<Pen size="14" class="opacity-80" />
 			</a>
+		{:else}
+			<span class="cfg-empty">{$t('configuration-details.no-modules')}</span>
 		{/each}
 	</div>
-	<p class="mt-2 text-xs font-semibold uppercase tracking-wide" style="color: var(--ds-text-mute)">
-		{$t('configuration-details.tags')}
-	</p>
-	<div class="flex gap-3 items-center text-base">
-		<div class="flex gap-2 flex-wrap">
-			{#each config.tags as tag, i}
+
+	<p class="cfg-label mt-4">{$t('configuration-details.tags')}</p>
+	<div class="flex flex-wrap items-center gap-3 text-base">
+		<div class="flex flex-wrap gap-2">
+			{#each config.tags as tag (tag)}
 				<IdentifierLink identifier={tag} context="tag" {globalState} solidBackground />
+			{:else}
+				<span class="cfg-empty">{$t('configuration-details.no-tags')}</span>
 			{/each}
 		</div>
 		<button class="ds-btn ds-btn-sm" onclick={() => (currentlyEditingConfig = config)}>
@@ -72,3 +74,33 @@
 		</button>
 	</div>
 </Section>
+
+<style lang="postcss">
+	.cfg-label {
+		font-size: 11.5px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--ds-text-mute);
+		margin-bottom: 8px;
+	}
+	.cfg-module {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 5px 10px;
+		border-radius: 7px;
+		background: var(--ds-accent);
+		color: #fff;
+		font-size: 13.5px;
+		font-weight: 500;
+		transition: background 0.12s;
+	}
+	.cfg-module:hover {
+		background: var(--ds-accent-strong);
+	}
+	.cfg-empty {
+		font-size: 13px;
+		color: var(--ds-text-mute);
+	}
+</style>

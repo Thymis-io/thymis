@@ -2,7 +2,6 @@
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
 	import SectionConfiguration from './SectionConfiguration.svelte';
-	import SectionDanger from './SectionDanger.svelte';
 	import SectionDeploymentInfo from './SectionDeploymentInfo.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import VncView from '$lib/vnc/VncView.svelte';
@@ -21,27 +20,23 @@
 </script>
 
 {#if data.nav.selectedConfig}
-	<div class="grid grid-cols-4 grid-flow-row gap-4">
+	<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+		<SectionConfiguration
+			globalState={data.globalState}
+			class="lg:col-span-1"
+			config={data.nav.selectedConfig}
+			availableModules={data.availableModules}
+		/>
 		<SectionDeploymentInfo
-			class="col-span-4"
+			class="lg:col-span-1"
 			deploymentInfos={data.deploymentInfos}
 			globalState={data.globalState}
 			headCommit={data.headCommit}
 		/>
-		<SectionConfiguration
-			globalState={data.globalState}
-			class="col-span-3"
-			config={data.nav.selectedConfig}
-			availableModules={data.availableModules}
-		/>
-		<SectionDanger
-			class="col-span-1"
-			config={data.nav.selectedConfig}
-			globalState={data.globalState}
-		/>
+
 		{#each data.connectedDeploymentInfos as deploymentInfo}
 			{#if targetShouldShowVNC(currentConfig, data.globalState)}
-				<Section class="col-span-2" title={$t('nav.device-vnc')}>
+				<Section class="lg:col-span-1" title={$t('nav.device-vnc')}>
 					{#snippet header()}
 						<IdentifierLink
 							globalState={data.globalState}
@@ -59,7 +54,7 @@
 					/>
 				</Section>
 			{/if}
-			<Section class="col-span-2" title={$t('nav.terminal')}>
+			<Section class="lg:col-span-1" title={$t('nav.terminal')}>
 				{#snippet header()}
 					<div class="flex items-center gap-3">
 						<IdentifierLink
