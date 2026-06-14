@@ -57,15 +57,34 @@
 	};
 
 	let activeUrl: string = $state($page.url.pathname);
+	// Config and tag detail pages share the /configuration/* routes and are only
+	// distinguished by this query param, so track it to highlight the right item.
+	let activeTargetType: string | null = $state(
+		$page.url.searchParams.get('global-nav-target-type')
+	);
 
 	afterNavigate((navigation) => {
 		// this fixes https://github.com/themesberg/flowbite-svelte/issues/364
 		document.getElementById('svelte')?.scrollTo({ top: 0 });
 		closeDrawer();
 		activeUrl = navigation.to?.url.pathname ?? '';
+		activeTargetType = navigation.to?.url.searchParams.get('global-nav-target-type') ?? null;
 	});
 
 	const isActive = (href: string) => activeUrl === href || activeUrl.startsWith(href + '/');
+
+	const itemActive = (href: string) => {
+		const underConfiguration = activeUrl.startsWith('/configuration');
+		// Tag details live under /configuration/* with target type "tag".
+		if (href === '/tags') {
+			return isActive('/tags') || (underConfiguration && activeTargetType === 'tag');
+		}
+		// Everything else under /configuration/* belongs to Configs.
+		if (href === '/configuration/list') {
+			return underConfiguration && activeTargetType !== 'tag';
+		}
+		return isActive(href);
+	};
 
 	type NavItem = {
 		name: string;
@@ -168,7 +187,7 @@
 						<a
 							href={item.href}
 							lang={$locale}
-							class="nav-item {isActive(item.href) ? 'active' : ''}"
+							class="nav-item {itemActive(item.href) ? 'active' : ''}"
 						>
 							<Icon size={16} />
 							<span class="nav-label">{item.name}</span>
