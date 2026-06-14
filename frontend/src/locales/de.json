@@ -512,6 +512,7 @@
 	"deleteConfirm": {
 		"title": "{target} löschen",
 		"text": "Sind Sie sicher, dass Sie {target} löschen möchten?",
+		"warning": "Diese Aktion ist dauerhaft und kann nicht rückgängig gemacht werden.",
 		"cancel": "Abbrechen",
 		"confirm": "Löschen"
 	},
@@ -590,7 +591,9 @@
 		"no-commit": "Keine Commit Info",
 		"switch-config": "Konfiguration wechseln",
 		"switch-config-select": "Neue Konfiguration wählen...",
-		"switching-to": "Wechselt zu {config}..."
+		"switching-to": "Wechselt zu {config}...",
+		"no-tags": "Keine Tags zugewiesen",
+		"no-modules": "Keine Module konfiguriert"
 	},
 	"edit-hostkey": {
 		"create": "Erstellen",
