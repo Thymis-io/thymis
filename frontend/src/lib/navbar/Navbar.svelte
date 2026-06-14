@@ -9,6 +9,8 @@
 	import type { GlobalState } from '$lib/state.svelte';
 	import { type DeploymentInfo } from '$lib/deploymentInfo';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
+	import TaskbarName from '$lib/taskbar/TaskbarName.svelte';
+	import type { Task, TaskShort } from '$lib/taskstatus';
 
 	interface Props {
 		nav?: Nav;
@@ -28,7 +30,7 @@
 		class: clazz = ''
 	}: Props = $props();
 
-	type Crumb = { label: string; href?: string };
+	type Crumb = { label: string; href?: string; task?: TaskShort };
 
 	// Build a breadcrumb trail (parent section + leaf) from the current route so
 	// the top bar shows hierarchy instead of just repeating the page title.
@@ -41,6 +43,7 @@
 			{ prefix: '/devices', label: $t('nav.devices') },
 			{ prefix: '/deployment_info', label: $t('nav.devices'), href: '/devices' },
 			{ prefix: '/vnc', label: $t('nav.global-vnc') },
+			{ prefix: '/tasks', label: $t('nav.tasks') },
 			{ prefix: '/history', label: $t('nav.history') },
 			{ prefix: '/external-repositories', label: $t('nav.external-repositories') },
 			{ prefix: '/secrets', label: $t('nav.secrets') },
@@ -66,6 +69,14 @@
 			const di = deploymentInfos.find((d) => d.id === id);
 			if (id) trail.push({ label: di?.name || id, href: `/devices/${id}` });
 			if (segs[2] === 'logs') trail.push({ label: $t('logs.title') });
+		} else if (path.startsWith('/tasks/')) {
+			const id = decodeURIComponent(path.split('/').filter(Boolean)[1] ?? '');
+			const taskData = ($page.data?.task as Task | undefined) ?? undefined;
+			if (taskData && globalState) {
+				trail.push({ label: id, task: taskData as TaskShort });
+			} else if (id) {
+				trail.push({ label: id });
+			}
 		}
 		return trail;
 	});
@@ -89,6 +100,10 @@
 			{/if}
 			{#if crumb.href && i < crumbs.length - 1}
 				<a href={crumb.href}>{crumb.label}</a>
+			{:else if crumb.task && globalState}
+				<b aria-current="page" class="crumb-task">
+					<TaskbarName {globalState} {deploymentInfos} task={crumb.task} iconSize={15} />
+				</b>
 			{:else}
 				<b aria-current="page">{crumb.label}</b>
 			{/if}
@@ -163,6 +178,12 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+	.breadcrumb b.crumb-task {
+		display: inline-flex;
+		align-items: center;
+		min-width: 0;
+		font-weight: 500;
 	}
 	.breadcrumb-sep {
 		color: var(--ds-text-mute);

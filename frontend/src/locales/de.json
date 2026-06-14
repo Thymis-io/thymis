@@ -11,7 +11,7 @@
 		"configurations": "Konfigurationen",
 		"devices": "Geräte",
 		"hardware-devices": "Hardware Geräte",
-		"tasks": "Aufgaben",
+		"tasks": "Vorgänge",
 		"history": "Versionen",
 		"terminal": "Terminal",
 		"global-vnc": "VNC Geräte",
@@ -145,7 +145,6 @@
 	"create-configuration": {
 		"title": "Neue Gerätekonfiguration Erstellen",
 		"next": "Weiter →",
-		"back": "← Zurück",
 		"step-1": {
 			"title": "Thymis installieren",
 			"info": "Sie können ganz einfach eine ISO-Datei oder ein System-Image für Ihr IoT-Gerät erstellen."
@@ -324,7 +323,6 @@
 		"install": "Installieren",
 		"uninstall": "Deinstallieren",
 		"configure": "Bearbeiten",
-		"back": "Zurück",
 		"editDisabled": "Nur als Referenz. Bearbeiten Sie den Tag, um Werte global zu ändern",
 		"add-element": "{element} hinzufügen",
 		"noOtherDefinitions": "Keine anderen Definitionen",
@@ -410,7 +408,7 @@
 	"taskbar": {
 		"completed": "Fertig",
 		"failed": "Fehlgeschlagen",
-		"latest-task": "Letzte Aufgabe",
+		"latest-task": "Letzter Vorgang",
 		"pending": "Ausstehend",
 		"running": "Läuft",
 		"start-time": "Start Zeit",
@@ -440,8 +438,8 @@
 		"activity": {
 			"nothing-running": "Nichts aktiv",
 			"all-clear": "Alles erledigt",
-			"running-one": "1 Aufgabe läuft",
-			"running-many": "{count} Aufgaben laufen",
+			"running-one": "1 Vorgang läuft",
+			"running-many": "{count} Vorgänge laufen",
 			"pending-waiting": "Wartet auf Start",
 			"summary-failed": "{count} fehlgeschlagen",
 			"summary-done": "{count} fertig",
@@ -450,10 +448,35 @@
 			"more": "+{count} weitere"
 		},
 		"view-all": "Alle anzeigen",
-		"page-title": "Aufgaben",
-		"page-subtitle": "Alle Aufgaben deines Projekts, neueste zuerst.",
-		"recent-hint": "Zeigt die {count} neuesten Aufgaben.",
-		"empty": "Noch keine Aufgaben."
+		"page-title": "Vorgänge",
+		"page-subtitle": "Alle Vorgänge deines Projekts, neueste zuerst.",
+		"recent-hint": "Zeigt die {count} neuesten Vorgänge.",
+		"empty": "Noch keine Vorgänge."
+	},
+	"task-details": {
+		"overview": "Übersicht",
+		"task-id": "Vorgangs-ID",
+		"started": "Gestartet",
+		"ended": "Beendet",
+		"still-running": "Läuft noch",
+		"parent": "Übergeordneter Vorgang",
+		"subtasks": "Untervorgänge",
+		"exception": "Fehler",
+		"submission-data": "Übergabedaten",
+		"process": "Prozess {n}",
+		"processes": "Prozesse",
+		"command": "Befehl",
+		"no-command": "Keine Befehlsinformationen.",
+		"nix-errors": "Nix-Fehler",
+		"nix-warnings": "Nix-Warnungen",
+		"nix-notices": "Nix-Hinweise",
+		"nix-infos": "Nix-Infos",
+		"stdout": "Standardausgabe",
+		"stderr": "Standardfehler",
+		"no-output": "Dieser Prozess hat keine Ausgabe erzeugt.",
+		"no-processes": "Dieser Vorgang hat keine Prozesse.",
+		"copy": "Kopieren",
+		"copied": "Kopiert"
 	},
 	"tags": {
 		"subtitle": "Gruppieren Sie Konfigurationen und Geräte, um Einstellungen flottenweit anzuwenden.",

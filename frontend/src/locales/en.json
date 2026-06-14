@@ -145,7 +145,6 @@
 	"create-configuration": {
 		"title": "Create a new device configuration",
 		"next": "Next →",
-		"back": "← Back",
 		"step-1": {
 			"title": "Install Thymis",
 			"info": "You can easily create an ISO file or a system image for your IoT device."
@@ -344,6 +343,31 @@
 		"recent-hint": "Showing the {count} most recent tasks.",
 		"empty": "No tasks yet."
 	},
+	"task-details": {
+		"overview": "Overview",
+		"task-id": "Task ID",
+		"started": "Started",
+		"ended": "Ended",
+		"still-running": "Still running",
+		"parent": "Parent task",
+		"subtasks": "Subtasks",
+		"exception": "Error",
+		"submission-data": "Submission data",
+		"process": "Process {n}",
+		"processes": "Processes",
+		"command": "Command",
+		"no-command": "No command information.",
+		"nix-errors": "Nix errors",
+		"nix-warnings": "Nix warnings",
+		"nix-notices": "Nix notices",
+		"nix-infos": "Nix info",
+		"stdout": "Standard output",
+		"stderr": "Standard error",
+		"no-output": "This process produced no output.",
+		"no-processes": "This task has no processes.",
+		"copy": "Copy",
+		"copied": "Copied"
+	},
 	"config": {
 		"header": {
 			"tag-overview": "Manage modules for {tag}",
@@ -375,7 +399,6 @@
 		"install": "Install",
 		"uninstall": "Uninstall",
 		"configure": "Configure",
-		"back": "Back",
 		"notPassed": "This definition is <b>not</b> passed to the device",
 		"passed": "This definition is passed to the device",
 		"notSet": "No definition set",

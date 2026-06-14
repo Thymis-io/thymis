@@ -1,11 +1,28 @@
 <script lang="ts">
+	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
 	import MonospaceText from '$lib/components/MonospaceText.svelte';
 	import RenderUnixTimestamp from '$lib/components/RenderUnixTimestamp.svelte';
-	import { subscribedTask, subscribeTask, type Task } from '$lib/taskstatus';
+	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
+	import RenderTimeDuration from '$lib/components/RenderTimeDuration.svelte';
+	import {
+		subscribedTask,
+		subscribeTask,
+		cancelTask,
+		retryTask,
+		type Task,
+		type TaskShort,
+		type TaskProcess
+	} from '$lib/taskstatus';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
+	import Section from '$lib/components/layout/Section.svelte';
 	import TaskbarName from '$lib/taskbar/TaskbarName.svelte';
 	import TaskbarStatus from '$lib/taskbar/TaskbarStatus.svelte';
+	import Copy from 'lucide-svelte/icons/copy';
+	import Check from 'lucide-svelte/icons/check';
+	import AlertTriangle from 'lucide-svelte/icons/triangle-alert';
+	import Repeat from 'lucide-svelte/icons/repeat';
+	import X from 'lucide-svelte/icons/x';
 
 	interface Props {
 		data: PageData;
@@ -15,19 +32,41 @@
 
 	let task: Task | undefined = $derived(!$subscribedTask ? data.task : $subscribedTask);
 
-	// if task is undefined, go to 404
-	const cleanStdOut = (stdoutorerr: string) => {
-		const toRemove = '\r\u001b[K';
-		return stdoutorerr.replaceAll(toRemove, '');
+	const cleanStdOut = (stdoutorerr: string) => stdoutorerr.replaceAll('\r[K', '');
+	const escapeForDoubleQuotes = (str: string) => str.replaceAll(/["`\\$]/g, '\\$&');
+	const needsDoubleQuotes = (str: string) =>
+		str !== escapeForDoubleQuotes(str) || str.includes(' ');
+
+	const buildCommand = (process: TaskProcess) => {
+		if (!process.process_program || !process.process_args) return null;
+		const env = process.process_env
+			? Object.entries(process.process_env)
+					.map(([key, value]) => `${key}="${escapeForDoubleQuotes(value)}"`)
+					.join(' ') + ' '
+			: '';
+		const args = process.process_args
+			.map((arg) => (needsDoubleQuotes(arg) ? `"${escapeForDoubleQuotes(arg)}"` : arg))
+			.join(' ');
+		return env + process.process_program + ' ' + args;
 	};
 
-	const escapeForDoubleQuotes = (str: string) => {
-		// quote ", `, \ and $
-		return str.replaceAll(/["`\\$]/g, '\\$&');
-	};
+	const processHasOutput = (process: TaskProcess) =>
+		!!(
+			process.process_stdout ||
+			process.process_stderr ||
+			process.nix_errors?.length ||
+			process.nix_error_logs?.length ||
+			process.nix_warning_logs?.length ||
+			process.nix_notice_logs?.length ||
+			process.nix_info_logs?.length
+		);
 
-	const needsDoubleQuotes = (str: string) => {
-		return str !== escapeForDoubleQuotes(str) || str.includes(' ');
+	let copiedId = $state(false);
+	const copyId = () => {
+		if (!task) return;
+		navigator.clipboard.writeText(task.id);
+		copiedId = true;
+		setTimeout(() => (copiedId = false), 2000);
 	};
 
 	$effect(() => {
@@ -35,132 +74,249 @@
 	});
 </script>
 
+{#snippet logBlock(title: string, code: string)}
+	<div>
+		<h4 class="log-label">{title}</h4>
+		<MonospaceText {code} />
+	</div>
+{/snippet}
+
 <PageHead>
-	{#if task}
-		<div class="ds-page-title">
-			<TaskbarName
-				globalState={data.globalState}
-				deploymentInfos={data.deploymentInfos}
-				{task}
-				iconSize={22}
-			/>
-		</div>
-	{/if}
+	{#snippet children()}
+		{#if task}
+			<div class="ds-page-title flex min-w-0 items-center">
+				<TaskbarName
+					globalState={data.globalState}
+					deploymentInfos={data.deploymentInfos}
+					task={task as TaskShort}
+					iconSize={22}
+				/>
+			</div>
+			<TaskbarStatus task={task as TaskShort} showProgress={false} />
+		{/if}
+	{/snippet}
+
+	{#snippet actions()}
+		{#if task && (task.state === 'pending' || task.state === 'running')}
+			<button class="ds-btn" onclick={() => cancelTask(task.id)}>
+				<X size={'1rem'} class="min-w-4" />
+				<span class="whitespace-nowrap">{$t('taskbar.cancel')}</span>
+			</button>
+		{:else if task && (task.state === 'completed' || task.state === 'failed')}
+			<button class="ds-btn" onclick={() => retryTask(task.id)}>
+				<Repeat size={'1rem'} class="min-w-4" />
+				<span class="whitespace-nowrap">{$t('taskbar.retry')}</span>
+			</button>
+		{/if}
+	{/snippet}
 </PageHead>
 
 {#if task}
-	<div class="ds-card ds-card-pad mb-4 flex flex-wrap items-center gap-4">
-		<TaskbarStatus {task} showProgress={false} />
-		<span class="ds-mono">id: {task.id}</span>
+	<div class="flex flex-col gap-4">
+		<!-- Overview: full-width metadata bar -->
+		<Section title={$t('task-details.overview')}>
+			<div class="meta">
+				<div class="meta-item">
+					<span class="meta-key">{$t('taskbar.status')}</span>
+					<span class="meta-val"
+						><TaskbarStatus task={task as TaskShort} showProgress={false} /></span
+					>
+				</div>
+				<div class="meta-item">
+					<span class="meta-key">{$t('task-details.task-id')}</span>
+					<span class="meta-val mono flex items-center gap-2">
+						{task.id}
+						<button class="id-copy" onclick={copyId} title={$t('task-details.copy')}>
+							{#if copiedId}
+								<Check size={14} style="color: var(--ds-success)" />
+							{:else}
+								<Copy size={14} />
+							{/if}
+						</button>
+					</span>
+				</div>
+				<div class="meta-item">
+					<span class="meta-key">{$t('task-details.started')}</span>
+					<span class="meta-val">
+						<RenderUnixTimestamp timestamp={task.start_time} />
+						<span class="muted-note"
+							>(<RenderTimeAgo timestamp={task.start_time} minSeconds={1} />)</span
+						>
+					</span>
+				</div>
+				<div class="meta-item">
+					<span class="meta-key">{$t('task-details.ended')}</span>
+					<span class="meta-val">
+						{#if task.end_time}
+							<RenderUnixTimestamp timestamp={task.end_time} />
+						{:else}
+							<span class="muted-note">{$t('task-details.still-running')}</span>
+						{/if}
+					</span>
+				</div>
+				<div class="meta-item">
+					<span class="meta-key">{$t('taskbar.duration')}</span>
+					<span class="meta-val">
+						{#if task.end_time}
+							<RenderTimeDuration start={task.start_time} end={task.end_time} />
+						{:else}
+							<span class="muted-note">—</span>
+						{/if}
+					</span>
+				</div>
+				{#if task.parent_task_id}
+					<div class="meta-item">
+						<span class="meta-key">{$t('task-details.parent')}</span>
+						<span class="meta-val mono">
+							<a class="ds-link" href="/tasks/{task.parent_task_id}">{task.parent_task_id}</a>
+						</span>
+					</div>
+				{/if}
+				{#if task.children && task.children.length > 0}
+					<div class="meta-item">
+						<span class="meta-key">{$t('task-details.subtasks')}</span>
+						<span class="meta-val mono flex flex-col gap-1">
+							{#each task.children as child (child)}
+								<a class="ds-link" href="/tasks/{child}">{child}</a>
+							{/each}
+						</span>
+					</div>
+				{/if}
+			</div>
+		</Section>
 
-		<p style="color: var(--ds-text-dim)">
-			Start time: <RenderUnixTimestamp timestamp={task.start_time} />
-		</p>
-		{#if task.end_time}
-			<p style="color: var(--ds-text-dim)">
-				End time: <RenderUnixTimestamp timestamp={task.end_time} />
-			</p>
-		{:else}
-			<p style="color: var(--ds-text-dim)">Task is still running, no end time</p>
+		{#if task.exception}
+			<Section title={$t('task-details.exception')} class="exception-card">
+				{#snippet header()}
+					<AlertTriangle size={16} style="color: var(--ds-danger)" />
+				{/snippet}
+				<MonospaceText code={task.exception} />
+			</Section>
 		{/if}
-	</div>
 
-	{#if task.exception}
-		<p>Exception:</p>
-		<MonospaceText code={task.exception} />
-	{/if}
+		<Section title={$t('task-details.submission-data')}>
+			<MonospaceText
+				code={JSON.stringify(task.task_submission_data || task.task_submission_data_raw, null, 2)}
+				language={undefined}
+			/>
+		</Section>
 
-	<div class="my-4">
-		<h2>Task submission data</h2>
-		<MonospaceText
-			code={JSON.stringify(task.task_submission_data || task.task_submission_data_raw, null, 2)}
-		/>
-	</div>
-
-	<hr />
-
-	{#if task.parent_task_id || (task.children && task.children.length > 0)}
-		<div class="my-4">
-			{#if task.parent_task_id}
-				<p>Parent task: {task.parent_task_id}</p>
-			{/if}
-
-			{#if task.children && task.children.length > 0}
-				<p>Children tasks: {task.children.join(', ')}</p>
-			{/if}
-		</div>
-
-		<hr />
-	{/if}
-
-	<div class="my-4">
 		{#if task.processes && task.processes.length > 0}
 			{#each task.processes as process, i (process.process_index)}
-				<h3 class="mt-4">Process {i + 1}</h3>
-				{#if process.process_program && process.process_args}
-					<MonospaceText
-						code={(process.process_env
-							? Object.entries(process.process_env)
-									.map(([key, value]) => `${key}="${escapeForDoubleQuotes(value)}"`)
-									.join(' ') + ' '
-							: '') +
-							process.process_program +
-							' ' +
-							process.process_args
-								.map((arg) => (needsDoubleQuotes(arg) ? `"${escapeForDoubleQuotes(arg)}"` : arg))
-								.join(' ')}
-					/>
-				{:else}
-					<p>No process information</p>
-				{/if}
+				{@const command = buildCommand(process)}
+				<Section title={$t('task-details.process', { values: { n: i + 1 } })}>
+					<div class="flex flex-col gap-4">
+						<div>
+							<h4 class="log-label">{$t('task-details.command')}</h4>
+							{#if command}
+								<MonospaceText code={command} />
+							{:else}
+								<p class="muted-note">{$t('task-details.no-command')}</p>
+							{/if}
+						</div>
 
-				{#if process.nix_errors && process.nix_errors.length > 0}
-					<p>Nix errors:</p>
-					<MonospaceText code={process.nix_errors.map((error) => error.msg).join('\n')} />
-				{/if}
+						{#if process.nix_errors && process.nix_errors.length > 0}
+							{@render logBlock(
+								$t('task-details.nix-errors'),
+								process.nix_errors.map((error) => error.msg).join('\n')
+							)}
+						{/if}
+						{#if process.nix_error_logs && process.nix_error_logs.length > 0}
+							{@render logBlock($t('task-details.nix-errors'), process.nix_error_logs.join('\n'))}
+						{/if}
+						{#if process.nix_warning_logs && process.nix_warning_logs.length > 0}
+							{@render logBlock(
+								$t('task-details.nix-warnings'),
+								process.nix_warning_logs.join('\n')
+							)}
+						{/if}
+						{#if process.nix_notice_logs && process.nix_notice_logs.length > 0}
+							{@render logBlock($t('task-details.nix-notices'), process.nix_notice_logs.join('\n'))}
+						{/if}
+						{#if process.nix_info_logs && process.nix_info_logs.length > 0}
+							{@render logBlock($t('task-details.nix-infos'), process.nix_info_logs.join('\n'))}
+						{/if}
+						{#if process.process_stdout}
+							{@render logBlock($t('task-details.stdout'), cleanStdOut(process.process_stdout))}
+						{/if}
+						{#if process.process_stderr}
+							{@render logBlock($t('task-details.stderr'), cleanStdOut(process.process_stderr))}
+						{/if}
 
-				{#if process.nix_error_logs && process.nix_error_logs.length > 0}
-					<p>Nix error logs:</p>
-					<MonospaceText code={process.nix_error_logs.join('\n')} />
-				{/if}
-
-				{#if process.nix_warning_logs && process.nix_warning_logs.length > 0}
-					<p>Nix warnings:</p>
-					<MonospaceText code={process.nix_warning_logs.join('\n')} />
-				{/if}
-
-				{#if process.nix_notice_logs && process.nix_notice_logs.length > 0}
-					<p>Nix notices:</p>
-					<MonospaceText code={process.nix_notice_logs.join('\n')} />
-				{/if}
-
-				{#if process.nix_info_logs && process.nix_info_logs.length > 0}
-					<p>Nix infos:</p>
-					<MonospaceText code={process.nix_info_logs.join('\n')} />
-				{/if}
-
-				{#if process.process_stdout}
-					<p>Standard output:</p>
-					<MonospaceText code={cleanStdOut(process.process_stdout)} />
-				{:else}
-					<p>No standard output</p>
-				{/if}
-
-				{#if process.process_stderr}
-					<p>Standard error:</p>
-					<MonospaceText code={cleanStdOut(process.process_stderr)} />
-				{:else}
-					<p>No standard error</p>
-				{/if}
-
-				{#if i < task.processes.length - 1}
-					<hr class="mt-4" />
-				{/if}
+						{#if !processHasOutput(process)}
+							<p class="muted-note">{$t('task-details.no-output')}</p>
+						{/if}
+					</div>
+				</Section>
 			{/each}
 		{:else}
-			<p>No processes</p>
+			<Section title={$t('task-details.processes')}>
+				<p class="muted-note">{$t('task-details.no-processes')}</p>
+			</Section>
 		{/if}
 	</div>
-
-	<hr />
 {/if}
+
+<style lang="postcss">
+	.log-label {
+		font-size: 12px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--ds-text-mute);
+		margin-bottom: 6px;
+	}
+	.muted-note {
+		font-size: 13px;
+		color: var(--ds-text-mute);
+	}
+	/* full-width horizontal metadata bar */
+	.meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 14px 40px;
+	}
+	.meta-item {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		min-width: 0;
+	}
+	.meta-key {
+		font-size: 11.5px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--ds-text-mute);
+	}
+	.meta-val {
+		font-size: 13px;
+		color: var(--ds-text);
+	}
+	.id-copy {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 3px;
+		border-radius: 5px;
+		color: var(--ds-text-mute);
+		flex-shrink: 0;
+		transition:
+			background 0.12s,
+			color 0.12s;
+	}
+	.id-copy:hover {
+		background: var(--ds-surface-2);
+		color: var(--ds-text);
+	}
+	.ds-link {
+		color: var(--ds-accent);
+		word-break: break-all;
+	}
+	.ds-link:hover {
+		text-decoration: underline;
+	}
+	:global(.exception-card) {
+		border-color: var(--ds-danger);
+	}
+</style>
