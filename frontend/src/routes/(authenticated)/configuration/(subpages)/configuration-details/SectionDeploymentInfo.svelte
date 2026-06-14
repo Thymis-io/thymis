@@ -7,20 +7,11 @@
 	import DeploymentInstanceRow, {
 		type ConfigInstance
 	} from '$lib/components/DeploymentInstanceRow.svelte';
-	import { Select } from 'flowbite-svelte';
-	import { fetchWithNotify } from '$lib/fetchWithNotify';
-	import CommitModal from '$lib/repo/CommitModal.svelte';
-	import { invalidateButDeferUntilNavigation } from '$lib/notification';
-	import ArrowRightLeft from 'lucide-svelte/icons/arrow-right-left';
-	import type { RepoStatus } from '$lib/repo/repo';
-	import { getDeviceType } from '$lib/config/configUtils';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
 	interface Props {
 		deploymentInfos?: DeploymentInfo[];
 		globalState: GlobalState;
 		headCommit?: string | null;
-		repoStatus: RepoStatus;
 		class?: string;
 	}
 
@@ -28,7 +19,6 @@
 		deploymentInfos = [],
 		globalState,
 		headCommit = null,
-		repoStatus,
 		class: className = ''
 	}: Props = $props();
 
@@ -52,104 +42,12 @@
 			})
 			.sort((a, b) => Number(b.online) - Number(a.online))
 	);
-
-	// Per-deployment-info switch config state
-	let switchConfigSelections = $state<Record<string, string>>({});
-	let openCommitModal = $state(false);
-	let pendingSwitch: { deploymentInfo: DeploymentInfo; newConfigId: string } | undefined = $state();
-
-	const switchableConfigsFor = (deploymentInfo: DeploymentInfo) => {
-		const sourceConfig = globalState.configs.find(
-			(c) => c.identifier === deploymentInfo.deployed_config_id
-		);
-		const sourceDeviceType = getDeviceType(sourceConfig);
-		if (!sourceDeviceType) {
-			return [];
-		}
-
-		return globalState.configs.filter(
-			(c) =>
-				c.identifier !== deploymentInfo.deployed_config_id && getDeviceType(c) === sourceDeviceType
-		);
-	};
-
-	const switchConfig = async (deploymentInfo: DeploymentInfo, newConfigId: string) => {
-		const response = await fetchWithNotify(
-			`/api/action/switch-config?deployment_info_id=${deploymentInfo.id}&new_config_id=${encodeURIComponent(newConfigId)}`,
-			{ method: 'POST' },
-			{ 409: null },
-			undefined,
-			[200, 409]
-		);
-		if (response.status === 409) {
-			pendingSwitch = { deploymentInfo, newConfigId };
-			openCommitModal = true;
-		}
-	};
 </script>
-
-<CommitModal
-	bind:open={openCommitModal}
-	{repoStatus}
-	defaultMessage="switch config"
-	onAction={async (message) => {
-		await fetchWithNotify(`/api/action/commit?message=${encodeURIComponent(message)}`, {
-			method: 'POST'
-		});
-		await invalidateButDeferUntilNavigation(
-			(url) => url.pathname === '/api/history' || url.pathname === '/api/repo_status'
-		);
-		if (pendingSwitch) {
-			const { deploymentInfo, newConfigId } = pendingSwitch;
-			pendingSwitch = undefined;
-			await switchConfig(deploymentInfo, newConfigId);
-		}
-	}}
-/>
 
 <Section class={className} title={$t('configuration-details.deployment-info')}>
 	<div class="flex flex-col gap-2">
 		{#each instances as inst (inst.id)}
-			{@const deploymentInfo = deploymentInfos.find((di) => di.id === inst.id)}
-			<div class="flex flex-row items-center gap-2 flex-wrap">
-				{#if deploymentInfo}
-					<div class="flex flex-col gap-2 max-w-96 mr-4">
-						<DeploymentInstanceRow {inst} {globalState} {deploymentInfos} />
-					</div>
-					{#if inst.online}
-						<Select
-							class="max-w-xs text-sm"
-							items={switchableConfigsFor(deploymentInfo).map((c) => ({
-								name: c.displayName,
-								value: c.identifier
-							}))}
-							bind:value={switchConfigSelections[deploymentInfo.id]}
-							placeholder={$t('configuration-details.switch-config-select')}
-						/>
-						<button
-							class="ds-btn ds-btn-sm disabled:cursor-not-allowed disabled:opacity-50"
-							disabled={!switchConfigSelections[deploymentInfo.id]}
-							onclick={() =>
-								switchConfig(deploymentInfo, switchConfigSelections[deploymentInfo.id])}
-						>
-							<ArrowRightLeft size="16" />
-							{$t('configuration-details.switch-config')}
-						</button>
-						{#if deploymentInfo.pending_config_id}
-							{@const [before, after] = $t('configuration-details.switching-to').split('{config}')}
-							<div class="text-sm text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
-								{before}
-								<IdentifierLink
-									{globalState}
-									identifier={deploymentInfo.pending_config_id}
-									context="config"
-								/>
-								{after}
-							</div>
-						{/if}
-					{/if}
-				{/if}
-			</div>
+			<DeploymentInstanceRow {inst} {globalState} {deploymentInfos} />
 		{:else}
 			<p class="text-base">{$t('configuration-details.no-deployment-info')}</p>
 		{/each}

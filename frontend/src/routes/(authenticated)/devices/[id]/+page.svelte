@@ -5,6 +5,7 @@
 	import type { PageData } from './$types';
 	import { updateDeploymentInfo, isOnline as checkOnline } from '$lib/deploymentInfo';
 	import SectionDeviceInfo from './SectionDeviceInfo.svelte';
+	import SectionDeviceActions from './SectionDeviceActions.svelte';
 	import SectionOnlineStatus from './SectionOnlineStatus.svelte';
 	import SectionMetrics from './SectionMetrics.svelte';
 	import SectionErrorLogs from './SectionErrorLogs.svelte';
@@ -123,9 +124,15 @@
 		</Section>
 	</div>
 
-	<!-- Right sidebar: device info -->
+	<!-- Right sidebar: device info + actions -->
 	<div class="flex flex-col gap-6 h-full">
 		<SectionDeviceInfo bind:deploymentInfo globalState={data.globalState} />
+		<SectionDeviceActions
+			{deploymentInfo}
+			{config}
+			globalState={data.globalState}
+			repoStatus={page.data.repoStatus}
+		/>
 	</div>
 
 	{#if data.connected}
