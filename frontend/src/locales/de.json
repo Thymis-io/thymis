@@ -67,6 +67,8 @@
 		"subtitle": "Live-Fernbildschirme für Geräte mit aktiviertem VNC.",
 		"connection-failed": "Verbindungsfehler",
 		"control-device": "Gerät Steuern",
+		"control-active": "Steuerung aktiv",
+		"control-unavailable": "Verbinden, um zu steuern",
 		"column-count": "Ansichten pro Zeile:",
 		"live": "Live",
 		"connecting": "Verbinden…",

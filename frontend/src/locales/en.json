@@ -67,6 +67,8 @@
 		"subtitle": "Live remote screens for devices with VNC enabled.",
 		"connection-failed": "Connection failed",
 		"control-device": "Control Device",
+		"control-active": "Controlling",
+		"control-unavailable": "Connect to enable control",
 		"column-count": "Displays per Row:",
 		"live": "Live",
 		"connecting": "Connecting…",

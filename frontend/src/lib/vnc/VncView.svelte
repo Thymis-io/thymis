@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import type { Config, Module } from '$lib/state';
-	import { Spinner, Toggle } from 'flowbite-svelte';
+	import { Spinner } from 'flowbite-svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { configVNCPassword, targetShouldShowVNC } from '$lib/vnc/vnc';
 	import { page } from '$app/stores';
@@ -157,15 +157,31 @@
 							? $t('vnc.live')
 							: $t('vnc.connecting')}
 				</span>
-				<label class="vnc-toggle" class:disabled={!connected}>
-					<span>{$t('vnc.control-device')}</span>
-					<Toggle bind:checked={control} size="small" disabled={!connected} />
-				</label>
+				<button
+					type="button"
+					role="switch"
+					aria-checked={control}
+					class="vnc-switch"
+					class:on={control}
+					disabled={!connected}
+					title={connected ? '' : $t('vnc.control-unavailable')}
+					onclick={() => (control = !control)}
+				>
+					<span class="vnc-switch-label"
+						>{control ? $t('vnc.control-active') : $t('vnc.control-device')}</span
+					>
+					<span class="vnc-switch-track"><span class="vnc-switch-knob"></span></span>
+				</button>
 			</div>
 		</div>
 
 		<!-- novnc mounts its canvas into this element; overlays sit on top -->
-		<div bind:this={div} class="vnc-screen" class:fullscreen={isFullscreen}>
+		<div
+			bind:this={div}
+			class="vnc-screen"
+			class:fullscreen={isFullscreen}
+			class:controlling={control && connected}
+		>
 			{#if connectionFailed}
 				<div class="vnc-overlay">
 					<MonitorOff size={26} />
@@ -246,17 +262,71 @@
 		gap: 7px;
 		flex-shrink: 0;
 	}
-	.vnc-toggle {
-		display: flex;
+	/* ---- control switch ---- */
+	.vnc-switch {
+		display: inline-flex;
 		align-items: center;
-		gap: 7px;
+		gap: 8px;
+		padding: 3px 5px 3px 9px;
+		border-radius: 999px;
+		border: 1px solid var(--ds-border);
+		background: var(--ds-surface-2);
 		font-size: 12px;
+		font-weight: 500;
 		color: var(--ds-text-dim);
 		cursor: pointer;
+		transition:
+			color 0.12s,
+			border-color 0.12s,
+			background 0.12s;
 	}
-	.vnc-toggle.disabled {
-		opacity: 0.5;
+	.vnc-switch:hover:not(:disabled) {
+		color: var(--ds-text);
+		border-color: var(--ds-border-strong);
+	}
+	.vnc-switch:focus-visible {
+		outline: none;
+		border-color: var(--ds-accent);
+		box-shadow: 0 0 0 3px var(--ds-accent-dim);
+	}
+	.vnc-switch:disabled {
+		opacity: 0.55;
 		cursor: not-allowed;
+	}
+	.vnc-switch.on {
+		color: var(--ds-accent-strong);
+		border-color: var(--ds-accent);
+		background: var(--ds-accent-dim);
+	}
+	.vnc-switch-label {
+		line-height: 1;
+		white-space: nowrap;
+	}
+	.vnc-switch-track {
+		position: relative;
+		width: 30px;
+		height: 17px;
+		flex-shrink: 0;
+		border-radius: 999px;
+		background: var(--ds-border-strong);
+		transition: background 0.15s;
+	}
+	.vnc-switch.on .vnc-switch-track {
+		background: var(--ds-accent);
+	}
+	.vnc-switch-knob {
+		position: absolute;
+		top: 2px;
+		left: 2px;
+		width: 13px;
+		height: 13px;
+		border-radius: 50%;
+		background: #fff;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+		transition: transform 0.15s;
+	}
+	.vnc-switch.on .vnc-switch-knob {
+		transform: translateX(13px);
 	}
 
 	/* ---- screen ---- */
@@ -274,6 +344,10 @@
 	.vnc-screen.fullscreen {
 		aspect-ratio: auto;
 		height: 100%;
+	}
+	/* strong visual confirmation that input is being forwarded to the device */
+	.vnc-screen.controlling {
+		box-shadow: inset 0 0 0 2px var(--ds-accent);
 	}
 	/* the canvas novnc injects */
 	.vnc-screen :global(canvas) {
