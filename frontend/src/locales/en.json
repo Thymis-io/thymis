@@ -11,6 +11,7 @@
 		"configurations": "Configs",
 		"devices": "Devices",
 		"hardware-devices": "Hardware Devices",
+		"tasks": "Tasks",
 		"history": "History",
 		"terminal": "Terminal",
 		"global-vnc": "VNC Devices",
@@ -324,7 +325,24 @@
 			"auto_update": "Auto-Update"
 		},
 		"version": "Thymis version: {version}",
-		"version-short": "v{version}"
+		"version-short": "v{version}",
+		"activity": {
+			"nothing-running": "Nothing running",
+			"all-clear": "All clear",
+			"running-one": "Running 1 task",
+			"running-many": "Running {count} tasks",
+			"pending-waiting": "Waiting to start",
+			"summary-failed": "{count} failed",
+			"summary-done": "{count} done",
+			"summary-running": "{count} running",
+			"summary-pending": "{count} pending",
+			"more": "+{count} more"
+		},
+		"view-all": "View all",
+		"page-title": "Tasks",
+		"page-subtitle": "All tasks across your project, newest first.",
+		"recent-hint": "Showing the {count} most recent tasks.",
+		"empty": "No tasks yet."
 	},
 	"config": {
 		"header": {

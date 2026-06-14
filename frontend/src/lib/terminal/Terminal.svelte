@@ -11,7 +11,6 @@
 	import { browser } from '$app/environment';
 	import type { DeploymentInfo } from '$lib/deploymentInfo';
 	import Copy from 'lucide-svelte/icons/copy';
-	import { Button } from 'flowbite-svelte';
 	import { toast } from '@zerodevx/svelte-toast';
 
 	let Terminal: typeof TerminalType;
@@ -124,8 +123,8 @@
 
 <div>
 	<div class="flex mb-2">
-		<Button
-			class="ml-auto flex flex-end"
+		<button
+			class="ds-btn ds-btn-primary ml-auto flex items-center gap-2"
 			onclick={async () => {
 				// copy "test"
 				const token = await getToken();
@@ -141,9 +140,9 @@
 				});
 			}}
 		>
-			<span>Copy SSH Command </span>
-			<Copy class="ml-3" />
-		</Button>
+			<span>Copy SSH Command</span>
+			<Copy size={16} />
+		</button>
 	</div>
 	<!-- xterm + FitAddon need a definite, content-independent height here; without
 	     it the fit loop (container height <-> terminal rows) grows unboundedly and

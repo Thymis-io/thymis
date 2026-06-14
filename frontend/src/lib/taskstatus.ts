@@ -111,6 +111,31 @@ export const getAllTasks = async (
 	};
 };
 
+// Fetches all tasks started on or after `since`. The API returns tasks
+// newest-first, so we page until we hit one older than the cutoff (or `hardCap`).
+export const getTasksSince = async (
+	since: Date,
+	fetch: typeof window.fetch = window.fetch,
+	hardCap = 500
+) => {
+	const pageSize = 100;
+	const collected: TaskShort[] = [];
+	let offset = 0;
+	while (offset < hardCap) {
+		const { tasks } = await getAllTasks(pageSize, offset, fetch);
+		for (const task of tasks) {
+			if (new Date(task.start_time) >= since) {
+				collected.push(task);
+			} else {
+				return collected; // newest-first: every remaining task is older
+			}
+		}
+		if (tasks.length < pageSize) break;
+		offset += pageSize;
+	}
+	return collected;
+};
+
 export const getTask = async (taskId: string, fetch: typeof window.fetch = window.fetch) => {
 	const response = await fetchWithNotify(`/api/tasks/${taskId}`, undefined, {}, fetch);
 	return (await response.json()) as Task;

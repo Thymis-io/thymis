@@ -11,6 +11,7 @@
 		"configurations": "Konfigurationen",
 		"devices": "Geräte",
 		"hardware-devices": "Hardware Geräte",
+		"tasks": "Aufgaben",
 		"history": "Versionen",
 		"terminal": "Terminal",
 		"global-vnc": "VNC Geräte",
@@ -435,7 +436,24 @@
 			"auto_update": "Auto-Update"
 		},
 		"version": "Thymis Version: {version}",
-		"version-short": "v{version}"
+		"version-short": "v{version}",
+		"activity": {
+			"nothing-running": "Nichts aktiv",
+			"all-clear": "Alles erledigt",
+			"running-one": "1 Aufgabe läuft",
+			"running-many": "{count} Aufgaben laufen",
+			"pending-waiting": "Wartet auf Start",
+			"summary-failed": "{count} fehlgeschlagen",
+			"summary-done": "{count} fertig",
+			"summary-running": "{count} laufen",
+			"summary-pending": "{count} ausstehend",
+			"more": "+{count} weitere"
+		},
+		"view-all": "Alle anzeigen",
+		"page-title": "Aufgaben",
+		"page-subtitle": "Alle Aufgaben deines Projekts, neueste zuerst.",
+		"recent-hint": "Zeigt die {count} neuesten Aufgaben.",
+		"empty": "Noch keine Aufgaben."
 	},
 	"tags": {
 		"subtitle": "Gruppieren Sie Konfigurationen und Geräte, um Einstellungen flottenweit anzuwenden.",

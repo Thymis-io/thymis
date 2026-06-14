@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { type TaskShort } from '$lib/taskstatus';
-	import { Progressbar } from 'flowbite-svelte';
 	import PendingIcon from 'lucide-svelte/icons/clock';
 	import RunningIcon from 'lucide-svelte/icons/play';
 	import CompletedIcon from 'lucide-svelte/icons/check';
@@ -79,5 +78,24 @@
 	{/if}
 </div>
 {#if showProgress && task.nix_status && task.state === 'running'}
-	<Progressbar {progress} />
+	<div class="ds-progress mt-1.5" aria-hidden="true">
+		<span style="width: {progress}%"></span>
+	</div>
 {/if}
+
+<style lang="postcss">
+	.ds-progress {
+		width: 100%;
+		height: 6px;
+		border-radius: 999px;
+		background: var(--ds-surface-2);
+		overflow: hidden;
+	}
+	.ds-progress span {
+		display: block;
+		height: 100%;
+		border-radius: 999px;
+		background: var(--ds-accent);
+		transition: width 0.3s ease;
+	}
+</style>
