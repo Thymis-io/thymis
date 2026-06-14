@@ -22,7 +22,7 @@
 	let selectedClass = 'bg-gray-100 dark:bg-gray-600 ';
 	let fileClass =
 		textClass +
-		'flex items-center gap-1 p-1 px-2 text-start ' +
+		'flex shrink-0 items-center gap-1 p-1 px-2 text-start ' +
 		'hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded break-all ' +
 		'whitespace-nowrap overflow-hidden text-ellipsis ';
 	let overflowClass = 'overflow-hidden text-ellipsis ';
@@ -31,34 +31,38 @@
 <div class="h-full overflow-hidden">
 	<SplitPane type="horizontal" leftPaneClass="pr-2" min="15%" max="60%" pos="20%">
 		{#snippet a()}
-			<div class="flex flex-col">
-				{#if stateJson}
-					<button
-						class={fileClass + (selectedFile === stateJson.path ? selectedClass : '')}
-						onclick={() => (selectedFile = stateJson.path)}
-					>
-						<FileIcon size="18" class="flex-shrink-0" />
-						{stateJson.path}
-					</button>
-				{/if}
-				<div class={textClass + 'flex p-1 mt-4 mb-1'}>
-					{#if internalChanges.length === 0}
-						{$t('history.no-internal-file-changes')}
-					{:else}
-						{$t('history.internal-file-changes', { values: { count: internalChanges.length } })}
+			<!-- outer div is the SplitPane's direct child (forced h-full + overflow-hidden);
+			     the inner column scrolls so many files keep full height instead of squishing. -->
+			<div>
+				<div class="flex h-full flex-col overflow-y-auto pr-1">
+					{#if stateJson}
+						<button
+							class={fileClass + (selectedFile === stateJson.path ? selectedClass : '')}
+							onclick={() => (selectedFile = stateJson.path)}
+						>
+							<FileIcon size="18" class="flex-shrink-0" />
+							{stateJson.path}
+						</button>
 					{/if}
+					<div class={textClass + 'flex shrink-0 p-1 mt-4 mb-1'}>
+						{#if internalChanges.length === 0}
+							{$t('history.no-internal-file-changes')}
+						{:else}
+							{$t('history.internal-file-changes', { values: { count: internalChanges.length } })}
+						{/if}
+					</div>
+					{#each internalChanges as change}
+						<button
+							class={fileClass + (selectedFile === change.path ? selectedClass : '')}
+							onclick={() => (selectedFile = change.path)}
+							title={change.path}
+						>
+							<FileIcon size="18" class="flex-shrink-0" />
+							<span>{change.file.split('.').slice(-2).join('.')}</span>
+							<span class={overflowClass + 'text-gray-400 dark:text-gray-500'}>{change.dir}</span>
+						</button>
+					{/each}
 				</div>
-				{#each internalChanges as change}
-					<button
-						class={fileClass + (selectedFile === change.path ? selectedClass : '')}
-						onclick={() => (selectedFile = change.path)}
-						title={change.path}
-					>
-						<FileIcon size="18" class="flex-shrink-0" />
-						<span>{change.file.split('.').slice(-2).join('.')}</span>
-						<span class={overflowClass + 'text-gray-400 dark:text-gray-500'}>{change.dir}</span>
-					</button>
-				{/each}
 			</div>
 		{/snippet}
 		{#snippet b()}
