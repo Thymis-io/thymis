@@ -9,8 +9,8 @@
 	import VncView from '$lib/vnc/VncView.svelte';
 	import Section from '$lib/components/layout/Section.svelte';
 	import Terminal from '$lib/terminal/Terminal.svelte';
+	import CopySSHCommandButton from '$lib/terminal/CopySSHCommandButton.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
-	import Copy from 'lucide-svelte/icons/copy';
 
 	interface Props {
 		data: PageData;
@@ -19,9 +19,6 @@
 	let { data }: Props = $props();
 
 	let currentConfig = $derived(data.nav.selectedConfig);
-	// one Terminal instance per connected device, keyed by id, so each card header
-	// can trigger that device's "Copy SSH Command".
-	let terminalRefs = $state<Record<string, Terminal>>({});
 </script>
 
 {#if data.nav.selectedConfig}
@@ -75,16 +72,10 @@
 							context="device"
 							class="flex justify-center my-1"
 						/>
-						<button
-							class="ds-btn ds-btn-sm ds-btn-primary flex items-center gap-2"
-							onclick={() => terminalRefs[deploymentInfo.id]?.copySSHCommand()}
-						>
-							<Copy size={15} />
-							<span class="whitespace-nowrap">Copy SSH Command</span>
-						</button>
+						<CopySSHCommandButton {deploymentInfo} />
 					</div>
 				{/snippet}
-				<Terminal bind:this={terminalRefs[deploymentInfo.id]} {deploymentInfo} />
+				<Terminal {deploymentInfo} />
 			</Section>
 		{/each}
 	</div>

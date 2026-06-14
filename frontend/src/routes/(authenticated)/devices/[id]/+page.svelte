@@ -2,7 +2,6 @@
 	import { t } from 'svelte-i18n';
 	import { Input, Modal } from 'flowbite-svelte';
 	import Pen from 'lucide-svelte/icons/pen';
-	import Copy from 'lucide-svelte/icons/copy';
 	import type { PageData } from './$types';
 	import { updateDeploymentInfo, isOnline as checkOnline } from '$lib/deploymentInfo';
 	import SectionDeviceInfo from './SectionDeviceInfo.svelte';
@@ -12,6 +11,7 @@
 	import Section from '$lib/components/layout/Section.svelte';
 	import VncView from '$lib/vnc/VncView.svelte';
 	import Terminal from '$lib/terminal/Terminal.svelte';
+	import CopySSHCommandButton from '$lib/terminal/CopySSHCommandButton.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import { page } from '$app/state';
 	import { goto, invalidate } from '$app/navigation';
@@ -44,7 +44,6 @@
 
 	let nameModalOpen = $state(false);
 	let nameInput = $state('');
-	let terminalRef = $state<Terminal>();
 
 	let isOnline = $derived(checkOnline(deploymentInfo.last_seen));
 
@@ -140,15 +139,9 @@
 		<div class="lg:col-span-2">
 			<Section title={$t('nav.terminal')} class="h-full">
 				{#snippet header()}
-					<button
-						class="ds-btn ds-btn-sm ds-btn-primary flex items-center gap-2"
-						onclick={() => terminalRef?.copySSHCommand()}
-					>
-						<Copy size={15} />
-						<span class="whitespace-nowrap">Copy SSH Command</span>
-					</button>
+					<CopySSHCommandButton {deploymentInfo} />
 				{/snippet}
-				<Terminal bind:this={terminalRef} {deploymentInfo} />
+				<Terminal {deploymentInfo} />
 			</Section>
 		</div>
 	{/if}
