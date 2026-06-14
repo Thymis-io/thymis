@@ -61,7 +61,15 @@
 			const di = deploymentInfos.find((d) => d.id === id);
 			trail.push({ label: di?.name || id });
 		} else if (path.startsWith('/configuration/') && path !== '/configuration/list') {
-			const name = nav?.selectedConfig?.displayName ?? nav?.selectedTarget?.displayName;
+			// Config and tag detail pages share /configuration/*; the target type
+			// decides whether the root crumb points to Configs or Config-Tags.
+			const isTag = $page.url.searchParams.get('global-nav-target-type') === 'tag';
+			if (isTag) {
+				trail[0] = { label: $t('nav.tags'), href: '/tags' };
+			}
+			const name = isTag
+				? (nav?.selectedTag?.displayName ?? nav?.selectedTarget?.displayName)
+				: (nav?.selectedConfig?.displayName ?? nav?.selectedTarget?.displayName);
 			if (name) trail.push({ label: name });
 		} else if (path.startsWith('/deployment_info/')) {
 			const segs = path.split('/').filter(Boolean); // [deployment_info, <id>, logs?]
