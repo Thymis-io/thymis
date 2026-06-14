@@ -45,8 +45,11 @@
 	const shortRev = inPlaywright ? '00000000' : versionInfo.headRev.slice(0, 8);
 </script>
 
+<!-- overflow-hidden (not auto): the bar must never show a horizontal scrollbar.
+     When space runs out the flexible latest-task name truncates so we just show
+     less content instead. -->
 <div
-	class="w-full h-full flex px-3 gap-2 sm:gap-4 xl:gap-10 pr-8 md:pr-16 items-center overflow-y-auto border-t bg-[var(--ds-surface)] border-[var(--ds-border)] text-[var(--ds-text)]"
+	class="w-full h-full flex px-3 gap-2 sm:gap-4 xl:gap-10 pr-8 md:pr-16 items-center overflow-hidden border-t bg-[var(--ds-surface)] border-[var(--ds-border)] text-[var(--ds-text)]"
 >
 	<div class="text-xs md:text-sm playwright-snapshot-unstable">
 		<span class="hidden xl:block min-w-[14rem]">
@@ -82,23 +85,25 @@
 			<FailedIcon size={20} class="w-full" />
 		{/snippet}
 	</TaskbarIcon>
-	<div class="flex items-center gap-1 lg:gap-2 lg:ml-2">
+	<div class="flex min-w-0 items-center gap-1 lg:gap-2 lg:ml-2">
 		{#if latestTask}
-			<span class="text-xs md:text-sm">
+			<span class="text-xs md:text-sm shrink-0 whitespace-nowrap">
 				{$t('taskbar.latest-task')}:
 			</span>
-			<span class="text-xs md:text-sm truncate max-w-64">
+			<span class="text-xs md:text-sm flex items-center min-w-0 max-w-64 overflow-hidden">
 				<TaskbarName {globalState} {deploymentInfos} task={latestTask} />
 			</span>
-			<span class="text-xs md:text-sm">
+			<span class="text-xs md:text-sm shrink-0">
 				<TaskbarStatus task={latestTask} showText={false} showProgress={false} />
 			</span>
 		{/if}
 	</div>
-	<Paginator
-		totalCount={$page.data.totalTaskCount}
-		pageSize={$page.data.tasksPerPage}
-		page={parseInt(currentPage ?? '1')}
-		onChange={(page) => switchPage(page)}
-	/>
+	<div class="shrink-0">
+		<Paginator
+			totalCount={$page.data.totalTaskCount}
+			pageSize={$page.data.tasksPerPage}
+			page={parseInt(currentPage ?? '1')}
+			onChange={(page) => switchPage(page)}
+		/>
+	</div>
 </div>
