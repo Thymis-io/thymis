@@ -11,6 +11,7 @@
 	import Expand from 'lucide-svelte/icons/expand';
 	import Shrink from 'lucide-svelte/icons/shrink';
 	import MonitorOff from 'lucide-svelte/icons/monitor-off';
+	import MousePointer2 from 'lucide-svelte/icons/mouse-pointer-2';
 
 	interface Props {
 		globalState: GlobalState;
@@ -146,33 +147,14 @@
 					class="vnc-device-link"
 				/>
 			</div>
-			<div class="vnc-controls">
-				<span
-					class="ds-status-pill {connectionFailed ? 'danger' : connected ? 'online' : 'offline'}"
-				>
-					<span class="ds-dot"></span>
-					{connectionFailed
-						? $t('vnc.disconnected')
-						: connected
-							? $t('vnc.live')
-							: $t('vnc.connecting')}
-				</span>
-				<button
-					type="button"
-					role="switch"
-					aria-checked={control}
-					class="vnc-switch"
-					class:on={control}
-					disabled={!connected}
-					title={connected ? '' : $t('vnc.control-unavailable')}
-					onclick={() => (control = !control)}
-				>
-					<span class="vnc-switch-label"
-						>{control ? $t('vnc.control-active') : $t('vnc.control-device')}</span
-					>
-					<span class="vnc-switch-track"><span class="vnc-switch-knob"></span></span>
-				</button>
-			</div>
+			<span class="ds-status-pill {connectionFailed ? 'danger' : connected ? 'online' : 'offline'}">
+				<span class="ds-dot"></span>
+				{connectionFailed
+					? $t('vnc.disconnected')
+					: connected
+						? $t('vnc.live')
+						: $t('vnc.connecting')}
+			</span>
 		</div>
 
 		<!-- novnc mounts its canvas into this element; overlays sit on top -->
@@ -195,19 +177,37 @@
 				</div>
 			{/if}
 
-			<button
-				type="button"
-				class="vnc-expand"
-				onclick={toggleFullscreen}
-				title={$t('vnc.fullscreen')}
-				aria-label={$t('vnc.fullscreen')}
-			>
-				{#if isFullscreen}
-					<Shrink size={15} />
-				{:else}
-					<Expand size={15} />
-				{/if}
-			</button>
+			<div class="vnc-actions" class:pinned={control && connected}>
+				<button
+					type="button"
+					class="vnc-action"
+					class:active={control}
+					disabled={!connected}
+					onclick={() => (control = !control)}
+					aria-pressed={control}
+					title={!connected
+						? $t('vnc.control-unavailable')
+						: control
+							? $t('vnc.control-active')
+							: $t('vnc.control-device')}
+					aria-label={$t('vnc.control-device')}
+				>
+					<MousePointer2 size={15} />
+				</button>
+				<button
+					type="button"
+					class="vnc-action"
+					onclick={toggleFullscreen}
+					title={$t('vnc.fullscreen')}
+					aria-label={$t('vnc.fullscreen')}
+				>
+					{#if isFullscreen}
+						<Shrink size={15} />
+					{:else}
+						<Expand size={15} />
+					{/if}
+				</button>
+			</div>
 		</div>
 	</div>
 {/if}
@@ -237,6 +237,9 @@
 		gap: 1px;
 		min-width: 0;
 	}
+	.vnc-head > :global(.ds-status-pill) {
+		flex-shrink: 0;
+	}
 	.vnc-identity :global(.vnc-config-link a) {
 		font-size: 13.5px;
 		font-weight: 600;
@@ -253,80 +256,6 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		max-width: 100%;
-	}
-
-	.vnc-controls {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
-		gap: 7px;
-		flex-shrink: 0;
-	}
-	/* ---- control switch ---- */
-	.vnc-switch {
-		display: inline-flex;
-		align-items: center;
-		gap: 8px;
-		padding: 3px 5px 3px 9px;
-		border-radius: 999px;
-		border: 1px solid var(--ds-border);
-		background: var(--ds-surface-2);
-		font-size: 12px;
-		font-weight: 500;
-		color: var(--ds-text-dim);
-		cursor: pointer;
-		transition:
-			color 0.12s,
-			border-color 0.12s,
-			background 0.12s;
-	}
-	.vnc-switch:hover:not(:disabled) {
-		color: var(--ds-text);
-		border-color: var(--ds-border-strong);
-	}
-	.vnc-switch:focus-visible {
-		outline: none;
-		border-color: var(--ds-accent);
-		box-shadow: 0 0 0 3px var(--ds-accent-dim);
-	}
-	.vnc-switch:disabled {
-		opacity: 0.55;
-		cursor: not-allowed;
-	}
-	.vnc-switch.on {
-		color: var(--ds-accent-strong);
-		border-color: var(--ds-accent);
-		background: var(--ds-accent-dim);
-	}
-	.vnc-switch-label {
-		line-height: 1;
-		white-space: nowrap;
-	}
-	.vnc-switch-track {
-		position: relative;
-		width: 30px;
-		height: 17px;
-		flex-shrink: 0;
-		border-radius: 999px;
-		background: var(--ds-border-strong);
-		transition: background 0.15s;
-	}
-	.vnc-switch.on .vnc-switch-track {
-		background: var(--ds-accent);
-	}
-	.vnc-switch-knob {
-		position: absolute;
-		top: 2px;
-		left: 2px;
-		width: 13px;
-		height: 13px;
-		border-radius: 50%;
-		background: #fff;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-		transition: transform 0.15s;
-	}
-	.vnc-switch.on .vnc-switch-knob {
-		transform: translateX(13px);
 	}
 
 	/* ---- screen ---- */
@@ -387,10 +316,23 @@
 		background: rgba(255, 255, 255, 0.16);
 	}
 
-	.vnc-expand {
+	/* ---- floating action buttons (top-right of the screen) ---- */
+	.vnc-actions {
 		position: absolute;
 		top: 8px;
 		right: 8px;
+		display: flex;
+		gap: 6px;
+		opacity: 0;
+		transition: opacity 0.15s;
+	}
+	/* reveal on hover/keyboard focus; stay visible while controlling */
+	.vnc-screen:hover .vnc-actions,
+	.vnc-actions:focus-within,
+	.vnc-actions.pinned {
+		opacity: 1;
+	}
+	.vnc-action {
 		display: grid;
 		place-items: center;
 		width: 28px;
@@ -400,16 +342,30 @@
 		background: rgba(10, 13, 19, 0.55);
 		border: 1px solid rgba(255, 255, 255, 0.12);
 		backdrop-filter: blur(4px);
-		opacity: 0;
 		transition:
-			opacity 0.15s,
-			background 0.12s;
+			background 0.12s,
+			border-color 0.12s,
+			color 0.12s;
 	}
-	.vnc-screen:hover .vnc-expand,
-	.vnc-expand:focus-visible {
-		opacity: 1;
-	}
-	.vnc-expand:hover {
+	.vnc-action:hover:not(:disabled) {
 		background: rgba(10, 13, 19, 0.8);
+	}
+	.vnc-action:focus-visible {
+		outline: none;
+		border-color: var(--ds-accent);
+		box-shadow: 0 0 0 3px var(--ds-accent-dim);
+	}
+	.vnc-action:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+	/* control button when input forwarding is active */
+	.vnc-action.active {
+		color: #fff;
+		background: var(--ds-accent);
+		border-color: var(--ds-accent-strong);
+	}
+	.vnc-action.active:hover {
+		background: var(--ds-accent-strong);
 	}
 </style>
