@@ -118,6 +118,10 @@
 		"copy": "Copy",
 		"copied": "Copied!"
 	},
+	"terminal": {
+		"copy-ssh": "Copy SSH Command",
+		"ssh-copied": "SSH command copied to clipboard"
+	},
 	"hardware-devices": {
 		"table": {
 			"device": "Device",

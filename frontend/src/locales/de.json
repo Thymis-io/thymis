@@ -118,6 +118,10 @@
 		"copy": "Kopieren",
 		"copied": "Kopiert!"
 	},
+	"terminal": {
+		"copy-ssh": "SSH-Befehl kopieren",
+		"ssh-copied": "SSH-Befehl in die Zwischenablage kopiert"
+	},
 	"hardware-devices": {
 		"table": {
 			"device": "Gerät",
