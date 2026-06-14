@@ -19,9 +19,17 @@
 		deploymentInfo: DeploymentInfo;
 		/** Show the configuration name in the header (hidden when already in a config context). */
 		showConfigLink?: boolean;
+		/** Drop the card chrome and identity header when already inside a titled card. */
+		embedded?: boolean;
 	}
 
-	let { globalState, config, deploymentInfo, showConfigLink = true }: Props = $props();
+	let {
+		globalState,
+		config,
+		deploymentInfo,
+		showConfigLink = true,
+		embedded = false
+	}: Props = $props();
 
 	let rfb: any;
 	let connected = $state(false);
@@ -130,28 +138,30 @@
 </script>
 
 {#if hasVNC}
-	<div class="vnc-card">
-		<div class="vnc-head">
-			<div class="vnc-identity">
-				{#if showConfigLink}
+	<div class="vnc-card" class:embedded>
+		<div class="vnc-head" class:embedded>
+			{#if !embedded}
+				<div class="vnc-identity">
+					{#if showConfigLink}
+						<IdentifierLink
+							{globalState}
+							{deploymentInfo}
+							identifier={deploymentInfo.deployed_config_id}
+							context="config"
+							iconSize="0.95rem"
+							class="vnc-config-link"
+						/>
+					{/if}
 					<IdentifierLink
 						{globalState}
 						{deploymentInfo}
-						identifier={deploymentInfo.deployed_config_id}
-						context="config"
-						iconSize="0.95rem"
-						class="vnc-config-link"
+						identifier={deploymentInfo.id}
+						context="device"
+						iconSize="0.8rem"
+						class="vnc-device-link"
 					/>
-				{/if}
-				<IdentifierLink
-					{globalState}
-					{deploymentInfo}
-					identifier={deploymentInfo.id}
-					context="device"
-					iconSize="0.8rem"
-					class="vnc-device-link"
-				/>
-			</div>
+				</div>
+			{/if}
 			<span class="ds-status-pill {connectionFailed ? 'danger' : connected ? 'online' : 'offline'}">
 				<span class="ds-dot"></span>
 				{connectionFailed
@@ -227,6 +237,14 @@
 		box-shadow: var(--ds-shadow-md);
 		overflow: hidden;
 	}
+	/* inside an already-titled card (e.g. device details): no second frame */
+	.vnc-card.embedded {
+		background: transparent;
+		border: none;
+		border-radius: 0;
+		box-shadow: none;
+		overflow: visible;
+	}
 
 	/* ---- header ---- */
 	.vnc-head {
@@ -235,6 +253,16 @@
 		justify-content: space-between;
 		gap: 12px;
 		padding: 10px 12px;
+	}
+	/* embedded: only the status pill remains, right-aligned, no extra top padding */
+	.vnc-head.embedded {
+		justify-content: flex-end;
+		padding: 0 0 10px;
+	}
+	.vnc-card.embedded .vnc-screen {
+		border-top: none;
+		border-radius: var(--ds-radius);
+		border: 1px solid var(--ds-border);
 	}
 	.vnc-identity {
 		display: flex;

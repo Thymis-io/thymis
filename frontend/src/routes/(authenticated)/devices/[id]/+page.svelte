@@ -2,6 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import { Input, Modal } from 'flowbite-svelte';
 	import Pen from 'lucide-svelte/icons/pen';
+	import Copy from 'lucide-svelte/icons/copy';
 	import type { PageData } from './$types';
 	import { updateDeploymentInfo, isOnline as checkOnline } from '$lib/deploymentInfo';
 	import SectionDeviceInfo from './SectionDeviceInfo.svelte';
@@ -43,6 +44,7 @@
 
 	let nameModalOpen = $state(false);
 	let nameInput = $state('');
+	let terminalRef = $state<Terminal>();
 
 	let isOnline = $derived(checkOnline(deploymentInfo.last_seen));
 
@@ -131,13 +133,22 @@
 		{#if config && targetShouldShowVNC(config, data.globalState)}
 			<div class="lg:col-span-2">
 				<Section title={$t('nav.device-vnc')} class="h-full">
-					<VncView globalState={data.globalState} {config} {deploymentInfo} />
+					<VncView globalState={data.globalState} {config} {deploymentInfo} embedded />
 				</Section>
 			</div>
 		{/if}
 		<div class="lg:col-span-2">
 			<Section title={$t('nav.terminal')} class="h-full">
-				<Terminal {deploymentInfo} />
+				{#snippet header()}
+					<button
+						class="ds-btn ds-btn-sm ds-btn-primary flex items-center gap-2"
+						onclick={() => terminalRef?.copySSHCommand()}
+					>
+						<Copy size={15} />
+						<span class="whitespace-nowrap">Copy SSH Command</span>
+					</button>
+				{/snippet}
+				<Terminal bind:this={terminalRef} {deploymentInfo} />
 			</Section>
 		</div>
 	{/if}

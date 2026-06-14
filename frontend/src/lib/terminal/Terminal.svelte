@@ -10,7 +10,6 @@
 	import type { WebglAddon as WebglAddonType } from '@xterm/addon-webgl';
 	import { browser } from '$app/environment';
 	import type { DeploymentInfo } from '$lib/deploymentInfo';
-	import Copy from 'lucide-svelte/icons/copy';
 	import { toast } from '@zerodevx/svelte-toast';
 
 	let Terminal: typeof TerminalType;
@@ -114,6 +113,20 @@
 		return response.json();
 	};
 
+	// Exposed so the surrounding card header can trigger it (see device details page).
+	export const copySSHCommand = async () => {
+		const token = await getToken();
+		const command =
+			`ssh -o 'ProxyCommand nix shell github:thymis-io/http-network-relay --command access-client ` +
+			`--relay-url ${window.location.protocol == 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/agent/relay_for_clients ` +
+			`--secret ${token.token} ${token.deployment_info_id} localhost %p tcp' root@${token.deployment_info_id}.thymis.cloud.internal`;
+		await navigator.clipboard.writeText(command);
+		toast.push('SSH command copied to clipboard', {
+			duration: 2000,
+			initial: 1
+		});
+	};
+
 	run(() => {
 		if (browser && deploymentInfo.id && terminal) {
 			reInitTerminal();
@@ -121,34 +134,10 @@
 	});
 </script>
 
-<div>
-	<div class="flex mb-2">
-		<button
-			class="ds-btn ds-btn-primary ml-auto flex items-center gap-2"
-			onclick={async () => {
-				// copy "test"
-				const token = await getToken();
-				console.log('Token:', token);
-				const command =
-					`ssh -o 'ProxyCommand nix shell github:thymis-io/http-network-relay --command access-client ` +
-					`--relay-url ${window.location.protocol == 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/agent/relay_for_clients ` +
-					`--secret ${token.token} ${token.deployment_info_id} localhost %p tcp' root@${token.deployment_info_id}.thymis.cloud.internal`;
-				await navigator.clipboard.writeText(command);
-				toast.push('SSH command copied to clipboard', {
-					duration: 2000,
-					initial: 1
-				});
-			}}
-		>
-			<span>Copy SSH Command</span>
-			<Copy size={16} />
-		</button>
-	</div>
-	<!-- xterm + FitAddon need a definite, content-independent height here; without
-	     it the fit loop (container height <-> terminal rows) grows unboundedly and
-	     pushes the terminal off-screen. xterm scrolls internally. -->
-	<div class="terminal-mount" bind:this={divElement}></div>
-</div>
+<!-- xterm + FitAddon need a definite, content-independent height here; without
+     it the fit loop (container height <-> terminal rows) grows unboundedly and
+     pushes the terminal off-screen. xterm scrolls internally. -->
+<div class="terminal-mount" bind:this={divElement}></div>
 
 <style lang="postcss">
 	.terminal-mount {
