@@ -2,7 +2,6 @@
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
 	import SectionConfiguration from './SectionConfiguration.svelte';
-	import SectionActions from './SectionActions.svelte';
 	import SectionDanger from './SectionDanger.svelte';
 	import SectionDeploymentInfo from './SectionDeploymentInfo.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
@@ -24,13 +23,11 @@
 {#if data.nav.selectedConfig}
 	<div class="grid grid-cols-4 grid-flow-row gap-4">
 		<SectionDeploymentInfo
-			class="col-span-3"
+			class="col-span-4"
 			deploymentInfos={data.deploymentInfos}
 			globalState={data.globalState}
 			headCommit={data.headCommit}
-			repoStatus={data.repoStatus}
 		/>
-		<SectionActions class="col-span-1" config={data.nav.selectedConfig} />
 		<SectionConfiguration
 			globalState={data.globalState}
 			class="col-span-3"
