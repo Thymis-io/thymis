@@ -13,7 +13,7 @@ import {
 	type Secret
 } from '$lib/state';
 import { error } from '@sveltejs/kit';
-import { getAllTasks } from '$lib/taskstatus';
+import { getTasksSince } from '$lib/taskstatus';
 import { fetchWithNotify } from '$lib/fetchWithNotify';
 import { type RepoStatus } from '$lib/repo/repo';
 import { GlobalState } from '$lib/state.svelte';
@@ -142,13 +142,11 @@ export const load = (async ({ fetch, url, data }) => {
 
 	const deploymentInfos = await getAllDeploymentInfos(fetch);
 
-	const taskPage = parseInt(url.searchParams.get('task-page') || '1');
-	const tasksPerPage = 20;
-	const { tasks: allTasks, totalCount: totalTaskCount } = await getAllTasks(
-		tasksPerPage,
-		(taskPage - 1) * tasksPerPage,
-		fetch
-	);
+	// The taskbar loads the tasks of the last 24h: its status counts are computed
+	// over this window, while the task list itself only renders the latest few.
+	// Full browsing/pagination lives on the dedicated /tasks page.
+	const taskbarWindowMs = 24 * 60 * 60 * 1000;
+	const allTasks = await getTasksSince(new Date(Date.now() - taskbarWindowMs), fetch);
 	const minimizeTaskbar = data?.minimizeTaskbar === 'true';
 	const vncDisplaysPerColumn = parseInt(data?.vncDisplaysPerColumn || '3');
 	const inPlaywright = data?.inPlaywright || false;
@@ -204,8 +202,6 @@ export const load = (async ({ fetch, url, data }) => {
 		availableModules: availableModules,
 		repoStatus: repoStatus,
 		allTasks: allTasks,
-		totalTaskCount: totalTaskCount,
-		tasksPerPage: tasksPerPage,
 		minimizeTaskbar: minimizeTaskbar,
 		vncDisplaysPerColumn: vncDisplaysPerColumn,
 		user: user,

@@ -6,6 +6,7 @@
 	import ChartBar from 'lucide-svelte/icons/chart-bar';
 	import Server from 'lucide-svelte/icons/server';
 	import GitBranch from 'lucide-svelte/icons/git-graph';
+	import ListChecks from 'lucide-svelte/icons/list-checks';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
@@ -124,6 +125,7 @@
 					hidden: !anyTargetHasVNC,
 					badge: vncDeviceCount
 				},
+				{ name: $t('nav.tasks'), icon: ListChecks, href: '/tasks' },
 				{ name: $t('nav.history'), icon: GitBranch, href: '/history' }
 			]
 		},

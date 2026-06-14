@@ -20,8 +20,13 @@
 
 	let { globalState, deploymentInfos, taskbarMinimized = $bindable() }: Props = $props();
 
+	// The taskbar only ever shows the most recent tasks; the live store can grow
+	// past that via websocket updates, so cap the rendered list here.
+	const taskbarTaskLimit = 20;
 	let taskList = $derived(
-		Object.values($taskStatus).sort((a, b) => (a.start_time < b.start_time ? 1 : -1))
+		Object.values($taskStatus)
+			.sort((a, b) => (a.start_time < b.start_time ? 1 : -1))
+			.slice(0, taskbarTaskLimit)
 	);
 
 	let headers = $derived([
