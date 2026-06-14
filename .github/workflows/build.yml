@@ -175,6 +175,7 @@ jobs:
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           exclude_result: "true"
+          timeout_minutes: "360"
           script: |
             nix build .#thymis-controller-pi-3-sd-image --print-build-logs --fallback
       - uses: ./.github/actions/assemble-image-and-assert-existence
@@ -196,6 +197,7 @@ jobs:
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           exclude_result: "true"
+          timeout_minutes: "360"
           script: |
             nix build .#thymis-controller-pi-4-sd-image --print-build-logs --fallback
       - uses: ./.github/actions/assemble-image-and-assert-existence
@@ -217,6 +219,7 @@ jobs:
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           exclude_result: "true"
+          timeout_minutes: "360"
           script: |
             nix build .#thymis-controller-pi-5-sd-image --print-build-logs --fallback
       - uses: ./.github/actions/assemble-image-and-assert-existence
@@ -240,6 +243,7 @@ jobs:
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           exclude_result: "true"
+          timeout_minutes: "360"
           script: |
             nix build .#thymis-controller-generic-x86_64-image --print-build-logs --fallback
       - uses: ./.github/actions/assemble-image-and-assert-existence
