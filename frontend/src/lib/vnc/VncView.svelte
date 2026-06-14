@@ -41,9 +41,14 @@
 		}
 	});
 
-	// keep novnc view-only state in sync with the control toggle
+	// keep novnc view-only state in sync with the control toggle.
+	// read `control` unconditionally so Svelte always tracks it as a dependency:
+	// on the first run `rfb` is still undefined (initVNC is async), so a bare
+	// `if (rfb) rfb.viewOnly = !control` short-circuits before `control` is read,
+	// the effect registers no dependencies, and it never re-runs when toggled.
 	$effect(() => {
-		if (rfb) rfb.viewOnly = !control;
+		const viewOnly = !control;
+		if (rfb) rfb.viewOnly = viewOnly;
 	});
 
 	let div: HTMLDivElement | undefined = $state();
@@ -177,7 +182,7 @@
 				</div>
 			{/if}
 
-			<div class="vnc-actions" class:pinned={control && connected}>
+			<div class="vnc-actions">
 				<button
 					type="button"
 					class="vnc-action"
@@ -324,13 +329,16 @@
 		display: flex;
 		gap: 6px;
 		opacity: 0;
+		/* while hidden, let clicks pass through to the remote screen instead of
+		   being swallowed by the (invisible) buttons in the corner */
+		pointer-events: none;
 		transition: opacity 0.15s;
 	}
-	/* reveal on hover/keyboard focus; stay visible while controlling */
+	/* reveal (and enable) on hover/keyboard focus */
 	.vnc-screen:hover .vnc-actions,
-	.vnc-actions:focus-within,
-	.vnc-actions.pinned {
+	.vnc-actions:focus-within {
 		opacity: 1;
+		pointer-events: auto;
 	}
 	.vnc-action {
 		display: grid;
