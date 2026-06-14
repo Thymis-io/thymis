@@ -145,5 +145,16 @@
 			<Copy class="ml-3" />
 		</Button>
 	</div>
-	<div class="w-full h-full" bind:this={divElement}></div>
+	<!-- xterm + FitAddon need a definite, content-independent height here; without
+	     it the fit loop (container height <-> terminal rows) grows unboundedly and
+	     pushes the terminal off-screen. xterm scrolls internally. -->
+	<div class="terminal-mount" bind:this={divElement}></div>
 </div>
+
+<style lang="postcss">
+	.terminal-mount {
+		width: 100%;
+		height: clamp(260px, 50vh, 640px);
+		overflow: hidden;
+	}
+</style>
