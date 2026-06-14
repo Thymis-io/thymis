@@ -124,9 +124,13 @@
 		</Section>
 	</div>
 
-	<!-- Right sidebar: device info + actions -->
+	<!-- Right sidebar: device info -->
 	<div class="flex flex-col gap-6 h-full">
 		<SectionDeviceInfo bind:deploymentInfo globalState={data.globalState} />
+	</div>
+
+	<!-- Actions: full-width bar under the metrics/info row -->
+	<div class="col-span-2 xl:col-span-4">
 		<SectionDeviceActions
 			{deploymentInfo}
 			{config}

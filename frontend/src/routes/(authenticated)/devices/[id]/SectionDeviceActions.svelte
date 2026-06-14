@@ -81,41 +81,41 @@
 />
 
 <Section class={className} title={$t('configuration-details.actions')}>
-	<div class="flex flex-col gap-4">
-		<button class="ds-btn justify-start self-start" onclick={restartDevice}>
+	<div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+		<button class="ds-btn shrink-0" onclick={restartDevice}>
 			<RotateCcw size={'1rem'} class="min-w-4" />
 			{$t('configurations.actions.restart')}
 		</button>
 
 		{#if online && switchableConfigs.length > 0}
-			<div class="flex flex-col gap-2">
+			<div class="flex flex-wrap items-center gap-2">
 				<Select
-					class="text-sm"
+					class="min-w-[16rem] text-sm"
 					items={switchableConfigs.map((c) => ({ name: c.displayName, value: c.identifier }))}
 					bind:value={switchSelection}
 					placeholder={$t('configuration-details.switch-config-select')}
 				/>
 				<button
-					class="ds-btn ds-btn-sm self-start disabled:cursor-not-allowed disabled:opacity-50"
+					class="ds-btn ds-btn-sm shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
 					disabled={!switchSelection}
 					onclick={() => switchConfig(switchSelection)}
 				>
 					<ArrowRightLeft size="16" />
 					{$t('configuration-details.switch-config')}
 				</button>
-				{#if deploymentInfo.pending_config_id}
-					{@const [before, after] = $t('configuration-details.switching-to').split('{config}')}
-					<div class="text-sm text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
-						{before}
-						<IdentifierLink
-							{globalState}
-							identifier={deploymentInfo.pending_config_id}
-							context="config"
-						/>
-						{after}
-					</div>
-				{/if}
 			</div>
+			{#if deploymentInfo.pending_config_id}
+				{@const [before, after] = $t('configuration-details.switching-to').split('{config}')}
+				<div class="text-sm text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
+					{before}
+					<IdentifierLink
+						{globalState}
+						identifier={deploymentInfo.pending_config_id}
+						context="config"
+					/>
+					{after}
+				</div>
+			{/if}
 		{/if}
 	</div>
 </Section>
