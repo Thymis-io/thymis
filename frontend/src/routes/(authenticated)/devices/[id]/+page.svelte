@@ -127,13 +127,6 @@
 		<SectionDeviceInfo bind:deploymentInfo globalState={data.globalState} />
 	</div>
 
-	<div class="lg:col-span-2">
-		<SectionOnlineStatus connectionHistory={data.connectionHistory} />
-	</div>
-	<div class="lg:col-span-2">
-		<SectionErrorLogs errorLogs={data.errorLogs} />
-	</div>
-
 	{#if data.connected}
 		{#if config && targetShouldShowVNC(config, data.globalState)}
 			<div class="lg:col-span-2">
@@ -148,4 +141,11 @@
 			</Section>
 		</div>
 	{/if}
+
+	<div class="lg:col-span-2">
+		<SectionOnlineStatus connectionHistory={data.connectionHistory} />
+	</div>
+	<div class="lg:col-span-2">
+		<SectionErrorLogs errorLogs={data.errorLogs} />
+	</div>
 </div>
