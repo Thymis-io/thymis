@@ -9,6 +9,9 @@
 	import SectionMetrics from './SectionMetrics.svelte';
 	import SectionErrorLogs from './SectionErrorLogs.svelte';
 	import Section from '$lib/components/layout/Section.svelte';
+	import VncView from '$lib/vnc/VncView.svelte';
+	import Terminal from '$lib/terminal/Terminal.svelte';
+	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import { page } from '$app/state';
 	import { goto, invalidate } from '$app/navigation';
 	import { queryParameters } from 'sveltekit-search-params';
@@ -22,6 +25,11 @@
 	let { data }: Props = $props();
 
 	let deploymentInfo = $derived(data.deploymentInfo);
+
+	// the configuration this device last deployed, used for the VNC password / gating
+	let config = $derived(
+		data.globalState.configs.find((c) => c.identifier === deploymentInfo.deployed_config_id)
+	);
 
 	type TimeWindow = '1h' | '24h' | '7d';
 
@@ -125,4 +133,19 @@
 	<div class="lg:col-span-2">
 		<SectionErrorLogs errorLogs={data.errorLogs} />
 	</div>
+
+	{#if data.connected}
+		{#if config && targetShouldShowVNC(config, data.globalState)}
+			<div class="lg:col-span-2">
+				<Section title={$t('nav.device-vnc')} class="h-full">
+					<VncView globalState={data.globalState} {config} {deploymentInfo} />
+				</Section>
+			</div>
+		{/if}
+		<div class="lg:col-span-2">
+			<Section title={$t('nav.terminal')} class="h-full">
+				<Terminal {deploymentInfo} />
+			</Section>
+		</div>
+	{/if}
 </div>
