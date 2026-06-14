@@ -129,7 +129,7 @@
 						{#if !taskbarMinimized}
 							<div
 								id="taskbar"
-								class="flex-1 overflow-y-auto border-t bg-[var(--ds-surface)] border-[var(--ds-border)]"
+								class="flex-1 overflow-y-auto overflow-x-hidden border-t bg-[var(--ds-surface)] border-[var(--ds-border)]"
 							>
 								<Taskbar
 									globalState={data.globalState}

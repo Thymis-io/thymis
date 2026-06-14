@@ -35,7 +35,10 @@
 	const tdClass = 'px-3 py-1.5';
 </script>
 
-<div class="ds-taskbar-table overflow-y-auto">
+<!-- no overflow here: the #taskbar wrapper is the single vertical scroller, so the
+     sticky header sticks correctly and we avoid a second (and a phantom horizontal)
+     scrollbar. -->
+<div class="ds-taskbar-table">
 	<table class="w-full border-collapse" use:ResizableColumns>
 		<thead>
 			<tr class="sticky top-0">
