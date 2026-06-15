@@ -5,7 +5,7 @@
 	import type { PageData } from './$types';
 	import { updateDeploymentInfo, isOnline as checkOnline } from '$lib/deploymentInfo';
 	import SectionDeviceInfo from './SectionDeviceInfo.svelte';
-	import SectionDeviceActions from './SectionDeviceActions.svelte';
+	import SectionSwitchConfig from './SectionSwitchConfig.svelte';
 	import SectionOnlineStatus from './SectionOnlineStatus.svelte';
 	import SectionMetrics from './SectionMetrics.svelte';
 	import SectionErrorLogs from './SectionErrorLogs.svelte';
@@ -15,10 +15,12 @@
 	import CopySSHCommandButton from '$lib/terminal/CopySSHCommandButton.svelte';
 	import LogsView from '$lib/components/LogsView.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
+	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import ListCollapse from 'lucide-svelte/icons/list-collapse';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import TerminalIcon from 'lucide-svelte/icons/terminal';
 	import FileText from 'lucide-svelte/icons/file-text';
+	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
 	import { page } from '$app/state';
 	import { goto, invalidate } from '$app/navigation';
 	import { queryParameters } from 'sveltekit-search-params';
@@ -83,6 +85,13 @@
 		}
 	}
 
+	const restartDevice = async () => {
+		if (!config) return;
+		await fetchWithNotify(`/api/action/restart-device?identifier=${config.identifier}`, {
+			method: 'POST'
+		});
+	};
+
 	const hoursMap: Record<TimeWindow, number> = { '1h': 1, '24h': 24, '7d': 7 * 24 };
 	const granularityMap: Record<TimeWindow, '1min' | '15min' | '1h'> = {
 		'1h': '1min',
@@ -116,6 +125,15 @@
 		<span class="ds-dot"></span>
 		{isOnline ? $t('device-details.online') : $t('device-details.offline')}
 	</span>
+
+	{#snippet actions()}
+		{#if config}
+			<button class="ds-btn" onclick={restartDevice}>
+				<RotateCcw size={'1rem'} class="min-w-4" />
+				<span class="whitespace-nowrap">{$t('configurations.actions.restart')}</span>
+			</button>
+		{/if}
+	{/snippet}
 </PageHead>
 
 <Modal bind:open={nameModalOpen} title={$t('device-details.edit')}>
@@ -146,10 +164,10 @@
 </div>
 
 {#if activeTab === 'details'}
-	<div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
-		<!-- System metrics: 3/4 width -->
-		<div class="lg:col-span-3">
-			<Section title={$t('device-details.system-metrics')} class="h-full">
+	<div class="grid grid-cols-1 gap-4 xl:grid-cols-4">
+		<!-- Left column: system metrics with the switch-config panel underneath -->
+		<div class="flex flex-col gap-4 xl:col-span-3">
+			<Section title={$t('device-details.system-metrics')}>
 				<div class="mb-4 flex gap-2">
 					{#each ['1h', '24h', '7d'] as w (w)}
 						<button
@@ -162,16 +180,8 @@
 				</div>
 				<SectionMetrics metrics={data.metrics} timewindow={metricsTimeWindow} />
 			</Section>
-		</div>
 
-		<!-- Right sidebar: device info -->
-		<div class="flex flex-col gap-6 h-full">
-			<SectionDeviceInfo bind:deploymentInfo globalState={data.globalState} />
-		</div>
-
-		<!-- Actions: full-width bar under the metrics/info row -->
-		<div class="col-span-2 xl:col-span-4">
-			<SectionDeviceActions
+			<SectionSwitchConfig
 				{deploymentInfo}
 				{config}
 				globalState={data.globalState}
@@ -179,10 +189,15 @@
 			/>
 		</div>
 
-		<div class="lg:col-span-2">
+		<!-- Right column: device info, next to the metrics + switch panel -->
+		<div class="xl:col-span-1">
+			<SectionDeviceInfo bind:deploymentInfo globalState={data.globalState} />
+		</div>
+
+		<div class="xl:col-span-2">
 			<SectionOnlineStatus connectionHistory={data.connectionHistory} />
 		</div>
-		<div class="lg:col-span-2">
+		<div class="xl:col-span-2">
 			<SectionErrorLogs errorLogs={data.errorLogs} />
 		</div>
 	</div>

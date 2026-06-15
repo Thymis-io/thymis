@@ -5,7 +5,6 @@
 	import type { GlobalState } from '$lib/state.svelte';
 	import { type DeploymentInfo, isOnline } from '$lib/deploymentInfo';
 	import type { RepoStatus } from '$lib/repo/repo';
-	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
 	import ArrowRightLeft from 'lucide-svelte/icons/arrow-right-left';
 	import { Select } from 'flowbite-svelte';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
@@ -25,13 +24,6 @@
 	let { deploymentInfo, config, globalState, repoStatus, class: className = '' }: Props = $props();
 
 	let online = $derived(isOnline(deploymentInfo.last_seen));
-
-	const restartDevice = async () => {
-		if (!config) return;
-		await fetchWithNotify(`/api/action/restart-device?identifier=${config.identifier}`, {
-			method: 'POST'
-		});
-	};
 
 	// Configs of the same device type the device can be switched to.
 	let switchableConfigs = $derived.by(() => {
@@ -80,42 +72,35 @@
 	}}
 />
 
-<Section class={className} title={$t('configuration-details.actions')}>
-	<div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-		<button class="ds-btn shrink-0" onclick={restartDevice}>
-			<RotateCcw size={'1rem'} class="min-w-4" />
-			{$t('configurations.actions.restart')}
-		</button>
-
-		{#if online && switchableConfigs.length > 0}
-			<div class="flex flex-wrap items-center gap-2">
-				<Select
-					class="min-w-[16rem] text-sm"
-					items={switchableConfigs.map((c) => ({ name: c.displayName, value: c.identifier }))}
-					bind:value={switchSelection}
-					placeholder={$t('configuration-details.switch-config-select')}
+{#if online && switchableConfigs.length > 0}
+	<Section class={className} title={$t('configuration-details.switch-config')}>
+		<div class="flex flex-wrap items-center gap-2">
+			<Select
+				class="min-w-[16rem] text-sm"
+				items={switchableConfigs.map((c) => ({ name: c.displayName, value: c.identifier }))}
+				bind:value={switchSelection}
+				placeholder={$t('configuration-details.switch-config-select')}
+			/>
+			<button
+				class="ds-btn ds-btn-sm shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
+				disabled={!switchSelection}
+				onclick={() => switchConfig(switchSelection)}
+			>
+				<ArrowRightLeft size="16" />
+				{$t('configuration-details.switch-config')}
+			</button>
+		</div>
+		{#if deploymentInfo.pending_config_id}
+			{@const [before, after] = $t('configuration-details.switching-to').split('{config}')}
+			<div class="mt-3 flex items-center gap-1 text-sm text-yellow-600 dark:text-yellow-400">
+				{before}
+				<IdentifierLink
+					{globalState}
+					identifier={deploymentInfo.pending_config_id}
+					context="config"
 				/>
-				<button
-					class="ds-btn ds-btn-sm shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
-					disabled={!switchSelection}
-					onclick={() => switchConfig(switchSelection)}
-				>
-					<ArrowRightLeft size="16" />
-					{$t('configuration-details.switch-config')}
-				</button>
+				{after}
 			</div>
-			{#if deploymentInfo.pending_config_id}
-				{@const [before, after] = $t('configuration-details.switching-to').split('{config}')}
-				<div class="text-sm text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
-					{before}
-					<IdentifierLink
-						{globalState}
-						identifier={deploymentInfo.pending_config_id}
-						context="config"
-					/>
-					{after}
-				</div>
-			{/if}
 		{/if}
-	</div>
-</Section>
+	</Section>
+{/if}

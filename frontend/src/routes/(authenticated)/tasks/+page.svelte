@@ -39,6 +39,13 @@
 		params.set('page', newPage.toString());
 		goto(`?${params.toString()}`, { noScroll: true, keepFocus: true });
 	};
+
+	// Make the task name navigate to its details page. The name can contain its
+	// own device/config links, so ignore clicks that land on an inner anchor.
+	const openTask = (event: MouseEvent, id: string) => {
+		if ((event.target as HTMLElement).closest('a')) return;
+		goto(`/tasks/${id}`);
+	};
 </script>
 
 <Page title={$t('taskbar.page-title')} subtitle={$t('taskbar.page-subtitle')}>
@@ -55,7 +62,21 @@
 	>
 		{#snippet row(task)}
 			<td>
-				<TaskbarName globalState={data.globalState} deploymentInfos={data.deploymentInfos} {task} />
+				<div
+					class="task-name w-fit"
+					role="link"
+					tabindex="0"
+					onclick={(e) => openTask(e, task.id)}
+					onkeydown={(e) => {
+						if (e.key === 'Enter') goto(`/tasks/${task.id}`);
+					}}
+				>
+					<TaskbarName
+						globalState={data.globalState}
+						deploymentInfos={data.deploymentInfos}
+						{task}
+					/>
+				</div>
 			</td>
 			<td>
 				<TaskbarStatus {task} showProgress={false} />
@@ -86,3 +107,12 @@
 		</div>
 	{/if}
 </Page>
+
+<style lang="postcss">
+	.task-name {
+		cursor: pointer;
+	}
+	.task-name:hover {
+		text-decoration: underline;
+	}
+</style>
