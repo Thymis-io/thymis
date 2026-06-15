@@ -73,13 +73,13 @@ test('shows configuration', async ({ page, request }, testInfo) => {
 	console.log(`Is save button disabled? ${await saveButton.isDisabled()}`);
 	await saveButton.click();
 
-	const viewDetailsButton = page.getByRole('button', { name: 'View Details' }).first();
+	const viewDetailsButton = page.getByRole('link', { name: 'View Details' }).first();
 	await viewDetailsButton.waitFor();
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
 	// go to device details page, delete device
-	await page.getByRole('button', { name: 'View Details' }).first().click();
+	await page.getByRole('link', { name: 'View Details' }).first().click();
 
 	await page.waitForURL('/configuration/configuration-details*');
 
@@ -150,7 +150,7 @@ test('create whoami tag', async ({ page, request }, testInfo) => {
 	await saveButton.click();
 
 	// Configure the tag
-	const configureTagButton = page.getByRole('button', { name: 'Configure Tag' }).first();
+	const configureTagButton = page.getByRole('link', { name: 'Configure Tag' }).first();
 	await expectScreenshotWithHighlight(page, configureTagButton, testInfo, screenshotCounter);
 	await configureTagButton.click({ force: true });
 
@@ -349,11 +349,11 @@ test('Download Raspberry Pi 4 image', async ({ page, request }, testInfo) => {
 
 	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
 
-	// find row with 'My Device 1' and click on button 'View Details'
+	// find row with 'My Device 1' and click on link 'View Details'
 	await page
 		.locator('tr')
 		.filter({ hasText: 'My Device 1' })
-		.getByRole('button', { name: 'View Details' })
+		.getByRole('link', { name: 'View Details' })
 		.first()
 		.click({ force: true });
 
@@ -389,7 +389,7 @@ test('VNC View', async ({ page, request }, testInfo) => {
 	await page.locator('nav:visible').locator('a', { hasText: 'Config-Tags' }).click();
 
 	// add Kiosk module with VNC server to tag
-	const configureTagButton = page.getByRole('button', { name: 'Configure Tag' }).first();
+	const configureTagButton = page.getByRole('link', { name: 'Configure Tag' }).first();
 	await configureTagButton.click({ force: true });
 
 	const addModuleButton = page.locator('#add-module').first();
@@ -467,7 +467,7 @@ test('Configure Wifi Network', async ({ page, request }, testInfo) => {
 
 	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
 
-	await page.getByRole('button', { name: 'View Details' }).click({ force: true });
+	await page.getByRole('link', { name: 'View Details' }).click({ force: true });
 
 	await page.waitForURL('/configuration/configuration-details*');
 
@@ -575,11 +575,7 @@ test('Create Secrets', async ({ page, request }, testInfo) => {
 	await page.getByPlaceholder('VALUE').nth(1).fill('Value');
 	await page.locator('button').filter({ hasText: 'Add variable' }).click();
 	await page.getByPlaceholder('KEY').nth(2).fill('KEY_TO_REMOVE');
-	await page
-		.locator('button')
-		.filter({ has: page.locator('text="X"') })
-		.nth(2)
-		.click();
+	await page.getByRole('button', { name: 'Remove variable' }).nth(2).click();
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
