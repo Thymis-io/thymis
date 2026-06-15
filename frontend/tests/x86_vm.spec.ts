@@ -189,7 +189,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 
 	// add the second VM to the deployment
 	await page.locator('input').nth(2).locator('..').click();
-	await page.locator('li').filter({ hasText: 'VM Test x64 2' }).click();
+	await page.getByRole('option', { name: 'VM Test x64 2', exact: true }).click();
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: 1500

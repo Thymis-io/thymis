@@ -74,6 +74,7 @@
 	repoStatus={data.repoStatus}
 	globalState={data.globalState}
 	nav={data.nav}
+	selectedDeploymentInfo={deploymentInfo}
 >
 	<button
 		onclick={openNameModal}

@@ -48,6 +48,7 @@ async def deploy(
     user_session_id: UserSessionIDAD,
     db_session: DBSessionAD,
     configs: list[str] = Query(None, alias="config"),
+    deployment_info_ids: list[str] = Query(None, alias="deployment_info_id"),
 ):
     if project.repo.is_dirty():
         raise HTTPException(
@@ -58,12 +59,12 @@ async def deploy(
     devices: list[models.DeployDeviceInformation] = []
 
     for deployment_info in crud.deployment_info.get_all(session):
-        if (
-            deployment_info.deployed_config_id in configs
-            and network_relay.public_key_to_connection_id.get(
-                deployment_info.ssh_public_key
-            )
-        ):
+        matches_config = deployment_info.deployed_config_id in (configs or [])
+        matches_device = str(deployment_info.id) in (deployment_info_ids or [])
+        is_connected = network_relay.public_key_to_connection_id.get(
+            deployment_info.ssh_public_key
+        )
+        if (matches_config or matches_device) and is_connected:
             state = project.read_state()
             config = next(
                 config

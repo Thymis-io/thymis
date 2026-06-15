@@ -7,6 +7,7 @@ import {
 	type State,
 	type Tag
 } from './state';
+import type { DeploymentInfo } from './deploymentInfo';
 
 export class GlobalState {
 	version = $state<string>()!;
@@ -14,6 +15,7 @@ export class GlobalState {
 	configs = $state<Config[]>()!;
 	tags = $state<Tag[]>()!;
 	availableModules = $state<Module[]>()!;
+	deploymentInfos = $state<DeploymentInfo[]>([]);
 
 	selectedTargetType = $state<ContextType | null>(null);
 	selectedTargetIdentifier = $state<string | null>(null);
@@ -49,12 +51,18 @@ export class GlobalState {
 		this.selectedModuleContext?.modules?.find((s) => s.type === this.selectedModule?.type)
 	);
 
-	constructor(state: State, urlParams: URLSearchParams, availableModules: Module[]) {
+	constructor(
+		state: State,
+		urlParams: URLSearchParams,
+		availableModules: Module[],
+		deploymentInfos: DeploymentInfo[] = []
+	) {
 		this.version = state.version;
 		this.repositories = state.repositories;
 		this.configs = state.configs;
 		this.tags = state.tags;
 		this.availableModules = availableModules;
+		this.deploymentInfos = deploymentInfos;
 
 		this.selectedTargetType = urlParams.get('global-nav-target-type') as ContextType;
 		this.selectedTargetIdentifier = urlParams.get('global-nav-target');

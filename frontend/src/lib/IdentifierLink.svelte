@@ -18,6 +18,7 @@
 		showLinkHover?: boolean;
 		solidBackground?: boolean;
 		iconSize?: number | string;
+		showConfigNameForDevice?: boolean;
 		class?: string;
 	}
 
@@ -30,6 +31,7 @@
 		showLinkHover = true,
 		solidBackground = false,
 		iconSize = '1rem',
+		showConfigNameForDevice = false,
 		class: className
 	}: Props = $props();
 
@@ -52,6 +54,12 @@
 		}
 		if (context !== 'device' || !identifier || !deploymentInfos) return null;
 		return deploymentInfos.find((d) => d.id === identifier) ?? null;
+	});
+	let configName = $derived.by(() => {
+		if (deviceDeploymentInfo?.name) return null;
+		if (!showConfigNameForDevice) return null;
+		const config = globalState.config(deviceDeploymentInfo?.deployed_config_id ?? null);
+		return config?.displayName ?? null;
 	});
 </script>
 
@@ -102,9 +110,12 @@
 		>
 			<HardDrive size={iconSize} class="shrink-0" />
 			{#if deviceDeploymentInfo?.name}
-				{deviceDeploymentInfo?.name}
+				{deviceDeploymentInfo.name}
 			{:else}
 				{deviceDeploymentInfo?.id ?? identifier}
+				{#if configName}
+					({configName})
+				{/if}
 			{/if}
 		</a>
 	</div>

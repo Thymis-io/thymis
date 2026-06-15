@@ -207,15 +207,15 @@
 		"no-changes": "Keine Änderungen, Arbeitsverzeichnis ist sauber",
 		"add-all-configs": "Alle Konfigurationen hinzufügen",
 		"dirty-repo-tooltip": "Alle Änderungen müssen committed werden, bevor Konfigurationen ausgerollt werden können",
-		"no-affected-configs-tooltip": "Wählen Sie mindestens eine Konfiguration aus",
+		"no-targets-tooltip": "Bitte wählen Sie mindestens ein Ziel aus",
 		"build-status": "Status: {status}",
 		"stdout": "Standard Output",
 		"stderr": "Standard Error",
 		"error-lines": "Fehler",
 		"raw-output": "Vollständige Ausgabe",
 		"summary": "Zusammenfassung der Änderungen",
-		"selected": "Auszurollende Tags/Konfigurationen",
-		"configurations": "Betroffene Konfigurationen",
+		"selected": "Auszurollende Tags/Konfigurationen/Geräte",
+		"affected-devices": "Betroffene Geräte (diese müssen online sein)",
 		"commit": "Commit"
 	},
 	"overview": {

@@ -209,15 +209,15 @@
 		"no-changes": "No changes to commit, working on a clean state",
 		"add-all-configs": "Add all configs",
 		"dirty-repo-tooltip": "Please commit all changes before deploying",
-		"no-affected-configs-tooltip": "Please select at least one config to deploy",
+		"no-targets-tooltip": "Please select at least one target to deploy to",
 		"build-status": "Build Status: {status}",
 		"stdout": "Standard Output",
 		"stderr": "Standard Error",
 		"error-lines": "Error Lines",
 		"raw-output": "Full Output",
 		"summary": "Summary of the changes",
-		"selected": "Tags/configs to deploy",
-		"configurations": "Affected configs"
+		"selected": "Tags/configs/devices to deploy",
+		"affected-devices": "Affected devices (must be online)"
 	},
 	"overview": {
 		"configs": "Configs ({count})",
