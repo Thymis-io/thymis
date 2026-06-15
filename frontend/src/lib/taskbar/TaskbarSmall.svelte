@@ -32,7 +32,6 @@
 	const failedTasks = $derived(recentTasks.filter((task) => task.state === 'failed'));
 	const latestTask = $derived([...tasks].sort((a, b) => (a.start_time < b.start_time ? 1 : -1))[0]);
 
-	// The single task we narrate progress for: the first running one.
 	const primaryRunning = $derived(runningTasks[0]);
 
 	const progressScalingFunction = (done: number, expected: number) => {
@@ -46,7 +45,6 @@
 		return progressScalingFunction(ns.done, ns.expected);
 	});
 
-	// Inline summary shown on the primary line when idle ("3 failed, 4 done").
 	const idleSummary = $derived(
 		[
 			failedTasks.length > 0
@@ -64,7 +62,6 @@
 		].filter((p): p is { text: string; tone: string } => p !== null)
 	);
 
-	// Count chips shown on the secondary line while tasks are active.
 	const activeCounts = $derived(
 		[
 			runningTasks.length > 0
@@ -108,9 +105,7 @@
 <div
 	class="w-full h-full flex items-center px-4 gap-4 pr-8 md:pr-16 overflow-hidden border-t bg-[var(--ds-surface)] border-[var(--ds-border)] text-[var(--ds-text)]"
 >
-	<!-- Activity block: a two-line plain-language summary of what's happening now -->
 	<div class="flex flex-col justify-center min-w-0 flex-1 leading-tight">
-		<!-- Primary line: the current activity -->
 		<div class="flex items-center gap-2 min-w-0 text-sm">
 			{#if runningTasks.length > 0}
 				<RunningIcon size={16} class="shrink-0 animate-spin text-[var(--ds-accent)]" />
@@ -154,7 +149,6 @@
 			{/if}
 		</div>
 
-		<!-- Secondary line: count chips while active, otherwise the latest task -->
 		<div
 			class="flex items-center gap-2 text-xs text-[var(--ds-text-mute)] overflow-hidden whitespace-nowrap"
 		>
@@ -177,7 +171,6 @@
 		</div>
 	</div>
 
-	<!-- Right: de-emphasized version + link to the full task list -->
 	<div class="flex items-center gap-4 shrink-0">
 		<span
 			class="text-[11px] text-[var(--ds-text-mute)] hidden xl:block playwright-snapshot-unstable"
@@ -194,7 +187,6 @@
 </div>
 
 <style lang="postcss">
-	/* compact inline progress track for the running task */
 	.ds-mini-progress {
 		display: inline-block;
 		width: 5rem;
@@ -211,7 +203,6 @@
 		transition: width 0.3s ease;
 	}
 
-	/* colored count words on the secondary line */
 	.ds-count {
 		font-weight: 600;
 	}
