@@ -55,7 +55,6 @@
 		download: void;
 		fileChange: Event;
 		addEnvVariable: void;
-		removeEnvVariable: number;
 		error: string;
 	}>();
 
@@ -69,10 +68,6 @@
 
 	function addEnvVariable() {
 		dispatch('addEnvVariable');
-	}
-
-	function removeEnvVariable(index: number) {
-		dispatch('removeEnvVariable', index);
 	}
 
 	async function onSave() {
@@ -240,9 +235,14 @@
 				{/if}
 				{#each editedEnvVarList as [key, value], i}
 					<div class="flex gap-2 mb-2">
-						<Input placeholder="KEY" bind:value={editedEnvVarList[i][0]} />
-						<Input placeholder="VALUE" bind:value={editedEnvVarList[i][1]} />
-						<Button size="xs" color="red" on:click={() => removeEnvVariable(i)}>X</Button>
+						<Input
+							placeholder={$t('secrets.env-key-placeholder')}
+							bind:value={editedEnvVarList[i][0]}
+						/>
+						<Input
+							placeholder={$t('secrets.env-value-placeholder')}
+							bind:value={editedEnvVarList[i][1]}
+						/>
 					</div>
 				{/each}
 				<Button size="xs" on:click={addEnvVariable}>+ {$t('secrets.add-variable')}</Button>

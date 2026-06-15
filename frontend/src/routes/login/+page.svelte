@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../../app.css';
+	import { t } from 'svelte-i18n';
 	import Navbar from '$lib/navbar/Navbar.svelte';
 	import { page } from '$app/state';
 	import { ProgressBar } from '@prgm/sveltekit-progress-bar';
@@ -10,10 +11,10 @@
 </script>
 
 <svelte:head>
-	<title>Thymis - Sign in</title>
+	<title>{$t('login.page-title')}</title>
 </svelte:head>
 
-<ProgressBar class="text-primary-500" zIndex={100} />
+<ProgressBar color="var(--ds-accent)" zIndex={100} />
 
 <section style="background: var(--ds-bg); color: var(--ds-text);">
 	<header
@@ -29,29 +30,29 @@
 	<div class="flex flex-col items-center justify-center px-6 py-8 mx-auto h-screen lg:py-0">
 		<div class="ds-card w-full md:mt-0 sm:max-w-md">
 			<div class="ds-card-pad space-y-4 md:space-y-6 sm:p-8">
-				<h1 class="ds-page-title text-xl md:text-2xl">Sign in to your account</h1>
+				<h1 class="ds-page-title text-xl md:text-2xl">{$t('login.heading')}</h1>
 				{#if authError}
 					<div
 						class="p-3 text-sm rounded-lg"
 						style="color: var(--ds-danger); background: var(--ds-danger-dim);"
 					>
-						You have entered an invalid username or password.
+						{$t('login.error')}
 					</div>
 				{/if}
 				<form class="space-y-4 md:space-y-6" action="/auth/login/basic" method="POST">
 					<div>
-						<label for="username" class="ds-form-label">Your username</label>
+						<label for="username" class="ds-form-label">{$t('login.username-label')}</label>
 						<input
 							type="text"
 							name="username"
 							id="username"
 							class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-							placeholder="username"
+							placeholder={$t('login.username-placeholder')}
 							required
 						/>
 					</div>
 					<div>
-						<label for="password" class="ds-form-label">Password</label>
+						<label for="password" class="ds-form-label">{$t('login.password-label')}</label>
 						<input
 							type="password"
 							name="password"
@@ -62,7 +63,7 @@
 						/>
 					</div>
 					<button type="submit" class="ds-btn ds-btn-primary w-full justify-center">
-						Sign in
+						{$t('login.submit')}
 					</button>
 					{#if redirectString}
 						<input type="text" name="redirect" value={redirectStringDecoded} hidden />

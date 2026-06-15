@@ -309,7 +309,11 @@
 		<div class="flex mt-8 gap-2">
 			<div class="flex-5">
 				<Label class="mb-0">{$t('settings.external-modal.compiled-url')}</Label>
-				<Input class="flex-6 mb-2 w-full" bind:value={compiledUrl} placeholder="Repository URL" />
+				<Input
+					class="flex-6 mb-2 w-full"
+					bind:value={compiledUrl}
+					placeholder={$t('settings.external-modal.repo-url-placeholder')}
+				/>
 			</div>
 			<Button
 				class="flex-1 mt-4 mb-2"

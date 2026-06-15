@@ -653,6 +653,10 @@ input[type='checkbox'][class*='text-primary-600'],
 input[type='radio'][class*='text-primary-600'] {
 	color: var(--ds-accent) !important;
 }
+/* Flowbite Spinner -> ds accent (defaults to the cyan `primary` palette) */
+svg[class*='fill-primary-'] {
+	fill: var(--ds-accent) !important;
+}
 
 /* ---- Flowbite Modal -> ds design ----
    NOTE: these rules target Flowbite's generated utility classes
