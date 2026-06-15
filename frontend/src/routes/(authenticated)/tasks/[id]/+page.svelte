@@ -69,6 +69,14 @@
 		setTimeout(() => (copiedId = false), 2000);
 	};
 
+	let selectedProcess = $state(0);
+	// Clamp selection if the process list changes (e.g. while running).
+	let activeProcess = $derived(
+		task?.processes && task.processes.length > 0
+			? Math.min(selectedProcess, task.processes.length - 1)
+			: 0
+	);
+
 	$effect(() => {
 		subscribeTask(data.task_id);
 	});
@@ -78,6 +86,49 @@
 	<div>
 		<h4 class="log-label">{title}</h4>
 		<MonospaceText {code} />
+	</div>
+{/snippet}
+
+{#snippet processContent(process: TaskProcess)}
+	{@const command = buildCommand(process)}
+	<div class="flex flex-col gap-4">
+		<div>
+			<h4 class="log-label">{$t('task-details.command')}</h4>
+			{#if command}
+				<MonospaceText code={command} />
+			{:else}
+				<p class="muted-note">{$t('task-details.no-command')}</p>
+			{/if}
+		</div>
+
+		{#if process.nix_errors && process.nix_errors.length > 0}
+			{@render logBlock(
+				$t('task-details.nix-errors'),
+				process.nix_errors.map((error) => error.msg).join('\n')
+			)}
+		{/if}
+		{#if process.nix_error_logs && process.nix_error_logs.length > 0}
+			{@render logBlock($t('task-details.nix-errors'), process.nix_error_logs.join('\n'))}
+		{/if}
+		{#if process.nix_warning_logs && process.nix_warning_logs.length > 0}
+			{@render logBlock($t('task-details.nix-warnings'), process.nix_warning_logs.join('\n'))}
+		{/if}
+		{#if process.nix_notice_logs && process.nix_notice_logs.length > 0}
+			{@render logBlock($t('task-details.nix-notices'), process.nix_notice_logs.join('\n'))}
+		{/if}
+		{#if process.nix_info_logs && process.nix_info_logs.length > 0}
+			{@render logBlock($t('task-details.nix-infos'), process.nix_info_logs.join('\n'))}
+		{/if}
+		{#if process.process_stdout}
+			{@render logBlock($t('task-details.stdout'), cleanStdOut(process.process_stdout))}
+		{/if}
+		{#if process.process_stderr}
+			{@render logBlock($t('task-details.stderr'), cleanStdOut(process.process_stderr))}
+		{/if}
+
+		{#if !processHasOutput(process)}
+			<p class="muted-note">{$t('task-details.no-output')}</p>
+		{/if}
 	</div>
 {/snippet}
 
@@ -201,59 +252,33 @@
 			/>
 		</Section>
 
-		{#if task.processes && task.processes.length > 0}
-			{#each task.processes as process, i (process.process_index)}
-				{@const command = buildCommand(process)}
-				<Section title={$t('task-details.process', { values: { n: i + 1 } })}>
-					<div class="flex flex-col gap-4">
-						<div>
-							<h4 class="log-label">{$t('task-details.command')}</h4>
-							{#if command}
-								<MonospaceText code={command} />
-							{:else}
-								<p class="muted-note">{$t('task-details.no-command')}</p>
-							{/if}
-						</div>
-
-						{#if process.nix_errors && process.nix_errors.length > 0}
-							{@render logBlock(
-								$t('task-details.nix-errors'),
-								process.nix_errors.map((error) => error.msg).join('\n')
-							)}
-						{/if}
-						{#if process.nix_error_logs && process.nix_error_logs.length > 0}
-							{@render logBlock($t('task-details.nix-errors'), process.nix_error_logs.join('\n'))}
-						{/if}
-						{#if process.nix_warning_logs && process.nix_warning_logs.length > 0}
-							{@render logBlock(
-								$t('task-details.nix-warnings'),
-								process.nix_warning_logs.join('\n')
-							)}
-						{/if}
-						{#if process.nix_notice_logs && process.nix_notice_logs.length > 0}
-							{@render logBlock($t('task-details.nix-notices'), process.nix_notice_logs.join('\n'))}
-						{/if}
-						{#if process.nix_info_logs && process.nix_info_logs.length > 0}
-							{@render logBlock($t('task-details.nix-infos'), process.nix_info_logs.join('\n'))}
-						{/if}
-						{#if process.process_stdout}
-							{@render logBlock($t('task-details.stdout'), cleanStdOut(process.process_stdout))}
-						{/if}
-						{#if process.process_stderr}
-							{@render logBlock($t('task-details.stderr'), cleanStdOut(process.process_stderr))}
-						{/if}
-
-						{#if !processHasOutput(process)}
-							<p class="muted-note">{$t('task-details.no-output')}</p>
-						{/if}
+		<Section title={$t('task-details.processes')}>
+			{#if task.processes && task.processes.length > 0}
+				{#if task.processes.length > 1}
+					<div class="proc-tabs" role="tablist">
+						{#each task.processes as process, i (process.process_index)}
+							{@const hasError = !!(process.nix_errors?.length || process.nix_error_logs?.length)}
+							<button
+								type="button"
+								role="tab"
+								aria-selected={activeProcess === i}
+								class="proc-tab"
+								class:active={activeProcess === i}
+								onclick={() => (selectedProcess = i)}
+							>
+								{$t('task-details.process', { values: { n: i + 1 } })}
+								{#if hasError}
+									<span class="proc-dot" title={$t('task-details.nix-errors')}></span>
+								{/if}
+							</button>
+						{/each}
 					</div>
-				</Section>
-			{/each}
-		{:else}
-			<Section title={$t('task-details.processes')}>
+				{/if}
+				{@render processContent(task.processes[activeProcess])}
+			{:else}
 				<p class="muted-note">{$t('task-details.no-processes')}</p>
-			</Section>
-		{/if}
+			{/if}
+		</Section>
 	</div>
 {/if}
 
@@ -318,5 +343,40 @@
 	}
 	:global(.exception-card) {
 		border-color: var(--ds-danger);
+	}
+	/* process tab strip */
+	.proc-tabs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1px;
+		border-bottom: 1px solid var(--ds-border);
+		margin-bottom: 16px;
+	}
+	.proc-tab {
+		display: inline-flex;
+		align-items: center;
+		gap: 7px;
+		padding: 8px 14px;
+		margin-bottom: -1px;
+		border-bottom: 2px solid transparent;
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--ds-text-dim);
+		transition:
+			color 0.12s,
+			border-color 0.12s;
+	}
+	.proc-tab:hover {
+		color: var(--ds-text);
+	}
+	.proc-tab.active {
+		color: var(--ds-accent-strong);
+		border-bottom-color: var(--ds-accent);
+	}
+	.proc-dot {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: var(--ds-danger);
 	}
 </style>
