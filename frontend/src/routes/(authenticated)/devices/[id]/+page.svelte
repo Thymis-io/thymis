@@ -13,7 +13,12 @@
 	import VncView from '$lib/vnc/VncView.svelte';
 	import Terminal from '$lib/terminal/Terminal.svelte';
 	import CopySSHCommandButton from '$lib/terminal/CopySSHCommandButton.svelte';
+	import LogsView from '$lib/components/LogsView.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
+	import ListCollapse from 'lucide-svelte/icons/list-collapse';
+	import ScreenShare from 'lucide-svelte/icons/screen-share';
+	import TerminalIcon from 'lucide-svelte/icons/terminal';
+	import FileText from 'lucide-svelte/icons/file-text';
 	import { page } from '$app/state';
 	import { goto, invalidate } from '$app/navigation';
 	import { queryParameters } from 'sveltekit-search-params';
@@ -47,6 +52,21 @@
 	let nameInput = $state('');
 
 	let isOnline = $derived(checkOnline(deploymentInfo.last_seen));
+
+	// Top-level tabs: Details holds the page content; VNC / Terminal / Logs are
+	// dedicated views. VNC only appears when the config provides a VNC module.
+	type DeviceTab = 'details' | 'vnc' | 'terminal' | 'logs';
+	let hasVnc = $derived(!!config && targetShouldShowVNC(config, data.globalState));
+	let deviceTabs = $derived([
+		{ id: 'details', icon: ListCollapse, labelKey: 'nav.device-details' },
+		...(hasVnc ? [{ id: 'vnc', icon: ScreenShare, labelKey: 'nav.device-vnc' }] : []),
+		{ id: 'terminal', icon: TerminalIcon, labelKey: 'nav.terminal' },
+		{ id: 'logs', icon: FileText, labelKey: 'nav.logs' }
+	] as { id: DeviceTab; icon: any; labelKey: string }[]);
+	let selectedTab = $state<DeviceTab>('details');
+	let activeTab = $derived(
+		deviceTabs.some((tab) => tab.id === selectedTab) ? selectedTab : 'details'
+	);
 
 	function openNameModal() {
 		nameInput = deploymentInfo.name ?? '';
@@ -106,61 +126,103 @@
 	</div>
 </Modal>
 
-<div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
-	<!-- System metrics: 3/4 width -->
-	<div class="lg:col-span-3">
-		<Section title={$t('device-details.system-metrics')} class="h-full">
-			<div class="mb-4 flex gap-2">
-				{#each ['1h', '24h', '7d'] as w (w)}
-					<button
-						class="ds-btn ds-btn-sm {metricsTimeWindow === w ? 'ds-btn-primary' : ''}"
-						onclick={() => handleTimeWindowChange(w as TimeWindow)}
-					>
-						{w}
-					</button>
-				{/each}
+<div class="mb-4 flex flex-wrap gap-1 border-b border-[var(--ds-border)]" role="tablist">
+	{#each deviceTabs as tab (tab.id)}
+		<button
+			type="button"
+			role="tab"
+			aria-selected={activeTab === tab.id}
+			class="-mb-px border-b-2 p-2 px-3 text-center text-sm font-medium {activeTab === tab.id
+				? 'border-[var(--ds-accent)] text-[var(--ds-accent-strong)]'
+				: 'border-transparent text-[var(--ds-text-dim)] hover:text-[var(--ds-text)]'}"
+			onclick={() => (selectedTab = tab.id)}
+		>
+			<div class="flex items-center gap-2 px-1 font-semibold md:min-w-32 xl:min-w-48">
+				<tab.icon size={18} />
+				<span>{$t(tab.labelKey)}</span>
 			</div>
-			<SectionMetrics metrics={data.metrics} timewindow={metricsTimeWindow} />
-		</Section>
-	</div>
+		</button>
+	{/each}
+</div>
 
-	<!-- Right sidebar: device info -->
-	<div class="flex flex-col gap-6 h-full">
-		<SectionDeviceInfo bind:deploymentInfo globalState={data.globalState} />
-	</div>
-
-	<!-- Actions: full-width bar under the metrics/info row -->
-	<div class="col-span-2 xl:col-span-4">
-		<SectionDeviceActions
-			{deploymentInfo}
-			{config}
-			globalState={data.globalState}
-			repoStatus={page.data.repoStatus}
-		/>
-	</div>
-
-	{#if data.connected}
-		{#if config && targetShouldShowVNC(config, data.globalState)}
-			<div class="lg:col-span-2">
-				<Section title={$t('nav.device-vnc')} class="h-full">
-					<VncView globalState={data.globalState} {config} {deploymentInfo} embedded />
-				</Section>
-			</div>
-		{/if}
-		<div class="lg:col-span-2">
-			<Section title={$t('nav.terminal')} class="h-full">
-				{#snippet header()}
-					<CopySSHCommandButton {deploymentInfo} />
-				{/snippet}
-				<Terminal {deploymentInfo} />
+{#if activeTab === 'details'}
+	<div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+		<!-- System metrics: 3/4 width -->
+		<div class="lg:col-span-3">
+			<Section title={$t('device-details.system-metrics')} class="h-full">
+				<div class="mb-4 flex gap-2">
+					{#each ['1h', '24h', '7d'] as w (w)}
+						<button
+							class="ds-btn ds-btn-sm {metricsTimeWindow === w ? 'ds-btn-primary' : ''}"
+							onclick={() => handleTimeWindowChange(w as TimeWindow)}
+						>
+							{w}
+						</button>
+					{/each}
+				</div>
+				<SectionMetrics metrics={data.metrics} timewindow={metricsTimeWindow} />
 			</Section>
 		</div>
-	{/if}
 
-	<div class="lg:col-span-2">
-		<SectionOnlineStatus connectionHistory={data.connectionHistory} />
+		<!-- Right sidebar: device info -->
+		<div class="flex flex-col gap-6 h-full">
+			<SectionDeviceInfo bind:deploymentInfo globalState={data.globalState} />
+		</div>
+
+		<!-- Actions: full-width bar under the metrics/info row -->
+		<div class="col-span-2 xl:col-span-4">
+			<SectionDeviceActions
+				{deploymentInfo}
+				{config}
+				globalState={data.globalState}
+				repoStatus={page.data.repoStatus}
+			/>
+		</div>
+
+		<div class="lg:col-span-2">
+			<SectionOnlineStatus connectionHistory={data.connectionHistory} />
+		</div>
+		<div class="lg:col-span-2">
+			<SectionErrorLogs errorLogs={data.errorLogs} />
+		</div>
 	</div>
-	<div class="lg:col-span-2">
-		<SectionErrorLogs errorLogs={data.errorLogs} />
-	</div>
-</div>
+{:else if activeTab === 'vnc'}
+	<Section title={$t('nav.device-vnc')}>
+		{#if data.connected && hasVnc && config}
+			<VncView globalState={data.globalState} {config} {deploymentInfo} embedded />
+		{:else}
+			<p class="tab-empty">{$t('device-details.not-connected')}</p>
+		{/if}
+	</Section>
+{:else if activeTab === 'terminal'}
+	<Section title={$t('nav.terminal')}>
+		{#snippet header()}
+			{#if data.connected}
+				<CopySSHCommandButton {deploymentInfo} />
+			{/if}
+		{/snippet}
+		{#if data.connected}
+			<Terminal {deploymentInfo} />
+		{:else}
+			<p class="tab-empty">{$t('device-details.not-connected')}</p>
+		{/if}
+	</Section>
+{:else if activeTab === 'logs'}
+	<LogsView
+		globalState={data.globalState}
+		logs={data.logs}
+		programNames={data.programNames}
+		deploymentInfos={[deploymentInfo]}
+		connectedDeploymentInfos={data.connected ? [deploymentInfo] : []}
+		selectedDeploymentInfoId={deploymentInfo.id}
+		showSelector={false}
+	/>
+{/if}
+
+<style lang="postcss">
+	.tab-empty {
+		padding: 24px 4px;
+		font-size: 14px;
+		color: var(--ds-text-mute);
+	}
+</style>
