@@ -43,11 +43,11 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
 	await page.locator('h1', { hasText: 'Device Configurations' }).waitFor();
 
-	// find row with 'VM Test x64 1' and click on button 'View Details'
+	// find row with 'VM Test x64 1' and click on link 'View Details'
 	await page
 		.locator('tr')
 		.filter({ hasText: 'VM Test x64 1' })
-		.getByRole('button', { name: 'View Details' })
+		.getByRole('link', { name: 'View Details' })
 		.first()
 		.click({ force: true });
 
@@ -65,11 +65,11 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
 	await page.locator('h1', { hasText: 'Device Configurations' }).waitFor();
 
-	// find row with 'VM Test x64 2' and click on button 'View Details'
+	// find row with 'VM Test x64 2' and click on link 'View Details'
 	await page
 		.locator('tr')
 		.filter({ hasText: 'VM Test x64 2' })
-		.getByRole('button', { name: 'View Details' })
+		.getByRole('link', { name: 'View Details' })
 		.first()
 		.click({ force: true });
 
@@ -286,7 +286,7 @@ test('Create and use artifacts', async ({ page, request }, testInfo) => {
 	await page
 		.locator('tr')
 		.filter({ hasText: 'My Device 1' })
-		.getByRole('button', { name: 'View Details' })
+		.getByRole('link', { name: 'View Details' })
 		.first()
 		.click({ force: true });
 	await page.getByRole('tab', { name: 'Configure' }).click();

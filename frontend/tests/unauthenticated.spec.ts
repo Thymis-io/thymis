@@ -15,7 +15,7 @@ test('toolbar links work', async ({ page, baseURL }, testInfo) => {
 
 	await expect(page.url()).toMatch(new RegExp(`${baseURL}/login\\?redirect=\\w+`));
 
-	const rootLink = page.locator('a').filter({ hasText: 'Thymis' });
+	const rootLink = page.locator('a').filter({ hasText: 'Homepage' });
 	await expectScreenshotWithHighlight(page, rootLink, testInfo, screenshotCounter);
 	await rootLink.click();
 
