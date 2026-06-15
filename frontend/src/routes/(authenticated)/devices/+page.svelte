@@ -143,9 +143,11 @@
 		{/snippet}
 	</DataTable>
 
-	<h2 class="ds-section-title mt-7 mb-3">
-		{$t('hardware-devices.known-devices-without-deployment')}
-	</h2>
+	<div class="mt-7 mb-3">
+		<h2 class="ds-section-title">
+			{$t('hardware-devices.known-devices-without-deployment')}
+		</h2>
+	</div>
 	<DataTable
 		columns={[
 			{ label: $t('hardware-devices.table.hardware-ids') },
