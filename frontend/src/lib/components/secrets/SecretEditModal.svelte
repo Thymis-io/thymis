@@ -12,6 +12,7 @@
 		Spinner
 	} from 'flowbite-svelte';
 	import Download from 'lucide-svelte/icons/download';
+	import Trash2 from 'lucide-svelte/icons/trash-2';
 	import type { SecretProcessingType, SecretType } from '$lib/state';
 	import { createSecretRequest, sendSecretRequest } from './secretUtils';
 
@@ -55,6 +56,7 @@
 		download: void;
 		fileChange: Event;
 		addEnvVariable: void;
+		removeEnvVariable: number;
 		error: string;
 	}>();
 
@@ -68,6 +70,10 @@
 
 	function addEnvVariable() {
 		dispatch('addEnvVariable');
+	}
+
+	function removeEnvVariable(index: number) {
+		dispatch('removeEnvVariable', index);
 	}
 
 	async function onSave() {
@@ -243,6 +249,16 @@
 							placeholder={$t('secrets.env-value-placeholder')}
 							bind:value={editedEnvVarList[i][1]}
 						/>
+						<Button
+							size="xs"
+							color="red"
+							class="!p-2"
+							aria-label={$t('secrets.remove-variable')}
+							title={$t('secrets.remove-variable')}
+							on:click={() => removeEnvVariable(i)}
+						>
+							<Trash2 size={14} />
+						</Button>
 					</div>
 				{/each}
 				<Button size="xs" on:click={addEnvVariable}>+ {$t('secrets.add-variable')}</Button>
