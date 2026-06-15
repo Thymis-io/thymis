@@ -39,7 +39,23 @@
 		"github": "GitHub",
 		"website": "Homepage",
 		"yes": "Yes",
-		"no": "No"
+		"no": "No",
+		"toggle-navigation": "Toggle navigation",
+		"close-navigation": "Close navigation",
+		"drag-handle": "Drag to reorder",
+		"breadcrumb": "Breadcrumb",
+		"home": "Home",
+		"logo-alt": "Thymis logo",
+		"user-menu": "User menu"
+	},
+	"login": {
+		"page-title": "Thymis - Sign in",
+		"heading": "Sign in to your account",
+		"error": "You have entered an invalid username or password.",
+		"username-label": "Your username",
+		"username-placeholder": "username",
+		"password-label": "Password",
+		"submit": "Sign in"
 	},
 	"artifacts": {
 		"subtitle": "Files and assets you can reference from device configurations.",
@@ -473,7 +489,8 @@
 			"repo": "Repository",
 			"ref": "Branch / Tag / Full Commit SHA (optional)",
 			"refresh-refs": "Refresh Branches",
-			"compiled-url": "Compiled URL"
+			"compiled-url": "Compiled URL",
+			"repo-url-placeholder": "Repository URL"
 		},
 		"repo-status": {
 			"loading": "Loading...",
@@ -642,7 +659,9 @@
 		"delete": "Delete Secret",
 		"no-secrets": "No Secrets",
 		"confirm-delete": "Confirm deleting secret:",
-		"delete-error": "Error deleting secret"
+		"delete-error": "Error deleting secret",
+		"env-key-placeholder": "Key",
+		"env-value-placeholder": "Value"
 	},
 	"systemd": {
 		"calendar": {

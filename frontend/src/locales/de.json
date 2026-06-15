@@ -39,7 +39,23 @@
 		"github": "GitHub",
 		"website": "Homepage",
 		"no": "Nein",
-		"yes": "Ja"
+		"yes": "Ja",
+		"toggle-navigation": "Navigation umschalten",
+		"close-navigation": "Navigation schließen",
+		"drag-handle": "Zum Umsortieren ziehen",
+		"breadcrumb": "Brotkrümelnavigation",
+		"home": "Startseite",
+		"logo-alt": "Thymis Logo",
+		"user-menu": "Benutzermenü"
+	},
+	"login": {
+		"page-title": "Thymis - Anmelden",
+		"heading": "Bei Ihrem Konto anmelden",
+		"error": "Sie haben einen ungültigen Benutzernamen oder ein ungültiges Passwort eingegeben.",
+		"username-label": "Ihr Benutzername",
+		"username-placeholder": "Benutzername",
+		"password-label": "Passwort",
+		"submit": "Anmelden"
 	},
 	"artifacts": {
 		"subtitle": "Dateien und Assets, die Sie in Gerätekonfigurationen referenzieren können.",
@@ -399,7 +415,8 @@
 			"repo": "Repository",
 			"ref": "Branch / Tag / Vollständiger Commit SHA (optional)",
 			"refresh-refs": "Branches aktualisieren",
-			"compiled-url": "Kompilierte URL"
+			"compiled-url": "Kompilierte URL",
+			"repo-url-placeholder": "Repository-URL"
 		},
 		"repo-status": {
 			"loading": "Lädt...",
@@ -641,7 +658,9 @@
 		"delete": "Secret löschen",
 		"no-secrets": "Keine Secrets",
 		"confirm-delete": "Löschen des Secrets bestätigen:",
-		"delete-error": "Fehler beim Löschen des Secrets"
+		"delete-error": "Fehler beim Löschen des Secrets",
+		"env-key-placeholder": "Schlüssel",
+		"env-value-placeholder": "Wert"
 	},
 	"systemd": {
 		"calendar": {

@@ -94,14 +94,14 @@
 	{#if authenticated}
 		<button
 			class="ds-icon-btn ds-hamburger"
-			aria-label="Toggle navigation"
+			aria-label={$t('common.toggle-navigation')}
 			onclick={() => (drawerHidden = !drawerHidden)}
 		>
 			<Menu size={18} />
 		</button>
 	{/if}
 
-	<nav class="breadcrumb" aria-label="Breadcrumb">
+	<nav class="breadcrumb" aria-label={$t('common.breadcrumb')}>
 		{#each crumbs as crumb, i (i)}
 			{#if i > 0}
 				<span class="breadcrumb-sep" aria-hidden="true">/</span>
@@ -128,7 +128,7 @@
 		<a
 			class="ds-icon-btn"
 			href="https://thymis.io/"
-			aria-label="Thymis Website"
+			aria-label={$t('common.website')}
 			title={$t('common.website')}
 		>
 			<Globe size={18} />
@@ -136,7 +136,7 @@
 		<a
 			class="ds-icon-btn"
 			href="https://thymis.io/docs/"
-			aria-label="Thymis Documentation"
+			aria-label={$t('common.documentation')}
 			title={$t('common.documentation')}
 		>
 			<BookOpen size={18} />
@@ -144,7 +144,7 @@
 		<a
 			class="ds-icon-btn"
 			href="https://github.com/thymis-io/thymis"
-			aria-label="Star Thymis on GitHub"
+			aria-label={$t('common.github')}
 			title={$t('common.github')}
 		>
 			<GithubIcon />

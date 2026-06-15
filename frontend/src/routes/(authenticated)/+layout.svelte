@@ -2,6 +2,7 @@
 	import { run } from 'svelte/legacy';
 
 	import '../../app.css';
+	import { t } from 'svelte-i18n';
 	import Navbar from '$lib/navbar/Navbar.svelte';
 	import Sidebar from '$lib/sidebar/Sidebar.svelte';
 	import SplitPane from '$lib/splitpane/SplitPane.svelte';
@@ -84,7 +85,7 @@
 	<title>Thymis Dashboard</title>
 </svelte:head>
 
-<ProgressBar class="text-primary-500" zIndex={100} />
+<ProgressBar color="var(--ds-accent)" zIndex={100} />
 
 <div class="ds-shell">
 	<Sidebar
@@ -97,7 +98,7 @@
 	{#if !drawerHidden}
 		<button
 			class="ds-backdrop lg:hidden"
-			aria-label="Close navigation"
+			aria-label={$t('common.close-navigation')}
 			onclick={() => (drawerHidden = true)}
 		></button>
 	{/if}

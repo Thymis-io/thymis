@@ -154,7 +154,7 @@
 							<div class="flex items-center justify-center">
 								<div
 									tabindex={dragDisabled ? 0 : -1}
-									aria-label="drag-handle"
+									aria-label={$t('common.drag-handle')}
 									role="button"
 									class="handle"
 									style={dragDisabled ? 'cursor: grab' : 'cursor: grabbing'}

@@ -171,8 +171,8 @@
 
 <aside class="ds-sidebar {drawerHidden ? 'drawer-hidden' : ''} {asideClass}">
 	<div class="brand">
-		<a href="/" class="brand-link" aria-label="Thymis Home">
-			<img src="/favicon.png" class="brand-mark" alt="Thymis Logo" />
+		<a href="/" class="brand-link" aria-label={$t('common.home')}>
+			<img src="/favicon.png" class="brand-mark" alt={$t('common.logo-alt')} />
 			<span class="brand-name">Thymis</span>
 		</a>
 	</div>
@@ -202,7 +202,7 @@
 	</nav>
 
 	<div class="sidebar-footer">
-		<button class="user-trigger" id="sidebar-user-trigger" aria-label="User menu">
+		<button class="user-trigger" id="sidebar-user-trigger" aria-label={$t('common.user-menu')}>
 			<span class="avatar">{userInitial}</span>
 			<span class="user-info">
 				<span class="user-name">{userName}</span>
