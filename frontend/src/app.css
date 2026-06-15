@@ -641,8 +641,11 @@ input[class*='bg-gray-50']::placeholder,
 textarea[class*='bg-gray-50']::placeholder {
 	color: var(--ds-text-mute) !important;
 }
-/* Flowbite Toggle -> ds accent when on */
-input.peer:checked + div {
+/* Flowbite Toggle -> ds accent when on.
+   The track element is the input's next sibling; newer flowbite-svelte renders
+   it as a <span> (older versions used <div>), so match both. */
+input.peer:checked + div,
+input.peer:checked + span {
 	background-color: var(--ds-accent) !important;
 }
 /* Flowbite checkbox / radio -> ds accent */
