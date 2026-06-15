@@ -189,15 +189,8 @@
       packages = forAllSystems (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          # The frontend bundle is architecture-independent JS, so build it on
-          # the x86_64 build host natively; only the runtime node (nodejs_24) is
-          # the target architecture.  This avoids the qemu "Illegal instruction"
-          # crash that happens when the Vite/Node build runs under aarch64
-          # emulation.  NOTE: assumes an x86_64 build host.
-          pkgsBuild = nixpkgs.legacyPackages.x86_64-linux;
-          thymis-frontend = pkgsBuild.callPackage ./frontend {
+          thymis-frontend = pkgs.callPackage ./frontend {
             git-rev = inputs.self.rev or inputs.self.dirtyRev or null;
-            nodejs_24 = pkgs.nodejs_24;
           };
           thymis-controller = pkgs.callPackage ./controller {
             inherit (inputs)

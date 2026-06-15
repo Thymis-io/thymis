@@ -21,10 +21,6 @@ let
     src = ./.;
     npmDepsHash = "sha256-/lq4a2ayJpxo5HWebSWsvmpTHhoHP4sces5adORUPOA=";
     dontNpmInstall = true;
-    # The Vite/SvelteKit build is memory-hungry and OOMs with V8's default heap
-    # limit ("Ineffective mark-compacts near heap limit"). Raise the old-space
-    # limit so the build completes.
-    NODE_OPTIONS = "--max-old-space-size=8192";
     installPhase = ''
       runHook preInstall
 
