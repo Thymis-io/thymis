@@ -147,7 +147,6 @@
 		}}
 		class="w-96"
 	/>
-	<!-- exact program name -->
 	<span>{$t('logs.exact-program-name')}</span>
 	<Toggle
 		checked={params['exact-program-name'] === 'true'}

@@ -255,7 +255,6 @@
 		height: 100%;
 	}
 
-	/* ---- Brand ---- */
 	.brand {
 		padding: 16px 18px 12px;
 		display: flex;
@@ -280,7 +279,6 @@
 		color: var(--ds-text);
 	}
 
-	/* ---- Nav ---- */
 	.nav {
 		flex: 1;
 		overflow-y: auto;
@@ -351,7 +349,6 @@
 		color: var(--ds-danger);
 	}
 
-	/* ---- Footer ---- */
 	.sidebar-footer {
 		border-top: 1px solid var(--ds-border);
 		padding: 10px 12px;
@@ -412,7 +409,6 @@
 		white-space: nowrap;
 	}
 
-	/* ---- User menu (popover) ---- */
 	.user-menu {
 		display: flex;
 		flex-direction: column;
@@ -481,7 +477,6 @@
 		color: var(--ds-text);
 	}
 
-	/* ---- Mobile drawer ---- */
 	@media (max-width: 1023px) {
 		.ds-sidebar {
 			position: fixed;

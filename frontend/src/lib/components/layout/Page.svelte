@@ -5,11 +5,8 @@
 	interface Props {
 		title?: string;
 		subtitle?: string;
-		/** Title-adjacent content (badges, edit buttons) — rendered next to the title. */
 		titleExtra?: Snippet;
-		/** Page-level action buttons — rendered on the right, before the global deploy actions. */
 		actions?: Snippet;
-		/** Page body. */
 		children?: Snippet;
 	}
 

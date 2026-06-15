@@ -172,7 +172,6 @@
 			</span>
 		</div>
 
-		<!-- novnc mounts its canvas into this element; overlays sit on top -->
 		<div
 			bind:this={div}
 			class="vnc-screen"
@@ -237,7 +236,6 @@
 		box-shadow: var(--ds-shadow-md);
 		overflow: hidden;
 	}
-	/* inside an already-titled card (e.g. device details): no second frame */
 	.vnc-card.embedded {
 		background: transparent;
 		border: none;
@@ -246,7 +244,6 @@
 		overflow: visible;
 	}
 
-	/* ---- header ---- */
 	.vnc-head {
 		display: flex;
 		align-items: flex-start;
@@ -254,7 +251,6 @@
 		gap: 12px;
 		padding: 10px 12px;
 	}
-	/* embedded: only the status pill remains, right-aligned, no extra top padding */
 	.vnc-head.embedded {
 		justify-content: flex-end;
 		padding: 0 0 10px;
@@ -291,7 +287,6 @@
 		max-width: 100%;
 	}
 
-	/* ---- screen ---- */
 	.vnc-screen {
 		position: relative;
 		width: 100%;
@@ -307,11 +302,9 @@
 		aspect-ratio: auto;
 		height: 100%;
 	}
-	/* strong visual confirmation that input is being forwarded to the device */
 	.vnc-screen.controlling {
 		box-shadow: inset 0 0 0 2px var(--ds-accent);
 	}
-	/* the canvas novnc injects */
 	.vnc-screen :global(canvas) {
 		display: block;
 		max-width: 100%;
@@ -349,7 +342,6 @@
 		background: rgba(255, 255, 255, 0.16);
 	}
 
-	/* ---- floating action buttons (top-right of the screen) ---- */
 	.vnc-actions {
 		position: absolute;
 		top: 8px;
@@ -362,7 +354,6 @@
 		pointer-events: none;
 		transition: opacity 0.15s;
 	}
-	/* reveal (and enable) on hover/keyboard focus */
 	.vnc-screen:hover .vnc-actions,
 	.vnc-actions:focus-within {
 		opacity: 1;
@@ -395,7 +386,6 @@
 		opacity: 0.4;
 		cursor: not-allowed;
 	}
-	/* control button when input forwarding is active */
 	.vnc-action.active {
 		color: #fff;
 		background: var(--ds-accent);
