@@ -122,12 +122,12 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	const addModuleButton = page.locator('#add-module').first();
 	await addModuleButton.click();
 
-	// select "CustomModule" from dropdown
-	const addCustomModuleButton = page.locator('button').filter({ hasText: 'Custom Module' });
+	// select "Custom Nix" from dropdown
+	const addCustomModuleButton = page.locator('button').filter({ hasText: 'Custom Nix' });
 	await addCustomModuleButton.click();
 
 	// fill in the form input "Freeform Settings"
-	await page.locator('p', { hasText: 'Freeform Settings' }).waitFor();
+	await page.locator('.ds-form-label', { hasText: 'Freeform Settings' }).waitFor();
 
 	// we moved to monaco editor
 	// get by role "code"
@@ -145,7 +145,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	const addBashModuleButton = page.locator('button').filter({ hasText: 'Bash Module' });
 	await addBashModuleButton.click();
 
-	await page.locator('p', { hasText: 'Bash Script' }).nth(0).waitFor();
+	await page.locator('.ds-form-label', { hasText: 'Bash Script' }).nth(0).waitFor();
 
 	const timerTypeInput = page.locator('button').filter({ hasText: 'Realtime' }).first();
 	await timerTypeInput.click();
@@ -170,8 +170,8 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await page.keyboard.type('echo \'{"key": "value"}\' | jq "."');
 	await page.waitForTimeout(1000);
 
-	// Edit core device module too
-	await page.locator('p', { hasText: 'Core Device Configuration' }).click();
+	// Edit core device module too (the core module is now named "Device")
+	await page.locator('a[href*="configuration/edit"]', { hasText: 'Device' }).first().click();
 	await page.getByRole('button', { name: 'Add Secret' }).click();
 	await page.getByRole('button', { name: 'Create Secret' }).nth(1).click();
 	await page.getByPlaceholder('No name').fill('secret.txt');
@@ -243,8 +243,8 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 
 	// configure the device to usb installer
 	await page.locator('a', { hasText: 'Configure' }).first().click();
-	// select "Core Device Configuration"
-	await page.locator('a', { hasText: 'Core Device Configuration' }).first().click();
+	// select the core "Device" module
+	await page.locator('a[href*="configuration/edit"]', { hasText: 'Device' }).first().click();
 	// select div with text "Image Format", find the select element and select "usb-installer"
 	await page.getByRole('combobox').nth(1).selectOption({ value: 'usb-stick-installer' });
 	// find download button and click on it
@@ -280,7 +280,9 @@ test('Create and use artifacts', async ({ page, request }, testInfo) => {
 		mimeType: 'text/plain',
 		buffer: Buffer.from('This is a test file')
 	});
-	await page.locator('button').filter({ hasText: 'Upload' }).click();
+	// Click the modal's submit button (scoped to the dialog, since the page action
+	// button also reads "Upload File")
+	await page.getByRole('dialog').getByRole('button', { name: 'Upload File' }).click();
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 

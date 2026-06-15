@@ -476,6 +476,11 @@ test('Configure Wifi Network', async ({ page, request }, testInfo) => {
 	const configureTagButton = page.locator('a', { hasText: 'Configure' }).first();
 	await configureTagButton.click();
 
+	// WiFi settings now live in a separate "Networking" module, which is not part of a
+	// new configuration by default and must be added first.
+	await page.locator('#add-module').first().click();
+	await page.locator('button').filter({ hasText: 'Networking' }).click();
+
 	const wifiSSID = page.locator('.ds-form-label', { hasText: 'WiFi SSID' }).first();
 	await wifiSSID.hover();
 	await page.mouse.wheel(0, 400);
