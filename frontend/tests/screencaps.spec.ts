@@ -414,8 +414,8 @@ test('VNC View', async ({ page, request }, testInfo) => {
 	await page.locator('nav.nav:visible').locator('a', { hasText: 'VNC Devices' }).click();
 	await page.locator('nav.nav:visible').locator('a', { hasText: 'VNC Devices' }).click();
 
-	// wait for "Displays per Row"
-	await page.getByText('Displays per Row:').waitFor();
+	// wait for "No devices with VNC enabled"
+	await page.getByText('No devices with VNC enabled').waitFor();
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
