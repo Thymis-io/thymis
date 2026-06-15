@@ -8,6 +8,7 @@
 	import type { PageData } from './$types';
 	import { invalidate } from '$app/navigation';
 	import SecretEditModal from '$lib/components/secrets/SecretEditModal.svelte';
+	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import {
 		downloadSecretFile,
 		resetFileInputById,
@@ -96,15 +97,15 @@
 		}
 	};
 
+	let secretToDelete: { id: string; name: string } | undefined = $state(undefined);
+
 	const deleteSecret = async (id: string): Promise<void> => {
-		if (confirm($t('secrets.confirm-delete'))) {
-			try {
-				await fetch(`/api/secrets/${id}`, { method: 'DELETE' });
-				await invalidate('/api/secrets');
-			} catch (error) {
-				console.error('Error deleting secret:', error);
-				alert($t('secrets.delete-error'));
-			}
+		try {
+			await fetch(`/api/secrets/${id}`, { method: 'DELETE' });
+			await invalidate('/api/secrets');
+		} catch (error) {
+			console.error('Error deleting secret:', error);
+			alert($t('secrets.delete-error'));
 		}
 	};
 
@@ -234,12 +235,21 @@
 					<ActionButton
 						label={$t('secrets.delete')}
 						variant="danger"
-						onclick={() => deleteSecret(id)}
+						onclick={() => (secretToDelete = { id, name: secret.display_name })}
 					/>
 				</RowActions>
 			</td>
 		{/snippet}
 	</DataTable>
+
+	<DeleteConfirm
+		target={secretToDelete?.name}
+		on:confirm={() => {
+			if (secretToDelete) deleteSecret(secretToDelete.id);
+			secretToDelete = undefined;
+		}}
+		on:cancel={() => (secretToDelete = undefined)}
+	/>
 
 	<!-- Create Secret Modal -->
 	<SecretEditModal
