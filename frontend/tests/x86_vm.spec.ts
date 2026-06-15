@@ -14,7 +14,7 @@ test.skip(os.arch() !== 'x64', 'You can only run this suite in an x86 VM');
 const goToDevicesPage = async (page: Page, baseURL?: string) => {
 	await page.reload();
 	for (let i = 0; i < 5; i++) {
-		await page.locator('nav:visible').locator('a', { hasText: 'Devices' }).click();
+		await page.locator('nav.nav:visible').locator('a', { hasText: 'Devices' }).click();
 		await page.waitForURL(new RegExp(baseURL + '/devices'), { timeout: 3000 }).catch(() => {});
 
 		if (page.url() === `${baseURL}/devices`) {
@@ -40,7 +40,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 		maxDiffPixels = 32;
 	}
 
-	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
+	await page.locator('nav.nav:visible').locator('a', { hasText: 'Configs' }).click();
 	await page.locator('h1', { hasText: 'Device Configurations' }).waitFor();
 
 	// find row with 'VM Test x64 1' and click on link 'View Details'
@@ -62,7 +62,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	});
 	await page.locator('button').filter({ hasText: 'Commit & Build and start VM' }).first().click();
 
-	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
+	await page.locator('nav.nav:visible').locator('a', { hasText: 'Configs' }).click();
 	await page.locator('h1', { hasText: 'Device Configurations' }).waitFor();
 
 	// find row with 'VM Test x64 2' and click on link 'View Details'
@@ -267,9 +267,11 @@ test('Create and use artifacts', async ({ page, request }, testInfo) => {
 	// Create a configuration
 	await createConfiguration(page, 'My Device 1', 'Generic x86-64', []);
 
-	await page.locator('nav:visible').locator('a', { hasText: 'Artifacts' }).click();
+	await page.locator('nav.nav:visible').locator('a', { hasText: 'Artifacts' }).click();
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
+
+	await page.locator('button').filter({ hasText: 'Upload File' }).click();
 
 	// Upload a file
 	const fileInput = page.locator('input[type="file"]').first();
@@ -282,7 +284,7 @@ test('Create and use artifacts', async ({ page, request }, testInfo) => {
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
-	await page.locator('nav:visible').locator('a', { hasText: 'Configs' }).click();
+	await page.locator('nav.nav:visible').locator('a', { hasText: 'Configs' }).click();
 	await page
 		.locator('tr')
 		.filter({ hasText: 'My Device 1' })

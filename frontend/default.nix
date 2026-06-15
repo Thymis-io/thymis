@@ -11,6 +11,7 @@ buildNpmPackage {
   src = ./.;
   npmDepsHash = "sha256-/lq4a2ayJpxo5HWebSWsvmpTHhoHP4sces5adORUPOA=";
   dontNpmInstall = true;
+  NODE_OPTIONS = "--max-old-space-size=8192";
   installPhase = ''
     runHook preInstall
 
