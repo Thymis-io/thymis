@@ -15,13 +15,7 @@ test('toolbar links work', async ({ page, baseURL }, testInfo) => {
 
 	await expect(page.url()).toMatch(new RegExp(`${baseURL}/login\\?redirect=\\w+`));
 
-	const rootLink = page.locator('a').filter({ hasText: 'Homepage' });
-	await expectScreenshotWithHighlight(page, rootLink, testInfo, screenshotCounter);
-	await rootLink.click();
-
-	await expect(page.url()).toMatch(new RegExp(`${baseURL}/login\\?redirect=\\w+`));
-
-	const homepageLink = page.locator('a').filter({ hasText: 'Homepage' });
+	const homepageLink = page.getByRole('link', { name: 'Homepage' });
 	await expectScreenshotWithHighlight(page, homepageLink, testInfo, screenshotCounter);
 	await homepageLink.click();
 
@@ -31,7 +25,7 @@ test('toolbar links work', async ({ page, baseURL }, testInfo) => {
 	await page.mouse.click(0, 0);
 	await expect(page.url()).toMatch(new RegExp(`${baseURL}/login\\?redirect=\\w+`));
 
-	const docsLink = page.locator('a').filter({ hasText: 'Documentation' });
+	const docsLink = page.getByRole('link', { name: 'Documentation' });
 	await expectScreenshotWithHighlight(page, docsLink, testInfo, screenshotCounter);
 	await docsLink.click();
 

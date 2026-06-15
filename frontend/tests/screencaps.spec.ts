@@ -78,20 +78,22 @@ test('shows configuration', async ({ page, request }, testInfo) => {
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
-	// go to device details page, delete device
+	// go to the device details page
 	await page.getByRole('link', { name: 'View Details' }).first().click();
 
 	await page.waitForURL('/configuration/configuration-details*');
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
-	const deleteButton = page.locator('button').filter({ hasText: 'Delete' });
-	await deleteButton.click();
+	// deletion is done from the configuration list
+	await page.locator('nav.nav:visible').locator('a', { hasText: 'Configs' }).click();
+
+	await page.getByRole('button', { name: 'Delete', exact: true }).first().click();
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
-	const confirmButton = page.locator('button').filter({ hasText: 'Delete' }).nth(0);
-	await confirmButton.click();
+	// confirm in the delete dialog
+	await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
 
 	await page.locator('button').filter({ hasText: 'Create New Configuration' }).waitFor();
 	await expectScreenshot(page, testInfo, screenshotCounter);
@@ -176,13 +178,13 @@ test('create whoami tag', async ({ page, request }, testInfo) => {
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
 	const containerNameInput = page
-		.locator('p', { hasText: 'Container Name' })
+		.locator('span.ds-form-label', { hasText: 'Container Name' })
 		.locator('..')
 		.locator('input')
 		.first();
 
 	const containerImageInput = page
-		.locator('p', { hasText: 'Image' })
+		.locator('span.ds-form-label', { hasText: 'Image' })
 		.locator('..')
 		.locator('input')
 		.first();
@@ -193,7 +195,7 @@ test('create whoami tag', async ({ page, request }, testInfo) => {
 	const portButton = page.locator('button').filter({ hasText: 'Add Port' });
 	await portButton.click();
 
-	const ports = page.locator('p', { hasText: 'Port' }).locator('..').locator('div');
+	const ports = page.locator('span.ds-form-label', { hasText: 'Ports' }).locator('..');
 	const hostPortInput = ports.locator('input').nth(0);
 	const containerPortInput = ports.locator('input').nth(1);
 
@@ -399,7 +401,7 @@ test('VNC View', async ({ page, request }, testInfo) => {
 	await addKioskModuleButton.click();
 
 	const enableVNCButton = page
-		.locator('p', { hasText: 'Enable VNC server' })
+		.locator('.ds-form-label', { hasText: 'Enable VNC server' })
 		.first()
 		.locator('..')
 		.locator('input')
@@ -474,7 +476,7 @@ test('Configure Wifi Network', async ({ page, request }, testInfo) => {
 	const configureTagButton = page.locator('a', { hasText: 'Configure' }).first();
 	await configureTagButton.click();
 
-	const wifiSSID = page.locator('p', { hasText: 'WiFi SSID' }).first();
+	const wifiSSID = page.locator('.ds-form-label', { hasText: 'WiFi SSID' }).first();
 	await wifiSSID.hover();
 	await page.mouse.wheel(0, 400);
 
@@ -484,7 +486,7 @@ test('Configure Wifi Network', async ({ page, request }, testInfo) => {
 	await wifiSSIDInput.fill('MyWifi');
 
 	const wifiPassword = page
-		.locator('p', { hasText: 'WiFi Password' })
+		.locator('.ds-form-label', { hasText: 'WiFi Password' })
 		.locator('..')
 		.locator('input')
 		.first();
