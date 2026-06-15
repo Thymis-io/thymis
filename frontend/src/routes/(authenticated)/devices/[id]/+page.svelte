@@ -138,6 +138,7 @@
 
 <Modal bind:open={nameModalOpen} title={$t('device-details.edit')}>
 	<Input bind:value={nameInput} placeholder={$t('device-details.name-placeholder')} />
+	<p class="mt-2 text-xs" style="color: var(--ds-text-mute)">{$t('device-details.name-helper')}</p>
 	<div class="mt-4 flex justify-end gap-2">
 		<button class="ds-btn" onclick={() => (nameModalOpen = false)}>{$t('common.cancel')}</button>
 		<button class="ds-btn ds-btn-primary" onclick={saveName}>{$t('device-details.save')}</button>
