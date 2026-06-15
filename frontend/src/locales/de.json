@@ -136,7 +136,8 @@
 	},
 	"terminal": {
 		"copy-ssh": "SSH-Befehl kopieren",
-		"ssh-copied": "SSH-Befehl in die Zwischenablage kopiert"
+		"ssh-copied": "SSH-Befehl in die Zwischenablage kopiert",
+		"ssh-copy-failed": "SSH-Befehl konnte nicht kopiert werden"
 	},
 	"hardware-devices": {
 		"table": {
@@ -660,7 +661,8 @@
 		"confirm-delete": "Löschen des Secrets bestätigen:",
 		"delete-error": "Fehler beim Löschen des Secrets",
 		"env-key-placeholder": "Schlüssel",
-		"env-value-placeholder": "Wert"
+		"env-value-placeholder": "Wert",
+		"remove-variable": "Variable entfernen"
 	},
 	"systemd": {
 		"calendar": {

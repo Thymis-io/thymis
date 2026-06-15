@@ -136,7 +136,8 @@
 	},
 	"terminal": {
 		"copy-ssh": "Copy SSH Command",
-		"ssh-copied": "SSH command copied to clipboard"
+		"ssh-copied": "SSH command copied to clipboard",
+		"ssh-copy-failed": "Failed to copy SSH command"
 	},
 	"hardware-devices": {
 		"table": {
@@ -661,7 +662,8 @@
 		"confirm-delete": "Confirm deleting secret:",
 		"delete-error": "Error deleting secret",
 		"env-key-placeholder": "Key",
-		"env-value-placeholder": "Value"
+		"env-value-placeholder": "Value",
+		"remove-variable": "Remove variable"
 	},
 	"systemd": {
 		"calendar": {
