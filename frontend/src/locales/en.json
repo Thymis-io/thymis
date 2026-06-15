@@ -716,6 +716,8 @@
 		"error-logs": "Error Logs",
 		"no-error-logs": "No errors recorded",
 		"details": "Details",
+		"console": "Console",
+		"not-connected": "Device is offline — connect it to use this view.",
 		"name-placeholder": "e.g. Display 1, Rack A",
 		"name-helper": "Changing this will also update the device hostname."
 	},
