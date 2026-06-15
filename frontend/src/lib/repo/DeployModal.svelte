@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
 	import { t } from 'svelte-i18n';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
+	import HardDrive from 'lucide-svelte/icons/hard-drive';
 	import { Button, Modal, Input, Tooltip } from 'flowbite-svelte';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import { type Config, type Tag } from '$lib/state';
@@ -14,22 +14,30 @@
 	import { invalidateButDeferUntilNavigation } from '$lib/notification';
 	import type { GlobalState } from '$lib/state.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import { type DeploymentInfo, isOnline } from '$lib/deploymentInfo';
 
 	interface Props {
 		nav: Nav;
 		globalState: GlobalState;
 		repoStatus: RepoStatus;
 		open?: boolean;
+		selectedDeploymentInfo?: DeploymentInfo | undefined;
 	}
 
-	let { nav, globalState, repoStatus, open = $bindable(false) }: Props = $props();
+	let {
+		nav,
+		globalState,
+		repoStatus,
+		open = $bindable(false),
+		selectedDeploymentInfo = undefined
+	}: Props = $props();
 
 	let message = $state('deploy');
 	let selectedFile = $state('');
 	let hasFileChanges = $derived(repoStatus.changes.length > 0);
 
 	type MyOption = {
-		type: 'tag' | 'config';
+		type: 'tag' | 'config' | 'device';
 		value: string;
 		label: string;
 		icon: any;
@@ -43,17 +51,55 @@
 			icon: type === 'tag' ? TagIcon : FileCode
 		};
 	};
+
+	const deviceLabel = (device: DeploymentInfo): string => {
+		if (device.name) return device.name;
+		const config = globalState.configs.find((c) => c.identifier === device.deployed_config_id);
+		return config ? `${device.id} (${config.displayName})` : device.id;
+	};
+
+	const toDeviceOption = (device: DeploymentInfo): MyOption => ({
+		type: 'device',
+		value: device.id,
+		label: deviceLabel(device),
+		icon: HardDrive
+	});
+
 	const toOptionList = (options: any[]): MyOption[] => options as MyOption[];
 
 	let selectedOptions: MyOption[] = $state([]);
-	let affectedConfigs: Config[] = $state([]);
-	run(() => {
-		const configs = selectedOptions.filter((opt) => opt.type === 'config').map((opt) => opt.value);
-		const tags = selectedOptions.filter((opt) => opt.type === 'tag').map((opt) => opt.value);
 
-		affectedConfigs = globalState.configs.filter((config) => {
-			return configs.includes(config.identifier) || config.tags.some((tag) => tags.includes(tag));
-		});
+	let configsFromSelections = $derived.by(() => {
+		const configIds = selectedOptions
+			.filter((opt) => opt.type === 'config')
+			.map((opt) => opt.value);
+		const tagIds = selectedOptions.filter((opt) => opt.type === 'tag').map((opt) => opt.value);
+		return globalState.configs.filter(
+			(config) =>
+				configIds.includes(config.identifier) || config.tags.some((tag) => tagIds.includes(tag))
+		);
+	});
+
+	let selectedDeviceIds = $derived(
+		selectedOptions.filter((opt) => opt.type === 'device').map((opt) => opt.value)
+	);
+
+	let affectedDevices = $derived.by(() => {
+		const affectedConfigIdSet = new Set(configsFromSelections.map((c) => c.identifier));
+		const seen = new Set<string>();
+		const result: DeploymentInfo[] = [];
+		for (const d of [
+			...globalState.deploymentInfos.filter(
+				(d) => d.deployed_config_id !== null && affectedConfigIdSet.has(d.deployed_config_id!)
+			),
+			...globalState.deploymentInfos.filter((d) => selectedDeviceIds.includes(d.id))
+		]) {
+			if (!seen.has(d.id) && isOnline(d.last_seen)) {
+				seen.add(d.id);
+				result.push(d);
+			}
+		}
+		return result;
 	});
 
 	const commit = async () => {
@@ -67,8 +113,11 @@
 	};
 
 	const deploy = async () => {
-		const configs = affectedConfigs.map((config) => '&config=' + config.identifier).join('');
-		await fetchWithNotify(`/api/action/deploy?${configs}`, {
+		const configParams = configsFromSelections
+			.map((config) => '&config=' + config.identifier)
+			.join('');
+		const deviceParams = selectedDeviceIds.map((id) => '&deployment_info_id=' + id).join('');
+		await fetchWithNotify(`/api/action/deploy?${configParams}${deviceParams}`, {
 			method: 'POST'
 		});
 		await invalidateButDeferUntilNavigation((url) => url.pathname === '/api/history');
@@ -83,7 +132,9 @@
 	on:open={() => {
 		selectedFile = 'state.json';
 		message = 'deploy';
-		if (nav.selectedTarget && nav.selectedTargetType) {
+		if (selectedDeploymentInfo) {
+			selectedOptions = [toDeviceOption(selectedDeploymentInfo)];
+		} else if (nav.selectedTarget && nav.selectedTargetType) {
 			selectedOptions = [toOption(nav.selectedTarget, nav.selectedTargetType)];
 		} else {
 			selectedOptions = [];
@@ -113,7 +164,8 @@
 					options={toOptionList(
 						Array.prototype.concat(
 							globalState.tags.map((tag) => toOption(tag, 'tag')),
-							globalState.configs.map((config) => toOption(config, 'config'))
+							globalState.configs.map((config) => toOption(config, 'config')),
+							globalState.deploymentInfos.map(toDeviceOption)
 						)
 					)}
 					key={(option: MyOption) => option.type + option.value}
@@ -142,14 +194,16 @@
 			</div>
 			<div class="flex-0 inline-block w-0.5 self-stretch bg-neutral-100 dark:bg-white/10"></div>
 			<div class="flex-1 flex flex-col gap-2 text-base text-gray-900 dark:text-white">
-				<div class="mb-1">{$t('deploy.configurations')}</div>
+				<div class="mb-1">{$t('deploy.affected-devices')}</div>
 				<div class="flex flex-wrap flex-row gap-2">
-					{#each affectedConfigs as config}
+					{#each affectedDevices as device}
 						<IdentifierLink
-							identifier={config.identifier}
-							context="config"
+							identifier={device.id}
+							context="device"
+							deploymentInfo={device}
 							{globalState}
 							solidBackground
+							showConfigNameForDevice
 						/>
 					{/each}
 				</div>
@@ -161,7 +215,7 @@
 								await deploy();
 								open = false;
 							}}
-							disabled={affectedConfigs.length === 0 || message.length === 0}
+							disabled={affectedDevices.length === 0 || message.length === 0}
 							class="w-48"
 						>
 							{$t('deploy.commit-deploy')}
@@ -173,16 +227,16 @@
 									deploy();
 									open = false;
 								}}
-								disabled={affectedConfigs.length === 0}
+								disabled={affectedDevices.length === 0}
 								class="w-48"
 							>
 								{$t('deploy.deploy')}
 							</Button>
 						</div>
 					{/if}
-					{#if affectedConfigs.length === 0}
+					{#if affectedDevices.length === 0}
 						<Tooltip>
-							{$t('deploy.no-affected-configs-tooltip')}
+							{$t('deploy.no-targets-tooltip')}
 						</Tooltip>
 					{/if}
 				</div>

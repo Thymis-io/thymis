@@ -12,14 +12,16 @@
 	import { type RepoStatus } from '$lib/repo/repo';
 	import type { Nav } from '../../../routes/(authenticated)/+layout';
 	import type { GlobalState } from '$lib/state.svelte';
+	import type { DeploymentInfo } from '$lib/deploymentInfo';
 
 	interface Props {
 		nav: Nav;
 		globalState: GlobalState;
 		repoStatus: RepoStatus;
+		selectedDeploymentInfo?: DeploymentInfo | undefined;
 	}
 
-	let { nav, globalState, repoStatus }: Props = $props();
+	let { nav, globalState, repoStatus, selectedDeploymentInfo = undefined }: Props = $props();
 
 	const buttonClass = 'flex-auto sm:flex-[0_1_100px] gap-2 px-2 py-1.5 h-min';
 	const textClass = 'text-base whitespace-nowrap';
@@ -68,6 +70,6 @@
 		<Boxes size={'1rem'} class="min-w-4" />
 		<span class={textClass}>{$t('deploy.deploy')}</span>
 	</Button>
-	<DeployModal bind:open={openDeploy} {repoStatus} {globalState} {nav} />
+	<DeployModal bind:open={openDeploy} {repoStatus} {globalState} {nav} {selectedDeploymentInfo} />
 	<CommitModal bind:open={openCommit} {repoStatus} onAction={commit} />
 </div>
