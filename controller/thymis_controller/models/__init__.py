@@ -2,6 +2,7 @@ from .agent_connection import *
 from .artifacts import *
 from .device import *
 from .device_metric import *
+from .fleet_alert import *
 from .logs import *
 from .module import *
 from .secrets import *

@@ -17,6 +17,8 @@ class MetricGranularity(str, Enum):
     one_min = "1min"
     fifteen_min = "15min"
     one_hour = "1h"
+    six_hour = "6h"
+    one_day = "1d"
 
     @staticmethod
     def to_seconds(granularity: "MetricGranularity") -> int:
@@ -26,6 +28,10 @@ class MetricGranularity(str, Enum):
             return 15 * 60
         elif granularity == MetricGranularity.one_hour:
             return 60 * 60
+        elif granularity == MetricGranularity.six_hour:
+            return 6 * 60 * 60
+        elif granularity == MetricGranularity.one_day:
+            return 24 * 60 * 60
         else:
             raise ValueError(f"Unknown granularity: {granularity!r}")
 

@@ -275,6 +275,38 @@
 		"affected-devices": "Affected devices (must be online)"
 	},
 	"overview": {
+		"kpi": {
+			"online": "Online Devices",
+			"offline": "Offline Devices",
+			"config-status": "Config Status",
+			"assigned-devices": "devices assigned",
+			"devices-behind": "Devices Behind",
+			"all-up-to-date": "All up to date"
+		},
+		"range": {
+			"custom": "Custom",
+			"from": "From",
+			"to": "To",
+			"apply": "Apply"
+		},
+		"availability": {
+			"title": "Availability",
+			"no-data": "No availability data yet."
+		},
+		"alerts": {
+			"title": "Anomalies & Alerts",
+			"none": "No anomalies detected."
+		},
+		"versions": {
+			"title": "Software Versions",
+			"up-to-date": "On latest commit",
+			"latest": "latest",
+			"behind": "behind latest commit"
+		},
+		"device-types": {
+			"title": "Device Types",
+			"no-data": "No active devices yet."
+		},
 		"configs": "Configs ({count})",
 		"tags": "Tags ({count})",
 		"modules": "Modules ({count})",

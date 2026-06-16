@@ -274,6 +274,38 @@
 		"commit": "Commit"
 	},
 	"overview": {
+		"kpi": {
+			"online": "Online-Geräte",
+			"offline": "Offline-Geräte",
+			"config-status": "Konfigurationsstatus",
+			"assigned-devices": "Geräte zugewiesen",
+			"devices-behind": "Veraltete Geräte",
+			"all-up-to-date": "Alle aktuell"
+		},
+		"range": {
+			"custom": "Benutzerdefiniert",
+			"from": "Von",
+			"to": "Bis",
+			"apply": "Anwenden"
+		},
+		"availability": {
+			"title": "Verfügbarkeit",
+			"no-data": "Noch keine Verfügbarkeitsdaten."
+		},
+		"alerts": {
+			"title": "Anomalien & Warnungen",
+			"none": "Keine Anomalien erkannt."
+		},
+		"versions": {
+			"title": "Softwareversionen",
+			"up-to-date": "Auf neuestem Commit",
+			"latest": "neueste",
+			"behind": "hinter neuestem Commit"
+		},
+		"device-types": {
+			"title": "Gerätetypen",
+			"no-data": "Noch keine aktiven Geräte."
+		},
 		"configs": "Konfigurationen ({count})",
 		"tags": "Tags ({count})",
 		"modules": "Modules ({count})",

@@ -34,8 +34,32 @@ class ConnectivityPoint(BaseModel):
         return dt.isoformat().replace("+00:00", "Z")
 
 
+class DeviceAvailabilityRow(BaseModel):
+    deployment_info_id: uuid.UUID
+    name: Optional[str] = None
+    states: list[bool]
+
+
+class FleetAvailability(BaseModel):
+    timestamps: list[datetime]
+    devices: list[DeviceAvailabilityRow]
+
+    @field_serializer("timestamps")
+    def _ser_ts(self, ts: list[datetime]) -> list[str]:
+        out = []
+        for dt in ts:
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            else:
+                dt = dt.astimezone(timezone.utc)
+            out.append(dt.isoformat().replace("+00:00", "Z"))
+        return out
+
+
 __all__ = [
     "AgentConnection",
     "AgentConnectionShort",
     "ConnectivityPoint",
+    "DeviceAvailabilityRow",
+    "FleetAvailability",
 ]
