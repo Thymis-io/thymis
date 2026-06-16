@@ -30,6 +30,8 @@
 		"search": "Suchen...",
 		"save": "Speichern",
 		"cancel": "Abbrechen",
+		"rename": "Umbenennen",
+		"name": "Name",
 		"no-tag-or-config-selected": "Kein Tag oder Konfig ausgewählt",
 		"logout": "Abmelden",
 		"theme": "Design",

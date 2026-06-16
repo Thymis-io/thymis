@@ -2,16 +2,13 @@
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
 	import { saveState, type Tag } from '$lib/state';
-	import { Helper } from 'flowbite-svelte';
 	import Trash from 'lucide-svelte/icons/trash';
 	import Pen from 'lucide-svelte/icons/pen';
 	import Server from 'lucide-svelte/icons/server';
 	import GripVertical from 'lucide-svelte/icons/grip-vertical';
 	import { SOURCES, TRIGGERS, type DndEvent } from 'svelte-dnd-action';
-	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
-	import { nameToIdentifier, nameValidation } from '$lib/nameValidation';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import CreateTagModal from './CreateTagModal.svelte';
 	import Page from '$lib/components/layout/Page.svelte';
@@ -37,7 +34,6 @@
 	});
 
 	let projectTags = $derived(data.globalState.tags);
-	let projectTagIds = $derived(projectTags.map((t) => t.identifier));
 
 	// How many deployed devices use a tag = devices whose deployed config carries the tag.
 	const deviceCountForTag = (tagIdentifier: string) => {
@@ -65,30 +61,6 @@
 		});
 
 		saveState(data.globalState);
-	};
-
-	const renameTag = (oldTagIdentifier: string, newTag: string) => {
-		const newIdentifier = nameToIdentifier(newTag);
-
-		if (newTag && !projectTagIds.includes(newIdentifier)) {
-			data.globalState.tags = projectTags.map((t) => {
-				if (t.identifier === oldTagIdentifier) {
-					t.displayName = newTag;
-					t.identifier = newIdentifier;
-				}
-				return t;
-			});
-
-			data.globalState.configs = data.globalState.configs.map((config) => {
-				config.tags = config.tags.map((t) => (t === oldTagIdentifier ? newIdentifier : t));
-				return config;
-			});
-
-			saveState(data.globalState);
-			return true;
-		}
-
-		return false;
 	};
 
 	const handleConsider = (e: CustomEvent<DndEvent<{ id: string; data: Tag }>>) => {
@@ -156,7 +128,6 @@
 		dnd={{ dragDisabled, flipDurationMs, onConsider: handleConsider, onFinalize: handleFinalize }}
 	>
 		{#snippet row(tag)}
-			{@const displayName = tag.data.displayName}
 			{@const configsWithTag = data.globalState.configs.filter((config) =>
 				config.tags.includes(tag.data.identifier)
 			)}
@@ -177,40 +148,13 @@
 					</div>
 				</div>
 			</td>
-			<TableBodyEditCell
-				value={displayName}
-				onEnter={(value) => {
-					const success = renameTag(tag.data.identifier, value);
-
-					if (!success) {
-						// Reset the display name if the rename was unsuccessful
-						tag.data.displayName = tag.data.displayName;
-					}
-				}}
-			>
-				{#snippet bottom({ value: newTagDisplayName })}
-					{#if nameValidation(data.globalState, newTagDisplayName, 'tag')}
-						{#if newTagDisplayName !== displayName}
-							<Helper color="red">
-								{nameValidation(data.globalState, newTagDisplayName, 'tag')}
-							</Helper>
-						{/if}
-					{:else}
-						<Helper color="green">
-							{$t('create-configuration.name-helper-tag', {
-								values: { identifier: nameToIdentifier(newTagDisplayName) }
-							})}
-						</Helper>
-					{/if}
-				{/snippet}
-				{#snippet children()}
-					<IdentifierLink
-						identifier={tag.data.identifier}
-						context="tag"
-						globalState={data.globalState}
-					/>
-				{/snippet}
-			</TableBodyEditCell>
+			<td>
+				<IdentifierLink
+					identifier={tag.data.identifier}
+					context="tag"
+					globalState={data.globalState}
+				/>
+			</td>
 			<td>
 				<div class="flex flex-wrap gap-2">
 					{#each configsWithTag as config}
