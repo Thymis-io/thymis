@@ -42,10 +42,33 @@
 		a === 'right' ? 'text-right' : a === 'center' ? 'text-center' : '';
 
 	const key = (item: T, i: number) => (rowKey ? rowKey(item, i) : i);
+
+	let tableEl = $state<HTMLTableElement>();
+
+	const transformDraggedElement = (draggedEl?: HTMLElement) => {
+		if (!draggedEl) return;
+		draggedEl.style.display = 'table';
+		draggedEl.style.tableLayout = 'fixed';
+		draggedEl.style.opacity = '1';
+		draggedEl.style.background = 'var(--ds-surface-2)';
+		draggedEl.style.boxShadow = 'var(--ds-shadow-lg)';
+		draggedEl.style.borderRadius = 'var(--ds-radius)';
+		const headerCells = tableEl?.querySelectorAll('thead th');
+		if (!headerCells) return;
+		draggedEl.querySelectorAll(':scope > td').forEach((td, i) => {
+			const th = headerCells[i] as HTMLElement | undefined;
+			const cell = td as HTMLElement;
+			if (th) {
+				cell.style.width = `${th.getBoundingClientRect().width}px`;
+				cell.style.padding = getComputedStyle(th).padding;
+				cell.style.boxSizing = 'border-box';
+			}
+		});
+	};
 </script>
 
 <div class="ds-table-wrap {className}">
-	<table class="ds-table">
+	<table class="ds-table" bind:this={tableEl}>
 		<thead>
 			<tr>
 				{#each columns as col}
@@ -60,7 +83,9 @@
 				use:dndzone={{
 					items: rows as DndItem[],
 					dragDisabled: dnd.dragDisabled,
-					flipDurationMs: dnd.flipDurationMs
+					flipDurationMs: dnd.flipDurationMs,
+					transformDraggedElement,
+					dropTargetStyle: {}
 				}}
 				onconsider={dnd.onConsider as DndHandler}
 				onfinalize={dnd.onFinalize as DndHandler}
