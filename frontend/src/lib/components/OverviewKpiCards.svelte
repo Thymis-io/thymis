@@ -10,17 +10,10 @@
 		offlineCount: number;
 		onlineConfigsCount: number;
 		totalConfigsCount: number;
-		assignedDevices: number;
 		behindCount: number;
 	}
-	let {
-		onlineCount,
-		offlineCount,
-		onlineConfigsCount,
-		totalConfigsCount,
-		assignedDevices,
-		behindCount
-	}: Props = $props();
+	let { onlineCount, offlineCount, onlineConfigsCount, totalConfigsCount, behindCount }: Props =
+		$props();
 </script>
 
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -48,7 +41,7 @@
 		</div>
 	</a>
 
-	<div class="ds-stat">
+	<a href="#configurations" class="ds-stat block transition hover:brightness-105">
 		<div class="flex items-start justify-between gap-3">
 			<div>
 				<div class="ds-stat-label">
@@ -57,11 +50,10 @@
 				<div class="ds-stat-value">
 					{onlineConfigsCount}<span class="ds-stat-sub">/{totalConfigsCount}</span>
 				</div>
-				<div class="ds-stat-sub">{assignedDevices} {$t('overview.kpi.assigned-devices')}</div>
 			</div>
 			<div class="ds-icon-tile info"><Layers class="h-[18px] w-[18px]" /></div>
 		</div>
-	</div>
+	</a>
 
 	<a href="#software-versions" class="ds-stat block transition hover:brightness-105">
 		<div class="flex items-start justify-between gap-3">

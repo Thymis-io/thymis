@@ -67,7 +67,6 @@
 	let offlineInstancesCount = $derived(Math.max(0, activeInstancesTotal - onlineInstancesCount));
 	let onlineConfigsCount = $derived(configCards.filter((c) => c.onlineCount > 0).length);
 	let totalConfigsCount = $derived(data.globalState.configs.length);
-	let assignedDevices = $derived(data.deploymentInfos.filter((di) => di.deployed_config_id).length);
 
 	let behindCount = $derived.by(() => {
 		const active = data.deploymentInfos.filter((di) => isActive(di.last_seen));
@@ -77,7 +76,7 @@
 	});
 
 	// Time range
-	let range = $derived(data.range as TimeRange | 'custom');
+	let range = $derived(data.range as TimeRange);
 
 	function setRange(r: TimeRange) {
 		const sp = new URLSearchParams(page.url.search);
@@ -107,7 +106,6 @@
 		offlineCount={offlineInstancesCount}
 		{onlineConfigsCount}
 		{totalConfigsCount}
-		{assignedDevices}
 		{behindCount}
 	/>
 </div>
@@ -116,7 +114,7 @@
 <div class="ds-card mb-4 flex flex-col">
 	<div class="ds-card-head flex items-center justify-between">
 		<h3 class="ds-card-title">{$t('overview.chart.connectivity')}</h3>
-		<TimeRangeSelector value={range} onSelect={setRange} onCustom={setCustom} />
+		<TimeRangeSelector value={range} onSelect={setRange} />
 	</div>
 	<div class="ds-card-pad">
 		<FleetConnectivityChart points={data.connectivity} timewindow={connTimewindow} />
@@ -168,7 +166,7 @@
 </div>
 
 <!-- Row 6: configurations -->
-<div class="mb-3 flex items-baseline gap-2">
+<div id="configurations" class="mb-3 flex items-baseline gap-2">
 	<h2 class="ds-card-title" style="font-size: 15px">{$t('overview.section-configurations')}</h2>
 	<span class="ds-card-sub">{totalConfigsCount}</span>
 </div>
