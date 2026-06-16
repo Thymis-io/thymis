@@ -1,5 +1,10 @@
 <script lang="ts" generics="T">
 	import type { Snippet } from 'svelte';
+	import { dndzone, type DndEvent } from 'svelte-dnd-action';
+	import { flip } from 'svelte/animate';
+
+	type DndItem = { id: string | number };
+	type DndHandler = (e: CustomEvent<DndEvent<DndItem>>) => void;
 
 	type Column = {
 		/** Header label. Omit for spacer columns (e.g. a drag handle). */
@@ -7,6 +12,14 @@
 		align?: 'left' | 'right' | 'center';
 		/** Extra classes for the <th> (e.g. a fixed width like `w-12`). */
 		class?: string;
+	};
+
+	/** Drag-and-drop reordering config. Rows must expose a stable key via `rowKey`. */
+	type Dnd = {
+		dragDisabled: boolean;
+		flipDurationMs: number;
+		onConsider: (e: CustomEvent<DndEvent<T>>) => void;
+		onFinalize: (e: CustomEvent<DndEvent<T>>) => void;
 	};
 
 	interface Props {
@@ -17,12 +30,18 @@
 		/** Renders the cells (<td>…</td>) for one row. */
 		row: Snippet<[T, number]>;
 		class?: string;
+		/** Enable drag-and-drop row reordering. Requires `rowKey`. */
+		dnd?: Dnd;
+		/** Stable key for each row; used for keyed iteration and flip animations. */
+		rowKey?: (item: T, index: number) => string | number;
 	}
 
-	let { columns, rows, empty, row, class: className = '' }: Props = $props();
+	let { columns, rows, empty, row, class: className = '', dnd, rowKey }: Props = $props();
 
 	const alignClass = (a?: Column['align']) =>
 		a === 'right' ? 'text-right' : a === 'center' ? 'text-center' : '';
+
+	const key = (item: T, i: number) => (rowKey ? rowKey(item, i) : i);
 </script>
 
 <div class="ds-table-wrap {className}">
@@ -34,18 +53,44 @@
 				{/each}
 			</tr>
 		</thead>
-		<tbody>
-			{#each rows as item, i}
-				<tr>
-					{@render row(item, i)}
-				</tr>
-			{:else}
-				{#if empty}
-					<tr>
-						<td colspan={columns.length} class="ds-table-empty">{empty}</td>
+		{#if dnd}
+			<!-- svelte-dnd-action's Item type requires an `id`; the generic T can't express
+			     that, and callers enabling `dnd` pass rows that carry one. Cast to bridge it. -->
+			<tbody
+				use:dndzone={{
+					items: rows as DndItem[],
+					dragDisabled: dnd.dragDisabled,
+					flipDurationMs: dnd.flipDurationMs
+				}}
+				onconsider={dnd.onConsider as DndHandler}
+				onfinalize={dnd.onFinalize as DndHandler}
+			>
+				{#each rows as item, i (key(item, i))}
+					<tr animate:flip={{ duration: dnd.flipDurationMs }}>
+						{@render row(item, i)}
 					</tr>
-				{/if}
-			{/each}
-		</tbody>
+				{:else}
+					{#if empty}
+						<tr>
+							<td colspan={columns.length} class="ds-table-empty">{empty}</td>
+						</tr>
+					{/if}
+				{/each}
+			</tbody>
+		{:else}
+			<tbody>
+				{#each rows as item, i}
+					<tr>
+						{@render row(item, i)}
+					</tr>
+				{:else}
+					{#if empty}
+						<tr>
+							<td colspan={columns.length} class="ds-table-empty">{empty}</td>
+						</tr>
+					{/if}
+				{/each}
+			</tbody>
+		{/if}
 	</table>
 </div>

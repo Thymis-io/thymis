@@ -3,7 +3,7 @@
 	import Page from '$lib/components/layout/Page.svelte';
 	import DataTable from '$lib/components/layout/DataTable.svelte';
 	import CreateButton from '$lib/components/layout/CreateButton.svelte';
-	import ActionButton from '$lib/components/layout/ActionButton.svelte';
+	import RowMenu from '$lib/components/layout/RowMenu.svelte';
 	import RowActions from '$lib/components/layout/RowActions.svelte';
 	import type { PageData } from './$types';
 	import { invalidate } from '$app/navigation';
@@ -12,7 +12,7 @@
 	import Download from 'lucide-svelte/icons/download';
 	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
 	import type { Artifact } from './+page';
-	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
+	import Pen from 'lucide-svelte/icons/pen';
 	import type { ModuleSettings } from '$lib/state';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
@@ -26,6 +26,8 @@
 	let uploadReplaceFile = $state<File | null>(null);
 	let deleteConfirmTarget = $state<Artifact | undefined>();
 	let showUploadModal = $state(false);
+	let editArtifact = $state<Artifact | undefined>();
+	let editArtifactName = $state('');
 
 	const uploadFiles = async () => {
 		if (!files || files.length === 0) return;
@@ -83,6 +85,27 @@
 		});
 
 		await invalidate((url) => url.pathname.startsWith('/api/artifacts'));
+	};
+
+	const openEditArtifact = (artifact: Artifact) => {
+		editArtifact = artifact;
+		editArtifactName = artifact.name;
+	};
+
+	const editNameValid = $derived(
+		!!editArtifact &&
+			!!editArtifactName.trim() &&
+			(editArtifactName.trim() === editArtifact.name ||
+				isUnusedName(editArtifact, editArtifactName.trim()))
+	);
+
+	const submitEditArtifact = async () => {
+		if (!editArtifact || !editNameValid) return;
+		const newName = editArtifactName.trim();
+		if (newName !== editArtifact.name) {
+			await renameArtifact(editArtifact, newName);
+		}
+		editArtifact = undefined;
 	};
 
 	const deleteArtifact = async (artifact: Artifact) => {
@@ -181,9 +204,31 @@
 		</div>
 	</Modal>
 
+	<Modal
+		open={!!editArtifact}
+		title={$t('artifacts.edit-title')}
+		outsideclose
+		on:close={() => (editArtifact = undefined)}
+	>
+		<div class="space-y-2">
+			<label class="ds-form-label" for="editArtifactName">{$t('artifacts.table.name')}</label>
+			<input id="editArtifactName" class="ds-input" bind:value={editArtifactName} />
+			{#if !editNameValid && editArtifactName.trim()}
+				<Helper color="red">{$t('artifacts.name-already-used')}</Helper>
+			{/if}
+		</div>
+		<svelte:fragment slot="footer">
+			<Button color="alternative" on:click={() => (editArtifact = undefined)}>
+				{$t('artifacts.replace-file-cancel')}
+			</Button>
+			<Button on:click={submitEditArtifact} disabled={!editNameValid}>
+				{$t('common.save')}
+			</Button>
+		</svelte:fragment>
+	</Modal>
+
 	<DataTable
 		columns={[
-			{ class: 'w-12' },
 			{ label: $t('artifacts.table.name') },
 			{ label: $t('artifacts.table.type') },
 			{ label: $t('artifacts.table.size') },
@@ -193,28 +238,18 @@
 			{ label: $t('artifacts.table.actions'), align: 'right' }
 		]}
 		rows={data.artifacts}
+		empty={$t('artifacts.empty')}
 	>
 		{#snippet row(artifact)}
-			<td></td>
-			<TableBodyEditCell
-				value={artifact.name}
-				onEnter={async (value) => {
-					if (isUnusedName(artifact, value)) {
-						renameArtifact(artifact, value);
-					}
-
-					// Reset the input field after renaming
-					await invalidate((url) => url.pathname.startsWith('/api/artifacts'));
-				}}
-			>
-				{#snippet bottom({ value: newName })}
-					{#if !isUnusedName(artifact, newName)}
-						<Helper color="red">
-							{$t('artifacts.name-already-used')}
-						</Helper>
-					{/if}
-				{/snippet}
-			</TableBodyEditCell>
+			<td>
+				<button
+					class="ds-name-btn"
+					onclick={() => openEditArtifact(artifact)}
+					title={$t('artifacts.edit')}
+				>
+					{artifact.name}
+				</button>
+			</td>
 			<td>{artifact.media_type || $t('artifacts.table.unknown-type')}</td>
 			<td>{bytesToHumanReadable(artifact.size)}</td>
 			<td>
@@ -249,15 +284,23 @@
 			</td>
 			<td>
 				<RowActions>
-					<a class="ds-btn ds-btn-sm" href={`/api/artifacts/${artifact.name}`} download>
-						<Download size={15} />
-						{$t('artifacts.table.download')}
-					</a>
-					<ActionButton
-						label={$t('artifacts.table.delete')}
-						icon={Trash}
-						variant="danger"
-						onclick={() => (deleteConfirmTarget = artifact)}
+					<RowMenu
+						label={$t('artifacts.table.actions')}
+						items={[
+							{ label: $t('artifacts.edit'), icon: Pen, onclick: () => openEditArtifact(artifact) },
+							{
+								label: $t('artifacts.table.download'),
+								icon: Download,
+								href: `/api/artifacts/${artifact.name}`,
+								download: true
+							},
+							{
+								label: $t('artifacts.table.delete'),
+								icon: Trash,
+								variant: 'danger',
+								onclick: () => (deleteConfirmTarget = artifact)
+							}
+						]}
 					/>
 				</RowActions>
 			</td>

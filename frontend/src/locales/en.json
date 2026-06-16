@@ -59,6 +59,9 @@
 	},
 	"artifacts": {
 		"subtitle": "Files and assets you can reference from device configurations.",
+		"empty": "No artifacts yet.",
+		"edit": "Edit",
+		"edit-title": "Edit Artifact",
 		"table": {
 			"name": "Name",
 			"type": "Media Type",
@@ -98,12 +101,14 @@
 	"configurations": {
 		"title": "Device Configurations",
 		"subtitle": "Composable, inheritable configurations applied across your fleet.",
+		"empty": "No device configurations yet.",
 		"details-title": "Configuration",
 		"create-new": "Create New Configuration ({configCount}/{configLimit})",
 		"table": {
 			"name": "Name",
 			"target-host": "Target Host",
 			"tags": "Tags",
+			"devices": "Devices",
 			"actions": "Actions",
 			"status": "Status"
 		},
@@ -160,7 +165,13 @@
 		"known-devices-without-deployment": "Known devices without any current deployment",
 		"known-devices-with-deployment": "Currently deployed",
 		"subtitle": "Physical devices and their deployed configurations.",
-		"hide-old-devices": "Hide old devices",
+		"actions": "Device actions",
+		"no-deployed-devices": "No deployed devices yet.",
+		"filter": {
+			"all": "All",
+			"online": "Online",
+			"offline": "Offline"
+		},
 		"no-known-hardware-devices-without-known-deployment": "No known hardware devices without known deployment"
 	},
 	"create-configuration": {
@@ -317,6 +328,7 @@
 		}
 	},
 	"taskbar": {
+		"all": "All",
 		"pending": "Pending",
 		"running": "Running",
 		"completed": "Completed",
@@ -448,8 +460,10 @@
 		"repo": {
 			"title": "Repositories",
 			"subtitle": "External Nix flake repositories available to your configurations.",
+			"empty": "No external repositories yet.",
+			"edit": "Edit",
 			"add": "Add Repository",
-			"name": "Input Name",
+			"name": "Repository Name",
 			"url": "URL",
 			"secret": "API Key Secret",
 			"status": "Status",
@@ -512,10 +526,12 @@
 		"table": {
 			"name": "Name",
 			"configs": "Configs",
+			"devices": "Devices",
 			"actions": "Actions"
 		},
 		"configs": "Configs",
-		"details-title": "Tag"
+		"details-title": "Tag",
+		"empty": "No tags yet."
 	},
 	"time": {
 		"ago": {

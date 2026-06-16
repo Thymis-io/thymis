@@ -3,6 +3,8 @@
 	import type { FlakeReference } from '$lib/externalRepo';
 	import { Modal, Label, Input, Select, Button, Spinner } from 'flowbite-svelte';
 	import AutoComplete from './AutoComplete.svelte';
+	import SecretSelect from './secrets/SecretSelect.svelte';
+	import type { SecretShort } from './secrets/secretUtils';
 	import Branch from 'lucide-svelte/icons/git-branch';
 	import Commit from 'lucide-svelte/icons/git-commit-vertical';
 	import Tag from 'lucide-svelte/icons/tag';
@@ -17,7 +19,13 @@
 		inputName?: string;
 		inputUrl?: string;
 		apiSecret?: string | null;
+		secrets?: SecretShort[];
+		/** When true, the repo does not exist yet: seed a default reference instead
+		 * of loading it from the backend by name. */
+		isNew?: boolean;
 		onSave: (newUrl: string) => void;
+		onRename?: (newName: string) => void;
+		onSecretChange?: (secretId: string | null) => void;
 		onClose: () => void;
 	}
 
@@ -26,10 +34,16 @@
 		inputName,
 		inputUrl,
 		apiSecret,
+		secrets = [],
+		isNew = false,
 		onSave,
+		onRename,
+		onSecretChange,
 		onClose
 	}: Props = $props();
 
+	let nameValue = $state('');
+	let selectedSecretId = $state<string | null>(null);
 	let testConnectionUrl = $state<string>('');
 
 	let flakeReference = $state<FlakeReference>();
@@ -80,8 +94,8 @@
 		repoTags = [];
 
 		const searchParams = new URLSearchParams();
-		if (apiSecret) {
-			searchParams.set('api_key_secret', apiSecret);
+		if (selectedSecretId) {
+			searchParams.set('api_key_secret', selectedSecretId);
 		}
 
 		const [branchesFetch, tagsFetch] = await Promise.all([
@@ -142,7 +156,20 @@
 	on:open={() => {
 		testConnectionUrl = '';
 		manualRefRefreshStatus = null;
-		if (inputName) loadRepo(inputName);
+		nameValue = inputName ?? '';
+		selectedSecretId = apiSecret ?? null;
+		if (isNew) {
+			flakeReference = {
+				type: 'github',
+				host: null,
+				owner: 'Thymis-io',
+				repo: 'thymis',
+				ref: null,
+				rev: null
+			};
+		} else if (inputName) {
+			loadRepo(inputName);
+		}
 		if (inputUrl) loadRefs(inputUrl);
 	}}
 	on:close={() => {
@@ -150,13 +177,19 @@
 		onClose();
 	}}
 >
+	<div>
+		<Label class="mb-1">{$t('settings.repo.name')}</Label>
+		<Input bind:value={nameValue} />
+	</div>
+
+	<hr class="my-4 border-[var(--ds-border)]" />
+
 	{#if flakeReference}
-		<div class="flex gap-2">
+		<div class="flex flex-col gap-3 sm:flex-row">
 			<div class="flex-1">
-				<Label class="mb-0">{$t('settings.external-modal.reference-type')}</Label>
+				<Label class="mb-1">{$t('settings.external-modal.reference-type')}</Label>
 				<Select
 					value={flakeReference.type}
-					class="mb-2"
 					on:change={(e) => {
 						const newType = (e.target as HTMLInputElement)?.value ?? '';
 						const prevType = flakeReference?.type;
@@ -184,19 +217,30 @@
 					<option value="gitlab">{$t('settings.external-modal.reference-type-gitlab')}</option>
 				</Select>
 			</div>
-			<div class="flex-5">
-				{#if warnings.length > 0}
-					<div class="text-yellow-600 dark:text-yellow-400 flex items-top gap-2 text-base mt-6">
-						<Warning class="w-5 h-5 flex-shrink-0" />
-						<div>
-							{#each warnings as warn}
-								<div>{warn}</div>
-							{/each}
-						</div>
-					</div>
-				{/if}
+			<div class="flex-1">
+				<Label class="mb-1">{$t('settings.repo.secret')}</Label>
+				<SecretSelect
+					secret={selectedSecretId ? secrets.find((s) => s.id === selectedSecretId) : undefined}
+					{secrets}
+					allowedTypes={['single_line']}
+					selectClass=""
+					onChange={(secret) => {
+						selectedSecretId = secret?.id ?? null;
+						onSecretChange?.(selectedSecretId);
+					}}
+				/>
 			</div>
 		</div>
+		{#if warnings.length > 0}
+			<div class="text-yellow-600 dark:text-yellow-400 mt-2 flex items-start gap-2 text-sm">
+				<Warning class="w-5 h-5 flex-shrink-0" />
+				<div>
+					{#each warnings as warn}
+						<div>{warn}</div>
+					{/each}
+				</div>
+			</div>
+		{/if}
 	{/if}
 	{#if flakeReference && flakeReference.type === 'git'}
 		<div class="flex gap-2">
@@ -306,9 +350,9 @@
 		</div>
 	{/if}
 	{#if flakeReference}
-		<div class="flex mt-8 gap-2">
+		<div class="mt-6 flex gap-2">
 			<div class="flex-5">
-				<Label class="mb-0">{$t('settings.external-modal.compiled-url')}</Label>
+				<Label class="mb-1">{$t('settings.external-modal.compiled-url')}</Label>
 				<Input
 					class="flex-6 mb-2 w-full"
 					bind:value={compiledUrl}
@@ -331,6 +375,8 @@
 				class="flex-1 mt-4 mb-2"
 				on:click={() => {
 					if (compiledUrl) onSave(compiledUrl);
+					const newName = nameValue.trim();
+					if (newName && newName !== inputName) onRename?.(newName);
 					open = false;
 				}}
 				disabled={!compiledUrl}
@@ -344,5 +390,5 @@
 			<Spinner class="mr-2" size="8" />
 		</div>
 	{/if}
-	<RepoConnectionTest inputUrl={testConnectionUrl} {apiSecret} />
+	<RepoConnectionTest inputUrl={testConnectionUrl} apiSecret={selectedSecretId} />
 </Modal>
