@@ -101,7 +101,7 @@
 {#if context == 'device'}
 	<div class={className}>
 		<a
-			href={`/devices/${identifier}`}
+			href={`/devices/${identifier}/details`}
 			class={'min-h-6 flex items-center gap-1 w-fit font-mono ' +
 				(showLinkHover ? 'hover:underline ' : '') +
 				(solidBackground
