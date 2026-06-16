@@ -787,7 +787,7 @@
 		"no-error-logs": "Keine Fehler aufgezeichnet",
 		"details": "Details",
 		"console": "Konsole",
-		"not-connected": "Gerät ist offline – für diese Ansicht muss es verbunden sein.",
+		"not-connected": "Das Gerät ist offline. Für diese Ansicht muss es verbunden sein.",
 		"name-placeholder": "z.B. Display 1, Rack A",
 		"name-helper": "Diese Änderung aktualisiert auch den Hostnamen des Geräts."
 	},

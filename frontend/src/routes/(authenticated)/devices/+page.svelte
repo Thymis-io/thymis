@@ -161,7 +161,9 @@
 				<RowActions>
 					<RowMenu
 						label={$t('hardware-devices.actions')}
-						items={[{ label: $t('device-details.details'), href: '/devices/' + deploymentInfo.id }]}
+						items={[
+							{ label: $t('device-details.details'), href: `/devices/${deploymentInfo.id}/details` }
+						]}
 					/>
 				</RowActions>
 			</td>
