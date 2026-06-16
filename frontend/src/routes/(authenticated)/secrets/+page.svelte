@@ -4,7 +4,7 @@
 	import CreateButton from '$lib/components/layout/CreateButton.svelte';
 	import DataTable from '$lib/components/layout/DataTable.svelte';
 	import RowActions from '$lib/components/layout/RowActions.svelte';
-	import ActionButton from '$lib/components/layout/ActionButton.svelte';
+	import RowMenu from '$lib/components/layout/RowMenu.svelte';
 	import type { PageData } from './$types';
 	import { invalidate } from '$app/navigation';
 	import SecretEditModal from '$lib/components/secrets/SecretEditModal.svelte';
@@ -16,6 +16,9 @@
 	} from '$lib/components/secrets/secretUtils';
 	import type { SecretProcessingType, SecretType } from '$lib/state';
 	import Alert from 'lucide-svelte/icons/triangle-alert';
+	import Pen from 'lucide-svelte/icons/pen';
+	import Copy from 'lucide-svelte/icons/copy';
+	import Trash from 'lucide-svelte/icons/trash-2';
 
 	interface Props {
 		data: PageData;
@@ -193,7 +196,11 @@
 		empty={$t('secrets.no-secrets')}
 	>
 		{#snippet row([id, secret])}
-			<td>{secret.display_name}</td>
+			<td>
+				<button class="ds-name-btn" onclick={() => openEditSecret(id)} title={$t('secrets.edit')}>
+					{secret.display_name}
+				</button>
+			</td>
 			<td>
 				{#if secret.type === 'single_line'}
 					{$t('secrets.type-single-line')}
@@ -225,17 +232,18 @@
 			</td>
 			<td>
 				<RowActions>
-					<ActionButton label={$t('secrets.edit')} onclick={() => openEditSecret(id)} />
-					<ActionButton
-						label={$t('secrets.copy-id')}
-						onclick={() => copySecretId(id)}
-						title={`Copy ${secret.display_name} ID`}
-						aria-label={`Copy ${secret.display_name} ID`}
-					/>
-					<ActionButton
-						label={$t('secrets.delete')}
-						variant="danger"
-						onclick={() => (secretToDelete = { id, name: secret.display_name })}
+					<RowMenu
+						label={$t('secrets.actions')}
+						items={[
+							{ label: $t('secrets.edit'), icon: Pen, onclick: () => openEditSecret(id) },
+							{ label: $t('secrets.copy-id'), icon: Copy, onclick: () => copySecretId(id) },
+							{
+								label: $t('secrets.delete'),
+								icon: Trash,
+								variant: 'danger',
+								onclick: () => (secretToDelete = { id, name: secret.display_name })
+							}
+						]}
 					/>
 				</RowActions>
 			</td>

@@ -407,6 +407,147 @@ body {
 	font-size: 13px;
 }
 
+/* ---- Filter chips ---- */
+.ds-chip-bar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 14px;
+	flex-wrap: wrap;
+}
+.ds-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 10px;
+	border-radius: 999px;
+	background: var(--ds-surface-2);
+	border: 1px solid var(--ds-border);
+	font-size: 12.5px;
+	color: var(--ds-text-dim);
+	cursor: pointer;
+	transition:
+		background 0.12s,
+		border-color 0.12s,
+		color 0.12s;
+}
+.ds-chip:hover {
+	border-color: var(--ds-border-strong);
+	color: var(--ds-text);
+}
+.ds-chip.active {
+	background: var(--ds-accent-dim);
+	border-color: color-mix(in srgb, var(--ds-accent) 40%, transparent);
+	color: var(--ds-accent-strong);
+}
+.ds-chip-count {
+	color: var(--ds-text-mute);
+	font-variant-numeric: tabular-nums;
+}
+.ds-chip.active .ds-chip-count {
+	color: var(--ds-accent-strong);
+}
+
+/* ---- Inline count (e.g. devices using a config/tag) ---- */
+.ds-count {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-variant-numeric: tabular-nums;
+	color: var(--ds-text);
+}
+.ds-count > svg {
+	color: var(--ds-text-mute);
+}
+.ds-count.empty {
+	color: var(--ds-text-mute);
+}
+
+/* ---- Clickable name (opens an edit modal) ---- */
+.ds-name-btn {
+	padding: 0;
+	border: none;
+	background: none;
+	font: inherit;
+	text-align: left;
+	color: var(--ds-text);
+	cursor: pointer;
+	transition: color 0.12s;
+}
+.ds-name-btn:hover {
+	color: var(--ds-accent-strong);
+	text-decoration: underline;
+}
+
+/* ---- Two-line primary cell (name + muted meta) ---- */
+.ds-cell-primary {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+}
+.ds-cell-sub {
+	font-size: 11.5px;
+	color: var(--ds-text-mute);
+	white-space: nowrap;
+}
+
+/* ---- Row overflow (kebab) menu ---- */
+.ds-row-menu {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	padding: 4px;
+	background: var(--ds-surface);
+	border: 1px solid var(--ds-border);
+	border-radius: var(--ds-radius);
+	box-shadow: var(--ds-shadow-lg);
+	z-index: 60;
+	min-width: 160px;
+	animation: ds-row-menu-in 0.12s ease;
+}
+@keyframes ds-row-menu-in {
+	from {
+		opacity: 0;
+		transform: translateY(-4px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+.ds-row-menu-item {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	width: 100%;
+	padding: 7px 10px;
+	border-radius: 7px;
+	font-size: 13px;
+	text-align: left;
+	color: var(--ds-text);
+	background: transparent;
+	cursor: pointer;
+	transition:
+		background 0.12s,
+		color 0.12s;
+}
+.ds-row-menu-item:hover {
+	background: var(--ds-surface-2);
+}
+.ds-row-menu-item.danger {
+	color: var(--ds-danger);
+}
+.ds-row-menu-item.danger:hover {
+	background: var(--ds-danger-dim);
+}
+.ds-row-menu-item:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+.ds-row-menu-item:disabled:hover {
+	background: transparent;
+}
+
 /* ---- Status pill ---- */
 .ds-status-pill {
 	display: inline-flex;

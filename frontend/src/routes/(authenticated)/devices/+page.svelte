@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
-	import { Toggle } from 'flowbite-svelte';
 	import { getDeviceTypesMap, getDeviceType } from '$lib/config/configUtils';
 	import Page from '$lib/components/layout/Page.svelte';
 	import DataTable from '$lib/components/layout/DataTable.svelte';
-	import ActionButton from '$lib/components/layout/ActionButton.svelte';
+	import FilterChips from '$lib/components/layout/FilterChips.svelte';
+	import RowActions from '$lib/components/layout/RowActions.svelte';
+	import RowMenu from '$lib/components/layout/RowMenu.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
@@ -21,35 +22,54 @@
 		'pi-serial-number': () => $t('hardware-devices.hardware-keys.pi-serial-number')
 	} as Record<string, () => string>;
 
-	let hideOldDevices = $state(true);
+	// A device counts as online when it was last seen within the last 30 seconds.
+	const connectedWindowMs = 30000;
+	const isOnline = (deploymentInfo: { last_seen?: string | null }) =>
+		!!deploymentInfo.last_seen &&
+		new Date(deploymentInfo.last_seen).getTime() > data.loadTime - connectedWindowMs;
 
-	// hide after 1 day
-	const hideAfter = 1 * 1000 * 60 * 60 * 24; // 1000ms/s * 60s/m * 60m/h * 24h/d = X ms/d = 1 => 1d = X ms
+	let statusFilter = $state<'all' | 'online' | 'offline'>('all');
+
+	let onlineCount = $derived(data.deploymentInfos.filter(isOnline).length);
 
 	let hardwareDevicesWithoutDeploymentInfo = $derived(
 		data.hardwareDevices.filter((hardwareDevice) => !hardwareDevice.deployment_info_id)
 	);
 
 	let visibleDeploymentInfos = $derived(
-		data.deploymentInfos.filter(
-			(deploymentInfo) =>
-				!hideOldDevices ||
-				(deploymentInfo.last_seen &&
-					new Date(deploymentInfo.last_seen) > new Date(data.loadTime - hideAfter))
-		)
+		statusFilter === 'online'
+			? data.deploymentInfos.filter(isOnline)
+			: statusFilter === 'offline'
+				? data.deploymentInfos.filter((deploymentInfo) => !isOnline(deploymentInfo))
+				: data.deploymentInfos
 	);
 </script>
 
 <Page title={$t('nav.devices')} subtitle={$t('hardware-devices.subtitle')}>
-	<div class="flex items-center justify-between gap-4 mb-3">
-		<h2 class="ds-section-title">{$t('hardware-devices.known-devices-with-deployment')}</h2>
-		<div class="flex items-center gap-2">
-			<Toggle bind:checked={hideOldDevices} />
-			<label for="hideOldDevices" class="text-sm" style="color: var(--ds-text-dim)">
-				{$t('hardware-devices.hide-old-devices')}
-			</label>
-		</div>
-	</div>
+	<h2 class="ds-section-title mb-3">{$t('hardware-devices.known-devices-with-deployment')}</h2>
+
+	<FilterChips
+		bind:selected={statusFilter}
+		chips={[
+			{
+				value: 'all',
+				label: $t('hardware-devices.filter.all'),
+				count: data.deploymentInfos.length
+			},
+			{
+				value: 'online',
+				label: $t('hardware-devices.filter.online'),
+				dot: 'online',
+				count: onlineCount
+			},
+			{
+				value: 'offline',
+				label: $t('hardware-devices.filter.offline'),
+				dot: 'offline',
+				count: data.deploymentInfos.length - onlineCount
+			}
+		]}
+	/>
 
 	<DataTable
 		columns={[
@@ -58,10 +78,10 @@
 			{ label: $t('hardware-devices.table.deployed-config-commit') },
 			{ label: $t('hardware-devices.table.device-type') },
 			{ label: $t('hardware-devices.table.hardware-ids') },
-			{ label: $t('hardware-devices.table.connected') },
 			{}
 		]}
 		rows={visibleDeploymentInfos}
+		empty={$t('hardware-devices.no-deployed-devices')}
 	>
 		{#snippet row(deploymentInfo)}
 			{@const deployedConfig = data.globalState.configs.find(
@@ -72,12 +92,24 @@
 			{@const isConnected =
 				!!timestamp && new Date(timestamp) > new Date(new Date().getTime() - 30000)}
 			<td>
-				<IdentifierLink
-					identifier={deploymentInfo.id}
-					context="device"
-					globalState={data.globalState}
-					deploymentInfos={data.deploymentInfos}
-				/>
+				<div class="ds-cell-primary">
+					<IdentifierLink
+						identifier={deploymentInfo.id}
+						context="device"
+						globalState={data.globalState}
+						deploymentInfos={data.deploymentInfos}
+					/>
+					<span class="ds-cell-sub flex items-center gap-1.5">
+						<span class="ds-stat-dot {isConnected ? 'online' : 'offline'}"></span>
+						{#if isConnected}
+							{$t('hardware-devices.table.connected')}
+						{:else if timestamp}
+							{$t('hardware-devices.table.last-seen')}: <RenderTimeAgo {timestamp} />
+						{:else}
+							{$t('hardware-devices.table.never-seen')}
+						{/if}
+					</span>
+				</div>
 			</td>
 			<td>
 				<IdentifierLink
@@ -122,23 +154,12 @@
 				{/if}
 			</td>
 			<td>
-				{#if isConnected}
-					<span class="ds-status-pill online">
-						<span class="ds-dot"></span>{$t('hardware-devices.table.connected')}
-					</span>
-				{:else}
-					<span class="ds-status-pill offline">
-						<span class="ds-dot"></span>
-						{#if timestamp}
-							<RenderTimeAgo {timestamp} />
-						{:else}
-							{$t('hardware-devices.table.never-seen')}
-						{/if}
-					</span>
-				{/if}
-			</td>
-			<td>
-				<ActionButton label={$t('device-details.details')} href={'/devices/' + deploymentInfo.id} />
+				<RowActions>
+					<RowMenu
+						label={$t('hardware-devices.actions')}
+						items={[{ label: $t('device-details.details'), href: '/devices/' + deploymentInfo.id }]}
+					/>
+				</RowActions>
 			</td>
 		{/snippet}
 	</DataTable>

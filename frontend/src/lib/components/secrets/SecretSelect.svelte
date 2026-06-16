@@ -12,6 +12,8 @@
 		allowedTypes?: SecretType[];
 		placeholder?: string;
 		disabled?: boolean;
+		/** Extra classes for the inner <select>. Defaults to a compact height. */
+		selectClass?: string;
 	}
 
 	let {
@@ -20,7 +22,8 @@
 		secrets,
 		allowedTypes = ['single_line', 'multi_line', 'env_list', 'file'],
 		placeholder,
-		disabled = false
+		disabled = false,
+		selectClass = 'h-8 px-2 py-1'
 	}: Props = $props();
 
 	let filteredSecrets = $derived(
@@ -47,7 +50,7 @@
 		}))}
 		placeholder={placeholder || $t('secrets.select')}
 		{disabled}
-		class={`h-8 px-2 py-1 ${disabled ? 'opacity-70' : ''}`}
+		class={`${selectClass} ${disabled ? 'opacity-70' : ''}`}
 	/>
 	{#if secret}
 		<button

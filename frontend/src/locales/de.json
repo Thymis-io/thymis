@@ -59,6 +59,9 @@
 	},
 	"artifacts": {
 		"subtitle": "Dateien und Assets, die Sie in Gerätekonfigurationen referenzieren können.",
+		"empty": "Noch keine Artefakte.",
+		"edit": "Bearbeiten",
+		"edit-title": "Artefakt bearbeiten",
 		"table": {
 			"name": "Name",
 			"type": "Media Type",
@@ -98,12 +101,14 @@
 	"configurations": {
 		"title": "Gerätekonfigurationen",
 		"subtitle": "Zusammensetzbare, vererbbare Konfigurationen für die gesamte Flotte.",
+		"empty": "Noch keine Gerätekonfigurationen.",
 		"details-title": "Konfiguration",
 		"create-new": "Neue Konfiguration Erstellen ({configCount}/{configLimit})",
 		"table": {
 			"name": "Name",
 			"target-host": "Ziel Host",
 			"tags": "Tags",
+			"devices": "Geräte",
 			"actions": "Aktionen",
 			"status": "Status"
 		},
@@ -160,7 +165,13 @@
 		"known-devices-with-deployment": "Derzeit deployed",
 		"known-devices-without-deployment": "Bekannte Geräte ohne aktuelles deployment",
 		"subtitle": "Physische Geräte und ihre bereitgestellten Konfigurationen.",
-		"hide-old-devices": "Alte Geräte verstecken",
+		"actions": "Geräteaktionen",
+		"no-deployed-devices": "Noch keine bereitgestellten Geräte.",
+		"filter": {
+			"all": "Alle",
+			"online": "Online",
+			"offline": "Offline"
+		},
 		"no-known-hardware-devices-without-known-deployment": "Keine bekannten Hardware-Geräte ohne Deployment"
 	},
 	"create-configuration": {
@@ -374,8 +385,10 @@
 		"repo": {
 			"title": "Repositories",
 			"subtitle": "Externe Nix-Flake-Repositories, die Ihren Konfigurationen zur Verfügung stehen.",
+			"empty": "Noch keine externen Repositories.",
+			"edit": "Bearbeiten",
 			"add": "Repository hinzufügen",
-			"name": "Input Name",
+			"name": "Repository-Name",
 			"url": "URL",
 			"secret": "API Key Secret",
 			"status": "Status",
@@ -428,6 +441,7 @@
 		}
 	},
 	"taskbar": {
+		"all": "Alle",
 		"completed": "Fertig",
 		"failed": "Fehlgeschlagen",
 		"latest-task": "Letzter Vorgang",
@@ -511,10 +525,12 @@
 		"table": {
 			"name": "Name",
 			"configs": "Konfigurationen",
+			"devices": "Geräte",
 			"actions": "Aktionen"
 		},
 		"configs": "Konfigurationen",
-		"details-title": "Tag"
+		"details-title": "Tag",
+		"empty": "Noch keine Tags."
 	},
 	"time": {
 		"ago": {
