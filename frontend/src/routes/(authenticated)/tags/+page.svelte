@@ -168,6 +168,7 @@
 						role="button"
 						class="handle"
 						style={dragDisabled ? 'cursor: grab' : 'cursor: grabbing'}
+						onmouseenter={() => (dragDisabled = false)}
 						onmousedown={startDrag}
 						ontouchstart={startDrag}
 						onkeydown={handleKeyDown}
