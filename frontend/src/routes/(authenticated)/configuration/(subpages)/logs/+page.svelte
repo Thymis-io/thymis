@@ -66,7 +66,7 @@
 		const lastSeen = info.last_seen
 			? calcTimeSince(new Date(info.last_seen), new Date())
 			: $t('configurations.status.never-seen');
-		return `${displayName ?? info.deployed_config_id} (${online ? $t('configurations.status.online') : lastSeen})`;
+		return `${info.name || info.id} (${online ? $t('configurations.status.online') : lastSeen})`;
 	};
 
 	const getDownloadUrl = (deploymentId: string | null, minutes: number) => {
