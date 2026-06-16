@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
+	import { page } from '$app/state';
 	import type { PageData } from './$types';
 	import { getDeviceTypesMap, getDeviceType } from '$lib/config/configUtils';
 	import Page from '$lib/components/layout/Page.svelte';
@@ -28,7 +29,10 @@
 		!!deploymentInfo.last_seen &&
 		new Date(deploymentInfo.last_seen).getTime() > data.loadTime - connectedWindowMs;
 
-	let statusFilter = $state<'all' | 'online' | 'offline'>('all');
+	const initialStatus = page.url.searchParams.get('status');
+	let statusFilter = $state<'all' | 'online' | 'offline'>(
+		initialStatus === 'online' || initialStatus === 'offline' ? initialStatus : 'all'
+	);
 
 	let onlineCount = $derived(data.deploymentInfos.filter(isOnline).length);
 

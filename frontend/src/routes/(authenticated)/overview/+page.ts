@@ -1,38 +1,49 @@
 import { getAllDeploymentInfos, getAllConnectedDeploymentInfos } from '$lib/deploymentInfo';
-import { getFleetMetrics, getFleetConnectivity, getFleetDeviceMetricsLatest } from '$lib/fleet';
+import {
+	getFleetConnectivity,
+	getFleetDeviceMetricsLatest,
+	getFleetAvailability,
+	getFleetAlerts,
+	rangeToParams,
+	hoursToParams,
+	RANGE_OPTIONS,
+	type TimeRange
+} from '$lib/fleet';
 import type { Commit } from '$lib/history';
 import { fetchWithNotify } from '$lib/fetchWithNotify';
 import type { PageLoad } from './$types';
 
-type TimeWindow = '1h' | '24h' | '7d';
-const hoursMap: Record<TimeWindow, number> = { '1h': 1, '24h': 24, '7d': 7 * 24 };
-const granularityMap: Record<TimeWindow, '1min' | '15min' | '1h'> = {
-	'1h': '1min',
-	'24h': '15min',
-	'7d': '1h'
-};
-
 export const load = (async ({ fetch, url }) => {
-	const twParam = url.searchParams.get('timewindow');
-	const timewindow: TimeWindow =
-		twParam === '1h' || twParam === '24h' || twParam === '7d' ? twParam : '24h';
-	const hours = hoursMap[timewindow];
-	const granularity = granularityMap[timewindow];
+	const rangeParam = url.searchParams.get('range');
+	const customHoursParam = url.searchParams.get('hours');
+
+	let range: TimeRange | 'custom';
+	let params: { hours: number; granularity: string; buckets: number };
+
+	if (customHoursParam && !RANGE_OPTIONS.includes(rangeParam as TimeRange)) {
+		range = 'custom';
+		params = hoursToParams(Number(customHoursParam));
+	} else {
+		range = RANGE_OPTIONS.includes(rangeParam as TimeRange) ? (rangeParam as TimeRange) : '24h';
+		params = rangeToParams(range);
+	}
 
 	const [
 		deploymentInfos,
 		connectedDeploymentInfos,
 		historyResponse,
-		fleetMetrics,
 		connectivity,
-		topDevices
+		topDevices,
+		availability,
+		alerts
 	] = await Promise.all([
 		getAllDeploymentInfos(fetch),
 		getAllConnectedDeploymentInfos(fetch),
 		fetchWithNotify('/api/history', undefined, {}, fetch),
-		getFleetMetrics(fetch, hours, granularity),
-		getFleetConnectivity(fetch, hours, 48),
-		getFleetDeviceMetricsLatest(fetch)
+		getFleetConnectivity(fetch, params.hours, params.buckets),
+		getFleetDeviceMetricsLatest(fetch),
+		getFleetAvailability(fetch, params.hours, params.buckets),
+		getFleetAlerts(fetch)
 	]);
 
 	const history = (await historyResponse.json()) as Commit[];
@@ -42,9 +53,11 @@ export const load = (async ({ fetch, url }) => {
 		deploymentInfos,
 		connectedDeploymentInfos,
 		headCommit,
-		fleetMetrics,
 		connectivity,
 		topDevices,
-		timewindow
+		availability,
+		alerts,
+		range,
+		customHours: params.hours
 	};
 }) satisfies PageLoad;

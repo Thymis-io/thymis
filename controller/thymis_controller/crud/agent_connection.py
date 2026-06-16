@@ -150,6 +150,69 @@ def get_by_deployment_info(
     )
 
 
+def get_availability_matrix(
+    db_session: Session,
+    from_datetime: datetime,
+    to_datetime: datetime,
+    buckets: int,
+) -> models.FleetAvailability:
+    """Per-device online/offline state sampled at evenly spaced points."""
+    buckets = max(1, buckets)
+    span = (to_datetime - from_datetime) / buckets
+    sample_points = [from_datetime + span * i for i in range(buckets + 1)]
+
+    conns = (
+        db_session.query(db_models.AgentConnection)
+        .filter(
+            db_models.AgentConnection.connected_at <= to_datetime,
+            (db_models.AgentConnection.disconnected_at.is_(None))
+            | (db_models.AgentConnection.disconnected_at >= from_datetime),
+        )
+        .all()
+    )
+
+    def _aware(dt):
+        return dt.replace(tzinfo=timezone.utc) if dt and dt.tzinfo is None else dt
+
+    # Pre-normalise each connection to a timezone-aware (connected, disconnected)
+    # interval once, so the per-sample-point loop below stays cheap and readable.
+    by_device: dict[uuid.UUID, list[tuple[datetime, datetime | None]]] = {}
+    for c in conns:
+        by_device.setdefault(c.deployment_info_id, []).append(
+            (_aware(c.connected_at), _aware(c.disconnected_at))
+        )
+
+    if not by_device:
+        return models.FleetAvailability(timestamps=sample_points, devices=[])
+
+    names = {
+        di.id: di.name
+        for di in db_session.query(db_models.DeploymentInfo)
+        .filter(db_models.DeploymentInfo.id.in_(by_device.keys()))
+        .all()
+    }
+
+    rows: list[models.DeviceAvailabilityRow] = []
+    for di_id, intervals in by_device.items():
+        states: list[bool] = []
+        for t in sample_points:
+            online = any(
+                connected_at <= t and (disconnected_at is None or disconnected_at > t)
+                for connected_at, disconnected_at in intervals
+            )
+            states.append(online)
+        rows.append(
+            models.DeviceAvailabilityRow(
+                deployment_info_id=di_id,
+                name=names.get(di_id),
+                states=states,
+            )
+        )
+
+    rows.sort(key=lambda r: (r.name or str(r.deployment_info_id)))
+    return models.FleetAvailability(timestamps=sample_points, devices=rows)
+
+
 def get_connectivity_series(
     db_session: Session,
     from_datetime: datetime,

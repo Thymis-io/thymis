@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 from thymis_controller import db_models
 from thymis_controller.crud import device_metric as crud
+from thymis_controller.models import MetricGranularity
 
 
 def _make_di(db_session):
@@ -53,3 +54,8 @@ def test_latest_per_device_returns_most_recent(db_session):
     assert len(results) == 2
     assert abs(by_id[di_a.id].cpu_percent - 70.0) < 0.01  # latest, not 10.0
     assert abs(by_id[di_b.id].cpu_percent - 55.0) < 0.01
+
+
+def test_metric_granularity_six_hour_and_one_day_to_seconds():
+    assert MetricGranularity.to_seconds(MetricGranularity.six_hour) == 6 * 60 * 60
+    assert MetricGranularity.to_seconds(MetricGranularity.one_day) == 24 * 60 * 60

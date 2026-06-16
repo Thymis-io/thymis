@@ -4,29 +4,26 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
-	import { getDeviceType, getDeviceTypesMap } from '$lib/config/configUtils';
-	import MonitorCheck from 'lucide-svelte/icons/monitor-check';
-	import MonitorX from 'lucide-svelte/icons/monitor-x';
 	import Server from 'lucide-svelte/icons/server';
-	import Layers from 'lucide-svelte/icons/layers';
-	import Tag from 'lucide-svelte/icons/tag';
 	import OverviewConfigCard, { type ConfigCard } from '$lib/components/OverviewConfigCard.svelte';
-	import FleetHealthChart from '$lib/components/FleetHealthChart.svelte';
+	import OverviewKpiCards from '$lib/components/OverviewKpiCards.svelte';
 	import FleetConnectivityChart from '$lib/components/FleetConnectivityChart.svelte';
-	import OverviewInventory from '$lib/components/OverviewInventory.svelte';
+	import OverviewAvailabilityHeatmap from '$lib/components/OverviewAvailabilityHeatmap.svelte';
+	import OverviewAlerts from '$lib/components/OverviewAlerts.svelte';
+	import OverviewVersions from '$lib/components/OverviewVersions.svelte';
+	import OverviewDeviceTypes from '$lib/components/OverviewDeviceTypes.svelte';
 	import OverviewTopDevices from '$lib/components/OverviewTopDevices.svelte';
+	import TimeRangeSelector from '$lib/components/TimeRangeSelector.svelte';
+	import { getDeviceType, getDeviceTypesMap } from '$lib/config/configUtils';
 	import { isOnline, isActive } from '$lib/deploymentInfo';
+	import type { TimeRange } from '$lib/fleet';
 
 	interface Props {
 		data: PageData;
 	}
-
 	let { data }: Props = $props();
 
 	let deviceTypesMap = $derived(getDeviceTypesMap(data.availableModules));
-
-	// Normalise to 7-char short hash so comparisons work regardless of
-	// whether the API returns a full SHA1 or an already-shortened hash.
 	let shortHeadCommit = $derived(data.headCommit?.slice(0, 7) ?? null);
 
 	let configCards: ConfigCard[] = $derived.by(() => {
@@ -44,18 +41,14 @@
 						isCurrentCommit: !!shortCommit && shortCommit === shortHeadCommit
 					};
 				});
-
 			const activeInstances = allInstances.filter((i) => i.active || i.online);
-
 			const rawType = getDeviceType(cfg);
 			const deviceTypeLabel = rawType
 				? rawType in deviceTypesMap
 					? deviceTypesMap[rawType]
 					: rawType
 				: $t('overview.unknown-device-type');
-
 			const onlineCount = activeInstances.filter((i) => i.online).length;
-
 			return {
 				identifier: cfg.identifier,
 				displayName: cfg.displayName,
@@ -66,156 +59,107 @@
 		});
 	});
 
-	// ── Summary stats ─────────────────────────────────────────────────────
-	let onlineConfigsCount = $derived(configCards.filter((c) => c.onlineCount > 0).length);
-	let totalConfigsCount = $derived(data.globalState.configs.length);
+	// KPIs
 	let onlineInstancesCount = $derived(data.connectedDeploymentInfos.length);
-	let tagsCount = $derived(data.globalState.tags.length);
 	let activeInstancesTotal = $derived(
 		configCards.reduce((sum, c) => sum + c.activeInstances.length, 0)
 	);
 	let offlineInstancesCount = $derived(Math.max(0, activeInstancesTotal - onlineInstancesCount));
+	let onlineConfigsCount = $derived(configCards.filter((c) => c.onlineCount > 0).length);
+	let totalConfigsCount = $derived(data.globalState.configs.length);
+	let assignedDevices = $derived(data.deploymentInfos.filter((di) => di.deployed_config_id).length);
 
-	// ── Shared time-window control (fleet health + connectivity) ──────────
-	type TimeWindow = '1h' | '24h' | '7d';
-	let timewindow = $derived(data.timewindow as TimeWindow);
+	let behindCount = $derived.by(() => {
+		const active = data.deploymentInfos.filter((di) => isActive(di.last_seen));
+		return active.filter(
+			(di) => (di.deployed_config_commit?.slice(0, 7) ?? null) !== shortHeadCommit
+		).length;
+	});
 
-	const hoursMap: Record<TimeWindow, number> = { '1h': 1, '24h': 24, '7d': 7 * 24 };
-	const granularityMap: Record<TimeWindow, '1min' | '15min' | '1h'> = {
-		'1h': '1min',
-		'24h': '15min',
-		'7d': '1h'
-	};
+	// Time range
+	let range = $derived(data.range as TimeRange | 'custom');
 
-	function setTimeWindow(w: TimeWindow) {
+	function setRange(r: TimeRange) {
 		const sp = new URLSearchParams(page.url.search);
-		sp.set('timewindow', w);
-		sp.set('hours', hoursMap[w].toString());
-		sp.set('granularity', granularityMap[w]);
+		sp.set('range', r);
+		sp.delete('hours');
+		goto(`?${sp.toString()}`, { replaceState: true, invalidateAll: true });
+	}
+	function setCustom(hours: number) {
+		const sp = new URLSearchParams(page.url.search);
+		sp.delete('range');
+		sp.set('hours', Math.round(hours).toString());
 		goto(`?${sp.toString()}`, { replaceState: true, invalidateAll: true });
 	}
 
-	let latestFleet = $derived(
-		data.fleetMetrics.length ? data.fleetMetrics[data.fleetMetrics.length - 1] : null
-	);
+	let connTimewindow = $derived(range === '24h' ? '24h' : range === '7d' ? '7d' : '7d') as
+		| '1h'
+		| '24h'
+		| '7d';
 </script>
 
 <PageHead title={$t('nav.overview')} subtitle={$t('overview.subtitle')} />
 
-<!-- ── Row 1: stat cards ──────────────────────────────────────────────── -->
-<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-4">
-	<div class="ds-stat">
-		<div class="flex items-start justify-between gap-3">
-			<div>
-				<div class="ds-stat-label">
-					<span class="ds-stat-dot online"></span>{$t('overview.stat.connected-devices')}
-				</div>
-				<div class="ds-stat-value">{onlineInstancesCount}</div>
-			</div>
-			<div class="ds-icon-tile online"><MonitorCheck class="h-[18px] w-[18px]" /></div>
-		</div>
-	</div>
-
-	<div class="ds-stat">
-		<div class="flex items-start justify-between gap-3">
-			<div>
-				<div class="ds-stat-label">
-					<span class="ds-stat-dot offline"></span>{$t('overview.offline')}
-				</div>
-				<div class="ds-stat-value">{offlineInstancesCount}</div>
-			</div>
-			<div class="ds-icon-tile offline"><MonitorX class="h-[18px] w-[18px]" /></div>
-		</div>
-	</div>
-
-	<div class="ds-stat">
-		<div class="flex items-start justify-between gap-3">
-			<div>
-				<div class="ds-stat-label">
-					<span class="ds-stat-dot info"></span>{$t('overview.stat.configs-online')}
-				</div>
-				<div class="ds-stat-value">
-					{onlineConfigsCount}<span class="ds-stat-sub">/{totalConfigsCount}</span>
-				</div>
-			</div>
-			<div class="ds-icon-tile info"><Layers class="h-[18px] w-[18px]" /></div>
-		</div>
-	</div>
-
-	<div class="ds-stat">
-		<div class="flex items-start justify-between gap-3">
-			<div>
-				<div class="ds-stat-label"><span class="ds-stat-dot"></span>{$t('overview.stat.tags')}</div>
-				<div class="ds-stat-value">{tagsCount}</div>
-			</div>
-			<div class="ds-icon-tile warning"><Tag class="h-[18px] w-[18px]" /></div>
-		</div>
-	</div>
+<!-- Row 1: KPI cards -->
+<div class="mb-4">
+	<OverviewKpiCards
+		onlineCount={onlineInstancesCount}
+		offlineCount={offlineInstancesCount}
+		{onlineConfigsCount}
+		{totalConfigsCount}
+		{assignedDevices}
+		{behindCount}
+	/>
 </div>
 
-<!-- ── Row 2: fleet average resource chips ────────────────────────────── -->
-{#if latestFleet}
-	<div class="mb-4 grid grid-cols-3 gap-4">
-		<div class="ds-stat">
-			<div class="ds-stat-label">{$t('overview.fleet.avg-cpu')}</div>
-			<div class="ds-stat-value">{latestFleet.cpu_avg.toFixed(0)}%</div>
-		</div>
-		<div class="ds-stat">
-			<div class="ds-stat-label">{$t('overview.fleet.avg-ram')}</div>
-			<div class="ds-stat-value">{latestFleet.ram_avg.toFixed(0)}%</div>
-		</div>
-		<div class="ds-stat">
-			<div class="ds-stat-label">{$t('overview.fleet.avg-disk')}</div>
-			<div class="ds-stat-value">{latestFleet.disk_avg.toFixed(0)}%</div>
-		</div>
-	</div>
-{/if}
-
-<!-- ── Row 3: fleet health (full width) with shared time-window switch ── -->
+<!-- Row 2: connectivity over time with range selector -->
 <div class="ds-card mb-4 flex flex-col">
 	<div class="ds-card-head flex items-center justify-between">
-		<h3 class="ds-card-title">{$t('overview.chart.fleet-health')}</h3>
-		<div class="flex gap-1">
-			{#each ['1h', '24h', '7d'] as const as w}
-				<button
-					class="ds-btn ds-btn-sm {timewindow === w ? 'ds-btn-primary' : ''}"
-					onclick={() => setTimeWindow(w)}
-				>
-					{w}
-				</button>
-			{/each}
-		</div>
+		<h3 class="ds-card-title">{$t('overview.chart.connectivity')}</h3>
+		<TimeRangeSelector value={range} onSelect={setRange} onCustom={setCustom} />
 	</div>
 	<div class="ds-card-pad">
-		<FleetHealthChart metrics={data.fleetMetrics} {timewindow} />
+		<FleetConnectivityChart points={data.connectivity} timewindow={connTimewindow} />
 	</div>
 </div>
 
-<!-- ── Row 4: connectivity + inventory/compliance ─────────────────────── -->
+<!-- Row 3: availability heatmap + alerts -->
 <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
 	<div class="ds-card flex flex-col">
 		<div class="ds-card-head">
-			<h3 class="ds-card-title">{$t('overview.chart.connectivity')}</h3>
+			<h3 class="ds-card-title">{$t('overview.availability.title')}</h3>
 		</div>
-		<div class="ds-card-pad">
-			<FleetConnectivityChart points={data.connectivity} {timewindow} />
-		</div>
+		<OverviewAvailabilityHeatmap availability={data.availability} />
 	</div>
-
 	<div class="ds-card flex flex-col">
 		<div class="ds-card-head">
-			<h3 class="ds-card-title">{$t('overview.chart.update-compliance')}</h3>
+			<h3 class="ds-card-title">{$t('overview.alerts.title')}</h3>
 		</div>
-		<OverviewInventory
+		<OverviewAlerts alerts={data.alerts} />
+	</div>
+</div>
+
+<!-- Row 4: software versions + device types -->
+<div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+	<div id="software-versions" class="ds-card flex flex-col">
+		<div class="ds-card-head">
+			<h3 class="ds-card-title">{$t('overview.versions.title')}</h3>
+		</div>
+		<OverviewVersions deploymentInfos={data.deploymentInfos} headCommit={data.headCommit} />
+	</div>
+	<div class="ds-card flex flex-col">
+		<div class="ds-card-head">
+			<h3 class="ds-card-title">{$t('overview.device-types.title')}</h3>
+		</div>
+		<OverviewDeviceTypes
 			deploymentInfos={data.deploymentInfos}
-			headCommit={data.headCommit}
 			globalState={data.globalState}
 			availableModules={data.availableModules}
 		/>
 	</div>
 </div>
 
-<!-- ── Row 5: top resource usage ──────────────────────────────────────── -->
+<!-- Row 5: top resource usage -->
 <div class="ds-card mb-4 flex flex-col">
 	<div class="ds-card-head">
 		<h3 class="ds-card-title">{$t('overview.chart.top-load')}</h3>
@@ -223,7 +167,7 @@
 	<OverviewTopDevices devices={data.topDevices} />
 </div>
 
-<!-- ── Row 3: configurations ──────────────────────────────────────────── -->
+<!-- Row 6: configurations -->
 <div class="mb-3 flex items-baseline gap-2">
 	<h2 class="ds-card-title" style="font-size: 15px">{$t('overview.section-configurations')}</h2>
 	<span class="ds-card-sub">{totalConfigsCount}</span>
