@@ -621,7 +621,7 @@ body {
 .ds-textarea {
 	width: 100%;
 	padding: 7px 10px;
-	background: var(--ds-surface-2);
+	background-color: var(--ds-surface-2);
 	border: 1px solid var(--ds-border);
 	border-radius: 8px;
 	color: var(--ds-text);
@@ -894,8 +894,27 @@ div[class*='bg-gray-900'][class*='fixed'][class*='inset-0'] {
 	),
 [role='dialog'] select,
 [role='dialog'] textarea {
-	background: var(--ds-surface-2) !important;
+	background-color: var(--ds-surface-2) !important;
 	border: 1px solid var(--ds-border) !important;
 	color: var(--ds-text) !important;
 	border-radius: 8px !important;
+}
+
+.ds-select,
+select[class*='bg-gray-50'],
+[role='dialog'] select {
+	appearance: none;
+	-webkit-appearance: none;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237b8696' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+	background-repeat: no-repeat !important;
+	background-position: right 9px center !important;
+	background-size: 16px !important;
+	padding-right: 30px !important;
+}
+
+[role='dialog'] div.multiselect input {
+	background: transparent !important;
+	border: none !important;
+	border-radius: 0 !important;
+	padding: 0 !important;
 }
