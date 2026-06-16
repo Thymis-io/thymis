@@ -122,14 +122,14 @@
 	};
 
 	onMount(() => {
-		document.addEventListener('fullscreenchange', onFullscreenChange);
+		if (div) document.addEventListener('fullscreenchange', onFullscreenChange);
 		if (hasVNC) {
 			initVNC(deploymentInfo);
 		}
 	});
 
 	onDestroy(() => {
-		document.removeEventListener('fullscreenchange', onFullscreenChange);
+		if (div) document.removeEventListener('fullscreenchange', onFullscreenChange);
 		if (rfb) {
 			rfb.disconnect();
 			rfb = null;
