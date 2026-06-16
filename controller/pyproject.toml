@@ -29,7 +29,7 @@ dependencies = [
     "thymis-agent",
     "watchdog>=6.0.0",
     "pyrage>=1.2.4",
-    "pyjwt>=2.10.1",
+    "pyjwt>=2.13.0",
     "thymis-agent",
     "cachetools>=6.2.0",
 ]
