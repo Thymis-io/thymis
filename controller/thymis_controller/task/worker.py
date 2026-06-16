@@ -253,6 +253,7 @@ def deploy_device_task(
                 f'git+file:{repo_path}?rev={task_data.config_commit}#nixosConfigurations."{task_data.device.identifier}".config.system.build.toplevel',
                 "--out-link",
                 toplevel_path,
+                "--allow-dirty-locks",
             ],
             env,
             cwd=tmpdir,

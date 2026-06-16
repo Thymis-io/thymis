@@ -170,10 +170,17 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await page.keyboard.type('echo \'{"key": "value"}\' | jq "."');
 	await page.waitForTimeout(1000);
 
-	// Edit core device module too (the core module is now named "Device")
-	await page.locator('a[href*="configuration/edit"]', { hasText: 'Device' }).first().click();
+	// click on "Add Module" button
+	await addModuleButton.click();
+
+	// select "Files" from dropdown
+	const addFilesModuleButton = page.locator('button').filter({ hasText: 'Files' });
+	await addFilesModuleButton.click();
+	await page.waitForTimeout(200);
+
+	//await page.locator('a[href*="configuration/edit"]', { hasText: 'Files' }).first().click();
 	await page.getByRole('button', { name: 'Add Secret' }).click();
-	await page.getByRole('button', { name: 'Create Secret' }).nth(1).click();
+	await page.getByRole('button', { name: 'Create Secret' }).nth(0).click();
 	await page.getByPlaceholder('No name').fill('secret.txt');
 	await page.getByLabel('Value').fill('THIS IS A SECRET');
 	await page.getByRole('button', { name: 'Save' }).click();
@@ -208,7 +215,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	// Wait for the device to be connected
 	await page
 		.locator('div')
-		.filter({ has: page.locator('h1', { hasText: 'Deployed Devices' }) })
+		.filter({ has: page.locator('h2', { hasText: 'Deployed Devices' }) })
 		.locator('a[href^="/devices/"]')
 		.first()
 		.waitFor();
@@ -294,6 +301,16 @@ test('Create and use artifacts', async ({ page, request }, testInfo) => {
 		.first()
 		.click({ force: true });
 	await page.getByRole('tab', { name: 'Configure' }).click();
+
+	// click on "Add Module" button
+	const addModuleButton = page.locator('#add-module').first();
+	await addModuleButton.click();
+
+	// select "Files" from dropdown
+	const addFilesModuleButton = page.locator('button').filter({ hasText: 'Files' });
+	await addFilesModuleButton.click();
+	await page.waitForTimeout(200);
+
 	await page.locator('button').filter({ hasText: 'Add Artifact' }).click();
 	await page.locator('button', { hasText: 'Add Artifact' }).scrollIntoViewIfNeeded();
 	await page.locator("button:near(:text('Artifact')):text('Select an option')").click();
