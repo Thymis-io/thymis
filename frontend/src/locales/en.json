@@ -30,6 +30,8 @@
 		"search": "Search...",
 		"save": "Save",
 		"cancel": "Cancel",
+		"rename": "Rename",
+		"name": "Name",
 		"no-tag-or-config-selected": "No tag or config selected",
 		"logout": "Logout",
 		"theme": "Theme",

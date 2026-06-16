@@ -2,7 +2,6 @@
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
 	import { saveState, type Config, type Tag } from '$lib/state';
-	import Pen from 'lucide-svelte/icons/pen';
 	import { Tooltip } from 'flowbite-svelte';
 	import Search from 'lucide-svelte/icons/search';
 	import Trash from 'lucide-svelte/icons/trash-2';
@@ -10,8 +9,6 @@
 	import Server from 'lucide-svelte/icons/server';
 	import GripVertical from 'lucide-svelte/icons/grip-vertical';
 	import CreateConfigModal from './CreateConfigModal.svelte';
-	import EditTagModal from '$lib/EditTagModal.svelte';
-	import TableBodyEditCell from '$lib/components/TableBodyEditCell.svelte';
 	import type { PageData } from '../../devices/$types';
 	import { SOURCES, TRIGGERS, type DndEvent } from 'svelte-dnd-action';
 	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
@@ -83,12 +80,6 @@
 		if ((e.key === 'Enter' || e.key === ' ') && dragDisabled) dragDisabled = false;
 	}) satisfies KeyboardEventHandler<HTMLDivElement>;
 
-	const renameConfig = async (config: Config, displayName: string) => {
-		config.displayName = displayName;
-		await saveState(data.globalState);
-		return true;
-	};
-
 	let configToDelete: Config | undefined = $state(undefined);
 
 	const deleteConfiguration = async (config: Config) => {
@@ -100,7 +91,6 @@
 	};
 
 	let newConfigModalOpen = $state(false);
-	let currentlyEditingConfig: Config | undefined = $state(undefined);
 </script>
 
 <Page title={$t('configurations.title')} subtitle={$t('configurations.subtitle')}>
@@ -135,7 +125,6 @@
 		on:cancel={() => (configToDelete = undefined)}
 	/>
 	<CreateConfigModal globalState={data.globalState} bind:open={newConfigModalOpen} />
-	<EditTagModal globalState={data.globalState} bind:currentlyEditingConfig />
 	<DataTable
 		columns={[
 			{ class: 'w-12' },
@@ -167,42 +156,23 @@
 					</div>
 				</div>
 			</td>
-			<TableBodyEditCell
-				value={config.data.displayName}
-				onEnter={async (value) => {
-					const success = await renameConfig(config.data, value);
-
-					if (!success) {
-						// Reset the display name if the rename was unsuccessful
-						config.data.displayName = config.data.displayName;
-					}
-				}}
-			>
+			<td>
 				<IdentifierLink
 					identifier={config.data.identifier}
 					context="config"
 					globalState={data.globalState}
 				/>
-			</TableBodyEditCell>
+			</td>
 			<td>
-				<div class="flex items-center gap-3">
-					<div class="flex flex-wrap gap-2">
-						{#each config.data.tags as tag, i}
-							<IdentifierLink
-								identifier={tag}
-								context="tag"
-								globalState={data.globalState}
-								solidBackground
-							/>
-						{/each}
-					</div>
-					<button
-						class="p-0 shrink-0"
-						style="color: var(--ds-text-mute)"
-						onclick={() => (currentlyEditingConfig = config.data)}
-					>
-						<Pen size={'0.875rem'} class="min-w-4" />
-					</button>
+				<div class="flex flex-wrap gap-2">
+					{#each config.data.tags as tag}
+						<IdentifierLink
+							identifier={tag}
+							context="tag"
+							globalState={data.globalState}
+							solidBackground
+						/>
+					{/each}
 				</div>
 			</td>
 			{@const deviceCount = deviceCountForConfig(config.data.identifier)}

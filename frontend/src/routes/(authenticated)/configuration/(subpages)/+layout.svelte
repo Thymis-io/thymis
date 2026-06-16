@@ -12,6 +12,8 @@
 	import { invalidateButDeferUntilNavigation } from '$lib/notification';
 	import type { LayoutData } from './$types';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import Pen from 'lucide-svelte/icons/pen';
+	import { Modal, Button } from 'flowbite-svelte';
 
 	interface Props {
 		data: LayoutData;
@@ -21,6 +23,32 @@
 	let { data, children }: Props = $props();
 
 	let openCommitModal = $state(false);
+
+	// Rename the selected config/tag via a modal opened from the detail header.
+	let renameOpen = $state(false);
+	let nameInput = $state('');
+
+	const beginEditName = () => {
+		nameInput = data.globalState.selectedTarget?.displayName ?? '';
+		renameOpen = true;
+	};
+
+	const commitName = async () => {
+		const target = data.globalState.selectedTarget;
+		const name = nameInput.trim();
+		if (target && name && name !== target.displayName) {
+			target.displayName = name;
+			await saveState(data.globalState);
+		}
+		renameOpen = false;
+	};
+
+	const focusSelect = (node: HTMLInputElement) => {
+		setTimeout(() => {
+			node.focus();
+			node.select();
+		}, 50);
+	};
 
 	let isVM = $derived(getConfigImageFormat(data.nav.selectedConfig) == 'nixos-vm');
 	let selectedTargetName = $derived(data.nav.selectedTarget?.displayName ?? '');
@@ -70,8 +98,26 @@
 		await buildAndDownloadImage(data.nav.selectedConfig);
 	}}
 />
+<Modal bind:open={renameOpen} title={$t('common.rename')} outsideclose size="sm">
+	<div class="space-y-2">
+		<label class="ds-form-label" for="renameTargetName">{$t('common.name')}</label>
+		<input
+			id="renameTargetName"
+			class="ds-input"
+			bind:value={nameInput}
+			use:focusSelect
+			onkeydown={(e) => {
+				if (e.key === 'Enter') commitName();
+			}}
+		/>
+	</div>
+	<svelte:fragment slot="footer">
+		<Button color="alternative" on:click={() => (renameOpen = false)}>{$t('common.cancel')}</Button>
+		<Button on:click={commitName} disabled={!nameInput.trim()}>{$t('common.save')}</Button>
+	</svelte:fragment>
+</Modal>
 <PageHead>
-	<h1 class="ds-page-title flex items-center">
+	<h1 class="ds-page-title flex items-center gap-2">
 		<IdentifierLink
 			identifier={data.globalState.selectedTargetIdentifier}
 			context={data.globalState.selectedTargetType}
@@ -79,6 +125,11 @@
 			showLinkHover={false}
 			iconSize={'1.5rem'}
 		/>
+		{#if data.globalState.selectedTarget}
+			<button class="ds-icon-btn" aria-label={$t('common.rename')} onclick={beginEditName}>
+				<Pen size={16} />
+			</button>
+		{/if}
 	</h1>
 	{#snippet actions()}
 		{#if data.nav.selectedConfig}
