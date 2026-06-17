@@ -22,7 +22,7 @@ dependencies = [
     "pydantic-settings>=2.6.0",
     "alembic>=1.13.2",
     "sqlalchemy>=2.0.36",
-    "python-multipart>=0.0.20",
+    "python-multipart>=0.0.31",
     "paramiko>=5.0.0",
     "http-network-relay @ git+https://github.com/Thymis-io/http-network-relay.git",
     # "thymis-agent @ path=../agent,develop=true",
