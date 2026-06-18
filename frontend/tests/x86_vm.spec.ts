@@ -299,9 +299,10 @@ test('Create and use artifacts', async ({ page, request }, testInfo) => {
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
-	test.setTimeout(360000);
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
 	await page.locator('button').filter({ hasText: 'Commit & Build and start VM' }).first().click();
+	test.setTimeout(360000);
+
 	await page
 		.locator('td', { hasText: 'completed' })
 		.nth(0)

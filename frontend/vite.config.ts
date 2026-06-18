@@ -39,12 +39,5 @@ export default defineConfig({
 	build: {
 		target: target
 	},
-	esbuild: {
-		target: target
-	},
-	optimizeDeps: {
-		esbuildOptions: {
-			target: target
-		}
-	}
+	optimizeDeps: {}
 });
