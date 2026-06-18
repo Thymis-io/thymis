@@ -32,15 +32,17 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: build thymis-agent
-        uses: ./.github/actions/run-command-with-nix-cache-upload
+      - uses: ./.github/actions/snapshot-nix-store
+      - name: Build thymis-agent
+        run: |
+          nix build .#thymis-agent --print-build-logs --fallback
+      - name: Upload new store paths to Nix cache
+        if: always()
+        uses: ./.github/actions/upload-nix-store-diff
         with:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            nix build .#thymis-agent --print-build-logs --fallback
 
   build-agent-aarch64:
     runs-on: ubuntu-22.04-arm
@@ -49,15 +51,17 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: build thymis-agent-aarch64
-        uses: ./.github/actions/run-command-with-nix-cache-upload
+      - uses: ./.github/actions/snapshot-nix-store
+      - name: Build thymis-agent (aarch64)
+        run: |
+          nix build .#thymis-agent --print-build-logs --fallback
+      - name: Upload new store paths to Nix cache
+        if: always()
+        uses: ./.github/actions/upload-nix-store-diff
         with:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            nix build .#thymis-agent --print-build-logs --fallback
 
   build-thymis-controller:
     runs-on: ubuntu-latest
@@ -68,17 +72,12 @@ jobs:
       - uses: ./thymis/.github/actions/setup-nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ./thymis/.github/actions/snapshot-nix-store
       - name: Build thymis-frontend
-        uses: ./thymis/.github/actions/run-command-with-nix-cache-upload
-        with:
-          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
-          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            cd thymis
-            nix build .#thymis-frontend --print-build-logs --fallback 2>&1 | tee build.log
-            sleep 1
+        run: |
+          cd thymis
+          nix build .#thymis-frontend --print-build-logs --fallback 2>&1 | tee build.log
+          sleep 1
       - name: Get Thymis App Token
         id: generate-token
         if: failure()
@@ -146,16 +145,17 @@ jobs:
               echo "Changes were made to the branch since the last commit, not pushing"
             fi
           fi
-      - name: build thymis-controller
-        uses: ./thymis/.github/actions/run-command-with-nix-cache-upload
+      - name: Build thymis-controller
+        run: |
+          cd thymis
+          nix build .#thymis-controller --print-build-logs --fallback
+      - name: Upload new store paths to Nix cache
+        if: always()
+        uses: ./thymis/.github/actions/upload-nix-store-diff
         with:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            cd thymis
-            nix build .#thymis-controller --print-build-logs --fallback
 
 
   build-thymis-controller-pi-3-sd-image:
@@ -167,17 +167,19 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: run command with nix cache upload
-        uses: ./.github/actions/run-command-with-nix-cache-upload
+      - uses: ./.github/actions/snapshot-nix-store
+      - name: Build thymis-controller-pi-3-sd-image
+        timeout-minutes: 360
+        run: |
+          nix build .#thymis-controller-pi-3-sd-image --print-build-logs --fallback
+      - name: Upload new store paths to Nix cache
+        if: always()
+        uses: ./.github/actions/upload-nix-store-diff
         with:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           exclude_result: "true"
-          timeout_minutes: "360"
-          script: |
-            nix build .#thymis-controller-pi-3-sd-image --print-build-logs --fallback
       - uses: ./.github/actions/assemble-image-and-assert-existence
 
   build-thymis-controller-pi-4-sd-image:
@@ -189,17 +191,19 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: build thymis-controller-pi-4-sd-image
-        uses: ./.github/actions/run-command-with-nix-cache-upload
+      - uses: ./.github/actions/snapshot-nix-store
+      - name: Build thymis-controller-pi-4-sd-image
+        timeout-minutes: 360
+        run: |
+          nix build .#thymis-controller-pi-4-sd-image --print-build-logs --fallback
+      - name: Upload new store paths to Nix cache
+        if: always()
+        uses: ./.github/actions/upload-nix-store-diff
         with:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           exclude_result: "true"
-          timeout_minutes: "360"
-          script: |
-            nix build .#thymis-controller-pi-4-sd-image --print-build-logs --fallback
       - uses: ./.github/actions/assemble-image-and-assert-existence
 
   build-thymis-controller-pi-5-sd-image:
@@ -211,17 +215,19 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: build thymis-controller-pi-5-sd-image
-        uses: ./.github/actions/run-command-with-nix-cache-upload
+      - uses: ./.github/actions/snapshot-nix-store
+      - name: Build thymis-controller-pi-5-sd-image
+        timeout-minutes: 360
+        run: |
+          nix build .#thymis-controller-pi-5-sd-image --print-build-logs --fallback
+      - name: Upload new store paths to Nix cache
+        if: always()
+        uses: ./.github/actions/upload-nix-store-diff
         with:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           exclude_result: "true"
-          timeout_minutes: "360"
-          script: |
-            nix build .#thymis-controller-pi-5-sd-image --print-build-logs --fallback
       - uses: ./.github/actions/assemble-image-and-assert-existence
 
   build-generic-x86_64-image:
@@ -235,17 +241,19 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: pin nixpkgs
         run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-25.11
-      - name: build thymis-controller-generic-x86_64-image
-        uses: ./.github/actions/run-command-with-nix-cache-upload
+      - uses: ./.github/actions/snapshot-nix-store
+      - name: Build thymis-controller-generic-x86_64-image
+        timeout-minutes: 360
+        run: |
+          nix build .#thymis-controller-generic-x86_64-image --print-build-logs --fallback
+      - name: Upload new store paths to Nix cache
+        if: always()
+        uses: ./.github/actions/upload-nix-store-diff
         with:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           exclude_result: "true"
-          timeout_minutes: "360"
-          script: |
-            nix build .#thymis-controller-generic-x86_64-image --print-build-logs --fallback
       - uses: ./.github/actions/assemble-image-and-assert-existence
 
   build-controller-container-x86_64:
@@ -260,15 +268,17 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: build thymis-controller-container-x86_64
-        uses: ./.github/actions/run-command-with-nix-cache-upload
+      - uses: ./.github/actions/snapshot-nix-store
+      - name: Build thymis-controller-container (x86_64)
+        run: |
+          nix build .#thymis-controller-container --print-build-logs --fallback
+      - name: Upload new store paths to Nix cache
+        if: always()
+        uses: ./.github/actions/upload-nix-store-diff
         with:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            nix build .#thymis-controller-container --print-build-logs --fallback
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
         with:
@@ -305,15 +315,17 @@ jobs:
       - uses: ./.github/actions/setup-nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: build thymis-controller-container-aarch64
-        uses: ./.github/actions/run-command-with-nix-cache-upload
+      - uses: ./.github/actions/snapshot-nix-store
+      - name: Build thymis-controller-container (aarch64)
+        run: |
+          nix build .#thymis-controller-container --print-build-logs --fallback
+      - name: Upload new store paths to Nix cache
+        if: always()
+        uses: ./.github/actions/upload-nix-store-diff
         with:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            nix build .#thymis-controller-container --print-build-logs --fallback
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
         with:
