@@ -25,16 +25,32 @@ SESSION_LIFETIME = timedelta(days=1)
 SESSION_LIFETIME_SECONDS = SESSION_LIFETIME.total_seconds()
 
 
-def create(db_session: Session) -> db_models.WebSession:
+def create(
+    db_session: Session,
+    username: str | None = None,
+    given_name: str | None = None,
+    family_name: str | None = None,
+    email: str | None = None,
+) -> db_models.WebSession:
     id = uuid.uuid4()
     session_token = random.randbytes(64).hex()
     created_at = datetime.now(timezone.utc)
     web_session = db_models.WebSession(
-        id=id, session_token=session_token, created_at=created_at
+        id=id,
+        session_token=session_token,
+        created_at=created_at,
+        username=username,
+        given_name=given_name,
+        family_name=family_name,
+        email=email,
     )
     db_session.add(web_session)
     db_session.commit()
     return web_session
+
+
+def get(db_session: Session, session_id: uuid.UUID) -> db_models.WebSession | None:
+    return db_session.query(db_models.WebSession).filter_by(id=session_id).first()
 
 
 def validate(db_session: Session, session_id: uuid.UUID, session_token: str) -> bool:
