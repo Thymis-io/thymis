@@ -1,5 +1,5 @@
 <script lang="ts">
-	import '../../app.postcss';
+	import '../../app.css';
 	import Navbar from '$lib/navbar/Navbar.svelte';
 	import { page } from '$app/state';
 	import { ProgressBar } from '@prgm/sveltekit-progress-bar';

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { run } from 'svelte/legacy';
 
-	import '../../app.postcss';
+	import '../../app.css';
 	import Navbar from '$lib/navbar/Navbar.svelte';
 	import Sidebar from '$lib/sidebar/Sidebar.svelte';
 	import SplitPane from '$lib/splitpane/SplitPane.svelte';

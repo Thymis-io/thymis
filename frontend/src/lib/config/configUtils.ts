@@ -35,7 +35,7 @@ export const getAllowedImageFormatsForDeviceType = (
 ) => {
 	const thymisDeviceModule = getThymisDeviceModule(availableModules);
 	if (isASelectOneSetting(thymisDeviceModule?.settings['image_format'].type)) {
-		return thymisDeviceModule?.settings['image_format'].type['extra_data']
+		return (thymisDeviceModule?.settings['image_format'].type['extra_data'] as any)
 			?.restrict_values_on_other_key['device_type'][deviceType] as string[] | undefined;
 	}
 	return [];
