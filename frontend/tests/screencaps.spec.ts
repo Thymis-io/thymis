@@ -618,10 +618,12 @@ test('Open Deploy With Identical Config And Tag Identifier', async ({
 	const deployButton = page.locator('button').filter({ hasText: 'Deploy' });
 	await deployButton.click();
 
-	const searchbox = page.getByRole('searchbox').filter({ hasText: 'My Device 1' });
-	await searchbox.click();
-	await searchbox.getByText('My Device 1').nth(0).click();
-	await searchbox.getByText('My Device 1').nth(1).click();
+	const combobox = page.getByRole('combobox');
+	await combobox.click();
+	await expect(page.getByRole('option', { name: 'My Device 1' })).toHaveCount(2);
+	await page.getByRole('option', { name: 'My Device 1' }).first().click();
+	await page.getByRole('option', { name: 'My Device 1' }).first().click();
+	await expect(page.getByRole('option', { name: 'My Device 1' })).toHaveCount(0);
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 });
