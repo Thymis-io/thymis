@@ -10,6 +10,10 @@ inputs:
   signing_key:
     description: "Nix store signing key (cache.thymis.io-1:...)."
     required: true
+  exclude_result:
+    description: "If 'true', exclude the ./result store path from the upload. Useful for large build outputs like SD images."
+    required: false
+    default: "false"
 runs:
   using: "composite"
   steps:
@@ -20,41 +24,82 @@ runs:
         AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
       run: |
         KEY_FILE=$(mktemp)
-        trap 'rm -f "$KEY_FILE"' EXIT
+        _CAND=$(mktemp)
+        _UPLOAD=$(mktemp)
+        trap 'rm -f "$KEY_FILE" "$_CAND" "$_UPLOAD"' EXIT
         echo "${{ inputs.signing_key }}" > "$KEY_FILE"
 
         nix path-info --all 2>/dev/null | sort > /tmp/nix-store-after.txt
         NEW_PATHS=$(comm -13 /tmp/nix-store-before.txt /tmp/nix-store-after.txt)
 
-        # Filter: exclude known-bad patterns and paths over 1 GB.
-        # Everything else goes straight to nix copy — it checks the destination
-        # narinfo before uploading, so already-cached paths are skipped
-        # automatically without querying upstream caches first.
-        MAX_SIZE=$((1024 * 1024 * 1024))
-        _CAND=$(mktemp)
-        trap 'rm -f "$KEY_FILE" "$_CAND"' EXIT
-        echo "$NEW_PATHS" | while IFS= read -r path; do
-          [ -z "$path" ] && continue
-          echo "$path" | grep -qE '(fill-image-with-secrets|\.img$|nixos-vm)' && continue
-          size=$(du -sb "$path" 2>/dev/null | awk '{print $1}')
-          if [ -z "$size" ] || [ "$size" -ge "$MAX_SIZE" ]; then
-            echo "Skipping $path (too large: ${size:-unknown} bytes)" >&2
-            continue
-          fi
-          echo "$path" >> "$_CAND"
-        done
-
-        if [ ! -s "$_CAND" ]; then
+        if [ -z "$NEW_PATHS" ]; then
           echo "No new store paths to upload."
           exit 0
         fi
 
-        echo "Uploading $(wc -l < "$_CAND") new store paths to cache..."
+        # Build candidate list: filter by name pattern (and optional result
+        # exclusion), then size-check all paths in one batched du pass.
+        # The old serial per-path du loop was the main source of the ~10-30 s
+        # collection hang when there were thousands of candidate paths.
+        MAX_SIZE=$((1024 * 1024 * 1024))  # 1 GiB
+
+        EXCL_RESULT=''
+        if [ "${{ inputs.exclude_result }}" = "true" ] && [ -L ./result ]; then
+          EXCL_RESULT=$(readlink -f ./result)
+        fi
+
+        printf '%s\n' "$NEW_PATHS" \
+          | grep -vE '(fill-image-with-secrets|\.img$|nixos-vm)' \
+          | { [ -n "$EXCL_RESULT" ] && grep -vxF "$EXCL_RESULT" || cat; } \
+          | xargs -r du -sb 2>/dev/null \
+          | awk -v max="$MAX_SIZE" '$1 < max { print $2 }' \
+          > "$_CAND"
+
+        if [ ! -s "$_CAND" ]; then
+          echo "No new store paths to upload (all filtered out)."
+          exit 0
+        fi
+
+        TOTAL=$(wc -l < "$_CAND")
+        echo "Checking ${TOTAL} candidate paths against cache..."
+
+        # Pre-filter: 32 parallel narinfo HEAD checks to skip already-cached paths
+        # before handing anything to nix copy.  On subsequent runs the same ~2000
+        # paths fetched from upstream substituters are "new" relative to the
+        # before-snapshot but are already in our S3 cache from a prior upload.
+        # Without this filter nix copy burns time issuing narinfo round-trips for
+        # every one of them before discovering there is nothing to do.
+        #
+        # A non-200 response (404, 5xx, timeout) is treated conservatively: the
+        # path is queued for upload so we never silently miss a cache entry.
+        check_cached() {
+          local path="$1"
+          local hash; hash=$(basename "$path" | cut -c1-32)
+          local code
+          code=$(curl -sf --head -o /dev/null -w "%{http_code}" \
+            --max-time 10 "https://cache.thymis.io/${hash}.narinfo" 2>/dev/null) \
+            || code="000"
+          [ "$code" = "200" ] || printf '%s\n' "$path"
+        }
+        export -f check_cached
+
+        xargs -a "$_CAND" -P 32 -n 1 bash -c 'check_cached "$1"' -- > "$_UPLOAD"
+
+        UPLOAD_COUNT=$(wc -l < "$_UPLOAD")
+        SKIP_COUNT=$(( TOTAL - UPLOAD_COUNT ))
+
+        if [ "$UPLOAD_COUNT" -eq 0 ]; then
+          echo "All ${TOTAL} candidate paths already cached — nothing to upload."
+          exit 0
+        fi
+
+        echo "Uploading ${UPLOAD_COUNT} paths (${SKIP_COUNT}/${TOTAL} already cached)..."
         # Cache upload is best-effort: transient S3 errors must not fail the job.
-        # nix copy checks the destination narinfo before uploading each path, so
-        # already-cached paths are skipped automatically.
-        # Run 4 parallel copy workers to saturate the link.
-        xargs -a "$_CAND" -P 4 -n 64 nix copy \
+        # 8 parallel workers × 16 paths per worker gives better link saturation
+        # than the previous 4 × 64: smaller per-worker batches start uploading
+        # sooner (less narinfo checking before the first PUT) and the extra
+        # concurrency compensates for Nix's per-process internal serialization.
+        xargs -a "$_UPLOAD" -P 8 -n 16 nix copy \
           --to "s3://thymis-nix-cache?endpoint=nix-cache-s3.thymis.io&region=garage&secret-key=${KEY_FILE}" \
           --no-check-sigs \
           || echo "Warning: nix copy exited $? — transient S3 error likely; some paths may not have been cached. Non-fatal."

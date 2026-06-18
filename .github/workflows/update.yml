@@ -42,15 +42,18 @@ jobs:
           USER_EMAIL="${USER_ID}+${{ steps.generate-token.outputs.app-slug }}[bot]@users.noreply.github.com"
           git config user.email $USER_EMAIL
           git config user.name $USER_NAME
+      - uses: ./.github/actions/snapshot-nix-store
+
       - name: Update flake lock
-        uses: ./.github/actions/run-command-with-nix-cache-upload
+        run: |
+          nix flake update --commit-lock-file
+      - name: Upload new store paths to Nix cache
+        if: always()
+        uses: ./.github/actions/upload-nix-store-diff
         with:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            nix flake update --commit-lock-file
       - name: Commit and push changes
         run: |
             # if on master, create a new branch

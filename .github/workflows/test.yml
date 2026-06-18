@@ -37,14 +37,8 @@ jobs:
           key: ${{ runner.os }}-venv-${{ hashFiles('**/uv.lock') }}
 
       - name: Cache dev env
-        uses: ./.github/actions/run-command-with-nix-cache-upload
-        with:
-          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
-          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            nix develop .#ci --command echo "Cache dev env"
+        run: |
+          nix develop .#ci --command echo "Cache dev env"
 
       - name: Install dependencies
         run: |
@@ -83,14 +77,8 @@ jobs:
           npm ci
         working-directory: frontend
       - name: Build application
-        uses: ./.github/actions/run-command-with-nix-cache-upload
-        with:
-          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
-          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            nix build .#thymis-controller --print-build-logs --fallback
+        run: |
+          nix build .#thymis-controller --print-build-logs --fallback
       - name: Run tests
         run: |
           export THYMIS_FLAKE_ROOT='..'
@@ -184,14 +172,8 @@ jobs:
           npm ci
         working-directory: frontend
       - name: Build application
-        uses: ./.github/actions/run-command-with-nix-cache-upload
-        with:
-          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
-          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            nix build .#thymis-controller --print-build-logs --fallback
+        run: |
+          nix build .#thymis-controller --print-build-logs --fallback
       - name: Run tests
         run: |
           # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
@@ -244,14 +226,8 @@ jobs:
           npm ci
         working-directory: frontend
       - name: Build application
-        uses: ./.github/actions/run-command-with-nix-cache-upload
-        with:
-          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
-          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            nix build .#thymis-controller --print-build-logs --fallback
+        run: |
+          nix build .#thymis-controller --print-build-logs --fallback
       - name: Run tests
         run: |
           export THYMIS_FLAKE_ROOT='..'
@@ -304,14 +280,8 @@ jobs:
           npm ci
         working-directory: frontend
       - name: Build application
-        uses: ./.github/actions/run-command-with-nix-cache-upload
-        with:
-          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
-          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            nix build .#thymis-controller --print-build-logs --fallback
+        run: |
+          nix build .#thymis-controller --print-build-logs --fallback
       - name: Run tests
         run: |
           # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
