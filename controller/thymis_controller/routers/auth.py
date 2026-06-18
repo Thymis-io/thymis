@@ -24,6 +24,13 @@ class AuthMethods(BaseModel):
     oauth2: bool
 
 
+class UserInfo(BaseModel):
+    username: Optional[str] = None
+    given_name: Optional[str] = None
+    family_name: Optional[str] = None
+    email: Optional[str] = None
+
+
 REDIRECT_URI = global_settings.BASE_URL + "/auth/callback"
 
 router = APIRouter(
@@ -31,8 +38,21 @@ router = APIRouter(
 )
 
 
-def apply_user_session(db_session: DBSessionAD, response: Response):
-    user_session = web_session.create(db_session)
+def apply_user_session(
+    db_session: DBSessionAD,
+    response: Response,
+    username: Optional[str] = None,
+    given_name: Optional[str] = None,
+    family_name: Optional[str] = None,
+    email: Optional[str] = None,
+):
+    user_session = web_session.create(
+        db_session,
+        username=username,
+        given_name=given_name,
+        family_name=family_name,
+        email=email,
+    )
     is_using_https = (
         global_settings.BASE_URL.startswith("https")
         or global_settings.BASE_URL.startswith("http://localhost")
@@ -99,7 +119,9 @@ def login_basic(
         username == global_settings.AUTH_BASIC_USERNAME
         and password == password_file_content
     ):  # TODO replace password check with hash comparison
-        apply_user_session(db_session, response)
+        apply_user_session(
+            db_session, response, username=global_settings.AUTH_BASIC_USERNAME
+        )
         return RedirectResponse(
             "/auth/redirect_success"
             + (f"?redirect={quote(safe_redirect)}" if safe_redirect else ""),
@@ -239,7 +261,14 @@ async def callback(
                 detail="User does not have the required role",
             )
 
-    apply_user_session(db_session, response)
+    apply_user_session(
+        db_session,
+        response,
+        username=jwt_token.get("preferred_username") or jwt_token.get("name"),
+        given_name=jwt_token.get("given_name"),
+        family_name=jwt_token.get("family_name"),
+        email=jwt_token.get("email"),
+    )
 
     redirect_safe = state if state and state.isalnum() else ""
     return Response(
@@ -253,7 +282,19 @@ async def callback(
     )
 
 
-@router.get("/logged_in")
-def read_protected(loggedin: Annotated[bool, Depends(require_valid_user_session)]):
+@router.get("/logged_in", response_model=UserInfo)
+def read_protected(
+    loggedin: Annotated[bool, Depends(require_valid_user_session)],
+    db_session: DBSessionAD,
+    user_session_id: UserSessionIDAD = None,
+):
     assert loggedin
-    return {"message": "You are logged in"}
+    session = web_session.get(db_session, user_session_id) if user_session_id else None
+    if session is None:
+        return UserInfo()
+    return UserInfo(
+        username=session.username,
+        given_name=session.given_name,
+        family_name=session.family_name,
+        email=session.email,
+    )

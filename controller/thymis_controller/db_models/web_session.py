@@ -12,6 +12,10 @@ class WebSession(Base):
     created_at = Column(
         DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
     )
+    username = Column(String, nullable=True)
+    given_name = Column(String, nullable=True)
+    family_name = Column(String, nullable=True)
+    email = Column(String, nullable=True)
 
     def __repr__(self):
         return f"<Session {self.id}>"
