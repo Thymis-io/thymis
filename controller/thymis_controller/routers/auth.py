@@ -282,16 +282,24 @@ async def callback(
     )
 
 
-@router.get("/logged_in", response_model=UserInfo)
-def read_protected(
-    loggedin: Annotated[bool, Depends(require_valid_user_session)],
+@router.get(
+    "/logged_in",
+    response_model=UserInfo,
+    dependencies=[Depends(require_valid_user_session)],
+)
+def is_logged_in(
     db_session: DBSessionAD,
     user_session_id: UserSessionIDAD = None,
 ):
-    assert loggedin
-    session = web_session.get(db_session, user_session_id) if user_session_id else None
+    if not user_session_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="No valid session"
+        )
+    session = web_session.get(db_session, user_session_id)
     if session is None:
-        return UserInfo()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="No valid session"
+        )
     return UserInfo(
         username=session.username,
         given_name=session.given_name,
