@@ -435,10 +435,7 @@ test('VNC View', async ({ page, request }, testInfo) => {
 	await enableVNCButton.click();
 
 	await page.locator('nav.nav:visible').locator('a', { hasText: 'VNC Devices' }).click();
-	await page.locator('nav.nav:visible').locator('a', { hasText: 'VNC Devices' }).click();
-	await page.locator('nav.nav:visible').locator('a', { hasText: 'VNC Devices' }).click();
-	await page.locator('nav.nav:visible').locator('a', { hasText: 'VNC Devices' }).click();
-	await page.locator('nav.nav:visible').locator('a', { hasText: 'VNC Devices' }).click();
+	await page.waitForURL('/vnc*');
 
 	await expect(page.locator('text=Connection failed')).toHaveCount(4);
 
@@ -448,8 +445,10 @@ test('VNC View', async ({ page, request }, testInfo) => {
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
-	await page.locator('a').filter({ hasText: 'My Device 2' }).click();
-	await page.locator('button').filter({ hasText: 'VNC' }).click();
+	await page.locator('#global-search-dropdown').getByRole('link', { name: 'My Device 2' }).click();
+	await page.waitForURL('/configuration/configuration-details*');
+
+	await page.locator('button').filter({ hasText: 'VNC', hasNotText: 'VNC Devices' }).click();
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 });
