@@ -73,22 +73,28 @@ test('shows configuration', async ({ page, request }, testInfo) => {
 	console.log(`Is save button disabled? ${await saveButton.isDisabled()}`);
 	await saveButton.click();
 
-	const viewDetailsButton = page.getByRole('link', { name: 'View Details' }).first();
-	await viewDetailsButton.waitFor();
+	// The configuration name links to its details page (the old "View Details"
+	// action now lives in the row actions menu).
+	const configLink = page
+		.locator('tr')
+		.filter({ hasText: 'My Device 1' })
+		.getByRole('link', { name: 'My Device 1' });
+	await configLink.first().waitFor();
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
 	// go to the device details page
-	await page.getByRole('link', { name: 'View Details' }).first().click();
+	await configLink.first().click();
 
 	await page.waitForURL('/configuration/configuration-details*');
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
-	// deletion is done from the configuration list
+	// deletion is done from the configuration list via the row actions menu
 	await page.locator('nav.nav:visible').locator('a', { hasText: 'Configs' }).click();
 
-	await page.getByRole('button', { name: 'Delete', exact: true }).first().click();
+	await page.getByRole('button', { name: 'Actions' }).first().click();
+	await page.getByRole('menuitem', { name: 'Delete' }).first().click();
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
@@ -151,8 +157,13 @@ test('create whoami tag', async ({ page, request }, testInfo) => {
 	const saveButton = page.locator('button').filter({ hasText: 'Add tag' });
 	await saveButton.click();
 
-	// Configure the tag
-	const configureTagButton = page.getByRole('link', { name: 'Configure Tag' }).first();
+	// Configure the tag by following its name link (the old "Configure Tag"
+	// action now lives in the row actions menu).
+	const configureTagButton = page
+		.locator('tr')
+		.filter({ hasText: 'Who Am I' })
+		.getByRole('link', { name: 'Who Am I' })
+		.first();
 	await expectScreenshotWithHighlight(page, configureTagButton, testInfo, screenshotCounter);
 	await configureTagButton.click({ force: true });
 
@@ -219,11 +230,16 @@ test('create whoami tag', async ({ page, request }, testInfo) => {
 	await page.locator('#device-type').first().selectOption({ label: 'Raspberry Pi 4' });
 	await page.locator('button').filter({ hasText: 'Create device configuration' }).click();
 
-	const editTagButton = page
+	// Tags are now assigned from the configuration details page
+	await page
 		.locator('tr')
 		.filter({ hasText: 'Whoami Device' })
-		.locator('button')
-		.nth(1);
+		.getByRole('link', { name: 'Whoami Device' })
+		.first()
+		.click();
+	await page.waitForURL('/configuration/configuration-details*');
+
+	const editTagButton = page.getByRole('button', { name: 'Edit Tags' });
 	await expectScreenshotWithHighlight(page, editTagButton, testInfo, screenshotCounter);
 
 	await editTagButton.click();
@@ -235,9 +251,9 @@ test('create whoami tag', async ({ page, request }, testInfo) => {
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
-	await page.getByRole('button', { name: 'Save' }).click();
-	// wait for the modal to disappear
-	await page.locator('tr').filter({ hasText: 'Who Am I' }).waitFor();
+	await page.getByRole('dialog').getByRole('button', { name: 'Save' }).click();
+	// wait for the assigned tag to appear on the details page
+	await page.getByRole('link', { name: 'Who Am I' }).first().waitFor();
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 });
@@ -351,13 +367,13 @@ test('Download Raspberry Pi 4 image', async ({ page, request }, testInfo) => {
 
 	await page.locator('nav.nav:visible').locator('a', { hasText: 'Configs' }).click();
 
-	// find row with 'My Device 1' and click on link 'View Details'
+	// open the configuration details for 'My Device 1' via its name link
 	await page
 		.locator('tr')
 		.filter({ hasText: 'My Device 1' })
-		.getByRole('link', { name: 'View Details' })
+		.getByRole('link', { name: 'My Device 1' })
 		.first()
-		.click({ force: true });
+		.click();
 
 	// find download button and click on it
 	await page.locator('button').filter({ hasText: 'Download Device Image' }).first().click();
@@ -390,8 +406,12 @@ test('VNC View', async ({ page, request }, testInfo) => {
 
 	await page.locator('nav.nav:visible').locator('a', { hasText: 'Config-Tags' }).click();
 
-	// add Kiosk module with VNC server to tag
-	const configureTagButton = page.getByRole('link', { name: 'Configure Tag' }).first();
+	// add Kiosk module with VNC server to tag (navigate via the tag name link)
+	const configureTagButton = page
+		.locator('tr')
+		.filter({ hasText: 'Display' })
+		.getByRole('link', { name: 'Display' })
+		.first();
 	await configureTagButton.click({ force: true });
 
 	const addModuleButton = page.locator('#add-module').first();
@@ -469,7 +489,12 @@ test('Configure Wifi Network', async ({ page, request }, testInfo) => {
 
 	await page.locator('nav.nav:visible').locator('a', { hasText: 'Configs' }).click();
 
-	await page.getByRole('link', { name: 'View Details' }).click({ force: true });
+	await page
+		.locator('tr')
+		.filter({ hasText: 'My Device 1' })
+		.getByRole('link', { name: 'My Device 1' })
+		.first()
+		.click();
 
 	await page.waitForURL('/configuration/configuration-details*');
 
@@ -623,10 +648,14 @@ test('Open Deploy With Identical Config And Tag Identifier', async ({
 
 	const combobox = page.getByRole('combobox');
 	await combobox.click();
-	await expect(page.getByRole('option', { name: 'My Device 1' })).toHaveCount(2);
-	await page.getByRole('option', { name: 'My Device 1' }).first().click();
-	await page.getByRole('option', { name: 'My Device 1' }).first().click();
-	await expect(page.getByRole('option', { name: 'My Device 1' })).toHaveCount(0);
+
+	// The dropdown options live in the listbox; selected items render as separate
+	// "option" chips in a "selected options" list, so scope to the listbox.
+	const deviceOptions = page.getByRole('listbox').getByRole('option', { name: 'My Device 1' });
+	await expect(deviceOptions).toHaveCount(2);
+	await deviceOptions.first().click();
+	await deviceOptions.first().click();
+	await expect(deviceOptions).toHaveCount(0);
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 });
