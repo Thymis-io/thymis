@@ -39,6 +39,7 @@ class UpdateDeploymentInfo(BaseModel):
     reachable_deployed_host: str | None = None
     name: str | None = None
     location: str | None = None
+    archived: bool | None = None
 
 
 class DeploymentInfo(BaseModel):
@@ -50,6 +51,7 @@ class DeploymentInfo(BaseModel):
     pending_config_id: str | None
     last_seen: Optional[datetime]
     first_seen: Optional[datetime]
+    archived: bool = False
     hardware_devices: List["HardwareDevice"]
     network_interfaces: list[dict] | None = None
     location: str | None = None
@@ -80,6 +82,7 @@ class DeploymentInfo(BaseModel):
             hardware_devices=deployment_info.hardware_devices,
             last_seen=deployment_info.last_seen,
             first_seen=deployment_info.first_seen,
+            archived=deployment_info.archived,
             network_interfaces=deployment_info.network_interfaces,
             location=deployment_info.location,
             name=deployment_info.name,
