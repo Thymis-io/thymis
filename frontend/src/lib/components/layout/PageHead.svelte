@@ -46,7 +46,7 @@
 </script>
 
 <div class="ds-page-head" data-testid="page-head">
-	<div class="flex min-w-0 flex-1 items-center gap-4">
+	<div class="flex min-w-64 flex-1 items-center gap-4">
 		{#if title}
 			<div class="min-w-0">
 				<h1 class="ds-page-title">{title}</h1>
