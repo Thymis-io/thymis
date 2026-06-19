@@ -67,7 +67,7 @@
 	};
 </script>
 
-<div class="ds-table-wrap {className}">
+<div class="ds-table-wrap {className}" data-testid="data-table">
 	<table class="ds-table" bind:this={tableEl}>
 		<thead>
 			<tr>

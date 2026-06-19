@@ -45,7 +45,7 @@
 	let resolvedRepoStatus = $derived(repoStatus ?? layoutData.repoStatus);
 </script>
 
-<div class="ds-page-head">
+<div class="ds-page-head" data-testid="page-head">
 	<div class="flex min-w-0 flex-1 items-center gap-4">
 		{#if title}
 			<div class="min-w-0">
