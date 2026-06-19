@@ -140,6 +140,7 @@ def get_latest_per_device(
             db_models.DeploymentInfo,
             db_models.DeploymentInfo.id == db_models.DeviceMetric.deployment_info_id,
         )
+        .filter(db_models.DeploymentInfo.archived.is_(False))
         .all()
     )
     return [

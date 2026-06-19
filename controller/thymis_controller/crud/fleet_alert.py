@@ -29,6 +29,7 @@ def get_fleet_alerts(db_session: Session) -> list[models.FleetAlert]:
     stale = (
         db_session.query(db_models.DeploymentInfo)
         .filter(
+            db_models.DeploymentInfo.archived.is_(False),
             db_models.DeploymentInfo.last_seen.isnot(None),
             db_models.DeploymentInfo.last_seen < offline_cutoff,
         )
@@ -54,7 +55,14 @@ def get_fleet_alerts(db_session: Session) -> list[models.FleetAlert]:
             db_models.AgentConnection.deployment_info_id,
             func.count(db_models.AgentConnection.id).label("cnt"),
         )
-        .filter(db_models.AgentConnection.connected_at >= since)
+        .join(
+            db_models.DeploymentInfo,
+            db_models.DeploymentInfo.id == db_models.AgentConnection.deployment_info_id,
+        )
+        .filter(
+            db_models.AgentConnection.connected_at >= since,
+            db_models.DeploymentInfo.archived.is_(False),
+        )
         .group_by(db_models.AgentConnection.deployment_info_id)
         .having(func.count(db_models.AgentConnection.id) > FLAPPING_RECONNECTS_24H)
         .all()
@@ -66,7 +74,8 @@ def get_fleet_alerts(db_session: Session) -> list[models.FleetAlert]:
             .filter(
                 db_models.DeploymentInfo.id.in_(
                     [r.deployment_info_id for r in flap_rows]
-                )
+                ),
+                db_models.DeploymentInfo.archived.is_(False),
             )
             .all()
         }
@@ -98,9 +107,9 @@ def get_fleet_alerts(db_session: Session) -> list[models.FleetAlert]:
                         deployment_info_id=metric.deployment_info_id,
                         name=metric.name,
                         kind=kind,
-                        severity="critical"
-                        if value >= RESOURCE_CRITICAL
-                        else "warning",
+                        severity=(
+                            "critical" if value >= RESOURCE_CRITICAL else "warning"
+                        ),
                         detail=f"{kind.upper()} at {value:.0f}%",
                         value=value,
                     )
