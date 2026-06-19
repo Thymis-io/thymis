@@ -17,30 +17,6 @@ def _make_di(db_session):
     return di
 
 
-def test_fleet_metrics_aggregates_across_devices(db_session):
-    di_a = _make_di(db_session)
-    di_b = _make_di(db_session)
-    base = datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
-    # Same 1h bucket, two devices
-    crud.create_metric(db_session, di_a.id, 40.0, 60.0, 20.0, base)
-    crud.create_metric(
-        db_session, di_b.id, 80.0, 90.0, 40.0, base + timedelta(minutes=10)
-    )
-
-    results = crud.get_fleet_metrics_downsampled(
-        db_session,
-        from_datetime=base - timedelta(minutes=1),
-        to_datetime=base + timedelta(hours=1),
-        granularity="1h",
-    )
-    assert len(results) == 1
-    point = results[0]
-    assert point.timestamp == base
-    assert abs(point.cpu_avg - 60.0) < 0.01  # avg of 40, 80
-    assert abs(point.cpu_max - 80.0) < 0.01
-    assert point.device_count == 2
-
-
 def test_latest_per_device_returns_most_recent(db_session):
     di_a = _make_di(db_session)
     di_b = _make_di(db_session)

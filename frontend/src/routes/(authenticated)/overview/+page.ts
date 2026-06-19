@@ -1,7 +1,7 @@
 import { getAllDeploymentInfos, getAllConnectedDeploymentInfos } from '$lib/deploymentInfo';
 import {
 	getFleetConnectivity,
-	getFleetDeviceMetricsLatest,
+	getFleetMetricsLatest,
 	getFleetAvailability,
 	getFleetAlerts,
 	rangeToParams,
@@ -41,7 +41,7 @@ export const load = (async ({ fetch, url }) => {
 		getAllConnectedDeploymentInfos(fetch),
 		fetchWithNotify('/api/history', undefined, {}, fetch),
 		getFleetConnectivity(fetch, params.hours, params.buckets),
-		getFleetDeviceMetricsLatest(fetch),
+		getFleetMetricsLatest(fetch),
 		getFleetAvailability(fetch, params.hours, params.buckets),
 		getFleetAlerts(fetch)
 	]);

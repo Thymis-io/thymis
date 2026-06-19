@@ -1,16 +1,5 @@
 import { fetchWithNotify } from './fetchWithNotify';
 
-export type FleetMetricPoint = {
-	timestamp: string;
-	cpu_avg: number;
-	cpu_max: number;
-	ram_avg: number;
-	ram_max: number;
-	disk_avg: number;
-	disk_max: number;
-	device_count: number;
-};
-
 export type ConnectivityPoint = {
 	timestamp: string;
 	connected_count: number;
@@ -23,21 +12,6 @@ export type FleetDeviceMetric = {
 	ram_percent: number;
 	disk_percent: number;
 	timestamp: string;
-};
-
-export const getFleetMetrics = async (
-	fetch: typeof window.fetch,
-	hours = 24,
-	granularity: '1min' | '15min' | '1h' = '1h'
-) => {
-	const response = await fetchWithNotify(
-		`/api/fleet/metrics?hours=${hours}&granularity=${granularity}`,
-		undefined,
-		{},
-		fetch
-	);
-	if (response.ok) return (await response.json()) as FleetMetricPoint[];
-	return [];
 };
 
 export const getFleetConnectivity = async (
@@ -55,8 +29,8 @@ export const getFleetConnectivity = async (
 	return [];
 };
 
-export const getFleetDeviceMetricsLatest = async (fetch: typeof window.fetch) => {
-	const response = await fetchWithNotify('/api/fleet/device_metrics_latest', undefined, {}, fetch);
+export const getFleetMetricsLatest = async (fetch: typeof window.fetch) => {
+	const response = await fetchWithNotify('/api/fleet/metrics/latest', undefined, {}, fetch);
 	if (response.ok) return (await response.json()) as FleetDeviceMetric[];
 	return [];
 };

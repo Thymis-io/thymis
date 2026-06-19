@@ -73,50 +73,6 @@ def get_metrics_downsampled(
     ]
 
 
-def get_fleet_metrics_downsampled(
-    db_session: Session,
-    from_datetime: datetime,
-    to_datetime: datetime,
-    granularity: models.MetricGranularity,
-) -> list[models.FleetMetricPoint]:
-    """Return fleet-wide averaged + max metrics grouped by time bucket."""
-    bucket = _bucket_expr(granularity)
-    rows = (
-        db_session.query(
-            bucket.label("bucket"),
-            func.avg(db_models.DeviceMetric.cpu_percent).label("cpu_avg"),
-            func.max(db_models.DeviceMetric.cpu_percent).label("cpu_max"),
-            func.avg(db_models.DeviceMetric.ram_percent).label("ram_avg"),
-            func.max(db_models.DeviceMetric.ram_percent).label("ram_max"),
-            func.avg(db_models.DeviceMetric.disk_percent).label("disk_avg"),
-            func.max(db_models.DeviceMetric.disk_percent).label("disk_max"),
-            func.count(func.distinct(db_models.DeviceMetric.deployment_info_id)).label(
-                "device_count"
-            ),
-        )
-        .filter(
-            db_models.DeviceMetric.timestamp >= from_datetime,
-            db_models.DeviceMetric.timestamp <= to_datetime,
-        )
-        .group_by(bucket)
-        .order_by(bucket.asc())
-        .all()
-    )
-    return [
-        models.FleetMetricPoint(
-            timestamp=row.bucket,
-            cpu_avg=row.cpu_avg,
-            cpu_max=row.cpu_max,
-            ram_avg=row.ram_avg,
-            ram_max=row.ram_max,
-            disk_avg=row.disk_avg,
-            disk_max=row.disk_max,
-            device_count=row.device_count,
-        )
-        for row in rows
-    ]
-
-
 def get_latest_per_device(
     db_session: Session,
 ) -> list[models.FleetDeviceMetric]:
