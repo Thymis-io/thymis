@@ -14,7 +14,10 @@ test.skip(os.arch() !== 'x64', 'You can only run this suite in an x86 VM');
 const goToDevicesPage = async (page: Page, baseURL?: string) => {
 	await page.reload();
 	for (let i = 0; i < 5; i++) {
-		await page.locator('nav.nav:visible').locator('a', { hasText: 'Devices' }).click();
+		await page
+			.locator('nav.nav:visible')
+			.locator('a', { hasText: 'Devices', hasNotText: 'VNC Devices' })
+			.click();
 		await page
 			.waitForURL(new RegExp(baseURL + '/devices/active'), { timeout: 3000 })
 			.catch(() => {});
