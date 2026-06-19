@@ -114,8 +114,11 @@ test('explores more pages', async ({ page, request }, testInfo) => {
 	await page.locator('nav.nav:visible').locator('a', { hasText: 'Configs' }).click();
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
-	// Naviagte to hardware devices page
-	await page.locator('nav.nav:visible').locator('a', { hasText: 'Devices' }).click();
+	// Navigate to hardware devices page
+	await page
+		.locator('nav.nav:visible')
+		.locator('a', { hasText: 'Devices', hasNotText: 'VNC Devices' })
+		.click();
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
 	// Navigate to the Tags page
