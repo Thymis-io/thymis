@@ -1,85 +1,33 @@
-<script lang="ts">
-	import { TabItem, Tabs } from 'flowbite-svelte';
-	import { t } from 'svelte-i18n';
-	import Sliders from 'lucide-svelte/icons/sliders-horizontal';
-	import Terminal from 'lucide-svelte/icons/terminal';
-	import LogIcon from 'lucide-svelte/icons/text-search';
-	import ScreenShare from 'lucide-svelte/icons/screen-share';
-	import ListCollapse from 'lucide-svelte/icons/list-collapse';
-	import type { GlobalState } from '$lib/state.svelte';
-	import { targetShouldShowVNC } from '$lib/vnc/vnc';
-	import { page } from '$app/state';
-	import type { Nav } from '../../routes/(authenticated)/+layout';
-	import type { DeploymentInfo } from '$lib/deploymentInfo';
+<script lang="ts" module>
+	import type { Component, ComponentType } from 'svelte';
 
-	interface Props {
-		globalState: GlobalState;
-		deploymentInfos: DeploymentInfo[];
-		nav: Nav;
-	}
-
-	let { globalState, deploymentInfos, nav }: Props = $props();
-
-	type NavItem = {
+	export type TabbarItem = {
 		name: string;
-		icon: any;
 		href: string;
+		icon: Component | ComponentType;
 		hidden?: boolean;
-		children?: Record<string, string>;
 	};
-
-	let selectedTargetHasAnyVNCModule = $derived(
-		nav.selectedTarget && targetShouldShowVNC(nav.selectedTarget, globalState)
-	);
-
-	let dynamicNavItems: NavItem[] = $derived([
-		{
-			name: $t(`nav.device-details`),
-			icon: ListCollapse,
-			href: '/configuration/configuration-details',
-			hidden: !nav.selectedConfig
-		},
-		{
-			name: $t(`nav.configure`),
-			icon: Sliders,
-			href: '/configuration/edit',
-			hidden: !nav.selectedConfig
-		},
-		{
-			name: $t(`nav.config-tag`),
-			icon: Sliders,
-			href: '/configuration/edit',
-			hidden: !nav.selectedTag
-		},
-		{
-			name: $t('nav.device-vnc'),
-			icon: ScreenShare,
-			href: '/configuration/vnc',
-			hidden: !selectedTargetHasAnyVNCModule
-		},
-		{
-			name: $t('nav.terminal'),
-			icon: Terminal,
-			href: '/configuration/terminal',
-			hidden: !nav.selectedConfig
-		},
-		{
-			name: $t('nav.logs'),
-			icon: LogIcon,
-			href: '/configuration/logs',
-			hidden: deploymentInfos.length === 0
-		}
-	]);
 </script>
 
-<div class="tabbar-wrap">
+<script lang="ts">
+	import { TabItem, Tabs } from 'flowbite-svelte';
+	import { page } from '$app/state';
+
+	interface Props {
+		items: TabbarItem[];
+	}
+
+	let { items }: Props = $props();
+</script>
+
+<div class="tabbar-wrap" data-testid="tabbar">
 	<Tabs
 		contentClass="mb-4"
 		defaultClass="flex flex-wrap gap-1 border-b border-[var(--ds-border)] mb-4"
 		activeClasses="inline-block text-sm font-medium text-center disabled:cursor-not-allowed p-2 px-3 -mb-px border-b-2 border-[var(--ds-accent)] text-[var(--ds-accent-strong)]"
 		inactiveClasses="inline-block text-sm font-medium text-center disabled:cursor-not-allowed p-2 px-3 -mb-px border-b-2 border-transparent text-[var(--ds-text-dim)] hover:text-[var(--ds-text)]"
 	>
-		{#each dynamicNavItems as item}
+		{#each items as item}
 			{#if !item.hidden}
 				<a href={item.href + page.url.search}>
 					<TabItem open={page.url.pathname === item.href}>

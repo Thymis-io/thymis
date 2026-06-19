@@ -8,11 +8,11 @@
 	import FileText from 'lucide-svelte/icons/file-text';
 	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
+	import Tabbar from '$lib/components/Tabbar.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
 	import { updateDeploymentInfo, isOnline as checkOnline } from '$lib/deploymentInfo';
 	import { invalidate } from '$app/navigation';
-	import { page } from '$app/state';
 	import type { LayoutData } from './$types';
 
 	interface Props {
@@ -32,28 +32,25 @@
 	// Tab definitions — VNC is gated on the deployed config exposing a VNC module.
 	let deviceTabs = $derived([
 		{
-			id: 'details',
+			name: $t('nav.device-details'),
 			href: `/devices/${deploymentInfo.id}/details`,
-			icon: ListCollapse,
-			labelKey: 'nav.device-details'
+			icon: ListCollapse
 		},
 		...(hasVnc
 			? [
 					{
-						id: 'vnc',
+						name: $t('nav.device-vnc'),
 						href: `/devices/${deploymentInfo.id}/vnc`,
-						icon: ScreenShare,
-						labelKey: 'nav.device-vnc'
+						icon: ScreenShare
 					}
 				]
 			: []),
 		{
-			id: 'terminal',
+			name: $t('nav.terminal'),
 			href: `/devices/${deploymentInfo.id}/terminal`,
-			icon: TerminalIcon,
-			labelKey: 'nav.terminal'
+			icon: TerminalIcon
 		},
-		{ id: 'logs', href: `/devices/${deploymentInfo.id}/logs`, icon: FileText, labelKey: 'nav.logs' }
+		{ name: $t('nav.logs'), href: `/devices/${deploymentInfo.id}/logs`, icon: FileText }
 	]);
 
 	let nameModalOpen = $state(false);
@@ -119,23 +116,6 @@
 	</div>
 </Modal>
 
-<div class="mb-4 flex flex-wrap gap-1 border-b border-[var(--ds-border)]" role="tablist">
-	{#each deviceTabs as tab (tab.id)}
-		{@const isSelected = page.url.pathname === tab.href}
-		<a
-			role="tab"
-			aria-selected={page.url.pathname === tab.href}
-			href={tab.href}
-			class="-mb-px border-b-2 p-2 px-3 text-center text-sm font-medium {isSelected
-				? 'border-[var(--ds-accent)] text-[var(--ds-accent-strong)]'
-				: 'border-transparent text-[var(--ds-text-dim)] hover:text-[var(--ds-text)]'}"
-		>
-			<div class="flex items-center gap-2 px-1 font-semibold md:min-w-32 xl:min-w-48">
-				<tab.icon size={18} />
-				<span>{$t(tab.labelKey)}</span>
-			</div>
-		</a>
-	{/each}
-</div>
+<Tabbar items={deviceTabs} />
 
 {@render children?.()}
