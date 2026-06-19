@@ -6,6 +6,7 @@
 		href: string;
 		icon: Component | ComponentType;
 		hidden?: boolean;
+		count?: number;
 	};
 </script>
 
@@ -29,14 +30,15 @@
 	>
 		{#each items as item}
 			{#if !item.hidden}
+				{@const active = page.url.pathname === item.href}
 				<a href={item.href + page.url.search}>
-					<TabItem open={page.url.pathname === item.href}>
-						<div
-							slot="title"
-							class="font-semibold flex items-center px-1 gap-2 md:min-w-32 xl:min-w-48"
-						>
+					<TabItem open={active}>
+						<div slot="title" class="font-semibold flex items-center px-1 gap-2">
 							<item.icon size={18} />
 							<span>{item.name}</span>
+							{#if item.count !== undefined}
+								<span class="tab-badge {active ? 'active' : ''}">{item.count}</span>
+							{/if}
 						</div>
 					</TabItem>
 				</a>
@@ -50,5 +52,19 @@
 	   list already has a bottom border, so hide the redundant one. */
 	.tabbar-wrap :global(div.h-px) {
 		display: none;
+	}
+
+	/* Count badge — mirrors the sidebar nav badge so counts read consistently
+	   across the app; tints to the accent colour on the active tab. */
+	.tab-badge {
+		font-size: 11px;
+		padding: 1px 6px;
+		border-radius: 999px;
+		background: var(--ds-surface-3);
+		color: var(--ds-text-dim);
+	}
+	.tab-badge.active {
+		background: var(--ds-accent-dim);
+		color: var(--ds-accent-strong);
 	}
 </style>
