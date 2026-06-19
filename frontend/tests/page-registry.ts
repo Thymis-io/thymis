@@ -54,7 +54,7 @@ export const listPages: ListPageSpec[] = [
 	{
 		family: 'list',
 		name: 'Devices',
-		path: '/devices',
+		path: '/devices/active',
 		nameLink: { rowText: SEED.configName, urlPattern: /\/devices\/.+\/details/ }
 	},
 	{ family: 'list', name: 'Secrets', path: '/secrets' },
@@ -75,7 +75,7 @@ export const detailPages: DetailPageSpec[] = [
 	{
 		family: 'detail',
 		name: 'Device detail',
-		from: { listPath: '/devices', rowText: SEED.configName },
+		from: { listPath: '/devices/active', rowText: SEED.configName },
 		urlPattern: /\/devices\/.+\/details/,
 		expectedTabs: ['Details', 'Terminal', 'Logs'],
 		expectedAction: 'Restart'

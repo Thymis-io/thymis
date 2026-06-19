@@ -15,9 +15,11 @@ const goToDevicesPage = async (page: Page, baseURL?: string) => {
 	await page.reload();
 	for (let i = 0; i < 5; i++) {
 		await page.locator('nav.nav:visible').locator('a', { hasText: 'Devices' }).click();
-		await page.waitForURL(new RegExp(baseURL + '/devices'), { timeout: 3000 }).catch(() => {});
+		await page
+			.waitForURL(new RegExp(baseURL + '/devices/active'), { timeout: 3000 })
+			.catch(() => {});
 
-		if (page.url() === `${baseURL}/devices`) {
+		if (page.url() === `${baseURL}/devices/active`) {
 			return;
 		}
 	}
@@ -216,7 +218,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await page
 		.locator('div')
 		.filter({ has: page.locator('h2', { hasText: 'Deployed Devices' }) })
-		.locator('a[href^="/devices/"]')
+		.locator('a[href^="/devices/active/"]')
 		.first()
 		.waitFor();
 

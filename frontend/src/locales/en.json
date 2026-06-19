@@ -169,11 +169,19 @@
 		"subtitle": "Physical devices and their deployed configurations.",
 		"actions": "Device actions",
 		"no-deployed-devices": "No deployed devices yet.",
+		"no-archived-devices": "No archived devices.",
 		"filter": {
 			"all": "All",
 			"online": "Online",
 			"offline": "Offline"
 		},
+		"tabs": {
+			"active": "Active",
+			"without-deployment": "Without Deployment",
+			"archived": "Archived"
+		},
+		"archive-device": "Archive device",
+		"unarchive-device": "Restore device from archive",
 		"no-known-hardware-devices-without-known-deployment": "No known hardware devices without known deployment"
 	},
 	"create-configuration": {

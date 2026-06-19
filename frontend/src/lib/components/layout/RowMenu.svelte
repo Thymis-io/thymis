@@ -19,15 +19,16 @@
 		items: RowMenuItem[];
 		/** Accessible label for the trigger button. */
 		label?: string;
+		menuWidth?: number;
 	}
 
-	let { items, label = 'Row actions' }: Props = $props();
+	let { items, label = 'Row actions', menuWidth }: Props = $props();
 
 	let open = $state(false);
 	let triggerEl = $state<HTMLButtonElement>();
 	let menuStyle = $state('');
 
-	const MENU_WIDTH = 180;
+	const MENU_WIDTH = $derived(menuWidth || 180);
 	const ITEM_HEIGHT = 35;
 
 	const place = () => {

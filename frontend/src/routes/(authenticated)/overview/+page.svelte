@@ -15,7 +15,7 @@
 	import OverviewTopDevices from '$lib/components/OverviewTopDevices.svelte';
 	import TimeRangeSelector from '$lib/components/TimeRangeSelector.svelte';
 	import { getDeviceType, getDeviceTypesMap } from '$lib/config/configUtils';
-	import { isOnline, isActive } from '$lib/deploymentInfo';
+	import { isOnline } from '$lib/deploymentInfo';
 	import type { TimeRange } from '$lib/fleet';
 
 	interface Props {
@@ -28,20 +28,19 @@
 
 	let configCards: ConfigCard[] = $derived.by(() => {
 		return data.globalState.configs.map((cfg) => {
-			const allInstances = data.deploymentInfos
+			const activeInstances = data.deploymentInfos
 				.filter((di) => di.deployed_config_id === cfg.identifier)
+				.filter((di) => !di.archived)
 				.map((di) => {
 					const shortCommit = di.deployed_config_commit?.slice(0, 7) ?? null;
 					return {
 						id: di.id,
 						online: isOnline(di.last_seen),
-						active: isActive(di.last_seen),
 						lastSeen: di.last_seen,
 						shortCommit,
 						isCurrentCommit: !!shortCommit && shortCommit === shortHeadCommit
 					};
 				});
-			const activeInstances = allInstances.filter((i) => i.active || i.online);
 			const rawType = getDeviceType(cfg);
 			const deviceTypeLabel = rawType
 				? rawType in deviceTypesMap
@@ -69,7 +68,7 @@
 	let totalConfigsCount = $derived(data.globalState.configs.length);
 
 	let behindCount = $derived.by(() => {
-		const active = data.deploymentInfos.filter((di) => isActive(di.last_seen));
+		const active = data.deploymentInfos.filter((di) => !di.archived);
 		return active.filter(
 			(di) => (di.deployed_config_commit?.slice(0, 7) ?? null) !== shortHeadCommit
 		).length;

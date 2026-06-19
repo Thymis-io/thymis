@@ -2,7 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import Section from '$lib/components/layout/Section.svelte';
 	import type { DeploymentInfo } from '$lib/deploymentInfo';
-	import { isOnline, isActive } from '$lib/deploymentInfo';
+	import { isOnline } from '$lib/deploymentInfo';
 	import type { GlobalState } from '$lib/state.svelte';
 	import DeploymentInstanceRow, {
 		type ConfigInstance
@@ -28,13 +28,12 @@
 
 	let instances: ConfigInstance[] = $derived(
 		deploymentInfos
-			.filter((di) => isActive(di.last_seen) || isOnline(di.last_seen))
+			.filter((di) => !di.archived)
 			.map((di) => {
 				const shortCommit = di.deployed_config_commit?.slice(0, 7) ?? null;
 				return {
 					id: di.id,
 					online: isOnline(di.last_seen),
-					active: isActive(di.last_seen),
 					lastSeen: di.last_seen,
 					shortCommit,
 					isCurrentCommit: !!shortCommit && shortCommit === shortHead

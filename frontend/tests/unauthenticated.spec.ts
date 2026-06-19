@@ -60,7 +60,7 @@ test('can login with testadminpassword and redirect to login', async ({ page, ba
 });
 
 test('can redirect to page after login', async ({ page, baseURL }) => {
-	await page.goto('/devices');
+	await page.goto('/devices/active');
 
 	await page.waitForURL(new RegExp(baseURL + '/login\\?redirect=\\w+'));
 
@@ -68,9 +68,9 @@ test('can redirect to page after login', async ({ page, baseURL }) => {
 	await page.fill('input[name="password"]', 'testadminpassword');
 	await page.click('button[type="submit"]');
 
-	await page.waitForURL('/devices');
+	await page.waitForURL('/devices/active');
 
-	expect(page.url()).toBe(`${baseURL}/devices`);
+	expect(page.url()).toBe(`${baseURL}/devices/active`);
 });
 
 test('visiting overview page without login redirects to login', async ({ page, baseURL }) => {

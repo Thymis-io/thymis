@@ -23,7 +23,8 @@
 	};
 
 	let vncDevices = $derived(
-		data.allDeploymentInfos
+		data.globalState.deploymentInfos
+			.filter((di) => !di.archived)
 			.map((deploymentInfo) => ({
 				deploymentInfo,
 				config: data.globalState.configs.find(
