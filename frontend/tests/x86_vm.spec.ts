@@ -218,7 +218,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await page
 		.locator('div')
 		.filter({ has: page.locator('h2', { hasText: 'Deployed Devices' }) })
-		.locator('a[href^="/devices/active/"]')
+		.locator('a[href^="/devices/"]')
 		.first()
 		.waitFor();
 
