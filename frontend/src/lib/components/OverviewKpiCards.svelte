@@ -64,9 +64,6 @@
 					)}
 				</div>
 				<div class="ds-stat-value">{behindCount}</div>
-				{#if behindCount === 0}
-					<div class="ds-stat-sub">{$t('overview.kpi.all-up-to-date')}</div>
-				{/if}
 			</div>
 			<div class="ds-icon-tile {behindCount > 0 ? 'warning' : 'online'}">
 				<History class="h-[18px] w-[18px]" />
