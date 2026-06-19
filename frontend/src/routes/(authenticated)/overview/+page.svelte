@@ -126,7 +126,11 @@
 		<div class="ds-card-head">
 			<h3 class="ds-card-title">{$t('overview.availability.title')}</h3>
 		</div>
-		<OverviewAvailabilityHeatmap availability={data.availability} />
+		<OverviewAvailabilityHeatmap
+			globalState={data.globalState}
+			deploymentInfos={data.deploymentInfos}
+			availability={data.availability}
+		/>
 	</div>
 	<div class="ds-card flex flex-col">
 		<div class="ds-card-head">
@@ -161,7 +165,11 @@
 	<div class="ds-card-head">
 		<h3 class="ds-card-title">{$t('overview.chart.top-load')}</h3>
 	</div>
-	<OverviewTopDevices devices={data.topDevices} />
+	<OverviewTopDevices
+		globalState={data.globalState}
+		deploymentInfos={data.deploymentInfos}
+		devices={data.topDevices}
+	/>
 </div>
 
 <!-- Row 6: configurations -->
