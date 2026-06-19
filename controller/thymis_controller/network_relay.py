@@ -229,6 +229,7 @@ class NetworkRelay(nr.NetworkRelay):
                     db_session,
                     deployment_info[0].id,
                     last_seen=datetime.now(timezone.utc),
+                    archived=False,
                 )
                 if deployment_info.hardware_devices:
                     for hardware_device in deployment_info.hardware_devices:

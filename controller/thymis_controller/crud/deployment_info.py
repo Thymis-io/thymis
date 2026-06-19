@@ -45,6 +45,7 @@ def update(
     deployed_config_id: str | None = None,
     reachable_deployed_host: str | None = None,
     last_seen: str | None = None,
+    archived: bool | None = None,
     network_interfaces: list | None = None,
     location: str | None = _UNSET,
     name: str | None = _UNSET,
@@ -65,6 +66,8 @@ def update(
         deployment_info.last_seen = last_seen
     if deployment_info.first_seen is None:
         deployment_info.first_seen = last_seen
+    if archived is not None:
+        deployment_info.archived = archived
     if network_interfaces is not None:
         deployment_info.network_interfaces = network_interfaces
     if location is not _UNSET:
