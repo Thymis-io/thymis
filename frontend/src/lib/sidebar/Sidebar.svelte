@@ -102,11 +102,6 @@
 
 	const activeDevices = $derived(deploymentInfos.filter((d) => !d.archived));
 
-	let anyTargetHasVNC = $derived(
-		globalState.configs.some((config) => targetShouldShowVNC(config, globalState)) ||
-			globalState.tags.some((tag) => targetShouldShowVNC(tag, globalState))
-	);
-
 	let vncDeviceCount = $derived(
 		activeDevices.filter((deploymentInfo) => {
 			const config = globalState.configs.find(
@@ -143,7 +138,6 @@
 					name: $t('nav.global-vnc'),
 					icon: ScreenShare,
 					href: '/vnc',
-					hidden: !anyTargetHasVNC,
 					badge: vncDeviceCount
 				},
 				{ name: $t('nav.tasks'), icon: ListChecks, href: '/tasks' },

@@ -393,6 +393,9 @@ test('VNC View', async ({ page, request }, testInfo) => {
 	await deleteAllTasks(page, request);
 	await deleteDeploymentInfos(page, ['my-device-1', 'my-device-2', 'my-device-3', 'my-device-4']);
 
+	await page.locator('nav.nav:visible').locator('a', { hasText: 'VNC Devices' }).click();
+	await page.getByText('No devices with VNC enabled').waitFor();
+
 	await createTag(page, 'Display');
 	await createConfiguration(page, 'My Device 1', 'Raspberry Pi 4', ['Display']);
 	await createConfiguration(page, 'My Device 2', 'Raspberry Pi 4', ['Display']);
@@ -434,8 +437,7 @@ test('VNC View', async ({ page, request }, testInfo) => {
 	await page.locator('nav.nav:visible').locator('a', { hasText: 'VNC Devices' }).click();
 	await page.locator('nav.nav:visible').locator('a', { hasText: 'VNC Devices' }).click();
 
-	// wait for "No devices with VNC enabled"
-	await page.getByText('No devices with VNC enabled').waitFor();
+	await expect(page.locator('text=Connection failed')).toHaveCount(4);
 
 	await expectScreenshot(page, testInfo, screenshotCounter);
 
