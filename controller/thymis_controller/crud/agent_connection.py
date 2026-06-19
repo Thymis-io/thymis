@@ -10,6 +10,10 @@ from thymis_controller import db_models, models
 logger = logging.getLogger(__name__)
 
 
+def _aware(dt):
+    return dt.replace(tzinfo=timezone.utc) if dt and dt.tzinfo is None else dt
+
+
 def create(
     db_session: Session,
     connection_type: Literal["connect", "disconnect"],
@@ -171,9 +175,6 @@ def get_availability_matrix(
         .all()
     )
 
-    def _aware(dt):
-        return dt.replace(tzinfo=timezone.utc) if dt and dt.tzinfo is None else dt
-
     # Pre-normalise each connection to a timezone-aware (connected, disconnected)
     # interval once, so the per-sample-point loop below stays cheap and readable.
     by_device: dict[uuid.UUID, list[tuple[datetime, datetime | None]]] = {}
@@ -234,9 +235,6 @@ def get_connectivity_series(
         )
         .all()
     )
-
-    def _aware(dt):
-        return dt.replace(tzinfo=timezone.utc) if dt and dt.tzinfo is None else dt
 
     points: list[models.ConnectivityPoint] = []
     for t in sample_points:

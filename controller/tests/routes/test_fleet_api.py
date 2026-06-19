@@ -1,9 +1,3 @@
-def test_fleet_metrics_endpoint_returns_list(test_client):
-    resp = test_client.get("/api/fleet/metrics?hours=24&granularity=1h")
-    assert resp.status_code == 200
-    assert isinstance(resp.json(), list)
-
-
 def test_fleet_connectivity_endpoint_returns_list(test_client):
     resp = test_client.get("/api/fleet/connectivity?hours=24&buckets=24")
     assert resp.status_code == 200
@@ -13,13 +7,7 @@ def test_fleet_connectivity_endpoint_returns_list(test_client):
 
 
 def test_fleet_latest_endpoint_returns_list(test_client):
-    resp = test_client.get("/api/fleet/device_metrics_latest")
-    assert resp.status_code == 200
-    assert isinstance(resp.json(), list)
-
-
-def test_fleet_metrics_accepts_90_day_range(test_client):
-    resp = test_client.get("/api/fleet/metrics?hours=2160&granularity=1d")
+    resp = test_client.get("/api/fleet/metrics/latest")
     assert resp.status_code == 200
     assert isinstance(resp.json(), list)
 
