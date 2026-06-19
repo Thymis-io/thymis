@@ -14,6 +14,7 @@
 	import { updateDeploymentInfo, isOnline as checkOnline } from '$lib/deploymentInfo';
 	import { invalidate } from '$app/navigation';
 	import type { LayoutData } from './$types';
+	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
 	interface Props {
 		data: LayoutData;
@@ -80,18 +81,22 @@
 </script>
 
 <PageHead
-	title={deploymentInfo.name ?? deploymentInfo.id}
 	subtitle={deploymentInfo.reachable_deployed_host ?? undefined}
 	selectedDeploymentInfo={deploymentInfo}
 >
-	<button
-		onclick={openNameModal}
-		class="rounded p-1"
-		style="color: var(--ds-text-mute)"
-		title={$t('device-details.edit')}
-	>
-		<Pen class="h-[18px] w-[18px]" />
-	</button>
+	<h1 class="ds-page-title flex items-center gap-2">
+		<IdentifierLink
+			globalState={data.globalState}
+			deploymentInfos={data.deploymentInfos}
+			identifier={deploymentInfo.id}
+			context="device"
+			showLinkHover={false}
+			iconSize={'1.5rem'}
+		/>
+		<button class="ds-icon-btn" aria-label={$t('common.rename')} onclick={openNameModal}>
+			<Pen size={16} />
+		</button>
+	</h1>
 	<span class="ds-status-pill {isOnline ? 'online' : 'offline'}">
 		<span class="ds-dot"></span>
 		{isOnline ? $t('device-details.online') : $t('device-details.offline')}

@@ -1,13 +1,18 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import HardDrive from 'lucide-svelte/icons/hard-drive';
 	import type { FleetDeviceMetric } from '$lib/fleet';
+	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import type { GlobalState } from '$lib/state.svelte';
+	import { isOnline, type DeploymentInfo } from '$lib/deploymentInfo';
 
 	interface Props {
+		globalState: GlobalState;
+		deploymentInfos: DeploymentInfo[];
 		devices: FleetDeviceMetric[];
 		limit?: number;
 	}
-	let { devices, limit = 5 }: Props = $props();
+
+	let { globalState, deploymentInfos, devices, limit = 5 }: Props = $props();
 
 	type Metric = 'cpu' | 'ram' | 'disk';
 	const columns: { metric: Metric; field: keyof FleetDeviceMetric; color: string }[] = [
@@ -34,14 +39,24 @@
 					<div class="space-y-2">
 						{#each top(col.field) as d (d.deployment_info_id)}
 							{@const pct = d[col.field] as number}
-							<a href={`/devices/${d.deployment_info_id}`} class="device-link block">
+							{@const deploymentInfo = deploymentInfos.find((di) => di.id === d.deployment_info_id)}
+							{@const online = deploymentInfo && isOnline(deploymentInfo?.last_seen)}
+							<div class="block">
 								<div class="mb-1 flex items-baseline justify-between text-sm">
-									<span class="flex min-w-0 items-center gap-1" style="color: var(--ds-text)">
-										<HardDrive size={14} class="shrink-0" />
-										<span class="device-name truncate">
-											{d.name ?? d.deployment_info_id.slice(0, 8)}
-										</span>
-									</span>
+									<div class="flex items-center gap-2">
+										<span
+											class={[
+												'h-2 w-2 flex-shrink-0 rounded-full inline-block',
+												online ? 'bg-emerald-500' : 'bg-gray-400'
+											].join(' ')}
+										></span>
+										<IdentifierLink
+											{globalState}
+											{deploymentInfos}
+											identifier={d.deployment_info_id}
+											context="device"
+										/>
+									</div>
 									<span style="color: var(--ds-text-dim)">{pct.toFixed(0)}%</span>
 								</div>
 								<div
@@ -53,7 +68,7 @@
 										style="width: {Math.min(100, pct)}%; background: {col.color}"
 									></div>
 								</div>
-							</a>
+							</div>
 						{/each}
 					</div>
 				</div>
@@ -61,10 +76,3 @@
 		</div>
 	{/if}
 </div>
-
-<style>
-	/* Underline the device name on hover, matching the other device links. */
-	.device-link:hover .device-name {
-		text-decoration: underline;
-	}
-</style>
