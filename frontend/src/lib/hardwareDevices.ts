@@ -30,3 +30,10 @@ export const calcTimeSince = (date: Date, currentDate: Date, minSeconds = 0) => 
 	if (interval > 1) return get(t)('time.ago.minute', { values: { count: Math.floor(interval) } });
 	return get(t)('time.ago.second', { values: { count: Math.floor(seconds) } });
 };
+
+export const getHardwareKeyDisplayName = (key: string): string => {
+	const hardwareKeys: Record<string, string> = {
+		'pi-serial-number': get(t)('hardware-devices.hardware-keys.pi-serial-number')
+	};
+	return key in hardwareKeys ? hardwareKeys[key] : key;
+};

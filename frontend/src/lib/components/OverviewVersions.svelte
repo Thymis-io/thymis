@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { isActive, type DeploymentInfo } from '$lib/deploymentInfo';
+	import { type DeploymentInfo } from '$lib/deploymentInfo';
 
 	interface Props {
 		deploymentInfos: DeploymentInfo[];
@@ -9,7 +9,7 @@
 	let { deploymentInfos, headCommit }: Props = $props();
 
 	const shortHead = $derived(headCommit?.slice(0, 7) ?? null);
-	const active = $derived(deploymentInfos.filter((di) => isActive(di.last_seen)));
+	const active = $derived(deploymentInfos.filter((di) => !di.archived));
 
 	type VersionGroup = { commit: string; count: number; isHead: boolean; ids: string[] };
 

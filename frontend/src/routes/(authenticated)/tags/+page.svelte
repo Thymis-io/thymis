@@ -42,9 +42,10 @@
 				.filter((config) => config.tags.includes(tagIdentifier))
 				.map((config) => config.identifier)
 		);
-		return data.deploymentInfos.filter(
-			(info) => info.deployed_config_id && configIdsWithTag.has(info.deployed_config_id)
-		).length;
+		return data.deploymentInfos
+			.filter((info) => !info.archived)
+			.filter((info) => info.deployed_config_id && configIdsWithTag.has(info.deployed_config_id))
+			.length;
 	};
 
 	let deleteTag: Tag | undefined = $state(undefined);

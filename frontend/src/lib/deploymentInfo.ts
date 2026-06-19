@@ -2,13 +2,9 @@ import { fetchWithNotify } from './fetchWithNotify';
 import type { HardwareDevice } from './hardwareDevices';
 
 export const ONLINE_THRESHOLD_MS = 30 * 1000;
-export const STALE_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
 
 export const isOnline = (lastSeen: string | null): boolean =>
 	!!lastSeen && Date.now() - new Date(lastSeen).getTime() < ONLINE_THRESHOLD_MS;
-
-export const isActive = (lastSeen: string | null): boolean =>
-	!!lastSeen && Date.now() - new Date(lastSeen).getTime() < STALE_THRESHOLD_MS;
 
 export type NetworkInterface = {
 	interface: string;
@@ -26,6 +22,7 @@ export type DeploymentInfo = {
 	reachable_deployed_host: string | null;
 	last_seen: string | null;
 	first_seen: string | null;
+	archived: boolean;
 	hardware_devices: HardwareDevice[];
 	network_interfaces?: NetworkInterface[] | null;
 	location?: string | null;
@@ -200,6 +197,7 @@ export type DeploymentInfoUpdate = {
 	reachable_deployed_host?: string | null;
 	name?: string | null;
 	location?: string | null;
+	archived?: boolean | null;
 };
 
 export const updateDeploymentInfo = async (

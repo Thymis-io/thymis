@@ -10,7 +10,6 @@
 	export type ConfigInstance = {
 		id: string;
 		online: boolean;
-		active: boolean;
 		lastSeen: string | null;
 		shortCommit: string | null;
 		isCurrentCommit: boolean;

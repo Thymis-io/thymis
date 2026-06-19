@@ -1,14 +1,6 @@
-import { getAllDeploymentInfos } from '$lib/deploymentInfo';
-import { getAllHardwareDevices } from '$lib/hardwareDevices';
+import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
-export const load = (async ({ fetch }) => {
-	const hardwareDevices = await getAllHardwareDevices(fetch);
-	const deploymentInfos = await getAllDeploymentInfos(fetch);
-	const loadTime = new Date().getTime();
-	return {
-		hardwareDevices,
-		deploymentInfos,
-		loadTime
-	};
-}) satisfies PageLoad;
+export const load: PageLoad = () => {
+	redirect(307, '/devices/active');
+};

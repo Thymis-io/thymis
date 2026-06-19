@@ -100,13 +100,15 @@
 		items: NavItem[];
 	};
 
+	const activeDevices = $derived(deploymentInfos.filter((d) => !d.archived));
+
 	let anyTargetHasVNC = $derived(
 		globalState.configs.some((config) => targetShouldShowVNC(config, globalState)) ||
 			globalState.tags.some((tag) => targetShouldShowVNC(tag, globalState))
 	);
 
 	let vncDeviceCount = $derived(
-		deploymentInfos.filter((deploymentInfo) => {
+		activeDevices.filter((deploymentInfo) => {
 			const config = globalState.configs.find(
 				(c) => c.identifier === deploymentInfo.deployed_config_id
 			);
@@ -135,7 +137,7 @@
 					name: $t('nav.devices'),
 					icon: Server,
 					href: '/devices',
-					badge: deploymentInfos.length
+					badge: activeDevices.length
 				},
 				{
 					name: $t('nav.global-vnc'),

@@ -169,11 +169,19 @@
 		"subtitle": "Physische Geräte und ihre bereitgestellten Konfigurationen.",
 		"actions": "Geräteaktionen",
 		"no-deployed-devices": "Noch keine bereitgestellten Geräte.",
+		"no-archived-devices": "Keine archivierten Geräte.",
 		"filter": {
 			"all": "Alle",
 			"online": "Online",
 			"offline": "Offline"
 		},
+		"tabs": {
+			"active": "Aktiv",
+			"without-deployment": "Ohne Deployment",
+			"archived": "Archiviert"
+		},
+		"archive-device": "Gerät archivieren",
+		"unarchive-device": "Gerät aus Archiv wiederherstellen",
 		"no-known-hardware-devices-without-known-deployment": "Keine bekannten Hardware-Geräte ohne Deployment"
 	},
 	"create-configuration": {

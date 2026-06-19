@@ -44,7 +44,9 @@
 
 	// How many deployed devices currently run a given configuration.
 	const deviceCountForConfig = (identifier: string) =>
-		data.deploymentInfos.filter((info) => info.deployed_config_id === identifier).length;
+		data.deploymentInfos
+			.filter((info) => !info.archived)
+			.filter((info) => info.deployed_config_id === identifier).length;
 
 	const handleConsider = (e: CustomEvent<DndEvent<{ id: string; data: Config }>>) => {
 		const {

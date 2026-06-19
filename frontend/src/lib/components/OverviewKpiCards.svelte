@@ -17,7 +17,7 @@
 </script>
 
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-	<a href="/devices?status=online" class="ds-stat block transition hover:brightness-105">
+	<a href="/devices/active?status=online" class="ds-stat block transition hover:brightness-105">
 		<div class="flex items-start justify-between gap-3">
 			<div>
 				<div class="ds-stat-label">
@@ -29,7 +29,7 @@
 		</div>
 	</a>
 
-	<a href="/devices?status=offline" class="ds-stat block transition hover:brightness-105">
+	<a href="/devices/active?status=offline" class="ds-stat block transition hover:brightness-105">
 		<div class="flex items-start justify-between gap-3">
 			<div>
 				<div class="ds-stat-label">
