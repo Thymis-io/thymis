@@ -10,6 +10,7 @@
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
 	import { isOnline, updateDeploymentInfo } from '$lib/deploymentInfo';
 	import ArchiveRestore from 'lucide-svelte/icons/archive-restore';
+	import DetailsIcon from 'lucide-svelte/icons/info';
 	import { getHardwareKeyDisplayName } from '$lib/hardwareDevices';
 
 	interface Props {
@@ -114,6 +115,7 @@
 					items={[
 						{
 							label: $t('device-details.details'),
+							icon: DetailsIcon,
 							href: `/devices/${deploymentInfo.id}/details`
 						},
 						{
