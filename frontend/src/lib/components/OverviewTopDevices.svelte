@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
+	import HardDrive from 'lucide-svelte/icons/hard-drive';
 	import type { FleetDeviceMetric } from '$lib/fleet';
 
 	interface Props {
@@ -33,10 +34,13 @@
 					<div class="space-y-2">
 						{#each top(col.field) as d (d.deployment_info_id)}
 							{@const pct = d[col.field] as number}
-							<a href={`/devices/${d.deployment_info_id}`} class="block">
+							<a href={`/devices/${d.deployment_info_id}`} class="device-link block">
 								<div class="mb-1 flex items-baseline justify-between text-sm">
-									<span class="truncate" style="color: var(--ds-text)">
-										{d.name ?? d.deployment_info_id.slice(0, 8)}
+									<span class="flex min-w-0 items-center gap-1" style="color: var(--ds-text)">
+										<HardDrive size={14} class="shrink-0" />
+										<span class="device-name truncate">
+											{d.name ?? d.deployment_info_id.slice(0, 8)}
+										</span>
 									</span>
 									<span style="color: var(--ds-text-dim)">{pct.toFixed(0)}%</span>
 								</div>
@@ -57,3 +61,10 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	/* Underline the device name on hover, matching the other device links. */
+	.device-link:hover .device-name {
+		text-decoration: underline;
+	}
+</style>
