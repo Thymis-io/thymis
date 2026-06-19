@@ -5,6 +5,12 @@
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import Download from 'lucide-svelte/icons/download';
 	import Play from 'lucide-svelte/icons/play';
+	import Sliders from 'lucide-svelte/icons/sliders-horizontal';
+	import TerminalIcon from 'lucide-svelte/icons/terminal';
+	import LogIcon from 'lucide-svelte/icons/text-search';
+	import ScreenShare from 'lucide-svelte/icons/screen-share';
+	import ListCollapse from 'lucide-svelte/icons/list-collapse';
+	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import { type Config } from '$lib/state';
 	import { getConfigImageFormat } from '$lib/config/configUtils';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
@@ -61,6 +67,48 @@
 		}
 		return selectedTargetName;
 	});
+
+	let selectedTargetHasAnyVNCModule = $derived(
+		!!data.nav.selectedTarget && targetShouldShowVNC(data.nav.selectedTarget, data.globalState)
+	);
+	let configTabs = $derived([
+		{
+			name: $t('nav.device-details'),
+			icon: ListCollapse,
+			href: '/configuration/configuration-details',
+			hidden: !data.nav.selectedConfig
+		},
+		{
+			name: $t('nav.configure'),
+			icon: Sliders,
+			href: '/configuration/edit',
+			hidden: !data.nav.selectedConfig
+		},
+		{
+			name: $t('nav.config-tag'),
+			icon: Sliders,
+			href: '/configuration/edit',
+			hidden: !data.nav.selectedTag
+		},
+		{
+			name: $t('nav.device-vnc'),
+			icon: ScreenShare,
+			href: '/configuration/vnc',
+			hidden: !selectedTargetHasAnyVNCModule
+		},
+		{
+			name: $t('nav.terminal'),
+			icon: TerminalIcon,
+			href: '/configuration/terminal',
+			hidden: !data.nav.selectedConfig
+		},
+		{
+			name: $t('nav.logs'),
+			icon: LogIcon,
+			href: '/configuration/logs',
+			hidden: data.deploymentInfos.length === 0
+		}
+	]);
 
 	const commit = async (message: string) => {
 		await fetchWithNotify(`/api/action/commit?message=${encodeURIComponent(message)}`, {
@@ -157,5 +205,5 @@
 		{/if}
 	{/snippet}
 </PageHead>
-<Tabbar globalState={data.globalState} deploymentInfos={data.deploymentInfos} nav={data.nav} />
+<Tabbar items={configTabs} />
 {@render children?.()}
