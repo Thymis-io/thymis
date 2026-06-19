@@ -43,13 +43,13 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await page.locator('nav.nav:visible').locator('a', { hasText: 'Configs' }).click();
 	await page.locator('h1', { hasText: 'Device Configurations' }).waitFor();
 
-	// find row with 'VM Test x64 1' and click on link 'View Details'
+	// open the configuration details for 'VM Test x64 1' via its name link
 	await page
 		.locator('tr')
 		.filter({ hasText: 'VM Test x64 1' })
-		.getByRole('link', { name: 'View Details' })
+		.getByRole('link', { name: 'VM Test x64 1' })
 		.first()
-		.click({ force: true });
+		.click();
 
 	// Wait for config detail page to load
 	await page.locator('h1', { hasText: 'VM Test x64 1' }).waitFor();
@@ -65,13 +65,13 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await page.locator('nav.nav:visible').locator('a', { hasText: 'Configs' }).click();
 	await page.locator('h1', { hasText: 'Device Configurations' }).waitFor();
 
-	// find row with 'VM Test x64 2' and click on link 'View Details'
+	// open the configuration details for 'VM Test x64 2' via its name link
 	await page
 		.locator('tr')
 		.filter({ hasText: 'VM Test x64 2' })
-		.getByRole('link', { name: 'View Details' })
+		.getByRole('link', { name: 'VM Test x64 2' })
 		.first()
-		.click({ force: true });
+		.click();
 
 	// wait a few seconds, so the first VM is more likely to finish first
 	await page.waitForTimeout(20000);
@@ -297,9 +297,9 @@ test('Create and use artifacts', async ({ page, request }, testInfo) => {
 	await page
 		.locator('tr')
 		.filter({ hasText: 'My Device 1' })
-		.getByRole('link', { name: 'View Details' })
+		.getByRole('link', { name: 'My Device 1' })
 		.first()
-		.click({ force: true });
+		.click();
 	await page.getByRole('tab', { name: 'Configure' }).click();
 
 	// click on "Add Module" button
