@@ -5,12 +5,13 @@ from thymis_controller import db_models
 from thymis_controller.crud import fleet_alert as crud
 
 
-def _make_di(db_session, name, last_seen):
+def _make_di(db_session, name, last_seen, archived=False):
     di = db_models.DeploymentInfo(
         ssh_public_key=f"ssh-ed25519 AAAA{uuid.uuid4().hex}",
         deployed_config_id="test-config",
         name=name,
         last_seen=last_seen,
+        archived=archived,
     )
     db_session.add(di)
     db_session.commit()
@@ -87,3 +88,43 @@ def test_alerts_does_not_flag_healthy_device(db_session):
 
     alerts = crud.get_fleet_alerts(db_session)
     assert [a for a in alerts if a.deployment_info_id == di.id] == []
+
+
+def test_archived_device_not_flagged_offline(db_session):
+    now = datetime.now(timezone.utc)
+    _make_di(db_session, "archived-stale", now - timedelta(days=3), archived=True)
+    alerts = crud.get_fleet_alerts(db_session)
+    assert all(a.name != "archived-stale" for a in alerts)
+
+
+def test_archived_device_not_flagged_flapping(db_session):
+    now = datetime.now(timezone.utc)
+    di = _make_di(db_session, "archived-flapper", now, archived=True)
+    for i in range(crud.FLAPPING_RECONNECTS_24H + 1):
+        db_session.add(
+            db_models.AgentConnection(
+                deployment_info_id=di.id,
+                connected_at=now - timedelta(minutes=10 * i),
+                disconnected_at=now - timedelta(minutes=10 * i - 1),
+            )
+        )
+    db_session.commit()
+    alerts = crud.get_fleet_alerts(db_session)
+    assert all(a.deployment_info_id != di.id for a in alerts)
+
+
+def test_archived_device_not_flagged_resource_spike(db_session):
+    now = datetime.now(timezone.utc)
+    di = _make_di(db_session, "archived-hot", now, archived=True)
+    db_session.add(
+        db_models.DeviceMetric(
+            deployment_info_id=di.id,
+            cpu_percent=95.0,
+            ram_percent=95.0,
+            disk_percent=95.0,
+            timestamp=now,
+        )
+    )
+    db_session.commit()
+    alerts = crud.get_fleet_alerts(db_session)
+    assert all(a.deployment_info_id != di.id for a in alerts)
