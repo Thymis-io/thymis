@@ -115,9 +115,9 @@
 			<SplitPane
 				type="vertical"
 				reverse={true}
-				pos={taskbarMinimized ? '54px' : '30%'}
-				min={taskbarMinimized ? '54px' : '12rem'}
-				max={taskbarMinimized ? '54px' : '80%'}
+				pos={taskbarMinimized ? '38px' : '30%'}
+				min={taskbarMinimized ? '38px' : '12rem'}
+				max={taskbarMinimized ? '38px' : '80%'}
 				onchange={onSplitpaneChange}
 			>
 				{#snippet a()}
@@ -139,7 +139,7 @@
 								/>
 							</div>
 						{/if}
-						<div class="relative h-[54px]">
+						<div class="relative h-[38px]">
 							<TaskbarMinimize bind:taskbarMinimized class="top-0 h-full" />
 							<TaskbarSmall
 								globalState={data.globalState}
