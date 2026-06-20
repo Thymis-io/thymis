@@ -22,14 +22,14 @@
 	const saveLocale = (evt: Event) => {
 		let event_target = evt.target as HTMLSelectElement;
 		if (!event_target) {
-			console.log('event_target is null');
 			return;
 		}
-		$locale = event_target.value;
-		console.log('saveLocale');
+		// Use the selected value directly: `locale.set` updates `$locale` asynchronously,
+		// so reading `$locale` here would persist the previous locale in the cookie.
+		const newLocale = event_target.value || 'en';
+		$locale = newLocale;
 		if (browser) {
-			document.cookie = `locale=${$locale || 'en'};path=/;max-age=31536000`;
-			console.log(`locale=${$locale || 'en'};path=/;max-age=31536000`);
+			document.cookie = `locale=${newLocale};path=/;max-age=31536000`;
 			invalidate((url) => url.pathname === '/api/available_modules');
 		}
 	};

@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import '$lib/i18n'; // Import to initialize. Important :)
+import { localeFromCookieString, normalizeLocale } from '$lib/i18n'; // Import to initialize. Important :)
 import { locale, waitLocale } from 'svelte-i18n';
 import type { LayoutLoad } from './$types';
 import {
@@ -37,19 +37,16 @@ export const load = (async ({ fetch, url, data }) => {
 	if (browser) {
 		window.toast = toast;
 	}
-	let lang = 'en';
+	// Base on the server-resolved locale; on the client the live cookie wins so an
+	// in-page switch applies immediately.
+	let lang = data?.locale ?? 'en';
 	if (browser) {
-		lang = window.navigator.language;
-		// split -
-		lang = lang.split('-')[0];
-		// check cookie and set value from there
-		lang =
-			document.cookie
-				.split('; ')
-				.find((row) => row.startsWith('locale='))
-				?.split('=')[1] || lang;
-		locale.set(lang);
+		const cookieLang = localeFromCookieString(document.cookie);
+		if (cookieLang) lang = normalizeLocale(cookieLang);
+		document.documentElement.lang = lang;
 	}
+	// Await on server and client so the dictionary is loaded before the layout renders.
+	locale.set(lang);
 	await waitLocale(lang);
 
 	const stateResponse = await fetchWithNotify(
