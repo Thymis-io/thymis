@@ -1,16 +1,19 @@
 import type { Handle, HandleFetch } from '@sveltejs/kit';
-import '$lib/i18n';
-import { locale } from 'svelte-i18n';
+import { normalizeLocale } from '$lib/i18n';
+import { locale, waitLocale } from 'svelte-i18n';
 import { env } from '$env/dynamic/private';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	let lang = event.request.headers.get('accept-language')?.split(',')[0]?.split('-')[0];
-	// check for language override cookie
-	lang = event.cookies.get('locale') || lang;
-	if (lang) {
-		locale.set(lang);
-	}
+	// normalizeLocale clamps the untrusted cookie/header value before it reaches the
+	// `<html lang>` attribute (XSS) or waitLocale.
+	const lang = normalizeLocale(
+		event.cookies.get('locale') ||
+			event.request.headers.get('accept-language')?.split(',')[0]?.split('-')[0]
+	);
+	locale.set(lang);
+	await waitLocale(lang); // load the dictionary before SSR renders
 	return resolve(event, {
+		transformPageChunk: ({ html }) => html.replace('%lang%', lang),
 		filterSerializedResponseHeaders: (name) => ['total-count', 'content-type'].includes(name)
 	});
 };

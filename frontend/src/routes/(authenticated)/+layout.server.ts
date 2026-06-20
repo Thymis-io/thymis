@@ -2,8 +2,14 @@ import { toast } from '@zerodevx/svelte-toast';
 import type { LayoutServerLoad } from './$types';
 import { env } from '$env/dynamic/private';
 import { redirectToLogin } from '$lib/login';
+import { normalizeLocale } from '$lib/i18n';
 
-export const load: LayoutServerLoad = async ({ cookies, fetch, url }) => {
+export const load: LayoutServerLoad = async ({ cookies, fetch, url, request }) => {
+	// Pass the resolved locale to the client so it hydrates in the server-rendered language.
+	const locale = normalizeLocale(
+		cookies.get('locale') || request.headers.get('accept-language')?.split(',')[0]?.split('-')[0]
+	);
+
 	const session = cookies.get('session-id');
 	if (session) {
 		// check for valid session
@@ -15,6 +21,7 @@ export const load: LayoutServerLoad = async ({ cookies, fetch, url }) => {
 			const user = await loggedInResponse.json().catch(() => null);
 
 			return {
+				locale: locale,
 				minimizeTaskbar: minimizeTaskbar,
 				vncDisplaysPerColumn: vncDisplaysPerColumn,
 				user: user,
