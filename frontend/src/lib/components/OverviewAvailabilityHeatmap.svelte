@@ -28,7 +28,7 @@
 	{:else}
 		<div class="space-y-2">
 			{#each rows as row (row.deployment_info_id)}
-				<a href={`/devices/${row.deployment_info_id}`} class="block">
+				<div class="block">
 					<div class="mb-1 flex items-baseline justify-between text-xs">
 						<IdentifierLink
 							{globalState}
@@ -49,7 +49,7 @@
 							></div>
 						{/each}
 					</div>
-				</a>
+				</div>
 			{/each}
 		</div>
 	{/if}

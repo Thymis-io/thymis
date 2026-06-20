@@ -90,10 +90,7 @@
 		goto(`?${sp.toString()}`, { replaceState: true, invalidateAll: true });
 	}
 
-	let connTimewindow = $derived(range === '24h' ? '24h' : range === '7d' ? '7d' : '7d') as
-		| '1h'
-		| '24h'
-		| '7d';
+	let connTimewindow = $derived(range === '24h' ? '24h' : '7d') as '1h' | '24h' | '7d';
 </script>
 
 <PageHead title={$t('nav.overview')} subtitle={$t('overview.subtitle')} />
