@@ -59,7 +59,7 @@ jobs:
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
 
   test-frontend-integration:
-    runs-on: ubuntu-22.04-arm
+    runs-on: ubuntu-24.04-arm
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
@@ -154,7 +154,7 @@ jobs:
           fi
 
   test-frontend-integration-stable-input:
-    runs-on: ubuntu-22.04-arm
+    runs-on: ubuntu-24.04-arm
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
