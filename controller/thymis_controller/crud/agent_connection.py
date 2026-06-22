@@ -183,18 +183,22 @@ def get_availability_matrix(
             (_aware(c.connected_at), _aware(c.disconnected_at))
         )
 
-    if not by_device:
-        return models.FleetAvailability(timestamps=sample_points, devices=[])
-
-    names = {
-        di.id: di.name
-        for di in db_session.query(db_models.DeploymentInfo)
-        .filter(db_models.DeploymentInfo.id.in_(by_device.keys()))
+    # Get all devices in the system, not just ones with connections in the time window.
+    all_devices = (
+        db_session.query(db_models.DeploymentInfo)
+        .filter(db_models.DeploymentInfo.archived.is_(False))
         .all()
-    }
+    )
+    names = {di.id: di.name for di in all_devices}
+
+    for device in all_devices:
+        if device.id not in by_device:
+            by_device[device.id] = []
 
     rows: list[models.DeviceAvailabilityRow] = []
     for di_id, intervals in by_device.items():
+        if di_id not in names:
+            continue
         states: list[bool] = []
         for t in sample_points:
             online = any(
