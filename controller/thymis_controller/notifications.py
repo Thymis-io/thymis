@@ -48,10 +48,11 @@ class ImageBuiltNotification(BaseModel):
 
 
 class NotificationManager:
-    queue: Queue[Notification] = Queue()
+    queue: "Queue[Notification]"
     alive: bool
 
     def __init__(self):
+        self.queue: Queue[Notification] = Queue()
         self.active_connections: dict[WebSocket, uuid.UUID] = {}
         self.loop: asyncio.AbstractEventLoop = None
 
@@ -74,7 +75,10 @@ class NotificationManager:
             future = asyncio.run_coroutine_threadsafe(
                 self._broadcast(notification), self.loop
             )
-            future.result()  # propagate exceptions; keeps backpressure
+            try:
+                future.result()
+            except Exception:
+                traceback.print_exc()
 
     async def connect(self, websocket: WebSocket, user_session_id: uuid.UUID):
         await websocket.accept()
@@ -101,7 +105,7 @@ class NotificationManager:
         self.queue.put(Notification(FrontendToast(message=message)))
 
     async def _broadcast(self, message: Notification):
-        for connection, user_session_id in self.active_connections.items():
+        for connection, user_session_id in list(self.active_connections.items()):
             if (
                 hasattr(message.data.inner, "user_session_id")
                 and message.data.inner.user_session_id != user_session_id
@@ -110,6 +114,7 @@ class NotificationManager:
             if connection in message.sent_to:
                 continue
             if not self.is_connection_healthy(connection):
+                self.disconnect(connection)
                 continue
             try:
                 await connection.send_text(message.data.model_dump_json())
