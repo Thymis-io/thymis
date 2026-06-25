@@ -1,6 +1,7 @@
 import hashlib
 import json
 import pathlib
+import re
 
 import thymis_controller.modules.modules as modules
 from thymis_controller import models
@@ -47,9 +48,9 @@ class Kiosk(modules.Module):
             de="Bildschirmmodus",
         ),
         type="string",
-        default="1024x600_60.00",
+        default="1920x1080",
         description="xrandr mode.",
-        example="1024x600_60.00",
+        example="1920x1080",
         order=40,
     )
 
@@ -151,6 +152,18 @@ class Kiosk(modules.Module):
             else self.xrandr_rotation.default
         )
 
+        # Parse width/height/refresh from xrandr_mode for CVT modeline generation.
+        # Handles formats: "1360x768", "1360x768_60.00", "1360x768@60"
+        _mode_match = re.match(r"^(\d+)x(\d+)(?:[_@](\d+(?:\.\d+)?))?", xrandr_mode)
+        if _mode_match:
+            mode_w = _mode_match.group(1)
+            mode_h = _mode_match.group(2)
+            mode_r = (
+                str(int(float(_mode_match.group(3)))) if _mode_match.group(3) else "60"
+            )
+        else:
+            mode_w, mode_h, mode_r = "1920", "1080", "60"
+
         volume = (
             module_settings.settings["volume"]
             if "volume" in module_settings.settings
@@ -183,16 +196,38 @@ class Kiosk(modules.Module):
             hardware.pulseaudio.enable = true;
             hardware.pulseaudio.support32Bit = true;
             services.xserver.windowManager.i3.enable = lib.mkOverride {priority} true;
-            services.xserver.windowManager.i3.configFile = lib.mkOverride {priority} (pkgs.writeText "i3-config" ''
+            services.xserver.windowManager.i3.configFile = lib.mkOverride {priority} (
+              let
+                # Generate a CVT modeline for the target resolution at build time so
+                # xrandr can set it even when the RPi firmware chose the wrong HDMI
+                # mode group (CEA vs DMT) and the native mode is absent from the list.
+                xrandrSetup = pkgs.writeShellScript "thymis-xrandr-setup" ''
+                  sleep 2
+                  CVT_OUT=$(${{pkgs.libxcvt}}/bin/cvt {mode_w} {mode_h} {mode_r})
+                  MODELINE=$(echo "$CVT_OUT" | grep -i modeline | sed 's/Modeline //')
+                  MODENAME=$(echo "$MODELINE" | cut -d'"' -f2)
+                  MODEPARAMS=$(echo "$MODELINE" | sed 's/"[^"]*" *//')
+                  # Register the modeline once per X session.
+                  ${{pkgs.xorg.xrandr}}/bin/xrandr --newmode "$MODENAME" $MODEPARAMS 2>/dev/null || true
+                  apply() {{
+                      ${{pkgs.xorg.xrandr}}/bin/xrandr --addmode HDMI-1 "$MODENAME" 2>/dev/null || true
+                      ${{pkgs.xorg.xrandr}}/bin/xrandr --output HDMI-1 --mode "$MODENAME" --rotate {xrandr_rotation} 2>/dev/null || true
+                  }}
+                  apply
+                  # Reapply on every screen-change event (KVM switch, display power cycle).
+                  while IFS= read -r _; do
+                      sleep 1
+                      apply
+                  done < <(${{pkgs.xorg.xev}}/bin/xev -root -event randr | grep --line-buffered RRScreenChangeNotify)
+                '';
+              in pkgs.writeText "i3-config" ''
             # i3 config file (v4)
             bar {{
                 mode invisible
             }}
             new_window pixel 0
             new_float pixel 0
-            exec "/run/current-system/sw/bin/xrandr --newmode 1920x1080  148.50  1920 2008 2052 2200  1080 1084 1089 1125 +hsync +vsync; /run/current-system/sw/bin/xrandr --addmode HDMI-1 1920x1080;"
-            {f'exec "sleep 2; /run/current-system/sw/bin/xrandr --output HDMI-1 --rotate {xrandr_rotation}"' if xrandr_rotation != 'normal' else ''}
-            {f'exec "sleep 2; /run/current-system/sw/bin/xrandr --output HDMI-1 --mode {xrandr_mode}"' if "xrandr_mode" in module_settings.settings else 'exec "sleep 2; /run/current-system/sw/bin/xrandr --output HDMI-1 --mode 1920x1080"'}
+            exec "${{xrandrSetup}}"
             exec "/run/current-system/sw/bin/xset s off"
             exec "/run/current-system/sw/bin/xset -dpms"
             exec "${{pkgs.unclutter}}/bin/unclutter"
