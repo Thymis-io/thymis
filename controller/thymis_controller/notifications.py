@@ -14,6 +14,8 @@ NotificationDataInner = Union[
     "ShouldInvalidate", "FrontendToast", "ImageBuiltNotification"
 ]
 
+INVALIDATE_DEBOUNCE_SECONDS: float = 0.2
+
 
 class Notification:
     data: "NotificationData"
@@ -55,6 +57,9 @@ class NotificationManager:
         self.queue: Queue[Notification] = Queue()
         self.active_connections: dict[WebSocket, uuid.UUID] = {}
         self.loop: asyncio.AbstractEventLoop = None
+        self.invalidate_paths_lock = threading.Lock()
+        self.pending_invalidate_paths: set[str] = set()
+        self.invalidate_timer: threading.Timer | None = None
 
     def start(self):
         self.alive = True
@@ -124,7 +129,24 @@ class NotificationManager:
                 traceback.print_exc()
 
     def broadcast_invalidate_notification(self, paths: list[str]):
-        self.queue.put(Notification(ShouldInvalidate(should_invalidate_paths=paths)))
+        with self.invalidate_paths_lock:
+            self.pending_invalidate_paths.update(paths)
+            if self.invalidate_timer is None:
+                self.invalidate_timer = threading.Timer(
+                    INVALIDATE_DEBOUNCE_SECONDS, self._flush_invalidate
+                )
+                self.invalidate_timer.daemon = True
+                self.invalidate_timer.start()
+
+    def _flush_invalidate(self):
+        with self.invalidate_paths_lock:
+            paths = list(self.pending_invalidate_paths)
+            self.pending_invalidate_paths.clear()
+            self.invalidate_timer = None
+        if paths:
+            self.queue.put(
+                Notification(ShouldInvalidate(should_invalidate_paths=paths))
+            )
 
     def broadcast_image_built_notification(
         self, user_session_id: uuid.UUID, configuration_id: str, image_format: str
