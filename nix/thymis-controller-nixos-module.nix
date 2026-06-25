@@ -104,6 +104,9 @@ in
           '';
         };
       };
+      eventsConfig = ''
+        worker_connections 20000;
+      '';
     };
     nix = lib.mkIf cfg.recommended-nix-gc-settings-enable (lib.mkDefault {
       settings = {
