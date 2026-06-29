@@ -183,9 +183,7 @@ const startSocket = () => {
 	};
 	socket.onmessage = async (event) => {
 		const data = JSON.parse(event.data) as
-			| ShortTaskMessage
-			| SubscripedTaskMessage
-			| SubscripedTaskOutputMessage;
+			ShortTaskMessage | SubscripedTaskMessage | SubscripedTaskOutputMessage;
 		if (data.type === 'new_short_task' || data.type === 'short_task_update') {
 			taskStatus.update((ts) => {
 				const taskPage = new URL(window.location.href).searchParams.get('task-page') ?? '1';

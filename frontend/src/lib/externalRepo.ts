@@ -1,8 +1,5 @@
 export type FlakeReference =
-	| IndirectFlakeReference
-	| GitFlakeReference
-	| GithubFlakeReference
-	| GitlabFlakeReference;
+	IndirectFlakeReference | GitFlakeReference | GithubFlakeReference | GitlabFlakeReference;
 
 export type IndirectFlakeReference = {
 	type: 'indirect';
