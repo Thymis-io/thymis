@@ -24,12 +24,10 @@ const DEFAULT_BASE_URL = 'http://127.0.0.1:8000';
 let privateBaseUrl = new URL(env.PRIVATE_BASE_URL ? env.PRIVATE_BASE_URL : DEFAULT_BASE_URL);
 
 const validHosts = ['localhost', '127.0.0.1', '::1'];
-if (
-	!(
-		privateBaseUrl.protocol === 'http:' &&
-		validHosts.some((host) => privateBaseUrl.host.startsWith(host))
-	)
-) {
+if (!(
+	privateBaseUrl.protocol === 'http:' &&
+	validHosts.some((host) => privateBaseUrl.host.startsWith(host))
+)) {
 	console.warn(
 		`Private base URL host "${privateBaseUrl.host}" is not localhost. This is probably a mistake.`
 	);
