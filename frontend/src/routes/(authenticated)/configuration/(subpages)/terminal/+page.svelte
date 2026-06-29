@@ -12,11 +12,11 @@
 	let { data }: Props = $props();
 </script>
 
-{#if data.deploymentInfos.filter((d) => d.connected).length === 0}
+{#if data.globalState.deploymentInfosForTarget.filter((d) => d.connected).length === 0}
 	<div class="ds-card ds-table-empty">{$t('configuration-details.no-deployment-info')}</div>
 {:else}
 	<div class="flex flex-col gap-4">
-		{#each data.deploymentInfos.filter((d) => d.connected) as deploymentInfo}
+		{#each data.globalState.deploymentInfosForTarget.filter((d) => d.connected) as deploymentInfo}
 			<div class="ds-card flex flex-col">
 				<div class="ds-card-head">
 					<IdentifierLink

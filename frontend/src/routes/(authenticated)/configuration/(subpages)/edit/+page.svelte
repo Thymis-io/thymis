@@ -54,7 +54,7 @@
 	};
 
 	const selectedConfigHasConnectedDevices = () =>
-		data.deploymentInfos
+		data.globalState.deploymentInfos
 			.filter((d) => d.connected)
 			.some(
 				(deploymentInfo) =>

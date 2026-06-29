@@ -3,12 +3,13 @@ import { getLogs, getProgramNames } from '$lib/logs';
 import type { PageLoad } from './$types';
 
 export const load = (async ({ fetch, url, parent }) => {
-	const { deploymentInfos } = await parent();
+	const { globalState } = await parent();
 
 	let deploymentInfoId = url.searchParams.get('deployment-info-id');
 	const programName = url.searchParams.get('program-name');
 	const exactProgramName = url.searchParams.get('exact-program-name') === 'true';
 
+	const deploymentInfos = globalState.deploymentInfosForTarget;
 	if (!deploymentInfos.find((info) => info.id === deploymentInfoId) && deploymentInfos.length > 0) {
 		const orderedInfos = deploymentInfos.toSorted(
 			(a, b) =>

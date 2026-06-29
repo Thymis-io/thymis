@@ -60,7 +60,7 @@ export const invalidateButDeferUntilNavigation = async (
 	return await invalidate(...params);
 };
 
-export const startNotificationSocket = (globalState: GlobalState) => {
+export const startNotificationSocket = (getGlobalState: () => GlobalState) => {
 	console.log('starting notification socket');
 	const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 	socket = new WebSocket(`${scheme}://${window.location.host}/api/notification`);
@@ -94,6 +94,7 @@ export const startNotificationSocket = (globalState: GlobalState) => {
 		} else if (notification.inner.kind === 'deployment_info_update') {
 			const inner: DeploymentInfoUpdateNotification = notification.inner;
 			const updates = new Map(inner.deployment_infos.map((info) => [info.id, info]));
+			const globalState = getGlobalState();
 			globalState.deploymentInfos = globalState.deploymentInfos.map(
 				(di) => updates.get(di.id) ?? di
 			);
@@ -103,6 +104,6 @@ export const startNotificationSocket = (globalState: GlobalState) => {
 	};
 	socket.onclose = () => {
 		console.log('notification socket closed');
-		setTimeout(() => startNotificationSocket(globalState), 1000);
+		setTimeout(() => startNotificationSocket(getGlobalState), 1000);
 	};
 };

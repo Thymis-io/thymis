@@ -33,7 +33,7 @@
 			headCommit={data.headCommit}
 		/>
 
-		{#each data.deploymentInfos.filter((d) => d.connected) as deploymentInfo}
+		{#each data.globalState.deploymentInfosForTarget.filter((d) => d.connected) as deploymentInfo}
 			{#if targetShouldShowVNC(currentConfig, data.globalState)}
 				<Section class="lg:col-span-1" title={$t('nav.device-vnc')}>
 					{#snippet header()}
