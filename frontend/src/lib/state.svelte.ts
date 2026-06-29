@@ -51,6 +51,23 @@ export class GlobalState {
 		this.selectedModuleContext?.modules?.find((s) => s.type === this.selectedModule?.type)
 	);
 
+	deploymentInfosForTarget = $derived.by(() => {
+		const identifier = this.selectedTargetIdentifier;
+		const type = this.selectedTargetType;
+		if (type === 'config') {
+			return this.deploymentInfos.filter((d) => d.deployed_config_id === identifier);
+		}
+		if (type === 'tag') {
+			const configIds = new Set(
+				this.configs.filter((c) => c.tags.includes(identifier ?? '')).map((c) => c.identifier)
+			);
+			return this.deploymentInfos.filter(
+				(d) => d.deployed_config_id != null && configIds.has(d.deployed_config_id)
+			);
+		}
+		return [];
+	});
+
 	constructor(
 		state: State,
 		urlParams: URLSearchParams,

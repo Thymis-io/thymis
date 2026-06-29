@@ -43,7 +43,7 @@
 	/>
 </div>
 <DynamicGrid class="gap-4" {columns}>
-	{#each data.deploymentInfos.filter((d) => d.connected) as deploymentInfo (deploymentInfo.id)}
+	{#each data.globalState.deploymentInfosForTarget.filter((d) => d.connected) as deploymentInfo (deploymentInfo.id)}
 		{@const config = getConfigFromIdentifier(deploymentInfo.deployed_config_id)}
 		{@const showVNC = config && targetShouldShowVNC(config, data.globalState)}
 		{#if showVNC}

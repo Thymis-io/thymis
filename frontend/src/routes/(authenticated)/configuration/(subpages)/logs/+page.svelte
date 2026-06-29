@@ -17,7 +17,7 @@
 	globalState={data.globalState}
 	logs={data.logs}
 	programNames={data.programNames}
-	connectedDeploymentInfos={data.deploymentInfos.filter((d) => d.connected)}
+	connectedDeploymentInfos={data.globalState.deploymentInfosForTarget.filter((d) => d.connected)}
 	{selectedDeploymentInfoId}
 	showSelector={true}
 	onSelectDeploymentInfo={(id) => (params['deployment-info-id'] = id)}
