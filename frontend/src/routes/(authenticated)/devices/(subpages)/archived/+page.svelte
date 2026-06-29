@@ -8,7 +8,7 @@
 	import RowMenu from '$lib/components/layout/RowMenu.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
-	import { isOnline, updateDeploymentInfo } from '$lib/deploymentInfo';
+	import { updateDeploymentInfo } from '$lib/deploymentInfo';
 	import ArchiveRestore from 'lucide-svelte/icons/archive-restore';
 	import DetailsIcon from 'lucide-svelte/icons/info';
 	import { getHardwareKeyDisplayName } from '$lib/hardwareDevices';
@@ -46,7 +46,6 @@
 			(config) => config.identifier === deploymentInfo.deployed_config_id
 		)}
 		{@const deviceType = deployedConfig && getDeviceType(deployedConfig)}
-		{@const isConnected = isOnline(deploymentInfo.last_seen)}
 		<td>
 			<div class="ds-cell-primary">
 				<IdentifierLink
@@ -55,7 +54,7 @@
 					context="device"
 				/>
 				<span class="ds-cell-sub flex items-center gap-1.5">
-					<span class="ds-stat-dot {isConnected ? 'online' : 'offline'}"></span>
+					<span class="ds-stat-dot {deploymentInfo.connected ? 'online' : 'offline'}"></span>
 					{#if deploymentInfo.last_seen}
 						{$t('hardware-devices.table.last-seen')}: <RenderTimeAgo
 							timestamp={deploymentInfo.last_seen}

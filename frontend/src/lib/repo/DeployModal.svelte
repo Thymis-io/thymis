@@ -14,7 +14,7 @@
 	import { invalidateButDeferUntilNavigation } from '$lib/notification';
 	import type { GlobalState } from '$lib/state.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
-	import { type DeploymentInfo, isOnline } from '$lib/deploymentInfo';
+	import { type DeploymentInfo } from '$lib/deploymentInfo';
 
 	interface Props {
 		nav: Nav;
@@ -94,7 +94,7 @@
 			),
 			...globalState.deploymentInfos.filter((d) => selectedDeviceIds.includes(d.id))
 		]) {
-			if (!seen.has(d.id) && isOnline(d.last_seen)) {
+			if (!seen.has(d.id) && d.connected) {
 				seen.add(d.id);
 				result.push(d);
 			}

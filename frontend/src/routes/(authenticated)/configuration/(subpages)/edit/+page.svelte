@@ -54,10 +54,12 @@
 	};
 
 	const selectedConfigHasConnectedDevices = () =>
-		data.connectedDeploymentInfos.some(
-			(deploymentInfo) =>
-				deploymentInfo.deployed_config_id === data.nav.selectedModuleContextIdentifier
-		);
+		data.deploymentInfos
+			.filter((d) => d.connected)
+			.some(
+				(deploymentInfo) =>
+					deploymentInfo.deployed_config_id === data.nav.selectedModuleContextIdentifier
+			);
 
 	const shouldLockSetting = (settingKey: string, setting: Setting) =>
 		data.nav.selectedModuleContextType === 'config' &&

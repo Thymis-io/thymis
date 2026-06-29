@@ -233,14 +233,6 @@ def get_by_config_id(session: Session, config_id: str):
     )
 
 
-def get_connected_deployment_infos(db_session: Session, network_relay: "NetworkRelay"):
-    return [
-        deployment_info
-        for deployment_info in get_all_stable(db_session)
-        if network_relay.public_key_to_connection_id.get(deployment_info.ssh_public_key)
-    ]
-
-
 if "RUNNING_IN_PLAYWRIGHT" in os.environ:
 
     def delete_all(session: Session):

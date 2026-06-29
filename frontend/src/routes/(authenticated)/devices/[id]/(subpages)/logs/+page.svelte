@@ -7,15 +7,16 @@
 	}
 	let { data }: Props = $props();
 
-	let deploymentInfo = $derived(data.deploymentInfo);
+	let deploymentInfo = $derived(
+		data.globalState.deploymentInfos.find((di) => di.id === data.deploymentInfoId)!
+	);
 </script>
 
 <LogsView
 	globalState={data.globalState}
 	logs={data.logs}
 	programNames={data.programNames}
-	deploymentInfos={[deploymentInfo]}
-	connectedDeploymentInfos={data.connected ? [deploymentInfo] : []}
+	connectedDeploymentInfos={deploymentInfo.connected ? [deploymentInfo] : []}
 	selectedDeploymentInfoId={deploymentInfo.id}
 	showSelector={false}
 />

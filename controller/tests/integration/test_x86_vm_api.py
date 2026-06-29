@@ -361,7 +361,7 @@ def test_x86_vm_build_start_deploy(controller: ControllerInfo) -> None:
       4. Wait for VM to reach 'running' state (build task never reaches
          'completed' while its VM child is alive — do NOT poll for that)
       5. Sleep AGENT_FLOOD_SETTLE_S to let the initial agent log flood drain
-      6. Wait for VM to appear in all_connected_deployment_info
+     6. Wait for VM to appear in all_deployment_infos
       7. Add WhateverModule (custom PS1) + BashModule (jq echo) + secret; commit
       8. Deploy to vm-1
       9. Wait for deploy_device_task to complete  ← the step timing out in CI
@@ -440,28 +440,29 @@ def test_x86_vm_build_start_deploy(controller: ControllerInfo) -> None:
     print("[step 5] done sleeping")
 
     # ── 6. confirm VM has connected via the relay ─────────────────────────────
-    print("[step 6] waiting for VM to appear in all_connected_deployment_info")
+    print("[step 6] waiting for VM to appear in all_deployment_infos")
     # Close any stale keep-alive connections left over from before the sleep.
     s.close()
     deadline = time.monotonic() + 120
-    connected: list[dict] = []
+    connected_devices: list[dict] = []
     while time.monotonic() < deadline:
         try:
-            connected = s.get(
-                f"{base_url}/api/all_connected_deployment_info",
+            all_infos = s.get(
+                f"{base_url}/api/all_deployment_infos",
                 timeout=30,
             ).json()
-            if connected:
+            connected_devices = [d for d in all_infos if d.get("connected")]
+            if connected_devices:
                 break
         except requests.RequestException as exc:
             print(f"  [step 6] request error: {exc} — retrying")
         time.sleep(5)
-    assert len(connected) >= 1, (
+    assert len(connected_devices) >= 1, (
         f"No VMs connected after {AGENT_FLOOD_SETTLE_S + 120}s.\n"
-        f"Connected: {connected}"
+        f"Connected: {connected_devices}"
     )
 
-    conn_by_config = {c["deployed_config_id"]: c["id"] for c in connected}
+    conn_by_config = {c["deployed_config_id"]: c["id"] for c in connected_devices}
     assert (
         "api-vm-1" in conn_by_config
     ), f"api-vm-1 not in connected deployment infos: {list(conn_by_config)}"

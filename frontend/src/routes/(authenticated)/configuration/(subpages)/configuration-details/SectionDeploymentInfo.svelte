@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import Section from '$lib/components/layout/Section.svelte';
-	import { isOnline } from '$lib/deploymentInfo';
 	import type { GlobalState } from '$lib/state.svelte';
 	import DeploymentInstanceRow, {
 		type ConfigInstance
@@ -26,7 +25,7 @@
 				const shortCommit = di.deployed_config_commit?.slice(0, 7) ?? null;
 				return {
 					id: di.id,
-					online: isOnline(di.last_seen),
+					online: di.connected,
 					lastSeen: di.last_seen,
 					shortCommit,
 					isCurrentCommit: !!shortCommit && shortCommit === shortHead

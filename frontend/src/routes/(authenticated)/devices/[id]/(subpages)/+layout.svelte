@@ -11,7 +11,7 @@
 	import Tabbar from '$lib/components/Tabbar.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
 	import { fetchWithNotify } from '$lib/fetchWithNotify';
-	import { updateDeploymentInfo, isOnline as checkOnline } from '$lib/deploymentInfo';
+	import { updateDeploymentInfo } from '$lib/deploymentInfo';
 	import { invalidate } from '$app/navigation';
 	import type { LayoutData } from './$types';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
@@ -23,11 +23,12 @@
 
 	let { data, children }: Props = $props();
 
-	let deploymentInfo = $derived(data.deploymentInfo);
+	let deploymentInfo = $derived(
+		data.globalState.deploymentInfos.find((di) => di.id === data.deploymentInfoId)!
+	);
 	let config = $derived(
 		data.globalState.configs.find((c) => c.identifier === deploymentInfo.deployed_config_id)
 	);
-	let isOnline = $derived(checkOnline(deploymentInfo.last_seen));
 	let hasVnc = $derived(!!config && targetShouldShowVNC(config, data.globalState));
 
 	// Tab definitions — VNC is gated on the deployed config exposing a VNC module.
@@ -96,9 +97,9 @@
 			<Pen size={16} />
 		</button>
 	</h1>
-	<span class="ds-status-pill {isOnline ? 'online' : 'offline'}">
+	<span class="ds-status-pill {deploymentInfo.connected ? 'online' : 'offline'}">
 		<span class="ds-dot"></span>
-		{isOnline ? $t('device-details.online') : $t('device-details.offline')}
+		{deploymentInfo.connected ? $t('device-details.online') : $t('device-details.offline')}
 	</span>
 
 	{#snippet actions()}

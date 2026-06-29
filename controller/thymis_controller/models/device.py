@@ -1,9 +1,12 @@
 import uuid
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer
 from thymis_controller import db_models
+
+if TYPE_CHECKING:
+    from thymis_controller.network_relay import NetworkRelay
 
 
 class DeviceNotifyRequest(BaseModel):
@@ -56,6 +59,7 @@ class DeploymentInfo(BaseModel):
     network_interfaces: list[dict] | None = None
     location: str | None = None
     name: str | None = None
+    connected: bool = False
 
     @field_serializer("last_seen", "first_seen")
     def _ser_dt(self, dt: datetime | None) -> str | None:
@@ -71,7 +75,14 @@ class DeploymentInfo(BaseModel):
     @staticmethod
     def from_deployment_info(
         deployment_info: db_models.DeploymentInfo,
+        network_relay: "NetworkRelay | None" = None,
     ) -> "DeploymentInfo":
+        connected = bool(
+            network_relay is not None
+            and network_relay.public_key_to_connection_id.get(
+                deployment_info.ssh_public_key
+            )
+        )
         return DeploymentInfo(
             id=deployment_info.id,
             ssh_public_key=deployment_info.ssh_public_key,
@@ -86,6 +97,7 @@ class DeploymentInfo(BaseModel):
             network_interfaces=deployment_info.network_interfaces,
             location=deployment_info.location,
             name=deployment_info.name,
+            connected=connected,
         )
 
 

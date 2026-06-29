@@ -56,10 +56,9 @@ def thymis_statistics(
     date_to = params.get_date_to()
     current_time = datetime.datetime.now(datetime.timezone.utc)
     currently_connected = [
-        models.DeploymentInfo.from_deployment_info(deployment_info_db)
-        for deployment_info_db in crud.deployment_info.get_connected_deployment_infos(
-            db_session, network_relay
-        )
+        models.DeploymentInfo.from_deployment_info(deployment_info, network_relay)
+        for deployment_info in crud.deployment_info.get_all_stable(db_session)
+        if network_relay.public_key_to_connection_id.get(deployment_info.ssh_public_key)
     ]
     max_concurrent_connected = crud.agent_connection.get_max_concurrent_connections(
         db_session, date_from, date_to

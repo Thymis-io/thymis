@@ -1,11 +1,6 @@
 import { fetchWithNotify } from './fetchWithNotify';
 import type { HardwareDevice } from './hardwareDevices';
 
-export const ONLINE_THRESHOLD_MS = 30 * 1000;
-
-export const isOnline = (lastSeen: string | null): boolean =>
-	!!lastSeen && Date.now() - new Date(lastSeen).getTime() < ONLINE_THRESHOLD_MS;
-
 export type NetworkInterface = {
 	interface: string;
 	ipv4_addresses: string[];
@@ -27,6 +22,7 @@ export type DeploymentInfo = {
 	network_interfaces?: NetworkInterface[] | null;
 	location?: string | null;
 	name?: string | null;
+	connected: boolean;
 };
 
 export type ConnectionHistoryEntry = {
@@ -88,37 +84,8 @@ export const getDeploymentInfosByConfigId = async (
 	return [];
 };
 
-export const getConnectedDeploymentInfosByConfigId = async (
-	fetch: typeof window.fetch,
-	deployedConfigId: string
-) => {
-	const response = await fetchWithNotify(
-		`/api/connected_deployment_infos_by_config_id/${deployedConfigId}`,
-		undefined,
-		{ 404: `Deployment info not found for config id ${deployedConfigId}` },
-		fetch
-	);
-	if (response.ok) {
-		return (await response.json()) as DeploymentInfo[];
-	}
-	return [];
-};
-
 export const getAllDeploymentInfos = async (fetch: typeof window.fetch) => {
 	const response = await fetchWithNotify('/api/all_deployment_infos', undefined, {}, fetch);
-	if (response.ok) {
-		return (await response.json()) as DeploymentInfo[];
-	}
-	return [];
-};
-
-export const getAllConnectedDeploymentInfos = async (fetch: typeof window.fetch) => {
-	const response = await fetchWithNotify(
-		'/api/all_connected_deployment_info',
-		undefined,
-		{},
-		fetch
-	);
 	if (response.ok) {
 		return (await response.json()) as DeploymentInfo[];
 	}
