@@ -3,16 +3,15 @@
 	import type { FleetDeviceMetric } from '$lib/fleet';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
 	import type { GlobalState } from '$lib/state.svelte';
-	import { isOnline, type DeploymentInfo } from '$lib/deploymentInfo';
+	import { isOnline } from '$lib/deploymentInfo';
 
 	interface Props {
 		globalState: GlobalState;
-		deploymentInfos: DeploymentInfo[];
 		devices: FleetDeviceMetric[];
 		limit?: number;
 	}
 
-	let { globalState, deploymentInfos, devices, limit = 5 }: Props = $props();
+	let { globalState, devices, limit = 5 }: Props = $props();
 
 	type Metric = 'cpu' | 'ram' | 'disk';
 	const columns: { metric: Metric; field: keyof FleetDeviceMetric; color: string }[] = [
@@ -39,7 +38,9 @@
 					<div class="space-y-2">
 						{#each top(col.field) as d (d.deployment_info_id)}
 							{@const pct = d[col.field] as number}
-							{@const deploymentInfo = deploymentInfos.find((di) => di.id === d.deployment_info_id)}
+							{@const deploymentInfo = globalState.deploymentInfos.find(
+								(di) => di.id === d.deployment_info_id
+							)}
 							{@const online = deploymentInfo && isOnline(deploymentInfo?.last_seen)}
 							<div class="block">
 								<div class="mb-1 flex items-baseline justify-between text-sm">
@@ -52,7 +53,6 @@
 										></span>
 										<IdentifierLink
 											{globalState}
-											{deploymentInfos}
 											identifier={d.deployment_info_id}
 											context="device"
 										/>

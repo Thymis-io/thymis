@@ -135,11 +135,7 @@
 						if (e.key === 'Enter') goto(`/tasks/${task.id}`);
 					}}
 				>
-					<TaskbarName
-						globalState={data.globalState}
-						deploymentInfos={data.deploymentInfos}
-						{task}
-					/>
+					<TaskbarName globalState={data.globalState} {task} />
 				</div>
 			</td>
 			<td>

@@ -30,7 +30,7 @@
 		initialStatus === 'online' || initialStatus === 'offline' ? initialStatus : 'all'
 	);
 
-	let activeDevices = $derived(data.deploymentInfos.filter((di) => !di.archived));
+	let activeDevices = $derived(data.globalState.deploymentInfos.filter((di) => !di.archived));
 	let onlineCount = $derived(activeDevices.filter((di) => isOnline(di.last_seen)).length);
 
 	let visibleDevices = $derived(
@@ -94,7 +94,6 @@
 					identifier={deploymentInfo.id}
 					context="device"
 					globalState={data.globalState}
-					deploymentInfos={data.deploymentInfos}
 				/>
 				<span class="ds-cell-sub flex items-center gap-1.5">
 					<span class="ds-stat-dot {isConnected ? 'online' : 'offline'}"></span>

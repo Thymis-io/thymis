@@ -11,7 +11,6 @@
 
 	interface Props {
 		globalState: GlobalState;
-		deploymentInfos?: DeploymentInfo[];
 		deploymentInfo?: DeploymentInfo;
 		identifier?: string | null;
 		context?: ContextType | 'device' | null;
@@ -24,7 +23,6 @@
 
 	let {
 		identifier,
-		deploymentInfos,
 		deploymentInfo,
 		context,
 		globalState,
@@ -52,8 +50,8 @@
 		if (context === 'device' && deploymentInfo) {
 			return deploymentInfo;
 		}
-		if (context !== 'device' || !identifier || !deploymentInfos) return null;
-		return deploymentInfos.find((d) => d.id === identifier) ?? null;
+		if (context !== 'device' || !identifier || !globalState?.deploymentInfos) return null;
+		return globalState.deploymentInfos.find((d) => d.id === identifier) ?? null;
 	});
 	let configName = $derived.by(() => {
 		if (deviceDeploymentInfo?.name) return null;

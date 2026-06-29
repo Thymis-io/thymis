@@ -15,11 +15,11 @@
 
 	let { data, children }: Props = $props();
 
-	let activeCount = $derived(data.deploymentInfos.filter((di) => !di.archived).length);
+	let activeCount = $derived(data.globalState.deploymentInfos.filter((di) => !di.archived).length);
 	let withoutDeploymentCount = $derived(
 		data.hardwareDevices.filter((hd) => !hd.deployment_info_id).length
 	);
-	let archivedCount = $derived(data.deploymentInfos.filter((di) => di.archived).length);
+	let archivedCount = $derived(data.globalState.deploymentInfos.filter((di) => di.archived).length);
 
 	let tabs = $derived([
 		{

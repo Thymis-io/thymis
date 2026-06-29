@@ -2,15 +2,13 @@
 	import { t } from 'svelte-i18n';
 	import type { FleetAvailability } from '$lib/fleet';
 	import type { GlobalState } from '$lib/state.svelte';
-	import type { DeploymentInfo } from '$lib/deploymentInfo';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
 
 	interface Props {
 		globalState: GlobalState;
-		deploymentInfos: DeploymentInfo[];
 		availability: FleetAvailability;
 	}
-	let { globalState, deploymentInfos, availability }: Props = $props();
+	let { globalState, availability }: Props = $props();
 
 	const rows = $derived(availability.devices);
 
@@ -30,12 +28,7 @@
 			{#each rows as row (row.deployment_info_id)}
 				<div class="block">
 					<div class="mb-1 flex items-baseline justify-between text-xs">
-						<IdentifierLink
-							{globalState}
-							{deploymentInfos}
-							identifier={row.deployment_info_id}
-							context="device"
-						/>
+						<IdentifierLink {globalState} identifier={row.deployment_info_id} context="device" />
 						<span style="color: var(--ds-text-dim)">{uptimePct(row.states)}%</span>
 					</div>
 					<div class="flex gap-px overflow-hidden rounded">

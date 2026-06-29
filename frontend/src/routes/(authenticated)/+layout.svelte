@@ -88,12 +88,7 @@
 <ProgressBar color="var(--ds-accent)" zIndex={100} />
 
 <div class="ds-shell">
-	<Sidebar
-		globalState={data.globalState}
-		deploymentInfos={data.deploymentInfos}
-		user={data.user}
-		bind:drawerHidden
-	/>
+	<Sidebar globalState={data.globalState} user={data.user} bind:drawerHidden />
 
 	{#if !drawerHidden}
 		<button
@@ -104,12 +99,7 @@
 	{/if}
 
 	<div class="ds-main">
-		<Navbar
-			globalState={data.globalState}
-			nav={data.nav}
-			deploymentInfos={data.deploymentInfos}
-			bind:drawerHidden
-		/>
+		<Navbar globalState={data.globalState} nav={data.nav} bind:drawerHidden />
 
 		<div class="ds-body">
 			<SplitPane
@@ -132,20 +122,12 @@
 								id="taskbar"
 								class="flex-1 overflow-y-auto overflow-x-hidden border-t bg-[var(--ds-surface)] border-[var(--ds-border)]"
 							>
-								<Taskbar
-									globalState={data.globalState}
-									deploymentInfos={data.deploymentInfos}
-									bind:taskbarMinimized
-								/>
+								<Taskbar globalState={data.globalState} bind:taskbarMinimized />
 							</div>
 						{/if}
 						<div class="relative h-[38px]">
 							<TaskbarMinimize bind:taskbarMinimized class="top-0 h-full" />
-							<TaskbarSmall
-								globalState={data.globalState}
-								deploymentInfos={data.deploymentInfos}
-								inPlaywright={data.inPlaywright}
-							/>
+							<TaskbarSmall globalState={data.globalState} inPlaywright={data.inPlaywright} />
 						</div>
 					</div>
 				{/snippet}

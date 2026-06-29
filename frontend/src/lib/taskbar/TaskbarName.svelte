@@ -10,7 +10,6 @@
 	import type { TaskShort } from '$lib/taskstatus';
 	import type { GlobalState } from '$lib/state.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
-	import type { DeploymentInfo } from '$lib/deploymentInfo';
 
 	type DeployDeviceInfo = {
 		identifier?: string;
@@ -32,12 +31,11 @@
 
 	interface Props {
 		globalState: GlobalState;
-		deploymentInfos: DeploymentInfo[];
 		task: TaskShort;
 		iconSize?: number;
 	}
 
-	let { globalState, deploymentInfos, task, iconSize = 18 }: Props = $props();
+	let { globalState, task, iconSize = 18 }: Props = $props();
 
 	const configToDisplayName = (identifier: string | undefined) => {
 		if (!identifier) return '';
@@ -85,7 +83,6 @@
 			{switchLabel.beforeDevice}
 			<IdentifierLink
 				{globalState}
-				{deploymentInfos}
 				identifier={deployDevices[0].deployment_info_id}
 				context="device"
 				{iconSize}
@@ -116,7 +113,6 @@
 			{switchLabel.beforeDevice}
 			<IdentifierLink
 				{globalState}
-				{deploymentInfos}
 				identifier={deployDevice.deployment_info_id}
 				context="device"
 				{iconSize}
@@ -142,7 +138,6 @@
 			<IdentifierLink
 				{globalState}
 				identifier={deployDevice?.deployment_info_id}
-				{deploymentInfos}
 				context="device"
 				{iconSize}
 			/>

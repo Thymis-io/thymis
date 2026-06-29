@@ -16,7 +16,6 @@
 		globalState: GlobalState;
 		logs: LogLine[];
 		programNames: string[] | undefined;
-		deploymentInfos: DeploymentInfo[];
 		connectedDeploymentInfos: DeploymentInfo[];
 		selectedDeploymentInfoId: string | null | undefined;
 		/** Show the device selector dropdown (multi-device contexts). */
@@ -29,7 +28,6 @@
 		globalState,
 		logs,
 		programNames,
-		deploymentInfos,
 		connectedDeploymentInfos,
 		selectedDeploymentInfoId,
 		showSelector = false,
@@ -62,7 +60,7 @@
 	const deploymentInfoRefreshMs = 10000;
 
 	const sortedDeploymentInfos = $derived(
-		deploymentInfos.toSorted(
+		globalState.deploymentInfos.toSorted(
 			(a, b) =>
 				(b.last_seen ? new Date(b.last_seen).getTime() : -1000) -
 				(a.last_seen ? new Date(a.last_seen).getTime() : -1000)

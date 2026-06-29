@@ -1,18 +1,16 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { type DeploymentInfo } from '$lib/deploymentInfo';
 	import { getDeviceType, getDeviceTypesMap } from '$lib/config/configUtils';
 	import type { GlobalState } from '$lib/state.svelte';
 	import type { Module } from '$lib/state';
 
 	interface Props {
-		deploymentInfos: DeploymentInfo[];
 		globalState: GlobalState;
 		availableModules: Module[];
 	}
-	let { deploymentInfos, globalState, availableModules }: Props = $props();
+	let { globalState, availableModules }: Props = $props();
 
-	const active = $derived(deploymentInfos.filter((di) => !di.archived));
+	const active = $derived(globalState.deploymentInfos.filter((di) => !di.archived));
 	const deviceTypesMap = $derived(getDeviceTypesMap(availableModules));
 	const configByIdentifier = $derived(
 		new Map(globalState.configs.map((cfg) => [cfg.identifier, cfg]))

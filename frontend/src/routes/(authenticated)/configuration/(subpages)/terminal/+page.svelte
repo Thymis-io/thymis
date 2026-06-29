@@ -21,7 +21,6 @@
 				<div class="ds-card-head">
 					<IdentifierLink
 						globalState={data.globalState}
-						deploymentInfos={data.deploymentInfos}
 						identifier={deploymentInfo.id}
 						context="device"
 					/>
