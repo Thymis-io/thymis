@@ -8,15 +8,13 @@
 	import TaskbarStatus from './TaskbarStatus.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 	import type { GlobalState } from '$lib/state.svelte';
-	import type { DeploymentInfo } from '$lib/deploymentInfo';
 
 	interface Props {
 		globalState: GlobalState;
-		deploymentInfos: DeploymentInfo[];
 		inPlaywright: boolean;
 	}
 
-	let { globalState, deploymentInfos, inPlaywright }: Props = $props();
+	let { globalState, inPlaywright }: Props = $props();
 
 	// The bar always surfaces the latest task; running/pending counts only reflect
 	// current activity, so neither is time-bounded (no 24h window anymore).
@@ -61,7 +59,7 @@
 			{/if}
 			<span class="shrink-0 text-[var(--ds-text-mute)]">{$t('taskbar.latest-task')}:</span>
 			<span class="flex items-center min-w-0 max-w-[14rem] lg:max-w-[22rem] overflow-hidden">
-				<TaskbarName {globalState} {deploymentInfos} task={latestTask} iconSize={15} />
+				<TaskbarName {globalState} task={latestTask} iconSize={15} />
 			</span>
 			<span class="shrink-0 scale-90 origin-left">
 				<TaskbarStatus task={latestTask} showProgress={false} />

@@ -18,7 +18,6 @@
 	import ChevronUp from 'lucide-svelte/icons/chevron-up';
 	import type { GlobalState } from '$lib/state.svelte';
 	import { targetShouldShowVNC } from '$lib/vnc/vnc';
-	import { type DeploymentInfo } from '$lib/deploymentInfo';
 	import LanguageSelect from '$lib/navbar/LanguageSelect.svelte';
 
 	type UserInfo = {
@@ -30,19 +29,12 @@
 
 	interface Props {
 		globalState: GlobalState;
-		deploymentInfos?: DeploymentInfo[];
 		user?: UserInfo | null;
 		drawerHidden: boolean;
 		asideClass?: string;
 	}
 
-	let {
-		globalState,
-		deploymentInfos = [],
-		user = null,
-		drawerHidden = $bindable(),
-		asideClass = ''
-	}: Props = $props();
+	let { globalState, user = null, drawerHidden = $bindable(), asideClass = '' }: Props = $props();
 
 	let userName = $derived(
 		[user?.given_name, user?.family_name].filter(Boolean).join(' ') ||
@@ -100,7 +92,7 @@
 		items: NavItem[];
 	};
 
-	const activeDevices = $derived(deploymentInfos.filter((d) => !d.archived));
+	const activeDevices = $derived(globalState.deploymentInfos.filter((d) => !d.archived));
 
 	let vncDeviceCount = $derived(
 		activeDevices.filter((deploymentInfo) => {

@@ -21,7 +21,7 @@
 
 	let deviceTypes = $derived(getDeviceTypesMap(data.availableModules));
 
-	let archivedDevices = $derived(data.deploymentInfos.filter((di) => di.archived));
+	let archivedDevices = $derived(data.globalState.deploymentInfos.filter((di) => di.archived));
 
 	async function restoreDevice(id: string) {
 		await updateDeploymentInfo(fetch, id, { archived: false });
@@ -50,10 +50,9 @@
 		<td>
 			<div class="ds-cell-primary">
 				<IdentifierLink
+					globalState={data.globalState}
 					identifier={deploymentInfo.id}
 					context="device"
-					globalState={data.globalState}
-					deploymentInfos={data.deploymentInfos}
 				/>
 				<span class="ds-cell-sub flex items-center gap-1.5">
 					<span class="ds-stat-dot {isConnected ? 'online' : 'offline'}"></span>
@@ -69,9 +68,9 @@
 		</td>
 		<td>
 			<IdentifierLink
+				globalState={data.globalState}
 				identifier={deploymentInfo.deployed_config_id}
 				context="config"
-				globalState={data.globalState}
 			/>
 		</td>
 		<td>

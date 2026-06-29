@@ -136,12 +136,7 @@
 	{#snippet children()}
 		{#if task}
 			<div class="ds-page-title flex min-w-0 items-center">
-				<TaskbarName
-					globalState={data.globalState}
-					deploymentInfos={data.deploymentInfos}
-					task={task as TaskShort}
-					iconSize={22}
-				/>
+				<TaskbarName globalState={data.globalState} task={task as TaskShort} iconSize={22} />
 			</div>
 			<TaskbarStatus task={task as TaskShort} showProgress={false} />
 		{/if}

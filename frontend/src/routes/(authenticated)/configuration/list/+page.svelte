@@ -44,7 +44,7 @@
 
 	// How many deployed devices currently run a given configuration.
 	const deviceCountForConfig = (identifier: string) =>
-		data.deploymentInfos
+		data.globalState.deploymentInfos
 			.filter((info) => !info.archived)
 			.filter((info) => info.deployed_config_id === identifier).length;
 

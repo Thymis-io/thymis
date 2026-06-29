@@ -28,7 +28,7 @@
 
 	let configCards: ConfigCard[] = $derived.by(() => {
 		return data.globalState.configs.map((cfg) => {
-			const activeInstances = data.deploymentInfos
+			const activeInstances = data.globalState.deploymentInfos
 				.filter((di) => di.deployed_config_id === cfg.identifier)
 				.filter((di) => !di.archived)
 				.map((di) => {
@@ -68,7 +68,7 @@
 	let totalConfigsCount = $derived(data.globalState.configs.length);
 
 	let behindCount = $derived.by(() => {
-		const active = data.deploymentInfos.filter((di) => !di.archived);
+		const active = data.globalState.deploymentInfos.filter((di) => !di.archived);
 		return active.filter(
 			(di) => (di.deployed_config_commit?.slice(0, 7) ?? null) !== shortHeadCommit
 		).length;
@@ -123,11 +123,7 @@
 		<div class="ds-card-head">
 			<h3 class="ds-card-title">{$t('overview.availability.title')}</h3>
 		</div>
-		<OverviewAvailabilityHeatmap
-			globalState={data.globalState}
-			deploymentInfos={data.deploymentInfos}
-			availability={data.availability}
-		/>
+		<OverviewAvailabilityHeatmap globalState={data.globalState} availability={data.availability} />
 	</div>
 	<div class="ds-card flex flex-col">
 		<div class="ds-card-head">
@@ -143,17 +139,13 @@
 		<div class="ds-card-head">
 			<h3 class="ds-card-title">{$t('overview.versions.title')}</h3>
 		</div>
-		<OverviewVersions deploymentInfos={data.deploymentInfos} headCommit={data.headCommit} />
+		<OverviewVersions globalState={data.globalState} headCommit={data.headCommit} />
 	</div>
 	<div class="ds-card flex flex-col">
 		<div class="ds-card-head">
 			<h3 class="ds-card-title">{$t('overview.device-types.title')}</h3>
 		</div>
-		<OverviewDeviceTypes
-			deploymentInfos={data.deploymentInfos}
-			globalState={data.globalState}
-			availableModules={data.availableModules}
-		/>
+		<OverviewDeviceTypes globalState={data.globalState} availableModules={data.availableModules} />
 	</div>
 </div>
 
@@ -162,11 +154,7 @@
 	<div class="ds-card-head">
 		<h3 class="ds-card-title">{$t('overview.chart.top-load')}</h3>
 	</div>
-	<OverviewTopDevices
-		globalState={data.globalState}
-		deploymentInfos={data.deploymentInfos}
-		devices={data.topDevices}
-	/>
+	<OverviewTopDevices globalState={data.globalState} devices={data.topDevices} />
 </div>
 
 <!-- Row 6: configurations -->
@@ -184,11 +172,7 @@
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
 		{#each configCards as config (config.identifier)}
 			<div class="ds-card flex flex-col overflow-hidden">
-				<OverviewConfigCard
-					{config}
-					globalState={data.globalState}
-					deploymentInfos={data.deploymentInfos}
-				/>
+				<OverviewConfigCard {config} globalState={data.globalState} />
 			</div>
 		{/each}
 	</div>

@@ -5,7 +5,6 @@
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
 	import GitCommit from 'lucide-svelte/icons/git-commit-horizontal';
 	import HeadTag from './HeadTag.svelte';
-	import { type DeploymentInfo } from '$lib/deploymentInfo';
 
 	export type ConfigInstance = {
 		id: string;
@@ -18,10 +17,9 @@
 	interface Props {
 		inst: ConfigInstance;
 		globalState: GlobalState;
-		deploymentInfos: DeploymentInfo[];
 	}
 
-	let { inst, globalState, deploymentInfos }: Props = $props();
+	let { inst, globalState }: Props = $props();
 </script>
 
 <div class="flex items-center w-full justify-between text-xs">
@@ -33,7 +31,7 @@
 			].join(' ')}
 		></span>
 		<div class="flex flex-col w-full">
-			<IdentifierLink identifier={inst.id} context="device" {globalState} {deploymentInfos} />
+			<IdentifierLink identifier={inst.id} context="device" {globalState} />
 			{#if inst.shortCommit}
 				<div class="flex gap-1 items-center">
 					<GitCommit size={'1rem'} class="flex-shrink-0" />

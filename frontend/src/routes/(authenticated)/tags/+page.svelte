@@ -42,7 +42,7 @@
 				.filter((config) => config.tags.includes(tagIdentifier))
 				.map((config) => config.identifier)
 		);
-		return data.deploymentInfos
+		return data.globalState.deploymentInfos
 			.filter((info) => !info.archived)
 			.filter((info) => info.deployed_config_id && configIdsWithTag.has(info.deployed_config_id))
 			.length;

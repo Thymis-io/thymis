@@ -10,15 +10,13 @@
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 	import RenderTimeDuration from '$lib/components/RenderTimeDuration.svelte';
 	import type { GlobalState } from '$lib/state.svelte';
-	import type { DeploymentInfo } from '$lib/deploymentInfo';
 
 	interface Props {
 		globalState: GlobalState;
-		deploymentInfos: DeploymentInfo[];
 		taskbarMinimized: boolean;
 	}
 
-	let { globalState, deploymentInfos, taskbarMinimized = $bindable() }: Props = $props();
+	let { globalState, taskbarMinimized = $bindable() }: Props = $props();
 
 	// The taskbar only ever shows the most recent tasks; the live store can grow
 	// past that via websocket updates, so cap the rendered list here.
@@ -61,7 +59,7 @@
 			{#each taskList as task (task.id)}
 				<tr>
 					<td class={tdClass}>
-						<TaskbarName {globalState} {deploymentInfos} {task} />
+						<TaskbarName {globalState} {task} />
 					</td>
 					<td class={tdClass}>
 						<TaskbarStatus {task} />

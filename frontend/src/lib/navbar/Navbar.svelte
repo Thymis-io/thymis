@@ -7,7 +7,6 @@
 	import GlobalSearch from './GlobalSearch.svelte';
 	import GithubIcon from './GithubIcon.svelte';
 	import type { GlobalState } from '$lib/state.svelte';
-	import { type DeploymentInfo } from '$lib/deploymentInfo';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
 	import TaskbarName from '$lib/taskbar/TaskbarName.svelte';
 	import type { Task, TaskShort } from '$lib/taskstatus';
@@ -15,7 +14,6 @@
 	interface Props {
 		nav?: Nav;
 		globalState?: GlobalState;
-		deploymentInfos?: DeploymentInfo[];
 		authenticated?: boolean;
 		drawerHidden: boolean;
 		class?: string;
@@ -24,7 +22,6 @@
 	let {
 		nav,
 		globalState,
-		deploymentInfos = [],
 		authenticated = true,
 		drawerHidden = $bindable(),
 		class: clazz = ''
@@ -58,7 +55,7 @@
 		const deviceMatch = path.match(/^\/devices\/([^/]+)/);
 		if (deviceMatch) {
 			const id = decodeURIComponent(deviceMatch[1]);
-			const di = deploymentInfos.find((d) => d.id === id);
+			const di = globalState?.deploymentInfos.find((d) => d.id === id);
 			trail.push({ label: di?.name || id });
 		} else if (path.startsWith('/configuration/') && path !== '/configuration/list') {
 			// Config and tag detail pages share /configuration/*; the target type
@@ -74,7 +71,7 @@
 		} else if (path.startsWith('/deployment_info/')) {
 			const segs = path.split('/').filter(Boolean); // [deployment_info, <id>, logs?]
 			const id = segs[1] ? decodeURIComponent(segs[1]) : '';
-			const di = deploymentInfos.find((d) => d.id === id);
+			const di = globalState?.deploymentInfos.find((d) => d.id === id);
 			if (id) trail.push({ label: di?.name || id, href: `/devices/${id}` });
 			if (segs[2] === 'logs') trail.push({ label: $t('logs.title') });
 		} else if (path.startsWith('/tasks/')) {
@@ -110,7 +107,7 @@
 				<a href={crumb.href}>{crumb.label}</a>
 			{:else if crumb.task && globalState}
 				<b aria-current="page" class="crumb-task">
-					<TaskbarName {globalState} {deploymentInfos} task={crumb.task} iconSize={15} />
+					<TaskbarName {globalState} task={crumb.task} iconSize={15} />
 				</b>
 			{:else}
 				<b aria-current="page">{crumb.label}</b>

@@ -29,7 +29,6 @@
 		/>
 		<SectionDeploymentInfo
 			class="lg:col-span-1"
-			deploymentInfos={data.deploymentInfos}
 			globalState={data.globalState}
 			headCommit={data.headCommit}
 		/>
@@ -40,7 +39,6 @@
 					{#snippet header()}
 						<IdentifierLink
 							globalState={data.globalState}
-							deploymentInfos={data.deploymentInfos}
 							identifier={deploymentInfo.id}
 							context="device"
 							class="flex justify-center my-1"
@@ -59,7 +57,6 @@
 					<div class="flex items-center gap-3">
 						<IdentifierLink
 							globalState={data.globalState}
-							deploymentInfos={data.deploymentInfos}
 							identifier={deploymentInfo.id}
 							context="device"
 							class="flex justify-center my-1"

@@ -191,7 +191,6 @@ export const load = (async ({ fetch, url, data }) => {
 
 	return {
 		globalState: new GlobalState(globalState, url.searchParams, availableModules, deploymentInfos),
-		deploymentInfos: deploymentInfos,
 		secrets: secrets,
 		nav: nav,
 		availableModules: availableModules,

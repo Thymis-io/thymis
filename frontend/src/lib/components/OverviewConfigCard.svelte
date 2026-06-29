@@ -3,7 +3,6 @@
 	import type { GlobalState } from '$lib/state.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
 	import DeploymentInstanceRow, { type ConfigInstance } from './DeploymentInstanceRow.svelte';
-	import { type DeploymentInfo } from '$lib/deploymentInfo';
 
 	export type ConfigCard = {
 		identifier: string;
@@ -16,10 +15,9 @@
 	interface Props {
 		config: ConfigCard;
 		globalState: GlobalState;
-		deploymentInfos: DeploymentInfo[];
 	}
 
-	let { config, globalState, deploymentInfos }: Props = $props();
+	let { config, globalState }: Props = $props();
 
 	const anyOnline = $derived(config.onlineCount > 0);
 	const activeCount = $derived(config.activeInstances.length);
@@ -75,7 +73,7 @@
 	{:else}
 		<div class="space-y-1">
 			{#each config.activeInstances as inst (inst.id)}
-				<DeploymentInstanceRow {inst} {globalState} {deploymentInfos} />
+				<DeploymentInstanceRow {inst} {globalState} />
 			{/each}
 		</div>
 	{/if}

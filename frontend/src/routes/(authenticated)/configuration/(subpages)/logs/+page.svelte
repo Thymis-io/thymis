@@ -17,7 +17,6 @@
 	globalState={data.globalState}
 	logs={data.logs}
 	programNames={data.programNames}
-	deploymentInfos={data.deploymentInfos}
 	connectedDeploymentInfos={data.connectedDeploymentInfos}
 	{selectedDeploymentInfoId}
 	showSelector={true}

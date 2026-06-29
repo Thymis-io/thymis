@@ -87,7 +87,6 @@
 	<h1 class="ds-page-title flex items-center gap-2">
 		<IdentifierLink
 			globalState={data.globalState}
-			deploymentInfos={data.deploymentInfos}
 			identifier={deploymentInfo.id}
 			context="device"
 			showLinkHover={false}
