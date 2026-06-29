@@ -20,6 +20,7 @@ from fastapi import WebSocket
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from pyrage import ssh
+from thymis_controller import models
 from thymis_controller.config import global_settings
 
 if TYPE_CHECKING:
@@ -235,10 +236,9 @@ class NetworkRelay(nr.NetworkRelay):
                         hardware_device.last_seen = datetime.now(timezone.utc)
                 # update clients
                 db_session.commit()
-            # notify browsers to update /api/all_deployment_infos
-            self.notification_manager.broadcast_invalidate_notification(
-                ["/api/all_deployment_infos"]
-            )
+                self.notification_manager.broadcast_deployment_info_update(
+                    [models.DeploymentInfo.from_deployment_info(deployment_info, self)]
+                )
 
         return await super().handle_edge_agent_message(
             message, message_outer, connection_id

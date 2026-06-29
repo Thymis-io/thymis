@@ -9,9 +9,13 @@ from typing import Literal, Union
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.websockets import WebSocketState
 from pydantic import BaseModel, Field
+from thymis_controller import models
 
 NotificationDataInner = Union[
-    "ShouldInvalidate", "FrontendToast", "ImageBuiltNotification"
+    "ShouldInvalidate",
+    "FrontendToast",
+    "ImageBuiltNotification",
+    "DeploymentInfoUpdateNotification",
 ]
 
 INVALIDATE_DEBOUNCE_SECONDS: float = 0.2
@@ -47,6 +51,11 @@ class ImageBuiltNotification(BaseModel):
     user_session_id: uuid.UUID
     configuration_id: str
     image_format: str
+
+
+class DeploymentInfoUpdateNotification(BaseModel):
+    kind: Literal["deployment_info_update"] = "deployment_info_update"
+    deployment_infos: list["models.DeploymentInfo"]
 
 
 class NotificationManager:
@@ -158,5 +167,14 @@ class NotificationManager:
                     configuration_id=configuration_id,
                     image_format=image_format,
                 )
+            )
+        )
+
+    def broadcast_deployment_info_update(
+        self, deployment_infos: list[models.DeploymentInfo]
+    ):
+        self.queue.put(
+            Notification(
+                DeploymentInfoUpdateNotification(deployment_infos=deployment_infos)
             )
         )

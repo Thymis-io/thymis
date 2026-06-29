@@ -3,9 +3,12 @@ import { invalidate } from '$app/navigation';
 import { toast } from '@zerodevx/svelte-toast';
 import { fetchWithNotify } from './fetchWithNotify';
 import { navigating } from '$app/state';
+import type { GlobalState } from './state.svelte';
+import type { DeploymentInfo } from './deploymentInfo';
 
 export type Notification = {
-	inner: ShouldInvalidate | FrontendToast | ImageBuiltNotification;
+	inner:
+		ShouldInvalidate | FrontendToast | ImageBuiltNotification | DeploymentInfoUpdateNotification;
 };
 
 export type ShouldInvalidate = {
@@ -22,6 +25,11 @@ export type ImageBuiltNotification = {
 	kind: 'image_built';
 	configuration_id: string;
 	image_format: string;
+};
+
+export type DeploymentInfoUpdateNotification = {
+	kind: 'deployment_info_update';
+	deployment_infos: DeploymentInfo[];
 };
 
 let socket: WebSocket | undefined;
@@ -52,7 +60,7 @@ export const invalidateButDeferUntilNavigation = async (
 	return await invalidate(...params);
 };
 
-export const startNotificationSocket = () => {
+export const startNotificationSocket = (globalState: GlobalState) => {
 	console.log('starting notification socket');
 	const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 	socket = new WebSocket(`${scheme}://${window.location.host}/api/notification`);
@@ -83,12 +91,18 @@ export const startNotificationSocket = () => {
 					document.body.removeChild(a);
 				}
 			}
+		} else if (notification.inner.kind === 'deployment_info_update') {
+			const inner: DeploymentInfoUpdateNotification = notification.inner;
+			const updates = new Map(inner.deployment_infos.map((info) => [info.id, info]));
+			globalState.deploymentInfos = globalState.deploymentInfos.map(
+				(di) => updates.get(di.id) ?? di
+			);
 		} else {
 			const _: never = notification.inner;
 		}
 	};
 	socket.onclose = () => {
 		console.log('notification socket closed');
-		setTimeout(startNotificationSocket, 1000);
+		setTimeout(() => startNotificationSocket(globalState), 1000);
 	};
 };
