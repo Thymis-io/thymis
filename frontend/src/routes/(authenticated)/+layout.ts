@@ -144,7 +144,6 @@ export const load = (async ({ fetch, url, data }) => {
 	const taskbarTaskLimit = 20;
 	const { tasks: allTasks } = await getAllTasks(taskbarTaskLimit, 0, fetch);
 	const minimizeTaskbar = data?.minimizeTaskbar === 'true';
-	const vncDisplaysPerColumn = parseInt(data?.vncDisplaysPerColumn || '3');
 	const inPlaywright = data?.inPlaywright || false;
 	const user = data?.user ?? null;
 
@@ -199,7 +198,6 @@ export const load = (async ({ fetch, url, data }) => {
 		repoStatus: repoStatus,
 		allTasks: allTasks,
 		minimizeTaskbar: minimizeTaskbar,
-		vncDisplaysPerColumn: vncDisplaysPerColumn,
 		user: user,
 		inPlaywright: inPlaywright
 	};
