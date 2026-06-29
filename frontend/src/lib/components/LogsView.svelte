@@ -56,7 +56,6 @@
 		{ minutes: 60 * 24 * 14, label: $t('logs.download-14day') }
 	];
 
-	const onlineThresholdMs = 30000;
 	const deploymentInfoRefreshMs = 10000;
 
 	const sortedDeploymentInfos = $derived(
@@ -71,12 +70,10 @@
 
 	const getLabel = (info: DeploymentInfo) => {
 		const displayName = globalState.config(info.deployed_config_id)?.displayName;
-		const online =
-			info.last_seen && new Date(info.last_seen) > new Date(Date.now() - onlineThresholdMs);
 		const lastSeen = info.last_seen
 			? calcTimeSince(new Date(info.last_seen), new Date())
 			: $t('configurations.status.never-seen');
-		return `${info.name || info.id} (${online ? $t('configurations.status.online') : lastSeen})`;
+		return `${info.name || info.id} (${info.connected ? $t('configurations.status.online') : lastSeen})`;
 	};
 
 	const getDownloadUrl = (deploymentId: string | null | undefined, minutes: number) => {

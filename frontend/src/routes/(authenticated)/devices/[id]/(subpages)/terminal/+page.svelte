@@ -10,16 +10,18 @@
 	}
 	let { data }: Props = $props();
 
-	let deploymentInfo = $derived(data.deploymentInfo);
+	let deploymentInfo = $derived(
+		data.globalState.deploymentInfos.find((di) => di.id === data.deploymentInfoId)!
+	);
 </script>
 
 <Section title={$t('nav.terminal')}>
 	{#snippet header()}
-		{#if data.connected}
+		{#if deploymentInfo.connected}
 			<CopySSHCommandButton {deploymentInfo} />
 		{/if}
 	{/snippet}
-	{#if data.connected}
+	{#if deploymentInfo.connected}
 		<Terminal {deploymentInfo} />
 	{:else}
 		<p class="tab-empty">{$t('device-details.not-connected')}</p>

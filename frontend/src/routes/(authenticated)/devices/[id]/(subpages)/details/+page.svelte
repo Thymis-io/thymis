@@ -18,7 +18,9 @@
 	}
 	let { data }: Props = $props();
 
-	let deploymentInfo = $derived(data.deploymentInfo);
+	let deploymentInfo = $derived(
+		data.globalState.deploymentInfos.find((di) => di.id === data.deploymentInfoId)!
+	);
 	let config = $derived(
 		data.globalState.configs.find((c) => c.identifier === deploymentInfo.deployed_config_id)
 	);

@@ -3,7 +3,7 @@
 	import Section from '$lib/components/layout/Section.svelte';
 	import type { Config } from '$lib/state';
 	import type { GlobalState } from '$lib/state.svelte';
-	import { type DeploymentInfo, isOnline } from '$lib/deploymentInfo';
+	import { type DeploymentInfo } from '$lib/deploymentInfo';
 	import type { RepoStatus } from '$lib/repo/repo';
 	import ArrowRightLeft from 'lucide-svelte/icons/arrow-right-left';
 	import { Select } from 'flowbite-svelte';
@@ -22,8 +22,6 @@
 	}
 
 	let { deploymentInfo, config, globalState, repoStatus, class: className = '' }: Props = $props();
-
-	let online = $derived(isOnline(deploymentInfo.last_seen));
 
 	// Configs of the same device type the device can be switched to.
 	let switchableConfigs = $derived.by(() => {
@@ -72,7 +70,7 @@
 	}}
 />
 
-{#if online && switchableConfigs.length > 0}
+{#if deploymentInfo.connected && switchableConfigs.length > 0}
 	<Section class={className} title={$t('configuration-details.switch-config')}>
 		<div class="flex flex-wrap items-center gap-2">
 			<Select

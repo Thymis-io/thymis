@@ -3,7 +3,6 @@
 	import type { FleetDeviceMetric } from '$lib/fleet';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
 	import type { GlobalState } from '$lib/state.svelte';
-	import { isOnline } from '$lib/deploymentInfo';
 
 	interface Props {
 		globalState: GlobalState;
@@ -41,14 +40,13 @@
 							{@const deploymentInfo = globalState.deploymentInfos.find(
 								(di) => di.id === d.deployment_info_id
 							)}
-							{@const online = deploymentInfo && isOnline(deploymentInfo?.last_seen)}
 							<div class="block">
 								<div class="mb-1 flex items-baseline justify-between text-sm">
 									<div class="flex items-center gap-2">
 										<span
 											class={[
 												'h-2 w-2 flex-shrink-0 rounded-full inline-block',
-												online ? 'bg-emerald-500' : 'bg-gray-400'
+												deploymentInfo?.connected ? 'bg-emerald-500' : 'bg-gray-400'
 											].join(' ')}
 										></span>
 										<IdentifierLink

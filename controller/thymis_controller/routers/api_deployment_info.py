@@ -62,50 +62,31 @@ router = APIRouter()
     "/deployment_infos_by_config_id/{deployed_config_id}",
     response_model=list[device.DeploymentInfo],
 )
-def get_deployment_infos_by_config_id(db_session: DBSessionAD, deployed_config_id: str):
-    """
-    Gets the deployment infos for all devices with the given deployed_config_id
-    """
-    return map(
-        device.DeploymentInfo.from_deployment_info,
-        crud.deployment_info.get_by_config_id(db_session, deployed_config_id),
-    )
-
-
-@router.get(
-    "/connected_deployment_infos_by_config_id/{deployed_config_id}",
-    response_model=list[device.DeploymentInfo],
-)
-def get_connected_deployment_infos_by_config_id(
+def get_deployment_infos_by_config_id(
     db_session: DBSessionAD, deployed_config_id: str, network_relay: NetworkRelayAD
 ):
     """
-    Gets the deployment infos for all connected devices with the given deployed_config_id
+    Gets the deployment infos for all devices with the given deployed_config_id
     """
-    all_deployment_infos = crud.deployment_info.get_by_config_id(
-        db_session, deployed_config_id
-    )
-    connected_deployment_infos = []
-    for deployment_info in all_deployment_infos:
-        if network_relay.public_key_to_connection_id.get(
-            deployment_info.ssh_public_key
-        ):
-            connected_deployment_infos.append(deployment_info)
-    return map(
-        device.DeploymentInfo.from_deployment_info,
-        connected_deployment_infos,
-    )
+    return [
+        device.DeploymentInfo.from_deployment_info(deployment_info, network_relay)
+        for deployment_info in crud.deployment_info.get_by_config_id(
+            db_session, deployed_config_id
+        )
+    ]
 
 
 @router.get("/deployment_info/{id}", response_model=models.DeploymentInfo)
-def get_deployment_info(db_session: DBSessionAD, id: uuid.UUID):
+def get_deployment_info(
+    db_session: DBSessionAD, id: uuid.UUID, network_relay: NetworkRelayAD
+):
     """
     Get a specific deployment_info by id
     """
     deployment_info = crud.deployment_info.get_by_id(db_session, id)
     if not deployment_info:
         raise HTTPException(status_code=404, detail="Deployment info not found")
-    return deployment_info
+    return models.DeploymentInfo.from_deployment_info(deployment_info, network_relay)
 
 
 @router.delete("/deployment_info/{id}", status_code=204)
@@ -117,30 +98,15 @@ def delete_deployment_info(db_session: DBSessionAD, id: uuid.UUID, project: Proj
     project.update_known_hosts(db_session)
 
 
-@router.get(
-    "/all_connected_deployment_info", response_model=list[models.DeploymentInfo]
-)
-def get_connected_deployment_infos(
-    db_session: DBSessionAD, network_relay: NetworkRelayAD
-):
-    """
-    Get all connected deployment_infos
-    """
-    return map(
-        models.DeploymentInfo.from_deployment_info,
-        crud.deployment_info.get_connected_deployment_infos(db_session, network_relay),
-    )
-
-
 @router.get("/all_deployment_infos", response_model=list[models.DeploymentInfo])
-def get_all_deployment_infos(db_session: DBSessionAD):
+def get_all_deployment_infos(db_session: DBSessionAD, network_relay: NetworkRelayAD):
     """
     Get all deployment_infos
     """
-    return map(
-        models.DeploymentInfo.from_deployment_info,
-        crud.deployment_info.get_all(db_session),
-    )
+    return [
+        models.DeploymentInfo.from_deployment_info(deployment_info, network_relay)
+        for deployment_info in crud.deployment_info.get_all(db_session)
+    ]
 
 
 @router.patch("/deployment_info/{id}", response_model=models.DeploymentInfo)
@@ -179,7 +145,7 @@ async def update_deployment_info(
     # Send hostname update to the agent if name changed
     if "name" in deployment_info.model_fields_set:
         await _send_hostname_update(network_relay, result, project)
-    return result
+    return models.DeploymentInfo.from_deployment_info(result, network_relay)
 
 
 if "RUNNING_IN_PLAYWRIGHT" in os.environ:

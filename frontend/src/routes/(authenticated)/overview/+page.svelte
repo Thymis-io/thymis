@@ -15,7 +15,6 @@
 	import OverviewTopDevices from '$lib/components/OverviewTopDevices.svelte';
 	import TimeRangeSelector from '$lib/components/TimeRangeSelector.svelte';
 	import { getDeviceType, getDeviceTypesMap } from '$lib/config/configUtils';
-	import { isOnline } from '$lib/deploymentInfo';
 	import type { TimeRange } from '$lib/fleet';
 
 	interface Props {
@@ -35,7 +34,7 @@
 					const shortCommit = di.deployed_config_commit?.slice(0, 7) ?? null;
 					return {
 						id: di.id,
-						online: isOnline(di.last_seen),
+						online: di.connected,
 						lastSeen: di.last_seen,
 						shortCommit,
 						isCurrentCommit: !!shortCommit && shortCommit === shortHeadCommit
@@ -59,7 +58,9 @@
 	});
 
 	// KPIs
-	let onlineInstancesCount = $derived(data.connectedDeploymentInfos.length);
+	let onlineInstancesCount = $derived(
+		data.globalState.deploymentInfos.filter((di) => di.connected).length
+	);
 	let activeInstancesTotal = $derived(
 		configCards.reduce((sum, c) => sum + c.activeInstances.length, 0)
 	);

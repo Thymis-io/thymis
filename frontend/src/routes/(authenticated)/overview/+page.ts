@@ -1,4 +1,3 @@
-import { getAllDeploymentInfos, getAllConnectedDeploymentInfos } from '$lib/deploymentInfo';
 import {
 	getFleetConnectivity,
 	getFleetMetricsLatest,
@@ -28,17 +27,7 @@ export const load = (async ({ fetch, url }) => {
 		params = rangeToParams(range);
 	}
 
-	const [
-		deploymentInfos,
-		connectedDeploymentInfos,
-		historyResponse,
-		connectivity,
-		topDevices,
-		availability,
-		alerts
-	] = await Promise.all([
-		getAllDeploymentInfos(fetch),
-		getAllConnectedDeploymentInfos(fetch),
+	const [historyResponse, connectivity, topDevices, availability, alerts] = await Promise.all([
 		fetchWithNotify('/api/history', undefined, {}, fetch),
 		getFleetConnectivity(fetch, params.hours, params.buckets),
 		getFleetMetricsLatest(fetch),
@@ -50,8 +39,6 @@ export const load = (async ({ fetch, url }) => {
 	const headCommit = history[0]?.SHA1 ?? null;
 
 	return {
-		deploymentInfos,
-		connectedDeploymentInfos,
 		headCommit,
 		connectivity,
 		topDevices,

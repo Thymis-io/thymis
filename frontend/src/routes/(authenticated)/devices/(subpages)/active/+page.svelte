@@ -10,7 +10,7 @@
 	import RowMenu from '$lib/components/layout/RowMenu.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
-	import { isOnline, updateDeploymentInfo } from '$lib/deploymentInfo';
+	import { updateDeploymentInfo } from '$lib/deploymentInfo';
 	import ArchiveIcon from 'lucide-svelte/icons/archive';
 	import DetailsIcon from 'lucide-svelte/icons/info';
 	import { getHardwareKeyDisplayName } from '$lib/hardwareDevices';
@@ -31,13 +31,13 @@
 	);
 
 	let activeDevices = $derived(data.globalState.deploymentInfos.filter((di) => !di.archived));
-	let onlineCount = $derived(activeDevices.filter((di) => isOnline(di.last_seen)).length);
+	let onlineCount = $derived(activeDevices.filter((di) => di.connected).length);
 
 	let visibleDevices = $derived(
 		statusFilter === 'online'
-			? activeDevices.filter((di) => isOnline(di.last_seen))
+			? activeDevices.filter((di) => di.connected)
 			: statusFilter === 'offline'
-				? activeDevices.filter((di) => !isOnline(di.last_seen))
+				? activeDevices.filter((di) => !di.connected)
 				: activeDevices
 	);
 
@@ -87,7 +87,6 @@
 			(config) => config.identifier === deploymentInfo.deployed_config_id
 		)}
 		{@const deviceType = deployedConfig && getDeviceType(deployedConfig)}
-		{@const isConnected = isOnline(deploymentInfo.last_seen)}
 		<td>
 			<div class="ds-cell-primary">
 				<IdentifierLink
@@ -96,8 +95,8 @@
 					globalState={data.globalState}
 				/>
 				<span class="ds-cell-sub flex items-center gap-1.5">
-					<span class="ds-stat-dot {isConnected ? 'online' : 'offline'}"></span>
-					{#if isConnected}
+					<span class="ds-stat-dot {deploymentInfo.connected ? 'online' : 'offline'}"></span>
+					{#if deploymentInfo.connected}
 						{$t('hardware-devices.table.connected')}
 					{:else if deploymentInfo.last_seen}
 						{$t('hardware-devices.table.last-seen')}: <RenderTimeAgo
@@ -162,7 +161,7 @@
 						{
 							label: $t('hardware-devices.archive-device'),
 							icon: ArchiveIcon,
-							disabled: isOnline(deploymentInfo.last_seen),
+							disabled: deploymentInfo.connected,
 							onclick: () => archiveDevice(deploymentInfo.id)
 						}
 					]}
