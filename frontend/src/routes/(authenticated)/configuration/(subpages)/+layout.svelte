@@ -106,7 +106,7 @@
 			name: $t('nav.logs'),
 			icon: LogIcon,
 			href: '/configuration/logs',
-			hidden: data.globalState.deploymentInfos.length === 0
+			hidden: data.globalState.deploymentInfosForTarget.length === 0
 		}
 	]);
 

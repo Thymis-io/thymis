@@ -60,10 +60,18 @@ export const invalidateButDeferUntilNavigation = async (
 	return await invalidate(...params);
 };
 
-export const startNotificationSocket = (getGlobalState: () => GlobalState) => {
+export const startNotificationSocket = (
+	getGlobalState: () => GlobalState,
+	invalidateOnConnect: boolean
+) => {
 	console.log('starting notification socket');
 	const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 	socket = new WebSocket(`${scheme}://${window.location.host}/api/notification`);
+	socket.onopen = () => {
+		if (invalidateOnConnect) {
+			invalidateButDeferUntilNavigation('/api/all_deployment_infos');
+		}
+	};
 	socket.onmessage = async (event) => {
 		const notification = JSON.parse(event.data) as Notification;
 		if (notification.inner.kind === 'frontend_toast') {
@@ -104,6 +112,6 @@ export const startNotificationSocket = (getGlobalState: () => GlobalState) => {
 	};
 	socket.onclose = () => {
 		console.log('notification socket closed');
-		setTimeout(() => startNotificationSocket(getGlobalState), 1000);
+		setTimeout(() => startNotificationSocket(getGlobalState, true), 1000);
 	};
 };

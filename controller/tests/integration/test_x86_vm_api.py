@@ -361,7 +361,7 @@ def test_x86_vm_build_start_deploy(controller: ControllerInfo) -> None:
       4. Wait for VM to reach 'running' state (build task never reaches
          'completed' while its VM child is alive — do NOT poll for that)
       5. Sleep AGENT_FLOOD_SETTLE_S to let the initial agent log flood drain
-     6. Wait for VM to appear in all_deployment_infos
+      6. Wait for VM to appear in all_deployment_infos
       7. Add WhateverModule (custom PS1) + BashModule (jq echo) + secret; commit
       8. Deploy to vm-1
       9. Wait for deploy_device_task to complete  ← the step timing out in CI
