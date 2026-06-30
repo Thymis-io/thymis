@@ -4,7 +4,7 @@ Run the Thymis Controller in a Docker/OCI container.
 
 Important:
 - The standard `latest` image builds for **x86_64** only.
-- To build **Raspberry Pi / ARM (aarch64)** images, you must use the **ARM64** container variant (`:latest-arm64`).
+- To build Raspberry Pi / ARM (aarch64) images, you must use the **ARM64** container variant (`:latest-arm64`).
   - On x86 hosts, this requires QEMU user emulation (see below).
 
 If you already use Nix, you can also run the Controller with [`nix run`](nix-run.md).
@@ -105,8 +105,8 @@ You can run the ARM container on an x86 machine using QEMU emulation.
 
 ## Troubleshooting
 
-- **Exec format error**: You might be trying to run the ARM image on x86 without `binfmt` emulation enabled.
-- **Build failures**: Ensure you are using the ARM image if targeting ARM devices. The x86 image cannot cross-compile to ARM in Docker.
+- Exec format error: You might be trying to run the ARM image on x86 without `binfmt` emulation enabled.
+- Build failures: Ensure you are using the ARM image if targeting ARM devices. The x86 image cannot cross-compile to ARM in Docker.
 - View logs: `docker logs -f thymis-controller`
 - Verify `/var/lib/thymis` is mounted and writable
 

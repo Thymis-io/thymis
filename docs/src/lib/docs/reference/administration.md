@@ -35,6 +35,6 @@ When setting up the Thymis Controller on your own infrastructure, you need to co
 The Controller needs to be reachable by devices, so you should set up a publicly available domain name for it.
 This domain name should be configured in the Thymis Controller configuration, which is usually done in the NixOS configuration file.
 
-Available configuration options are described in the [Thymis NixOS module documentation](../setting-up-thymis/self-hosted/nixOS.md) and can be set in the NixOS configuration file.
+Available configuration options are described in the [Thymis NixOS module documentation](../setting-up-thymis/nixOS.md) and can be set in the NixOS configuration file.
 
 See [Firewall](administration/firewall.md) for information on how to configure the firewall for the Thymis Controller.

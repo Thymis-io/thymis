@@ -16,7 +16,7 @@ You can also add a new device type directly to Thymis by modifying the Nix code 
 
 Then, you have to add the device type in the [`thymis.py`](https://github.com/Thymis-io/thymis/blob/master/controller/thymis_controller/modules/thymis.py) file, which defines the **Core Device Configuration** module for Thymis Devices.
 
-If you are running a [self-hosted Thymis instance](../setting-up-thymis/self-hosted.md), you can then deploy the updated Thymis instance with the new device type support, if you are using [Thymis Cloud](../setting-up-thymis/thymis-cloud.md), you can request the Thymis team to add support for your new device type, for example by opening an issue in the [Thymis GitHub repository](https://github.com/Thymis-io/thymis/issues).
+If you are running a self-hosted Thymis instance, you can then deploy the updated Thymis instance with the new device type support, if you are using [Thymis Cloud](../setting-up-thymis/thymis-cloud.md), you can request the Thymis team to add support for your new device type, for example by opening an issue in the [Thymis GitHub repository](https://github.com/Thymis-io/thymis/issues).
 
 ## Adding a new Device Type using Extensions (coming soon)
 
