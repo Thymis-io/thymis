@@ -6,10 +6,9 @@ layout: summary
 
 - [Setting up Thymis](setting-up-thymis.md)
   - [Thymis Cloud](setting-up-thymis/thymis-cloud.md)
-  - [Self Hosted / On-Prem](setting-up-thymis/self-hosted.md)
-    - [NixOS](setting-up-thymis/self-hosted/nixOS.md)
-    - [OCI-Container / Docker](setting-up-thymis/self-hosted/oci-container.md)
-    - [Using nix run](setting-up-thymis/self-hosted/nix-run.md)
+  - [NixOS](setting-up-thymis/nixOS.md)
+  - [OCI-Container / Docker](setting-up-thymis/oci-container.md)
+  - [Using nix run](setting-up-thymis/nix-run.md)
 - [Device Lifecycle](device-lifecycle.md)
   - [Getting started](device-lifecycle/getting-started.md)
   - [Sharing settings via a Tag](device-lifecycle/tags.md)

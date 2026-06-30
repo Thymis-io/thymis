@@ -92,5 +92,4 @@ If devices fail to connect:
 
 For detailed network configuration:
 
-- [Self-hosted setup guide](../../setting-up-thymis/self-hosted.md)
 - [Cloud Setup](../../setting-up-thymis/thymis-cloud.md)
