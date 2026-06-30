@@ -44,7 +44,7 @@ if "THYMIS_FLAKE_ROOT" in os.environ:
         url=f"git+file://{pathlib.Path(os.environ['THYMIS_FLAKE_ROOT']).resolve()}"
     )
 else:
-    thymis_repo = models.Repo(url="github:thymis-io/thymis/v0.8")
+    thymis_repo = models.Repo(url="github:thymis-io/thymis/v0.9")
 
 
 BUILTIN_REPOSITORIES = {
