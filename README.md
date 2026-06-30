@@ -144,8 +144,10 @@ The controller takes care of running the frontend for you. You can access thymis
   - Added device details page, auto updates and reworked overview page
   - Update to nixpkgs/NixOS 25.11
 
-- [ ] Release 0.9.0
-  - Rework module system for outside developers
+- [x] Release [0.9.0](https://github.com/Thymis-io/thymis/releases/tag/0.9.0)
+  - UI Redesign & performance fixes
+
+- [ ] Release 0.10.0
   - New features and bug fixes, possibly containing breaking changes
 
 ---

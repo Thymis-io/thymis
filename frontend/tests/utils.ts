@@ -116,6 +116,7 @@ export const expectScreenshot = async (
 	options?: PageAssertionsToHaveScreenshotOptions
 ) => {
 	return;
+	await expectScreenshotReal(screenshotTarget, testInfo, counter, options);
 };
 
 export const expectScreenshotReal = async (
