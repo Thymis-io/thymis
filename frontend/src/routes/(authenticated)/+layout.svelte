@@ -70,7 +70,7 @@
 	let drawerHidden = $state(true);
 
 	onMount(() => {
-		startNotificationSocket(() => data.globalState);
+		startNotificationSocket(() => data.globalState, false);
 	});
 
 	beforeNavigate((navigation) => {

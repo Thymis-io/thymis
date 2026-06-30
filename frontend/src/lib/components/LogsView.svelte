@@ -59,7 +59,7 @@
 	const deploymentInfoRefreshMs = 10000;
 
 	const sortedDeploymentInfos = $derived(
-		globalState.deploymentInfos.toSorted(
+		globalState.deploymentInfosForTarget.toSorted(
 			(a, b) =>
 				(b.last_seen ? new Date(b.last_seen).getTime() : -1000) -
 				(a.last_seen ? new Date(a.last_seen).getTime() : -1000)

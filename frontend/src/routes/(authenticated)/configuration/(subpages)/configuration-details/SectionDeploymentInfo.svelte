@@ -19,8 +19,7 @@
 	let shortHead = $derived(headCommit?.slice(0, 7) ?? null);
 
 	let instances: ConfigInstance[] = $derived(
-		globalState.deploymentInfos
-			.filter((di) => !di.archived)
+		globalState.deploymentInfosForTarget
 			.map((di) => {
 				const shortCommit = di.deployed_config_commit?.slice(0, 7) ?? null;
 				return {

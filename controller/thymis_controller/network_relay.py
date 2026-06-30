@@ -235,10 +235,10 @@ class NetworkRelay(nr.NetworkRelay):
                     for hardware_device in deployment_info.hardware_devices:
                         hardware_device.last_seen = datetime.now(timezone.utc)
                 # update clients
-                db_session.commit()
                 self.notification_manager.broadcast_deployment_info_update(
                     [models.DeploymentInfo.from_deployment_info(deployment_info, self)]
                 )
+                db_session.commit()
 
         return await super().handle_edge_agent_message(
             message, message_outer, connection_id

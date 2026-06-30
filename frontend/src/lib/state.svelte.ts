@@ -55,14 +55,14 @@ export class GlobalState {
 		const identifier = this.selectedTargetIdentifier;
 		const type = this.selectedTargetType;
 		if (type === 'config') {
-			return this.deploymentInfos.filter((d) => d.deployed_config_id === identifier);
+			return this.deploymentInfos.filter((d) => !d.archived && d.deployed_config_id === identifier);
 		}
 		if (type === 'tag') {
 			const configIds = new Set(
 				this.configs.filter((c) => c.tags.includes(identifier ?? '')).map((c) => c.identifier)
 			);
 			return this.deploymentInfos.filter(
-				(d) => d.deployed_config_id != null && configIds.has(d.deployed_config_id)
+				(d) => !d.archived && d.deployed_config_id != null && configIds.has(d.deployed_config_id)
 			);
 		}
 		return [];
