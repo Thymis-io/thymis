@@ -14,7 +14,9 @@ from thymis_controller.dependencies import (
     NetworkRelayAD,
     ProjectAD,
     TaskControllerAD,
+    UserInfoAD,
     UserSessionIDAD,
+    git_author_from_user_info,
 )
 from thymis_controller.models.state import State
 
@@ -368,9 +370,9 @@ async def switch_config(
 
 
 @router.post("/action/commit")
-def commit(project: ProjectAD, message: str):
+def commit(project: ProjectAD, message: str, user_info: UserInfoAD = None):
     project.repo.add(".")
-    project.repo.commit(message)
+    project.repo.commit(message, author=git_author_from_user_info(user_info))
     return {"message": "commit successful"}
 
 
@@ -395,6 +397,7 @@ async def auto_update(
     network_relay: NetworkRelayAD,
     user_session_id: UserSessionIDAD,
     db_session: DBSessionAD,
+    user_info: UserInfoAD = None,
 ):
     devices: list[models.DeployDeviceInformation] = []
 
@@ -441,6 +444,8 @@ async def auto_update(
     project.update_known_hosts(session)
     access_tokens = project.nix_access_tokens()
 
+    git_author = git_author_from_user_info(user_info)
+
     task_controller.submit(
         models.AutoUpdateTaskSubmission(
             project_path=str(project.path),
@@ -449,6 +454,8 @@ async def auto_update(
             ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
             known_hosts_path=str(project.known_hosts_path),
             controller_ssh_pubkey=project.public_key,
+            git_author_name=git_author[0] if git_author else None,
+            git_author_email=git_author[1] if git_author else None,
         ),
         user_session_id=user_session_id,
         db_session=session,

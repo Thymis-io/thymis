@@ -14,6 +14,22 @@ from watchdog.observers import Observer
 logger = logging.getLogger(__name__)
 
 
+def git_commit_cmd(
+    message: str,
+    *extra_args: str,
+    author: tuple[str, str] | None = None,
+) -> list[str]:
+    """Build a ``git commit`` command list.
+
+    Both :meth:`Repo.commit` and the task worker construct commit commands
+    through this helper so the flags stay in sync.
+    """
+    cmd = ["git", "commit", "-m", message, *extra_args]
+    if author:
+        cmd.extend(["--author", f"{author[0]} <{author[1]}>"])
+    return cmd
+
+
 class Commit(BaseModel):
     SHA: str
     SHA1: str
@@ -145,9 +161,9 @@ class Repo:
         logger.info(f"Adding changed files to git index: {', '.join(unstaged_files)}")
         self.run_command("git", "add", *files)
 
-    def commit(self, message: str):
+    def commit(self, message: str, author: tuple[str, str] | None = None):
         logger.info(f"Committing changes to git: {message}")
-        self.run_command("git", "commit", "-m", message)
+        self.run_command(*git_commit_cmd(message, author=author))
 
     def head_commit(self) -> str:
         return self.run_command("git", "rev-parse", "HEAD")
