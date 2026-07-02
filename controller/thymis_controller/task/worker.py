@@ -23,6 +23,7 @@ from pydantic import BaseModel
 from thymis_agent import agent
 from thymis_controller.nix import NIX_CMD, NIX_SSHOPTS
 from thymis_controller.nix.log_parse import NixParser
+from thymis_controller.repo import git_commit_cmd
 
 
 def access_client_proxy_command(
@@ -750,11 +751,16 @@ def auto_update_task(
             report_task_finished(task, conn, False, "git add flake.lock failed")
             return
 
+        author = (
+            (task_data.git_author_name, task_data.git_author_email)
+            if task_data.git_author_name and task_data.git_author_email
+            else None
+        )
         commit_returncode = run_command(
             task,
             conn,
             process_list,
-            ["git", "commit", "--allow-empty", "-m", "flake.lock: Auto-update"],
+            git_commit_cmd("flake.lock: Auto-update", "--allow-empty", author=author),
             env=git_env,
             cwd=str(repo_path),
             process_index=3,

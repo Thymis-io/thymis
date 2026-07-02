@@ -280,6 +280,8 @@ class AutoUpdateTaskSubmission(BaseModel):
     ssh_key_path: str
     known_hosts_path: str
     controller_ssh_pubkey: str
+    git_author_name: Optional[str] = None
+    git_author_email: Optional[str] = None
     parent_task_id: Optional[uuid.UUID] = None
 
 

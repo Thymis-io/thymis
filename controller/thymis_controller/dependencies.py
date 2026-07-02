@@ -17,7 +17,7 @@ from fastapi import (
 )
 from fastapi.requests import HTTPConnection
 from fastapi.security import HTTPBearer
-from pydantic import Json
+from pydantic import BaseModel, Json
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 from thymis_controller.config import global_settings
@@ -72,6 +72,53 @@ DBSessionAD = Annotated[Session, Depends(get_db_session)]
 UserSessionIDAD = Annotated[Optional[uuid.UUID], Cookie(alias="session-id")]
 
 UserSessionTokenAD = Annotated[Optional[str], Cookie(alias="session-token")]
+
+
+class UserInfo(BaseModel):
+    username: Optional[str] = None
+    given_name: Optional[str] = None
+    family_name: Optional[str] = None
+    email: Optional[str] = None
+
+
+def get_user_info(
+    db_session: DBSessionAD,
+    user_session_id: UserSessionIDAD = None,
+) -> Optional[UserInfo]:
+    if user_session_id is None:
+        return None
+    session = web_session.get(db_session, user_session_id)
+    if session is None:
+        return None
+    return UserInfo(
+        username=session.username,
+        given_name=session.given_name,
+        family_name=session.family_name,
+        email=session.email,
+    )
+
+
+UserInfoAD = Annotated[Optional[UserInfo], Depends(get_user_info)]
+
+
+def git_author_from_user_info(
+    user_info: Optional[UserInfo],
+) -> Optional[tuple[str, str]]:
+    """Build a (name, email) git author tuple from a UserInfo, or None."""
+    if not user_info:
+        return None
+    name = (
+        f"{user_info.given_name} {user_info.family_name}"
+        if user_info.given_name and user_info.family_name
+        else user_info.username
+    )
+    email = user_info.email or (
+        f"{user_info.username}@thymis.local" if user_info.username else None
+    )
+    if name and email:
+        return (name, email)
+    return None
+
 
 LoginRedirectCookieAD = Annotated[Optional[str], Cookie(alias="login-redirect")]
 
