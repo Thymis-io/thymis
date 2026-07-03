@@ -370,7 +370,7 @@ async def switch_config(
 
 
 @router.post("/action/commit")
-def commit(project: ProjectAD, message: str, user_info: UserInfoAD = None):
+def commit(project: ProjectAD, message: str, user_info: UserInfoAD):
     project.repo.add(".")
     project.repo.commit(message, author=git_author_from_user_info(user_info))
     return {"message": "commit successful"}
@@ -397,7 +397,7 @@ async def auto_update(
     network_relay: NetworkRelayAD,
     user_session_id: UserSessionIDAD,
     db_session: DBSessionAD,
-    user_info: UserInfoAD = None,
+    user_info: UserInfoAD,
 ):
     devices: list[models.DeployDeviceInformation] = []
 
