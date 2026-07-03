@@ -6,30 +6,18 @@ import httpx
 import jwt
 from fastapi import APIRouter, Depends, Form, HTTPException, Response, status
 from fastapi.responses import RedirectResponse
-from pydantic import BaseModel
 from thymis_controller.config import global_settings
 from thymis_controller.crud import web_session
 from thymis_controller.dependencies import (
     DBSessionAD,
     LoginRedirectCookieAD,
+    UserInfoAD,
     UserSessionIDAD,
     UserSessionTokenAD,
     invalidate_user_session,
     require_valid_user_session,
 )
-
-
-class AuthMethods(BaseModel):
-    basic: bool
-    oauth2: bool
-
-
-class UserInfo(BaseModel):
-    username: Optional[str] = None
-    given_name: Optional[str] = None
-    family_name: Optional[str] = None
-    email: Optional[str] = None
-
+from thymis_controller.models.auth import AuthMethods, UserInfo
 
 REDIRECT_URI = global_settings.BASE_URL + "/auth/callback"
 
@@ -287,22 +275,9 @@ async def callback(
     response_model=UserInfo,
     dependencies=[Depends(require_valid_user_session)],
 )
-def is_logged_in(
-    db_session: DBSessionAD,
-    user_session_id: UserSessionIDAD = None,
-):
-    if not user_session_id:
+def is_logged_in(user_info: UserInfoAD):
+    if user_info is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="No valid session"
         )
-    session = web_session.get(db_session, user_session_id)
-    if session is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="No valid session"
-        )
-    return UserInfo(
-        username=session.username,
-        given_name=session.given_name,
-        family_name=session.family_name,
-        email=session.email,
-    )
+    return user_info

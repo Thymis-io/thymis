@@ -5,23 +5,14 @@ import uuid
 from typing import Annotated, Generator, Optional, Union
 
 import httpx
-from fastapi import (
-    Cookie,
-    Depends,
-    Header,
-    HTTPException,
-    Request,
-    Response,
-    WebSocket,
-    status,
-)
+from fastapi import Cookie, Depends, HTTPException, Response, status
 from fastapi.requests import HTTPConnection
 from fastapi.security import HTTPBearer
-from pydantic import BaseModel, Json
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 from thymis_controller.config import global_settings
 from thymis_controller.crud import web_session
+from thymis_controller.models.auth import UserInfo
 from thymis_controller.network_relay import NetworkRelay
 from thymis_controller.notifications import NotificationManager
 from thymis_controller.project import Project
@@ -72,13 +63,6 @@ DBSessionAD = Annotated[Session, Depends(get_db_session)]
 UserSessionIDAD = Annotated[Optional[uuid.UUID], Cookie(alias="session-id")]
 
 UserSessionTokenAD = Annotated[Optional[str], Cookie(alias="session-token")]
-
-
-class UserInfo(BaseModel):
-    username: Optional[str] = None
-    given_name: Optional[str] = None
-    family_name: Optional[str] = None
-    email: Optional[str] = None
 
 
 def get_user_info(
