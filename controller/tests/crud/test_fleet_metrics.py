@@ -35,3 +35,9 @@ def test_latest_per_device_returns_most_recent(db_session):
 def test_metric_granularity_six_hour_and_one_day_to_seconds():
     assert MetricGranularity.to_seconds(MetricGranularity.six_hour) == 6 * 60 * 60
     assert MetricGranularity.to_seconds(MetricGranularity.one_day) == 24 * 60 * 60
+
+
+def test_latest_per_device_no_metrics_returns_empty(db_session):
+    _make_di(db_session)
+    results = crud.get_latest_per_device(db_session)
+    assert results == []
