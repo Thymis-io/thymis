@@ -77,24 +77,22 @@ def get_latest_per_device(
     db_session: Session,
 ) -> list[models.FleetDeviceMetric]:
     """Return the most recent metric for each device, with the device name."""
-    latest_ts = (
-        db_session.query(
-            db_models.DeviceMetric.deployment_info_id.label("di_id"),
-            func.max(db_models.DeviceMetric.timestamp).label("max_ts"),
+    latest_metric_id = (
+        db_session.query(db_models.DeviceMetric.id)
+        .filter(
+            db_models.DeviceMetric.deployment_info_id == db_models.DeploymentInfo.id
         )
-        .group_by(db_models.DeviceMetric.deployment_info_id)
-        .subquery()
+        .order_by(db_models.DeviceMetric.timestamp.desc())
+        .limit(1)
+        .correlate(db_models.DeploymentInfo)
+        .scalar_subquery()
     )
     rows = (
         db_session.query(db_models.DeviceMetric, db_models.DeploymentInfo)
+        .select_from(db_models.DeploymentInfo)
         .join(
-            latest_ts,
-            (db_models.DeviceMetric.deployment_info_id == latest_ts.c.di_id)
-            & (db_models.DeviceMetric.timestamp == latest_ts.c.max_ts),
-        )
-        .join(
-            db_models.DeploymentInfo,
-            db_models.DeploymentInfo.id == db_models.DeviceMetric.deployment_info_id,
+            db_models.DeviceMetric,
+            db_models.DeviceMetric.id == latest_metric_id,
         )
         .filter(db_models.DeploymentInfo.archived.is_(False))
         .all()
