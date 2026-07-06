@@ -211,7 +211,8 @@ class Kiosk(modules.Module):
                   ${{pkgs.xorg.xrandr}}/bin/xrandr --newmode "$MODENAME" $MODEPARAMS 2>/dev/null || true
                   apply() {{
                       ${{pkgs.xorg.xrandr}}/bin/xrandr --addmode HDMI-1 "$MODENAME" 2>/dev/null || true
-                      ${{pkgs.xorg.xrandr}}/bin/xrandr --output HDMI-1 --mode "$MODENAME" --rotate {xrandr_rotation} 2>/dev/null || true
+                      ${{pkgs.xorg.xrandr}}/bin/xrandr --output HDMI-1 --rotate {xrandr_rotation} 2>/dev/null || true
+                      ${{pkgs.xorg.xrandr}}/bin/xrandr --output HDMI-1 --mode "$MODENAME" 2>/dev/null || true
                   }}
                   apply
                   # Reapply on every screen-change event (KVM switch, display power cycle).
