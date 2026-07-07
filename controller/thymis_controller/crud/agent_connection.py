@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Literal
 
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 from thymis_controller import db_models, models
 
@@ -229,24 +229,35 @@ def get_connectivity_series(
     span = (to_datetime - from_datetime) / buckets
     sample_points = [from_datetime + span * i for i in range(buckets + 1)]
 
-    # Load connections overlapping the window.
-    conns = (
-        db_session.query(db_models.AgentConnection)
-        .filter(
+    conns = db_session.execute(
+        select(
+            db_models.AgentConnection.connected_at,
+            db_models.AgentConnection.disconnected_at,
+        ).where(
             db_models.AgentConnection.connected_at <= to_datetime,
             (db_models.AgentConnection.disconnected_at.is_(None))
             | (db_models.AgentConnection.disconnected_at >= from_datetime),
         )
-        .all()
-    )
+    ).all()
 
+    events: list[tuple[datetime, int]] = []
+    for connected_at, disconnected_at in conns:
+        events.append((_aware(connected_at), +1))
+        if disconnected_at is not None:
+            events.append((_aware(disconnected_at), -1))
+    events.sort()
+
+    active_count = 0
+    event_idx = 0
     points: list[models.ConnectivityPoint] = []
     for t in sample_points:
-        count = 0
-        for c in conns:
-            connected_at = _aware(c.connected_at)
-            disconnected_at = _aware(c.disconnected_at)
-            if connected_at <= t and (disconnected_at is None or disconnected_at > t):
-                count += 1
-        points.append(models.ConnectivityPoint(timestamp=t, connected_count=count))
+        while event_idx < len(events):
+            event_time, delta = events[event_idx]
+            if event_time > t:
+                break
+            active_count += delta
+            event_idx += 1
+        points.append(
+            models.ConnectivityPoint(timestamp=t, connected_count=active_count)
+        )
     return points

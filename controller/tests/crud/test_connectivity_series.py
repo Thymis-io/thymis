@@ -42,4 +42,35 @@ def test_connectivity_series_counts_overlapping(db_session):
     # buckets=2 -> 3 sample points: frm, frm+1h, now
     assert len(series) == 3
     assert series[0].connected_count == 1  # only A at start
-    assert series[-1].connected_count == 2  # A and B at end
+    assert series[1].connected_count == 2  # both at midpoint
+    assert series[2].connected_count == 2  # both at end
+
+
+def test_no_connections(db_session):
+    now = datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    frm = now - timedelta(hours=2)
+
+    series = crud.get_connectivity_series(
+        db_session, from_datetime=frm, to_datetime=now, buckets=2
+    )
+
+    assert len(series) == 3
+    assert series[0].connected_count == 0
+    assert series[1].connected_count == 0
+    assert series[2].connected_count == 0
+
+
+def test_open_connection_counts_throughout(db_session):
+    di = _make_di(db_session)
+    now = datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    frm = now - timedelta(hours=2)
+    _add_conn(db_session, di.id, frm - timedelta(hours=1), disconnected_at=None)
+
+    series = crud.get_connectivity_series(
+        db_session, from_datetime=frm, to_datetime=now, buckets=2
+    )
+
+    assert len(series) == 3
+    assert series[0].connected_count == 1
+    assert series[1].connected_count == 1
+    assert series[2].connected_count == 1
