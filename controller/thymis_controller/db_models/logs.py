@@ -25,6 +25,11 @@ class LogEntry(Base):
         sqlalchemy.Index(
             "ix_log_entries_ssh_public_key_timestamp", "ssh_public_key", "timestamp"
         ),
+        sqlalchemy.Index(
+            "ix_log_entries_deployment_info_id_programname",
+            "deployment_info_id",
+            "programname",
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(

@@ -183,6 +183,11 @@ def get_program_names(
     """Get distinct program names for a deployment."""
     program_names = (
         session.query(db_models.LogEntry.programname)
+        .with_hint(
+            db_models.LogEntry,
+            "INDEXED BY ix_log_entries_deployment_info_id_programname",
+            dialect_name="sqlite",
+        )
         .filter(
             db_models.LogEntry.deployment_info_id == deployment_info.id,
         )
