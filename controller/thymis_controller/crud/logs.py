@@ -76,10 +76,7 @@ def get_logs(
 ) -> models.LogList:
     # Build the base query (shared between count and data fetch)
     base_query = session.query(db_models.LogEntry).filter(
-        or_(
-            db_models.LogEntry.deployment_info_id == deployment_info.id,
-            db_models.LogEntry.ssh_public_key == deployment_info.ssh_public_key,
-        )
+        db_models.LogEntry.deployment_info_id == deployment_info.id,
     )
     if from_datetime is not None:
         base_query = base_query.filter(db_models.LogEntry.timestamp >= from_datetime)
@@ -115,10 +112,7 @@ def get_log_text(
 ) -> str:
     stmt = session.query(db_models.LogEntry)
     stmt = stmt.filter(
-        or_(
-            db_models.LogEntry.deployment_info_id == deployment_info.id,
-            db_models.LogEntry.ssh_public_key == deployment_info.ssh_public_key,
-        )
+        db_models.LogEntry.deployment_info_id == deployment_info.id,
     )
     if from_datetime is not None:
         stmt = stmt.filter(db_models.LogEntry.timestamp >= from_datetime)
@@ -190,10 +184,7 @@ def get_program_names(
     program_names = (
         session.query(db_models.LogEntry.programname)
         .filter(
-            or_(
-                db_models.LogEntry.deployment_info_id == deployment_info.id,
-                db_models.LogEntry.ssh_public_key == deployment_info.ssh_public_key,
-            )
+            db_models.LogEntry.deployment_info_id == deployment_info.id,
         )
         .distinct()
         .order_by(db_models.LogEntry.programname)
@@ -209,10 +200,7 @@ def get_latest_log_time(
     latest_log = (
         session.query(db_models.LogEntry)
         .filter(
-            or_(
-                db_models.LogEntry.deployment_info_id == deployment_info.id,
-                db_models.LogEntry.ssh_public_key == deployment_info.ssh_public_key,
-            )
+            db_models.LogEntry.deployment_info_id == deployment_info.id,
         )
         .order_by(db_models.LogEntry.timestamp.desc())
         .first()
