@@ -26,9 +26,20 @@
 	{:else}
 		<div class="space-y-2">
 			{#each rows as row (row.deployment_info_id)}
+				{@const deploymentInfo = globalState.deploymentInfos.find(
+					(di) => di.id === row.deployment_info_id
+				)}
 				<div class="block">
-					<div class="mb-1 flex items-baseline justify-between text-xs">
-						<IdentifierLink {globalState} identifier={row.deployment_info_id} context="device" />
+					<div class="mb-1 flex items-center justify-between text-xs">
+						<div class="flex items-center gap-1.5">
+							<span
+								class="h-2 w-2 flex-shrink-0 rounded-full {deploymentInfo?.connected
+									? 'bg-emerald-500'
+									: 'bg-gray-400'}"
+								title={deploymentInfo?.connected ? $t('overview.online') : $t('overview.offline')}
+							></span>
+							<IdentifierLink {globalState} identifier={row.deployment_info_id} context="device" />
+						</div>
 						<span style="color: var(--ds-text-dim)">{uptimePct(row.states)}%</span>
 					</div>
 					<div class="flex gap-px overflow-hidden rounded">
