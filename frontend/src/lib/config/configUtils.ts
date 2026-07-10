@@ -54,8 +54,8 @@ export const getConfigImageFormat = (config: Config | undefined) => {
 };
 export const formatRamSize = (ramBytes: number | null | undefined) => {
 	if (!ramBytes) return null;
-	const gb = ramBytes / 1024 ** 3;
+	const gb = ramBytes / 1000 ** 3;
 	if (gb >= 1) return `${Math.round(gb)}GB`;
-	const mb = ramBytes / 1024 ** 2;
+	const mb = ramBytes / 1000 ** 2;
 	return `${Math.round(mb)}MB`;
 };
