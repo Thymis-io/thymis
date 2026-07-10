@@ -30,7 +30,7 @@
 		});
 		if (response.ok) {
 			modalOpen = false;
-			await invalidate(`/api/deployment_info/${deploymentInfo.id}`);
+			await invalidate(`/api/all_deployment_infos`);
 		}
 	}
 
@@ -48,7 +48,7 @@
 		});
 		if (response.ok) {
 			notesModalOpen = false;
-			await invalidate(`/api/deployment_info/${deploymentInfo.id}`);
+			await invalidate(`/api/all_deployment_infos`);
 		}
 	}
 </script>

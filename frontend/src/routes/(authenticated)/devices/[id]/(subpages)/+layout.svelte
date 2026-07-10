@@ -69,7 +69,7 @@
 		});
 		if (response.ok) {
 			nameModalOpen = false;
-			await invalidate(`/api/deployment_info/${deploymentInfo.id}`);
+			await invalidate(`/api/all_deployment_infos`);
 		}
 	}
 
