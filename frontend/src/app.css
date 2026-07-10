@@ -154,6 +154,11 @@ body {
 	padding: 18px 20px;
 }
 
+.ds-card-scroll {
+	max-height: 320px;
+	overflow-y: auto;
+}
+
 .ds-grid {
 	display: grid;
 	gap: 16px;

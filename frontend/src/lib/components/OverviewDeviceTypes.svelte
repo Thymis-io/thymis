@@ -39,7 +39,7 @@
 	const max = $derived(bars.reduce((m, b) => Math.max(m, b.value), 0));
 </script>
 
-<div class="ds-card-pad">
+<div class="ds-card-pad ds-card-scroll">
 	{#if !bars.length}
 		<p class="text-sm" style="color: var(--ds-text-dim)">
 			{$t('overview.device-types.no-data')}
