@@ -67,14 +67,12 @@
 </div>
 
 <!-- Card body: commit + last seen for active instances -->
-<div class="ds-card-scroll flex flex-1 flex-col p-4">
+<div class="ds-card-scroll flex flex-1 flex-col p-4 gap-1">
 	{#if activeCount === 0}
 		<p class="text-xs text-gray-400 dark:text-gray-500">{$t('overview.no-instances')}</p>
 	{:else}
-		<div class="space-y-1">
-			{#each config.activeInstances as inst (inst.id)}
-				<DeploymentInstanceRow {inst} {globalState} />
-			{/each}
-		</div>
+		{#each config.activeInstances as inst (inst.id)}
+			<DeploymentInstanceRow {inst} {globalState} />
+		{/each}
 	{/if}
 </div>
