@@ -26,35 +26,37 @@
 	let shortHeadCommit = $derived(data.headCommit?.slice(0, 7) ?? null);
 
 	let configCards: ConfigCard[] = $derived.by(() => {
-		return data.globalState.configs.map((cfg) => {
-			const activeInstances = data.globalState.deploymentInfos
-				.filter((di) => di.deployed_config_id === cfg.identifier)
-				.filter((di) => !di.archived)
-				.map((di) => {
-					const shortCommit = di.deployed_config_commit?.slice(0, 7) ?? null;
-					return {
-						id: di.id,
-						online: di.connected,
-						lastSeen: di.last_seen,
-						shortCommit,
-						isCurrentCommit: !!shortCommit && shortCommit === shortHeadCommit
-					};
-				});
-			const rawType = getDeviceType(cfg);
-			const deviceTypeLabel = rawType
-				? rawType in deviceTypesMap
-					? deviceTypesMap[rawType]
-					: rawType
-				: $t('overview.unknown-device-type');
-			const onlineCount = activeInstances.filter((i) => i.online).length;
-			return {
-				identifier: cfg.identifier,
-				displayName: cfg.displayName,
-				deviceTypeLabel,
-				activeInstances,
-				onlineCount
-			};
-		});
+		return data.globalState.configs
+			.map((cfg) => {
+				const activeInstances = data.globalState.deploymentInfos
+					.filter((di) => di.deployed_config_id === cfg.identifier)
+					.filter((di) => !di.archived)
+					.map((di) => {
+						const shortCommit = di.deployed_config_commit?.slice(0, 7) ?? null;
+						return {
+							id: di.id,
+							online: di.connected,
+							lastSeen: di.last_seen,
+							shortCommit,
+							isCurrentCommit: !!shortCommit && shortCommit === shortHeadCommit
+						};
+					});
+				const rawType = getDeviceType(cfg);
+				const deviceTypeLabel = rawType
+					? rawType in deviceTypesMap
+						? deviceTypesMap[rawType]
+						: rawType
+					: $t('overview.unknown-device-type');
+				const onlineCount = activeInstances.filter((i) => i.online).length;
+				return {
+					identifier: cfg.identifier,
+					displayName: cfg.displayName,
+					deviceTypeLabel,
+					activeInstances,
+					onlineCount
+				};
+			})
+			.sort((a, b) => a.displayName.localeCompare(b.displayName));
 	});
 
 	// KPIs
