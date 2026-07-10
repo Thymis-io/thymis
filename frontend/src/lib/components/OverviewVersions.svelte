@@ -40,7 +40,7 @@
 	}
 </script>
 
-<div class="ds-card-pad space-y-3">
+<div class="ds-card-pad ds-card-scroll space-y-3">
 	<div class="flex items-baseline justify-between text-sm">
 		<span style="color: var(--ds-text)">{$t('overview.versions.up-to-date')}</span>
 		<span style="color: var(--ds-text-dim)">{onHead}/{total}</span>

@@ -67,7 +67,7 @@
 </div>
 
 <!-- Card body: commit + last seen for active instances -->
-<div class="flex flex-1 flex-col p-4">
+<div class="ds-card-scroll flex flex-1 flex-col p-4">
 	{#if activeCount === 0}
 		<p class="text-xs text-gray-400 dark:text-gray-500">{$t('overview.no-instances')}</p>
 	{:else}

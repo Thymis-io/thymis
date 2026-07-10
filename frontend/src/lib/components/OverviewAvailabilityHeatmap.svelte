@@ -18,7 +18,7 @@
 	}
 </script>
 
-<div class="ds-card-pad">
+<div class="ds-card-pad ds-card-scroll">
 	{#if !rows.length}
 		<p class="text-sm" style="color: var(--ds-text-dim)">
 			{$t('overview.availability.no-data')}

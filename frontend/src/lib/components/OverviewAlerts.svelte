@@ -15,7 +15,7 @@
 	};
 </script>
 
-<div class="ds-card-pad">
+<div class="ds-card-pad ds-card-scroll">
 	{#if !alerts.length}
 		<div class="flex items-center gap-2 py-6 text-sm" style="color: var(--ds-text-dim)">
 			<CircleCheck class="h-5 w-5" style="color: #10b981" />
