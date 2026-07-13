@@ -70,12 +70,15 @@ async def vnc_websocket(
     ws_to_tcp_task = asyncio.create_task(websocket_to_tcp(connection, websocket))
 
     try:
-        await asyncio.gather(tcp_to_ws_task, ws_to_tcp_task)
+        await asyncio.wait(
+            {tcp_to_ws_task, ws_to_tcp_task}, return_when=asyncio.FIRST_COMPLETED
+        )
     except Exception:
         traceback.print_exc()
     finally:
         tcp_to_ws_task.cancel()
         ws_to_tcp_task.cancel()
+        await asyncio.gather(tcp_to_ws_task, ws_to_tcp_task, return_exceptions=True)
 
 
 @router.websocket("/terminal/{deployment_info_id}")
@@ -147,12 +150,18 @@ async def terminal_websocket(
     ws_to_channel_task = asyncio.create_task(websocket_to_channel(channel, websocket))
 
     try:
-        await asyncio.gather(channel_to_ws_task, ws_to_channel_task)
+        await asyncio.wait(
+            {channel_to_ws_task, ws_to_channel_task},
+            return_when=asyncio.FIRST_COMPLETED,
+        )
     except Exception as e:
         print(f"Error: {e}")
     finally:
         channel_to_ws_task.cancel()
         ws_to_channel_task.cancel()
+        await asyncio.gather(
+            channel_to_ws_task, ws_to_channel_task, return_exceptions=True
+        )
         client.close()
 
 
