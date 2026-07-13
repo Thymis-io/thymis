@@ -212,3 +212,54 @@ def test_invoke_reports_api_failures_and_rejects_unknown_or_extra_arguments():
     assert failure.method == "POST"
     assert failure.path == "/api/action/deploy"
     assert failure.detail == "Repository is dirty. Please commit your changes first."
+
+
+def test_configuration_and_repository_observability_tools_map_to_api():
+    requests = []
+
+    def handler(request):
+        requests.append(request)
+        return httpx.Response(200, json={"ok": True}, request=request)
+
+    async def scenario():
+        tools, client = make_tools(handler)
+        try:
+            assert await tools.invoke(
+                "get_configuration", {"config_identifier": "kiosk"}
+            ) == {"ok": True}
+            assert await tools.invoke(
+                "patch_configuration_field",
+                {
+                    "config_identifier": "kiosk",
+                    "patch": {
+                        "operation": "set",
+                        "path": "/modules/0/settings/url",
+                        "value": "https://example.test/display",
+                    },
+                },
+            ) == {"ok": True}
+            assert await tools.invoke(
+                "check_external_repository_api_access",
+                {
+                    "flake_url": "github:Thymis-io/thymis#main",
+                    "api_key_secret": "69e2a620-7534-442c-a8a8-2b1eb8d9be87",
+                },
+            ) == {"ok": True}
+        finally:
+            await client.aclose()
+
+    asyncio.run(scenario())
+
+    get_request, patch_request, probe_request = requests
+    assert get_request.url.path == "/api/configs/kiosk"
+    assert patch_request.url.path == "/api/configs/kiosk/field"
+    assert json.loads(patch_request.content) == {
+        "operation": "set",
+        "path": "/modules/0/settings/url",
+        "value": "https://example.test/display",
+    }
+    assert (
+        probe_request.url.params["api_key_secret"]
+        == "69e2a620-7534-442c-a8a8-2b1eb8d9be87"
+    )
+    assert b"github%3AThymis-io%2Fthymis%23main" in probe_request.url.raw_path
