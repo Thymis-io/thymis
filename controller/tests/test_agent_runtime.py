@@ -76,6 +76,12 @@ def test_kiosk_display_prompt_uses_the_kiosk_i3_session():
     assert "systemctl restart display-manager.service" in SYSTEM_INSTRUCTIONS
 
 
+def test_production_prompt_requires_an_explicit_mutation_request():
+    assert "Treat every controller as a production system" in SYSTEM_INSTRUCTIONS
+    assert "only for an explicit request" in SYSTEM_INSTRUCTIONS
+    assert "Never infer authorization to deploy" in SYSTEM_INSTRUCTIONS
+
+
 def test_chat_request_rejects_a_non_user_final_message():
     with pytest.raises(ValidationError, match="final chat message"):
         ChatRequest(messages=[{"role": "assistant", "content": "Hello"}])
