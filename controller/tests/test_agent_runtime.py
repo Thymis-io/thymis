@@ -74,6 +74,10 @@ def test_kiosk_display_prompt_uses_the_kiosk_i3_session():
     assert "/run/user/$(id -u thymiskiosk)/i3/ipc-socket.*" in SYSTEM_INSTRUCTIONS
     assert "i3-msg" in SYSTEM_INSTRUCTIONS
     assert "systemctl restart display-manager.service" in SYSTEM_INSTRUCTIONS
+    assert "read_i3_config" in SYSTEM_INSTRUCTIONS
+    assert "exact Chromium" in SYSTEM_INSTRUCTIONS
+    assert "run_x_command" in SYSTEM_INSTRUCTIONS
+    assert "graphical-session context rather than as root" in SYSTEM_INSTRUCTIONS
 
 
 def test_production_prompt_requires_an_explicit_mutation_request():

@@ -160,7 +160,7 @@ def test_live_device_tools_map_metrics_and_commands_to_api():
     )
 
 
-def test_kiosk_display_actions_use_fixed_root_commands():
+def test_kiosk_display_actions_use_i3_session_commands():
     requests = []
 
     def handler(request):
@@ -173,6 +173,7 @@ def test_kiosk_display_actions_use_fixed_root_commands():
             deployment_info_id = "69e2a620-7534-442c-a8a8-2b1eb8d9be87"
             for action in (
                 "inspect_i3_outputs",
+                "read_i3_config",
                 "inspect_logs",
                 "restart_display_manager",
             ):
@@ -180,10 +181,35 @@ def test_kiosk_display_actions_use_fixed_root_commands():
                     "manage_kiosk_display",
                     {"deployment_info_id": deployment_info_id, "action": action},
                 ) == {"task_id": "task-1"}
+            assert await tools.invoke(
+                "manage_kiosk_display",
+                {
+                    "deployment_info_id": deployment_info_id,
+                    "action": "run_x_command",
+                    "command": "/nix/store/chromium/bin/chromium --new-window https://example.test/?a=1&b=2",
+                },
+            ) == {"task_id": "task-1"}
             with pytest.raises(ValidationError):
                 await tools.invoke(
                     "manage_kiosk_display",
                     {"deployment_info_id": deployment_info_id, "action": "shell"},
+                )
+            with pytest.raises(ValidationError):
+                await tools.invoke(
+                    "manage_kiosk_display",
+                    {
+                        "deployment_info_id": deployment_info_id,
+                        "action": "run_x_command",
+                    },
+                )
+            with pytest.raises(ValidationError):
+                await tools.invoke(
+                    "manage_kiosk_display",
+                    {
+                        "deployment_info_id": deployment_info_id,
+                        "action": "inspect_i3_outputs",
+                        "command": "xrandr",
+                    },
                 )
         finally:
             await client.aclose()
@@ -194,14 +220,21 @@ def test_kiosk_display_actions_use_fixed_root_commands():
         "/api/action/run-command",
         "/api/action/run-command",
         "/api/action/run-command",
+        "/api/action/run-command",
+        "/api/action/run-command",
     ]
     commands = [request.url.params["command"] for request in requests]
     assert 'I3SOCK="$socket"' in commands[0]
     assert 'i3-msg -s "$socket" -t get_outputs' in commands[0]
     assert '/run/user/"$uid"/i3/ipc-socket.*' in commands[0]
-    assert "journalctl --no-pager -b -u display-manager.service -n 200" in commands[1]
-    assert 'journalctl --no-pager -b _UID="$uid" -n 200' in commands[1]
-    assert commands[2] == "systemctl restart display-manager.service"
+    assert 'i3-msg -s "$socket" -t get_config' in commands[1]
+    assert "journalctl --no-pager -b -u display-manager.service -n 200" in commands[2]
+    assert 'journalctl --no-pager -b _UID="$uid" -n 200' in commands[2]
+    assert commands[3] == "systemctl restart display-manager.service"
+    assert 'i3-msg -s "$socket"' in commands[4]
+    assert "exec --no-startup-id" in commands[4]
+    assert "/nix/store/chromium/bin/chromium --new-window" in commands[4]
+    assert "https://example.test/?a=1&b=2" in commands[4]
 
 
 def test_invoke_maps_typed_device_and_deploy_arguments_to_controller_api():
