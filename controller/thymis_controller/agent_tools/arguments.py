@@ -9,7 +9,7 @@ from pydantic import Field
 from thymis_controller.models.device import UpdateDeploymentInfo
 from thymis_controller.models.device_metric import MetricGranularity
 from thymis_controller.models.secrets import SecretCreateRequest, SecretUpdateRequest
-from thymis_controller.models.state import State
+from thymis_controller.models.state import ConfigFieldPatch, State
 
 from .registry import ToolArguments
 
@@ -20,6 +20,14 @@ class EmptyArguments(ToolArguments):
 
 class UpdateStateArguments(ToolArguments):
     state: State = Field(description="The complete replacement controller state.")
+
+
+class ConfigurationArguments(ToolArguments):
+    config_identifier: str
+
+
+class PatchConfigurationFieldArguments(ConfigurationArguments):
+    patch: ConfigFieldPatch
 
 
 class DeploymentInfoArguments(ToolArguments):
@@ -104,6 +112,11 @@ class UpdateControllerSettingsArguments(ToolArguments):
 
 class ExternalRepositoryArguments(ToolArguments):
     flake_name: str
+
+
+class ExternalRepositoryUrlArguments(ToolArguments):
+    flake_url: str
+    api_key_secret: UUID | None = None
 
 
 class BuildImageArguments(ToolArguments):

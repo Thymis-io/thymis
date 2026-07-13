@@ -6,6 +6,7 @@ import base64
 import binascii
 from collections.abc import Mapping
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 
@@ -13,6 +14,7 @@ from .arguments import (
     ArtifactArguments,
     BuildImageArguments,
     CommitArguments,
+    ConfigurationArguments,
     CreateSecretArguments,
     DeployArguments,
     DeploymentInfoArguments,
@@ -20,9 +22,11 @@ from .arguments import (
     DiffArguments,
     EmptyArguments,
     ExternalRepositoryArguments,
+    ExternalRepositoryUrlArguments,
     FleetRangeArguments,
     ListTasksArguments,
     LogArguments,
+    PatchConfigurationFieldArguments,
     RenameArtifactArguments,
     RestartDeviceArguments,
     RunDeviceCommandArguments,
@@ -129,6 +133,28 @@ class ThymisTools:
     )
     async def list_available_modules(self, _: EmptyArguments) -> JSONValue:
         return await self._request("GET", "/api/available_modules")
+
+    @tool(
+        ConfigurationArguments,
+        "Read one configuration, including its modules and current settings.",
+        name="get_configuration",
+    )
+    async def get_configuration(self, arguments: ConfigurationArguments) -> JSONValue:
+        return await self._request("GET", f"/api/configs/{arguments.config_identifier}")
+
+    @tool(
+        PatchConfigurationFieldArguments,
+        "Set or remove one field in a configuration using an RFC 6901 JSON Pointer. Read the configuration first; this operation preserves all unrelated fields and enforces normal state safety checks.",
+        name="patch_configuration_field",
+    )
+    async def patch_configuration_field(
+        self, arguments: PatchConfigurationFieldArguments
+    ) -> JSONValue:
+        return await self._request(
+            "PATCH",
+            f"/api/configs/{arguments.config_identifier}/field",
+            json=arguments.patch.model_dump(mode="json"),
+        )
 
     # Devices and live telemetry -------------------------------------------
 
@@ -444,6 +470,64 @@ class ThymisTools:
     ) -> JSONValue:
         return await self._request(
             "GET", f"/api/external-repositories/flake-ref/{arguments.flake_name}"
+        )
+
+    @tool(
+        ExternalRepositoryUrlArguments,
+        "List remote branches for an external flake repository, optionally using its configured API-key secret.",
+        name="list_external_repository_branches",
+    )
+    async def list_external_repository_branches(
+        self, arguments: ExternalRepositoryUrlArguments
+    ) -> JSONValue:
+        return await self._get_external_repository_data("branches", arguments)
+
+    @tool(
+        ExternalRepositoryUrlArguments,
+        "List remote tags for an external flake repository, optionally using its configured API-key secret.",
+        name="list_external_repository_tags",
+    )
+    async def list_external_repository_tags(
+        self, arguments: ExternalRepositoryUrlArguments
+    ) -> JSONValue:
+        return await self._get_external_repository_data("tags", arguments)
+
+    @tool(
+        ExternalRepositoryUrlArguments,
+        "Check whether the controller can prefetch an external flake repository.",
+        name="check_external_repository_prefetch",
+    )
+    async def check_external_repository_prefetch(
+        self, arguments: ExternalRepositoryUrlArguments
+    ) -> JSONValue:
+        return await self._get_external_repository_data(
+            "test-flake-ref/prefetch", arguments
+        )
+
+    @tool(
+        ExternalRepositoryUrlArguments,
+        "Check API access to an external flake repository and return its remote head commit when available.",
+        name="check_external_repository_api_access",
+    )
+    async def check_external_repository_api_access(
+        self, arguments: ExternalRepositoryUrlArguments
+    ) -> JSONValue:
+        return await self._get_external_repository_data(
+            "test-flake-ref/api-access", arguments
+        )
+
+    async def _get_external_repository_data(
+        self, action: str, arguments: ExternalRepositoryUrlArguments
+    ) -> JSONValue:
+        params = (
+            {"api_key_secret": str(arguments.api_key_secret)}
+            if arguments.api_key_secret is not None
+            else None
+        )
+        return await self._request(
+            "GET",
+            f"/api/external-repositories/{action}/{quote(arguments.flake_url, safe='')}",
+            params=params,
         )
 
     # Build and deployment actions -----------------------------------------
