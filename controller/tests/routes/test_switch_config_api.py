@@ -397,3 +397,53 @@ class TestSwitchConfigAPI:
         matching = [i for i in infos if i["id"] == dep["id"]]
         assert len(matching) == 1
         assert matching[0]["pending_config_id"] == "config-b"
+
+
+class TestRunDeviceCommandAPI:
+    """Exercise POST /api/action/run-command through the HTTP layer."""
+
+    def test_offline_device_command_returns_conflict(self, switch_test_client):
+        client = switch_test_client
+        _write_state(client._project, [_make_config("config-a")])
+        deployment = _create_deployment_info(client, "config-a")
+
+        response = client.post(
+            "/api/action/run-command",
+            params={
+                "deployment_info_id": deployment["id"],
+                "command": "uptime",
+            },
+        )
+
+        assert response.status_code == 409
+        assert response.json()["detail"] == "Device is offline"
+        assert client._fake_task_controller.submissions == []
+
+    def test_connected_device_command_submits_root_ssh_task(self, switch_test_client):
+        client = switch_test_client
+        _write_state(client._project, [_make_config("config-a")])
+        deployment = _create_deployment_info(
+            client, "config-a", ssh_public_key="ssh-key-command"
+        )
+        client._fake_network_relay.public_key_to_connection_id[
+            "ssh-key-command"
+        ] = "conn-command"
+
+        response = client.post(
+            "/api/action/run-command",
+            params={
+                "deployment_info_id": deployment["id"],
+                "command": "systemctl status nginx --no-pager",
+            },
+        )
+
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body["message"] == "command started"
+        assert body["task_id"]
+        assert len(client._fake_task_controller.submissions) == 1
+        submission = client._fake_task_controller.submissions[0]["model"]
+        assert submission.type == "ssh_command_task"
+        assert submission.deployment_info_id == uuid.UUID(deployment["id"])
+        assert submission.target_user == "root"
+        assert submission.command == "systemctl status nginx --no-pager"
