@@ -109,6 +109,21 @@ uv run uvicorn thymis_controller.main:app --reload
 
 The controller takes care of running the frontend for you. You can access thymis at `http://localhost:8000`.
 
+### Optional: Run the Thymis Assistant
+
+The floating **Thymis Assistant** is available to every signed-in controller user. It is disabled until a model is configured.
+
+1. Copy `controller/.env.example` to `controller/.env` and set `THYMIS_AGENT_MODEL`. The included value uses OpenRouter and supports both tool calls and VNC screenshots.
+2. Export the provider key in the shell that starts the controller. Do not add API keys to `.env` or commit them:
+
+   ```sh
+   export OPENROUTER_API_KEY='…'
+   ```
+
+3. Start the controller from `controller/` as above, open `http://localhost:8000`, sign in, then select **Thymis Assistant** in the bottom-right corner.
+
+The assistant acts through the signed-in user's controller API permissions. It can inspect controller data and perform the supported dashboard actions, but it cannot access secrets, run arbitrary device commands, or delete records.
+
 ---
 
 ## Project Roadmap
