@@ -13,7 +13,7 @@ try {
 	/* empty */
 }
 
-const version = dirty ? `${headRev}-dirty-${Date.now().toString()}` : headRev;
+const version = dirty ? `${headRev}-dirty` : headRev;
 
 console.log(`SvelteKit reloading version: ${version}`);
 

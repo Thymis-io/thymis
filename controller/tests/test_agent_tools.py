@@ -41,6 +41,8 @@ def test_definitions_cover_frontend_entities_and_actions():
             "build_project",
             "deploy",
             "build_device_image",
+            "navigate_frontend",
+            "link_entity",
             "restart_device",
             "switch_device_config",
             "commit",
@@ -62,6 +64,56 @@ def test_definitions_cover_frontend_entities_and_actions():
         }
 
     asyncio.run(scenario())
+
+
+def test_frontend_control_tools_validate_entity_destinations():
+    requests = []
+
+    def handler(request):
+        requests.append(request)
+        return httpx.Response(200, json={}, request=request)
+
+    async def scenario():
+        tools, client = make_tools(handler)
+        try:
+            assert await tools.invoke(
+                "navigate_frontend", {"destination": "tasks"}
+            ) == {
+                "destination": "tasks",
+                "identifier": None,
+            }
+            assert await tools.invoke(
+                "navigate_frontend",
+                {"destination": "configuration_details", "identifier": "camera"},
+            ) == {"destination": "configuration_details", "identifier": "camera"}
+            assert await tools.invoke(
+                "navigate_frontend",
+                {
+                    "destination": "device_details",
+                    "identifier": "69e2a620-7534-442c-a8a8-2b1eb8d9be87",
+                },
+            ) == {
+                "destination": "device_details",
+                "identifier": "69e2a620-7534-442c-a8a8-2b1eb8d9be87",
+            }
+            assert (
+                await tools.invoke("build_device_image", {"identifier": "camera"}) == {}
+            )
+            with pytest.raises(ValidationError, match="requires an identifier"):
+                await tools.invoke(
+                    "navigate_frontend", {"destination": "configuration_details"}
+                )
+            with pytest.raises(ValidationError):
+                await tools.invoke("navigate_frontend", {"destination": "not-a-route"})
+        finally:
+            await client.aclose()
+
+    asyncio.run(scenario())
+    assert [(request.method, request.url.path) for request in requests] == [
+        ("GET", "/api/configs/camera"),
+        ("GET", "/api/deployment_info/69e2a620-7534-442c-a8a8-2b1eb8d9be87"),
+        ("POST", "/api/action/build-download-image"),
+    ]
 
 
 def test_live_device_tools_map_metrics_and_commands_to_api():
@@ -263,3 +315,49 @@ def test_configuration_and_repository_observability_tools_map_to_api():
         == "69e2a620-7534-442c-a8a8-2b1eb8d9be87"
     )
     assert b"github%3AThymis-io%2Fthymis%23main" in probe_request.url.raw_path
+
+
+def test_link_entity_validates_and_labels_dashboard_entities():
+    requests = []
+
+    def handler(request):
+        requests.append(request)
+        if request.url.path == "/api/tasks/task-1":
+            return httpx.Response(
+                200, json={"task_type": "build-device-image"}, request=request
+            )
+        if request.url.path == "/api/state":
+            return httpx.Response(
+                200, json={"tags": [{"identifier": "edge"}]}, request=request
+            )
+        return httpx.Response(200, json={}, request=request)
+
+    async def scenario():
+        tools, client = make_tools(handler)
+        try:
+            assert await tools.invoke(
+                "link_entity", {"entity_type": "configuration", "identifier": "camera"}
+            ) == {"entityType": "configuration", "identifier": "camera"}
+            assert await tools.invoke(
+                "link_entity", {"entity_type": "device", "identifier": "device-1"}
+            ) == {"entityType": "device", "identifier": "device-1"}
+            assert await tools.invoke(
+                "link_entity", {"entity_type": "task", "identifier": "task-1"}
+            ) == {
+                "entityType": "task",
+                "identifier": "task-1",
+                "label": "build-device-image",
+            }
+            assert await tools.invoke(
+                "link_entity", {"entity_type": "tag", "identifier": "edge"}
+            ) == {"entityType": "tag", "identifier": "edge"}
+        finally:
+            await client.aclose()
+
+    asyncio.run(scenario())
+    assert [(request.method, request.url.path) for request in requests] == [
+        ("GET", "/api/configs/camera"),
+        ("GET", "/api/deployment_info/device-1"),
+        ("GET", "/api/tasks/task-1"),
+        ("GET", "/api/state"),
+    ]

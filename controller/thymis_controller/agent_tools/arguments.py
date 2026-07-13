@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from thymis_controller.models.device import UpdateDeploymentInfo
 from thymis_controller.models.device_metric import MetricGranularity
 from thymis_controller.models.secrets import SecretCreateRequest, SecretUpdateRequest
@@ -24,6 +24,72 @@ class UpdateStateArguments(ToolArguments):
 
 class ConfigurationArguments(ToolArguments):
     config_identifier: str
+
+
+class NavigateFrontendArguments(ToolArguments):
+    """A dashboard destination, optionally scoped to an existing entity."""
+
+    destination: Literal[
+        "overview",
+        "configuration_edit",
+        "configuration_details",
+        "configuration_logs",
+        "configuration_terminal",
+        "configuration_vnc",
+        "configuration_list",
+        "devices",
+        "devices_active",
+        "devices_archived",
+        "devices_without_deployment",
+        "device_details",
+        "device_logs",
+        "device_terminal",
+        "device_vnc",
+        "deployment_logs",
+        "tasks",
+        "task",
+        "history",
+        "external_repositories",
+        "tags",
+        "vnc",
+        "secrets",
+        "artifacts",
+        "auto_update",
+    ]
+    identifier: str | None = Field(
+        default=None,
+        description="Configuration identifier, deployment-info ID, or task ID for entity destinations.",
+    )
+
+    @model_validator(mode="after")
+    def requires_an_identifier_for_entity_destinations(
+        self,
+    ) -> NavigateFrontendArguments:
+        entity_destinations = {
+            "configuration_edit",
+            "configuration_details",
+            "configuration_logs",
+            "configuration_terminal",
+            "configuration_vnc",
+            "device_details",
+            "device_logs",
+            "device_terminal",
+            "device_vnc",
+            "deployment_logs",
+            "task",
+        }
+        if self.destination in entity_destinations and not self.identifier:
+            raise ValueError("this destination requires an identifier")
+        if self.destination not in entity_destinations and self.identifier:
+            raise ValueError("this destination does not accept an identifier")
+        return self
+
+
+class LinkEntityArguments(ToolArguments):
+    """An existing entity rendered as a first-class link in assistant output."""
+
+    entity_type: Literal["configuration", "device", "tag", "task"]
+    identifier: str = Field(min_length=1)
 
 
 class PatchConfigurationFieldArguments(ConfigurationArguments):

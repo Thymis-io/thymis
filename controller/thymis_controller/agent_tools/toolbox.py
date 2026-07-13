@@ -24,8 +24,10 @@ from .arguments import (
     ExternalRepositoryArguments,
     ExternalRepositoryUrlArguments,
     FleetRangeArguments,
+    LinkEntityArguments,
     ListTasksArguments,
     LogArguments,
+    NavigateFrontendArguments,
     PatchConfigurationFieldArguments,
     RenameArtifactArguments,
     RestartDeviceArguments,
@@ -76,6 +78,11 @@ class ThymisTools:
         """Return the complete tool catalogue for an agent runtime."""
         return [tool.definition() for tool in self._tools.values()]
 
+    def registered_tools(self) -> Mapping[str, RegisteredTool]:
+        """Return the validated tool handlers for a provider adapter."""
+
+        return self._tools
+
     async def invoke(
         self, name: str, arguments: Mapping[str, Any] | None = None
     ) -> JSONValue:
@@ -108,6 +115,80 @@ class ThymisTools:
         if response.status_code == 204 or not response.content:
             return None
         return response.json()
+
+    # Active operator browser ------------------------------------------------
+
+    @tool(
+        NavigateFrontendArguments,
+        "Navigate the active operator browser to any dashboard page. Entity destinations require an identifier and are verified before navigating: configuration destinations verify the configuration, device destinations verify the deployment-info record, and task destinations verify the task. This prevents navigation to missing pages.",
+    )
+    async def navigate_frontend(
+        self, arguments: NavigateFrontendArguments
+    ) -> JSONValue:
+        configuration_destinations = {
+            "configuration_edit",
+            "configuration_details",
+            "configuration_logs",
+            "configuration_terminal",
+            "configuration_vnc",
+        }
+        device_destinations = {
+            "device_details",
+            "device_logs",
+            "device_terminal",
+            "device_vnc",
+            "deployment_logs",
+        }
+        if arguments.destination in configuration_destinations:
+            await self._request(
+                "GET", f"/api/configs/{quote(arguments.identifier or '', safe='')}"
+            )
+        elif arguments.destination in device_destinations:
+            await self._request(
+                "GET",
+                f"/api/deployment_info/{quote(arguments.identifier or '', safe='')}",
+            )
+        elif arguments.destination == "task":
+            await self._request(
+                "GET", f"/api/tasks/{quote(arguments.identifier or '', safe='')}"
+            )
+        return {
+            "destination": arguments.destination,
+            "identifier": arguments.identifier,
+        }
+
+    @tool(
+        LinkEntityArguments,
+        "Render a validated configuration, tag, device, or task as a clickable entity link in the assistant response. Call this after mentioning a specific existing entity; it does not navigate the operator browser.",
+    )
+    async def link_entity(self, arguments: LinkEntityArguments) -> JSONValue:
+        """Validate one entity before the browser renders its link."""
+
+        entity_type = arguments.entity_type
+        identifier = arguments.identifier
+        if entity_type == "configuration":
+            await self._request("GET", f"/api/configs/{quote(identifier, safe='')}")
+            return {"entityType": entity_type, "identifier": identifier}
+        if entity_type == "device":
+            await self._request(
+                "GET", f"/api/deployment_info/{quote(identifier, safe='')}"
+            )
+            return {"entityType": entity_type, "identifier": identifier}
+        if entity_type == "task":
+            task = await self._request(
+                "GET", f"/api/tasks/{quote(identifier, safe='')}"
+            )
+            label = task.get("task_type") if isinstance(task, dict) else None
+            return {"entityType": entity_type, "identifier": identifier, "label": label}
+
+        state = await self._request("GET", "/api/state")
+        tags = state.get("tags", []) if isinstance(state, dict) else []
+        if not any(
+            isinstance(tag, dict) and tag.get("identifier") == identifier
+            for tag in tags
+        ):
+            raise ValueError(f"Unknown tag: {identifier}")
+        return {"entityType": entity_type, "identifier": identifier}
 
     # Configuration ---------------------------------------------------------
 
@@ -554,7 +635,7 @@ class ThymisTools:
 
     @tool(
         BuildImageArguments,
-        "Queue a bootable image build for one configuration. The repository must be clean.",
+        "Queue the same device-image build used by the dashboard Download Device Image button. The signed-in browser automatically downloads the image only after the build task succeeds; do not attempt a download before that notification.",
         name="build_device_image",
     )
     async def build_device_image(self, arguments: BuildImageArguments) -> JSONValue:
