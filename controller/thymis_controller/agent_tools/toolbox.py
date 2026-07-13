@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import binascii
 from collections.abc import Mapping
+from shlex import quote as shell_quote
 from typing import Any
 from urllib.parse import quote
 
@@ -63,16 +64,22 @@ class ThymisToolError(RuntimeError):
         super().__init__(f"{method} {path} failed with {status_code}: {detail}")
 
 
-_KIOSK_DISPLAY_COMMANDS = {
-    "inspect_i3_outputs": """
+def _kiosk_i3_message_command(*message_arguments: str) -> str:
+    command = " ".join(shell_quote(argument) for argument in message_arguments)
+    return f"""
 uid="$(id -u thymiskiosk)"
 for socket in /run/user/"$uid"/i3/ipc-socket.*; do
     [ -S "$socket" ] || continue
-    I3SOCK="$socket" /run/current-system/sw/bin/i3-msg -s "$socket" -t get_outputs && exit 0
+    I3SOCK="$socket" /run/current-system/sw/bin/i3-msg -s "$socket" {command} && exit 0
 done
 printf '%s\n' "No reachable i3 IPC socket for thymiskiosk" >&2
 exit 1
-""".strip(),
+""".strip()
+
+
+_KIOSK_DISPLAY_COMMANDS = {
+    "inspect_i3_outputs": _kiosk_i3_message_command("-t", "get_outputs"),
+    "read_i3_config": _kiosk_i3_message_command("-t", "get_config"),
     "inspect_logs": """
 uid="$(id -u thymiskiosk)"
 journalctl --no-pager -b -u display-manager.service -n 200
@@ -81,6 +88,13 @@ journalctl --no-pager -b _UID="$uid" -n 200
 """.strip(),
     "restart_display_manager": "systemctl restart display-manager.service",
 }
+
+
+def _kiosk_display_command(arguments: KioskDisplayActionArguments) -> str:
+    if arguments.action == "run_x_command":
+        assert arguments.command is not None
+        return _kiosk_i3_message_command(f"exec --no-startup-id {arguments.command}")
+    return _KIOSK_DISPLAY_COMMANDS[arguments.action]
 
 
 class ThymisTools:
@@ -343,7 +357,7 @@ class ThymisTools:
 
     @tool(
         KioskDisplayActionArguments,
-        "Inspect Kiosk i3 outputs or logs, or restart its display manager. The command runs asynchronously; use get_task with the returned task_id to inspect completion and output.",
+        "Inspect Kiosk i3 outputs or logs, restart its display manager, or open a browser window through i3. The command runs asynchronously; use get_task with the returned task_id to inspect completion and output.",
         name="manage_kiosk_display",
     )
     async def manage_kiosk_display(
@@ -354,7 +368,7 @@ class ThymisTools:
             "/api/action/run-command",
             params={
                 "deployment_info_id": str(arguments.deployment_info_id),
-                "command": _KIOSK_DISPLAY_COMMANDS[arguments.action],
+                "command": _kiosk_display_command(arguments),
             },
         )
 

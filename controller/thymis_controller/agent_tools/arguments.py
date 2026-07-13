@@ -211,14 +211,33 @@ class RunDeviceCommandArguments(DeploymentInfoArguments):
 
 class KioskDisplayActionArguments(DeploymentInfoArguments):
     action: Literal[
-        "inspect_i3_outputs", "inspect_logs", "restart_display_manager"
+        "inspect_i3_outputs",
+        "read_i3_config",
+        "inspect_logs",
+        "restart_display_manager",
+        "run_x_command",
     ] = Field(
         description=(
-            "Display recovery operation for a device using the Thymis Kiosk module. "
-            "Inspect i3 outputs, inspect the current-boot display logs, or restart "
-            "the graphical session."
+            "Display-session operation for a device using the Thymis Kiosk module. "
+            "Inspect i3 outputs or its active configuration, inspect current-boot "
+            "display logs, restart the graphical session, or run a command through i3 "
+            "as the kiosk user."
         )
     )
+    command: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=4096,
+        description="Command to run through i3 when action is run_x_command.",
+    )
+
+    @model_validator(mode="after")
+    def requires_command_only_for_x_session(self) -> KioskDisplayActionArguments:
+        if self.action == "run_x_command" and self.command is None:
+            raise ValueError("run_x_command requires a command")
+        if self.action != "run_x_command" and self.command is not None:
+            raise ValueError("only run_x_command accepts a command")
+        return self
 
 
 class CommitArguments(ToolArguments):
