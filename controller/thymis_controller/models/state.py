@@ -1,7 +1,7 @@
 import uuid
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional
 
-from pydantic import BaseModel, JsonValue
+from pydantic import BaseModel, JsonValue, field_validator
 from thymis_controller import migration
 
 
@@ -33,6 +33,25 @@ class Config(BaseModel):
         return None
 
 
+class ConfigFieldPatch(BaseModel):
+    """One RFC 6901 JSON Pointer mutation scoped to a configuration."""
+
+    operation: Literal["set", "remove"] = "set"
+    path: str
+    value: JsonValue | None = None
+
+    @field_validator("path")
+    @classmethod
+    def validate_path(cls, path: str) -> str:
+        if not path.startswith("/"):
+            raise ValueError("path must be a non-empty JSON Pointer starting with '/'")
+        if path == "/identifier":
+            raise ValueError(
+                "configuration identifier cannot be changed by a field patch"
+            )
+        return path
+
+
 class Tag(BaseModel):
     displayName: str
     identifier: str
@@ -47,4 +66,4 @@ class State(BaseModel):
     configs: List[Config] = []
 
 
-__all__ = ["Repo", "ModuleSettings", "Config", "Tag", "State"]
+__all__ = ["Repo", "ModuleSettings", "Config", "ConfigFieldPatch", "Tag", "State"]
