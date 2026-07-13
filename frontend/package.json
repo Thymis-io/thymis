@@ -74,5 +74,11 @@
 		"@sveltejs/kit": {
 			"cookie": "^1.0.0"
 		}
+	},
+	"dependencies": {
+		"@ai-sdk/svelte": "^5.0.22",
+		"ai": "^7.0.22",
+		"dompurify": "^3.2.7",
+		"marked": "^14.0.0"
 	}
 }

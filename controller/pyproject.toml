@@ -32,6 +32,7 @@ dependencies = [
     "pyjwt>=2.13.0",
     "thymis-agent",
     "cachetools>=6.2.0",
+    "pydantic-ai>=2.9.0",
 ]
 
 [project.scripts]

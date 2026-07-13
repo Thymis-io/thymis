@@ -13,6 +13,7 @@
 	import TaskbarMinimize from '$lib/taskbar/TaskbarMinimize.svelte';
 	import TaskbarSmall from '$lib/taskbar/TaskbarSmall.svelte';
 	import { browser } from '$app/environment';
+	import AgentChat from '$lib/agent/AgentChat.svelte';
 	import { SvelteToast } from '@zerodevx/svelte-toast';
 	import { onMount } from 'svelte';
 	import { startNotificationSocket } from '$lib/notification';
@@ -144,6 +145,7 @@
 		theme: { '--toastWidth': '40rem' }
 	}}
 />
+<AgentChat globalState={data.globalState} />
 
 <style lang="postcss">
 	:root {

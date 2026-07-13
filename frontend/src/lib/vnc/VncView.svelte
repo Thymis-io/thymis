@@ -12,6 +12,7 @@
 	import Shrink from 'lucide-svelte/icons/shrink';
 	import MonitorOff from 'lucide-svelte/icons/monitor-off';
 	import MousePointer2 from 'lucide-svelte/icons/mouse-pointer-2';
+	import { registerVncScreenshotCapture } from '$lib/vnc/screenshot';
 
 	interface Props {
 		globalState: GlobalState;
@@ -60,6 +61,43 @@
 	});
 
 	let div: HTMLDivElement | undefined = $state();
+	let releaseScreenshotCapture: (() => void) | undefined;
+
+	const clearScreenshotCapture = () => {
+		releaseScreenshotCapture?.();
+		releaseScreenshotCapture = undefined;
+	};
+
+	const captureScreenshot = async () => {
+		if (!connected) throw new Error('The VNC session is not connected.');
+
+		const sourceCanvas = div?.querySelector<HTMLCanvasElement>('canvas');
+		if (!sourceCanvas || !sourceCanvas.width || !sourceCanvas.height) {
+			throw new Error('The VNC display is not ready for a screenshot.');
+		}
+
+		const maximumDimension = 1600;
+		const scale = Math.min(1, maximumDimension / Math.max(sourceCanvas.width, sourceCanvas.height));
+		let screenshotCanvas = sourceCanvas;
+		if (scale < 1) {
+			screenshotCanvas = document.createElement('canvas');
+			screenshotCanvas.width = Math.round(sourceCanvas.width * scale);
+			screenshotCanvas.height = Math.round(sourceCanvas.height * scale);
+			screenshotCanvas
+				.getContext('2d')
+				?.drawImage(sourceCanvas, 0, 0, screenshotCanvas.width, screenshotCanvas.height);
+		}
+
+		const screenshot = await new Promise<Blob>((resolve, reject) => {
+			screenshotCanvas.toBlob(
+				(blob) =>
+					blob ? resolve(blob) : reject(new Error('Could not encode the VNC screenshot.')),
+				'image/png'
+			);
+		});
+
+		return new File([screenshot], `vnc-${deploymentInfo.id}.png`, { type: 'image/png' });
+	};
 
 	const initVNC = async (deploymentInfo: DeploymentInfo) => {
 		if (!deploymentInfo || !config) {
@@ -78,6 +116,7 @@
 			$page.data.availableModules as Module[]
 		);
 
+		clearScreenshotCapture();
 		if (rfb) {
 			rfb.disconnect();
 		}
@@ -89,14 +128,17 @@
 		rfb.addEventListener('connect', () => {
 			connected = true;
 			connectionFailed = false;
+			releaseScreenshotCapture = registerVncScreenshotCapture(captureScreenshot);
 		});
 		rfb.addEventListener('disconnect', () => {
 			connected = false;
 			connectionFailed = true;
+			clearScreenshotCapture();
 		});
 		rfb.addEventListener('securityfailure', () => {
 			connected = false;
 			connectionFailed = true;
+			clearScreenshotCapture();
 		});
 
 		rfb.viewOnly = !control;
@@ -130,6 +172,7 @@
 
 	onDestroy(() => {
 		if (div) document.removeEventListener('fullscreenchange', onFullscreenChange);
+		clearScreenshotCapture();
 		if (rfb) {
 			rfb.disconnect();
 			rfb = null;
