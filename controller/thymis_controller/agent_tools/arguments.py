@@ -209,5 +209,17 @@ class RunDeviceCommandArguments(DeploymentInfoArguments):
     )
 
 
+class KioskDisplayActionArguments(DeploymentInfoArguments):
+    action: Literal[
+        "inspect_i3_outputs", "inspect_logs", "restart_display_manager"
+    ] = Field(
+        description=(
+            "Display recovery operation for a device using the Thymis Kiosk module. "
+            "Inspect i3 outputs, inspect the current-boot display logs, or restart "
+            "the graphical session."
+        )
+    )
+
+
 class CommitArguments(ToolArguments):
     message: str = Field(min_length=1)

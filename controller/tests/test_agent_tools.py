@@ -34,6 +34,7 @@ def test_definitions_cover_frontend_entities_and_actions():
             "get_device_metrics",
             "get_device_error_logs",
             "run_device_command",
+            "manage_kiosk_display",
             "list_tasks",
             "list_secrets",
             "list_artifacts",
@@ -157,6 +158,50 @@ def test_live_device_tools_map_metrics_and_commands_to_api():
     assert (
         command_request.url.params.get("command") == "systemctl status nginx --no-pager"
     )
+
+
+def test_kiosk_display_actions_use_fixed_root_commands():
+    requests = []
+
+    def handler(request):
+        requests.append(request)
+        return httpx.Response(200, json={"task_id": "task-1"}, request=request)
+
+    async def scenario():
+        tools, client = make_tools(handler)
+        try:
+            deployment_info_id = "69e2a620-7534-442c-a8a8-2b1eb8d9be87"
+            for action in (
+                "inspect_i3_outputs",
+                "inspect_logs",
+                "restart_display_manager",
+            ):
+                assert await tools.invoke(
+                    "manage_kiosk_display",
+                    {"deployment_info_id": deployment_info_id, "action": action},
+                ) == {"task_id": "task-1"}
+            with pytest.raises(ValidationError):
+                await tools.invoke(
+                    "manage_kiosk_display",
+                    {"deployment_info_id": deployment_info_id, "action": "shell"},
+                )
+        finally:
+            await client.aclose()
+
+    asyncio.run(scenario())
+
+    assert [request.url.path for request in requests] == [
+        "/api/action/run-command",
+        "/api/action/run-command",
+        "/api/action/run-command",
+    ]
+    commands = [request.url.params["command"] for request in requests]
+    assert 'I3SOCK="$socket"' in commands[0]
+    assert 'i3-msg -s "$socket" -t get_outputs' in commands[0]
+    assert '/run/user/"$uid"/i3/ipc-socket.*' in commands[0]
+    assert "journalctl --no-pager -b -u display-manager.service -n 200" in commands[1]
+    assert 'journalctl --no-pager -b _UID="$uid" -n 200' in commands[1]
+    assert commands[2] == "systemctl restart display-manager.service"
 
 
 def test_invoke_maps_typed_device_and_deploy_arguments_to_controller_api():
