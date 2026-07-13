@@ -6,6 +6,7 @@ from pydantic import ValidationError
 from pydantic_ai.models.test import TestModel
 from thymis_controller.agent_runtime import (
     READ_ONLY_TOOL_NAMES,
+    SYSTEM_INSTRUCTIONS,
     WRITE_TOOL_NAMES,
     ChatRequest,
     stream_chat,
@@ -57,6 +58,7 @@ def test_assistant_uses_existing_read_and_scoped_write_tool_schemas():
         "update_state",
         "build_device_image",
         "navigate_frontend",
+        "manage_kiosk_display",
     } <= tool_names
     assert {
         "run_device_command",
@@ -65,6 +67,13 @@ def test_assistant_uses_existing_read_and_scoped_write_tool_schemas():
         "delete_artifact",
         "download_device_image",
     }.isdisjoint(tool_names)
+
+
+def test_kiosk_display_prompt_uses_the_kiosk_i3_session():
+    assert "manage_kiosk_display" in SYSTEM_INSTRUCTIONS
+    assert "/run/user/$(id -u thymiskiosk)/i3/ipc-socket.*" in SYSTEM_INSTRUCTIONS
+    assert "i3-msg" in SYSTEM_INSTRUCTIONS
+    assert "systemctl restart display-manager.service" in SYSTEM_INSTRUCTIONS
 
 
 def test_chat_request_rejects_a_non_user_final_message():

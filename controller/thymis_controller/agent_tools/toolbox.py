@@ -24,6 +24,7 @@ from .arguments import (
     ExternalRepositoryArguments,
     ExternalRepositoryUrlArguments,
     FleetRangeArguments,
+    KioskDisplayActionArguments,
     LinkEntityArguments,
     ListTasksArguments,
     LogArguments,
@@ -43,7 +44,7 @@ from .arguments import (
 )
 from .registry import (
     JSONValue,
-    ToolArguments,
+    RegisteredTool,
     ToolDefinition,
     UnknownToolError,
     collect_tools,
@@ -60,6 +61,26 @@ class ThymisToolError(RuntimeError):
         self.path = path
         self.detail = detail
         super().__init__(f"{method} {path} failed with {status_code}: {detail}")
+
+
+_KIOSK_DISPLAY_COMMANDS = {
+    "inspect_i3_outputs": """
+uid="$(id -u thymiskiosk)"
+for socket in /run/user/"$uid"/i3/ipc-socket.*; do
+    [ -S "$socket" ] || continue
+    I3SOCK="$socket" /run/current-system/sw/bin/i3-msg -s "$socket" -t get_outputs && exit 0
+done
+printf '%s\n' "No reachable i3 IPC socket for thymiskiosk" >&2
+exit 1
+""".strip(),
+    "inspect_logs": """
+uid="$(id -u thymiskiosk)"
+journalctl --no-pager -b -u display-manager.service -n 200
+printf '%s\n' "--- thymiskiosk session ---"
+journalctl --no-pager -b _UID="$uid" -n 200
+""".strip(),
+    "restart_display_manager": "systemctl restart display-manager.service",
+}
 
 
 class ThymisTools:
@@ -318,6 +339,23 @@ class ThymisTools:
     ) -> JSONValue:
         return await self._request(
             "GET", f"/api/deployment_info/{arguments.deployment_info_id}/error_logs"
+        )
+
+    @tool(
+        KioskDisplayActionArguments,
+        "Inspect Kiosk i3 outputs or logs, or restart its display manager. The command runs asynchronously; use get_task with the returned task_id to inspect completion and output.",
+        name="manage_kiosk_display",
+    )
+    async def manage_kiosk_display(
+        self, arguments: KioskDisplayActionArguments
+    ) -> JSONValue:
+        return await self._request(
+            "POST",
+            "/api/action/run-command",
+            params={
+                "deployment_info_id": str(arguments.deployment_info_id),
+                "command": _KIOSK_DISPLAY_COMMANDS[arguments.action],
+            },
         )
 
     @tool(

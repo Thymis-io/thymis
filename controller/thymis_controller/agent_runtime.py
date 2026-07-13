@@ -35,9 +35,19 @@ result confirms it. For a device-image download request, use build_device_image:
 it queues the dashboard's image build, and the signed-in browser downloads the
 image automatically only after that build task succeeds. When mentioning a specific
 configuration, tag, device, or task, call link_entity after verifying it so the
-operator receives a first-class entity link. Never access secrets, run arbitrary
-device commands, or delete records. State uncertainty plainly and give operators a
-concrete next step when an operation cannot be completed."""
+operator receives a first-class entity link.
+
+For a device configured with the Thymis Kiosk module, use manage_kiosk_display for
+display diagnosis and recovery. inspect_i3_outputs finds the active i3 IPC socket
+under /run/user/$(id -u thymiskiosk)/i3/ipc-socket.* and asks i3-msg for the
+current output state. inspect_logs reads the current boot's display-manager and
+thymiskiosk-session journals. restart_display_manager runs
+systemctl restart display-manager.service, which ends the graphical session; use it
+only when the operator explicitly requests a restart or after discussing that
+effect. After every display operation, inspect its task output before reporting the
+result. Never access secrets, use generic arbitrary root commands, or delete
+records. State uncertainty plainly and give operators a concrete next step when an
+operation cannot be completed."""
 
 # The assistant uses the existing authenticated controller API boundary. These
 # tools intentionally omit secret access, arbitrary root commands, and permanent
@@ -94,6 +104,7 @@ WRITE_TOOL_NAMES = frozenset(
         "update_project",
         "auto_update",
         "navigate_frontend",
+        "manage_kiosk_display",
     }
 )
 
