@@ -29,6 +29,11 @@ def test_definitions_cover_frontend_entities_and_actions():
             "update_state",
             "list_available_modules",
             "list_deployment_infos",
+            "list_hardware_devices",
+            "get_device_connection_history",
+            "get_device_metrics",
+            "get_device_error_logs",
+            "run_device_command",
             "list_tasks",
             "list_secrets",
             "list_artifacts",
@@ -57,6 +62,49 @@ def test_definitions_cover_frontend_entities_and_actions():
         }
 
     asyncio.run(scenario())
+
+
+def test_live_device_tools_map_metrics_and_commands_to_api():
+    requests = []
+
+    def handler(request):
+        requests.append(request)
+        return httpx.Response(200, json={"task_id": "task-1"}, request=request)
+
+    async def scenario():
+        tools, client = make_tools(handler)
+        try:
+            deployment_info_id = "69e2a620-7534-442c-a8a8-2b1eb8d9be87"
+            assert await tools.invoke(
+                "get_device_metrics",
+                {
+                    "deployment_info_id": deployment_info_id,
+                    "hours": 6,
+                    "granularity": "15min",
+                },
+            ) == {"task_id": "task-1"}
+            assert await tools.invoke(
+                "run_device_command",
+                {
+                    "deployment_info_id": deployment_info_id,
+                    "command": "systemctl status nginx --no-pager",
+                },
+            ) == {"task_id": "task-1"}
+        finally:
+            await client.aclose()
+
+    asyncio.run(scenario())
+
+    metrics_request, command_request = requests
+    assert metrics_request.url.path == (
+        "/api/deployment_info/69e2a620-7534-442c-a8a8-2b1eb8d9be87/metrics"
+    )
+    assert str(metrics_request.url.params) == "hours=6&granularity=15min"
+    assert command_request.method == "POST"
+    assert command_request.url.path == "/api/action/run-command"
+    assert (
+        command_request.url.params.get("command") == "systemctl status nginx --no-pager"
+    )
 
 
 def test_invoke_maps_typed_device_and_deploy_arguments_to_controller_api():

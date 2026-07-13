@@ -166,6 +166,37 @@ def build_download_image(
     )
 
 
+def submit_device_command(
+    deployment_info,
+    command: str,
+    db_session,
+    task_controller,
+    user_session_id,
+):
+    """Submit one root shell command through the device's relay connection."""
+    access_client_token = get_or_create_access_client_token(
+        db_session, deployment_info_id=deployment_info.id
+    )
+    task = task_controller.submit(
+        models.SSHCommandTaskSubmission(
+            controller_access_client_endpoint=task_controller.access_client_endpoint,
+            deployment_info_id=deployment_info.id,
+            access_client_token=access_client_token.token,
+            deployment_public_key=deployment_info.ssh_public_key,
+            ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
+            target_user="root",
+            target_port=22,
+            command=command,
+        ),
+        user_session_id=user_session_id,
+        db_session=db_session,
+    )
+    access_client_token.deploy_device_task_id = task.id
+    db_session.add(access_client_token)
+    db_session.commit()
+    return task
+
+
 @router.post("/action/restart-device")
 async def restart_device(
     identifier: str,
@@ -180,27 +211,41 @@ async def restart_device(
         if network_relay.public_key_to_connection_id.get(
             deployment_info.ssh_public_key
         ):
-            access_client_token = get_or_create_access_client_token(
-                db_session, deployment_info_id=deployment_info.id
+            submit_device_command(
+                deployment_info,
+                "reboot",
+                db_session,
+                task_controller,
+                user_session_id,
             )
 
-            task = task_controller.submit(
-                models.SSHCommandTaskSubmission(
-                    controller_access_client_endpoint=task_controller.access_client_endpoint,
-                    deployment_info_id=deployment_info.id,
-                    access_client_token=access_client_token.token,
-                    deployment_public_key=deployment_info.ssh_public_key,
-                    ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
-                    target_user="root",
-                    target_port=22,
-                    command="reboot",
-                ),
-                user_session_id=user_session_id,
-                db_session=db_session,
-            )
-            access_client_token.deploy_device_task_id = task.id
-            db_session.add(access_client_token)
-            db_session.commit()
+
+@router.post("/action/run-command")
+async def run_device_command(
+    deployment_info_id: uuid.UUID,
+    db_session: DBSessionAD,
+    task_controller: TaskControllerAD,
+    network_relay: NetworkRelayAD,
+    user_session_id: UserSessionIDAD,
+    command: str = Query(min_length=1),
+):
+    """Run one root shell command on a connected device through its relay."""
+    deployment_info = crud.deployment_info.get_by_id(db_session, deployment_info_id)
+    if deployment_info is None:
+        raise HTTPException(status_code=404, detail="Deployment info not found")
+    if not network_relay.public_key_to_connection_id.get(
+        deployment_info.ssh_public_key
+    ):
+        raise HTTPException(status_code=409, detail="Device is offline")
+
+    task = submit_device_command(
+        deployment_info,
+        command,
+        db_session,
+        task_controller,
+        user_session_id,
+    )
+    return {"message": "command started", "task_id": str(task.id)}
 
 
 @router.head("/download-image")
