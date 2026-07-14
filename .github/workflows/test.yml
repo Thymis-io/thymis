@@ -78,7 +78,7 @@ jobs:
         working-directory: frontend
       - name: Build application
         run: |
-          nix build .#thymis-controller --print-build-logs --fallback
+          nix build .#thymis-controller --print-build-logs --fallback --accept-flake-config
       - name: Run tests
         run: |
           export THYMIS_FLAKE_ROOT='..'
@@ -173,7 +173,7 @@ jobs:
         working-directory: frontend
       - name: Build application
         run: |
-          nix build .#thymis-controller --print-build-logs --fallback
+          nix build .#thymis-controller --print-build-logs --fallback --accept-flake-config
       - name: Run tests
         run: |
           # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset
@@ -227,7 +227,7 @@ jobs:
         working-directory: frontend
       - name: Build application
         run: |
-          nix build .#thymis-controller --print-build-logs --fallback
+          nix build .#thymis-controller --print-build-logs --fallback --accept-flake-config
       - name: Run tests
         run: |
           export THYMIS_FLAKE_ROOT='..'
@@ -281,7 +281,7 @@ jobs:
         working-directory: frontend
       - name: Build application
         run: |
-          nix build .#thymis-controller --print-build-logs --fallback
+          nix build .#thymis-controller --print-build-logs --fallback --accept-flake-config
       - name: Run tests
         run: |
           # export THYMIS_FLAKE_ROOT='..' # stable input needs THYMIS_FLAKE_ROOT to be unset

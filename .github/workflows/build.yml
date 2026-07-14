@@ -35,7 +35,7 @@ jobs:
       - uses: ./.github/actions/snapshot-nix-store
       - name: Build thymis-agent
         run: |
-          nix build .#thymis-agent --print-build-logs --fallback
+          nix build .#thymis-agent --print-build-logs --fallback --accept-flake-config
       - name: Upload new store paths to Nix cache
         if: always()
         uses: ./.github/actions/upload-nix-store-diff
@@ -54,7 +54,7 @@ jobs:
       - uses: ./.github/actions/snapshot-nix-store
       - name: Build thymis-agent (aarch64)
         run: |
-          nix build .#thymis-agent --print-build-logs --fallback
+          nix build .#thymis-agent --print-build-logs --fallback --accept-flake-config
       - name: Upload new store paths to Nix cache
         if: always()
         uses: ./.github/actions/upload-nix-store-diff
@@ -76,7 +76,7 @@ jobs:
       - name: Build thymis-frontend
         run: |
           cd thymis
-          nix build .#thymis-frontend --print-build-logs --fallback 2>&1 | tee build.log
+          nix build .#thymis-frontend --print-build-logs --fallback --accept-flake-config 2>&1 | tee build.log
           sleep 1
       - name: Get Thymis App Token
         id: generate-token
@@ -121,7 +121,7 @@ jobs:
             git add ./frontend/package-lock.json
             sed -i 's/npmDepsHash = "sha256-.*";/npmDepsHash = lib.fakeHash;/' ./frontend/default.nix
             # and then build the derivation again
-            nix build .#thymis-frontend --print-build-logs --fallback 2>&1 | tee build.log
+            nix build .#thymis-frontend --print-build-logs --fallback --accept-flake-config 2>&1 | tee build.log
             # now checkout the head_ref branch
             git fetch --all
             git checkout $BRANCH_NAME
@@ -148,7 +148,7 @@ jobs:
       - name: Build thymis-controller
         run: |
           cd thymis
-          nix build .#thymis-controller --print-build-logs --fallback
+          nix build .#thymis-controller --print-build-logs --fallback --accept-flake-config
       - name: Upload new store paths to Nix cache
         if: always()
         uses: ./thymis/.github/actions/upload-nix-store-diff
@@ -171,7 +171,7 @@ jobs:
       - name: Build thymis-controller-pi-3-sd-image
         timeout-minutes: 360
         run: |
-          nix build .#thymis-controller-pi-3-sd-image --print-build-logs --fallback
+          nix build .#thymis-controller-pi-3-sd-image --print-build-logs --fallback --accept-flake-config
       - name: Upload new store paths to Nix cache
         if: always()
         uses: ./.github/actions/upload-nix-store-diff
@@ -195,7 +195,7 @@ jobs:
       - name: Build thymis-controller-pi-4-sd-image
         timeout-minutes: 360
         run: |
-          nix build .#thymis-controller-pi-4-sd-image --print-build-logs --fallback
+          nix build .#thymis-controller-pi-4-sd-image --print-build-logs --fallback --accept-flake-config
       - name: Upload new store paths to Nix cache
         if: always()
         uses: ./.github/actions/upload-nix-store-diff
@@ -219,7 +219,7 @@ jobs:
       - name: Build thymis-controller-pi-5-sd-image
         timeout-minutes: 360
         run: |
-          nix build .#thymis-controller-pi-5-sd-image --print-build-logs --fallback
+          nix build .#thymis-controller-pi-5-sd-image --print-build-logs --fallback --accept-flake-config
       - name: Upload new store paths to Nix cache
         if: always()
         uses: ./.github/actions/upload-nix-store-diff
@@ -245,7 +245,7 @@ jobs:
       - name: Build thymis-controller-generic-x86_64-image
         timeout-minutes: 360
         run: |
-          nix build .#thymis-controller-generic-x86_64-image --print-build-logs --fallback
+          nix build .#thymis-controller-generic-x86_64-image --print-build-logs --fallback --accept-flake-config
       - name: Upload new store paths to Nix cache
         if: always()
         uses: ./.github/actions/upload-nix-store-diff
@@ -271,7 +271,7 @@ jobs:
       - uses: ./.github/actions/snapshot-nix-store
       - name: Build thymis-controller-container (x86_64)
         run: |
-          nix build .#thymis-controller-container --print-build-logs --fallback
+          nix build .#thymis-controller-container --print-build-logs --fallback --accept-flake-config
       - name: Upload new store paths to Nix cache
         if: always()
         uses: ./.github/actions/upload-nix-store-diff
@@ -318,7 +318,7 @@ jobs:
       - uses: ./.github/actions/snapshot-nix-store
       - name: Build thymis-controller-container (aarch64)
         run: |
-          nix build .#thymis-controller-container --print-build-logs --fallback
+          nix build .#thymis-controller-container --print-build-logs --fallback --accept-flake-config
       - name: Upload new store paths to Nix cache
         if: always()
         uses: ./.github/actions/upload-nix-store-diff
