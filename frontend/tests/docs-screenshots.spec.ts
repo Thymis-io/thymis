@@ -1,6 +1,6 @@
 import path from 'path';
 import { test, expect, type Page, type Locator } from '../playwright/fixtures';
-import { createConfiguration } from './utils';
+import { clearState, createConfiguration, deleteAllTasks } from './utils';
 
 // This spec captures fresh, real screenshots of the current UI for the
 // hand-curated documentation pages under docs/src/lib/docs/reference/{ui,concepts}.
@@ -121,7 +121,9 @@ const unhighlight = async (page: Page) => {
 	);
 };
 
-test('docs: toolbar buttons and commit dialogue', async ({ page }) => {
+test('docs: toolbar buttons and commit dialogue', async ({ page, request }) => {
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
 	await page.goto('/overview', { waitUntil: 'networkidle' });
 
 	await createConfiguration(page, 'Living Room Display', 'Raspberry Pi 4', []);
@@ -143,7 +145,9 @@ test('docs: toolbar buttons and commit dialogue', async ({ page }) => {
 	await shot(modalBox(dialog), path.join(UI_DIR, 'commit-dialogue.png'));
 });
 
-test('docs: tasks, build task, update task, task details', async ({ page }) => {
+test('docs: tasks, build task, update task, task details', async ({ page, request }) => {
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
 	await page.goto('/overview', { waitUntil: 'networkidle' });
 
 	await createConfiguration(page, 'Living Room Display', 'Raspberry Pi 4', []);
@@ -176,7 +180,9 @@ test('docs: tasks, build task, update task, task details', async ({ page }) => {
 	await shot(contentArea(page), path.join(UI_DIR, 'task-details.png'));
 });
 
-test('docs: configure tab', async ({ page }) => {
+test('docs: configure tab', async ({ page, request }) => {
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
 	await page.goto('/overview', { waitUntil: 'networkidle' });
 
 	await createConfiguration(page, 'Living Room Display', 'Raspberry Pi 4', []);
@@ -196,7 +202,9 @@ test('docs: configure tab', async ({ page }) => {
 	await shot(contentArea(page), path.join(UI_DIR, 'configure-tab.png'));
 });
 
-test('docs: artifacts tab and artifact configuration', async ({ page }) => {
+test('docs: artifacts tab and artifact configuration', async ({ page, request }) => {
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
 	await page.goto('/overview', { waitUntil: 'networkidle' });
 
 	const artifactsNavItem = page
@@ -247,7 +255,9 @@ test('docs: artifacts tab and artifact configuration', async ({ page }) => {
 	);
 });
 
-test('docs: tags', async ({ page }) => {
+test('docs: tags', async ({ page, request }) => {
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
 	await page.goto('/overview', { waitUntil: 'networkidle' });
 
 	await page.locator('nav.nav:visible').locator('a', { hasText: 'Config-Tags' }).click();
@@ -310,8 +320,10 @@ test('docs: tags', async ({ page }) => {
 	);
 });
 
-test('docs: deploy modal and deployment tasks', async ({ page }) => {
+test('docs: deploy modal and deployment tasks', async ({ page, request }) => {
 	test.setTimeout(600000);
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
 	await page.goto('/overview', { waitUntil: 'networkidle' });
 
 	await createConfiguration(page, 'Signage 01', 'Generic x86-64', []);
@@ -396,8 +408,7 @@ test('docs: deploy modal and deployment tasks', async ({ page }) => {
 	await deployButton.click();
 	const deployDialog = page.getByRole('dialog');
 	await deployDialog.getByText('Tags/configs/devices to deploy').waitFor();
-	await deployDialog.locator('input[autocomplete]').click();
-	await page.getByRole('option', { name: 'Signage 01', exact: true }).click();
+	await expect(deployDialog.getByText('Signage 01', { exact: true })).toBeVisible();
 	const deploySubmitButton = deployDialog
 		.locator('button')
 		.filter({ hasText: /^(Deploy|Commit & Deploy)$/ });
@@ -431,7 +442,9 @@ test('docs: deploy modal and deployment tasks', async ({ page }) => {
 	});
 });
 
-test('device-lifecycle: getting started', async ({ page }) => {
+test('device-lifecycle: getting started', async ({ page, request }) => {
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
 	await page.goto('/overview', { waitUntil: 'networkidle' });
 
 	await page.locator('nav.nav:visible').locator('a', { hasText: 'Configs' }).click();
@@ -491,7 +504,9 @@ test('device-lifecycle: getting started', async ({ page }) => {
 	await unhighlight(page);
 });
 
-test('device-lifecycle: kiosk', async ({ page }) => {
+test('device-lifecycle: kiosk', async ({ page, request }) => {
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
 	await page.goto('/overview', { waitUntil: 'networkidle' });
 
 	await createConfiguration(page, 'Kiosk Display', 'Raspberry Pi 4', []);
@@ -531,7 +546,9 @@ test('device-lifecycle: kiosk', async ({ page }) => {
 	await page.setViewportSize({ width: 1920, height: 1080 });
 });
 
-test('device-lifecycle: secrets', async ({ page }) => {
+test('device-lifecycle: secrets', async ({ page, request }) => {
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
 	await page.goto('/overview', { waitUntil: 'networkidle' });
 
 	await page.locator('nav.nav:visible').locator('a', { hasText: 'Secrets' }).click();
@@ -544,7 +561,9 @@ test('device-lifecycle: secrets', async ({ page }) => {
 	await shot(modalBox(dialog), path.join(DEVICE_LIFECYCLE_DIR, 'secret-creation-form.png'));
 });
 
-test('device-lifecycle: tags', async ({ page }) => {
+test('device-lifecycle: tags', async ({ page, request }) => {
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
 	await page.goto('/overview', { waitUntil: 'networkidle' });
 
 	await page.locator('nav.nav:visible').locator('a', { hasText: 'Config-Tags' }).click();
@@ -622,7 +641,9 @@ test('device-lifecycle: tags', async ({ page }) => {
 	await unhighlight(page);
 });
 
-test('device-lifecycle: update', async ({ page }) => {
+test('device-lifecycle: update', async ({ page, request }) => {
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
 	await page.goto('/overview', { waitUntil: 'networkidle' });
 
 	await createConfiguration(page, 'Test Configuration', 'Raspberry Pi 4', []);
@@ -665,8 +686,10 @@ test('device-lifecycle: update', async ({ page }) => {
 	await unhighlight(page);
 });
 
-test('device-lifecycle: connected device', async ({ page }) => {
+test('device-lifecycle: connected device', async ({ page, request }) => {
 	test.setTimeout(600000);
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
 	await page.goto('/overview', { waitUntil: 'networkidle' });
 
 	await createConfiguration(page, 'Koffer Device 01', 'Generic x86-64', []);
@@ -739,6 +762,11 @@ test('device-lifecycle: connected device', async ({ page }) => {
 		.first()
 		.click();
 	await page.waitForURL('/devices/*/details*');
+	await page.getByRole('button', { name: 'Rename' }).click();
+	const renameDialog = page.getByRole('dialog');
+	await renameDialog.getByPlaceholder('e.g. Display 1, Rack A').fill('Koffer Device 01');
+	await renameDialog.getByRole('button', { name: 'Save' }).click();
+	await page.getByRole('heading', { name: 'Koffer Device 01' }).waitFor();
 	await page.getByText('Online').first().waitFor({ timeout: 60000 });
 	await page.waitForTimeout(2000);
 	await fullShot(page, path.join(DEVICE_LIFECYCLE_DIR, 'device-deployed.png'));
@@ -757,7 +785,6 @@ test('device-lifecycle: connected device', async ({ page }) => {
 	await page.locator('.xterm-helper-textarea').first().waitFor({ timeout: 30000 });
 	await page.waitForTimeout(4000);
 	await page.locator('.xterm-helper-textarea').first().click();
-	await page.keyboard.press('Enter');
 	await page.waitForTimeout(3000);
 	await fullShot(page, path.join(DEVICE_LIFECYCLE_DIR, 'terminal-sessions.png'));
 
@@ -776,13 +803,13 @@ test('device-lifecycle: connected device', async ({ page }) => {
 	await page.locator('button').filter({ hasText: 'VNC', hasNotText: 'VNC Devices' }).click();
 	await page.waitForURL('/devices/*/vnc*');
 	await page.getByLabel('Control Device').waitFor({ timeout: 30000 });
-	await page.waitForTimeout(5000);
-	await page.getByLabel('Control Device').hover();
-	await page.waitForTimeout(500);
+	await page.waitForTimeout(30000);
 	await fullShot(page, path.join(DEVICE_LIFECYCLE_DIR, 'vnc-control.png'));
 });
 
-test('external-projects: repositories and device type', async ({ page }) => {
+test('external-projects: repositories and device type', async ({ page, request }) => {
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
 	await page.goto('/overview', { waitUntil: 'networkidle' });
 
 	await createConfiguration(page, 'x86 Device', 'Generic x86-64', []);
@@ -838,7 +865,9 @@ test('external-projects: repositories and device type', async ({ page }) => {
 	await fullShot(page, path.join(EXTERNAL_PROJECTS_DIR, 'external-repo-screenshot.png'));
 });
 
-test('external-projects: oci and custom nix modules', async ({ page }) => {
+test('external-projects: oci and custom nix modules', async ({ page, request }) => {
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
 	await page.goto('/overview', { waitUntil: 'networkidle' });
 
 	await createConfiguration(page, 'Docs Device', 'Raspberry Pi 4', []);
