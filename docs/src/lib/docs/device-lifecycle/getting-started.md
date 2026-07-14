@@ -28,7 +28,7 @@ Once created, click Configure to open its settings.
 
 ## 2. Set Networking (Wi‑Fi)
 
-1. Add the Networking module section
+1. Add the Networking module
 2. Enter your SSID and password.
 
 ![Wi‑Fi Settings](./Color-scheme-light-initial-device-provisioning-4-linux.png)

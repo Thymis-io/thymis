@@ -20,13 +20,14 @@ To create a secret through the Secrets page:
 4. Click **Save**
 
 ![Creating a Secret](./secret-creation-form.png)
+
 ## Using Secrets in Configurations
 
 To use secrets in your device configurations:
 
 1. Navigate to the **Configs** page
 2. Select a device configuration or create a new one
-3. Add the **Core Device Configuration** module to your configuration
+3. Add the **Files** module to your configuration
 4. In the module's settings, find the **Secrets** section
 5. Click **Add Secret**
 6. Select the secret you want to use and specify where it should be deployed on the device
@@ -37,7 +38,7 @@ To share secrets across multiple devices:
 
 1. Navigate to the **Config-Tags** page
 2. Click **Create Tag**
-3. Add the **Core Device Configuration** module to the tag
+3. Add the **Files** module to the tag
 4. In the module's settings, add secrets as described above
 5. Apply the tag to device configurations that need these secrets
 

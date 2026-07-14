@@ -6,9 +6,9 @@ Thymis modules are the building blocks of device configurations, allowing you to
 
 Thymis comes with several built-in modules that cover common use cases for IoT device management.
 
-### Core Device Configuration
+### Device
 
-The Core Device Configuration module provides essential settings for all Thymis-managed devices. This module is required for every device configuration and includes:
+The Device module provides essential settings for all Thymis-managed devices. This module is required for every device configuration and includes:
 
 - **System settings**: Hostname, timezone, and locale configuration
 - **Network configuration**: WiFi settings, static IP configuration, and DNS settings
@@ -16,7 +16,7 @@ The Core Device Configuration module provides essential settings for all Thymis-
 - **Security settings**: SSH access configuration and password policies
 - **System services**: Configuration for essential system services
 
-![Core Device Configuration](./core-device-configuration.png)
+![Device Configuration](./core-device-configuration.png)
 
 This module must be added to every device configuration and cannot be removed. It provides the foundation upon which other modules build their configurations.
 
