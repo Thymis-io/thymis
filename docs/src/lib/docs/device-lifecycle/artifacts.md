@@ -17,7 +17,7 @@ Artifacts are managed through the **Artifacts** tab in the Thymis sidebar:
 
 To deploy an artifact to your devices:
 
-1. In your device configuration, add the **Core Device Configuration** module
+1. In your device configuration, add the Files module
 2. Scroll to the **Artifacts** section
 3. Click **Add Artifact**
 4. Select the artifact you want to deploy

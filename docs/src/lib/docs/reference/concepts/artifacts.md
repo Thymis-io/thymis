@@ -9,7 +9,7 @@ One can upload, download, and delete artifacts directly from the UI.
 
 Referencing to an artifact in Nix Code can be done by writing `"${inputs.self}/artifacts/<artifact-name>"`. This allows you to include the artifact in the device's configuration, ensuring that it is available when the device is deployed or updated.
 
-To include an artifact in your device's file system, you can use the **Artifacts** configuration option in your device's **Core Device Configuration** module. Specify the artifact to place, the path where it should be placed, and the permissions (owner, group, and mode) for the file.
+To include an artifact in your device's file system, you can use the Artifacts configuration option in your device's Files module. Specify the artifact to place, the path where it should be placed, and the permissions (owner, group, and mode) for the file.
 
 ![Artifacts configuration](./artifacts-configuration.png)
 

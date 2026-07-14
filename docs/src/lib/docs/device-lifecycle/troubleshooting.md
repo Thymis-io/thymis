@@ -4,7 +4,7 @@
 
 - Verify network credentials; make sure the Wi‑Fi SSID and password are correct.
 - Temporarily switch to LAN if you have a port available.
-- Connect a keyboard, mouse, and display and log in with `root` and the Root Password set in the Core Device Configuration. Inspect logs with:
+- Connect a keyboard, mouse, and display and log in with `root` and the Root Password set in the Device module. Inspect logs with:
   ```bash
   journalctl -xe
   ```

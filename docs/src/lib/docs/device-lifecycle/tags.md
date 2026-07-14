@@ -22,10 +22,10 @@ Any settings defined in the tag will be applied to all configurations that share
 ## Adding Settings to a Tag
 
 Click on the tag to edit the settings.
-You can add any module to the tag; here we add the **Core Device Configuration**.
+You can add any module to the tag; here we add the **Device** module.
 
 ![Add module to tag](./add-module-to-tag.png)
-![Add Core Device Configuration](./add-core-device-configuration-module.png)
+![Add Device Configuration](./add-core-device-configuration-module.png)
 
 For example, you can set the Wi‑Fi SSID and password to be applied to all devices.
 When adding a new device you only need to assign the tag and you’re done.
