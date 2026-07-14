@@ -63,10 +63,14 @@ runs:
         echo "Uploading ${COUNT} new store paths to cache..."
         # nix copy checks the destination narinfo before uploading each path, so
         # already-cached paths are skipped automatically without any help from us.
-        # Its internal HTTP connection pool (http-connections = 128) parallelises
-        # narinfo checks far more efficiently than any external pre-filter could.
+        # A single invocation already parallelises narinfo checks and uploads via
+        # its internal HTTP connection pool (http-connections = 128, set in
+        # setup-nix). Splitting into multiple xargs-spawned nix copy processes
+        # (as before) doesn't add throughput — it only duplicates closure
+        # computation and local narinfo-cache DB access across processes, which
+        # was the main source of a ~30-50s stall before any upload progress.
         # Cache upload is best-effort: transient S3 errors must not fail the job.
-        xargs -a "$_CAND" -P 8 -n 32 nix copy \
+        xargs -a "$_CAND" nix copy \
           --to "s3://thymis-nix-cache?endpoint=nix-cache-s3.thymis.io&region=garage&secret-key=${KEY_FILE}" \
           --no-check-sigs \
           || echo "Warning: nix copy exited $? — transient S3 error likely; some paths may not have been cached. Non-fatal."
