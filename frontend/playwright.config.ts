@@ -56,7 +56,6 @@ const config: PlaywrightTestConfig = {
 		timeout: 120000
 	},
 	testDir: 'tests',
-	testMatch: /(.+\.)?(test|spec)\.[jt]s/,
 	use: {
 		...devices['Desktop Chrome'],
 		acceptDownloads: true,
@@ -80,7 +79,18 @@ const config: PlaywrightTestConfig = {
 			maxDiffPixels: 48,
 			threshold: 0.08
 		}
-	}
+	},
+	projects: [
+		{
+			name: 'default',
+			testMatch: /(.+\.)?(test|spec)\.[jt]s/,
+			testIgnore: '**/docs-screenshots.spec.ts'
+		},
+		{
+			name: 'docs-screenshots',
+			testMatch: '**/docs-screenshots.spec.ts'
+		}
+	]
 };
 
 export default config;

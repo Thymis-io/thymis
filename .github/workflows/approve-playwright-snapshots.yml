@@ -75,6 +75,11 @@ jobs:
           export THYMIS_FLAKE_ROOT='..'
           nix develop .#forNpmTesting --command npm run test:integration -- --update-snapshots
         working-directory: frontend
+      - name: Run docs screenshots tests
+        run: |
+          export THYMIS_FLAKE_ROOT='..'
+          nix develop .#forNpmTesting --command npm run test:docs-screenshots
+        working-directory: frontend
       - name: Upload Playwright report
         uses: actions/upload-artifact@v7
         id: artifact-upload-aarch64
@@ -88,6 +93,11 @@ jobs:
         with:
           name: updated-snapshots-aarch64-screencaps
           path: frontend/tests/screencaps.spec.ts-snapshots/
+      - name: Upload docs screenshots
+        uses: actions/upload-artifact@v7
+        with:
+          name: updated-docs-screenshots
+          path: docs/src/lib/docs/
 
   update-snapshots-x86_64:
     name: Update Snapshots x86_64
@@ -164,6 +174,11 @@ jobs:
         with:
           name: updated-snapshots-aarch64-screencaps
           path: frontend/tests/screencaps.spec.ts-snapshots/
+      - name: Download updated docs screenshots
+        uses: actions/download-artifact@v8
+        with:
+          name: updated-docs-screenshots
+          path: docs/src/lib/docs/
       - name: commit and push
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
