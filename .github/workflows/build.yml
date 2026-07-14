@@ -279,6 +279,7 @@ jobs:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
+          exclude_result: "true"
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
         with:
@@ -326,6 +327,7 @@ jobs:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
+          exclude_result: "true"
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
         with:
