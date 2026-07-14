@@ -79,11 +79,20 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 		.click();
 
 	// wait a few seconds, so the first VM is more likely to finish first
-	await page.waitForTimeout(20000);
+	await page.waitForTimeout(10000);
 
 	// select button "Build and start VM"
 	await page.locator('div').filter({ hasText: '0 commit' }).first().waitFor();
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
+
+	// wait for the second task to be spawned
+	await page
+		.locator('table')
+		.filter({ hasText: 'Start Time' })
+		.locator('tr')
+		.filter({ hasText: 'VM Test x64 2' })
+		.first()
+		.waitFor({ timeout: 15000 });
 
 	// wait until: 1x on screen "completed", 1x on screen "running"
 	test.setTimeout(360000);
