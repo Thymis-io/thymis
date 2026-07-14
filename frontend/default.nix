@@ -9,7 +9,7 @@ buildNpmPackage {
   pname = "thymis-frontend";
   version = (builtins.fromJSON (builtins.readFile ./package.json)).version;
   src = ./.;
-  npmDepsHash = "sha256-zSOkW1TNK0M456BLsKy0VBOreq+WyD3R1pcdDr8C6G8=";
+  npmDepsHash = "sha256-S6wyYqGG4pkwohUfTm6caKO3lc2W93UJKMoVtuCnO84=";
   dontNpmInstall = true;
   NODE_OPTIONS = "--max-old-space-size=8192";
   installPhase = ''
