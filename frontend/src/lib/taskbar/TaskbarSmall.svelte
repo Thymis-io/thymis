@@ -21,7 +21,9 @@
 	const tasks = $derived(Object.values($taskStatus));
 	const pendingTasks = $derived(tasks.filter((task) => task.state === 'pending'));
 	const runningTasks = $derived(tasks.filter((task) => task.state === 'running'));
-	const latestTask = $derived([...tasks].sort((a, b) => (a.start_time < b.start_time ? 1 : -1))[0]);
+	const latestTask = $derived(
+		[...tasks].sort((a, b) => (a.submitted_time < b.submitted_time ? 1 : -1))[0]
+	);
 
 	const isActive = $derived(runningTasks.length > 0 || pendingTasks.length > 0);
 
@@ -73,7 +75,7 @@
 				</span>
 			{/if}
 			<span class="opacity-50 shrink-0">·</span>
-			<RenderTimeAgo class="shrink-0" timestamp={latestTask.start_time} minSeconds={1} />
+			<RenderTimeAgo class="shrink-0" timestamp={latestTask.submitted_time} minSeconds={1} />
 		{:else}
 			<span class="ds-stat-dot online shrink-0"></span>
 			<span class="font-medium whitespace-nowrap">{$t('taskbar.activity.all-clear')}</span>

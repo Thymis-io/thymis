@@ -37,6 +37,7 @@ def make_completed_switch_task(
 ):
     task = db_models.Task(
         id=uuid.uuid4(),
+        submitted_time=datetime.now(timezone.utc),
         start_time=datetime.now(timezone.utc),
         end_time=datetime.now(timezone.utc),
         state="completed",

@@ -23,7 +23,7 @@
 	const taskbarTaskLimit = 20;
 	let taskList = $derived(
 		Object.values($taskStatus)
-			.sort((a, b) => (a.start_time < b.start_time ? 1 : -1))
+			.sort((a, b) => (a.submitted_time < b.submitted_time ? 1 : -1))
 			.slice(0, taskbarTaskLimit)
 	);
 

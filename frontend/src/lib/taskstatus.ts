@@ -42,7 +42,8 @@ export type TaskProcess = {
 
 export type Task = {
 	id: string;
-	start_time: string;
+	submitted_time: string;
+	start_time?: string;
 	end_time?: string;
 	state: TaskState;
 	exception?: string;
@@ -59,7 +60,8 @@ export type TaskShort = {
 	id: string;
 	task_type: string;
 	state: TaskState;
-	start_time: string;
+	submitted_time: string;
+	start_time?: string;
 	end_time?: string;
 	exception?: string;
 	task_submission_data: Record<string, unknown>;

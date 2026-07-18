@@ -52,7 +52,8 @@ class Task(Base):
     __tablename__ = "tasks"
 
     id = Column(Uuid(as_uuid=True), primary_key=True, index=True)
-    start_time = Column(DateTime, nullable=False)
+    submitted_time = Column(DateTime, nullable=False)
+    start_time = Column(DateTime, nullable=True)
     end_time = Column(DateTime, nullable=True)
     state = Column(String(50), nullable=False)
     exception = Column(Text, nullable=True)

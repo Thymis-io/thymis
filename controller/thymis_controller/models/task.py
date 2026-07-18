@@ -74,7 +74,8 @@ class Task(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID  # uuid
-    start_time: datetime.datetime
+    submitted_time: datetime.datetime
+    start_time: Optional[datetime.datetime]
     end_time: Optional[datetime.datetime]
     state: TaskState
     exception: Optional[str]
@@ -87,7 +88,7 @@ class Task(BaseModel):
 
     processes: list[TaskProcess] = []
 
-    @field_serializer("start_time", "end_time")
+    @field_serializer("submitted_time", "start_time", "end_time")
     def _ser_dt(self, dt: datetime.datetime | None) -> str | None:
         if dt is None:
             return None
@@ -111,6 +112,7 @@ class Task(BaseModel):
             submission_data_raw = task.task_submission_data
         return cls(
             id=task.id,
+            submitted_time=task.submitted_time,
             start_time=task.start_time,
             end_time=task.end_time,
             state=task.state,
@@ -128,13 +130,14 @@ class TaskShort(BaseModel):
     id: uuid.UUID  # uuid
     task_type: str
     state: TaskState
-    start_time: datetime.datetime
+    submitted_time: datetime.datetime
+    start_time: Optional[datetime.datetime]
     end_time: Optional[datetime.datetime]
     exception: Optional[str]
     task_submission_data: Optional["TaskSubmissionData"]
     nix_status: Optional[NixProcessStatus]
 
-    @field_serializer("start_time", "end_time")
+    @field_serializer("submitted_time", "start_time", "end_time")
     def _ser_dt(self, dt: datetime.datetime | None) -> str | None:
         if dt is None:
             return None
@@ -158,6 +161,7 @@ class TaskShort(BaseModel):
             id=task.id,
             task_type=task.task_type,
             state=task.state,
+            submitted_time=task.submitted_time,
             start_time=task.start_time,
             end_time=task.end_time,
             exception=task.exception,
