@@ -32,11 +32,11 @@
 		if (data.page !== 1) return overlaid;
 		// Surface brand-new tasks that arrived (via websocket) after the page loaded.
 		const knownIds = new Set(data.tasks.map((task) => task.id));
-		const newestLoaded = data.tasks[0]?.start_time ?? '';
+		const newestLoaded = data.tasks[0]?.submitted_time ?? '';
 		const fresh = Object.values($taskStatus).filter(
-			(task) => !knownIds.has(task.id) && task.start_time > newestLoaded
+			(task) => !knownIds.has(task.id) && task.submitted_time > newestLoaded
 		);
-		return [...fresh, ...overlaid].sort((a, b) => (a.start_time < b.start_time ? 1 : -1));
+		return [...fresh, ...overlaid].sort((a, b) => (a.submitted_time < b.submitted_time ? 1 : -1));
 	});
 
 	// Page-local quick filter by task state (operates on the currently loaded page).
@@ -117,6 +117,7 @@
 		columns={[
 			{ label: $t('taskbar.task-type') },
 			{ label: $t('taskbar.status') },
+			{ label: $t('task-details.submitted') },
 			{ label: $t('taskbar.start-time') },
 			{ label: $t('taskbar.duration') },
 			{ label: $t('taskbar.actions'), align: 'right' }
@@ -140,6 +141,9 @@
 			</td>
 			<td>
 				<TaskbarStatus {task} showProgress={false} />
+			</td>
+			<td>
+				<RenderTimeAgo class="block" timestamp={task.submitted_time} minSeconds={1} />
 			</td>
 			<td>
 				<RenderTimeAgo class="block" timestamp={task.start_time} minSeconds={1} />

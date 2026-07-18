@@ -3,7 +3,7 @@
 	import { calcTimeSince } from '$lib/hardwareDevices';
 
 	interface Props {
-		timestamp: string | null;
+		timestamp?: string | null;
 		minSeconds?: number;
 		class?: string;
 	}

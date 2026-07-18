@@ -423,9 +423,9 @@
 	"task-details": {
 		"overview": "Overview",
 		"task-id": "Task ID",
+		"submitted": "Submitted",
 		"started": "Started",
 		"ended": "Ended",
-		"still-running": "Still running",
 		"parent": "Parent task",
 		"subtasks": "Subtasks",
 		"exception": "Error",

@@ -169,6 +169,7 @@ class TaskWorkerPoolManager:
                         # logger.info("Received message from worker: %s", message)
                         match message.update:
                             case models_task.TaskPickedUpdate():
+                                task.start_time = datetime.now(timezone.utc)
                                 task.state = "running"
                                 db_session.commit()
                             case models_task.TaskRejectedUpdate(reason=reason):

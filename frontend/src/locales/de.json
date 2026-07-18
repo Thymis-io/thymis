@@ -536,9 +536,9 @@
 	"task-details": {
 		"overview": "Übersicht",
 		"task-id": "Vorgangs-ID",
+		"submitted": "Erstellt",
 		"started": "Gestartet",
 		"ended": "Beendet",
-		"still-running": "Läuft noch",
 		"parent": "Übergeordneter Vorgang",
 		"subtasks": "Untervorgänge",
 		"exception": "Fehler",

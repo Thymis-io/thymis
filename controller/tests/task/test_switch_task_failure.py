@@ -30,6 +30,7 @@ def _make_switch_task(db_session, deployment_info_id):
     )
     task = db_models.Task(
         id=uuid.uuid4(),
+        submitted_time=datetime.now(timezone.utc),
         start_time=datetime.now(timezone.utc),
         state="running",
         task_type=task_data.type,

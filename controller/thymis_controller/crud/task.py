@@ -6,22 +6,22 @@ from typing import Literal
 from sqlalchemy import select
 from sqlalchemy.orm import Session, load_only, selectinload
 from thymis_controller import db_models
-from thymis_controller.models.task import TaskShort
+from thymis_controller.models.task import TaskShort, TaskState
 
 
 def create(
     db_session: Session,
-    start_time,
-    state,
-    task_type,
-    user_session_id,
-    task_submission_data,
-    parent_task_id,
+    submitted_time: datetime,
+    state: TaskState,
+    task_type: str,
+    user_session_id: uuid.UUID,
+    task_submission_data: dict,
+    parent_task_id: uuid.UUID,
 ):
     id = uuid.uuid4()
     task = db_models.Task(
         id=id,
-        start_time=start_time,
+        submitted_time=submitted_time,
         state=state,
         task_type=task_type,
         user_session_id=user_session_id,
@@ -43,6 +43,7 @@ def get_tasks_short(db_session: Session, limit: int = 100, offset: int = 0):
                 db_models.Task.id,
                 db_models.Task.task_type,
                 db_models.Task.state,
+                db_models.Task.submitted_time,
                 db_models.Task.start_time,
                 db_models.Task.end_time,
                 db_models.Task.exception,
@@ -52,7 +53,7 @@ def get_tasks_short(db_session: Session, limit: int = 100, offset: int = 0):
                 db_models.TaskProcess.nix_status
             ),
         )
-        .order_by(db_models.Task.start_time.desc())
+        .order_by(db_models.Task.submitted_time.desc())
         .limit(limit)
         .offset(offset)
     ).all()
@@ -79,9 +80,9 @@ def get_tasks_with_state(
 ) -> db_models.Task:
     query = db_session.query(db_models.Task).filter(db_models.Task.state == state)
     if from_date:
-        query = query.filter(db_models.Task.start_time >= from_date)
+        query = query.filter(db_models.Task.submitted_time >= from_date)
     if to_date:
-        query = query.filter(db_models.Task.start_time <= to_date)
+        query = query.filter(db_models.Task.submitted_time <= to_date)
     return query.all()
 
 

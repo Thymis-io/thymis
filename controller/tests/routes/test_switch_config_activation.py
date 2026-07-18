@@ -3,7 +3,6 @@ import uuid
 from datetime import datetime, timezone
 
 import thymis_agent.agent as agent
-import thymis_controller.crud.task as crud_task
 from thymis_controller import crud, models
 from thymis_controller.network_relay import NetworkRelay
 from thymis_controller.notifications import NotificationManager
@@ -39,9 +38,9 @@ def _create_switch_task(db_session, deployment_info_id):
         access_client_token="token",
         config_commit="commit-b",
     )
-    return crud_task.create(
+    return crud.task.create(
         db_session,
-        start_time=datetime.now(timezone.utc),
+        submitted_time=datetime.now(timezone.utc),
         state="running",
         task_type=task_data.type,
         user_session_id=uuid.uuid4(),

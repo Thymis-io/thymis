@@ -2,7 +2,6 @@
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
 	import MonospaceText from '$lib/components/MonospaceText.svelte';
-	import RenderUnixTimestamp from '$lib/components/RenderUnixTimestamp.svelte';
 	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
 	import RenderTimeDuration from '$lib/components/RenderTimeDuration.svelte';
 	import {
@@ -182,21 +181,28 @@
 					</span>
 				</div>
 				<div class="meta-item">
+					<span class="meta-key">{$t('task-details.submitted')}</span>
+					<span class="meta-val">
+						<RenderTimeAgo timestamp={task.submitted_time} minSeconds={1} />
+					</span>
+				</div>
+				<div class="meta-item">
 					<span class="meta-key">{$t('task-details.started')}</span>
 					<span class="meta-val">
-						<RenderUnixTimestamp timestamp={task.start_time} />
-						<span class="muted-note"
-							>(<RenderTimeAgo timestamp={task.start_time} minSeconds={1} />)</span
-						>
+						{#if task.start_time}
+							<RenderTimeAgo timestamp={task.start_time} minSeconds={1} />
+						{:else}
+							<span class="muted-note">-</span>
+						{/if}
 					</span>
 				</div>
 				<div class="meta-item">
 					<span class="meta-key">{$t('task-details.ended')}</span>
 					<span class="meta-val">
 						{#if task.end_time}
-							<RenderUnixTimestamp timestamp={task.end_time} />
+							<RenderTimeAgo timestamp={task.end_time} minSeconds={1} />
 						{:else}
-							<span class="muted-note">{$t('task-details.still-running')}</span>
+							<span class="muted-note">-</span>
 						{/if}
 					</span>
 				</div>
@@ -206,7 +212,7 @@
 						{#if task.end_time}
 							<RenderTimeDuration start={task.start_time} end={task.end_time} />
 						{:else}
-							<span class="muted-note">—</span>
+							<span class="muted-note">-</span>
 						{/if}
 					</span>
 				</div>

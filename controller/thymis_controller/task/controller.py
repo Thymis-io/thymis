@@ -10,7 +10,6 @@ import sqlalchemy
 from sqlalchemy.orm import Session
 from thymis_controller import crud, db_models, models
 from thymis_controller.crud.agent_token import get_or_create_access_client_token
-from thymis_controller.crud.task import create as task_create
 from thymis_controller.crud.task import get_tasks_short
 from thymis_controller.models.task import (
     DeployDeviceTaskSubmission,
@@ -58,9 +57,9 @@ class TaskController:
         self, task: TaskSubmissionData, user_session_id: uuid.UUID, db_session: Session
     ) -> models.Task:
         # creates a database entry, then submits to executor
-        task_db = task_create(
+        task_db = crud.task.create(
             db_session,
-            start_time=datetime.now(timezone.utc),
+            submitted_time=datetime.now(timezone.utc),
             state="pending",
             task_type=task.type,
             user_session_id=user_session_id,
@@ -90,9 +89,9 @@ class TaskController:
                     access_client_token=access_client_token.token,
                     config_commit=task.config_commit,
                 )
-                subtask = task_create(
+                subtask = crud.task.create(
                     db_session,
-                    start_time=datetime.now(timezone.utc),
+                    submitted_time=datetime.now(timezone.utc),
                     state="pending",
                     task_type="deploy_device_task",
                     user_session_id=user_session_id,
