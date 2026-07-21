@@ -38,16 +38,16 @@ jobs:
 
       - name: Cache dev env
         run: |
-          nix develop .#ci --command echo "Cache dev env"
+          nix develop --accept-flake-config .#ci --command echo "Cache dev env"
 
       - name: Install dependencies
         run: |
-          nix develop .#ci --command uv sync
+          nix develop --accept-flake-config .#ci --command uv sync
         working-directory: controller
 
       - name: Run tests
         run: |
-          nix develop .#ci --command uv run python -m pytest -sxv --ignore=tests/integration
+          nix develop --accept-flake-config .#ci --command uv run python -m pytest -sxv --ignore=tests/integration
         working-directory: controller
 
       - name: Upload new store paths to Nix cache
