@@ -150,7 +150,7 @@ jobs:
   update-snapshots-x86_64:
     name: Update Snapshots x86_64
     if: github.event.issue.pull_request && contains(github.event.comment.body, '/approve-snapshots') && github.event.comment.author_association == 'MEMBER'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     permissions:
       contents: write
       pull-requests: write
