@@ -26,7 +26,7 @@ jobs:
               - 'frontend/package-lock.json'
 
   build-agent:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-nix
@@ -64,7 +64,7 @@ jobs:
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
 
   build-thymis-controller:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     steps:
       - uses: actions/checkout@v5
         with:
@@ -231,7 +231,7 @@ jobs:
       - uses: ./.github/actions/assemble-image-and-assert-existence
 
   build-generic-x86_64-image:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
@@ -260,7 +260,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
