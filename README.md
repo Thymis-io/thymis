@@ -27,7 +27,7 @@ The documentation is available at [thymis.io/docs](https://thymis.io/docs/).
 
 ## Screenshot & Demo
 
-| ![Screenshot](frontend/tests/screencaps.spec.ts-snapshots/Color-scheme-dark-Create-moneyshot-4-linux.png) |
+| ![Screenshot](frontend/tests/screencaps.spec.ts-snapshots/Color-scheme-dark-Create-moneyshot-4-default-linux.png) |
 | --------------------------------------------------------------------------------------------------------- |
 | Screenshot of the Control Panel                                                                           |
 
