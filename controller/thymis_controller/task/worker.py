@@ -26,6 +26,18 @@ from thymis_controller.nix.log_parse import NixParser
 from thymis_controller.repo import git_commit_cmd
 
 
+def no_new_privs() -> bool:
+    """True if PR_SET_NO_NEW_PRIVS is set: setuid binaries (sudo) can't gain privileges (prctl(2))."""
+    try:
+        with open("/proc/self/status", "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("NoNewPrivs:"):
+                    return line.split()[1] == "1"
+    except OSError:
+        pass
+    return False
+
+
 def access_client_proxy_command(
     endpoint: str, deployment_info_id: uuid.UUID | str
 ) -> str:
@@ -280,29 +292,37 @@ def deploy_device_task(
                 systemd_run = path
                 break
 
+        # DynamicUser= forces no_new_privs, so sudo can't escalate. Force the unprivileged branch below.
+        needs_system_sudo = (
+            "RUNNING_IN_PLAYWRIGHT" in os.environ
+            and "DBUS_SESSION_BUS_ADDRESS" not in os.environ
+        )
+        if systemd_run and needs_system_sudo and no_new_privs():
+            systemd_run = None
+
         # If systemd-run is available, use it for better process isolation
         if systemd_run:
             sudo = None
-            for path in ["sudo", "/bin/sudo", "/run/current-system/sw/bin/sudo"]:
-                if shutil.which(path):
-                    sudo = path
-                    break
+            if needs_system_sudo:
+                for path in [
+                    "sudo",
+                    "/bin/sudo",
+                    "/run/current-system/sw/bin/sudo",
+                ]:
+                    if shutil.which(path):
+                        sudo = path
+                        break
 
-            if sudo is None:
-                report_task_finished(task, conn, False, "sudo not found")
-                return
+                if sudo is None:
+                    report_task_finished(task, conn, False, "sudo not found")
+                    return
 
             returncode = run_command(
                 task,
                 conn,
                 process_list,
                 [
-                    *(
-                        [sudo, "-n", "-E"]
-                        if "RUNNING_IN_PLAYWRIGHT" in os.environ
-                        and not "DBUS_SESSION_BUS_ADDRESS" in os.environ
-                        else []
-                    ),
+                    *([sudo, "-n", "-E"] if needs_system_sudo else []),
                     systemd_run,
                     "-E",
                     "NIX_SSHOPTS",
