@@ -153,6 +153,7 @@ def project_flake_update_task(
         cwd=repo_path,
         env={
             "PATH": os.getenv("PATH"),
+            "HOME": os.getenv("HOME"),
             "NIX_SSHOPTS": NIX_SSHOPTS,
             "GIT_TERMINAL_PROMPT": "0",
             "NIX_CONFIG": task_data.nix_access_tokens,
@@ -727,6 +728,7 @@ def auto_update_task(
             cwd=str(repo_path),
             env={
                 "PATH": os.getenv("PATH"),
+                "HOME": os.getenv("HOME"),
                 "NIX_SSHOPTS": NIX_SSHOPTS,
                 "GIT_TERMINAL_PROMPT": "0",
                 "NIX_CONFIG": task_data.nix_access_tokens,
