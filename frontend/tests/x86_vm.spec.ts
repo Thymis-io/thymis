@@ -112,7 +112,12 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 
 	// go to "Devices" page and wait until "Connected" is shown twice
 	await goToDevicesPage(page, baseURL);
-	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 60000 });
+	await page
+		.locator('td', { hasText: 'Connected' })
+		.nth(1)
+		.or(page.locator('td', { hasText: 'failed' }).first())
+		.waitFor({ timeout: 60000 });
+	await expect(page.locator('td', { hasText: 'Connected' }).nth(1)).toBeVisible();
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: maxDiffPixels
@@ -221,7 +226,12 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await deployButtonModal.click();
 
 	// Wait for a fifth "completed" status
-	await page.locator('td', { hasText: 'completed' }).nth(4).waitFor({ timeout: 360000 });
+	await page
+		.locator('td', { hasText: 'completed' })
+		.nth(4)
+		.or(page.locator('td', { hasText: 'failed' }).first())
+		.waitFor({ timeout: 360000 });
+	await expect(page.locator('td', { hasText: 'completed' }).nth(4)).toBeVisible();
 
 	// Navigate back to "Details" tab
 	await page.locator('a', { hasText: 'Details' }).first().click();
@@ -252,7 +262,12 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 	await goToDevicesPage(page, baseURL);
 
 	// Wait for 2 "Connected" statuses
-	await page.locator('td', { hasText: 'Connected' }).nth(1).waitFor({ timeout: 60000 });
+	await page
+		.locator('td', { hasText: 'Connected' })
+		.nth(1)
+		.or(page.locator('td', { hasText: 'failed' }).first())
+		.waitFor({ timeout: 60000 });
+	await expect(page.locator('td', { hasText: 'Connected' }).nth(1)).toBeVisible();
 
 	await expectScreenshot(page, testInfo, screenshotCounter, {
 		maxDiffPixels: maxDiffPixels
