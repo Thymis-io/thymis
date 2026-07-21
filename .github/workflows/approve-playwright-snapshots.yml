@@ -91,7 +91,7 @@ jobs:
 
   update-docs-screenshots:
     name: Update Docs Screenshots
-    if: github.event.issue.pull_request && contains(github.event.comment.body, '/approve-snapshots') && github.event.comment.author_association == 'MEMBER'
+    if: false && github.event.issue.pull_request && contains(github.event.comment.body, '/approve-snapshots') && github.event.comment.author_association == 'MEMBER'
     runs-on: ubuntu-24.04-arm
     permissions:
       contents: write
@@ -205,7 +205,7 @@ jobs:
   upload-artifacts:
     name: Upload Artifacts
     runs-on: ubuntu-latest
-    needs: [comment-action-start, update-snapshots-aarch64, update-docs-screenshots, update-snapshots-x86_64]
+    needs: [comment-action-start, update-snapshots-aarch64, update-snapshots-x86_64]
     steps:
       - name: Get Thymis App Token
         id: generate-token
@@ -222,11 +222,6 @@ jobs:
         with:
           name: updated-snapshots-aarch64-screencaps
           path: frontend/tests/screencaps.spec.ts-snapshots/
-      - name: Download updated docs screenshots
-        uses: actions/download-artifact@v8
-        with:
-          name: updated-docs-screenshots
-          path: docs/src/lib/docs/
       - name: commit and push
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
