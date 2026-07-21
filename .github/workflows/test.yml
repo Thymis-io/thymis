@@ -68,13 +68,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - uses: ./.github/actions/snapshot-nix-store
-      - name: Install Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
       - name: Install dependencies
         run: |
-          npm ci
+          nix develop --accept-flake-config .#ci --command npm ci
         working-directory: frontend
       - name: Build application
         run: |
@@ -163,13 +159,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - uses: ./.github/actions/snapshot-nix-store
-      - name: Install Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
       - name: Install dependencies
         run: |
-          npm ci
+          nix develop --accept-flake-config .#ci --command npm ci
         working-directory: frontend
       - name: Build application
         run: |
@@ -218,13 +210,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - uses: ./.github/actions/snapshot-nix-store
-      - name: Install Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
       - name: Install dependencies
         run: |
-          npm ci
+          nix develop --accept-flake-config .#ci --command npm ci
         working-directory: frontend
       - name: Build application
         run: |
@@ -273,13 +261,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - uses: ./.github/actions/snapshot-nix-store
-      - name: Install Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
       - name: Install dependencies
         run: |
-          npm ci
+          nix develop --accept-flake-config .#ci --command npm ci
         working-directory: frontend
       - name: Build application
         run: |
