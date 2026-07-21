@@ -41,6 +41,7 @@ def get_input_out_path(flake_path, input_name):
             stderr=subprocess.PIPE,
             env={
                 "PATH": os.getenv("PATH"),
+                "HOME": os.getenv("HOME"),
                 "NIX_SSHOPTS": NIX_SSHOPTS,
                 "GIT_TERMINAL_PROMPT": "0",
             },
@@ -72,6 +73,7 @@ def get_input_out_path(flake_path, input_name):
             cwd=flake_path,
             env={
                 "PATH": os.getenv("PATH"),
+                "HOME": os.getenv("HOME"),
                 "NIX_SSHOPTS": NIX_SSHOPTS,
                 "GIT_TERMINAL_PROMPT": "0",
             },
@@ -262,6 +264,7 @@ def nix_flake_prefetch(url: str, api_key: "SecretShort | None"):
             check=True,
             env={
                 "PATH": os.getenv("PATH"),
+                "HOME": os.getenv("HOME"),
                 "NIX_SSHOPTS": NIX_SSHOPTS,
                 "GIT_TERMINAL_PROMPT": "0",
                 "NIX_CONFIG": access_tokens,

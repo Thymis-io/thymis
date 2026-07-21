@@ -477,6 +477,7 @@ class Project:
                     check=True,
                     env={
                         "PATH": os.getenv("PATH"),
+                        "HOME": os.getenv("HOME"),
                         "NIX_SSHOPTS": NIX_SSHOPTS,
                         "GIT_TERMINAL_PROMPT": "0",
                         "NIX_CONFIG": access_tokens,
