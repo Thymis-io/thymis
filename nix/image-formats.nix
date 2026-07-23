@@ -29,10 +29,14 @@ let
         exit 1
       fi
 
-      IMAGE_ENDINGS="qcow2 img iso -vm"
+      IMAGE_ENDINGS="qcow2 img iso -vm raw"
       for ENDING in $IMAGE_ENDINGS; do
-        IMAGE_WITH_ENDING=$(find "$image_dir" -name "*$ENDING" -mindepth 1 -type f | head -n 1)
-        if ! [ -z "$IMAGE_WITH_ENDING" ]; then
+        if [ "$ENDING" = "raw" ]; then
+          IMAGE_WITH_ENDING=$(find "$image_dir" -name "*.raw" ! -name "*.nix-store.raw" -mindepth 1 -type f | head -n 1)
+        else
+          IMAGE_WITH_ENDING=$(find "$image_dir" -name "*$ENDING" -mindepth 1 -type f | head -n 1)
+        fi
+        if [ -n "$IMAGE_WITH_ENDING" ]; then
           IMAGE="$IMAGE_WITH_ENDING"
           EXTENSION="$ENDING"
         fi
@@ -80,7 +84,7 @@ let
       echo "Final image: $FINAL_IMAGE_DESTINATION"
       PARTED_OUTPUT=$(${pkgs.parted}/bin/parted --json -s "$FINAL_IMAGE_DESTINATION" print)
       echo "Parted output: $PARTED_OUTPUT"
-      FIRST_FAT_PARTITION_IDX=$(echo "$PARTED_OUTPUT" | ${pkgs.jq}/bin/jq -r '.disk.partitions[] | select(.filesystem | startswith("fat")) | .number' | head -n 1)
+      FIRST_FAT_PARTITION_IDX=$(echo "$PARTED_OUTPUT" | ${pkgs.jq}/bin/jq -r '.disk.partitions[] | select((.filesystem // "") | startswith("fat")) | .number' | head -n 1)
       if [ -z "$FIRST_FAT_PARTITION_IDX" ]; then
         echo "Image does not contain a FAT partition"
         exit 1
@@ -164,6 +168,9 @@ let
         system.build.thymis-image-with-secrets-builder-aarch64 = config.system.build.thymis-image-with-secrets-builder;
         system.build.thymis-image-with-secrets-builder-x86_64 = config.system.build.thymis-image-with-secrets-builder;
         key = "github:thymis-io/thymis/image-formats.nix:qcow";
+      };
+      ab-repart-image = import ./ab-repart-image.nix {
+        inherit lib image-with-secrets-builder;
       };
       sd-card-image = { config, pkgs, modulesPath, extendModules, ... }:
         let
