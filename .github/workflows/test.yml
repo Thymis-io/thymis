@@ -59,7 +59,7 @@ jobs:
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
 
   test-frontend-integration:
-    runs-on: ubuntu-24.04-arm
+    runs-on: [self-hosted, Linux, ARM64]
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
