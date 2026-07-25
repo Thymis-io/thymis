@@ -8,7 +8,7 @@
     nixos-generators.url = "github:nix-community/nixos-generators";
     nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
-    raspberry-pi-nix.url = "github:nix-community/raspberry-pi-nix";
+    nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
     flake-utils.url = "github:numtide/flake-utils";
     pyproject-nix = {
       url = "github:pyproject-nix/pyproject.nix";
@@ -87,6 +87,7 @@
         ];
         specialArgs = {
           inherit inputs;
+          nixos-raspberrypi = inputs.nixos-raspberrypi;
         };
       }).config.system.build.thymis-image-with-secrets-builder-aarch64;
 
@@ -100,6 +101,7 @@
         ];
         specialArgs = {
           inherit inputs;
+          nixos-raspberrypi = inputs.nixos-raspberrypi;
         };
       }).config.system.build.thymis-image-with-secrets-builder-aarch64;
 
@@ -113,6 +115,7 @@
         ];
         specialArgs = {
           inherit inputs;
+          nixos-raspberrypi = inputs.nixos-raspberrypi;
         };
       }).config.system.build.thymis-image-with-secrets-builder-aarch64;
 
@@ -126,6 +129,7 @@
         ];
         specialArgs = {
           inherit inputs;
+          nixos-raspberrypi = inputs.nixos-raspberrypi;
         };
       }).config.system.build.thymis-image-with-secrets-builder-x86_64;
 

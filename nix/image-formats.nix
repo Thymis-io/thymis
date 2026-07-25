@@ -80,7 +80,11 @@ let
       echo "Final image: $FINAL_IMAGE_DESTINATION"
       PARTED_OUTPUT=$(${pkgs.parted}/bin/parted --json -s "$FINAL_IMAGE_DESTINATION" print)
       echo "Parted output: $PARTED_OUTPUT"
-      FIRST_FAT_PARTITION_IDX=$(echo "$PARTED_OUTPUT" | ${pkgs.jq}/bin/jq -r '.disk.partitions[] | select(.filesystem == "fat16") | .number' | head -n 1)
+      FIRST_FAT_PARTITION_IDX=$(echo "$PARTED_OUTPUT" | ${pkgs.jq}/bin/jq -r '.disk.partitions[] | select(.filesystem | startswith("fat")) | .number' | head -n 1)
+      if [ -z "$FIRST_FAT_PARTITION_IDX" ]; then
+        echo "Image does not contain a FAT partition"
+        exit 1
+      fi
       echo "First FAT partition index: $FIRST_FAT_PARTITION_IDX"
       eval "$(${pkgs.util-linux}/bin/partx "$FINAL_IMAGE_DESTINATION" -o START,SECTORS --nr "$FIRST_FAT_PARTITION_IDX" --pairs)"
       echo "First FAT partition starts at $START and has $SECTORS sectors"
@@ -174,7 +178,7 @@ let
           sdImage = config: hostPkgs: hostPkgs.callPackage
             ({ stdenv, dosfstools, e2fsprogs, mtools, libfaketime, util-linux, zstd }:
               stdenv.mkDerivation {
-                name = config.sdImage.imageName;
+                name = config.image.fileName;
 
                 nativeBuildInputs =
                   [ dosfstools e2fsprogs mtools libfaketime util-linux zstd ];
@@ -183,7 +187,7 @@ let
 
                 buildCommand = ''
                   mkdir -p $out/nix-support $out/sd-image
-                  export img=$out/sd-image/${config.sdImage.imageName}
+                  export img=$out/sd-image/${config.image.fileName}
 
                   echo "${pkgs.stdenv.buildPlatform.system}" > $out/nix-support/system
                   if test -n "$compressImage"; then
@@ -227,7 +231,7 @@ let
                   # Create a FAT32 /boot/firmware partition of suitable size into firmware_part.img
                   eval $(partx $img -o START,SECTORS --nr 1 --pairs)
                   truncate -s $((SECTORS * 512)) firmware_part.img
-                  faketime "1970-01-01 00:00:00" mkfs.vfat -i ${config.sdImage.firmwarePartitionID} -n ${config.raspberry-pi-nix.firmware-partition-label} firmware_part.img
+                  faketime "1970-01-01 00:00:00" mkfs.vfat -i ${config.sdImage.firmwarePartitionID} -n ${config.sdImage.firmwarePartitionName} firmware_part.img
 
                   # Populate the files intended for /boot/firmware
                   mkdir firmware
@@ -252,7 +256,7 @@ let
         {
           imports = [
             inputs.nixos-generators.nixosModules.sd-aarch64
-            "${inputs.raspberry-pi-nix}/sd-image/default.nix"
+            inputs.nixos-raspberrypi.nixosModules.sd-image
           ];
           sdImage.compressImage = false;
           system.build.thymis-image-with-secrets-builder-aarch64 = image-with-secrets-builder {
