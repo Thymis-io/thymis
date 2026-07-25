@@ -10,6 +10,7 @@ buildNpmPackage {
   version = (builtins.fromJSON (builtins.readFile ./package.json)).version;
   src = ./.;
   npmDepsHash = "sha256-rDACghOfAZl6YfnfTUqp1wIUqPm+PsArBEg/onG3fOE=";
+  # Keep in sync with frontend/package-lock.json.
   dontNpmInstall = true;
   NODE_OPTIONS = "--max-old-space-size=8192";
   installPhase = ''
