@@ -3,6 +3,7 @@ import pathlib
 import thymis_controller.modules.modules as modules
 from thymis_controller import models
 from thymis_controller.config import global_settings
+from thymis_controller.image_updates import update_public_key_base64
 from thymis_controller.lib import read_into_base64
 from thymis_controller.nix.templating import convert_python_value_to_nix
 from thymis_controller.project import Project
@@ -62,14 +63,19 @@ class ThymisDevice(modules.Module):
                 ("Virtual Disk Image (qcow)", "qcow"),
                 ("USB Stick Installer", "usb-stick-installer"),
                 ("NixOS VM", "nixos-vm"),
+                ("A/B OTA Disk Image", "ab-repart-image"),
             ],
             extra_data={
                 "restrict_values_on_other_key": {
                     "device_type": {
-                        "generic-x86_64": ["nixos-vm", "usb-stick-installer"],
+                        "generic-x86_64": [
+                            "nixos-vm",
+                            "usb-stick-installer",
+                            "ab-repart-image",
+                        ],
                         "raspberry-pi-3": ["sd-card-image"],
-                        "raspberry-pi-4": ["sd-card-image"],
-                        "raspberry-pi-5": ["sd-card-image"],
+                        "raspberry-pi-4": ["sd-card-image", "ab-repart-image"],
+                        "raspberry-pi-5": ["sd-card-image", "ab-repart-image"],
                     }
                 },
                 "only_editable_on_target_type": ["config"],
@@ -165,6 +171,9 @@ class ThymisDevice(modules.Module):
             if "agent_controller_url" in module_settings.settings
             else self.agent_controller_url.default
         )
+        effective_agent_controller_url = agent_controller_url or (
+            global_settings.AGENT_ACCESS_URL or global_settings.BASE_URL or ""
+        )
 
         f.write("  imports = [\n")
 
@@ -179,17 +188,24 @@ class ThymisDevice(modules.Module):
 
         f.write("  ];\n")
 
-        if agent_controller_url:
+        f.write(
+            "  thymis.config.agent.controller-url = "
+            f"lib.mkOverride {priority if agent_controller_url else 100} "
+            f"{convert_python_value_to_nix(effective_agent_controller_url)};\n"
+        )
+
+        if image_format == "ab-repart-image":
+            update_url = f"{effective_agent_controller_url.rstrip('/')}/api/image-updates/{path.parts[-1]}"
             f.write(
-                f"  thymis.config.agent.controller-url = lib.mkOverride {priority} {convert_python_value_to_nix(agent_controller_url)};\n"
-            )
-        else:
-            default_agent_controller_url = (
-                global_settings.AGENT_ACCESS_URL or global_settings.BASE_URL or ""
+                "  thymis.imageBasedUpdates.updateUrl = "
+                f"{convert_python_value_to_nix(update_url)};\n"
             )
             f.write(
-                f"  thymis.config.agent.controller-url = lib.mkOverride 100 {convert_python_value_to_nix(default_agent_controller_url)};\n"
+                "  thymis.imageBasedUpdates.updatePublicKeyBase64 = "
+                f"{convert_python_value_to_nix(update_public_key_base64(project.path))};\n"
             )
+            if not update_url.startswith("https://"):
+                f.write("  thymis.imageBasedUpdates.allowInsecureUpdates = true;\n")
 
         # omit device-name when blank so the Nix module default ("thymis") applies
         device_name_value = module_settings.settings.get("device_name", "") or ""

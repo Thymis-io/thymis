@@ -122,3 +122,50 @@ def get_all_alive_tasks(db_session: Session):
         .filter(db_models.Task.state.not_in(["failed", "completed"]))
         .all()
     )
+
+
+def has_alive_deployment_task(
+    db_session: Session,
+    deployment_info_id: uuid.UUID,
+    *,
+    exclude_task_id: uuid.UUID | None = None,
+) -> bool:
+    deployment_info_id_string = str(deployment_info_id)
+    for task in get_all_alive_tasks(db_session):
+        if task.id == exclude_task_id:
+            continue
+        submission = task.task_submission_data or {}
+        task_type = submission.get("type")
+        if task_type == "deploy_device_task":
+            devices = [submission.get("device", {})]
+        elif task_type in {"deploy_devices_task", "auto_update_task"}:
+            devices = submission.get("devices", [])
+        else:
+            continue
+        if any(
+            str(device.get("deployment_info_id")) == deployment_info_id_string
+            for device in devices
+        ):
+            return True
+    return False
+
+
+def has_alive_image_config_task(
+    db_session: Session,
+    configuration_id: str,
+    *,
+    exclude_task_id: uuid.UUID | None = None,
+) -> bool:
+    for task in get_all_alive_tasks(db_session):
+        if task.id == exclude_task_id:
+            continue
+        submission = task.task_submission_data or {}
+        if submission.get("type") != "deploy_device_task":
+            continue
+        device = submission.get("device", {})
+        if (
+            device.get("target_uses_image_updates")
+            and device.get("identifier") == configuration_id
+        ):
+            return True
+    return False

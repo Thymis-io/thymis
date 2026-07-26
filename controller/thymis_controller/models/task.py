@@ -210,6 +210,8 @@ class DeployDeviceInformation(BaseModel):
     deployment_info_id: uuid.UUID
     deployment_public_key: str
     secrets: list[agent.SecretForDevice] = []
+    image_update_state: agent.ImageUpdateState | None = None
+    target_uses_image_updates: bool = False
 
 
 class DeployDevicesTaskSubmission(BaseModel):
@@ -220,6 +222,7 @@ class DeployDevicesTaskSubmission(BaseModel):
     known_hosts_path: str
     controller_ssh_pubkey: str
     config_commit: str
+    image_version: str | None = None
     parent_task_id: Optional[uuid.UUID] = None
 
 
@@ -233,6 +236,7 @@ class DeployDeviceTaskSubmission(BaseModel):
     controller_access_client_endpoint: str
     access_client_token: str
     config_commit: str
+    image_version: str | None = None
     parent_task_id: Optional[uuid.UUID] = None
 
 
@@ -307,6 +311,7 @@ TaskUpdate = Union[
     "CommandRunUpdate",
     "ImageBuiltUpdate",
     "AgentShouldSwitchToNewConfigurationUpdate",
+    "AgentShouldStageImageUpdateUpdate",
     "WorkerRequestsSecretsUpdate",
     "AgentShouldReceiveNewSecretsUpdate",
 ]
@@ -369,6 +374,14 @@ class AgentShouldSwitchToNewConfigurationUpdate(BaseModel):
     config_commit: str
 
 
+class AgentShouldStageImageUpdateUpdate(BaseModel):
+    type: Literal["agent_should_stage_image_update"] = "agent_should_stage_image_update"
+    deployment_info_id: uuid.UUID
+    version: str
+    configuration_id: str
+    config_commit: str
+
+
 class AgentSwitchedToNewConfigurationUpdate(BaseModel):
     type: Literal[
         "agent_switched_to_new_configuration"
@@ -397,6 +410,7 @@ class ControllerToRunnerTaskUpdate(BaseModel):
     inner: Union[
         "CancelTask",
         "AgentSwitchToNewConfigurationResult",
+        "AgentImageUpdateResult",
         "AgentGotNewSecretsResult",
         "SecretsResult",
     ] = Field(discriminator="kind")
@@ -414,6 +428,14 @@ class AgentSwitchToNewConfigurationResult(BaseModel):
     success: bool
     stdout: str
     stderr: str
+
+
+class AgentImageUpdateResult(BaseModel):
+    kind: Literal["agent_image_update_result"] = "agent_image_update_result"
+    success: bool
+    phase: Literal["staged", "committed", "fallback"]
+    stdout: str = ""
+    stderr: str = ""
 
 
 class AgentGotNewSecretsResult(BaseModel):

@@ -68,7 +68,6 @@ in
     ];
 
     nixpkgs.hostPlatform = "aarch64-linux";
-    boot.loader.raspberry-pi.bootloader = "kernel";
     systemd.settings.Manager.RuntimeWatchdogSec = "15s";
     boot.kernel.sysctl."vm.mmap_rnd_bits" = 24;
 

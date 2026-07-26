@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
 from sqlalchemy import nullslast
+from sqlalchemy import update as sqlalchemy_update
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
 
@@ -52,6 +53,11 @@ def update(
     pending_config_id: str | None = _UNSET,
     ram_bytes: int | None = None,
     notes: str | None = _UNSET,
+    image_update_state: dict | None = _UNSET,
+    pending_image_version: str | None = _UNSET,
+    pending_image_task_id: uuid.UUID | None = _UNSET,
+    pending_image_config_id: str | None = _UNSET,
+    pending_image_config_commit: str | None = _UNSET,
 ) -> db_models.DeploymentInfo | None:
     deployment_info = session.get(db_models.DeploymentInfo, id)
     if deployment_info is None:
@@ -82,9 +88,118 @@ def update(
         deployment_info.ram_bytes = ram_bytes
     if notes is not _UNSET:
         deployment_info.notes = notes
+    if image_update_state is not _UNSET:
+        deployment_info.image_update_state = image_update_state
+    if pending_image_version is not _UNSET:
+        deployment_info.pending_image_version = pending_image_version
+    if pending_image_task_id is not _UNSET:
+        deployment_info.pending_image_task_id = pending_image_task_id
+    if pending_image_config_id is not _UNSET:
+        deployment_info.pending_image_config_id = pending_image_config_id
+    if pending_image_config_commit is not _UNSET:
+        deployment_info.pending_image_config_commit = pending_image_config_commit
     session.commit()
     session.refresh(deployment_info)
     return deployment_info
+
+
+def reserve_image_update(
+    session: Session,
+    deployment_info_id: uuid.UUID,
+    task_id: uuid.UUID,
+    pending_config_id: str | None = None,
+) -> bool:
+    """Reserve a device for one image deployment task."""
+    result = session.execute(
+        sqlalchemy_update(db_models.DeploymentInfo)
+        .where(
+            db_models.DeploymentInfo.id == deployment_info_id,
+            db_models.DeploymentInfo.pending_image_task_id.is_(None),
+        )
+        .values(
+            pending_image_task_id=task_id,
+            pending_config_id=pending_config_id,
+        )
+    )
+    session.commit()
+    return result.rowcount == 1
+
+
+def set_pending_image_update(
+    session: Session,
+    deployment_info_id: uuid.UUID,
+    task_id: uuid.UUID,
+    *,
+    version: str,
+    config_id: str,
+    config_commit: str,
+) -> bool:
+    """Record staged metadata only when the task still owns the reservation."""
+    result = session.execute(
+        sqlalchemy_update(db_models.DeploymentInfo)
+        .where(
+            db_models.DeploymentInfo.id == deployment_info_id,
+            db_models.DeploymentInfo.pending_image_task_id == task_id,
+        )
+        .values(
+            pending_image_version=version,
+            pending_image_config_id=config_id,
+            pending_image_config_commit=config_commit,
+        )
+    )
+    session.commit()
+    return result.rowcount == 1
+
+
+def clear_pending_image_update(
+    session: Session, deployment_info_id: uuid.UUID, task_id: uuid.UUID
+) -> bool:
+    """Clear pending metadata only when the task still owns the reservation."""
+    result = session.execute(
+        sqlalchemy_update(db_models.DeploymentInfo)
+        .where(
+            db_models.DeploymentInfo.id == deployment_info_id,
+            db_models.DeploymentInfo.pending_image_task_id == task_id,
+        )
+        .values(
+            pending_config_id=None,
+            pending_image_version=None,
+            pending_image_task_id=None,
+            pending_image_config_id=None,
+            pending_image_config_commit=None,
+        )
+    )
+    session.commit()
+    return result.rowcount == 1
+
+
+def complete_pending_image_update(
+    session: Session,
+    deployment_info_id: uuid.UUID,
+    task_id: uuid.UUID,
+    *,
+    deployed_config_id: str,
+    deployed_config_commit: str,
+) -> bool:
+    """Commit a reported image only when the task still owns the reservation."""
+    result = session.execute(
+        sqlalchemy_update(db_models.DeploymentInfo)
+        .where(
+            db_models.DeploymentInfo.id == deployment_info_id,
+            db_models.DeploymentInfo.pending_image_task_id == task_id,
+        )
+        .values(
+            deployed_config_id=deployed_config_id,
+            deployed_config_commit=deployed_config_commit,
+            pending_config_id=None,
+            pending_image_version=None,
+            pending_image_task_id=None,
+            pending_image_config_id=None,
+            pending_image_config_commit=None,
+        )
+    )
+    session.commit()
+    return result.rowcount == 1
 
 
 def _latest_completed_switch_for_deployment_info(

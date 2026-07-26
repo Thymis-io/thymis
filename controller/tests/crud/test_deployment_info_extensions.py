@@ -40,3 +40,40 @@ def test_update_stores_network_interfaces(db_session):
     ]
     updated = crud.update(db_session, di.id, network_interfaces=ifaces)
     assert updated.network_interfaces == ifaces
+
+
+def test_update_image_state_and_clear_pending_fields(db_session):
+    di = _make_di(db_session)
+    task_id = uuid.uuid4()
+    state = {
+        "strategy": "raspberry-pi-tryboot",
+        "image_id": "thymis",
+        "version": "2",
+        "boot_partition": 3,
+        "trial": True,
+    }
+
+    updated = crud.update(
+        db_session,
+        di.id,
+        image_update_state=state,
+        pending_image_version="2",
+        pending_image_task_id=task_id,
+        pending_image_config_id="cfg-b",
+        pending_image_config_commit="abc123",
+    )
+    assert updated.image_update_state == state
+    assert updated.pending_image_task_id == task_id
+
+    cleared = crud.update(
+        db_session,
+        di.id,
+        pending_image_version=None,
+        pending_image_task_id=None,
+        pending_image_config_id=None,
+        pending_image_config_commit=None,
+    )
+    assert cleared.pending_image_version is None
+    assert cleared.pending_image_task_id is None
+    assert cleared.pending_image_config_id is None
+    assert cleared.pending_image_config_commit is None

@@ -167,10 +167,19 @@ def load_controller_public_key_into_root_authorized_keys():
         f.write(f"{controller_public_key}\n")
 
 
+class ImageUpdateState(BaseModel):
+    strategy: Literal["systemd-boot", "raspberry-pi-tryboot"]
+    image_id: str
+    version: str
+    boot_partition: int | None = None
+    trial: bool = False
+
+
 class AgentToRelayMessage(BaseModel):
     # This is a custom message that the agent sends to the relay
     inner: Union[
         "EtRSwitchToNewConfigResultMessage",
+        "EtRImageUpdateResultMessage",
         "EtRMetricsMessage",
         "EtRNetworkInterfacesMessage",
     ] = Field(discriminator="kind")
@@ -187,6 +196,18 @@ class EtRSwitchToNewConfigResultMessage(BaseModel):
     switch_success: bool | None = None  # in v3 final
     stdout: str | None = None  # in v3 final
     stderr: str | None = None  # in v3 final
+
+
+class EtRImageUpdateResultMessage(BaseModel):
+    kind: Literal["image_update_result"] = "image_update_result"
+    task_id: uuid.UUID
+    phase: Literal["staged", "committed"]
+    success: bool
+    version: str
+    configuration_id: str
+    config_commit: str
+    stdout: str = ""
+    stderr: str = ""
 
 
 class EtRMetricsMessage(BaseModel):
@@ -207,6 +228,9 @@ class RelayToAgentMessage(BaseModel):
     inner: Union[
         "RtEUpdatePublicKeyMessage",
         "RtESwitchToNewConfigMessage",
+        "RtEStageImageUpdateMessage",
+        "RtERebootImageUpdateMessage",
+        "RtECommitImageUpdateMessage",
         "RtESuccesfullySSHConnectedMessage",
         "RtESendSecretsMessage",
         "RtEUpdateHostnameMessage",
@@ -223,6 +247,26 @@ class RtESwitchToNewConfigMessage(BaseModel):
     configuration_id: str
     config_commit: str
     task_id: uuid.UUID
+
+
+class RtEStageImageUpdateMessage(BaseModel):
+    kind: Literal["stage_image_update"] = "stage_image_update"
+    task_id: uuid.UUID
+    version: str
+    configuration_id: str
+    config_commit: str
+
+
+class RtERebootImageUpdateMessage(BaseModel):
+    kind: Literal["reboot_image_update"] = "reboot_image_update"
+
+
+class RtECommitImageUpdateMessage(BaseModel):
+    kind: Literal["commit_image_update"] = "commit_image_update"
+    task_id: uuid.UUID
+    version: str
+    configuration_id: str
+    config_commit: str
 
 
 class RtESuccesfullySSHConnectedMessage(BaseModel):
@@ -257,6 +301,7 @@ class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
     network_interfaces: List[Dict[str, Any]] = []
     ram_bytes: Optional[int] = None
     last_error: Optional[str] = None
+    image_update_state: ImageUpdateState | None = None
 
 
 def replace_url_protocol_with_ws(url: str) -> str:
@@ -287,6 +332,70 @@ class Agent(ea.EdgeAgent):
         asyncio.create_task(self.collect_and_send_network_interfaces())
         await super().async_main()
 
+    async def _run_image_update_command(self, *args: str) -> tuple[bool, str, str]:
+        proc = await asyncio.create_subprocess_exec(
+            *args,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate()
+        return proc.returncode == 0, stdout.decode(), stderr.decode()
+
+    async def _send_image_update_result(
+        self,
+        message: RtEStageImageUpdateMessage | RtECommitImageUpdateMessage,
+        phase: Literal["staged", "committed"],
+        success: bool,
+        stdout: str,
+        stderr: str,
+    ):
+        await self.websocket.send(
+            AgentToRelayMessage(
+                inner=EtRImageUpdateResultMessage(
+                    task_id=message.task_id,
+                    phase=phase,
+                    success=success,
+                    version=message.version,
+                    configuration_id=message.configuration_id,
+                    config_commit=message.config_commit,
+                    stdout=stdout,
+                    stderr=stderr,
+                )
+            ).model_dump_json()
+        )
+
+    async def _stage_image_update(self, message: RtEStageImageUpdateMessage):
+        success, stdout, stderr = await self._run_image_update_command(
+            "updatectl", "--no-pager", "update"
+        )
+        await self._send_image_update_result(message, "staged", success, stdout, stderr)
+
+    async def _reboot_image_update(self):
+        state = self.detect_image_update_state()
+        reboot_args = (
+            ("reboot", "0 tryboot")
+            if state and state.strategy == "raspberry-pi-tryboot"
+            else ("systemctl", "reboot")
+        )
+        await asyncio.create_subprocess_exec(*reboot_args)
+
+    async def _commit_image_update(self, message: RtECommitImageUpdateMessage):
+        state = self.detect_image_update_state()
+        command = (
+            ("thymis-ab", "commit")
+            if state and state.strategy == "raspberry-pi-tryboot"
+            else ("thymis-ab-commit",)
+        )
+        success, stdout, stderr = await self._run_image_update_command(*command)
+        if success:
+            self.update_config_metadata(
+                message.configuration_id,
+                message.config_commit,
+            )
+        await self._send_image_update_result(
+            message, "committed", success, stdout, stderr
+        )
+
     async def handle_custom_relay_message(self, message: RelayToAgentMessage):
         logger.info("Received custom relay message: %s", message.inner.kind)
         match message.inner:
@@ -299,6 +408,12 @@ class Agent(ea.EdgeAgent):
                 self.update_public_key()
             case RtESendSecretsMessage():
                 self.place_secrets_on_message(message.inner)
+            case RtEStageImageUpdateMessage():
+                await self._stage_image_update(message.inner)
+            case RtERebootImageUpdateMessage():
+                await self._reboot_image_update()
+            case RtECommitImageUpdateMessage():
+                await self._commit_image_update(message.inner)
             case RtESwitchToNewConfigMessage():
                 new_path_to_config = message.inner.new_path_to_config
                 current_config = os.readlink("/run/current-system")
@@ -743,6 +858,7 @@ class Agent(ea.EdgeAgent):
             deployed_config_id=self.detect_system_config()[0],
             network_interfaces=self.detect_network_interfaces(),
             ram_bytes=self.detect_ram_bytes(),
+            image_update_state=self.detect_image_update_state(),
             last_error=last_error,
         )
 
@@ -815,6 +931,40 @@ class Agent(ea.EdgeAgent):
             os.rename(new_path, metadata_path)
             # then, remove the old file
             os.remove(old_path)
+
+    @staticmethod
+    def _read_device_tree_integer(path: pathlib.Path) -> int | None:
+        try:
+            raw = path.read_bytes()
+        except FileNotFoundError:
+            return None
+        stripped = raw.rstrip(b"\0")
+        if stripped.isdigit():
+            return int(stripped)
+        if raw:
+            return int.from_bytes(raw, byteorder="big")
+        return None
+
+    def detect_image_update_state(self) -> ImageUpdateState | None:
+        state_path = pathlib.Path("/etc/thymis/image-update-state")
+        if not state_path.is_file():
+            return None
+        try:
+            state = ImageUpdateState.model_validate_json(state_path.read_text())
+            if state.strategy == "raspberry-pi-tryboot":
+                state.boot_partition = self._read_device_tree_integer(
+                    pathlib.Path("/proc/device-tree/chosen/bootloader/partition")
+                )
+                state.trial = (
+                    self._read_device_tree_integer(
+                        pathlib.Path("/proc/device-tree/chosen/bootloader/tryboot")
+                    )
+                    == 1
+                )
+            return state
+        except (OSError, ValueError, ValidationError):
+            logger.exception("Failed to detect image update state")
+            return None
 
     def detect_system_config(self) -> Tuple[str, str]:
         return (

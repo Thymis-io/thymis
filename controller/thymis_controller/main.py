@@ -34,7 +34,14 @@ from thymis_controller.database.connection import (
 from thymis_controller.network_relay import NetworkRelay
 from thymis_controller.notifications import NotificationManager
 from thymis_controller.project import Project
-from thymis_controller.routers import agent, api, api_statistics, auth, frontend
+from thymis_controller.routers import (
+    agent,
+    api,
+    api_statistics,
+    auth,
+    frontend,
+    image_updates,
+)
 from thymis_controller.task.controller import TaskController
 
 logger = logging.getLogger(__name__)
@@ -258,6 +265,7 @@ app = FastAPI(
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=5)
 
 app.include_router(auth.router, prefix="/auth")
+app.include_router(image_updates.router, prefix="/api")
 app.include_router(api.router, prefix="/api")
 app.include_router(api_statistics.router, prefix="/api", tags=["statistics"])
 app.include_router(agent.router, prefix="/agent")

@@ -8,6 +8,14 @@ export type NetworkInterface = {
 	mac_address: string | null;
 };
 
+export type ImageUpdateState = {
+	strategy: 'systemd-boot' | 'raspberry-pi-tryboot';
+	image_id: string;
+	version: string;
+	boot_partition: number | null;
+	trial: boolean;
+};
+
 export type DeploymentInfo = {
 	id: string;
 	ssh_public_key: string;
@@ -25,6 +33,9 @@ export type DeploymentInfo = {
 	connected: boolean;
 	ram_bytes?: number | null;
 	notes?: string | null;
+	image_update_state?: ImageUpdateState | null;
+	pending_image_version?: string | null;
+	pending_image_task_id?: string | null;
 };
 
 export type ConnectionHistoryEntry = {

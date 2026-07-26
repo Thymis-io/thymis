@@ -42,3 +42,18 @@ class DeploymentInfo(Base):
     name: Mapped[str] = mapped_column(Text, nullable=True, default=None)
     ram_bytes: Mapped[int] = mapped_column(Integer, nullable=True, default=None)
     notes: Mapped[str] = mapped_column(Text, nullable=True, default=None)
+    image_update_state: Mapped[dict | None] = mapped_column(
+        JSON, nullable=True, default=None
+    )
+    pending_image_version: Mapped[str | None] = mapped_column(
+        Text, nullable=True, default=None
+    )
+    pending_image_task_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid(as_uuid=True), nullable=True, default=None
+    )
+    pending_image_config_id: Mapped[str | None] = mapped_column(
+        Text, nullable=True, default=None
+    )
+    pending_image_config_commit: Mapped[str | None] = mapped_column(
+        Text, nullable=True, default=None
+    )

@@ -11,6 +11,8 @@
 , openssh
 , python313
 , file
+, gnupg
+, systemd
 }:
 let
   python = python313;
@@ -55,7 +57,7 @@ let
 
   app = writeShellApplication {
     name = "thymis-controller";
-    runtimeInputs = [ git nixpkgs-fmt nix env openssh file ];
+    runtimeInputs = [ git nixpkgs-fmt nix env openssh file gnupg systemd ];
     text = ''
       export UVICORN_HOST="''${UVICORN_HOST:=127.0.0.1}"
       export UVICORN_PORT="''${UVICORN_PORT:=8000}"

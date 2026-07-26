@@ -21,9 +21,12 @@ from typing import IO, AnyStr, List, assert_never
 import thymis_controller.models.task as models_task
 from pydantic import BaseModel
 from thymis_agent import agent
+from thymis_controller.image_updates import next_update_version, publish_update_package
 from thymis_controller.nix import NIX_CMD, NIX_SSHOPTS
 from thymis_controller.nix.log_parse import NixParser
 from thymis_controller.repo import git_commit_cmd
+
+_TASK_CANCELLED = object()
 
 
 def access_client_proxy_command(
@@ -78,7 +81,10 @@ def listen_for_executor(conn: Connection, process_list: ProcessList):
                     process_list.terminate_all()
                     time.sleep(1)
                     process_list.kill_all()
+                    process_list.msg_queue.put(_TASK_CANCELLED)
                 case models_task.AgentSwitchToNewConfigurationResult():
+                    process_list.msg_queue.put(message)
+                case models_task.AgentImageUpdateResult():
                     process_list.msg_queue.put(message)
                 case models_task.AgentGotNewSecretsResult():
                     pass
@@ -192,12 +198,186 @@ def build_project_task(
         report_task_finished(task, conn, False, "Build failed")
 
 
+def deploy_image_device_task(
+    task: models_task.TaskSubmission,
+    conn: Connection,
+    process_list: ProcessList,
+):
+    task_data = task.data
+    assert task_data.type == "deploy_device_task"
+    state = task_data.device.image_update_state
+    assert state is not None
+    repo_path = (pathlib.Path(task_data.project_path) / "repository").resolve()
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        requested_version = task_data.image_version or next_update_version(
+            state.version
+        )
+        source_url = f"git+{repo_path.as_uri()}?rev={task_data.config_commit}"
+        update_flake = pathlib.Path(tmpdir) / "flake.nix"
+        update_flake.write_text(
+            "{\n"
+            f"  inputs.source.url = {json.dumps(source_url)};\n"
+            "  outputs = { source, ... }: {\n"
+            "    update-package = (\n"
+            f"      source.nixosConfigurations.{json.dumps(task_data.device.identifier)}.extendModules {{\n"
+            "        modules = [ ({ lib, ... }: {\n"
+            "          thymis.imageBasedUpdates.version = "
+            f"lib.mkForce {json.dumps(requested_version)};\n"
+            "        }) ];\n"
+            "      }\n"
+            "    ).config.system.build.thymis-sysupdate-package;\n"
+            "  };\n"
+            "}\n",
+            encoding="utf-8",
+        )
+        package_link = pathlib.Path(tmpdir) / "update-package"
+        returncode = run_command(
+            task,
+            conn,
+            process_list,
+            [
+                *NIX_CMD,
+                "build",
+                f"path:{tmpdir}#update-package",
+                "--out-link",
+                str(package_link),
+                "--allow-dirty-locks",
+            ],
+            cwd=tmpdir,
+            process_index=0,
+        )
+        if returncode != 0:
+            report_task_finished(task, conn, False, "Image update build failed")
+            return
+
+        package_path = package_link.resolve(strict=True)
+        suffix = ".nix-store.raw.zst"
+        versions = {
+            path.name[len(state.image_id) + 1 : -len(suffix)]
+            for path in package_path.iterdir()
+            if path.name.startswith(f"{state.image_id}_") and path.name.endswith(suffix)
+        }
+        if len(versions) != 1:
+            report_task_finished(
+                task,
+                conn,
+                False,
+                "Image update package does not contain exactly one store version",
+            )
+            return
+        version = versions.pop()
+        if version != requested_version:
+            report_task_finished(
+                task,
+                conn,
+                False,
+                (
+                    f"Image update package version {version!r} does not match "
+                    f"requested version {requested_version!r}"
+                ),
+            )
+            return
+        version_check = subprocess.run(
+            [
+                "systemd-analyze",
+                "compare-versions",
+                state.version,
+                "lt",
+                version,
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if version_check.returncode != 0:
+            detail = version_check.stderr.strip() or (
+                f"target version {version!r} is not newer than "
+                f"the running version {state.version!r}"
+            )
+            report_task_finished(task, conn, False, f"Image update refused: {detail}")
+            return
+
+        try:
+            publish_update_package(
+                package_path,
+                task_data.device.source_identifier or task_data.device.identifier,
+                pathlib.Path(task_data.project_path),
+            )
+        except Exception as error:
+            report_task_finished(
+                task, conn, False, f"Publishing image update failed: {error}"
+            )
+            return
+
+        conn.send(
+            models_task.RunnerToControllerTaskUpdate(
+                id=task.id,
+                update=models_task.AgentShouldStageImageUpdateUpdate(
+                    deployment_info_id=task_data.device.deployment_info_id,
+                    version=version,
+                    configuration_id=task_data.device.identifier,
+                    config_commit=task_data.config_commit,
+                ),
+            )
+        )
+
+        try:
+            message = process_list.msg_queue.get(timeout=3600)
+            if message is _TASK_CANCELLED:
+                return
+        except queue.Empty:
+            report_task_finished(task, conn, False, "Timeout waiting for image boot")
+            return
+        if not isinstance(message.inner, models_task.AgentImageUpdateResult):
+            report_task_finished(
+                task, conn, False, "Unexpected image update response from agent"
+            )
+            return
+
+        conn.send(
+            models_task.RunnerToControllerTaskUpdate(
+                id=task.id,
+                update=models_task.TaskStdOutErrUpdate(
+                    process_index=1,
+                    stdoutb64=base64.b64encode(
+                        message.inner.stdout.encode("utf-8")
+                    ).decode("utf-8"),
+                    stderrb64=base64.b64encode(
+                        message.inner.stderr.encode("utf-8")
+                    ).decode("utf-8"),
+                ),
+            )
+        )
+        if message.inner.success and message.inner.phase == "committed":
+            report_task_finished(task, conn)
+        else:
+            report_task_finished(
+                task,
+                conn,
+                False,
+                f"Image update {message.inner.phase} failed",
+            )
+
+
 def deploy_device_task(
     task: models_task.TaskSubmission, conn: Connection, process_list: ProcessList
 ):
     task_data = task.data
     assert task_data.type == "deploy_device_task"
     repo_path = (pathlib.Path(task_data.project_path) / "repository").resolve()
+    current_uses_image_updates = task_data.device.image_update_state is not None
+    if task_data.device.target_uses_image_updates != current_uses_image_updates:
+        report_task_finished(
+            task,
+            conn,
+            False,
+            (
+                "Changing between legacy and A/B system images requires "
+                "re-provisioning the device"
+            ),
+        )
+        return
 
     # ask for secrets
     conn.send(
@@ -210,6 +390,10 @@ def deploy_device_task(
             ),
         )
     )
+
+    if task_data.device.target_uses_image_updates:
+        deploy_image_device_task(task, conn, process_list)
+        return
 
     # first print verison of `nix` and `nix-copy-closure`
 
@@ -281,27 +465,34 @@ def deploy_device_task(
 
         # If systemd-run is available, use it for better process isolation
         if systemd_run:
-            sudo = None
-            for path in ["sudo", "/bin/sudo", "/run/current-system/sw/bin/sudo"]:
-                if shutil.which(path):
-                    sudo = path
-                    break
-
-            if sudo is None:
-                report_task_finished(task, conn, False, "sudo not found")
-                return
+            sudo_prefix: list[str] = []
+            if (
+                "RUNNING_IN_PLAYWRIGHT" in os.environ
+                and "DBUS_SESSION_BUS_ADDRESS" not in os.environ
+            ):
+                sudo = next(
+                    (
+                        path
+                        for path in [
+                            "sudo",
+                            "/bin/sudo",
+                            "/run/current-system/sw/bin/sudo",
+                        ]
+                        if shutil.which(path)
+                    ),
+                    None,
+                )
+                if sudo is None:
+                    report_task_finished(task, conn, False, "sudo not found")
+                    return
+                sudo_prefix = [sudo, "-n", "-E"]
 
             returncode = run_command(
                 task,
                 conn,
                 process_list,
                 [
-                    *(
-                        [sudo, "-n", "-E"]
-                        if "RUNNING_IN_PLAYWRIGHT" in os.environ
-                        and not "DBUS_SESSION_BUS_ADDRESS" in os.environ
-                        else []
-                    ),
+                    *sudo_prefix,
                     systemd_run,
                     "-E",
                     "NIX_SSHOPTS",
@@ -372,6 +563,8 @@ def deploy_device_task(
         # wait for agent to switch to new configuration
         try:
             message = process_list.msg_queue.get(timeout=300)
+            if message is _TASK_CANCELLED:
+                return
             if not isinstance(
                 message.inner, models_task.AgentSwitchToNewConfigurationResult
             ):
@@ -502,6 +695,8 @@ def build_device_image_task(
         )
         try:
             message = process_list.msg_queue.get(timeout=300)
+            if message is _TASK_CANCELLED:
+                return
             if not isinstance(message.inner, models_task.SecretsResult):
                 report_task_finished(
                     task, conn, False, "Unexpected message from controller"

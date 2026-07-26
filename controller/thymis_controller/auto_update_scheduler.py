@@ -28,6 +28,7 @@ import sqlalchemy.orm
 from thymis_agent import agent
 from thymis_controller import crud, models
 from thymis_controller.config import global_settings
+from thymis_controller.image_updates import config_uses_image_updates
 
 if TYPE_CHECKING:
     from thymis_controller.network_relay import NetworkRelay
@@ -202,6 +203,11 @@ def _collect_devices(
         if config is None:
             continue
         modules = project.get_modules_for_config(state, config)
+        target_uses_image_updates = config_uses_image_updates(modules)
+        if target_uses_image_updates and crud.task.has_alive_deployment_task(
+            db_session, deployment_info.id
+        ):
+            continue
         secrets = []
         for module, settings in modules:
             for secret_type, secret in module.register_secret_settings(
@@ -223,6 +229,8 @@ def _collect_devices(
                 deployment_info_id=deployment_info.id,
                 deployment_public_key=deployment_info.ssh_public_key,
                 secrets=secrets,
+                image_update_state=deployment_info.image_update_state,
+                target_uses_image_updates=target_uses_image_updates,
             )
         )
     return devices

@@ -109,6 +109,23 @@
 				</span>
 			</div>
 
+			{#if deploymentInfo.image_update_state}
+				<div class="ds-kv-row">
+					<span class="ds-kv-key">{$t('device-details.image-version')}</span>
+					<span class="ds-kv-val mono">{deploymentInfo.image_update_state.version}</span>
+				</div>
+				<div class="ds-kv-row">
+					<span class="ds-kv-key">{$t('device-details.update-strategy')}</span>
+					<span class="ds-kv-val mono">{deploymentInfo.image_update_state.strategy}</span>
+				</div>
+				{#if deploymentInfo.pending_image_version}
+					<div class="ds-kv-row">
+						<span class="ds-kv-key">{$t('device-details.pending-image')}</span>
+						<span class="ds-kv-val mono">{deploymentInfo.pending_image_version}</span>
+					</div>
+				{/if}
+			{/if}
+
 			<!-- Hardware IDs -->
 			{#if deploymentInfo.hardware_devices.length > 0}
 				<div class="ds-kv-row">

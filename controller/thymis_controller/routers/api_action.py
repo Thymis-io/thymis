@@ -18,6 +18,7 @@ from thymis_controller.dependencies import (
     UserSessionIDAD,
     git_author_from_user_info,
 )
+from thymis_controller.image_updates import config_uses_image_updates
 from thymis_controller.models.state import State
 
 logger = logging.getLogger(__name__)
@@ -74,6 +75,14 @@ async def deploy(
                 if config.identifier == deployment_info.deployed_config_id
             )
             modules = project.get_modules_for_config(state, config)
+            target_uses_image_updates = config_uses_image_updates(modules)
+            if target_uses_image_updates and crud.task.has_alive_deployment_task(
+                session, deployment_info.id
+            ):
+                raise HTTPException(
+                    status_code=409,
+                    detail="An image deployment is already running for this device.",
+                )
             secrets = []
             for module, settings in modules:
                 for secret_type, secret in module.register_secret_settings(
@@ -95,23 +104,28 @@ async def deploy(
                     deployment_info_id=deployment_info.id,
                     deployment_public_key=deployment_info.ssh_public_key,
                     secrets=secrets,
+                    image_update_state=deployment_info.image_update_state,
+                    target_uses_image_updates=target_uses_image_updates,
                 )
             )
 
     project.update_known_hosts(session)
 
-    task_controller.submit(
-        models.DeployDevicesTaskSubmission(
-            devices=devices,
-            project_path=str(project.path),
-            ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
-            known_hosts_path=str(project.known_hosts_path),
-            controller_ssh_pubkey=project.public_key,
-            config_commit=project.repo.head_commit(),
-        ),
-        user_session_id=user_session_id,
-        db_session=session,
-    )
+    try:
+        task_controller.submit(
+            models.DeployDevicesTaskSubmission(
+                devices=devices,
+                project_path=str(project.path),
+                ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
+                known_hosts_path=str(project.known_hosts_path),
+                controller_ssh_pubkey=project.public_key,
+                config_commit=project.repo.head_commit(),
+            ),
+            user_session_id=user_session_id,
+            db_session=session,
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
 
     return {"message": "nix deploy started"}
 
@@ -220,7 +234,7 @@ async def download_image(
         return Response(status_code=404)
 
     # files should be in project_path/images/identifier.ENDING
-    expected_endings = ["img", "qcow2", "nixos-vm", "iso"]
+    expected_endings = ["img", "raw", "qcow2", "nixos-vm", "iso"]
     non_file_endings = ["nixos-vm"]
     image_dir = global_settings.PROJECT_PATH / "images"
     relevant_paths = []
@@ -314,17 +328,27 @@ async def switch_config(
             detail="Device is offline. Cannot switch config until it is connected.",
         )
 
-    # Reassign the device only after we know a deploy task can be submitted.
-    # pending_config_id reflects an in-flight switch, not a queued offline intent.
-    crud.deployment_info.update(
-        session,
-        deployment_info_id,
-        pending_config_id=new_config_id,
-    )
+    modules = project.get_modules_for_config(state, target_config)
+    target_uses_image_updates = config_uses_image_updates(modules)
+    if target_uses_image_updates != (deployment_info.image_update_state is not None):
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Changing between legacy and A/B system images requires "
+                "downloading the target image and re-provisioning the device."
+            ),
+        )
+
+    if target_uses_image_updates and crud.task.has_alive_deployment_task(
+        session, deployment_info.id
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail="An image deployment is already running for this device.",
+        )
 
     project.update_known_hosts(session)
 
-    modules = project.get_modules_for_config(state, target_config)
     secrets = []
     for module, settings in modules:
         for secret_type, secret in module.register_secret_settings(settings, project):
@@ -342,25 +366,35 @@ async def switch_config(
     access_client_token = get_or_create_access_client_token(
         session, deployment_info_id=deployment_info.id
     )
-    task = task_controller.submit(
-        models.DeployDeviceTaskSubmission(
-            device=models.DeployDeviceInformation(
-                identifier=new_config_id,
-                source_identifier=deployment_info.deployed_config_id,
-                deployment_info_id=deployment_info.id,
-                deployment_public_key=deployment_info.ssh_public_key,
-                secrets=secrets,
+    try:
+        task = task_controller.submit(
+            models.DeployDeviceTaskSubmission(
+                device=models.DeployDeviceInformation(
+                    identifier=new_config_id,
+                    source_identifier=deployment_info.deployed_config_id,
+                    deployment_info_id=deployment_info.id,
+                    deployment_public_key=deployment_info.ssh_public_key,
+                    secrets=secrets,
+                    image_update_state=deployment_info.image_update_state,
+                    target_uses_image_updates=target_uses_image_updates,
+                ),
+                project_path=str(project.path),
+                ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
+                known_hosts_path=str(project.known_hosts_path),
+                controller_ssh_pubkey=project.public_key,
+                controller_access_client_endpoint=task_controller.access_client_endpoint,
+                access_client_token=access_client_token.token,
+                config_commit=project.repo.head_commit(),
             ),
-            project_path=str(project.path),
-            ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
-            known_hosts_path=str(project.known_hosts_path),
-            controller_ssh_pubkey=project.public_key,
-            controller_access_client_endpoint=task_controller.access_client_endpoint,
-            access_client_token=access_client_token.token,
-            config_commit=project.repo.head_commit(),
-        ),
-        user_session_id=user_session_id,
-        db_session=session,
+            user_session_id=user_session_id,
+            db_session=session,
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+    crud.deployment_info.update(
+        session,
+        deployment_info.id,
+        pending_config_id=new_config_id,
     )
     access_client_token.deploy_device_task_id = task.id
     session.add(access_client_token)
@@ -417,6 +451,11 @@ async def auto_update(
             if config is None:
                 continue
             modules = project.get_modules_for_config(state, config)
+            target_uses_image_updates = config_uses_image_updates(modules)
+            if target_uses_image_updates and crud.task.has_alive_deployment_task(
+                session, deployment_info.id
+            ):
+                continue
             secrets = []
             for module, settings in modules:
                 for secret_type, secret in module.register_secret_settings(
@@ -438,6 +477,8 @@ async def auto_update(
                     deployment_info_id=deployment_info.id,
                     deployment_public_key=deployment_info.ssh_public_key,
                     secrets=secrets,
+                    image_update_state=deployment_info.image_update_state,
+                    target_uses_image_updates=target_uses_image_updates,
                 )
             )
 

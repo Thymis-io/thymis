@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer
+from thymis_agent.agent import ImageUpdateState
 from thymis_controller import db_models
 
 if TYPE_CHECKING:
@@ -64,6 +65,9 @@ class DeploymentInfo(BaseModel):
     connected: bool = False
     ram_bytes: int | None = None
     notes: str | None = None
+    image_update_state: ImageUpdateState | None = None
+    pending_image_version: str | None = None
+    pending_image_task_id: uuid.UUID | None = None
 
     @field_serializer("last_seen", "first_seen")
     def _ser_dt(self, dt: datetime | None) -> str | None:
@@ -104,6 +108,9 @@ class DeploymentInfo(BaseModel):
             connected=connected,
             ram_bytes=deployment_info.ram_bytes,
             notes=deployment_info.notes,
+            image_update_state=deployment_info.image_update_state,
+            pending_image_version=deployment_info.pending_image_version,
+            pending_image_task_id=deployment_info.pending_image_task_id,
         )
 
 

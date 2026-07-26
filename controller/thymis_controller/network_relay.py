@@ -156,6 +156,106 @@ class NetworkRelay(nr.NetworkRelay):
                         )
                     ),
                 )
+            case agent.EtRImageUpdateResultMessage():
+                inner = message.inner
+                result_success = inner.success
+                result_stderr = inner.stderr
+                should_finish_task = inner.phase == "committed" or not inner.success
+                with sqlalchemy.orm.Session(self.db_engine) as db_session:
+                    deployment_infos = crud_deployment_info.get_by_ssh_public_key(
+                        db_session, self.connection_id_to_public_key[connection_id]
+                    )
+                    if not deployment_infos:
+                        raise ValueError("Deployment info not found")
+                    deployment_info = deployment_infos[0]
+                    try:
+                        update_task = crud_task.get_task_by_id(
+                            db_session, inner.task_id
+                        )
+                    except ValueError:
+                        update_task = None
+                    task_is_active = update_task is not None and update_task.state in {
+                        "pending",
+                        "running",
+                    }
+                    pending_matches = (
+                        deployment_info.pending_image_task_id == inner.task_id
+                    )
+                    if inner.phase == "staged" and inner.success:
+                        if (
+                            not task_is_active
+                            or not pending_matches
+                            or not crud_deployment_info.set_pending_image_update(
+                                db_session,
+                                deployment_info.id,
+                                inner.task_id,
+                                version=inner.version,
+                                config_id=inner.configuration_id,
+                                config_commit=inner.config_commit,
+                            )
+                        ):
+                            result_success = False
+                            result_stderr = (
+                                "Ignored stale or concurrent image update stage result"
+                            )
+                            should_finish_task = True
+                        else:
+                            await self.registered_agent_connections[
+                                connection_id
+                            ].send_text(
+                                agent.RelayToAgentMessage(
+                                    inner=agent.RtERebootImageUpdateMessage()
+                                ).model_dump_json()
+                            )
+                    elif inner.success and inner.phase == "committed":
+                        if (
+                            task_is_active
+                            and pending_matches
+                            and deployment_info.pending_image_version == inner.version
+                            and deployment_info.pending_image_config_id
+                            == inner.configuration_id
+                            and deployment_info.pending_image_config_commit
+                            == inner.config_commit
+                        ):
+                            if not crud_deployment_info.complete_pending_image_update(
+                                db_session,
+                                deployment_info.id,
+                                inner.task_id,
+                                deployed_config_id=inner.configuration_id,
+                                deployed_config_commit=inner.config_commit,
+                            ):
+                                result_success = False
+                                result_stderr = (
+                                    "Ignored stale image update commit result"
+                                )
+                        else:
+                            result_success = False
+                            result_stderr = (
+                                "Ignored stale or mismatched image update commit result"
+                            )
+                    elif pending_matches:
+                        crud_deployment_info.clear_pending_image_update(
+                            db_session, deployment_info.id, inner.task_id
+                        )
+                self.notification_manager.broadcast_invalidate_notification(
+                    [
+                        "/api/all_deployment_infos",
+                        "/api/deployment_infos_by_config_id",
+                        f"/api/deployment_info/{deployment_info.id}",
+                    ]
+                )
+                if should_finish_task:
+                    self.task_controller.executor.send_message_to_task(
+                        inner.task_id,
+                        models_task.ControllerToRunnerTaskUpdate(
+                            inner=models_task.AgentImageUpdateResult(
+                                success=result_success,
+                                phase=inner.phase,
+                                stdout=inner.stdout,
+                                stderr=result_stderr,
+                            )
+                        ),
+                    )
             case agent.EtRMetricsMessage():
                 inner = message.inner
                 with sqlalchemy.orm.Session(self.db_engine) as db_session:
@@ -421,6 +521,15 @@ class NetworkRelay(nr.NetworkRelay):
                     connection_id
                 ].network_interfaces,
                 ram_bytes=self.connection_id_to_start_message[connection_id].ram_bytes,
+                image_update_state=(
+                    self.connection_id_to_start_message[
+                        connection_id
+                    ].image_update_state.model_dump(mode="json")
+                    if self.connection_id_to_start_message[
+                        connection_id
+                    ].image_update_state
+                    else None
+                ),
             )
 
             deployment_info_id = deployment_info.id
@@ -535,6 +644,64 @@ class NetworkRelay(nr.NetworkRelay):
                         )
                     ).model_dump_json()
                 )
+
+                current_image_state = start_message.image_update_state
+                if deployment_info.pending_image_task_id is not None:
+                    pending_task_id = deployment_info.pending_image_task_id
+                    pending_version = deployment_info.pending_image_version
+                    pending_config_id = deployment_info.pending_image_config_id
+                    pending_config_commit = deployment_info.pending_image_config_commit
+                    try:
+                        pending_task = crud_task.get_task_by_id(
+                            db_session, pending_task_id
+                        )
+                    except ValueError:
+                        pending_task = None
+                    if pending_task is None or pending_task.state not in {
+                        "pending",
+                        "running",
+                    }:
+                        crud_deployment_info.clear_pending_image_update(
+                            db_session, deployment_info.id, pending_task_id
+                        )
+                    elif pending_version is None:
+                        # The controller reserves the device before the package build.
+                        # A reconnect during that build is not a failed trial boot.
+                        pass
+                    elif (
+                        current_image_state is not None
+                        and pending_version is not None
+                        and pending_config_id is not None
+                        and pending_config_commit is not None
+                        and current_image_state.version == pending_version
+                    ):
+                        await edge_agent_connection.send_text(
+                            agent.RelayToAgentMessage(
+                                inner=agent.RtECommitImageUpdateMessage(
+                                    task_id=pending_task_id,
+                                    version=pending_version,
+                                    configuration_id=pending_config_id,
+                                    config_commit=pending_config_commit,
+                                )
+                            ).model_dump_json()
+                        )
+                    else:
+                        if crud_deployment_info.clear_pending_image_update(
+                            db_session, deployment_info.id, pending_task_id
+                        ):
+                            self.task_controller.executor.send_message_to_task(
+                                pending_task_id,
+                                models_task.ControllerToRunnerTaskUpdate(
+                                    inner=models_task.AgentImageUpdateResult(
+                                        success=False,
+                                        phase="fallback",
+                                        stderr=(
+                                            "Device returned on the previous image after "
+                                            "the trial boot"
+                                        ),
+                                    )
+                                ),
+                            )
 
         async def msg_loop_but_close_connection_at_end():
             try:

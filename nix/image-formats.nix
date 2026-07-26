@@ -32,7 +32,7 @@ let
       IMAGE_ENDINGS="qcow2 img iso -vm raw"
       for ENDING in $IMAGE_ENDINGS; do
         if [ "$ENDING" = "raw" ]; then
-          IMAGE_WITH_ENDING=$(find "$image_dir" -name "*.raw" ! -name "*.nix-store.raw" -mindepth 1 -type f | head -n 1)
+          IMAGE_WITH_ENDING=$(find "$image_dir" -name "*.raw" ! -name "*.nix-store.raw" ! -name "*.boot.raw" -mindepth 1 -type f | head -n 1)
         else
           IMAGE_WITH_ENDING=$(find "$image_dir" -name "*$ENDING" -mindepth 1 -type f | head -n 1)
         fi

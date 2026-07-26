@@ -113,6 +113,25 @@ class TaskWorkerPoolManager:
         with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
             task = crud_task.get_task_by_id(db_session, task_id)
             task.add_exception("Task was cancelled")
+            task.state = "failed"
+            task.end_time = datetime.now(timezone.utc)
+            if task.task_type == "deploy_device_task":
+                submission_data = task.task_submission_data or {}
+                device = submission_data.get("device", {})
+                deployment_info_id = device.get("deployment_info_id")
+                if deployment_info_id:
+                    if device.get("target_uses_image_updates"):
+                        crud.deployment_info.clear_pending_image_update(
+                            db_session,
+                            uuid.UUID(deployment_info_id),
+                            task.id,
+                        )
+                    elif device.get("source_identifier"):
+                        crud.deployment_info.update(
+                            db_session,
+                            uuid.UUID(deployment_info_id),
+                            pending_config_id=None,
+                        )
             db_session.commit()
             self.on_task_update.notify(task)
         try:
@@ -224,7 +243,7 @@ class TaskWorkerPoolManager:
                                 self.on_task_output.notify(task)
                             case models_task.TaskCompletedUpdate():
                                 # task.state = "completed"
-                                if not task.children:
+                                if task.state != "failed" and not task.children:
                                     task.state = "completed"
                                     task.end_time = datetime.now(timezone.utc)
                                 db_session.commit()
@@ -234,17 +253,22 @@ class TaskWorkerPoolManager:
                                 submission_data = task.task_submission_data or {}
                                 device = submission_data.get("device", {})
                                 deployment_info_id = device.get("deployment_info_id")
-                                source_identifier = device.get("source_identifier")
                                 if (
                                     task.task_type == "deploy_device_task"
-                                    and source_identifier
                                     and deployment_info_id
                                 ):
-                                    crud.deployment_info.update(
-                                        db_session,
-                                        uuid.UUID(deployment_info_id),
-                                        pending_config_id=None,
-                                    )
+                                    if device.get("target_uses_image_updates"):
+                                        crud.deployment_info.clear_pending_image_update(
+                                            db_session,
+                                            uuid.UUID(deployment_info_id),
+                                            task.id,
+                                        )
+                                    else:
+                                        crud.deployment_info.update(
+                                            db_session,
+                                            uuid.UUID(deployment_info_id),
+                                            pending_config_id=None,
+                                        )
                                 task.state = "failed"
                                 task.add_exception(reason)
                                 task.end_time = datetime.now(timezone.utc)
@@ -322,6 +346,46 @@ class TaskWorkerPoolManager:
                                                 configuration_id=message.update.configuration_id,
                                                 config_commit=message.update.config_commit,
                                                 task_id=task_id,
+                                            )
+                                        ).model_dump_json()
+                                    ),
+                                    self.controller.network_relay.loop,
+                                )
+                            case models_task.AgentShouldStageImageUpdateUpdate():
+                                deployment_info = crud.deployment_info.get_by_id(
+                                    db_session, message.update.deployment_info_id
+                                )
+                                if (
+                                    task.state not in {"pending", "running"}
+                                    or deployment_info.pending_image_task_id != task.id
+                                ):
+                                    conn.send(
+                                        models_task.ControllerToRunnerTaskUpdate(
+                                            inner=models_task.AgentImageUpdateResult(
+                                                success=False,
+                                                phase="staged",
+                                                stderr=(
+                                                    "Image deployment was cancelled or "
+                                                    "lost its device reservation"
+                                                ),
+                                            )
+                                        )
+                                    )
+                                    continue
+                                relay_con_id = self.controller.network_relay.public_key_to_connection_id[
+                                    deployment_info.ssh_public_key
+                                ]
+                                relay_con = self.controller.network_relay.registered_agent_connections[
+                                    relay_con_id
+                                ]
+                                asyncio.run_coroutine_threadsafe(
+                                    relay_con.send_text(
+                                        agent.RelayToAgentMessage(
+                                            inner=agent.RtEStageImageUpdateMessage(
+                                                task_id=task_id,
+                                                version=message.update.version,
+                                                configuration_id=message.update.configuration_id,
+                                                config_commit=message.update.config_commit,
                                             )
                                         ).model_dump_json()
                                     ),
@@ -520,6 +584,11 @@ class TaskWorkerPoolManager:
                         task_id,
                         e,
                     )
+                    task.state = "failed"
+                    task.end_time = datetime.now(timezone.utc)
+                    task.add_exception(f"Failed to start device deployment: {e}")
+                    db_session.commit()
+                    self.on_task_update.notify(task)
 
             if "RUNNING_IN_PLAYWRIGHT" in os.environ and task.state == "failed":
                 logger.error("Task submission data for task %s:", task_id)
