@@ -441,6 +441,9 @@
 		"stdout": "Standard output",
 		"stderr": "Standard error",
 		"no-output": "This process produced no output.",
+		"transfer": "Transfer",
+		"transfer-active": "{count} active",
+		"transfer-failed": "{count} failed",
 		"no-processes": "This task has no processes.",
 		"copy": "Copy",
 		"copied": "Copied"

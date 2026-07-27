@@ -4,6 +4,21 @@ import { fetchWithNotify } from './fetchWithNotify';
 
 export type TaskState = 'pending' | 'running' | 'completed' | 'failed';
 
+export type NixTransferStatus = {
+	done: number;
+	expected: number;
+	running: number;
+	failed: number;
+};
+
+export type NixProcessStatus = {
+	done: number;
+	expected: number;
+	running: number;
+	failed: number;
+	transfer?: NixTransferStatus;
+};
+
 export type TaskProcess = {
 	task_id: string;
 	process_index: number;
@@ -14,13 +29,7 @@ export type TaskProcess = {
 	process_stdout?: string;
 	process_stderr?: string;
 
-	nix_status?: {
-		done: number;
-		expected: number;
-		running: number;
-		failed: number;
-	};
-
+	nix_status?: NixProcessStatus;
 	nix_errors?: {
 		msg: string;
 		raw_msg: string;
@@ -66,12 +75,7 @@ export type TaskShort = {
 	exception?: string;
 	task_submission_data: Record<string, unknown>;
 
-	nix_status?: {
-		done: number;
-		expected: number;
-		running: number;
-		failed: number;
-	};
+	nix_status?: NixProcessStatus;
 };
 
 export type TasksShort = Record<string, TaskShort>;
