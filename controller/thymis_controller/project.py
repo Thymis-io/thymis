@@ -24,10 +24,10 @@ from thymis_controller.models.external_repo import ExternalRepoStatus
 from thymis_controller.models.state import State
 from thymis_controller.nix import (
     NIX_CMD,
-    NIX_SSHOPTS,
     all_nix_access_tokens,
     get_input_out_path,
     nix_flake_prefetch,
+    nix_subprocess_env,
 )
 from thymis_controller.nix.templating import render_flake_nix
 from thymis_controller.notifications import NotificationManager
@@ -475,13 +475,7 @@ class Project:
                     cwd=self.repo_dir,
                     capture_output=True,
                     check=True,
-                    env={
-                        "PATH": os.getenv("PATH"),
-                        "HOME": os.getenv("HOME"),
-                        "NIX_SSHOPTS": NIX_SSHOPTS,
-                        "GIT_TERMINAL_PROMPT": "0",
-                        "NIX_CONFIG": access_tokens,
-                    },
+                    env=nix_subprocess_env(NIX_CONFIG=access_tokens),
                 )
                 logger.info(
                     "Successfully ran nix flake lock in %s",

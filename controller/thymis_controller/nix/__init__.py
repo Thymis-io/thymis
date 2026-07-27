@@ -22,6 +22,18 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def nix_subprocess_env(**extra: str) -> dict[str, str]:
+    env: dict[str, str] = {
+        "PATH": os.getenv("PATH"),
+        "NIX_SSHOPTS": NIX_SSHOPTS,
+        "GIT_TERMINAL_PROMPT": "0",
+    }
+    if home := os.getenv("HOME"):
+        env["HOME"] = home
+    env.update(extra)
+    return env
+
+
 def get_input_out_path(flake_path, input_name):
     # first run `nix build .#inputs.<input_name>.outPath`
     # then run `nix eval .#inputs.<input_name>.outPath --json`
@@ -39,12 +51,7 @@ def get_input_out_path(flake_path, input_name):
             check=True,
             cwd=flake_path,
             stderr=subprocess.PIPE,
-            env={
-                "PATH": os.getenv("PATH"),
-                "HOME": os.getenv("HOME"),
-                "NIX_SSHOPTS": NIX_SSHOPTS,
-                "GIT_TERMINAL_PROMPT": "0",
-            },
+            env=nix_subprocess_env(),
         )
     except subprocess.CalledProcessError as e:
         nix_parser = NixParser()
@@ -71,12 +78,7 @@ def get_input_out_path(flake_path, input_name):
             check=True,
             capture_output=True,
             cwd=flake_path,
-            env={
-                "PATH": os.getenv("PATH"),
-                "HOME": os.getenv("HOME"),
-                "NIX_SSHOPTS": NIX_SSHOPTS,
-                "GIT_TERMINAL_PROMPT": "0",
-            },
+            env=nix_subprocess_env(),
         )
     except subprocess.CalledProcessError as e:
         nix_parser = NixParser()
@@ -262,13 +264,7 @@ def nix_flake_prefetch(url: str, api_key: "SecretShort | None"):
             ],
             capture_output=True,
             check=True,
-            env={
-                "PATH": os.getenv("PATH"),
-                "HOME": os.getenv("HOME"),
-                "NIX_SSHOPTS": NIX_SSHOPTS,
-                "GIT_TERMINAL_PROMPT": "0",
-                "NIX_CONFIG": access_tokens,
-            },
+            env=nix_subprocess_env(NIX_CONFIG=access_tokens),
         )
     except subprocess.CalledProcessError as e:
         nix_parser = NixParser()
