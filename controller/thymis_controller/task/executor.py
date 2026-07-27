@@ -211,7 +211,13 @@ class TaskWorkerPoolManager:
                                     )
                                     task.processes.append(process)
                                 process.nix_status = status.model_dump(
-                                    include=("done", "expected", "running", "failed")
+                                    include=(
+                                        "done",
+                                        "expected",
+                                        "running",
+                                        "failed",
+                                        "transfer",
+                                    )
                                 )
                                 process.nix_errors = status.model_dump(
                                     include=("errors")
