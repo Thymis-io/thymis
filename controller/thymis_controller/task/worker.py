@@ -21,7 +21,7 @@ from typing import IO, AnyStr, List, assert_never
 import thymis_controller.models.task as models_task
 from pydantic import BaseModel
 from thymis_agent import agent
-from thymis_controller.nix import NIX_CMD, NIX_SSHOPTS
+from thymis_controller.nix import NIX_CMD, nix_subprocess_env
 from thymis_controller.nix.log_parse import NixParser
 from thymis_controller.repo import git_commit_cmd
 
@@ -163,13 +163,7 @@ def project_flake_update_task(
         process_list,
         [*NIX_CMD, "flake", "update", "--allow-dirty-locks"],
         cwd=repo_path,
-        env={
-            "PATH": os.getenv("PATH"),
-            "HOME": os.getenv("HOME"),
-            "NIX_SSHOPTS": NIX_SSHOPTS,
-            "GIT_TERMINAL_PROMPT": "0",
-            "NIX_CONFIG": task_data.nix_access_tokens,
-        },
+        env=nix_subprocess_env(NIX_CONFIG=task_data.nix_access_tokens),
     )
     if returncode == 0:
         report_task_finished(task, conn)
@@ -237,8 +231,8 @@ def deploy_device_task(
             hostfile.write(f"127.0.0.1 {task_data.device.deployment_public_key}\n")
             hostfile.write(f"localhost {task_data.device.deployment_public_key}\n")
             hostfile.flush()
-        env = {
-            "NIX_SSHOPTS": f"-i {task_data.ssh_key_path} "
+        env = nix_subprocess_env(
+            NIX_SSHOPTS=f"-i {task_data.ssh_key_path} "
             f"-o UserKnownHostsFile={hostfile.name} "
             f"-o StrictHostKeyChecking=yes "
             f"-o PasswordAuthentication=no "
@@ -247,15 +241,13 @@ def deploy_device_task(
             f"-o BatchMode=yes "
             f"-o 'ProxyCommand {access_client_proxy_command(task_data.controller_access_client_endpoint, task_data.device.deployment_info_id)}' "
             "-T",
-            "PATH": os.getenv("PATH"),
-            "HOME": os.getenv("HOME"),
-            "HTTP_NETWORK_RELAY_SECRET": task_data.access_client_token,
+            HTTP_NETWORK_RELAY_SECRET=task_data.access_client_token,
             **(
                 {"DBUS_SESSION_BUS_ADDRESS": os.getenv("DBUS_SESSION_BUS_ADDRESS")}
                 if "DBUS_SESSION_BUS_ADDRESS" in os.environ
                 else {}
             ),
-        }
+        )
         toplevel_path = f"{tmpdir}/toplevel"
         returncode = run_command(
             task,
@@ -746,13 +738,7 @@ def auto_update_task(
             process_list,
             [*NIX_CMD, "flake", "update", "--allow-dirty-locks"],
             cwd=str(repo_path),
-            env={
-                "PATH": os.getenv("PATH"),
-                "HOME": os.getenv("HOME"),
-                "NIX_SSHOPTS": NIX_SSHOPTS,
-                "GIT_TERMINAL_PROMPT": "0",
-                "NIX_CONFIG": task_data.nix_access_tokens,
-            },
+            env=nix_subprocess_env(NIX_CONFIG=task_data.nix_access_tokens),
             process_index=1,
         )
         if flake_update_returncode != 0:
