@@ -21,11 +21,19 @@ if TYPE_CHECKING:
 # sent from controller to frontend
 
 
+class NixTransferStatus(BaseModel):
+    done: int
+    expected: int
+    running: int
+    failed: int
+
+
 class NixProcessStatus(BaseModel):
     done: int
     expected: int
     running: int
     failed: int
+    transfer: Optional[NixTransferStatus] = None
 
 
 class TaskProcess(BaseModel):
@@ -429,6 +437,7 @@ class SecretsResult(BaseModel):
 __all__ = [
     "TaskState",
     "Task",
+    "NixTransferStatus",
     "NixProcessStatus",
     "TaskShort",
     "TaskSubmission",
