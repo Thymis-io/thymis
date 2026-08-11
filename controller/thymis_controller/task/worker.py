@@ -236,15 +236,21 @@ def deploy_device_task(
                 for extra_known_host in global_settings.EXTRA_KNOWN_HOSTS
             )
             hostfile.flush()
+        ssh_config_path = f"{tmpdir}/ssh_config"
+        with open(ssh_config_path, "w", encoding="utf-8") as ssh_config:
+            ssh_config.write(
+                f"Host 127.0.0.1 localhost\n"
+                f"   ProxyCommand {access_client_proxy_command(task_data.controller_access_client_endpoint, task_data.device.deployment_info_id)}\n"
+            )
         env = nix_subprocess_env(
             NIX_SSHOPTS=f"-i {task_data.ssh_key_path} "
-            f"-o UserKnownHostsFile={hostfile.name} "
+            f"-F {ssh_config_path} "
+            f"-o UserKnownHostsFile={hostfile_path} "
             f"-o StrictHostKeyChecking=yes "
             f"-o PasswordAuthentication=no "
             f"-o KbdInteractiveAuthentication=no "
             f"-o ConnectTimeout=10 "
             f"-o BatchMode=yes "
-            f"-o 'ProxyCommand {access_client_proxy_command(task_data.controller_access_client_endpoint, task_data.device.deployment_info_id)}' "
             "-T",
             HTTP_NETWORK_RELAY_SECRET=task_data.access_client_token,
             **(
