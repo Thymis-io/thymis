@@ -53,6 +53,12 @@ in
         default = 8000;
         description = "Port on which the controller listens for incoming connections";
       };
+      extra-known-hosts = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = "Additional SSH known_hosts lines (e.g. \"host ssh-ed25519 AAAA...\") trusted when the controller deploys to devices, e.g. to pre-trust a remote Nix builder. Does not affect the device's own known_hosts entry.";
+        example = [ "builder.example.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI..." ];
+      };
       nginx-vhost-enable = lib.mkEnableOption "whether to enable the Nginx virtual host";
       nginx-vhost-name = lib.mkOption {
         type = lib.types.str;
@@ -85,6 +91,7 @@ in
         THYMIS_AUTH_BASIC_PASSWORD_FILE = cfg.auth-basic-password-file;
         UVICORN_HOST = cfg.listen-host;
         UVICORN_PORT = builtins.toString cfg.listen-port;
+        THYMIS_EXTRA_KNOWN_HOSTS = builtins.toJSON cfg.extra-known-hosts;
       };
     };
     services.nginx = lib.mkIf cfg.nginx-vhost-enable {
