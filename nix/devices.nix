@@ -28,7 +28,7 @@ let
             };
           };
         };
-        boot.kernelModules = [ "vc4" "bcm2835_dma" "i2c_bcm2835" ];
+        boot.kernelModules = [ "vc4" "bcm2835_dma" "i2c_bcm2835" "nls_cp437" ];
         boot.kernel.sysctl."vm.mmap_rnd_bits" = 24;
         nixpkgs.overlays = [
           (final: prev: {
@@ -53,6 +53,7 @@ let
         systemd.watchdog.runtimeTime = "15s";
         raspberry-pi-nix.libcamera-overlay.enable = false;
         raspberry-pi-nix.board = "bcm2711";
+        boot.kernelModules = [ "nls_cp437" ];
         boot.kernelParams = [ "snd_bcm2835.enable_headphones=1" "snd_bcm2835.enable_hdmi=1" "brcmfmac.roamoff=1" "brcmfmac.feature_disable=0x282000" ];
         boot.kernel.sysctl."vm.mmap_rnd_bits" = 24;
         hardware.raspberry-pi.config = {
@@ -85,6 +86,7 @@ let
         systemd.watchdog.runtimeTime = "15s";
         raspberry-pi-nix.libcamera-overlay.enable = false;
         raspberry-pi-nix.board = "bcm2712";
+        boot.kernelModules = [ "nls_cp437" ];
         boot.kernel.sysctl."vm.mmap_rnd_bits" = 24;
         nixpkgs.overlays = [
           (final: prev: {
