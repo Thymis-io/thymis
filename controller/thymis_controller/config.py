@@ -30,6 +30,9 @@ class GlobalSettings(BaseSettings):
     METRICS_RETENTION_DAYS: int = 30
     METRICS_CLEANUP_INTERVAL_SECONDS: int = 60 * 60 * 24  # 24 hours
 
+    # Additional known_hosts entries, e.g. to pre-trust a remote Nix builder reached during the build/copy
+    EXTRA_KNOWN_HOSTS: list[str] = []
+
     model_config = ConfigDict(
         env_prefix="THYMIS_", env_file=".env", env_file_encoding="utf-8"
     )
