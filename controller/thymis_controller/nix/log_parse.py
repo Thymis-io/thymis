@@ -120,11 +120,19 @@ class ParsedNixLineModel(BaseModel):
     ]
 
 
+class NixTransferStatus(BaseModel):
+    done: int
+    expected: int
+    running: int
+    failed: int
+
+
 class ParsedNixProcess(BaseModel):
     done: int
     expected: int
     running: int
     failed: int
+    transfer: NixTransferStatus
     errors: list[ErrorInfoNixLine] = []
     logs_by_level: dict[int, list[str]] = {}
 
@@ -354,12 +362,14 @@ class NixParser:
 
         return parsed
 
-    def calc_activities_done_expected_failed(self):
+    def calc_activities_done_expected_failed(self, activity_type: int | None = None):
         global_done = 0
         global_running = 0
         global_expected = 0
         global_failed = 0
         for type_, activities in self.activities_done_expect_failed_by_type.items():
+            if activity_type is not None and type_ != activity_type:
+                continue
             done = activities.done
             excepted = activities.done
             running = 0
@@ -382,12 +392,24 @@ class NixParser:
             global_running,
             global_failed,
         ) = self.calc_activities_done_expected_failed()
+        (
+            transfer_done,
+            transfer_expected,
+            transfer_running,
+            transfer_failed,
+        ) = self.calc_activities_done_expected_failed(ActivityType.FILE_TRANSFER)
 
         return ParsedNixProcess(
             done=global_done,
             expected=global_expected,
             running=global_running,
             failed=global_failed,
+            transfer=NixTransferStatus(
+                done=transfer_done,
+                expected=transfer_expected,
+                running=transfer_running,
+                failed=transfer_failed,
+            ),
             errors=self.errors,
             logs_by_level={
                 0: self.error_logs,

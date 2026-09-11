@@ -11,7 +11,8 @@
 		retryTask,
 		type Task,
 		type TaskShort,
-		type TaskProcess
+		type TaskProcess,
+		type NixTransferStatus
 	} from '$lib/taskstatus';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import Section from '$lib/components/layout/Section.svelte';
@@ -36,6 +37,25 @@
 	const needsDoubleQuotes = (str: string) =>
 		str !== escapeForDoubleQuotes(str) || str.includes(' ');
 
+	const formatBytes = (bytes: number) => {
+		const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+		let value = bytes;
+		let unit = 0;
+		while (value >= 1000 && unit < units.length - 1) {
+			value /= 1000;
+			unit += 1;
+		}
+		const precision = value >= 100 ? 0 : value >= 10 ? 1 : 2;
+		return `${value.toFixed(precision)} ${units[unit]}`;
+	};
+
+	const hasTransferStats = (transfer: NixTransferStatus | undefined) =>
+		!!transfer &&
+		(transfer.done > 0 || transfer.expected > 0 || transfer.running > 0 || transfer.failed > 0);
+
+	const transferPercentage = (transfer: NixTransferStatus) =>
+		transfer.expected > 0 ? Math.min(100, (transfer.done / transfer.expected) * 100) : 0;
+
 	const buildCommand = (process: TaskProcess) => {
 		if (!process.process_program || !process.process_args) return null;
 		const env = process.process_env
@@ -57,7 +77,8 @@
 			process.nix_error_logs?.length ||
 			process.nix_warning_logs?.length ||
 			process.nix_notice_logs?.length ||
-			process.nix_info_logs?.length
+			process.nix_info_logs?.length ||
+			hasTransferStats(process.nix_status?.transfer)
 		);
 
 	let copiedId = $state(false);
@@ -90,6 +111,7 @@
 
 {#snippet processContent(process: TaskProcess)}
 	{@const command = buildCommand(process)}
+	{@const transfer = process.nix_status?.transfer}
 	<div class="flex flex-col gap-4">
 		<div>
 			<h4 class="log-label">{$t('task-details.command')}</h4>
@@ -99,6 +121,40 @@
 				<p class="muted-note">{$t('task-details.no-command')}</p>
 			{/if}
 		</div>
+		{#if transfer}
+			{#if hasTransferStats(transfer)}
+				<div class="transfer-stats">
+					<div class="transfer-header">
+						<h4 class="log-label">{$t('task-details.transfer')}</h4>
+						<span class="transfer-size">
+							{formatBytes(transfer.done)} / {formatBytes(transfer.expected)}
+						</span>
+					</div>
+					<div
+						class="transfer-progress"
+						role="progressbar"
+						aria-label={$t('task-details.transfer')}
+						aria-valuemin="0"
+						aria-valuemax="100"
+						aria-valuenow={Math.round(transferPercentage(transfer))}
+					>
+						<span style="width: {transferPercentage(transfer)}%"></span>
+					</div>
+					<div class="transfer-meta">
+						{#if transfer.running > 0}
+							<span
+								>{$t('task-details.transfer-active', { values: { count: transfer.running } })}</span
+							>
+						{/if}
+						{#if transfer.failed > 0}
+							<span class="transfer-failed"
+								>{$t('task-details.transfer-failed', { values: { count: transfer.failed } })}</span
+							>
+						{/if}
+					</div>
+				</div>
+			{/if}
+		{/if}
 
 		{#if process.nix_errors && process.nix_errors.length > 0}
 			{@render logBlock(
@@ -295,6 +351,47 @@
 	.muted-note {
 		font-size: 13px;
 		color: var(--ds-text-mute);
+	}
+	.transfer-stats {
+		padding: 10px 12px;
+		border: 1px solid var(--ds-border);
+		border-radius: 6px;
+		background: var(--ds-surface-1);
+	}
+	.transfer-header {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 12px;
+	}
+	.transfer-size {
+		font-size: 13px;
+		font-variant-numeric: tabular-nums;
+		color: var(--ds-text);
+	}
+	.transfer-progress {
+		height: 6px;
+		margin-top: 8px;
+		border-radius: 999px;
+		background: var(--ds-surface-2);
+		overflow: hidden;
+	}
+	.transfer-progress span {
+		display: block;
+		height: 100%;
+		border-radius: inherit;
+		background: var(--ds-accent);
+		transition: width 0.3s ease;
+	}
+	.transfer-meta {
+		display: flex;
+		gap: 12px;
+		margin-top: 6px;
+		font-size: 12px;
+		color: var(--ds-text-mute);
+	}
+	.transfer-failed {
+		color: var(--ds-danger);
 	}
 	/* full-width horizontal metadata bar */
 	.meta {

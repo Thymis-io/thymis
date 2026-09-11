@@ -554,6 +554,9 @@
 		"stdout": "Standardausgabe",
 		"stderr": "Standardfehler",
 		"no-output": "Dieser Prozess hat keine Ausgabe erzeugt.",
+		"transfer": "Übertragung",
+		"transfer-active": "{count} aktiv",
+		"transfer-failed": "{count} fehlgeschlagen",
 		"no-processes": "Dieser Vorgang hat keine Prozesse.",
 		"copy": "Kopieren",
 		"copied": "Kopiert"
