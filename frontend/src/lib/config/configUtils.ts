@@ -1,5 +1,27 @@
-import type { Config, Module, SelectOneSettingType, SettingType } from '#lib/state.js';
+import {
+	HOST_PRIORITY,
+	type Config,
+	type Module,
+	type ModuleSettingsWithOrigin,
+	type SelectOneSettingType,
+	type SettingType
+} from '#lib/state.js';
 import { formatBytes } from '#lib/format.js';
+
+/**
+ * Priority a definition is emitted with for a given setting: the per-setting
+ * override if present, else the priority of the tag/config the definition
+ * belongs to (configurations use HOST_PRIORITY).
+ *
+ * NixOS module semantics: the lowest priority number wins.
+ */
+export const effectiveSettingPriority = (
+	definition: ModuleSettingsWithOrigin | undefined,
+	settingKey: string
+): number | undefined => {
+	if (!definition) return undefined;
+	return definition.priorities?.[settingKey] ?? definition.priority ?? HOST_PRIORITY;
+};
 
 export const isASelectOneSetting = (
 	type: SettingType | undefined

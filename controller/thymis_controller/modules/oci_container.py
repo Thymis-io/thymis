@@ -218,4 +218,5 @@ class OCIContainers(modules.Module):
         ),
         example=None,
         order=10,
+        priority_overridable=True,
     )

@@ -54,7 +54,7 @@ Each module exposes settings of specific types:
   Device-specific values > Tag values > Module defaults
 
 - **Debug Conflicts**:
-  Icon indicators warn when values are overridden by higher-priority entries
+  Icon indicators warn when values are overridden by higher-priority entries. Hover an indicator to see which definition wins, and to set a **priority override** for that single field: lower numbers win, an empty field inherits the priority of its configuration or tag.
 
 ### See Also
 
