@@ -240,7 +240,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: pin nixpkgs
-        run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-25.11
+        run: nix registry add nixpkgs github:NixOS/nixpkgs/nixos-26.05
       - uses: ./.github/actions/snapshot-nix-store
       - name: Build thymis-controller-generic-x86_64-image
         timeout-minutes: 360
