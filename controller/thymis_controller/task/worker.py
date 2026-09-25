@@ -410,7 +410,8 @@ def deploy_device_task(
                 "-o",
                 f"ProxyCommand={access_client_proxy_command(task_data.controller_access_client_endpoint, task_data.device.deployment_info_id)}",
                 "root@localhost",
-                "rm -f /boot/firmware/cmdline.txt /boot/firmware/kernel.img /boot/firmware/initrd",
+                "rm -rf /boot/firmware/cmdline.txt /boot/firmware/kernel.img "
+                "/boot/firmware/initrd /boot/firmware/nixos/*.tmp* /boot/firmware/*.tmp*",
             ],
             env={
                 "PATH": os.getenv("PATH"),
