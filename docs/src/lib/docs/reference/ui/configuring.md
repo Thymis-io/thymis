@@ -56,6 +56,10 @@ Each module exposes settings of specific types:
 - **Debug Conflicts**:
   Icon indicators warn when values are overridden by higher-priority entries. Hover an indicator to see which definition wins, and to set a **priority override** for that single field: lower numbers win, an empty field inherits the priority of its configuration or tag.
 
+![Per-field priority override](./per-field-priority.gif)
+
+_In the example above the tag `site-defaults` loses to the configuration by default. Setting the tag's `WiFi SSID` priority to `65` (its inherited priority is `90`) makes the tag win that single field, which flips the indicator on the configuration from "passed" to "not passed / overwritten by"._
+
 ### See Also
 
 - [Modules: Core Concepts](../concepts/module.md) – Structure of Thymis modules
