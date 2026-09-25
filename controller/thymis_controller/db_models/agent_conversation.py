@@ -1,6 +1,15 @@
 from typing import Any, List
 
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Uuid
+from sqlalchemy import (
+    JSON,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    String,
+    Uuid,
+)
 from sqlalchemy.orm import Mapped, relationship
 from thymis_controller.database.base import Base
 
@@ -23,6 +32,11 @@ class AgentConversation(Base):
         back_populates="conversation",
         cascade="all, delete-orphan",
         order_by="AgentMessage.position",
+    )
+    files: Mapped[List["AgentFile"]] = relationship(
+        "AgentFile",
+        back_populates="conversation",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self):
@@ -53,3 +67,35 @@ class AgentMessage(Base):
 
     def __repr__(self):
         return f"<AgentMessage {self.id}>"
+
+
+class AgentFile(Base):
+    """One uploaded conversation attachment, such as an attached VNC screenshot.
+
+    Attachments are stored inline as bytes: the controller has no external object
+    store, and the existing 6 MiB screenshot limit keeps rows small. ``size``
+    records the stored byte count so storage growth stays auditable without
+    loading the payload.
+    """
+
+    __tablename__ = "agent_files"
+
+    id = Column(Uuid(as_uuid=True), primary_key=True, index=True)
+    conversation_id = Column(
+        Uuid(as_uuid=True),
+        ForeignKey("agent_conversations.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    media_type = Column(String(100), nullable=False)
+    filename = Column(String(255), nullable=False)
+    size = Column(Integer, nullable=False)
+    content = Column(LargeBinary, nullable=False)
+    created_at = Column(DateTime, nullable=False)
+
+    conversation: Mapped["AgentConversation"] = relationship(
+        "AgentConversation", back_populates="files"
+    )
+
+    def __repr__(self):
+        return f"<AgentFile {self.id}>"

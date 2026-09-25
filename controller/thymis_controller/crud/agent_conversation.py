@@ -128,6 +128,45 @@ def rename(
     db_session.commit()
 
 
+def create_file(
+    db_session: Session,
+    conversation: db_models.AgentConversation,
+    content: bytes,
+    media_type: str,
+    filename: str,
+    now: datetime.datetime | None = None,
+) -> db_models.AgentFile:
+    """Store one conversation attachment and return it."""
+    agent_file = db_models.AgentFile(
+        id=uuid.uuid4(),
+        conversation_id=conversation.id,
+        media_type=media_type,
+        filename=filename,
+        size=len(content),
+        content=content,
+        created_at=now or utcnow(),
+    )
+    db_session.add(agent_file)
+    db_session.commit()
+    return agent_file
+
+
+def get_file(
+    db_session: Session, user_key: str, file_id: uuid.UUID
+) -> db_models.AgentFile | None:
+    """Return one attachment, but only for the user who owns its conversation."""
+    return (
+        db_session.query(db_models.AgentFile)
+        .join(
+            db_models.AgentConversation,
+            db_models.AgentFile.conversation_id == db_models.AgentConversation.id,
+        )
+        .filter(db_models.AgentFile.id == file_id)
+        .filter(db_models.AgentConversation.user_key == user_key)
+        .first()
+    )
+
+
 def transcript(conversation: db_models.AgentConversation) -> list[Any]:
     """Return the stored UI messages in conversation order."""
     return [

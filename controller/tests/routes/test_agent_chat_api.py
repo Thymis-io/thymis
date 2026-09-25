@@ -4,6 +4,7 @@ from unittest import mock
 
 from thymis_controller.config import global_settings
 from thymis_controller.crud import web_session
+from thymis_controller.db_models import AgentFile
 from thymis_controller.routers import api_agent
 
 
@@ -219,6 +220,109 @@ def test_chat_persists_the_turn_as_replayable_ui_messages(test_client, db_sessio
     listed = test_client.get("/api/agent/conversations").json()
     assert [conversation["id"] for conversation in listed] == [conversation_id]
     assert listed[0]["message_count"] == 2
+
+
+def test_chat_stores_attached_screenshots_and_serves_them_to_the_owner(
+    test_client, db_session
+):
+    login(test_client, db_session, "operator@example.com")
+    conversation_id = open_conversation(test_client)
+    prompts: list[list] = []
+
+    def record_stream_chat(messages, *_args, **_kwargs):
+        prompts.append(messages)
+        return fake_stream_chat()
+
+    with (
+        mock.patch.object(global_settings, "AGENT_MODEL", "test-model"),
+        mock.patch.object(api_agent, "stream_chat", record_stream_chat),
+    ):
+        response = test_client.post(
+            "/api/agent/chat",
+            json={
+                "conversation_id": conversation_id,
+                "messages": [
+                    {
+                        "role": "user",
+                        "parts": [
+                            {"type": "text", "text": "What is visible?"},
+                            {
+                                "type": "file",
+                                "mediaType": "image/png",
+                                "filename": "vnc-device.png",
+                                "url": "data:image/png;base64,c2NyZWVuc2hvdA==",
+                            },
+                        ],
+                    }
+                ],
+            },
+        )
+    assert response.status_code == 200
+    # The model still receives the screenshot for the turn that attached it.
+    assert prompts[0][-1].screenshot == b"screenshot"
+
+    detail = test_client.get(f"/api/agent/conversations/{conversation_id}").json()
+    parts = detail["messages"][0]["parts"]
+    assert parts[0] == {"type": "text", "text": "What is visible?"}
+    file_part = parts[1]
+    assert file_part["mediaType"] == "image/png"
+    assert file_part["filename"] == "vnc-device.png"
+    assert file_part["url"].startswith("/api/agent/files/")
+    assert "data:" not in file_part["url"]
+
+    image = test_client.get(file_part["url"])
+    assert image.status_code == 200
+    assert image.headers["content-type"] == "image/png"
+    assert image.headers["cache-control"] == "private, no-store"
+    assert image.content == b"screenshot"
+
+    login(test_client, db_session, "bob@example.com")
+    assert test_client.get(file_part["url"]).status_code == 404
+
+
+def test_deleting_a_conversation_removes_its_attachments(test_client, db_session):
+    login(test_client, db_session, "operator@example.com")
+    conversation_id = open_conversation(test_client)
+
+    with (
+        mock.patch.object(global_settings, "AGENT_MODEL", "test-model"),
+        mock.patch.object(api_agent, "stream_chat", fake_stream_chat),
+    ):
+        response = test_client.post(
+            "/api/agent/chat",
+            json={
+                "conversation_id": conversation_id,
+                "messages": [
+                    {
+                        "role": "user",
+                        "parts": [
+                            {"type": "text", "text": "What is visible?"},
+                            {
+                                "type": "file",
+                                "mediaType": "image/png",
+                                "filename": "vnc-device.png",
+                                "url": "data:image/png;base64,c2NyZWVuc2hvdA==",
+                            },
+                        ],
+                    }
+                ],
+            },
+        )
+    assert response.status_code == 200
+    detail = test_client.get(f"/api/agent/conversations/{conversation_id}").json()
+    file_url = detail["messages"][0]["parts"][1]["url"]
+
+    assert (
+        test_client.delete(f"/api/agent/conversations/{conversation_id}").status_code
+        == 204
+    )
+    assert test_client.get(file_url).status_code == 404
+    assert (
+        db_session.query(AgentFile)
+        .filter_by(id=uuid.UUID(file_url.rsplit("/", 1)[-1]))
+        .first()
+        is None
+    )
 
 
 def test_chat_replays_the_stored_transcript_as_model_history(test_client, db_session):

@@ -59,6 +59,11 @@
 	): part is UIMessage['parts'][number] & ToolPart =>
 		isToolPart(part) && part.toolName !== 'link_entity';
 
+	const isImageAttachmentPart = (
+		part: UIMessage['parts'][number]
+	): part is UIMessage['parts'][number] & { type: 'file'; mediaType: string; url: string } =>
+		part.type === 'file' && part.mediaType.startsWith('image/') && Boolean(part.url);
+
 	const toolName = (part: ToolPart) =>
 		(part.toolName ?? part.type.replace(/^tool-/, '')).replaceAll('_', ' ');
 
@@ -403,6 +408,7 @@
 								(part) =>
 									(part.type === 'text' && part.text) ||
 									isEntityLinkPart(part) ||
+									isImageAttachmentPart(part) ||
 									isVisibleToolPart(part)
 							)}
 							{#if hasVisibleParts || (streaming && index === messages.length - 1)}
@@ -419,6 +425,12 @@
 												<div class="assistant-markdown">{@html renderMarkdown(part.text)}</div>
 											{:else if isEntityLinkPart(part)}
 												<AssistantEntityLink {globalState} entity={part.data} />
+											{:else if isImageAttachmentPart(part)}
+												<img
+													class="assistant-attachment"
+													src={part.url}
+													alt={part.filename ?? 'Attached screenshot'}
+												/>
 											{:else if isVisibleToolPart(part)}
 												<div
 													class:assistant-tool-complete={part.state === 'output-available'}
@@ -721,6 +733,13 @@
 	}
 	.assistant-message-content {
 		min-width: 0;
+	}
+	.assistant-attachment {
+		display: block;
+		max-width: 100%;
+		margin-top: 6px;
+		border: 1px solid var(--ds-border);
+		border-radius: 6px;
 	}
 	.assistant-markdown :global(p:first-child),
 	.assistant-markdown :global(h1:first-child),

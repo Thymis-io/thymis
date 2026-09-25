@@ -209,6 +209,19 @@ def test_history_from_transcript_replays_text_and_skips_tool_only_turns():
                     {"type": "file", "mediaType": "image/png", "url": DATA_URL},
                 ],
             },
+            {
+                "id": "u3",
+                "role": "user",
+                "parts": [
+                    {"type": "text", "text": "And this one?"},
+                    {
+                        "type": "file",
+                        "mediaType": "image/png",
+                        "filename": "stored.png",
+                        "url": "/api/agent/files/1a2b3c",
+                    },
+                ],
+            },
         ]
     )
 
@@ -216,8 +229,10 @@ def test_history_from_transcript_replays_text_and_skips_tool_only_turns():
         ("user", "Restart"),
         ("assistant", "Restarted the device."),
         ("user", "Thanks"),
+        ("user", "And this one?"),
     ]
-    assert history[-1].screenshot is None
+    # History is text-only, and a stored attachment reference is not model input.
+    assert all(message.screenshot is None for message in history)
 
 
 def test_stream_chat_accepts_a_vnc_screenshot():

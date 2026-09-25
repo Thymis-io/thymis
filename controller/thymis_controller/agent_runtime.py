@@ -182,24 +182,51 @@ def text_from_ui_message(message: Any) -> str:
     )
 
 
-def screenshot_from_ui_message(message: Any) -> Any:
-    """Extract a PNG data URL attached to one AI SDK UI message."""
+def image_file_part_from_ui_message(message: Any) -> dict[str, Any] | None:
+    """Return the image attachment the browser just uploaded for one message.
+
+    Only inline ``data:`` attachments count: a stored conversation references its
+    attachments by URL, and replaying one must never store it again.
+    """
     if not isinstance(message, dict):
         return None
-    screenshot = message.get("screenshot")
-    if screenshot is not None:
-        return screenshot
     parts = message.get("parts")
     if not isinstance(parts, list):
         return None
     return next(
         (
+            part
+            for part in parts
+            if isinstance(part, dict)
+            and part.get("type") == "file"
+            and part.get("mediaType") == "image/png"
+            and isinstance(part.get("url"), str)
+            and part["url"].startswith("data:")
+        ),
+        None,
+    )
+
+
+def screenshot_from_ui_message(message: Any) -> str | None:
+    """Extract an inline PNG data URL attached to one AI SDK UI message.
+
+    A stored conversation links its attachments instead of embedding them, so
+    anything that is not an inline data URL is not model input.
+    """
+    if not isinstance(message, dict):
+        return None
+    parts = message.get("parts")
+    urls = [message.get("screenshot")]
+    if isinstance(parts, list):
+        urls.extend(
             part.get("url")
             for part in parts
             if isinstance(part, dict)
             and part.get("type") == "file"
             and part.get("mediaType") == "image/png"
-        ),
+        )
+    return next(
+        (url for url in urls if isinstance(url, str) and url.startswith("data:")),
         None,
     )
 
@@ -379,6 +406,7 @@ __all__ = [
     "build_agent",
     "chat_message_from_ui_message",
     "history_from_transcript",
+    "image_file_part_from_ui_message",
     "stream_chat",
     "text_from_ui_message",
 ]

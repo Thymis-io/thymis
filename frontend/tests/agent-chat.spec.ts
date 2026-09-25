@@ -150,6 +150,15 @@ test('renders an AI SDK streamed response with Markdown and tool activity', asyn
 });
 
 test('restores a saved conversation transcript when reopened', async ({ page }) => {
+	// 1x1 PNG, so the restored attachment must actually decode in the browser.
+	const onePixelPng =
+		'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC';
+	await page.route('**/api/agent/files/*', (route) =>
+		route.fulfill({
+			contentType: 'image/png',
+			body: Buffer.from(onePixelPng, 'base64')
+		})
+	);
 	await mockConversationStore(page, [
 		{
 			id: 'conv_saved',
@@ -158,7 +167,19 @@ test('restores a saved conversation transcript when reopened', async ({ page }) 
 			updated_at: TIMESTAMP,
 			message_count: 2,
 			messages: [
-				{ id: 'u1', role: 'user', parts: [{ type: 'text', text: 'Earlier question' }] },
+				{
+					id: 'u1',
+					role: 'user',
+					parts: [
+						{ type: 'text', text: 'Earlier question' },
+						{
+							type: 'file',
+							mediaType: 'image/png',
+							filename: 'vnc-device.png',
+							url: '/api/agent/files/file_1'
+						}
+					]
+				},
 				{
 					id: 'a1',
 					role: 'assistant',
@@ -199,6 +220,11 @@ test('restores a saved conversation transcript when reopened', async ({ page }) 
 		'href',
 		'/tasks/task-9'
 	);
+	const attachment = dialog.locator('.assistant-attachment');
+	await expect(attachment).toHaveAttribute('src', '/api/agent/files/file_1');
+	await expect
+		.poll(() => attachment.evaluate((element) => (element as HTMLImageElement).naturalWidth))
+		.toBeGreaterThan(0);
 	// A restored transcript must not replay the dashboard navigation it recorded.
 	await expect(page).toHaveURL(/\/overview$/);
 });

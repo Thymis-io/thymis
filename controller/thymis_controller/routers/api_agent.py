@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from thymis_controller.agent_runtime import (
     ChatRequest,
     history_from_transcript,
+    image_file_part_from_ui_message,
     stream_chat,
 )
 from thymis_controller.agent_tools import ThymisTools
@@ -139,17 +140,60 @@ def delete_conversation(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-def _user_ui_message(message_id: str, content: str) -> dict[str, Any]:
+@router.get("/agent/files/{file_id}")
+def get_file(
+    file_id: uuid.UUID, db_session: DBSessionAD, user_identity: UserIdentityAD
+) -> Response:
+    """Serve one conversation attachment to the operator who owns it."""
+
+    identity = _require_identity(user_identity)
+    agent_file = agent_conversation.get_file(db_session, identity, file_id)
+    if agent_file is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
+        )
+    return Response(
+        content=agent_file.content,
+        media_type=agent_file.media_type,
+        # Attachments are scoped to one operator, so they must never be served
+        # from a shared cache after a different operator signs in.
+        headers={"Cache-Control": "private, no-store"},
+    )
+
+
+DEFAULT_ATTACHMENT_FILENAME = "vnc-screenshot.png"
+
+
+def _attachment_filename(file_part: dict[str, Any] | None) -> str:
+    """Take a stored filename from the browser's upload, minus any path."""
+    filename = (file_part or {}).get("filename")
+    if isinstance(filename, str) and filename.strip():
+        return filename.strip().rsplit("/", 1)[-1].rsplit("\\", 1)[-1][:255]
+    return DEFAULT_ATTACHMENT_FILENAME
+
+
+def _user_ui_message(
+    message_id: str,
+    content: str,
+    attachment_url: str | None = None,
+    attachment_filename: str = DEFAULT_ATTACHMENT_FILENAME,
+) -> dict[str, Any]:
     """Serialize one user prompt as an AI SDK UI message.
 
-    VNC screenshots are intentionally not persisted: a conversation would
-    otherwise store up to 6 MiB of PNG per turn.
+    An attached VNC screenshot is referenced by URL rather than embedded, so the
+    stored transcript stays small and the image still renders after a reload.
     """
-    return {
-        "id": message_id,
-        "role": "user",
-        "parts": [{"type": "text", "text": content}],
-    }
+    parts: list[dict[str, Any]] = [{"type": "text", "text": content}]
+    if attachment_url is not None:
+        parts.append(
+            {
+                "type": "file",
+                "mediaType": "image/png",
+                "filename": attachment_filename,
+                "url": attachment_url,
+            }
+        )
+    return {"id": message_id, "role": "user", "parts": parts}
 
 
 def _assistant_ui_message(
@@ -215,6 +259,8 @@ async def chat(
 
     identity = _require_identity(user_identity)
     prompt = chat_request.prompt
+    file_part = image_file_part_from_ui_message(chat_request.messages[-1])
+    attachment_filename = _attachment_filename(file_part)
     with Session(engine) as db_session:
         conversation = _conversation_or_404(
             db_session, identity, chat_request.conversation_id
@@ -226,10 +272,27 @@ async def chat(
                 conversation,
                 agent_conversation.title_from_prompt(prompt.content),
             )
+        attachment_url = None
+        if prompt.screenshot is not None:
+            stored_file = agent_conversation.create_file(
+                db_session,
+                conversation,
+                content=prompt.screenshot,
+                media_type="image/png",
+                filename=attachment_filename,
+            )
+            attachment_url = f"/api/agent/files/{stored_file.id}"
         agent_conversation.append_messages(
             db_session,
             conversation,
-            [_user_ui_message(str(uuid.uuid4()), prompt.content)],
+            [
+                _user_ui_message(
+                    str(uuid.uuid4()),
+                    prompt.content,
+                    attachment_url,
+                    attachment_filename,
+                )
+            ],
         )
     messages = [*history_from_transcript(history), prompt]
 
