@@ -281,6 +281,7 @@ class NixParser:
                 activity_info.type
             ]
             activity_by_type.done += activity_info.done
+            activity_by_type.expected += activity_info.expected
             activity_by_type.failed += activity_info.failed
 
             for type_, count in activity_info.expected_by_type.items():
@@ -354,24 +355,38 @@ class NixParser:
 
         return parsed
 
+    # Activity types whose PROGRESS results count items (paths, builds, ...).
+    # COPY_PATH and FILE_TRANSFER report byte offsets through the very same
+    # fields, so letting them into the global counters makes the totals scale
+    # with payload size instead of the number of things being copied.
+    ITEM_PROGRESS_ACTIVITIES = frozenset(
+        {
+            ActivityType.COPY_PATHS,
+            ActivityType.BUILDS,
+            ActivityType.REALISE,
+        }
+    )
+
     def calc_activities_done_expected_failed(self):
         global_done = 0
         global_running = 0
         global_expected = 0
         global_failed = 0
         for type_, activities in self.activities_done_expect_failed_by_type.items():
+            if type_ not in self.ITEM_PROGRESS_ACTIVITIES:
+                continue
             done = activities.done
-            excepted = activities.done
+            expected = activities.expected
             running = 0
             failed = activities.failed
             for activity in activities.activity_info_by_id.values():
                 done += activity.done
-                excepted += activity.expected
+                expected += activity.expected
                 running += activity.running
                 failed += activity.failed
             global_done += done
             global_running += running
-            global_expected += excepted
+            global_expected += expected
             global_failed += failed
         return global_done, global_expected, global_running, global_failed
 
