@@ -16,13 +16,6 @@ let
   rpiBootloader = {
     boot.loader.raspberry-pi.bootloader = lib.mkForce "kernel";
     boot.loader.raspberry-pi.configurationLimit = lib.mkDefault 0;
-    # nixos-raspberrypi's sd-image module makes /boot/firmware a systemd
-    # automount. On a device upgraded from the previous layout the early boot
-    # still uses the previous /etc/fstab, which mounts the partition eagerly,
-    # so the automount unit fails with "path is already a mount point" and the
-    # failure cascades through local-fs.target into emergency mode. Mount it
-    # eagerly and tolerantly instead, like the previous layout did.
-    fileSystems."/boot/firmware".options = lib.mkForce [ "nofail" ];
   };
   # raspberry-pi-nix kept kernel.img/initrd on the firmware partition and passed
   # init=/sbin/init through cmdline.txt. The Raspberry Pi firmware still reads
