@@ -11,12 +11,31 @@ export type NixTransferStatus = {
 	failed: number;
 };
 
+/**
+ * nix reports transfers per direction: "download" pulls store paths into the
+ * controller's store (binary caches), "upload" copies them out to a remote
+ * store, i.e. the target device. "other" collects transfers nix does not label.
+ */
+export type TransferDirection = 'download' | 'upload' | 'other';
+
+export const TRANSFER_DIRECTIONS: TransferDirection[] = ['download', 'upload', 'other'];
+
+export type NixTransferSummary = {
+	download?: NixTransferStatus;
+	upload?: NixTransferStatus;
+	other?: NixTransferStatus;
+};
+
+export type TaskTransfer = NixTransferStatus & {
+	direction: TransferDirection;
+};
+
 export type NixProcessStatus = {
 	done: number;
 	expected: number;
 	running: number;
 	failed: number;
-	transfer?: NixTransferStatus;
+	transfer?: NixTransferSummary;
 };
 
 export type TaskProcess = {
@@ -79,6 +98,37 @@ export type TaskShort = {
 };
 
 export type TasksShort = Record<string, TaskShort>;
+
+/**
+ * Sums the transfer progress of every process of a task, per direction, so a
+ * task can show what is being downloaded and what is being copied to the
+ * target device without looking into single processes.
+ */
+export const aggregateTransfers = (processes: TaskProcess[] | undefined): TaskTransfer[] => {
+	const totals: Partial<Record<TransferDirection, TaskTransfer>> = {};
+	for (const process of processes ?? []) {
+		const summary = process.nix_status?.transfer;
+		if (!summary) continue;
+		for (const direction of TRANSFER_DIRECTIONS) {
+			const status = summary[direction];
+			if (!status) continue;
+			const total = (totals[direction] ??= {
+				direction,
+				done: 0,
+				expected: 0,
+				running: 0,
+				failed: 0
+			});
+			total.done += status.done;
+			total.expected += status.expected;
+			total.running += status.running;
+			total.failed += status.failed;
+		}
+	}
+	return TRANSFER_DIRECTIONS.map((direction) => totals[direction]).filter(
+		(transfer): transfer is TaskTransfer => !!transfer
+	);
+};
 
 type ShortTaskMessage = {
 	type: 'new_short_task' | 'short_task_update';

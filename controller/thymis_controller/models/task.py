@@ -11,7 +11,11 @@ from pydantic import (
     field_serializer,
 )
 from thymis_agent import agent
-from thymis_controller.nix.log_parse import ParsedNixProcess
+from thymis_controller.nix.log_parse import (
+    NixTransferStatus,
+    NixTransferSummary,
+    ParsedNixProcess,
+)
 
 type TaskState = Literal["pending", "running", "completed", "failed"]
 
@@ -21,19 +25,12 @@ if TYPE_CHECKING:
 # sent from controller to frontend
 
 
-class NixTransferStatus(BaseModel):
-    done: int
-    expected: int
-    running: int
-    failed: int
-
-
 class NixProcessStatus(BaseModel):
     done: int
     expected: int
     running: int
     failed: int
-    transfer: Optional[NixTransferStatus] = None
+    transfer: Optional[NixTransferSummary] = None
 
 
 class TaskProcess(BaseModel):
@@ -438,6 +435,7 @@ __all__ = [
     "TaskState",
     "Task",
     "NixTransferStatus",
+    "NixTransferSummary",
     "NixProcessStatus",
     "TaskShort",
     "TaskSubmission",
