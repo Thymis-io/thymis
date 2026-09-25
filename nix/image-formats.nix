@@ -161,107 +161,18 @@ let
         system.build.thymis-image-with-secrets-builder-x86_64 = config.system.build.thymis-image-with-secrets-builder;
         key = "github:thymis-io/thymis/image-formats.nix:qcow";
       };
-      sd-card-image = { config, pkgs, modulesPath, extendModules, ... }:
-        let
-          rootfsImage = hostPkgs: hostPkgs.callPackage "${modulesPath}/../lib/make-ext4-fs.nix" ({
-            inherit (config.sdImage) storePaths;
-            compressImage = false;
-            populateImageCommands = config.sdImage.populateRootCommands;
-            volumeLabel = "NIXOS_SD";
-          } // lib.optionalAttrs (config.sdImage.rootPartitionUUID != null) {
-            uuid = config.sdImage.rootPartitionUUID;
-          });
-          sdImage = config: hostPkgs: hostPkgs.callPackage
-            ({ stdenv, dosfstools, e2fsprogs, mtools, libfaketime, util-linux, zstd }:
-              stdenv.mkDerivation {
-                name = config.sdImage.imageName;
-
-                nativeBuildInputs =
-                  [ dosfstools e2fsprogs mtools libfaketime util-linux zstd ];
-
-                inherit (config.sdImage) compressImage;
-
-                buildCommand = ''
-                  mkdir -p $out/nix-support $out/sd-image
-                  export img=$out/sd-image/${config.sdImage.imageName}
-
-                  echo "${pkgs.stdenv.buildPlatform.system}" > $out/nix-support/system
-                  if test -n "$compressImage"; then
-                    echo "file sd-image $img.zst" >> $out/nix-support/hydra-build-products
-                  else
-                    echo "file sd-image $img" >> $out/nix-support/hydra-build-products
-                  fi
-
-                  # echo "Decompressing rootfs image"
-                  # zstd -d --no-progress "${rootfsImage hostPkgs}" -o ./root-fs.img
-                  cp "${rootfsImage hostPkgs}" ./root-fs.img
-
-                  # Gap in front of the first partition, in MiB
-                  gap=${toString config.sdImage.firmwarePartitionOffset}
-
-                  # Create the image file sized to fit /boot/firmware and /, plus slack for the gap.
-                  rootSizeBlocks=$(du -B 512 --apparent-size ./root-fs.img | awk '{ print $1 }')
-                  firmwareSizeBlocks=$((${
-                    toString config.sdImage.firmwareSize
-                  } * 1024 * 1024 / 512))
-                  imageSize=$((rootSizeBlocks * 512 + firmwareSizeBlocks * 512 + gap * 1024 * 1024))
-                  truncate -s $imageSize $img
-
-                  # type=b is 'W95 FAT32', type=83 is 'Linux'.
-                  # The "bootable" partition is where u-boot will look file for the bootloader
-                  # information (dtbs, extlinux.conf file).
-                  sfdisk $img <<EOF
-                      label: dos
-                      label-id: ${config.sdImage.firmwarePartitionID}
-
-                      start=''${gap}M, size=$firmwareSizeBlocks, type=b
-                      start=$((gap + ${
-                        toString config.sdImage.firmwareSize
-                      }))M, type=83, bootable
-                  EOF
-
-                  # Copy the rootfs into the SD image
-                  eval $(partx $img -o START,SECTORS --nr 2 --pairs)
-                  dd conv=notrunc if=./root-fs.img of=$img seek=$START count=$SECTORS
-
-                  # Create a FAT32 /boot/firmware partition of suitable size into firmware_part.img
-                  eval $(partx $img -o START,SECTORS --nr 1 --pairs)
-                  truncate -s $((SECTORS * 512)) firmware_part.img
-                  faketime "1970-01-01 00:00:00" mkfs.vfat -i ${config.sdImage.firmwarePartitionID} -n ${config.raspberry-pi-nix.firmware-partition-label} firmware_part.img
-
-                  # Populate the files intended for /boot/firmware
-                  mkdir firmware
-                  ${config.sdImage.populateFirmwareCommands}
-
-                  # Copy the populated /boot/firmware into the SD image
-                  (cd firmware; mcopy -psvm -i ../firmware_part.img ./* ::)
-                  # Verify the FAT partition before copying it.
-                  fsck.vfat -vn firmware_part.img
-                  dd conv=notrunc if=firmware_part.img of=$img seek=$START count=$SECTORS
-
-                  ${config.sdImage.postBuildCommands}
-
-                  if test -n "$compressImage"; then
-                      zstd -T$NIX_BUILD_CORES --rm $img
-                  fi
-                '';
-              })
-            { };
-
-        in
+      sd-card-image = { extendModules, ... }:
         {
           imports = [
-            inputs.nixos-generators.nixosModules.sd-aarch64
-            "${inputs.raspberry-pi-nix}/sd-image/default.nix"
+            inputs.nixos-raspberrypi.nixosModules.sd-image
           ];
           sdImage.compressImage = false;
           system.build.thymis-image-with-secrets-builder-aarch64 = image-with-secrets-builder {
             pkgs = inputs.nixpkgs.legacyPackages.aarch64-linux;
             image-path = (extendModules {
               modules = [
-                ({ config, ... }: {
+                ({ ... }: {
                   users.users.root.openssh.authorizedKeys.keys = lib.mkForce [ ];
-                  system.build.sdImage = lib.mkForce (sdImage config inputs.nixpkgs.legacyPackages.aarch64-linux);
                 })
               ];
             }).config.system.build.sdImage;
@@ -270,9 +181,8 @@ let
             pkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
             image-path = (extendModules {
               modules = [
-                ({ config, ... }: {
+                ({ ... }: {
                   users.users.root.openssh.authorizedKeys.keys = lib.mkForce [ ];
-                  system.build.sdImage = lib.mkForce (sdImage config inputs.nixpkgs.legacyPackages.x86_64-linux);
                 })
               ];
             }).config.system.build.sdImage;
