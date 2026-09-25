@@ -46,7 +46,7 @@ import requests
 # constants
 # ─────────────────────────────────────────────────────────────────────────────
 
-REPO_ROOT = pathlib.Path(__file__).parents[3]  # …/thymis-25.11
+REPO_ROOT = pathlib.Path(__file__).parents[3]  # …/thymis-26.05
 
 # Module type strings used in state JSON payloads
 MOD_THYMIS_DEVICE = "thymis_controller.modules.thymis.ThymisDevice"
@@ -382,7 +382,7 @@ def test_x86_vm_build_start_deploy(controller: ControllerInfo) -> None:
                     "settings": {
                         "device_type": "generic-x86_64",
                         "image_format": "nixos-vm",
-                        "nix_state_version": "25.11",
+                        "nix_state_version": "26.05",
                     },
                 }
             ],
