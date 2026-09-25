@@ -59,6 +59,13 @@
 		other: 'task-details.transfer'
 	};
 
+	// Plain-language explanation of what the direction means, for directions
+	// whose name alone does not tell where the bytes come from or go to.
+	const transferHints: Partial<Record<TransferDirection, string>> = {
+		download: 'task-details.transfer-download-hint',
+		upload: 'task-details.transfer-upload-hint'
+	};
+
 	const transferIcons = {
 		download: IconDownload,
 		upload: IconUpload,
@@ -282,14 +289,20 @@
 				<div class="transfers">
 					{#each transfers as transfer (transfer.direction)}
 						{@const Icon = transferIcons[transfer.direction]}
+						{@const hint = transferHints[transfer.direction]}
 						{@const percent =
 							transfer.expected > 0 ? Math.min(100, (transfer.done / transfer.expected) * 100) : 0}
 						<div class="transfer">
 							<div class="transfer-head">
-								<span class="transfer-label">
-									<Icon size={15} />
-									{$t(transferLabels[transfer.direction])}
-								</span>
+								<div class="transfer-title">
+									<span class="transfer-label">
+										<Icon size={15} />
+										{$t(transferLabels[transfer.direction])}
+									</span>
+									{#if hint}
+										<span class="transfer-hint">{$t(hint)}</span>
+									{/if}
+								</div>
 								<span class="transfer-size">
 									{formatBytes(transfer.done)}
 									<span class="transfer-size-sep">/</span>
@@ -391,6 +404,16 @@
 		align-items: baseline;
 		justify-content: space-between;
 		gap: 12px;
+	}
+	.transfer-title {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+		min-width: 0;
+	}
+	.transfer-hint {
+		font-size: 12px;
+		color: var(--ds-text-mute);
 	}
 	.transfer-label {
 		display: inline-flex;
