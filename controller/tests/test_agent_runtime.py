@@ -12,6 +12,7 @@ from thymis_controller.agent_runtime import (
     ChatMessage,
     ChatRequest,
     history_from_transcript,
+    resolve_model,
     stream_chat,
 )
 from thymis_controller.agent_tools import ThymisTools
@@ -168,6 +169,31 @@ def test_chat_request_rejects_a_non_png_vnc_screenshot():
                     "screenshot": "data:image/jpeg;base64,c2NyZWVuc2hvdA==",
                 }
             ],
+        )
+
+
+def test_resolve_model_keeps_provider_strings_without_a_gateway():
+    assert (
+        resolve_model("openrouter:openai/gpt-4.1-mini")
+        == "openrouter:openai/gpt-4.1-mini"
+    )
+    assert resolve_model("openai:qwen3.8-27b") == "openai:qwen3.8-27b"
+
+
+def test_resolve_model_points_openai_models_at_the_gateway():
+    model = resolve_model(
+        "openai:qwen3.8-27b", base_url="https://meowl.dev/openai/v1", api_key="token"
+    )
+
+    assert model.model_name == "qwen3.8-27b"
+    assert str(model.client.base_url) == "https://meowl.dev/openai/v1/"
+    assert model.client.api_key == "token"
+
+
+def test_resolve_model_rejects_a_gateway_for_a_non_openai_provider():
+    with pytest.raises(ValueError, match="OpenAI-compatible"):
+        resolve_model(
+            "openrouter:openai/gpt-4.1-mini", base_url="https://meowl.dev/openai/v1"
         )
 
 

@@ -6,6 +6,7 @@ import base64
 import binascii
 import uuid
 from collections.abc import AsyncIterator
+from functools import lru_cache
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, JsonValue, field_validator, model_validator
@@ -24,6 +25,8 @@ from pydantic_ai.messages import (
     UserPromptPart,
 )
 from pydantic_ai.models import Model
+from pydantic_ai.models.openai import OpenAIChatModel
+from pydantic_ai.providers.openai import OpenAIProvider
 from thymis_controller.agent_tools import ThymisTools
 from thymis_controller.agent_tools.registry import RegisteredTool
 
@@ -346,6 +349,44 @@ def _as_pydantic_tool(registered_tool: RegisteredTool) -> Tool:
     )
 
 
+GATEWAY_PROVIDER_NAMES = frozenset({"openai", "openai-chat", "gateway"})
+
+
+@lru_cache(maxsize=8)
+def _gateway_model(model_name: str, base_url: str, api_key: str | None) -> Model:
+    """Build one reusable client for an OpenAI-compatible gateway."""
+    return OpenAIChatModel(
+        model_name,
+        provider=OpenAIProvider(base_url=base_url, api_key=api_key),
+    )
+
+
+def resolve_model(
+    model: str | Model,
+    base_url: str | None = None,
+    api_key: str | None = None,
+) -> str | Model:
+    """Resolve the configured model, honouring an OpenAI-compatible gateway.
+
+    Without a base URL the model string goes to PydanticAI unchanged, so provider
+    prefixes such as ``openrouter:`` keep working. With one, the request has to
+    reach that gateway instead of the public OpenAI endpoint that a bare
+    ``openai:`` prefix would select.
+    """
+    if isinstance(model, Model) or not base_url:
+        return model
+
+    provider_name, separator, model_name = model.partition(":")
+    if not separator:
+        provider_name, model_name = "", model
+    if provider_name and provider_name not in GATEWAY_PROVIDER_NAMES:
+        raise ValueError(
+            "THYMIS_AGENT_BASE_URL requires an OpenAI-compatible THYMIS_AGENT_MODEL "
+            f"(for example openai:<model-id>), not {provider_name!r}"
+        )
+    return _gateway_model(model_name, base_url, api_key or None)
+
+
 def build_agent(model: str | Model, tools: ThymisTools) -> Agent[None, str]:
     """Create a per-request agent bound to one authenticated tool client."""
 
@@ -419,6 +460,7 @@ __all__ = [
     "build_agent",
     "chat_message_from_ui_message",
     "history_from_transcript",
+    "resolve_model",
     "image_file_part_from_ui_message",
     "stream_chat",
     "text_from_ui_message",

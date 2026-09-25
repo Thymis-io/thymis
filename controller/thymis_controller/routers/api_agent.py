@@ -20,6 +20,7 @@ from thymis_controller.agent_runtime import (
     chat_message_from_ui_message,
     history_from_transcript,
     image_file_part_from_ui_message,
+    resolve_model,
     stream_chat,
 )
 from thymis_controller.agent_tools import ThymisTools
@@ -390,6 +391,14 @@ async def chat(
             status_code=503,
             detail="Assistant is not configured. Set THYMIS_AGENT_MODEL and its provider credentials.",
         )
+    try:
+        model = resolve_model(
+            global_settings.AGENT_MODEL,
+            base_url=global_settings.AGENT_BASE_URL,
+            api_key=global_settings.AGENT_API_KEY,
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
 
     identity = _require_identity(user_identity)
     prompt = chat_request.prompt
@@ -440,9 +449,7 @@ async def chat(
             ) as client:
                 tools = ThymisTools(client)
                 try:
-                    async for event in stream_chat(
-                        messages, global_settings.AGENT_MODEL, tools
-                    ):
+                    async for event in stream_chat(messages, model, tools):
                         if event["type"] == "text_delta":
                             if text_part_id is None:
                                 text_part_id = f"text_{uuid.uuid4().hex}"

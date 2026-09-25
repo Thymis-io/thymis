@@ -113,12 +113,20 @@ The controller takes care of running the frontend for you. You can access thymis
 
 The floating **Thymis Assistant** is available to every signed-in controller user. It is disabled until a model is configured.
 
-1. Copy `controller/.env.example` to `controller/.env` and set `THYMIS_AGENT_MODEL`. The included value uses OpenRouter and supports both tool calls and VNC screenshots.
-2. Export the provider key in the shell that starts the controller. Do not add API keys to `.env` or commit them:
+1. Copy `controller/.env.example` to `controller/.env`. The default points at our own OpenAI-compatible gateway, the meowl proxy:
 
    ```sh
-   export OPENROUTER_API_KEY='…'
+   THYMIS_AGENT_MODEL=openai:qwen3.8-27b
+   THYMIS_AGENT_BASE_URL=https://meowl.dev/openai/v1
    ```
+
+2. Export the gateway token in the shell that starts the controller. Do not add API keys to `.env` or commit them:
+
+   ```sh
+   export THYMIS_AGENT_API_KEY='sk-meowl-…'
+   ```
+
+   To use a hosted provider instead, drop `THYMIS_AGENT_BASE_URL` and name the provider in the model, for example `THYMIS_AGENT_MODEL=openrouter:openai/gpt-4.1-mini` with `OPENROUTER_API_KEY` exported. `THYMIS_AGENT_BASE_URL` only applies to OpenAI-compatible models (`openai:<model-id>`).
 
 3. Start the controller from `controller/` as above, open `http://localhost:8000`, sign in, then select **Thymis Assistant** in the bottom-right corner.
 
