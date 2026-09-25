@@ -2,6 +2,18 @@ args@{ ... }:
 let
   inherit (args) inputs lib;
   rpi = inputs.nixos-raspberrypi.nixosModules;
+  # Boot firmware-native instead of chain-loading u-boot: `kernel` puts
+  # kernel.img + initrd on the firmware partition and points config.txt at them,
+  # which is the layout these boards have always booted. u-boot + extlinux did
+  # not come up on a Pi 4B (the boot never reached userspace).
+  #
+  # configurationLimit keeps the firmware partition small enough for devices
+  # flashed with the previous raspberry-pi-nix layout, whose FIRMWARE partition
+  # is only 128 MiB; raise it on devices with the 1 GiB partition.
+  rpiBootloader = {
+    boot.loader.raspberry-pi.bootloader = lib.mkForce "kernel";
+    boot.loader.raspberry-pi.configurationLimit = lib.mkDefault 1;
+  };
   # raspberry-pi-nix kept kernel.img/initrd on the firmware partition and passed
   # init=/sbin/init through cmdline.txt. The Raspberry Pi firmware still reads
   # those files, so an in-place upgrade has to remove them or they shadow the
@@ -28,6 +40,7 @@ let
           rpi.raspberry-pi-3.base
           inputs.nixos-raspberrypi.lib.inject-overlays
           inputs.nixos-raspberrypi.nixosModules.trusted-nix-caches
+          rpiBootloader
         ];
         _module.args.nixos-raspberrypi = inputs.nixos-raspberrypi;
         nixpkgs.hostPlatform = "aarch64-linux";
@@ -41,6 +54,7 @@ let
           rpi.raspberry-pi-4.display-vc4
           inputs.nixos-raspberrypi.lib.inject-overlays
           inputs.nixos-raspberrypi.nixosModules.trusted-nix-caches
+          rpiBootloader
         ];
         _module.args.nixos-raspberrypi = inputs.nixos-raspberrypi;
         nixpkgs.hostPlatform = "aarch64-linux";
@@ -55,6 +69,7 @@ let
           rpi.raspberry-pi-5.display-vc4
           inputs.nixos-raspberrypi.lib.inject-overlays
           inputs.nixos-raspberrypi.nixosModules.trusted-nix-caches
+          rpiBootloader
         ];
         _module.args.nixos-raspberrypi = inputs.nixos-raspberrypi;
         nixpkgs.hostPlatform = "aarch64-linux";
