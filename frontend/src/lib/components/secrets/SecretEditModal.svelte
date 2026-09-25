@@ -208,7 +208,7 @@
 				]}
 			></Select>
 			{#if editedProcessingType === 'mkpasswd-yescrypt'}
-				<p class="mt-1 text-xs text-gray-500">
+				<p class="mt-1 text-xs text-[var(--ds-text-dim)]">
 					{$t('secrets.processing-description-yescrypt')}
 				</p>
 			{/if}
@@ -219,7 +219,7 @@
 			<Checkbox id="includeInImage" bind:checked={includeInImage} />
 			<Label for="includeInImage" class="flex">
 				{$t('secrets.include-in-image')}
-				<span class="ml-1 text-xs text-red-500">({$t('secrets.security-warning')})</span>
+				<span class="ml-1 text-xs text-[var(--ds-danger)]">({$t('secrets.security-warning')})</span>
 			</Label>
 		</div>
 
@@ -269,10 +269,13 @@
 				<Label for="fileValue">{$t('secrets.file')}</Label>
 
 				{#if !isCreating && editedFileInfo.name}
-					<div class="mb-2 text-sm bg-gray-100 p-2 rounded">
+					<div class="mb-2 text-sm bg-[var(--ds-surface-3)] p-2 rounded">
 						<p>
 							<strong>{$t('secrets.current-file')}:</strong>
-							{editedFileInfo.name} ({formatBytes(editedFileInfo.size)})
+							{editedFileInfo.name} ({formatBytes(editedFileInfo.size, {
+								system: 'si',
+								decimals: 2
+							})})
 						</p>
 
 						<!-- Download button -->
@@ -300,14 +303,17 @@
 					id="fileValue"
 					type="file"
 					on:change={handleFileChange}
-					class="playwright-snapshot-unstable"
+					class="playwright-snapshot-unstable cursor-pointer file:me-3 file:cursor-pointer file:rounded-md file:border file:border-[var(--ds-border-strong)] file:bg-[var(--ds-surface-3)] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[var(--ds-text)] hover:file:border-[var(--ds-accent)]"
 				/>
 
 				{#if editedFileValue}
-					<div class="mt-2 text-sm bg-green-100 p-2 rounded">
+					<div class="mt-2 text-sm bg-[var(--ds-success-dim)] p-2 rounded">
 						<p>
 							<strong>{$t('secrets.new-file')}:</strong>
-							{editedFileValue.name} ({formatBytes(editedFileValue.size)})
+							{editedFileValue.name} ({formatBytes(editedFileValue.size, {
+								system: 'si',
+								decimals: 2
+							})})
 						</p>
 					</div>
 				{/if}

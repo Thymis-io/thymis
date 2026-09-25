@@ -163,7 +163,7 @@
 				type="file"
 				multiple
 				bind:files
-				class="playwright-snapshot-unstable block w-full cursor-pointer rounded-lg border border-dashed border-[var(--ds-border-strong)] bg-[var(--ds-surface-2)] p-4 text-sm text-[var(--ds-text)]"
+				class="playwright-snapshot-unstable block w-full cursor-pointer rounded-lg border border-dashed border-[var(--ds-border-strong)] bg-[var(--ds-surface-2)] p-4 text-sm text-[var(--ds-text)] file:me-3 file:cursor-pointer file:rounded-md file:border file:border-[var(--ds-border-strong)] file:bg-[var(--ds-surface-3)] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[var(--ds-text)] hover:file:border-[var(--ds-accent)]"
 			/>
 		</div>
 		<svelte:fragment slot="footer">
