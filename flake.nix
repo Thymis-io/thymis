@@ -7,8 +7,7 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nixos-generators.url = "github:nix-community/nixos-generators";
     nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
-    nixos-hardware.url = "github:NixOS/nixos-hardware";
-    raspberry-pi-nix.url = "github:nix-community/raspberry-pi-nix";
+    nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
     flake-utils.url = "github:numtide/flake-utils";
     pyproject-nix = {
       url = "github:pyproject-nix/pyproject.nix";
@@ -32,9 +31,11 @@
   nixConfig = {
     extra-substituters = [
       "https://cache.thymis.io"
+      "https://nixos-raspberrypi.cachix.org"
     ];
     extra-trusted-public-keys = [
       "cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M="
+      "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
     ];
   };
 
@@ -77,7 +78,7 @@
         system.stateVersion = "26.05";
       };
 
-      thymis-controller-pi-3-sd-image = (nixpkgs.lib.nixosSystem {
+      thymis-controller-pi-3-sd-image = (inputs.nixos-raspberrypi.lib.nixosSystem {
         modules = [
           nixosModules.thymis-device
           nixosModules."thymis-device-raspberry-pi-3"
@@ -90,7 +91,7 @@
         };
       }).config.system.build.thymis-image-with-secrets-builder-aarch64;
 
-      thymis-controller-pi-4-sd-image = (nixpkgs.lib.nixosSystem {
+      thymis-controller-pi-4-sd-image = (inputs.nixos-raspberrypi.lib.nixosSystem {
         modules = [
           nixosModules.thymis-device
           nixosModules."thymis-device-raspberry-pi-4"
@@ -103,7 +104,7 @@
         };
       }).config.system.build.thymis-image-with-secrets-builder-aarch64;
 
-      thymis-controller-pi-5-sd-image = (nixpkgs.lib.nixosSystem {
+      thymis-controller-pi-5-sd-image = (inputs.nixos-raspberrypi.lib.nixosSystem {
         modules = [
           nixosModules.thymis-device
           nixosModules."thymis-device-raspberry-pi-5"
