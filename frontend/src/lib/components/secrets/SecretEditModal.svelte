@@ -14,6 +14,7 @@
 	import Download from 'lucide-svelte/icons/download';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
 	import type { SecretProcessingType, SecretType } from '$lib/state';
+	import { formatBytes } from '$lib/format';
 	import { createSecretRequest, sendSecretRequest } from './secretUtils';
 
 	interface Props {
@@ -271,7 +272,7 @@
 					<div class="mb-2 text-sm bg-gray-100 p-2 rounded">
 						<p>
 							<strong>{$t('secrets.current-file')}:</strong>
-							{editedFileInfo.name} ({(editedFileInfo.size / 1024).toFixed(2)} KB)
+							{editedFileInfo.name} ({formatBytes(editedFileInfo.size)})
 						</p>
 
 						<!-- Download button -->
@@ -306,7 +307,7 @@
 					<div class="mt-2 text-sm bg-green-100 p-2 rounded">
 						<p>
 							<strong>{$t('secrets.new-file')}:</strong>
-							{editedFileValue.name} ({(editedFileValue.size / 1024).toFixed(2)} KB)
+							{editedFileValue.name} ({formatBytes(editedFileValue.size)})
 						</p>
 					</div>
 				{/if}
