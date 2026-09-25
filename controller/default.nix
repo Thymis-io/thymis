@@ -32,6 +32,11 @@ let
     http-network-relay = prev.http-network-relay.overrideAttrs (old: {
       buildInputs = (old.buildInputs or [ ]) ++ final.resolveBuildSystem ({ setuptools = [ ]; });
     });
+    # Thymis fork of uvicorn, built from a git source: uv.lock records no
+    # build-system for git sources, so name its build backend explicitly.
+    uvicorn = prev.uvicorn.overrideAttrs (old: {
+      buildInputs = (old.buildInputs or [ ]) ++ final.resolveBuildSystem ({ hatchling = [ ]; });
+    });
   };
 
   pythonSet =
