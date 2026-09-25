@@ -344,6 +344,7 @@ class NixParser:
                 activity_info.type
             ]
             activity_by_type.done += activity_info.done
+            activity_by_type.expected += activity_info.expected
             activity_by_type.failed += activity_info.failed
 
             if activity_info.transfer_direction is not None:
@@ -425,24 +426,38 @@ class NixParser:
 
         return parsed
 
+    # Activity types whose PROGRESS results count items (paths, builds, ...).
+    # COPY_PATH and FILE_TRANSFER report byte offsets through the very same
+    # fields, so letting them into the global counters makes the totals scale
+    # with payload size instead of the number of things being copied.
+    ITEM_PROGRESS_ACTIVITIES = frozenset(
+        {
+            ActivityType.COPY_PATHS,
+            ActivityType.BUILDS,
+            ActivityType.REALISE,
+        }
+    )
+
     def calc_activities_done_expected_failed(self):
         global_done = 0
         global_running = 0
         global_expected = 0
         global_failed = 0
-        for activities in self.activities_done_expect_failed_by_type.values():
+        for type_, activities in self.activities_done_expect_failed_by_type.items():
+            if type_ not in self.ITEM_PROGRESS_ACTIVITIES:
+                continue
             done = activities.done
-            excepted = activities.done
+            expected = activities.expected
             running = 0
             failed = activities.failed
             for activity in activities.activity_info_by_id.values():
                 done += activity.done
-                excepted += activity.expected
+                expected += activity.expected
                 running += activity.running
                 failed += activity.failed
             global_done += done
             global_running += running
-            global_expected += excepted
+            global_expected += expected
             global_failed += failed
         return global_done, global_expected, global_running, global_failed
 
@@ -495,7 +510,14 @@ class NixParser:
         # multi-path copy at one smooth 0-100% instead of restarting at every
         # path boundary. nix does not say which direction the batch moves, but a
         # batch only has one, so it can be attributed once it is known.
-        declared = sum(activities.expected for activities in activities_by_type)
+        # Read the announcement off the activities that made it: the per-type
+        # bucket also accumulates the size of every finished path on stop, which
+        # would grow the denominator with each completed path.
+        declared = sum(
+            activity.expected_by_type.get(type_, 0)
+            for activity in self.activity_info_by_id.values()
+            for type_ in activity_types
+        )
         transferring = [
             d
             for d in TRANSFER_DIRECTIONS
