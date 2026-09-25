@@ -16,6 +16,8 @@ let
       raspberry-pi-3 = { ... }: {
         imports = [
           rpi.raspberry-pi-3.base
+          inputs.nixos-raspberrypi.lib.inject-overlays
+          inputs.nixos-raspberrypi.nixosModules.trusted-nix-caches
         ];
         _module.args.nixos-raspberrypi = inputs.nixos-raspberrypi;
         nixpkgs.hostPlatform = "aarch64-linux";
@@ -26,6 +28,8 @@ let
         imports = [
           rpi.raspberry-pi-4.base
           rpi.raspberry-pi-4.display-vc4
+          inputs.nixos-raspberrypi.lib.inject-overlays
+          inputs.nixos-raspberrypi.nixosModules.trusted-nix-caches
         ];
         _module.args.nixos-raspberrypi = inputs.nixos-raspberrypi;
         nixpkgs.hostPlatform = "aarch64-linux";
@@ -37,6 +41,8 @@ let
         imports = [
           rpi.raspberry-pi-5.base
           rpi.raspberry-pi-5.display-vc4
+          inputs.nixos-raspberrypi.lib.inject-overlays
+          inputs.nixos-raspberrypi.nixosModules.trusted-nix-caches
         ];
         _module.args.nixos-raspberrypi = inputs.nixos-raspberrypi;
         nixpkgs.hostPlatform = "aarch64-linux";
