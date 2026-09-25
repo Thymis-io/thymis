@@ -2,6 +2,16 @@ args@{ ... }:
 let
   inherit (args) inputs lib;
   rpi = inputs.nixos-raspberrypi.nixosModules;
+  # raspberry-pi-nix kept kernel.img/initrd on the firmware partition and passed
+  # init=/sbin/init through cmdline.txt. The Raspberry Pi firmware still reads
+  # those files, so an in-place upgrade has to remove them or they shadow the
+  # u-boot/extlinux boot path that nixos-raspberrypi installs. The path is
+  # automounted, and `rm -f` is a no-op when it is not.
+  legacyFirmwareCleanup = ''
+    for f in cmdline.txt kernel.img initrd; do
+      rm -f "/boot/firmware/$f"
+    done
+  '';
   deviceConfig =
     {
       generic-x86_64 = { ... }: {
@@ -21,6 +31,7 @@ let
         ];
         _module.args.nixos-raspberrypi = inputs.nixos-raspberrypi;
         nixpkgs.hostPlatform = "aarch64-linux";
+        system.activationScripts.raspberry-pi-legacy-firmware = legacyFirmwareCleanup;
         systemd.watchdog.runtimeTime = "15s";
         boot.kernel.sysctl."vm.mmap_rnd_bits" = 24;
       };
@@ -33,6 +44,7 @@ let
         ];
         _module.args.nixos-raspberrypi = inputs.nixos-raspberrypi;
         nixpkgs.hostPlatform = "aarch64-linux";
+        system.activationScripts.raspberry-pi-legacy-firmware = legacyFirmwareCleanup;
         systemd.watchdog.runtimeTime = "15s";
         boot.kernelParams = [ "brcmfmac.roamoff=1" "brcmfmac.feature_disable=0x282000" ];
         boot.kernel.sysctl."vm.mmap_rnd_bits" = 24;
@@ -46,6 +58,7 @@ let
         ];
         _module.args.nixos-raspberrypi = inputs.nixos-raspberrypi;
         nixpkgs.hostPlatform = "aarch64-linux";
+        system.activationScripts.raspberry-pi-legacy-firmware = legacyFirmwareCleanup;
         systemd.watchdog.runtimeTime = "15s";
         boot.kernel.sysctl."vm.mmap_rnd_bits" = 24;
       };
