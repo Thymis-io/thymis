@@ -49,6 +49,10 @@ include-package-data = true
 
 [tool.uv.sources]
 thymis-agent = { path = "../agent" }
+# Thymis fork of uvicorn: logs which background tasks a shutdown is waiting for
+# (Thymis-io/uvicorn branch describe-pending-tasks).  Switch back to the PyPI
+# release once the change is upstreamed.
+uvicorn = { git = "https://github.com/Thymis-io/uvicorn", rev = "b8db01247bb7a346735e7305cca16fa89c9d55dc" }
 
 [tool.pytest.ini_options]
 markers = [
