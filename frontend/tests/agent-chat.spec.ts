@@ -154,6 +154,9 @@ test('renders an AI SDK streamed response with Markdown and tool activity', asyn
 				{ type: 'start', messageId: 'msg_test' },
 				{ type: 'message-metadata', messageMetadata: { createdAt: TIMESTAMP } },
 				{ type: 'start-step' },
+				{ type: 'reasoning-start', id: 'reasoning_1' },
+				{ type: 'reasoning-delta', id: 'reasoning_1', delta: 'Checking the fleet first.' },
+				{ type: 'reasoning-end', id: 'reasoning_1' },
 				{ type: 'text-start', id: 'text_1' },
 				{ type: 'text-delta', id: 'text_1', delta: '**Fleet** is healthy.' },
 				{ type: 'text-end', id: 'text_1' },
@@ -164,7 +167,11 @@ test('renders an AI SDK streamed response with Markdown and tool activity', asyn
 					input: {},
 					dynamic: true
 				},
-				{ type: 'tool-output-available', toolCallId: 'call_1', output: {} },
+				{
+					type: 'tool-output-available',
+					toolCallId: 'call_1',
+					output: { devices: 0, connected: 0 }
+				},
 				{ type: 'text-start', id: 'text_2' },
 				{ type: 'text-delta', id: 'text_2', delta: ' Current data loaded.' },
 				{ type: 'text-end', id: 'text_2' },
@@ -197,6 +204,83 @@ test('renders an AI SDK streamed response with Markdown and tool activity', asyn
 	);
 	// The reply can be copied.
 	await expect(dialog.getByRole('button', { name: 'Copy response' }).last()).toBeVisible();
+});
+
+test('shows a tool call whose arguments and result expand', async ({ page }) => {
+	await mockConversationStore(page);
+	await page.route('**/api/agent/chat', async (route) => {
+		await route.fulfill(
+			sse([
+				{ type: 'start', messageId: 'msg_tool' },
+				{ type: 'message-metadata', messageMetadata: { createdAt: TIMESTAMP } },
+				{ type: 'start-step' },
+				{
+					type: 'tool-input-available',
+					toolCallId: 'call_fleet',
+					toolName: 'get_fleet_connectivity',
+					input: { hours: 24 },
+					dynamic: true
+				},
+				{
+					type: 'tool-output-available',
+					toolCallId: 'call_fleet',
+					output: { connected: 0, offline: 3 }
+				},
+				{ type: 'finish-step' },
+				{ type: 'finish', finishReason: 'stop' }
+			])
+		);
+	});
+	await page.goto('/overview');
+	const dialog = await openAssistant(page);
+	await sendPrompt(dialog, 'How is the fleet?');
+
+	const tool = dialog.locator('.assistant-tool');
+	await expect(tool).toContainText('get fleet connectivity');
+	// Collapsed until the operator asks for the details.
+	await expect(tool.locator('.assistant-tool-block').first()).toBeHidden();
+
+	await tool.locator('summary').click();
+	await expect(tool.getByText('Arguments')).toBeVisible();
+	await expect(tool.getByText('Result')).toBeVisible();
+	await expect(tool.locator('pre').first()).toContainText('"hours": 24');
+	await expect(tool.locator('pre').last()).toContainText('"offline": 3');
+});
+
+test('shows model thinking in a collapsed block', async ({ page }) => {
+	await mockConversationStore(page);
+	await page.route('**/api/agent/chat', async (route) => {
+		await route.fulfill(
+			sse([
+				{ type: 'start', messageId: 'msg_thinking' },
+				{ type: 'message-metadata', messageMetadata: { createdAt: TIMESTAMP } },
+				{ type: 'start-step' },
+				{ type: 'reasoning-start', id: 'reasoning_1' },
+				{
+					type: 'reasoning-delta',
+					id: 'reasoning_1',
+					delta: 'The operator asked about the fleet, so I should call get_state.'
+				},
+				{ type: 'reasoning-end', id: 'reasoning_1' },
+				{ type: 'text-start', id: 'text_1' },
+				{ type: 'text-delta', id: 'text_1', delta: 'Nothing is connected.' },
+				{ type: 'text-end', id: 'text_1' },
+				{ type: 'finish-step' },
+				{ type: 'finish', finishReason: 'stop' }
+			])
+		);
+	});
+	await page.goto('/overview');
+	const dialog = await openAssistant(page);
+	await sendPrompt(dialog, 'How is the fleet?');
+
+	const reasoning = dialog.locator('.assistant-reasoning');
+	await expect(reasoning.locator('summary')).toHaveText('Thinking');
+	await expect(reasoning.locator('pre')).toBeHidden();
+	await expect(dialog.getByText('Nothing is connected.')).toBeVisible();
+
+	await reasoning.locator('summary').click();
+	await expect(reasoning.locator('pre')).toContainText('so I should call get_state');
 });
 
 test('copies a response and regenerates the last answer', async ({ page }) => {

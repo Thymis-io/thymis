@@ -15,6 +15,8 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 from thymis_controller.agent_runtime import (
+    MAX_REASONING_CHARACTERS,
+    TRUNCATION_MARKER,
     ChatMessage,
     ChatRequest,
     chat_message_from_ui_message,
@@ -343,6 +345,8 @@ class _TranscriptBuilder:
     def __init__(self) -> None:
         self.parts: list[dict[str, Any]] = []
         self._text: dict[str, Any] | None = None
+        self._reasoning: dict[str, Any] | None = None
+        self._reasoning_truncated = False
         self._tools: dict[str, dict[str, Any]] = {}
 
     def start_text(self) -> None:
@@ -355,6 +359,28 @@ class _TranscriptBuilder:
 
     def end_text(self) -> None:
         self._text = None
+
+    def start_reasoning(self) -> None:
+        self._reasoning = {"type": "reasoning", "text": ""}
+        self.parts.append(self._reasoning)
+
+    def add_reasoning(self, delta: str) -> None:
+        """Keep the model's thinking, bounded so one turn cannot fill the store."""
+        assert self._reasoning is not None
+        kept = self._reasoning["text"]
+        if len(kept) >= MAX_REASONING_CHARACTERS:
+            self._reasoning_truncated = True
+            return
+        combined = kept + delta
+        if len(combined) > MAX_REASONING_CHARACTERS:
+            self._reasoning_truncated = True
+            combined = combined[:MAX_REASONING_CHARACTERS]
+        self._reasoning["text"] = combined
+
+    def end_reasoning(self) -> None:
+        if self._reasoning is not None and self._reasoning_truncated:
+            self._reasoning["text"] += TRUNCATION_MARKER
+        self._reasoning = None
 
     def add_tool_call(self, tool_call_id: str, tool_name: str, tool_input: Any) -> None:
         part = {
@@ -432,6 +458,7 @@ async def chat(
 
     async def event_stream() -> AsyncIterator[bytes]:
         text_part_id: str | None = None
+        reasoning_part_id: str | None = None
         cookie = request.headers.get("cookie", "")
         yield _sse_event({"type": "start", "messageId": message_id})
         yield _sse_event(
@@ -450,7 +477,28 @@ async def chat(
                 tools = ThymisTools(client)
                 try:
                     async for event in stream_chat(messages, model, tools):
-                        if event["type"] == "text_delta":
+                        if event["type"] == "thinking_delta":
+                            if reasoning_part_id is None:
+                                reasoning_part_id = f"reasoning_{uuid.uuid4().hex}"
+                                transcript.start_reasoning()
+                                yield _sse_event(
+                                    {"type": "reasoning-start", "id": reasoning_part_id}
+                                )
+                            transcript.add_reasoning(event["text"])
+                            yield _sse_event(
+                                {
+                                    "type": "reasoning-delta",
+                                    "id": reasoning_part_id,
+                                    "delta": event["text"],
+                                }
+                            )
+                        elif event["type"] == "text_delta":
+                            if reasoning_part_id is not None:
+                                yield _sse_event(
+                                    {"type": "reasoning-end", "id": reasoning_part_id}
+                                )
+                                reasoning_part_id = None
+                                transcript.end_reasoning()
                             if text_part_id is None:
                                 text_part_id = f"text_{uuid.uuid4().hex}"
                                 transcript.start_text()
@@ -466,6 +514,12 @@ async def chat(
                                 }
                             )
                         elif event["type"] == "tool_call":
+                            if reasoning_part_id is not None:
+                                yield _sse_event(
+                                    {"type": "reasoning-end", "id": reasoning_part_id}
+                                )
+                                reasoning_part_id = None
+                                transcript.end_reasoning()
                             if text_part_id is not None:
                                 yield _sse_event(
                                     {"type": "text-end", "id": text_part_id}
@@ -517,6 +571,11 @@ async def chat(
                         }
                     )
                 else:
+                    if reasoning_part_id is not None:
+                        yield _sse_event(
+                            {"type": "reasoning-end", "id": reasoning_part_id}
+                        )
+                        transcript.end_reasoning()
                     if text_part_id is not None:
                         yield _sse_event({"type": "text-end", "id": text_part_id})
                     transcript.end_text()

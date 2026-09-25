@@ -51,6 +51,7 @@
 		toolCallId?: string;
 		toolName?: string;
 		input?: unknown;
+		output?: unknown;
 	};
 
 	const isToolPart = (
@@ -67,6 +68,17 @@
 		part: UIMessage['parts'][number]
 	): part is UIMessage['parts'][number] & ToolPart =>
 		isToolPart(part) && part.toolName !== 'link_entity';
+
+	type TruncatedToolResult = { truncated: true; characters: number; preview: string };
+
+	const isTruncatedToolResult = (output: unknown): output is TruncatedToolResult =>
+		typeof output === 'object' &&
+		output !== null &&
+		(output as { truncated?: unknown }).truncated === true &&
+		typeof (output as { preview?: unknown }).preview === 'string';
+
+	const formatPayload = (value: unknown) =>
+		typeof value === 'string' ? value : JSON.stringify(value, null, 2);
 
 	const isImageAttachmentPart = (
 		part: UIMessage['parts'][number]
@@ -613,6 +625,7 @@
 							{@const hasVisibleParts = message.parts.some(
 								(part) =>
 									(part.type === 'text' && part.text) ||
+									(part.type === 'reasoning' && part.text) ||
 									isEntityLinkPart(part) ||
 									isImageAttachmentPart(part) ||
 									isVisibleToolPart(part)
@@ -627,7 +640,16 @@
 									{/if}
 									<div class="assistant-message-content">
 										{#each message.parts as part}
-											{#if part.type === 'text' && part.text}
+											{#if part.type === 'reasoning' && part.text}
+												<details class="assistant-reasoning">
+													<summary>
+														{part.state === 'streaming'
+															? $_('assistant.reasoning-streaming')
+															: $_('assistant.reasoning')}
+													</summary>
+													<pre>{part.text}</pre>
+												</details>
+											{:else if part.type === 'text' && part.text}
 												<div class="assistant-markdown">
 													<AssistantMarkdown
 														markdown={part.text}
@@ -643,17 +665,45 @@
 													alt={part.filename ?? $_('assistant.attach-image')}
 												/>
 											{:else if isVisibleToolPart(part)}
-												<div
-													class:assistant-tool-complete={part.state === 'output-available'}
-													class="assistant-tool"
-												>
-													{#if part.state === 'output-available'}
-														<Bot size={14} />
-													{:else}
-														<LoaderCircle size={14} class="animate-spin" />
+												<details class="assistant-tool">
+													<summary>
+														{#if part.state === 'output-available'}
+															<Bot size={14} />
+														{:else}
+															<LoaderCircle size={14} class="animate-spin" />
+														{/if}
+														<span class:assistant-tool-complete={part.state === 'output-available'}>
+															{toolName(part)}
+														</span>
+													</summary>
+													{#if part.input !== undefined}
+														<div class="assistant-tool-block">
+															<span class="assistant-tool-label"
+																>{$_('assistant.tool-arguments')}</span
+															>
+															<pre>{formatPayload(part.input)}</pre>
+														</div>
 													{/if}
-													<span>{toolName(part)}</span>
-												</div>
+													{#if part.output !== undefined && part.output !== null}
+														{@const truncated = isTruncatedToolResult(part.output)
+															? part.output
+															: undefined}
+														<div class="assistant-tool-block">
+															<span class="assistant-tool-label">{$_('assistant.tool-result')}</span
+															>
+															<pre>{formatPayload(
+																	truncated ? truncated.preview : part.output
+																)}</pre>
+															{#if truncated}
+																<span class="assistant-tool-note">
+																	{$_('assistant.tool-truncated', {
+																		values: { characters: truncated.characters }
+																	})}
+																</span>
+															{/if}
+														</div>
+													{/if}
+												</details>
 											{/if}
 										{/each}
 										<div class="assistant-message-footer">
@@ -1151,16 +1201,69 @@
 		color: var(--ds-accent);
 		text-decoration: underline;
 	}
+	.assistant-reasoning {
+		margin: 0 0 8px;
+		font-size: 12px;
+		color: var(--ds-text-dim);
+	}
+	.assistant-reasoning summary {
+		cursor: pointer;
+		font-style: italic;
+	}
+	.assistant-reasoning pre {
+		max-height: 220px;
+		margin: 6px 0 0;
+		overflow: auto;
+		white-space: pre-wrap;
+		font-family: var(--font-mono);
+		font-size: 11.5px;
+		line-height: 1.45;
+		color: var(--ds-text-dim);
+	}
 	.assistant-tool {
-		display: flex;
-		align-items: center;
-		gap: 6px;
 		margin-top: 8px;
 		font-size: 11.5px;
 		color: var(--ds-text-dim);
 	}
+	.assistant-tool summary {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		cursor: pointer;
+	}
 	.assistant-tool-complete {
 		color: var(--ds-success);
+	}
+	.assistant-tool-block {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+		margin: 6px 0 0 20px;
+	}
+	.assistant-tool-label {
+		font-size: 10px;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--ds-text-mute);
+	}
+	.assistant-tool-block pre {
+		max-height: 240px;
+		margin: 0;
+		padding: 6px 8px;
+		overflow: auto;
+		border: 1px solid var(--ds-border);
+		border-radius: 6px;
+		background: var(--ds-surface);
+		font-family: var(--font-mono);
+		font-size: 11px;
+		line-height: 1.45;
+		white-space: pre-wrap;
+		color: var(--ds-text);
+	}
+	.assistant-tool-note {
+		font-size: 10.5px;
+		font-style: italic;
+		color: var(--ds-text-mute);
 	}
 	.assistant-status {
 		gap: 6px;

@@ -86,8 +86,16 @@ export const transcriptMarkdown = (title: string, messages: UIMessage[]): string
 				lines.push(part.text, '');
 			} else if (part.type === 'file' && 'url' in part && typeof part.url === 'string') {
 				lines.push(`![${part.filename ?? 'attachment'}](${part.url})`, '');
+			} else if (part.type === 'reasoning' && part.text) {
+				lines.push(...part.text.split('\n').map((line) => `> ${line}`), '');
 			} else if (part.type === 'dynamic-tool' && part.toolName) {
-				lines.push(`> tool: \`${part.toolName}\``, '');
+				lines.push(`**Tool call: \`${part.toolName}\`**`, '');
+				if ('input' in part && part.input !== undefined) {
+					lines.push('```json', JSON.stringify(part.input, null, 2), '```', '');
+				}
+				if ('output' in part && part.output !== undefined && part.output !== null) {
+					lines.push('```json', JSON.stringify(part.output, null, 2), '```', '');
+				}
 			} else if (part.type === 'data-entity-link' && isAssistantEntityLink(part.data)) {
 				lines.push(`> ${part.data.entityType}: ${part.data.label} (${part.data.identifier})`, '');
 			}

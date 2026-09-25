@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import json
 import uuid
 from collections.abc import AsyncIterator
 from functools import lru_cache
@@ -22,6 +23,8 @@ from pydantic_ai.messages import (
     PartStartEvent,
     TextPart,
     TextPartDelta,
+    ThinkingPart,
+    ThinkingPartDelta,
     UserPromptPart,
 )
 from pydantic_ai.models import Model
@@ -129,6 +132,12 @@ WRITE_TOOL_NAMES = frozenset(
 ASSISTANT_TOOL_NAMES = READ_ONLY_TOOL_NAMES | WRITE_TOOL_NAMES
 
 MAX_SCREENSHOT_SIZE_BYTES = 6 * 1024 * 1024
+
+# Transcript growth limits: a single tool result or thinking block must not be
+# able to fill the conversation store, so both are bounded when persisted.
+MAX_TOOL_RESULT_CHARACTERS = 20_000
+MAX_REASONING_CHARACTERS = 20_000
+TRUNCATION_MARKER = " …"
 
 
 class ChatMessage(BaseModel):
@@ -332,6 +341,36 @@ def _to_message_history(messages: list[ChatMessage]) -> list[ModelMessage]:
     return history
 
 
+def _json_safe(value: Any) -> Any:
+    """Convert a tool return value into something the browser can render."""
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return value
+    if isinstance(value, dict):
+        return {str(key): _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_json_safe(item) for item in value]
+    dump = getattr(value, "model_dump", None)
+    if callable(dump):
+        try:
+            return _json_safe(dump(mode="json"))
+        except Exception:  # noqa: BLE001 - fall back to text below
+            pass
+    return str(value)
+
+
+def bounded_tool_result(value: Any) -> Any:
+    """Serialize one tool result, bounding how much of it reaches the transcript."""
+    data = _json_safe(value)
+    rendered = json.dumps(data, ensure_ascii=False, default=str)
+    if len(rendered) <= MAX_TOOL_RESULT_CHARACTERS:
+        return data
+    return {
+        "truncated": True,
+        "characters": len(rendered),
+        "preview": rendered[:MAX_TOOL_RESULT_CHARACTERS],
+    }
+
+
 def _as_pydantic_tool(registered_tool: RegisteredTool) -> Tool:
     """Adapt one existing typed Thymis tool without duplicating its JSON schema."""
 
@@ -425,11 +464,21 @@ async def stream_chat(
             if isinstance(event, PartStartEvent) and isinstance(event.part, TextPart):
                 if event.part.content:
                     yield {"type": "text_delta", "text": event.part.content}
+            elif isinstance(event, PartStartEvent) and isinstance(
+                event.part, ThinkingPart
+            ):
+                if event.part.content:
+                    yield {"type": "thinking_delta", "text": event.part.content}
             elif isinstance(event, PartDeltaEvent) and isinstance(
                 event.delta, TextPartDelta
             ):
                 if event.delta.content_delta:
                     yield {"type": "text_delta", "text": event.delta.content_delta}
+            elif isinstance(event, PartDeltaEvent) and isinstance(
+                event.delta, ThinkingPartDelta
+            ):
+                if event.delta.content_delta:
+                    yield {"type": "thinking_delta", "text": event.delta.content_delta}
             elif isinstance(event, FunctionToolCallEvent):
                 if event.part.tool_name == "link_entity":
                     continue
@@ -448,7 +497,7 @@ async def stream_chat(
                     "type": "tool_result",
                     "tool_call_id": event.tool_call_id,
                     "tool_name": event.part.tool_name,
-                    "output": {},
+                    "output": bounded_tool_result(event.part.content),
                 }
 
 
@@ -457,6 +506,7 @@ __all__ = [
     "WRITE_TOOL_NAMES",
     "ChatMessage",
     "ChatRequest",
+    "bounded_tool_result",
     "build_agent",
     "chat_message_from_ui_message",
     "history_from_transcript",

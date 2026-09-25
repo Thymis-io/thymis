@@ -3,14 +3,17 @@ import uuid
 
 import httpx
 import pytest
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 from pydantic_ai.models.test import TestModel
 from thymis_controller.agent_runtime import (
+    MAX_REASONING_CHARACTERS,
+    MAX_TOOL_RESULT_CHARACTERS,
     READ_ONLY_TOOL_NAMES,
     SYSTEM_INSTRUCTIONS,
     WRITE_TOOL_NAMES,
     ChatMessage,
     ChatRequest,
+    bounded_tool_result,
     history_from_transcript,
     resolve_model,
     stream_chat,
@@ -170,6 +173,46 @@ def test_chat_request_rejects_a_non_png_vnc_screenshot():
                 }
             ],
         )
+
+
+def test_bounded_tool_result_keeps_small_results_intact():
+    assert bounded_tool_result({"devices": 0, "connected": [1, 2]}) == {
+        "devices": 0,
+        "connected": [1, 2],
+    }
+    assert bounded_tool_result("plain text") == "plain text"
+    assert bounded_tool_result(None) is None
+
+
+def test_bounded_tool_result_serialises_models_and_bounds_large_payloads():
+    class Result(BaseModel):
+        value: int
+
+    assert bounded_tool_result(Result(value=3)) == {"value": 3}
+
+    bounded = bounded_tool_result({"blob": "x" * (MAX_TOOL_RESULT_CHARACTERS + 100)})
+    assert bounded["truncated"] is True
+    assert bounded["characters"] > MAX_TOOL_RESULT_CHARACTERS
+    assert len(bounded["preview"]) == MAX_TOOL_RESULT_CHARACTERS
+
+
+def test_history_keeps_thinking_out_of_the_model_transcript():
+    history = history_from_transcript(
+        [
+            {
+                "id": "a1",
+                "role": "assistant",
+                "parts": [
+                    {"type": "reasoning", "text": "internal deliberation"},
+                    {"type": "text", "text": "The answer."},
+                ],
+            }
+        ]
+    )
+
+    assert [(message.role, message.content) for message in history] == [
+        ("assistant", "The answer.")
+    ]
 
 
 def test_resolve_model_keeps_provider_strings_without_a_gateway():

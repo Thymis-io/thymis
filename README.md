@@ -134,7 +134,7 @@ The assistant acts through the signed-in user's controller API permissions. It c
 
 Conversations are stored in the controller database and listed per user, so a chat survives page reloads and sign-ins. Each turn sends only the new prompt; the transcript the model sees comes from the stored conversation. Conversations are kept until the operator deletes them. Attached VNC screenshots are stored with the conversation and rendered in the transcript; the model analyzes a screenshot on the turn that attached it.
 
-The history panel renames, searches, exports as Markdown, and deletes conversations. Answers can be copied or regenerated, replies show their timestamps, and fenced code blocks are syntax-highlighted with a copy button. Attachments must be PNG images (the VNC button or a file picker); other file types are not supported yet.
+The history panel renames, searches, exports as Markdown, and deletes conversations. Answers can be copied or regenerated, replies show their timestamps, and fenced code blocks are syntax-highlighted with a copy button. Every tool call is listed with its arguments and its result, and the model's reasoning is kept in a collapsed block; both expand on click. Long thinking and tool output are truncated when stored. Attachments must be PNG images (the VNC button or a file picker); other file types are not supported yet.
 
 ---
 

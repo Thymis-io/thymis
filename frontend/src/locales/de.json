@@ -1,5 +1,10 @@
 {
 	"assistant": {
+		"reasoning": "Denken",
+		"reasoning-streaming": "Denkt nach…",
+		"tool-arguments": "Argumente",
+		"tool-result": "Ergebnis",
+		"tool-truncated": "Nach {characters} Zeichen gekürzt",
 		"screenshot-prompt": "Bitte analysieren Sie diesen Screenshot aus der aktuellen VNC-Sitzung.",
 		"image-prompt": "Bitte analysieren Sie dieses Bild.",
 		"title": "Thymis-Assistent",

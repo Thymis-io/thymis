@@ -32,6 +32,7 @@ def chat_body(conversation_id: str, prompt: str = "How is the fleet?") -> dict:
 
 def fake_stream_chat(*_args, **_kwargs):
     async def events():
+        yield {"type": "thinking_delta", "text": "Checking the fleet first."}
         yield {"type": "text_delta", "text": "Fleet "}
         yield {
             "type": "tool_call",
@@ -43,7 +44,7 @@ def fake_stream_chat(*_args, **_kwargs):
             "type": "tool_result",
             "tool_call_id": "call_1",
             "tool_name": "get_state",
-            "output": {},
+            "output": {"devices": 0, "connected": 0},
         }
         yield {"type": "text_delta", "text": "is healthy."}
         yield {
@@ -142,6 +143,9 @@ def test_chat_endpoint_emits_an_ai_sdk_ui_message_stream(test_client, db_session
         "start",
         "message-metadata",
         "start-step",
+        "reasoning-start",
+        "reasoning-delta",
+        "reasoning-end",
         "text-start",
         "text-delta",
         "text-end",
@@ -164,6 +168,13 @@ def test_chat_endpoint_emits_an_ai_sdk_ui_message_stream(test_client, db_session
         ]
         is True
     )
+    assert (
+        next(event for event in events if event["type"] == "reasoning-delta")["delta"]
+        == "Checking the fleet first."
+    )
+    assert next(event for event in events if event["type"] == "tool-output-available")[
+        "output"
+    ] == {"devices": 0, "connected": 0}
     assert next(event for event in events if event["type"] == "data-entity-link")[
         "data"
     ] == {
@@ -204,6 +215,7 @@ def test_chat_persists_the_turn_as_replayable_ui_messages(test_client, db_sessio
         "id": assistant_id,
         "role": "assistant",
         "parts": [
+            {"type": "reasoning", "text": "Checking the fleet first."},
             {"type": "text", "text": "Fleet "},
             {
                 "type": "dynamic-tool",
@@ -211,7 +223,7 @@ def test_chat_persists_the_turn_as_replayable_ui_messages(test_client, db_sessio
                 "toolName": "get_state",
                 "state": "output-available",
                 "input": {},
-                "output": {},
+                "output": {"devices": 0, "connected": 0},
             },
             {"type": "text", "text": "is healthy."},
             {
