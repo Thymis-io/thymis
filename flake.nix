@@ -78,7 +78,7 @@
         system.stateVersion = "26.05";
       };
 
-      thymis-controller-pi-3-sd-image = (inputs.nixos-raspberrypi.lib.nixosSystem {
+      thymis-controller-pi-3-sd-image = (nixpkgs.lib.nixosSystem {
         modules = [
           nixosModules.thymis-device
           nixosModules."thymis-device-raspberry-pi-3"
@@ -91,7 +91,7 @@
         };
       }).config.system.build.thymis-image-with-secrets-builder-aarch64;
 
-      thymis-controller-pi-4-sd-image = (inputs.nixos-raspberrypi.lib.nixosSystem {
+      thymis-controller-pi-4-sd-image = (nixpkgs.lib.nixosSystem {
         modules = [
           nixosModules.thymis-device
           nixosModules."thymis-device-raspberry-pi-4"
@@ -104,7 +104,7 @@
         };
       }).config.system.build.thymis-image-with-secrets-builder-aarch64;
 
-      thymis-controller-pi-5-sd-image = (inputs.nixos-raspberrypi.lib.nixosSystem {
+      thymis-controller-pi-5-sd-image = (nixpkgs.lib.nixosSystem {
         modules = [
           nixosModules.thymis-device
           nixosModules."thymis-device-raspberry-pi-5"
