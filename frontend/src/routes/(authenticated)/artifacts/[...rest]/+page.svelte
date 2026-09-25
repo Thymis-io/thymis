@@ -15,6 +15,7 @@
 	import Pen from 'lucide-svelte/icons/pen';
 	import type { ModuleSettings } from '$lib/state';
 	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import { formatBytes } from '$lib/format';
 
 	interface Props {
 		data: PageData;
@@ -63,13 +64,6 @@
 	const closeUploadModal = () => {
 		files = undefined;
 		showUploadModal = false;
-	};
-
-	const bytesToHumanReadable = (bytes: number): string => {
-		if (bytes < 1000) return `${bytes} B`;
-		if (bytes < 1000000) return `${(bytes / 1000).toFixed(2)} KB`;
-		if (bytes < 1000000000) return `${(bytes / 1000000).toFixed(2)} MB`;
-		return `${(bytes / 1000000000).toFixed(2)} GB`;
 	};
 
 	const isUnusedName = (artifact: Artifact | null, newName: string): boolean => {
@@ -251,7 +245,7 @@
 				</button>
 			</td>
 			<td>{artifact.media_type || $t('artifacts.table.unknown-type')}</td>
-			<td>{bytesToHumanReadable(artifact.size)}</td>
+			<td>{formatBytes(artifact.size, { system: 'si', decimals: 2 })}</td>
 			<td>
 				<div class="flex flex-row flex-wrap items-center gap-2">
 					{#each data.globalState.configs as config}

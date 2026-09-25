@@ -1,4 +1,5 @@
 import type { Config, Module, SelectOneSettingType, SettingType } from '$lib/state';
+import { formatBytes } from '$lib/format';
 
 export const isASelectOneSetting = (
 	type: SettingType | undefined
@@ -52,10 +53,6 @@ export const getConfigImageFormat = (config: Config | undefined) => {
 		(module) => module.type === 'thymis_controller.modules.thymis.ThymisDevice'
 	)?.settings['image_format'] as string | undefined;
 };
-export const formatRamSize = (ramBytes: number | null | undefined) => {
-	if (!ramBytes) return null;
-	const gb = ramBytes / 1000 ** 3;
-	if (gb >= 1) return `${Math.round(gb)}GB`;
-	const mb = ramBytes / 1000 ** 2;
-	return `${Math.round(mb)}MB`;
-};
+/** RAM amounts are quoted in decimal units, rounded to whole units. */
+export const formatRamSize = (ramBytes: number | null | undefined) =>
+	ramBytes ? formatBytes(ramBytes, { system: 'si', decimals: 0, space: false }) : null;

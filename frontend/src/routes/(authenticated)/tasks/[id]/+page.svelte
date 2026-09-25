@@ -16,6 +16,7 @@
 		type TransferDirection
 	} from '$lib/taskstatus';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
+	import { formatBytes } from '$lib/format';
 	import Section from '$lib/components/layout/Section.svelte';
 	import TaskbarName from '$lib/taskbar/TaskbarName.svelte';
 	import TaskbarStatus from '$lib/taskbar/TaskbarStatus.svelte';
@@ -40,18 +41,6 @@
 	const escapeForDoubleQuotes = (str: string) => str.replaceAll(/["`\\$]/g, '\\$&');
 	const needsDoubleQuotes = (str: string) =>
 		str !== escapeForDoubleQuotes(str) || str.includes(' ');
-
-	const formatBytes = (bytes: number) => {
-		const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
-		let value = bytes;
-		let unit = 0;
-		while (value >= 1024 && unit < units.length - 1) {
-			value /= 1024;
-			unit += 1;
-		}
-		const precision = value >= 100 ? 0 : value >= 10 ? 1 : 2;
-		return `${value.toFixed(precision)} ${units[unit]}`;
-	};
 
 	const transferLabels: Record<TransferDirection, string> = {
 		download: 'task-details.transfer-download',
