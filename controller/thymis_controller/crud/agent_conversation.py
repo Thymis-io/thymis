@@ -51,14 +51,19 @@ def get(
 
 
 def list_for_user(
-    db_session: Session, user_key: str
+    db_session: Session, user_key: str, query: str | None = None
 ) -> list[db_models.AgentConversation]:
-    return (
-        db_session.query(db_models.AgentConversation)
-        .filter_by(user_key=user_key)
-        .order_by(db_models.AgentConversation.updated_at.desc())
-        .all()
+    """List one user's conversations, newest first, optionally filtered by title."""
+    statement = db_session.query(db_models.AgentConversation).filter_by(
+        user_key=user_key
     )
+    if query:
+        # Escape LIKE wildcards so a literal % or _ in the query stays literal.
+        escaped = query.replace("\\", "\\\\").replace("%", r"\%").replace("_", r"\_")
+        statement = statement.filter(
+            db_models.AgentConversation.title.ilike(f"%{escaped}%", escape="\\")
+        )
+    return statement.order_by(db_models.AgentConversation.updated_at.desc()).all()
 
 
 def message_count(
@@ -119,6 +124,24 @@ def append_messages(
         )
     conversation.updated_at = timestamp
     db_session.commit()
+
+
+def delete_last_message(
+    db_session: Session, conversation: db_models.AgentConversation
+) -> bool:
+    """Drop the newest stored message, e.g. the reply being regenerated."""
+    last_message = (
+        db_session.query(db_models.AgentMessage)
+        .filter_by(conversation_id=conversation.id)
+        .order_by(db_models.AgentMessage.position.desc())
+        .first()
+    )
+    if last_message is None:
+        return False
+    db_session.delete(last_message)
+    conversation.updated_at = utcnow()
+    db_session.commit()
+    return True
 
 
 def rename(

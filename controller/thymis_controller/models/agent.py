@@ -1,7 +1,7 @@
 import datetime
 import uuid
 
-from pydantic import BaseModel, JsonValue
+from pydantic import BaseModel, Field, JsonValue, field_validator
 
 
 class AgentConversationSummary(BaseModel):
@@ -20,4 +20,22 @@ class AgentConversationDetail(AgentConversationSummary):
     messages: list[JsonValue]
 
 
-__all__ = ["AgentConversationDetail", "AgentConversationSummary"]
+class AgentConversationRename(BaseModel):
+    """A new title for one saved conversation."""
+
+    title: str = Field(min_length=1, max_length=120)
+
+    @field_validator("title")
+    @classmethod
+    def strip_title(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("A conversation title must not be blank")
+        return stripped
+
+
+__all__ = [
+    "AgentConversationDetail",
+    "AgentConversationRename",
+    "AgentConversationSummary",
+]

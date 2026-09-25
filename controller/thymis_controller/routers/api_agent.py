@@ -2,19 +2,22 @@
 
 from __future__ import annotations
 
+import datetime
 import json
 import logging
 import uuid
 from collections.abc import AsyncIterator
-from typing import Any
+from typing import Annotated, Any
 
 import httpx
-from fastapi import APIRouter, HTTPException, Request, Response, status
+from fastapi import APIRouter, HTTPException, Query, Request, Response, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 from thymis_controller.agent_runtime import (
+    ChatMessage,
     ChatRequest,
+    chat_message_from_ui_message,
     history_from_transcript,
     image_file_part_from_ui_message,
     stream_chat,
@@ -26,6 +29,7 @@ from thymis_controller.db_models import AgentConversation
 from thymis_controller.dependencies import DBSessionAD, EngineAD, UserIdentityAD
 from thymis_controller.models.agent import (
     AgentConversationDetail,
+    AgentConversationRename,
     AgentConversationSummary,
 )
 
@@ -87,14 +91,16 @@ def _detail(
 
 @router.get("/agent/conversations", response_model=list[AgentConversationSummary])
 def list_conversations(
-    db_session: DBSessionAD, user_identity: UserIdentityAD
+    db_session: DBSessionAD,
+    user_identity: UserIdentityAD,
+    q: Annotated[str | None, Query(max_length=120)] = None,
 ) -> list[AgentConversationSummary]:
     """List the signed-in operator's saved assistant conversations."""
 
     identity = _require_identity(user_identity)
     return [
         _summary(db_session, conversation)
-        for conversation in agent_conversation.list_for_user(db_session, identity)
+        for conversation in agent_conversation.list_for_user(db_session, identity, q)
     ]
 
 
@@ -123,6 +129,23 @@ def get_conversation(
 
     identity = _require_identity(user_identity)
     conversation = _conversation_or_404(db_session, identity, conversation_id)
+    return _detail(db_session, conversation)
+
+
+@router.patch(
+    "/agent/conversations/{conversation_id}", response_model=AgentConversationDetail
+)
+def rename_conversation(
+    conversation_id: uuid.UUID,
+    rename: AgentConversationRename,
+    db_session: DBSessionAD,
+    user_identity: UserIdentityAD,
+) -> AgentConversationDetail:
+    """Give one saved conversation a title of the operator's choosing."""
+
+    identity = _require_identity(user_identity)
+    conversation = _conversation_or_404(db_session, identity, conversation_id)
+    agent_conversation.rename(db_session, conversation, rename.title)
     return _detail(db_session, conversation)
 
 
@@ -162,6 +185,13 @@ def get_file(
 
 
 DEFAULT_ATTACHMENT_FILENAME = "vnc-screenshot.png"
+FILE_URL_PREFIX = "/api/agent/files/"
+
+
+def _utc_timestamp(moment: datetime.datetime | None = None) -> str:
+    """RFC 3339 UTC timestamp, which is what the browser parses as UTC."""
+    instant = moment or datetime.datetime.now(datetime.timezone.utc)
+    return instant.astimezone(datetime.timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def _attachment_filename(file_part: dict[str, Any] | None) -> str:
@@ -172,9 +202,38 @@ def _attachment_filename(file_part: dict[str, Any] | None) -> str:
     return DEFAULT_ATTACHMENT_FILENAME
 
 
+def _file_id_from_url(url: Any) -> uuid.UUID | None:
+    """Read a stored attachment id back out of the URL we handed to the browser."""
+    if not isinstance(url, str) or not url.startswith(FILE_URL_PREFIX):
+        return None
+    try:
+        return uuid.UUID(url.removeprefix(FILE_URL_PREFIX))
+    except ValueError:
+        return None
+
+
+def _stored_screenshot(
+    db_session: Session, user_identity: str, message: Any
+) -> bytes | None:
+    """Load the screenshot a stored user message attached, so a retry keeps it."""
+    if not isinstance(message, dict):
+        return None
+    for part in message.get("parts") or []:
+        file_id = _file_id_from_url(
+            (part or {}).get("url") if isinstance(part, dict) else None
+        )
+        if file_id is None:
+            continue
+        agent_file = agent_conversation.get_file(db_session, user_identity, file_id)
+        if agent_file is not None:
+            return agent_file.content
+    return None
+
+
 def _user_ui_message(
     message_id: str,
     content: str,
+    created_at: str,
     attachment_url: str | None = None,
     attachment_filename: str = DEFAULT_ATTACHMENT_FILENAME,
 ) -> dict[str, Any]:
@@ -193,13 +252,88 @@ def _user_ui_message(
                 "url": attachment_url,
             }
         )
-    return {"id": message_id, "role": "user", "parts": parts}
+    return {
+        "id": message_id,
+        "role": "user",
+        "parts": parts,
+        "metadata": {"createdAt": created_at},
+    }
 
 
 def _assistant_ui_message(
-    message_id: str, parts: list[dict[str, Any]]
+    message_id: str, parts: list[dict[str, Any]], created_at: str
 ) -> dict[str, Any]:
-    return {"id": message_id, "role": "assistant", "parts": parts}
+    return {
+        "id": message_id,
+        "role": "assistant",
+        "parts": parts,
+        "metadata": {"createdAt": created_at},
+    }
+
+
+def _prepare_submitted_turn(
+    db_session: Session,
+    conversation: AgentConversation,
+    prompt: ChatMessage,
+    file_part: dict[str, Any] | None,
+    turn_started: datetime.datetime,
+) -> list[Any]:
+    """Store the new user prompt and return the history that precedes it."""
+    history = agent_conversation.transcript(conversation)
+    if not history:
+        agent_conversation.rename(
+            db_session,
+            conversation,
+            agent_conversation.title_from_prompt(prompt.content),
+        )
+    attachment_url = None
+    if prompt.screenshot is not None:
+        stored_file = agent_conversation.create_file(
+            db_session,
+            conversation,
+            content=prompt.screenshot,
+            media_type="image/png",
+            filename=_attachment_filename(file_part),
+        )
+        attachment_url = f"{FILE_URL_PREFIX}{stored_file.id}"
+    agent_conversation.append_messages(
+        db_session,
+        conversation,
+        [
+            _user_ui_message(
+                str(uuid.uuid4()),
+                prompt.content,
+                _utc_timestamp(turn_started),
+                attachment_url,
+                _attachment_filename(file_part),
+            )
+        ],
+        now=turn_started.replace(tzinfo=None),
+    )
+    return history
+
+
+def _prepare_regenerated_turn(
+    db_session: Session,
+    user_identity: str,
+    conversation: AgentConversation,
+) -> tuple[ChatMessage, list[Any]]:
+    """Re-run the stored trailing prompt, after dropping the reply to replace."""
+    stored = agent_conversation.transcript(conversation)
+    if stored and stored[-1].get("role") == "assistant":
+        agent_conversation.delete_last_message(db_session, conversation)
+        stored = stored[:-1]
+    prompt = chat_message_from_ui_message(stored[-1]) if stored else None
+    if prompt is None or prompt.role != "user":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This conversation has no turn to regenerate",
+        )
+    # Re-attach a stored screenshot so the retried turn asks the same question.
+    screenshot = _stored_screenshot(db_session, user_identity, stored[-1])
+    if screenshot is not None:
+        prompt = ChatMessage(role="user", content=prompt.content, screenshot=screenshot)
+    return prompt, stored[:-1]
 
 
 class _TranscriptBuilder:
@@ -259,50 +393,44 @@ async def chat(
 
     identity = _require_identity(user_identity)
     prompt = chat_request.prompt
-    file_part = image_file_part_from_ui_message(chat_request.messages[-1])
-    attachment_filename = _attachment_filename(file_part)
+    turn_started = datetime.datetime.now(datetime.timezone.utc)
     with Session(engine) as db_session:
         conversation = _conversation_or_404(
             db_session, identity, chat_request.conversation_id
         )
-        history = agent_conversation.transcript(conversation)
-        if not history:
-            agent_conversation.rename(
-                db_session,
-                conversation,
-                agent_conversation.title_from_prompt(prompt.content),
+        if chat_request.regenerates:
+            prompt, history = _prepare_regenerated_turn(
+                db_session, identity, conversation
             )
-        attachment_url = None
-        if prompt.screenshot is not None:
-            stored_file = agent_conversation.create_file(
-                db_session,
-                conversation,
-                content=prompt.screenshot,
-                media_type="image/png",
-                filename=attachment_filename,
-            )
-            attachment_url = f"/api/agent/files/{stored_file.id}"
-        agent_conversation.append_messages(
-            db_session,
-            conversation,
-            [
-                _user_ui_message(
-                    str(uuid.uuid4()),
-                    prompt.content,
-                    attachment_url,
-                    attachment_filename,
+        else:
+            if prompt is None:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="The final chat message must be from the user",
                 )
-            ],
-        )
+            history = _prepare_submitted_turn(
+                db_session,
+                conversation,
+                prompt,
+                image_file_part_from_ui_message(chat_request.messages[-1]),
+                turn_started,
+            )
     messages = [*history_from_transcript(history), prompt]
 
     message_id = str(uuid.uuid4())
+    created_at = _utc_timestamp(turn_started)
     transcript = _TranscriptBuilder()
 
     async def event_stream() -> AsyncIterator[bytes]:
         text_part_id: str | None = None
         cookie = request.headers.get("cookie", "")
         yield _sse_event({"type": "start", "messageId": message_id})
+        yield _sse_event(
+            {
+                "type": "message-metadata",
+                "messageMetadata": {"createdAt": created_at},
+            }
+        )
         yield _sse_event({"type": "start-step"})
 
         try:
@@ -394,6 +522,7 @@ async def chat(
                 chat_request.conversation_id,
                 message_id,
                 transcript.parts,
+                created_at,
             )
         yield _sse_done()
 
@@ -414,6 +543,7 @@ def _store_assistant_message(
     conversation_id: uuid.UUID,
     message_id: str,
     parts: list[dict[str, Any]],
+    created_at: str,
 ) -> None:
     """Persist the assistant reply, including partial output after a failure."""
 
@@ -429,7 +559,7 @@ def _store_assistant_message(
             agent_conversation.append_messages(
                 db_session,
                 conversation,
-                [_assistant_ui_message(message_id, parts)],
+                [_assistant_ui_message(message_id, parts, created_at)],
             )
     except Exception:
         logger.exception("Could not persist the Thymis assistant reply")

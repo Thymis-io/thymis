@@ -140,6 +140,7 @@ def test_chat_endpoint_emits_an_ai_sdk_ui_message_stream(test_client, db_session
     events = stream_events(response)
     assert [event["type"] for event in events] == [
         "start",
+        "message-metadata",
         "start-step",
         "text-start",
         "text-delta",
@@ -192,7 +193,14 @@ def test_chat_persists_the_turn_as_replayable_ui_messages(test_client, db_sessio
 
     assert user_message["role"] == "user"
     assert user_message["parts"] == [{"type": "text", "text": "How is the fleet?"}]
-    assert assistant_message == {
+    assert (
+        user_message["metadata"]["createdAt"]
+        == assistant_message["metadata"]["createdAt"]
+    )
+    assert assistant_message["metadata"]["createdAt"].endswith("Z")
+    assert {
+        key: value for key, value in assistant_message.items() if key != "metadata"
+    } == {
         "id": assistant_id,
         "role": "assistant",
         "parts": [
@@ -352,6 +360,138 @@ def test_chat_replays_the_stored_transcript_as_model_history(test_client, db_ses
             ("user", "And now?"),
         ],
     ]
+
+
+def test_chat_regenerates_the_trailing_turn_without_duplicating_the_prompt(
+    test_client, db_session
+):
+    login(test_client, db_session, "operator@example.com")
+    conversation_id = open_conversation(test_client)
+    calls: list[list] = []
+
+    def record_stream_chat(messages, *_args, **_kwargs):
+        calls.append([(message.role, message.content) for message in messages])
+        return fake_stream_chat()
+
+    with (
+        mock.patch.object(global_settings, "AGENT_MODEL", "test-model"),
+        mock.patch.object(api_agent, "stream_chat", record_stream_chat),
+    ):
+        first = test_client.post("/api/agent/chat", json=chat_body(conversation_id))
+        assert first.status_code == 200
+        regenerated = test_client.post(
+            "/api/agent/chat",
+            json={
+                **chat_body(conversation_id),
+                "trigger": "regenerate-message",
+            },
+        )
+    assert regenerated.status_code == 200
+
+    # The retried turn sees the same prompt, and the replaced reply is not kept.
+    assert calls == [
+        [("user", "How is the fleet?")],
+        [("user", "How is the fleet?")],
+    ]
+    detail = test_client.get(f"/api/agent/conversations/{conversation_id}").json()
+    assert detail["message_count"] == 2
+    assert [message["role"] for message in detail["messages"]] == ["user", "assistant"]
+
+
+def test_chat_regenerates_the_stored_screenshot_of_the_trailing_turn(
+    test_client, db_session
+):
+    login(test_client, db_session, "operator@example.com")
+    conversation_id = open_conversation(test_client)
+    prompts: list[list] = []
+
+    def record_stream_chat(messages, *_args, **_kwargs):
+        prompts.append(messages)
+        return fake_stream_chat()
+
+    with (
+        mock.patch.object(global_settings, "AGENT_MODEL", "test-model"),
+        mock.patch.object(api_agent, "stream_chat", record_stream_chat),
+    ):
+        first = test_client.post(
+            "/api/agent/chat",
+            json={
+                "conversation_id": conversation_id,
+                "messages": [
+                    {
+                        "role": "user",
+                        "parts": [
+                            {"type": "text", "text": "What is visible?"},
+                            {
+                                "type": "file",
+                                "mediaType": "image/png",
+                                "filename": "vnc-device.png",
+                                "url": "data:image/png;base64,c2NyZWVuc2hvdA==",
+                            },
+                        ],
+                    }
+                ],
+            },
+        )
+        assert first.status_code == 200
+        regenerated = test_client.post(
+            "/api/agent/chat",
+            json={
+                "conversation_id": conversation_id,
+                "messages": [{"role": "assistant", "parts": []}],
+                "trigger": "regenerate-message",
+            },
+        )
+    assert regenerated.status_code == 200
+    # The retry re-attaches the stored screenshot instead of losing it.
+    assert prompts[1][-1].screenshot == b"screenshot"
+
+
+def test_chat_rejects_regenerating_an_empty_conversation(test_client, db_session):
+    login(test_client, db_session, "operator@example.com")
+    conversation_id = open_conversation(test_client)
+
+    with mock.patch.object(global_settings, "AGENT_MODEL", "test-model"):
+        response = test_client.post(
+            "/api/agent/chat",
+            json={
+                "conversation_id": conversation_id,
+                "messages": [{"role": "assistant", "parts": []}],
+                "trigger": "regenerate-message",
+            },
+        )
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "This conversation has no turn to regenerate"
+
+
+def test_conversations_can_be_renamed_and_searched(test_client, db_session):
+    login(test_client, db_session, "operator@example.com")
+    conversation_id = open_conversation(test_client)
+
+    renamed = test_client.patch(
+        f"/api/agent/conversations/{conversation_id}",
+        json={"title": "  Fleet triage  "},
+    )
+    assert renamed.status_code == 200
+    assert renamed.json()["title"] == "Fleet triage"
+
+    assert [
+        conversation["id"]
+        for conversation in test_client.get(
+            "/api/agent/conversations", params={"q": "triage"}
+        ).json()
+    ] == [conversation_id]
+    assert (
+        test_client.get("/api/agent/conversations", params={"q": "unrelated"}).json()
+        == []
+    )
+    assert (
+        test_client.patch(
+            f"/api/agent/conversations/{conversation_id}", json={"title": "   "}
+        ).status_code
+        == 422
+    )
 
 
 def test_chat_rejects_an_unknown_conversation(test_client, db_session):

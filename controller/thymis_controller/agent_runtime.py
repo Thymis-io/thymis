@@ -273,28 +273,41 @@ def history_from_transcript(transcript: list[Any]) -> list[ChatMessage]:
 
 
 class ChatRequest(BaseModel):
-    """One browser chat turn: the new prompt of a persisted conversation.
+    """One browser chat turn of a persisted conversation.
 
     The AI SDK UI transport always sends the whole message array it holds; only
-    the final entry is a new prompt, because the conversation history comes from
-    the controller database instead of the browser.
+    the final entry of a submitted turn is a new prompt, because the conversation
+    history comes from the controller database instead of the browser. A
+    regenerated turn re-runs the prompt that is already stored, so the array
+    carries no new prompt at all.
     """
 
     conversation_id: uuid.UUID
     messages: list[JsonValue] = Field(min_length=1, max_length=2_000)
+    trigger: Literal["submit-message", "regenerate-message"] = "submit-message"
 
     @model_validator(mode="after")
     def requires_final_user_message(self) -> ChatRequest:
-        if self.prompt.role != "user":
+        if self.regenerates:
+            return self
+        message = chat_message_from_ui_message(self.messages[-1])
+        if message is None:
+            raise ValueError("The final chat message must contain text")
+        if message.role != "user":
             raise ValueError("The final chat message must be from the user")
         return self
 
     @property
-    def prompt(self) -> ChatMessage:
-        """The new user prompt that ends this turn."""
+    def regenerates(self) -> bool:
+        """Whether this turn re-runs the stored trailing user prompt."""
+        return self.trigger == "regenerate-message"
+
+    @property
+    def prompt(self) -> ChatMessage | None:
+        """The new user prompt that ends a submitted turn."""
         message = chat_message_from_ui_message(self.messages[-1])
-        if message is None:
-            raise ValueError("The final chat message must contain text")
+        if message is None or message.role != "user":
+            return None
         return message
 
 
