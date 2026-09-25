@@ -3,7 +3,7 @@ import json
 import logging
 import re
 from enum import IntEnum
-from typing import Annotated, Any, Collection, List, Literal, Optional, Union
+from typing import Annotated, Any, List, Literal, Optional, Union
 
 from pydantic import BaseModel, Discriminator, Tag
 
@@ -127,12 +127,24 @@ class NixTransferStatus(BaseModel):
     failed: int
 
 
+# Directions a transfer can go: into the local store ("download") and out to a
+# remote store, i.e. the target device ("upload"). "other" collects transfers
+# nix does not label.
+TRANSFER_DIRECTIONS = ("download", "upload", "other")
+
+
+class NixTransferSummary(BaseModel):
+    download: Optional[NixTransferStatus] = None
+    upload: Optional[NixTransferStatus] = None
+    other: Optional[NixTransferStatus] = None
+
+
 class ParsedNixProcess(BaseModel):
     done: int
     expected: int
     running: int
     failed: int
-    transfer: NixTransferStatus
+    transfer: NixTransferSummary
     errors: list[ErrorInfoNixLine] = []
     logs_by_level: dict[int, list[str]] = {}
 
@@ -172,6 +184,44 @@ class ActivitiesDoneExpectedFailed:
     failed: int = 0
 
 
+def _is_local_store(store_uri: str) -> bool:
+    return store_uri.startswith("local://")
+
+
+def transfer_direction_of(start: StartActivityNixLine) -> Optional[str]:
+    """Which way the bytes of a transfer activity move.
+
+    nix describes a store path copy as [path, from, to] store URIs, and a raw
+    file download as [url] with a "downloading"/"uploading" text.
+    """
+    if start.type == ActivityType.COPY_PATH:
+        fields = start.fields or []
+        if len(fields) < 3:
+            return "other"
+        from_store, to_store = str(fields[1]), str(fields[2])
+        if not _is_local_store(to_store):
+            return "upload"
+        if not _is_local_store(from_store):
+            return "download"
+        return "other"
+    if start.type == ActivityType.FILE_TRANSFER:
+        text = start.text.lower()
+        if text.startswith("downloading"):
+            return "download"
+        if text.startswith("uploading"):
+            return "upload"
+        return "other"
+    return None
+
+
+@dataclasses.dataclass
+class TransferTotals:
+    done: int = 0
+    expected: int = 0
+    failed: int = 0
+    running: int = 0
+
+
 @dataclasses.dataclass
 class ActivityInfo:
     type: int
@@ -182,6 +232,7 @@ class ActivityInfo:
     phase: Optional[str] = None
     expected_by_type: dict[int, int] = dataclasses.field(default_factory=dict)
     last_line: Optional[str] = None
+    transfer_direction: Optional[str] = None
 
 
 class NixParser:
@@ -202,6 +253,9 @@ class NixParser:
         self.bytes_linked = 0
         self.corrupted_paths = 0
         self.untrusted_paths = 0
+
+        # type -> direction -> bytes of transfer activities that have stopped
+        self.finished_transfer_totals: dict[int, dict[str, TransferTotals]] = {}
 
         self.msg_output = ""
 
@@ -266,7 +320,8 @@ class NixParser:
 
         if isinstance(parsed.nix_line, StartActivityNixLine):
             self.activity_info_by_id[parsed.nix_line.id] = ActivityInfo(
-                parsed.nix_line.type
+                parsed.nix_line.type,
+                transfer_direction=transfer_direction_of(parsed.nix_line),
             )
             self.activities_done_expect_failed_by_type.setdefault(
                 parsed.nix_line.type, ActivitiesDoneExpectedFailed()
@@ -290,6 +345,14 @@ class NixParser:
             ]
             activity_by_type.done += activity_info.done
             activity_by_type.failed += activity_info.failed
+
+            if activity_info.transfer_direction is not None:
+                totals = self.finished_transfer_totals.setdefault(
+                    activity_info.type, {}
+                ).setdefault(activity_info.transfer_direction, TransferTotals())
+                totals.done += activity_info.done
+                totals.expected += max(activity_info.expected, activity_info.done)
+                totals.failed += activity_info.failed
 
             for type_, count in activity_info.expected_by_type.items():
                 self.activities_done_expect_failed_by_type[type_].expected -= count
@@ -362,16 +425,12 @@ class NixParser:
 
         return parsed
 
-    def calc_activities_done_expected_failed(
-        self, activity_types: Collection[int] | None = None
-    ):
+    def calc_activities_done_expected_failed(self):
         global_done = 0
         global_running = 0
         global_expected = 0
         global_failed = 0
-        for type_, activities in self.activities_done_expect_failed_by_type.items():
-            if activity_types is not None and type_ not in activity_types:
-                continue
+        for activities in self.activities_done_expect_failed_by_type.values():
             done = activities.done
             excepted = activities.done
             running = 0
@@ -387,7 +446,7 @@ class NixParser:
             global_failed += failed
         return global_done, global_expected, global_running, global_failed
 
-    def calc_transfer_status(self) -> NixTransferStatus:
+    def calc_transfer_status(self) -> NixTransferSummary:
         # nix nests the file downloads (FILE_TRANSFER) that move a store path's
         # bytes inside the COPY_PATH activity for that path, and reports both in
         # bytes. Counting both would double count them, so prefer COPY_PATH and
@@ -405,27 +464,63 @@ class NixParser:
             if type_ in self.activities_done_expect_failed_by_type
         ]
 
-        done, expected, _, failed = self.calc_activities_done_expected_failed(
-            activity_types
-        )
+        totals: dict[str, TransferTotals] = {
+            direction: TransferTotals() for direction in TRANSFER_DIRECTIONS
+        }
+
+        for type_ in activity_types:
+            for direction, finished in self.finished_transfer_totals.get(
+                type_, {}
+            ).items():
+                totals[direction].done += finished.done
+                totals[direction].expected += finished.expected
+                totals[direction].failed += finished.failed
+
+        for activities in activities_by_type:
+            for activity in activities.activity_info_by_id.values():
+                if activity.transfer_direction is None:
+                    continue
+                # nix never fills in the `running` field of transfer progress,
+                # so every transfer activity that has not stopped yet is one
+                # transfer in flight.
+                totals[activity.transfer_direction].done += activity.done
+                totals[activity.transfer_direction].expected += max(
+                    activity.expected, activity.done
+                )
+                totals[activity.transfer_direction].running += 1
+                totals[activity.transfer_direction].failed += activity.failed
 
         # A copy batch announces the total number of bytes it is going to
         # transfer via SET_EXPECTED. Using that as the denominator keeps a
         # multi-path copy at one smooth 0-100% instead of restarting at every
-        # path boundary.
+        # path boundary. nix does not say which direction the batch moves, but a
+        # batch only has one, so it can be attributed once it is known.
         declared = sum(activities.expected for activities in activities_by_type)
+        transferring = [
+            d
+            for d in TRANSFER_DIRECTIONS
+            if totals[d].done > 0 or totals[d].expected > 0 or totals[d].running > 0
+        ]
+        if len(transferring) == 1:
+            direction = transferring[0]
+            totals[direction].expected = max(
+                totals[direction].expected, declared, totals[direction].done
+            )
 
-        # nix never fills in the `running` field of transfer progress, so count
-        # the transfer activities that have not stopped yet.
-        running = sum(
-            len(activities.activity_info_by_id) for activities in activities_by_type
-        )
-
-        return NixTransferStatus(
-            done=done,
-            expected=max(expected, declared, done),
-            running=running,
-            failed=failed,
+        return NixTransferSummary(
+            **{
+                direction: NixTransferStatus(
+                    done=totals[direction].done,
+                    expected=totals[direction].expected,
+                    running=totals[direction].running,
+                    failed=totals[direction].failed,
+                )
+                for direction in TRANSFER_DIRECTIONS
+                if totals[direction].done > 0
+                or totals[direction].expected > 0
+                or totals[direction].running > 0
+                or totals[direction].failed > 0
+            }
         )
 
     def get_model(self) -> ParsedNixProcess:

@@ -9,10 +9,11 @@
 		subscribeTask,
 		cancelTask,
 		retryTask,
+		aggregateTransfers,
 		type Task,
 		type TaskShort,
 		type TaskProcess,
-		type NixTransferStatus
+		type TransferDirection
 	} from '$lib/taskstatus';
 	import PageHead from '$lib/components/layout/PageHead.svelte';
 	import Section from '$lib/components/layout/Section.svelte';
@@ -23,6 +24,9 @@
 	import AlertTriangle from 'lucide-svelte/icons/triangle-alert';
 	import Repeat from 'lucide-svelte/icons/repeat';
 	import X from 'lucide-svelte/icons/x';
+	import IconDownload from 'lucide-svelte/icons/download';
+	import IconUpload from 'lucide-svelte/icons/upload';
+	import IconTransfer from 'lucide-svelte/icons/arrow-left-right';
 
 	interface Props {
 		data: PageData;
@@ -49,12 +53,17 @@
 		return `${value.toFixed(precision)} ${units[unit]}`;
 	};
 
-	const hasTransferStats = (transfer: NixTransferStatus | undefined) =>
-		!!transfer &&
-		(transfer.done > 0 || transfer.expected > 0 || transfer.running > 0 || transfer.failed > 0);
+	const transferLabels: Record<TransferDirection, string> = {
+		download: 'task-details.transfer-download',
+		upload: 'task-details.transfer-upload',
+		other: 'task-details.transfer'
+	};
 
-	const transferPercentage = (transfer: NixTransferStatus) =>
-		transfer.expected > 0 ? Math.min(100, (transfer.done / transfer.expected) * 100) : 0;
+	const transferIcons = {
+		download: IconDownload,
+		upload: IconUpload,
+		other: IconTransfer
+	};
 
 	const buildCommand = (process: TaskProcess) => {
 		if (!process.process_program || !process.process_args) return null;
@@ -77,8 +86,7 @@
 			process.nix_error_logs?.length ||
 			process.nix_warning_logs?.length ||
 			process.nix_notice_logs?.length ||
-			process.nix_info_logs?.length ||
-			hasTransferStats(process.nix_status?.transfer)
+			process.nix_info_logs?.length
 		);
 
 	let copiedId = $state(false);
@@ -97,6 +105,8 @@
 			: 0
 	);
 
+	let transfers = $derived(aggregateTransfers(task?.processes));
+
 	$effect(() => {
 		subscribeTask(data.task_id);
 	});
@@ -111,7 +121,6 @@
 
 {#snippet processContent(process: TaskProcess)}
 	{@const command = buildCommand(process)}
-	{@const transfer = process.nix_status?.transfer}
 	<div class="flex flex-col gap-4">
 		<div>
 			<h4 class="log-label">{$t('task-details.command')}</h4>
@@ -121,44 +130,6 @@
 				<p class="muted-note">{$t('task-details.no-command')}</p>
 			{/if}
 		</div>
-		{#if transfer && hasTransferStats(transfer)}
-			{@const percent = transferPercentage(transfer)}
-			<div class="transfer-stats">
-				<div class="transfer-header">
-					<h4 class="log-label">{$t('task-details.transfer')}</h4>
-					<span class="transfer-size">
-						{formatBytes(transfer.done)}
-						<span class="transfer-size-sep">/</span>
-						{formatBytes(transfer.expected)}
-						<span class="transfer-percent">{Math.round(percent)}%</span>
-					</span>
-				</div>
-				<div
-					class="transfer-progress"
-					role="progressbar"
-					aria-label={$t('task-details.transfer')}
-					aria-valuemin="0"
-					aria-valuemax="100"
-					aria-valuenow={Math.round(percent)}
-				>
-					<span style="width: {percent}%"></span>
-				</div>
-				{#if transfer.running > 0 || transfer.failed > 0}
-					<div class="transfer-meta">
-						{#if transfer.running > 0}
-							<span
-								>{$t('task-details.transfer-active', { values: { count: transfer.running } })}</span
-							>
-						{/if}
-						{#if transfer.failed > 0}
-							<span class="transfer-failed"
-								>{$t('task-details.transfer-failed', { values: { count: transfer.failed } })}</span
-							>
-						{/if}
-					</div>
-				{/if}
-			</div>
-		{/if}
 
 		{#if process.nix_errors && process.nix_errors.length > 0}
 			{@render logBlock(
@@ -306,6 +277,60 @@
 			</Section>
 		{/if}
 
+		{#if transfers.length > 0}
+			<Section title={$t('task-details.transfers')}>
+				<div class="transfers">
+					{#each transfers as transfer (transfer.direction)}
+						{@const Icon = transferIcons[transfer.direction]}
+						{@const percent =
+							transfer.expected > 0 ? Math.min(100, (transfer.done / transfer.expected) * 100) : 0}
+						<div class="transfer">
+							<div class="transfer-head">
+								<span class="transfer-label">
+									<Icon size={15} />
+									{$t(transferLabels[transfer.direction])}
+								</span>
+								<span class="transfer-size">
+									{formatBytes(transfer.done)}
+									<span class="transfer-size-sep">/</span>
+									{formatBytes(transfer.expected)}
+									<span class="transfer-percent">{Math.round(percent)}%</span>
+								</span>
+							</div>
+							<div
+								class="transfer-progress"
+								role="progressbar"
+								aria-label={$t(transferLabels[transfer.direction])}
+								aria-valuemin="0"
+								aria-valuemax="100"
+								aria-valuenow={Math.round(percent)}
+							>
+								<span style="width: {percent}%"></span>
+							</div>
+							{#if transfer.running > 0 || transfer.failed > 0}
+								<div class="transfer-meta">
+									{#if transfer.running > 0}
+										<span
+											>{$t('task-details.transfer-active', {
+												values: { count: transfer.running }
+											})}</span
+										>
+									{/if}
+									{#if transfer.failed > 0}
+										<span class="transfer-failed"
+											>{$t('task-details.transfer-failed', {
+												values: { count: transfer.failed }
+											})}</span
+										>
+									{/if}
+								</div>
+							{/if}
+						</div>
+					{/each}
+				</div>
+			</Section>
+		{/if}
+
 		<Section title={$t('task-details.submission-data')}>
 			<MonospaceText
 				code={JSON.stringify(task.task_submission_data || task.task_submission_data_raw, null, 2)}
@@ -356,20 +381,26 @@
 		font-size: 13px;
 		color: var(--ds-text-mute);
 	}
-	.transfer-stats {
-		padding: 10px 12px;
-		border: 1px solid var(--ds-border);
-		border-radius: var(--ds-radius);
-		background: var(--ds-surface-3);
+	.transfers {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
 	}
-	.transfer-header {
+	.transfer-head {
 		display: flex;
 		align-items: baseline;
 		justify-content: space-between;
 		gap: 12px;
 	}
-	.transfer-header .log-label {
-		margin-bottom: 0;
+	.transfer-label {
+		display: inline-flex;
+		align-items: center;
+		gap: 7px;
+		font-size: 12px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--ds-text-dim);
 	}
 	.transfer-size {
 		font-size: 13px;
