@@ -38,11 +38,11 @@
 		str !== escapeForDoubleQuotes(str) || str.includes(' ');
 
 	const formatBytes = (bytes: number) => {
-		const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+		const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
 		let value = bytes;
 		let unit = 0;
-		while (value >= 1000 && unit < units.length - 1) {
-			value /= 1000;
+		while (value >= 1024 && unit < units.length - 1) {
+			value /= 1024;
 			unit += 1;
 		}
 		const precision = value >= 100 ? 0 : value >= 10 ? 1 : 2;
@@ -121,25 +121,29 @@
 				<p class="muted-note">{$t('task-details.no-command')}</p>
 			{/if}
 		</div>
-		{#if transfer}
-			{#if hasTransferStats(transfer)}
-				<div class="transfer-stats">
-					<div class="transfer-header">
-						<h4 class="log-label">{$t('task-details.transfer')}</h4>
-						<span class="transfer-size">
-							{formatBytes(transfer.done)} / {formatBytes(transfer.expected)}
-						</span>
-					</div>
-					<div
-						class="transfer-progress"
-						role="progressbar"
-						aria-label={$t('task-details.transfer')}
-						aria-valuemin="0"
-						aria-valuemax="100"
-						aria-valuenow={Math.round(transferPercentage(transfer))}
-					>
-						<span style="width: {transferPercentage(transfer)}%"></span>
-					</div>
+		{#if transfer && hasTransferStats(transfer)}
+			{@const percent = transferPercentage(transfer)}
+			<div class="transfer-stats">
+				<div class="transfer-header">
+					<h4 class="log-label">{$t('task-details.transfer')}</h4>
+					<span class="transfer-size">
+						{formatBytes(transfer.done)}
+						<span class="transfer-size-sep">/</span>
+						{formatBytes(transfer.expected)}
+						<span class="transfer-percent">{Math.round(percent)}%</span>
+					</span>
+				</div>
+				<div
+					class="transfer-progress"
+					role="progressbar"
+					aria-label={$t('task-details.transfer')}
+					aria-valuemin="0"
+					aria-valuemax="100"
+					aria-valuenow={Math.round(percent)}
+				>
+					<span style="width: {percent}%"></span>
+				</div>
+				{#if transfer.running > 0 || transfer.failed > 0}
 					<div class="transfer-meta">
 						{#if transfer.running > 0}
 							<span
@@ -152,8 +156,8 @@
 							>
 						{/if}
 					</div>
-				</div>
-			{/if}
+				{/if}
+			</div>
 		{/if}
 
 		{#if process.nix_errors && process.nix_errors.length > 0}
@@ -355,8 +359,8 @@
 	.transfer-stats {
 		padding: 10px 12px;
 		border: 1px solid var(--ds-border);
-		border-radius: 6px;
-		background: var(--ds-surface-1);
+		border-radius: var(--ds-radius);
+		background: var(--ds-surface-3);
 	}
 	.transfer-header {
 		display: flex;
@@ -364,10 +368,24 @@
 		justify-content: space-between;
 		gap: 12px;
 	}
+	.transfer-header .log-label {
+		margin-bottom: 0;
+	}
 	.transfer-size {
 		font-size: 13px;
 		font-variant-numeric: tabular-nums;
 		color: var(--ds-text);
+		white-space: nowrap;
+	}
+	.transfer-size-sep {
+		color: var(--ds-text-mute);
+		margin: 0 1px;
+	}
+	.transfer-percent {
+		margin-left: 8px;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--ds-text-dim);
 	}
 	.transfer-progress {
 		height: 6px;

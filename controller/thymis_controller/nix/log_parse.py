@@ -3,7 +3,7 @@ import json
 import logging
 import re
 from enum import IntEnum
-from typing import Annotated, Any, List, Literal, Optional, Union
+from typing import Annotated, Any, Collection, List, Literal, Optional, Union
 
 from pydantic import BaseModel, Discriminator, Tag
 
@@ -362,13 +362,15 @@ class NixParser:
 
         return parsed
 
-    def calc_activities_done_expected_failed(self, activity_type: int | None = None):
+    def calc_activities_done_expected_failed(
+        self, activity_types: Collection[int] | None = None
+    ):
         global_done = 0
         global_running = 0
         global_expected = 0
         global_failed = 0
         for type_, activities in self.activities_done_expect_failed_by_type.items():
-            if activity_type is not None and type_ != activity_type:
+            if activity_types is not None and type_ not in activity_types:
                 continue
             done = activities.done
             excepted = activities.done
@@ -385,6 +387,47 @@ class NixParser:
             global_failed += failed
         return global_done, global_expected, global_running, global_failed
 
+    def calc_transfer_status(self) -> NixTransferStatus:
+        # nix nests the file downloads (FILE_TRANSFER) that move a store path's
+        # bytes inside the COPY_PATH activity for that path, and reports both in
+        # bytes. Counting both would double count them, so prefer COPY_PATH and
+        # only fall back to bare FILE_TRANSFER activities — HTTP fetches that are
+        # not part of a store path copy, e.g. cache metadata — if no copy path
+        # was tracked. COPY_PATH covers both directions: downloading a path from
+        # a cache and copying a path to another store such as the target device.
+        activity_types: tuple[int, ...] = (ActivityType.COPY_PATH,)
+        if ActivityType.COPY_PATH not in self.activities_done_expect_failed_by_type:
+            activity_types = (ActivityType.FILE_TRANSFER,)
+
+        activities_by_type = [
+            self.activities_done_expect_failed_by_type[type_]
+            for type_ in activity_types
+            if type_ in self.activities_done_expect_failed_by_type
+        ]
+
+        done, expected, _, failed = self.calc_activities_done_expected_failed(
+            activity_types
+        )
+
+        # A copy batch announces the total number of bytes it is going to
+        # transfer via SET_EXPECTED. Using that as the denominator keeps a
+        # multi-path copy at one smooth 0-100% instead of restarting at every
+        # path boundary.
+        declared = sum(activities.expected for activities in activities_by_type)
+
+        # nix never fills in the `running` field of transfer progress, so count
+        # the transfer activities that have not stopped yet.
+        running = sum(
+            len(activities.activity_info_by_id) for activities in activities_by_type
+        )
+
+        return NixTransferStatus(
+            done=done,
+            expected=max(expected, declared, done),
+            running=running,
+            failed=failed,
+        )
+
     def get_model(self) -> ParsedNixProcess:
         (
             global_done,
@@ -392,24 +435,14 @@ class NixParser:
             global_running,
             global_failed,
         ) = self.calc_activities_done_expected_failed()
-        (
-            transfer_done,
-            transfer_expected,
-            transfer_running,
-            transfer_failed,
-        ) = self.calc_activities_done_expected_failed(ActivityType.FILE_TRANSFER)
+        transfer = self.calc_transfer_status()
 
         return ParsedNixProcess(
             done=global_done,
             expected=global_expected,
             running=global_running,
             failed=global_failed,
-            transfer=NixTransferStatus(
-                done=transfer_done,
-                expected=transfer_expected,
-                running=transfer_running,
-                failed=transfer_failed,
-            ),
+            transfer=transfer,
             errors=self.errors,
             logs_by_level={
                 0: self.error_logs,

@@ -30,6 +30,7 @@ Thymis provides a **task system** to track long-running operations such as build
 Opening a task shows more information such as:
 - Submission Data: all information used to process the task
 - Process: the command that was executed and its arguments
+- Transfer: bytes downloaded from a cache or copied to the target device, with a progress bar
 - Nix Infos, Warnings, Errors: parsed Nix output, separated by log level
 - Standard output: logs generated during execution
 - Standard error: warnings and error messages from the process
