@@ -377,6 +377,16 @@ def deploy_device_task(
         # activation that would clean them up, so the switch dies with ENOSPC.
         # Removing them here also stops a stale cmdline.txt from shadowing the
         # new boot path on the next boot.
+        cleanup_hostfile_path = f"{tmpdir}/cleanup_known_hosts"
+        with open(cleanup_hostfile_path, "w", encoding="utf-8") as cleanup_hostfile:
+            cleanup_hostfile.write(
+                f"127.0.0.1 {task_data.device.deployment_public_key}\n"
+            )
+            cleanup_hostfile.write(
+                f"localhost {task_data.device.deployment_public_key}\n"
+            )
+            cleanup_hostfile.flush()
+
         cleanup_returncode = run_command(
             task,
             conn,
@@ -386,7 +396,7 @@ def deploy_device_task(
                 "-i",
                 task_data.ssh_key_path,
                 "-o",
-                f"UserKnownHostsFile={task_data.known_hosts_path}",
+                f"UserKnownHostsFile={cleanup_hostfile_path}",
                 "-o",
                 "StrictHostKeyChecking=yes",
                 "-o",
