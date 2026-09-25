@@ -216,6 +216,7 @@ class OCIContainers(modules.Module):
         ),
         example=None,
         order=10,
+        priority_overridable=True,
     )
 
     def write_nix(
@@ -230,5 +231,12 @@ class OCIContainers(modules.Module):
         with open(path / filename, "w+") as f:
             template = template_env.get_template("oci_container.nix.j2")
 
-            rt = template.render({**module_settings.settings, "priority": priority})
+            rt = template.render(
+                {
+                    **module_settings.settings,
+                    "priority": module_settings.setting_priority(
+                        "containers", priority
+                    ),
+                }
+            )
             f.write(rt)

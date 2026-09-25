@@ -483,6 +483,8 @@
 		"noOtherDefinitions": "No other definitions",
 		"overwrittenBy": "Overwritten by:",
 		"priority": "Priority {priority}",
+		"priorityOverride": "Field priority override",
+		"priorityOverrideHint": "Lower numbers win. Empty inherits {priority}.",
 		"editDisabled": "Editing disabled",
 		"no-settings": "No settings found for this module",
 		"timer-type": "Timer Type",

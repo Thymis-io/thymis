@@ -6,7 +6,17 @@ export type ModuleSettings = {
 	settings: {
 		[key: string]: unknown;
 	};
+	/** Per-setting priority overrides, keyed by setting name (lower wins). */
+	priorities?: {
+		[key: string]: number;
+	};
 };
+
+/**
+ * Priority used for module settings defined directly on a configuration (device).
+ * Mirrors HOST_PRIORITY in controller/thymis_controller/lib.py.
+ */
+export const HOST_PRIORITY = 80;
 
 export type Origin = {
 	originId: string;
@@ -18,6 +28,10 @@ export type ModuleSettingsWithOrigin = {
 	type: string;
 	settings: {
 		[key: string]: unknown;
+	};
+	/** Per-setting priority overrides of this definition (lower wins). */
+	priorities?: {
+		[key: string]: number;
 	};
 	originId: string;
 	originContext: string;
@@ -102,6 +116,8 @@ export type Setting<T extends SettingType = SettingType> = {
 	default?: unknown | null;
 	example?: string | null;
 	order?: number;
+	/** Whether this setting's nix definitions honour a per-setting priority override. */
+	priorityOverridable?: boolean;
 };
 
 export type Module = {

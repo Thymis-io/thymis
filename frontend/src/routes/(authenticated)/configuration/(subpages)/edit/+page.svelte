@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import ModuleList from '$lib/config/ModuleList.svelte';
-	import { getTagByIdentifier } from '$lib/state';
+	import { getTagByIdentifier, HOST_PRIORITY } from '$lib/state';
 	import type { ModuleSettingsWithOrigin, Tag, Config, Module, Origin, Setting } from '$lib/state';
 	import type { PageData } from './$types';
 	import ModuleCard from '$lib/config/ModuleCard.svelte';
@@ -41,7 +41,12 @@
 	};
 
 	const getOwnModuleSettings = (target: Tag | Config | undefined): ModuleSettingsWithOrigin[] => {
-		return target?.modules.map((m) => ({ ...getOrigin(target), priority: undefined, ...m })) ?? [];
+		if (!target) {
+			return [];
+		}
+		// configurations are applied at HOST_PRIORITY, tags at their own priority
+		const priority = 'priority' in target ? target.priority : HOST_PRIORITY;
+		return target.modules.map((m) => ({ ...getOrigin(target), priority, ...m }));
 	};
 
 	const getSelfModules = (selectedTarget: Tag | Config | undefined) => {

@@ -408,6 +408,8 @@
 		"overwrittenBy": "Überschrieben durch:",
 		"passed": "Diese Definition wird an das Gerät übergeben",
 		"priority": "Priorität {priority}",
+		"priorityOverride": "Priorität dieses Feldes überschreiben",
+		"priorityOverrideHint": "Kleinere Zahlen gewinnen. Leer erbt {priority}.",
 		"remove-element": "{element} entfernen",
 		"no-settings": "Für dieses Modul wurden keine Einstellungen gefunden",
 		"timer-type": "Zeitgeber-Typ",

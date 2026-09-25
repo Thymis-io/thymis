@@ -105,7 +105,9 @@ def get_config_device_name(config: Config | None, state: State | None = None) ->
         if "ThymisDevice" in ms.type:
             val = ms.settings.get("device_name", "") or ""
             if val:
-                candidates.append((HOST_PRIORITY, val))
+                candidates.append(
+                    (ms.setting_priority("device_name", HOST_PRIORITY), val)
+                )
 
     if state is not None:
         for tag in state.tags:
@@ -114,7 +116,9 @@ def get_config_device_name(config: Config | None, state: State | None = None) ->
                     if "ThymisDevice" in ms.type:
                         val = ms.settings.get("device_name", "") or ""
                         if val:
-                            candidates.append((tag.priority, val))
+                            candidates.append(
+                                (ms.setting_priority("device_name", tag.priority), val)
+                            )
 
     if not candidates:
         return ""

@@ -74,6 +74,10 @@ class Setting(BaseModel):
     default: Optional[JsonValue] = None
     example: Optional[str] = None
     order: int = 0
+    # Whether the UI can offer a per-setting priority override for this
+    # setting, i.e. whether the module emits this setting's nix definitions
+    # with its own lib.mkOverride.
+    priorityOverridable: bool = False
 
 
 class Module(BaseModel):
