@@ -8,19 +8,24 @@ import {
 } from '$lib/state';
 
 /**
+ * Priority a definition inherits from its tag/configuration, ignoring per-setting
+ * overrides. Configurations use HOST_PRIORITY.
+ */
+export const inheritedSettingPriority = (
+	definition: ModuleSettingsWithOrigin | undefined
+): number | undefined => (definition ? (definition.priority ?? HOST_PRIORITY) : undefined);
+
+/**
  * Priority a definition is emitted with for a given setting: the per-setting
- * override if present, else the priority of the tag/config the definition
- * belongs to (configurations use HOST_PRIORITY).
+ * override if present, else the priority inherited from its tag/configuration.
  *
  * NixOS module semantics: the lowest priority number wins.
  */
 export const effectiveSettingPriority = (
 	definition: ModuleSettingsWithOrigin | undefined,
 	settingKey: string
-): number | undefined => {
-	if (!definition) return undefined;
-	return definition.priorities?.[settingKey] ?? definition.priority ?? HOST_PRIORITY;
-};
+): number | undefined =>
+	definition?.priorities?.[settingKey] ?? inheritedSettingPriority(definition);
 
 export const isASelectOneSetting = (
 	type: SettingType | undefined

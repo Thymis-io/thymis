@@ -11,7 +11,7 @@
 	import Paste from 'lucide-svelte/icons/clipboard-copy';
 	import DefinitionLine from './DefinitionLine.svelte';
 	import ConfigRenderer from './ConfigRenderer.svelte';
-	import { effectiveSettingPriority } from './configUtils';
+	import { effectiveSettingPriority, inheritedSettingPriority } from './configUtils';
 	import ModuleIcon from './ModuleIcon.svelte';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
 	import type { GlobalState } from '$lib/state.svelte';
@@ -256,13 +256,13 @@
 											step="1"
 											min="1"
 											class="ds-input ds-priority-input"
-											placeholder={String(effectiveSettingPriority(settings, key) ?? '')}
+											placeholder={String(inheritedSettingPriority(settings) ?? '')}
 											value={globalState.selectedModuleSettings?.priorities?.[key] ?? ''}
 											onchange={(e) => setSettingPriority(key, e.currentTarget.value)}
 										/>
 										<P size="sm" class="whitespace-pre-line">
 											{$t('config.priorityOverrideHint', {
-												values: { priority: effectiveSettingPriority(settings, key) }
+												values: { priority: inheritedSettingPriority(settings) }
 											})}
 										</P>
 									</div>
