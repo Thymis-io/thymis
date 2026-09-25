@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { effectiveSettingPriority } from './configUtils';
+import { effectiveSettingPriority, inheritedSettingPriority } from './configUtils';
 import { HOST_PRIORITY, type ModuleSettingsWithOrigin } from '$lib/state';
 
 const definition = (
@@ -45,5 +45,16 @@ describe('effectiveSettingPriority', () => {
 
 	it('returns undefined for a missing definition', () => {
 		expect(effectiveSettingPriority(undefined, 'timezone')).toBeUndefined();
+	});
+});
+
+describe('inheritedSettingPriority', () => {
+	it('ignores per-setting overrides', () => {
+		expect(inheritedSettingPriority(definition({ priorities: { timezone: 70 } }))).toBe(90);
+	});
+
+	it('falls back to the host priority and handles missing definitions', () => {
+		expect(inheritedSettingPriority(definition({ priority: undefined }))).toBe(HOST_PRIORITY);
+		expect(inheritedSettingPriority(undefined)).toBeUndefined();
 	});
 });
