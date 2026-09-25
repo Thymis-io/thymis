@@ -412,7 +412,7 @@ def deploy_device_task(
         if cleanup_returncode != 0:
             # best effort: the files only exist on devices flashed with the old
             # layout, and a failure here must not block the deploy
-            logger.warning("Legacy firmware cleanup returned %s", cleanup_returncode)
+            print(f"Legacy firmware cleanup returned {cleanup_returncode}")
 
         # send message to agent on device that it should switch to the new configuration
         conn.send(
