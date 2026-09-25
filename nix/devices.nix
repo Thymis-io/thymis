@@ -7,12 +7,15 @@ let
   # which is the layout these boards have always booted. u-boot + extlinux did
   # not come up on a Pi 4B (the boot never reached userspace).
   #
-  # configurationLimit keeps the firmware partition small enough for devices
-  # flashed with the previous raspberry-pi-nix layout, whose FIRMWARE partition
-  # is only 128 MiB; raise it on devices with the 1 GiB partition.
+  # configurationLimit counts *additional* generations on the firmware
+  # partition (the default one is always kept), and each costs a kernel +
+  # initrd (~64 MiB) plus a temporary copy while it is installed. Devices
+  # flashed with the previous raspberry-pi-nix layout only have 128 MiB there,
+  # so keep just the default generation; raise it on devices with the 1 GiB
+  # partition that new images use.
   rpiBootloader = {
     boot.loader.raspberry-pi.bootloader = lib.mkForce "kernel";
-    boot.loader.raspberry-pi.configurationLimit = lib.mkDefault 1;
+    boot.loader.raspberry-pi.configurationLimit = lib.mkDefault 0;
   };
   # raspberry-pi-nix kept kernel.img/initrd on the firmware partition and passed
   # init=/sbin/init through cmdline.txt. The Raspberry Pi firmware still reads
