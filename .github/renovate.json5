@@ -30,7 +30,8 @@
       "matchUpdateTypes": ["minor", "patch"]
     },
     {
-      "matchPackageNames": ["/@playwright\/test/", "/flowbite/"],
+      "description": "Keep versions pinned to what the pinned nixpkgs / toolchain supports: @playwright/test must match playwright-driver browsers from nixpkgs, cookie v2 removed the `parse`/`serialize` exports that @sveltejs/kit still imports, and flowbite is intentionally not updated",
+      "matchPackageNames": ["/@playwright\/test/", "/flowbite/", "cookie"],
       "matchManagers": ["npm"],
       "enabled": false
     }

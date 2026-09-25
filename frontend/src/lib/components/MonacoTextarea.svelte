@@ -1,7 +1,7 @@
 <script lang="ts">
 	// another approach? github.com/sonyarianto/sveltekit-monaco-editor/blob/main/src/routes/%2Bpage.svelte
 	import { onDestroy, onMount } from 'svelte';
-	import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
+	import type * as Monaco from 'monaco-editor/editor/editor.api';
 	import { nixLanguage, nixLanguageConfiguration } from './monaconix';
 
 	let editor: Monaco.editor.IStandaloneCodeEditor;
