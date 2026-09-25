@@ -1,23 +1,36 @@
 import json
+import uuid
 from unittest import mock
 
 from thymis_controller.config import global_settings
+from thymis_controller.crud import web_session
 from thymis_controller.routers import api_agent
 
 
-def test_chat_endpoint_requires_an_agent_model(test_client):
-    with mock.patch.object(global_settings, "AGENT_MODEL", None):
-        response = test_client.post(
-            "/api/agent/chat",
-            json={"messages": [{"role": "user", "content": "How is the fleet?"}]},
-        )
-
-    assert response.status_code == 503
-    assert response.json()["detail"].startswith("Assistant is not configured")
+def login(test_client, db_session, email: str) -> None:
+    """Create a real web session row and sign the test client in as that user."""
+    session = web_session.create(db_session, username=email.split("@")[0], email=email)
+    test_client.cookies.clear()
+    test_client.cookies.update(
+        {"session-id": str(session.id), "session-token": session.session_token}
+    )
 
 
-def test_chat_endpoint_emits_an_ai_sdk_ui_message_stream(test_client):
-    async def fake_stream_chat(*_args):
+def open_conversation(test_client) -> str:
+    response = test_client.post("/api/agent/conversations")
+    assert response.status_code == 201, response.text
+    return response.json()["id"]
+
+
+def chat_body(conversation_id: str, prompt: str = "How is the fleet?") -> dict:
+    return {
+        "conversation_id": conversation_id,
+        "messages": [{"role": "user", "content": prompt}],
+    }
+
+
+def fake_stream_chat(*_args, **_kwargs):
+    async def events():
         yield {"type": "text_delta", "text": "Fleet "}
         yield {
             "type": "tool_call",
@@ -41,22 +54,89 @@ def test_chat_endpoint_emits_an_ai_sdk_ui_message_stream(test_client):
             },
         }
 
-    with (
-        mock.patch.object(global_settings, "AGENT_MODEL", "test-model"),
-        mock.patch.object(api_agent, "stream_chat", fake_stream_chat),
-    ):
-        response = test_client.post(
-            "/api/agent/chat",
-            json={"messages": [{"role": "user", "content": "How is the fleet?"}]},
-        )
+    return events()
 
-    assert response.status_code == 200
-    assert response.headers["x-vercel-ai-ui-message-stream"] == "v1"
-    events = [
+
+def stream_events(response) -> list[dict]:
+    return [
         json.loads(line.removeprefix("data: "))
         for line in response.text.splitlines()
         if line.startswith("data: {")
     ]
+
+
+def test_chat_endpoint_requires_an_agent_model(test_client, db_session):
+    login(test_client, db_session, "operator@example.com")
+    conversation_id = open_conversation(test_client)
+
+    with mock.patch.object(global_settings, "AGENT_MODEL", None):
+        response = test_client.post("/api/agent/chat", json=chat_body(conversation_id))
+
+    assert response.status_code == 503
+    assert response.json()["detail"].startswith("Assistant is not configured")
+
+
+def test_conversations_require_a_signed_in_identity(test_client):
+    assert test_client.get("/api/agent/conversations").status_code == 401
+    assert test_client.post("/api/agent/conversations").status_code == 401
+
+
+def test_conversations_are_scoped_to_one_operator(test_client, db_session):
+    login(test_client, db_session, "alice@example.com")
+    conversation_id = open_conversation(test_client)
+
+    detail = test_client.get(f"/api/agent/conversations/{conversation_id}")
+    assert detail.status_code == 200
+    assert {
+        key: detail.json()[key] for key in ("id", "title", "message_count", "messages")
+    } == {
+        "id": conversation_id,
+        "title": "New chat",
+        "message_count": 0,
+        "messages": [],
+    }
+
+    listed = test_client.get("/api/agent/conversations").json()
+    assert [conversation["id"] for conversation in listed] == [conversation_id]
+    assert listed[0]["title"] == "New chat"
+    assert listed[0]["message_count"] == 0
+
+    login(test_client, db_session, "bob@example.com")
+    assert test_client.get("/api/agent/conversations").json() == []
+    assert (
+        test_client.get(f"/api/agent/conversations/{conversation_id}").status_code
+        == 404
+    )
+    assert (
+        test_client.delete(f"/api/agent/conversations/{conversation_id}").status_code
+        == 404
+    )
+
+    login(test_client, db_session, "alice@example.com")
+    assert (
+        test_client.delete(f"/api/agent/conversations/{conversation_id}").status_code
+        == 204
+    )
+    assert test_client.get("/api/agent/conversations").json() == []
+    assert (
+        test_client.get(f"/api/agent/conversations/{conversation_id}").status_code
+        == 404
+    )
+
+
+def test_chat_endpoint_emits_an_ai_sdk_ui_message_stream(test_client, db_session):
+    login(test_client, db_session, "operator@example.com")
+    conversation_id = open_conversation(test_client)
+
+    with (
+        mock.patch.object(global_settings, "AGENT_MODEL", "test-model"),
+        mock.patch.object(api_agent, "stream_chat", fake_stream_chat),
+    ):
+        response = test_client.post("/api/agent/chat", json=chat_body(conversation_id))
+
+    assert response.status_code == 200
+    assert response.headers["x-vercel-ai-ui-message-stream"] == "v1"
+    events = stream_events(response)
     assert [event["type"] for event in events] == [
         "start",
         "start-step",
@@ -90,3 +170,108 @@ def test_chat_endpoint_emits_an_ai_sdk_ui_message_stream(test_client):
         "label": "build-device-image",
     }
     assert response.text.endswith("data: [DONE]\n\n")
+
+
+def test_chat_persists_the_turn_as_replayable_ui_messages(test_client, db_session):
+    login(test_client, db_session, "operator@example.com")
+    conversation_id = open_conversation(test_client)
+
+    with (
+        mock.patch.object(global_settings, "AGENT_MODEL", "test-model"),
+        mock.patch.object(api_agent, "stream_chat", fake_stream_chat),
+    ):
+        response = test_client.post("/api/agent/chat", json=chat_body(conversation_id))
+    assert response.status_code == 200
+    assistant_id = stream_events(response)[0]["messageId"]
+
+    detail = test_client.get(f"/api/agent/conversations/{conversation_id}").json()
+    assert detail["title"] == "How is the fleet?"
+    assert detail["message_count"] == 2
+    user_message, assistant_message = detail["messages"]
+
+    assert user_message["role"] == "user"
+    assert user_message["parts"] == [{"type": "text", "text": "How is the fleet?"}]
+    assert assistant_message == {
+        "id": assistant_id,
+        "role": "assistant",
+        "parts": [
+            {"type": "text", "text": "Fleet "},
+            {
+                "type": "dynamic-tool",
+                "toolCallId": "call_1",
+                "toolName": "get_state",
+                "state": "output-available",
+                "input": {},
+                "output": {},
+            },
+            {"type": "text", "text": "is healthy."},
+            {
+                "type": "data-entity-link",
+                "data": {
+                    "entityType": "task",
+                    "identifier": "task-1",
+                    "label": "build-device-image",
+                },
+            },
+        ],
+    }
+
+    listed = test_client.get("/api/agent/conversations").json()
+    assert [conversation["id"] for conversation in listed] == [conversation_id]
+    assert listed[0]["message_count"] == 2
+
+
+def test_chat_replays_the_stored_transcript_as_model_history(test_client, db_session):
+    login(test_client, db_session, "operator@example.com")
+    conversation_id = open_conversation(test_client)
+    calls: list[list] = []
+
+    def record_stream_chat(messages, *_args, **_kwargs):
+        calls.append([(message.role, message.content) for message in messages])
+        return fake_stream_chat()
+
+    with (
+        mock.patch.object(global_settings, "AGENT_MODEL", "test-model"),
+        mock.patch.object(api_agent, "stream_chat", record_stream_chat),
+    ):
+        for prompt in ("How is the fleet?", "And now?"):
+            response = test_client.post(
+                "/api/agent/chat", json=chat_body(conversation_id, prompt)
+            )
+            assert response.status_code == 200
+
+    assert calls == [
+        [("user", "How is the fleet?")],
+        [
+            ("user", "How is the fleet?"),
+            ("assistant", "Fleet is healthy."),
+            ("user", "And now?"),
+        ],
+    ]
+
+
+def test_chat_rejects_an_unknown_conversation(test_client, db_session):
+    login(test_client, db_session, "operator@example.com")
+
+    with mock.patch.object(global_settings, "AGENT_MODEL", "test-model"):
+        response = test_client.post(
+            "/api/agent/chat", json=chat_body(str(uuid.uuid4()))
+        )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Conversation not found"
+
+
+def test_chat_requires_a_final_user_prompt(test_client, db_session):
+    login(test_client, db_session, "operator@example.com")
+    conversation_id = open_conversation(test_client)
+
+    response = test_client.post(
+        "/api/agent/chat",
+        json={
+            "conversation_id": conversation_id,
+            "messages": [{"role": "assistant", "content": "Hello"}],
+        },
+    )
+
+    assert response.status_code == 422

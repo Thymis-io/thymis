@@ -4,9 +4,11 @@ the Project fixture (which requires a real Engine, not a Session).
 The new device-details endpoints don't use ProjectAD, so we can
 override get_project with a simple None-returning mock.
 """
+
 import pytest
 from fastapi.testclient import TestClient
 from thymis_controller.dependencies import (
+    get_db_engine,
     get_db_session,
     get_network_relay,
     get_project,
@@ -25,6 +27,12 @@ def test_client(db_session) -> TestClient:
         finally:
             pass
 
+    def override_get_db_engine():
+        # The streaming assistant endpoint opens its own short-lived sessions on
+        # the engine; bind them to the test connection so the outer test
+        # transaction still rolls back.
+        return db_session.get_bind()
+
     def override_get_project():
         return None
 
@@ -39,6 +47,7 @@ def test_client(db_session) -> TestClient:
         return FakeNetworkRelay()
 
     app.dependency_overrides[get_db_session] = override_get_db
+    app.dependency_overrides[get_db_engine] = override_get_db_engine
     app.dependency_overrides[get_project] = override_get_project
     app.dependency_overrides[require_valid_user_session] = override_authenticate
     app.dependency_overrides[get_network_relay] = override_get_network_relay

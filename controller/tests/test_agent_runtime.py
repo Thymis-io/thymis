@@ -1,4 +1,5 @@
 import asyncio
+import uuid
 
 import httpx
 import pytest
@@ -8,10 +9,14 @@ from thymis_controller.agent_runtime import (
     READ_ONLY_TOOL_NAMES,
     SYSTEM_INSTRUCTIONS,
     WRITE_TOOL_NAMES,
+    ChatMessage,
     ChatRequest,
+    history_from_transcript,
     stream_chat,
 )
 from thymis_controller.agent_tools import ThymisTools
+
+DATA_URL = "data:image/png;base64,c2NyZWVuc2hvdA=="
 
 
 def make_tools() -> tuple[ThymisTools, httpx.AsyncClient]:
@@ -30,9 +35,7 @@ def test_assistant_uses_existing_read_and_scoped_write_tool_schemas():
             events = [
                 event
                 async for event in stream_chat(
-                    ChatRequest(
-                        messages=[{"role": "user", "content": "How is the fleet?"}]
-                    ),
+                    [ChatMessage(role="user", content="How is the fleet?")],
                     model,
                     tools,
                 )
@@ -88,11 +91,15 @@ def test_production_prompt_requires_an_explicit_mutation_request():
 
 def test_chat_request_rejects_a_non_user_final_message():
     with pytest.raises(ValidationError, match="final chat message"):
-        ChatRequest(messages=[{"role": "assistant", "content": "Hello"}])
+        ChatRequest(
+            conversation_id=uuid.uuid4(),
+            messages=[{"role": "assistant", "content": "Hello"}],
+        )
 
 
-def test_chat_request_accepts_ai_sdk_ui_messages():
+def test_chat_request_reads_only_the_final_prompt():
     request = ChatRequest(
+        conversation_id=uuid.uuid4(),
         messages=[
             {
                 "role": "assistant",
@@ -102,17 +109,35 @@ def test_chat_request_accepts_ai_sdk_ui_messages():
                 "role": "user",
                 "parts": [{"type": "text", "text": "How is the fleet?"}],
             },
-        ]
+        ],
     )
 
-    assert [(message.role, message.content) for message in request.messages] == [
-        ("assistant", "Prior response"),
-        ("user", "How is the fleet?"),
-    ]
+    assert request.prompt.role == "user"
+    assert request.prompt.content == "How is the fleet?"
+
+
+def test_chat_request_rejects_a_textless_final_message():
+    with pytest.raises(ValidationError, match="must contain text"):
+        ChatRequest(
+            conversation_id=uuid.uuid4(),
+            messages=[
+                {
+                    "role": "user",
+                    "parts": [
+                        {
+                            "type": "dynamic-tool",
+                            "toolName": "get_state",
+                            "state": "output-available",
+                        }
+                    ],
+                }
+            ],
+        )
 
 
 def test_chat_request_accepts_a_final_vnc_screenshot():
     request = ChatRequest(
+        conversation_id=uuid.uuid4(),
         messages=[
             {
                 "role": "user",
@@ -126,23 +151,73 @@ def test_chat_request_accepts_a_final_vnc_screenshot():
                     },
                 ],
             }
-        ]
+        ],
     )
 
-    assert request.messages[-1].screenshot == b"screenshot"
+    assert request.prompt.screenshot == b"screenshot"
 
 
 def test_chat_request_rejects_a_non_png_vnc_screenshot():
     with pytest.raises(ValidationError, match="PNG data URL"):
         ChatRequest(
+            conversation_id=uuid.uuid4(),
             messages=[
                 {
                     "role": "user",
                     "content": "What is visible?",
                     "screenshot": "data:image/jpeg;base64,c2NyZWVuc2hvdA==",
                 }
-            ]
+            ],
         )
+
+
+def test_history_from_transcript_replays_text_and_skips_tool_only_turns():
+    history = history_from_transcript(
+        [
+            {
+                "id": "u1",
+                "role": "user",
+                "parts": [{"type": "text", "text": "Restart"}],
+            },
+            {
+                "id": "a1",
+                "role": "assistant",
+                "parts": [
+                    {
+                        "type": "dynamic-tool",
+                        "toolCallId": "call_1",
+                        "toolName": "restart_device",
+                        "state": "output-available",
+                        "input": {},
+                        "output": {},
+                    }
+                ],
+            },
+            {
+                "id": "a2",
+                "role": "assistant",
+                "parts": [
+                    {"type": "text", "text": "Restarted "},
+                    {"type": "text", "text": "the device."},
+                ],
+            },
+            {
+                "id": "u2",
+                "role": "user",
+                "parts": [
+                    {"type": "text", "text": "Thanks"},
+                    {"type": "file", "mediaType": "image/png", "url": DATA_URL},
+                ],
+            },
+        ]
+    )
+
+    assert [(message.role, message.content) for message in history] == [
+        ("user", "Restart"),
+        ("assistant", "Restarted the device."),
+        ("user", "Thanks"),
+    ]
+    assert history[-1].screenshot is None
 
 
 def test_stream_chat_accepts_a_vnc_screenshot():
@@ -155,15 +230,13 @@ def test_stream_chat_accepts_a_vnc_screenshot():
             return [
                 event
                 async for event in stream_chat(
-                    ChatRequest(
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": "What is visible?",
-                                "screenshot": "data:image/png;base64,c2NyZWVuc2hvdA==",
-                            }
-                        ]
-                    ),
+                    [
+                        ChatMessage(
+                            role="user",
+                            content="What is visible?",
+                            screenshot="data:image/png;base64,c2NyZWVuc2hvdA==",
+                        )
+                    ],
                     model,
                     tools,
                 )

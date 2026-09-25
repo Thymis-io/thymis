@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import base64
 import binascii
+import uuid
 from collections.abc import AsyncIterator
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, JsonValue, field_validator, model_validator
 from pydantic_ai import Agent, Tool
 from pydantic_ai.messages import (
     BinaryContent,
@@ -160,57 +161,114 @@ class ChatMessage(BaseModel):
         return image
 
 
+def text_from_ui_message(message: Any) -> str:
+    """Extract the visible text of one AI SDK UI message."""
+    if isinstance(message, str):
+        return message
+    if not isinstance(message, dict):
+        return ""
+    content = message.get("content")
+    if isinstance(content, str):
+        return content
+    parts = message.get("parts")
+    if not isinstance(parts, list):
+        return ""
+    return "".join(
+        part["text"]
+        for part in parts
+        if isinstance(part, dict)
+        and part.get("type") == "text"
+        and isinstance(part.get("text"), str)
+    )
+
+
+def screenshot_from_ui_message(message: Any) -> Any:
+    """Extract a PNG data URL attached to one AI SDK UI message."""
+    if not isinstance(message, dict):
+        return None
+    screenshot = message.get("screenshot")
+    if screenshot is not None:
+        return screenshot
+    parts = message.get("parts")
+    if not isinstance(parts, list):
+        return None
+    return next(
+        (
+            part.get("url")
+            for part in parts
+            if isinstance(part, dict)
+            and part.get("type") == "file"
+            and part.get("mediaType") == "image/png"
+        ),
+        None,
+    )
+
+
+def chat_message_from_ui_message(message: Any) -> ChatMessage | None:
+    """Normalize one AI SDK UI message into a model-facing chat message.
+
+    Returns ``None`` when the message carries no user-visible text, such as an
+    assistant turn that only called tools.
+    """
+    if not isinstance(message, dict):
+        raise ValueError("Chat messages must be objects")
+    role = message.get("role")
+    if role not in ("user", "assistant"):
+        raise ValueError("Chat message roles must be 'user' or 'assistant'")
+    content = message.get("content")
+    if not isinstance(content, str):
+        content = text_from_ui_message(message)
+    if not content.strip():
+        return None
+    if role == "user":
+        screenshot = screenshot_from_ui_message(message)
+        if screenshot is not None:
+            # Attaching the data URL re-runs the screenshot field validator.
+            return ChatMessage(role=role, content=content, screenshot=screenshot)
+    return ChatMessage(role=role, content=content)
+
+
+def history_from_transcript(transcript: list[Any]) -> list[ChatMessage]:
+    """Rebuild prior conversation turns from persisted AI SDK UI messages.
+
+    Persisted history is text-only: a screenshot is one-shot model input that is
+    never stored, so it is deliberately not replayed here.
+    """
+    history: list[ChatMessage] = []
+    for message in transcript:
+        chat_message = chat_message_from_ui_message(message)
+        if chat_message is None:
+            continue
+        history.append(
+            ChatMessage(role=chat_message.role, content=chat_message.content)
+        )
+    return history
+
+
 class ChatRequest(BaseModel):
-    """A bounded browser conversation ending in a user prompt."""
+    """One browser chat turn: the new prompt of a persisted conversation.
 
-    messages: list[ChatMessage] = Field(min_length=1, max_length=40)
+    The AI SDK UI transport always sends the whole message array it holds; only
+    the final entry is a new prompt, because the conversation history comes from
+    the controller database instead of the browser.
+    """
 
-    @model_validator(mode="before")
-    @classmethod
-    def normalize_ui_messages(cls, value: Any) -> Any:
-        """Accept the AI SDK UI-message wire format and discard empty assistant turns."""
-        if not isinstance(value, dict) or not isinstance(value.get("messages"), list):
-            return value
-
-        normalized_messages: list[dict[str, Any]] = []
-        for index, message in enumerate(value["messages"]):
-            if not isinstance(message, dict):
-                normalized_messages.append(message)
-                continue
-
-            content = message.get("content")
-            if content is None:
-                content = "".join(
-                    part.get("text", "")
-                    for part in message.get("parts", [])
-                    if isinstance(part, dict) and part.get("type") == "text"
-                )
-            normalized_message = {"role": message.get("role"), "content": content}
-            if index == len(value["messages"]) - 1 and message.get("role") == "user":
-                screenshot = message.get("screenshot")
-                if screenshot is None:
-                    screenshot = next(
-                        (
-                            part.get("url")
-                            for part in message.get("parts", [])
-                            if isinstance(part, dict)
-                            and part.get("type") == "file"
-                            and part.get("mediaType") == "image/png"
-                        ),
-                        None,
-                    )
-                if screenshot is not None:
-                    normalized_message["screenshot"] = screenshot
-            if normalized_message["role"] != "assistant" or str(content).strip():
-                normalized_messages.append(normalized_message)
-
-        return {**value, "messages": normalized_messages}
+    conversation_id: uuid.UUID
+    messages: list[JsonValue] = Field(min_length=1, max_length=2_000)
 
     @model_validator(mode="after")
     def requires_final_user_message(self) -> ChatRequest:
-        if self.messages[-1].role != "user":
+        if self.prompt.role != "user":
             raise ValueError("The final chat message must be from the user")
         return self
+
+    @property
+    def prompt(self) -> ChatMessage:
+        """The new user prompt that ends this turn."""
+        message = chat_message_from_ui_message(self.messages[-1])
+        if message is None:
+            raise ValueError("The final chat message must contain text")
+        return message
 
 
 def _to_message_history(messages: list[ChatMessage]) -> list[ModelMessage]:
@@ -261,15 +319,19 @@ def build_agent(model: str | Model, tools: ThymisTools) -> Agent[None, str]:
 
 
 async def stream_chat(
-    request: ChatRequest,
+    messages: list[ChatMessage],
     model: str | Model,
     tools: ThymisTools,
 ) -> AsyncIterator[dict[str, Any]]:
-    """Yield browser-safe stream events while the Python agent handles one turn."""
+    """Yield browser-safe stream events while the Python agent handles one turn.
+
+    ``messages`` is the persisted conversation history followed by the new user
+    prompt, so the model never sees browser-supplied prior turns.
+    """
 
     agent = build_agent(model, tools)
-    history = _to_message_history(request.messages)
-    final_message = request.messages[-1]
+    history = _to_message_history(messages)
+    final_message = messages[-1]
     prompt = final_message.content
     if final_message.screenshot is not None:
         prompt = [
@@ -312,6 +374,11 @@ async def stream_chat(
 __all__ = [
     "READ_ONLY_TOOL_NAMES",
     "WRITE_TOOL_NAMES",
+    "ChatMessage",
+    "ChatRequest",
     "build_agent",
+    "chat_message_from_ui_message",
+    "history_from_transcript",
     "stream_chat",
+    "text_from_ui_message",
 ]

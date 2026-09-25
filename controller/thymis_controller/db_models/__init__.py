@@ -1,4 +1,5 @@
 from .agent_connection import AgentConnection
+from .agent_conversation import AgentConversation, AgentMessage
 from .agent_token import AccessClientToken, AgentToken
 from .controller_settings import ControllerSettings
 from .deployment_info import DeploymentInfo

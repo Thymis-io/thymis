@@ -85,6 +85,29 @@ def get_user_info(
 UserInfoAD = Annotated[Optional[UserInfo], Depends(get_user_info)]
 
 
+def get_user_identity(
+    user_info: UserInfoAD,
+    user_session_id: UserSessionIDAD = None,
+) -> Optional[str]:
+    """Return a stable per-user key that outlives a single web session.
+
+    Web sessions expire after a day (``crud.web_session.SESSION_LIFETIME``), so
+    per-user data cannot be keyed on ``session-id`` alone. The identity provider
+    supplies an email or username when it is configured; deployments without one
+    fall back to the session id, which still isolates operators from each other.
+    """
+    if user_info is None or user_session_id is None:
+        return None
+    if user_info.email:
+        return f"email:{user_info.email.lower()}"
+    if user_info.username:
+        return f"user:{user_info.username}"
+    return f"session:{user_session_id}"
+
+
+UserIdentityAD = Annotated[Optional[str], Depends(get_user_identity)]
+
+
 def git_author_from_user_info(
     user_info: Optional[UserInfo],
 ) -> Optional[tuple[str, str]]:
