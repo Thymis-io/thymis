@@ -196,12 +196,13 @@
 						{/if}
 					{/if}
 					{#if showRouting || (canEditSetting(canEdit, key, setting) && setting.priorityOverridable && self !== undefined)}
-						{@const winner = other?.[0]}
-						{@const selfWins = !winner || sameOrigin(settings, winner)}
-						{@const passedToDevice = selfWins && (winner !== undefined || self !== undefined)}
-						{@const otherDefinitions = (other ?? []).filter(
-							(o) => !sameOrigin(settings, o) && !sameOrigin(o, winner)
+						{@const definitions = [...(settings ? [settings] : []), ...(other ?? [])].sort(
+							(a, b) =>
+								(effectiveSettingPriority(a, key) ?? 0) - (effectiveSettingPriority(b, key) ?? 0)
 						)}
+						{@const winnerDefinition = definitions[0]}
+						{@const selfWins = !winnerDefinition || sameOrigin(settings, winnerDefinition)}
+						{@const passedToDevice = selfWins && definitions.length > 0}
 						<button class="ds-icon-btn" onclick={() => {}}>
 							{#if !showRouting}
 								<SlidersHorizontal class="text-[var(--ds-accent-strong)]" size="18" />
@@ -213,36 +214,59 @@
 						</button>
 						<Tooltip type="auto" activeContent={true} class="z-50">
 							{#if showRouting}
-								{#if winner}
+								{#if winnerDefinition}
 									{#if selfWins}
 										<P size="sm" class="whitespace-pre-line">{$t('config.passed')}</P>
 									{:else}
 										<P size="sm" class="whitespace-pre-line">{@html $t('config.notPassed')}</P>
 										<P size="sm" class="whitespace-pre-line mt-2">{$t('config.overwrittenBy')}</P>
 										<div class="grid grid-cols-2 gap-x-4">
-											<DefinitionLine origin={winner} value={winner.setting} />
+											<DefinitionLine
+												origin={winnerDefinition}
+												value={winnerDefinition.settings[key]}
+											/>
 										</div>
-									{/if}
-									{#if otherDefinitions.length > 0}
-										<P size="sm" class="whitespace-pre-line mt-4">{$t('config.otherDefinitions')}</P
-										>
-										<div class="grid grid-cols-2 gap-x-4">
-											{#each otherDefinitions as otherDefinition}
-												<DefinitionLine origin={otherDefinition} value={otherDefinition.setting} />
-											{/each}
-										</div>
-									{:else if selfWins}
-										<P size="sm" class="whitespace-pre-line mt-2"
-											>{$t('config.noOtherDefinitions')}</P
-										>
 									{/if}
 								{:else}
 									<P size="sm" class="whitespace-pre-line">
 										{self !== undefined ? $t('config.passed') : $t('config.notSet')}
 									</P>
-									<P size="sm" class="whitespace-pre-line mt-2">{$t('config.noOtherDefinitions')}</P
-									>
 								{/if}
+							{/if}
+							{#if definitions.length > 0}
+								<div class="mt-3 border-t border-[var(--ds-border)] pt-2">
+									<P size="sm" class="mb-1 font-medium">{$t('config.prioritiesTitle')}</P>
+									<div class="flex flex-col gap-1">
+										{#each definitions as definition}
+											{@const isWinner = sameOrigin(definition, winnerDefinition)}
+											{@const inherited = inheritedSettingPriority(definition)}
+											<div
+												class="flex items-start gap-2 rounded-md px-1 py-0.5 {isWinner
+													? 'bg-[var(--ds-surface-2)]'
+													: ''}"
+											>
+												<div class="min-w-0 flex-1">
+													<DefinitionLine origin={definition} value={definition.settings[key]} />
+												</div>
+												<P size="sm" class="whitespace-nowrap tabular-nums">
+													{effectiveSettingPriority(definition, key)}
+												</P>
+												{#if definition.priorities?.[key] !== undefined}
+													<P size="sm" class="whitespace-nowrap text-[var(--ds-text-mute)]">
+														{$t('config.priorityOverrideBadge', {
+															values: { inherited }
+														})}
+													</P>
+												{/if}
+												{#if isWinner}
+													<P size="sm" class="whitespace-nowrap text-[var(--ds-accent-strong)]">
+														{$t('config.priorityWins')}
+													</P>
+												{/if}
+											</div>
+										{/each}
+									</div>
+								</div>
 							{/if}
 							{#if canEditSetting(canEdit, key, setting) && setting.priorityOverridable && self !== undefined}
 								<div class="mt-3 border-t border-[var(--ds-border)] pt-2">
