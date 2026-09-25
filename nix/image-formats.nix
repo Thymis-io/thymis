@@ -167,6 +167,12 @@ let
             inputs.nixos-raspberrypi.nixosModules.sd-image
           ];
           sdImage.compressImage = false;
+          # The `kernel` bootloader keeps a kernel + initrd on the firmware
+          # partition per generation, so it needs room: pin 1 GiB instead of
+          # relying on the upstream default. Devices flashed with the previous
+          # raspberry-pi-nix layout only have 128 MiB there, which is why the
+          # deploy clears their legacy kernel.img/initrd before switching.
+          sdImage.firmwareSize = 1024;
           system.build.thymis-image-with-secrets-builder-aarch64 = image-with-secrets-builder {
             pkgs = inputs.nixpkgs.legacyPackages.aarch64-linux;
             image-path = (extendModules {
