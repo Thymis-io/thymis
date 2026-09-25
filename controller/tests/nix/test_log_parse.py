@@ -136,6 +136,50 @@ def test_copy_to_target_device_is_reported_as_upload():
     assert status.transfer.upload.running == 0
 
 
+def test_multi_path_copy_keeps_one_denominator():
+    """A 2-path copy declares 2000 bytes up front; the bar must not restart.
+
+    The SET_EXPECTED of the COPY_PATHS batch is the only honest denominator:
+    it stays 2000 from the first byte to the last, so the progress bar runs
+    0-100% once instead of jumping back at every path boundary.
+    """
+    parser = NixParser()
+    buffer = bytearray(
+        b"".join(
+            [
+                nix_line(start_activity(1, ActivityType.COPY_PATHS, "copying 2 paths")),
+                nix_line(set_expected(1, ActivityType.COPY_PATH, 2000)),
+                nix_line(
+                    copy_path(
+                        2,
+                        "/nix/store/aaa-first",
+                        "local://",
+                        "ssh-ng://root@127.0.0.1",
+                    )
+                ),
+                nix_line(progress(2, 1000, 1000)),
+                # the first path finishes, the second one takes over
+                nix_line(stop_activity(2)),
+                nix_line(
+                    copy_path(
+                        3,
+                        "/nix/store/bbb-second",
+                        "local://",
+                        "ssh-ng://root@127.0.0.1",
+                    )
+                ),
+                nix_line(progress(3, 400, 1000)),
+            ]
+        )
+    )
+
+    assert parser.process_buffer(buffer)
+
+    status = parser.get_model()
+    assert status.transfer.upload.done == 1400
+    assert status.transfer.upload.expected == 2000
+
+
 def test_download_from_cache_is_not_counted_twice():
     """nix nests the raw file download inside the copy path moving the same bytes."""
     parser = NixParser()
@@ -196,9 +240,9 @@ def test_bare_file_transfer_is_reported_as_download():
     assert status.transfer.download.expected == 8192
     assert status.transfer.download.running == 1
     assert status.transfer.download.failed == 0
-    # transfer progress is exposed separately, the process totals are untouched
-    assert status.done == 4098
-    assert status.expected == 8202
+    # transfer bytes are exposed separately: the process totals stay on items
+    assert status.done == 2
+    assert status.expected == 10
 
 
 def test_download_and_upload_are_reported_side_by_side():
@@ -237,3 +281,34 @@ def test_download_and_upload_are_reported_side_by_side():
     assert status.transfer.upload.done == 100
     assert status.transfer.upload.expected == 400
     assert status.transfer.other is None
+
+
+def test_copy_counters_ignore_byte_level_path_progress():
+    """Process counters count items (paths), never the bytes of a single path.
+
+    `nix copy` reports per-path byte offsets through the same PROGRESS fields
+    as the whole-operation item counters, so a naive sum over every activity
+    type makes the displayed totals scale with payload size.
+    """
+    parser = NixParser()
+    buffer = bytearray(
+        b"".join(
+            [
+                nix_line(start_activity(1, ActivityType.COPY_PATHS, "copying 7 paths")),
+                nix_line(set_expected(1, ActivityType.COPY_PATH, 51833560)),
+                nix_line(progress(1, 0, 7, running=3)),
+                # one path of the batch, reporting file byte offsets
+                nix_line(start_activity(2, ActivityType.COPY_PATH, "")),
+                nix_line(progress(2, 2078944, 2078944)),
+                nix_line(stop_activity(2)),
+                nix_line(progress(1, 7, 7)),
+                nix_line(stop_activity(1)),
+            ]
+        )
+    )
+
+    assert parser.process_buffer(buffer)
+
+    status = parser.get_model()
+    assert (status.done, status.expected) == (7, 7)
+    assert status.failed == 0
