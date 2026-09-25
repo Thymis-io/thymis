@@ -196,10 +196,15 @@
 						{/if}
 					{/if}
 					{#if showRouting || (canEditSetting(canEdit, key, setting) && setting.priorityOverridable && self !== undefined)}
-						{@const definitions = [...(settings ? [settings] : []), ...(other ?? [])].sort(
-							(a, b) =>
-								(effectiveSettingPriority(a, key) ?? 0) - (effectiveSettingPriority(b, key) ?? 0)
-						)}
+						{@const definitions = [...(settings ? [settings] : []), ...(other ?? [])]
+							.filter(
+								(definition, index, all) =>
+									all.findIndex((d) => sameOrigin(d, definition)) === index
+							)
+							.sort(
+								(a, b) =>
+									(effectiveSettingPriority(a, key) ?? 0) - (effectiveSettingPriority(b, key) ?? 0)
+							)}
 						{@const winnerDefinition = definitions[0]}
 						{@const selfWins = !winnerDefinition || sameOrigin(settings, winnerDefinition)}
 						{@const passedToDevice = selfWins && definitions.length > 0}
