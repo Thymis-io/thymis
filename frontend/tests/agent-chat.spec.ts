@@ -12,6 +12,10 @@ type SavedConversation = {
 /** Fixed timestamp so mocked conversation metadata never changes mid-test. */
 const TIMESTAMP = '2026-01-01T00:00:00.000Z';
 
+/** 1x1 PNG, so a rendered attachment must actually decode in the browser. */
+const ONE_PIXEL_PNG =
+	'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC';
+
 const sseBody = (events: unknown[]) =>
 	events.map((event) => `data: ${JSON.stringify(event)}\n\n`).join('') + 'data: [DONE]\n\n';
 
@@ -21,6 +25,17 @@ const sse = (events: unknown[]) => ({
 	body: sseBody(events)
 });
 
+const textStream = (messageId: string, text: string) => [
+	{ type: 'start', messageId },
+	{ type: 'message-metadata', messageMetadata: { createdAt: TIMESTAMP } },
+	{ type: 'start-step' },
+	{ type: 'text-start', id: `${messageId}-text` },
+	{ type: 'text-delta', id: `${messageId}-text`, delta: text },
+	{ type: 'text-end', id: `${messageId}-text` },
+	{ type: 'finish-step' },
+	{ type: 'finish', finishReason: 'stop' }
+];
+
 /**
  * Back the assistant's persisted-conversation endpoints with an in-memory store
  * so a spec starts from a known transcript.
@@ -29,8 +44,9 @@ async function mockConversationStore(
 	page: Page,
 	saved: SavedConversation[] = []
 ): Promise<SavedConversation[]> {
-	await page.route('**/api/agent/conversations', async (route) => {
-		if (route.request().method() === 'POST') {
+	await page.route('**/api/agent/conversations*', async (route) => {
+		const request = route.request();
+		if (request.method() === 'POST') {
 			const conversation: SavedConversation = {
 				id: `conv_${saved.length + 1}`,
 				title: 'New chat',
@@ -43,15 +59,29 @@ async function mockConversationStore(
 			await route.fulfill({ status: 201, json: conversation });
 			return;
 		}
-		await route.fulfill({ json: saved });
+		const query = new URL(request.url()).searchParams.get('q');
+		await route.fulfill({
+			json: query ? saved.filter((item) => item.title.includes(query)) : saved
+		});
 	});
 	await page.route('**/api/agent/conversations/*', async (route) => {
-		const id = route.request().url().split('/').pop();
+		const request = route.request();
+		const url = new URL(request.url());
+		const id = url.pathname.split('/').pop();
 		const conversation = saved.find((candidate) => candidate.id === id);
-		if (route.request().method() === 'DELETE') {
+		if (request.method() === 'DELETE') {
 			const index = saved.findIndex((candidate) => candidate.id === id);
 			if (index >= 0) saved.splice(index, 1);
 			await route.fulfill({ status: 204 });
+			return;
+		}
+		if (request.method() === 'PATCH') {
+			if (!conversation) {
+				await route.fulfill({ status: 404, json: { detail: 'Conversation not found' } });
+				return;
+			}
+			conversation.title = request.postDataJSON().title;
+			await route.fulfill({ json: conversation });
 			return;
 		}
 		await route.fulfill(
@@ -100,16 +130,29 @@ test('opens and closes the floating Thymis Assistant', async ({ page }) => {
 	await expect(dialog).toBeHidden();
 });
 
+test('closes the assistant with Escape and restores launcher focus', async ({ page }) => {
+	await mockConversationStore(page);
+	await page.goto('/overview');
+	const dialog = await openAssistant(page);
+
+	await dialog.getByRole('textbox', { name: 'Message Thymis Assistant' }).press('Escape');
+
+	await expect(dialog).toBeHidden();
+	await expect(page.getByRole('button', { name: 'Open Thymis Assistant' })).toBeFocused();
+});
+
 test('renders an AI SDK streamed response with Markdown and tool activity', async ({ page }) => {
 	await mockConversationStore(page);
 	await page.route('**/api/agent/chat', async (route) => {
 		expect(route.request().postDataJSON()).toMatchObject({
 			conversation_id: 'conv_1',
+			trigger: 'submit-message',
 			messages: [{ role: 'user', parts: [{ type: 'text', text: 'How is the fleet?' }] }]
 		});
 		await route.fulfill(
 			sse([
 				{ type: 'start', messageId: 'msg_test' },
+				{ type: 'message-metadata', messageMetadata: { createdAt: TIMESTAMP } },
 				{ type: 'start-step' },
 				{ type: 'text-start', id: 'text_1' },
 				{ type: 'text-delta', id: 'text_1', delta: '**Fleet** is healthy.' },
@@ -142,21 +185,82 @@ test('renders an AI SDK streamed response with Markdown and tool activity', asyn
 	const assistantParts = dialog
 		.locator('.assistant-message')
 		.last()
-		.locator('.assistant-message-content > *');
-	await expect(assistantParts).toHaveCount(3);
+		.locator('.assistant-markdown > *');
+	await expect(assistantParts).toHaveCount(2);
 	await expect(assistantParts.nth(0)).toContainText('Fleet is healthy.');
-	await expect(assistantParts.nth(1)).toHaveText('get state');
-	await expect(assistantParts.nth(2)).toContainText('Current data loaded.');
+	await expect(assistantParts.nth(1)).toContainText('Current data loaded.');
+
+	// The turn is time-stamped from the streamed message metadata.
+	await expect(dialog.locator('.assistant-message time').last()).toHaveAttribute(
+		'datetime',
+		TIMESTAMP
+	);
+	// The reply can be copied.
+	await expect(dialog.getByRole('button', { name: 'Copy response' }).last()).toBeVisible();
+});
+
+test('copies a response and regenerates the last answer', async ({ page }) => {
+	await mockConversationStore(page);
+	let replies = 0;
+	await page.route('**/api/agent/chat', async (route) => {
+		replies += 1;
+		if (replies > 1) {
+			expect(route.request().postDataJSON()).toMatchObject({
+				trigger: 'regenerate-message'
+			});
+		}
+		await route.fulfill(
+			sse(textStream(`msg_${replies}`, replies > 1 ? 'Second answer.' : 'First answer.'))
+		);
+	});
+	await page.goto('/overview');
+	const dialog = await openAssistant(page);
+	await sendPrompt(dialog, 'How is the fleet?');
+	await expect(dialog.getByText('First answer.')).toBeVisible();
+
+	await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+	await dialog.getByRole('button', { name: 'Copy response' }).last().click();
+	expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('First answer.');
+
+	await dialog.getByRole('button', { name: 'Regenerate response' }).click();
+	await expect(dialog.getByText('Second answer.')).toBeVisible();
+	await expect(dialog.getByText('First answer.')).toBeHidden();
+});
+
+test('renders fenced code blocks with a copy button', async ({ page }) => {
+	await mockConversationStore(page);
+	await page.route('**/api/agent/chat', async (route) => {
+		await route.fulfill(
+			sse([
+				{ type: 'start', messageId: 'msg_code' },
+				{ type: 'message-metadata', messageMetadata: { createdAt: TIMESTAMP } },
+				{ type: 'start-step' },
+				{ type: 'text-start', id: 'text_code' },
+				{
+					type: 'text-delta',
+					id: 'text_code',
+					delta: 'Run this:\n\n```sh\nsystemctl restart display-manager\n```\n'
+				},
+				{ type: 'text-end', id: 'text_code' },
+				{ type: 'finish-step' },
+				{ type: 'finish', finishReason: 'stop' }
+			])
+		);
+	});
+	await page.goto('/overview');
+	const dialog = await openAssistant(page);
+	await sendPrompt(dialog, 'Show the command');
+
+	await expect(dialog.getByText('Run this:')).toBeVisible();
+	await expect(dialog.getByText('systemctl restart display-manager')).toBeVisible();
+	await expect(dialog.getByRole('button', { name: 'Copy', exact: true })).toBeVisible();
 });
 
 test('restores a saved conversation transcript when reopened', async ({ page }) => {
-	// 1x1 PNG, so the restored attachment must actually decode in the browser.
-	const onePixelPng =
-		'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC';
 	await page.route('**/api/agent/files/*', (route) =>
 		route.fulfill({
 			contentType: 'image/png',
-			body: Buffer.from(onePixelPng, 'base64')
+			body: Buffer.from(ONE_PIXEL_PNG, 'base64')
 		})
 	);
 	await mockConversationStore(page, [
@@ -178,7 +282,8 @@ test('restores a saved conversation transcript when reopened', async ({ page }) 
 							filename: 'vnc-device.png',
 							url: '/api/agent/files/file_1'
 						}
-					]
+					],
+					metadata: { createdAt: TIMESTAMP }
 				},
 				{
 					id: 'a1',
@@ -205,7 +310,8 @@ test('restores a saved conversation transcript when reopened', async ({ page }) 
 							type: 'data-entity-link',
 							data: { entityType: 'task', identifier: 'task-9', label: 'build-9' }
 						}
-					]
+					],
+					metadata: { createdAt: TIMESTAMP }
 				}
 			]
 		}
@@ -229,7 +335,7 @@ test('restores a saved conversation transcript when reopened', async ({ page }) 
 	await expect(page).toHaveURL(/\/overview$/);
 });
 
-test('lists, switches, and deletes saved conversations', async ({ page }) => {
+test('lists, searches, renames, and deletes saved conversations', async ({ page }) => {
 	const saved = await mockConversationStore(page, [
 		{
 			id: 'conv_newer',
@@ -262,6 +368,21 @@ test('lists, switches, and deletes saved conversations', async ({ page }) => {
 	await expect(history.getByText('Newer question')).toBeVisible();
 	await expect(history.getByText('Older question')).toBeVisible();
 
+	// Searching asks the controller for matching titles.
+	const search = history.getByRole('searchbox', { name: 'Search conversations...' });
+	await search.fill('Older');
+	await expect(history.getByText('Older question')).toBeVisible();
+	await expect(history.getByText('Newer question')).toBeHidden();
+	await search.fill('');
+
+	// Renaming replaces the stored title.
+	await history.getByRole('button', { name: 'Rename conversation' }).first().click();
+	const renameField = history.getByRole('textbox', { name: 'Rename conversation' });
+	await renameField.fill('Renamed conversation');
+	await renameField.press('Enter');
+	await expect(history.getByText('Renamed conversation')).toBeVisible();
+	expect(saved[0].title).toBe('Renamed conversation');
+
 	// Selecting a saved conversation replaces the transcript shown.
 	await history.getByText('Older question').click();
 	await expect(history).toBeHidden();
@@ -271,16 +392,75 @@ test('lists, switches, and deletes saved conversations', async ({ page }) => {
 	await historyToggle.click();
 	await history.getByRole('button', { name: 'Delete Older question' }).click();
 	await expect(history.getByText('Older question')).toBeHidden();
-	await expect(history.getByText('Newer question')).toBeVisible();
+	await expect(history.getByText('Renamed conversation')).toBeVisible();
 	await expect(historyToggle).toHaveAttribute('aria-pressed', 'true');
 
-	// Deleting an inactive conversation leaves the empty transcript in place.
-	await history.getByRole('button', { name: 'Delete Newer question' }).click();
-	await expect(history.getByText('Newer question')).toBeHidden();
+	await history.getByRole('button', { name: 'Delete Renamed conversation' }).click();
 	await expect(
 		history.getByText('No saved conversations yet. Send a message to start one.')
 	).toBeVisible();
 	expect(saved).toEqual([]);
+});
+
+test('downloads the active conversation as Markdown', async ({ page }) => {
+	await page.route('**/api/agent/files/*', (route) =>
+		route.fulfill({
+			contentType: 'image/png',
+			body: Buffer.from(ONE_PIXEL_PNG, 'base64')
+		})
+	);
+	await mockConversationStore(page, [
+		{
+			id: 'conv_export',
+			title: 'Exportable question',
+			created_at: TIMESTAMP,
+			updated_at: TIMESTAMP,
+			message_count: 2,
+			messages: [
+				{ id: 'u1', role: 'user', parts: [{ type: 'text', text: 'Exportable question' }] },
+				{ id: 'a1', role: 'assistant', parts: [{ type: 'text', text: 'Exportable answer' }] }
+			]
+		}
+	]);
+	await page.goto('/overview');
+	const dialog = await openAssistant(page);
+	await dialog.getByRole('button', { name: 'Saved conversations' }).click();
+
+	const download = page.waitForEvent('download');
+	await dialog.getByRole('button', { name: 'Download conversation as Markdown' }).click();
+	const file = await download;
+
+	expect(file.suggestedFilename()).toBe('Exportable-question.md');
+	const stream = await file.createReadStream();
+	const chunks: Buffer[] = [];
+	for await (const chunk of stream) chunks.push(chunk as Buffer);
+	const markdown = Buffer.concat(chunks).toString('utf8');
+	expect(markdown).toContain('# Exportable question');
+	expect(markdown).toContain('Exportable answer');
+});
+
+test('attaches a PNG image to the prompt', async ({ page }) => {
+	await mockConversationStore(page);
+	let requestBody: Record<string, unknown> | undefined;
+	await page.route('**/api/agent/chat', async (route) => {
+		requestBody = route.request().postDataJSON();
+		await route.fulfill(sse(textStream('msg_image', 'I can see it.')));
+	});
+	await page.goto('/overview');
+	const dialog = await openAssistant(page);
+
+	await dialog.locator('input[type="file"]').setInputFiles({
+		name: 'screenshot.png',
+		mimeType: 'image/png',
+		buffer: Buffer.from(ONE_PIXEL_PNG, 'base64')
+	});
+
+	await expect(dialog.getByText('Please analyze this image.')).toBeVisible();
+	await expect(dialog.getByText('I can see it.')).toBeVisible();
+	const message = (requestBody?.messages as { parts: Record<string, unknown>[] }[])[0];
+	expect(message.parts[0]).toEqual({ type: 'text', text: 'Please analyze this image.' });
+	expect(message.parts[1]).toMatchObject({ type: 'file', mediaType: 'image/png' });
+	expect(String(message.parts[1].url)).toMatch(/^data:image\/png;base64,/);
 });
 
 test('renders an assistant entity link with its entity component', async ({ page }) => {
@@ -289,6 +469,7 @@ test('renders an assistant entity link with its entity component', async ({ page
 		await route.fulfill(
 			sse([
 				{ type: 'start', messageId: 'msg_entity_link' },
+				{ type: 'message-metadata', messageMetadata: { createdAt: TIMESTAMP } },
 				{ type: 'start-step' },
 				{ type: 'text-start', id: 'text_entity' },
 				{ type: 'text-delta', id: 'text_entity', delta: 'The image build is ready:' },
@@ -303,9 +484,8 @@ test('renders an assistant entity link with its entity component', async ({ page
 		);
 	});
 	await page.goto('/overview');
-	await openAssistant(page);
-	await page.getByRole('textbox', { name: 'Message Thymis Assistant' }).fill('Show my image build');
-	await page.getByRole('textbox', { name: 'Message Thymis Assistant' }).press('Enter');
+	const dialog = await openAssistant(page);
+	await sendPrompt(dialog, 'Show my image build');
 
 	const link = page.getByRole('link', { name: 'build-device-image' });
 	await expect(link).toHaveAttribute('href', '/tasks/task-1');
@@ -318,6 +498,7 @@ test('executes dashboard navigation emitted by the assistant', async ({ page }) 
 		await route.fulfill(
 			sse([
 				{ type: 'start', messageId: 'msg_navigation' },
+				{ type: 'message-metadata', messageMetadata: { createdAt: TIMESTAMP } },
 				{ type: 'start-step' },
 				{
 					type: 'tool-input-available',
@@ -349,6 +530,7 @@ test('does not navigate to an unknown assistant-provided route', async ({ page }
 		await route.fulfill(
 			sse([
 				{ type: 'start', messageId: 'msg_invalid_navigation' },
+				{ type: 'message-metadata', messageMetadata: { createdAt: TIMESTAMP } },
 				{ type: 'start-step' },
 				{
 					type: 'tool-input-available',
@@ -378,17 +560,7 @@ test('keeps a long streamed reply in view', async ({ page }) => {
 	const reply = Array.from({ length: 80 }, (_, index) => `Result line ${index + 1}`).join('\n');
 	await mockConversationStore(page);
 	await page.route('**/api/agent/chat', async (route) => {
-		await route.fulfill(
-			sse([
-				{ type: 'start', messageId: 'msg_scroll' },
-				{ type: 'start-step' },
-				{ type: 'text-start', id: 'text_scroll' },
-				{ type: 'text-delta', id: 'text_scroll', delta: reply },
-				{ type: 'text-end', id: 'text_scroll' },
-				{ type: 'finish-step' },
-				{ type: 'finish', finishReason: 'stop' }
-			])
-		);
+		await route.fulfill(sse(textStream('msg_scroll', reply)));
 	});
 	await page.goto('/overview');
 	const dialog = await openAssistant(page);

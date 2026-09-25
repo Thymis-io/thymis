@@ -1,28 +1,39 @@
 <script lang="ts">
 	import { Chat } from '@ai-sdk/svelte';
 	import { DefaultChatTransport, type UIMessage } from 'ai';
-	import DOMPurify from 'dompurify';
-	import { marked } from 'marked';
+	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { frontendActionPath } from './navigation';
-	import AssistantEntityLink from './AssistantEntityLink.svelte';
-	import { isAssistantEntityLink, type AssistantEntityLink as EntityLink } from './entityLink';
 	import { tick } from 'svelte';
-	import { captureActiveVncScreenshot, vncScreenshotAvailable } from '$lib/vnc/screenshot';
-	import type { GlobalState } from '$lib/state.svelte';
+	import { _ } from 'svelte-i18n';
+	import AssistantEntityLink from './AssistantEntityLink.svelte';
+	import AssistantMarkdown from './AssistantMarkdown.svelte';
+	import { isAssistantEntityLink, type AssistantEntityLink as EntityLink } from './entityLink';
+	import { frontendActionPath } from './navigation';
 	import {
 		createConversation,
 		deleteConversation,
+		downloadMarkdown,
 		getConversation,
 		listConversations,
+		renameConversation,
+		transcriptMarkdown,
 		type AssistantConversationSummary
 	} from './conversations';
+	import { captureActiveVncScreenshot, vncScreenshotAvailable } from '$lib/vnc/screenshot';
+	import type { GlobalState } from '$lib/state.svelte';
 	import Bot from 'lucide-svelte/icons/bot';
 	import Camera from 'lucide-svelte/icons/camera';
+	import Check from 'lucide-svelte/icons/check';
+	import Copy from 'lucide-svelte/icons/copy';
+	import Download from 'lucide-svelte/icons/download';
 	import History from 'lucide-svelte/icons/history';
+	import ImagePlus from 'lucide-svelte/icons/image-plus';
 	import LoaderCircle from 'lucide-svelte/icons/loader-circle';
 	import MessageCircle from 'lucide-svelte/icons/message-circle';
+	import Pencil from 'lucide-svelte/icons/pencil';
 	import Plus from 'lucide-svelte/icons/plus';
+	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
+	import Search from 'lucide-svelte/icons/search';
 	import Send from 'lucide-svelte/icons/send';
 	import Square from 'lucide-svelte/icons/square';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
@@ -33,8 +44,6 @@
 	}
 
 	let { globalState }: Props = $props();
-	const renderMarkdown = (markdown: string) =>
-		DOMPurify.sanitize(marked.parse(markdown, { async: false }));
 
 	type ToolPart = {
 		type: string;
@@ -67,34 +76,71 @@
 	const toolName = (part: ToolPart) =>
 		(part.toolName ?? part.type.replace(/^tool-/, '')).replaceAll('_', ' ');
 
+	const messageText = (message: UIMessage) =>
+		message.parts
+			.filter((part) => part.type === 'text')
+			.map((part) => part.text)
+			.join('\n\n')
+			.trim();
+
+	const messageCreatedAt = (message: UIMessage) => {
+		const metadata = message.metadata as { createdAt?: unknown } | undefined;
+		const createdAt = typeof metadata?.createdAt === 'string' ? metadata.createdAt : undefined;
+		return createdAt ? new Date(createdAt) : undefined;
+	};
+
+	const readAsDataUrl = (file: File) =>
+		new Promise<string>((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onerror = () => reject(new Error('Could not read the file.'));
+			reader.onload = () => resolve(String(reader.result));
+			reader.readAsDataURL(file);
+		});
+
 	const frontendActionCalls = new Set<string>();
+
+	// Other tabs of the same operator share one conversation store.
+	const channel = browser ? new BroadcastChannel('thymis-assistant') : undefined;
+	const broadcast = () => channel?.postMessage({ type: 'refresh' });
 
 	let open = $state(false);
 	let shouldFollowLatest = $state(true);
 	let input = $state('');
 	let messageList = $state<HTMLDivElement>();
+	let inputField = $state<HTMLTextAreaElement>();
+	let launcher = $state<HTMLButtonElement>();
+	let attachInput = $state<HTMLInputElement>();
 	let conversations = $state<AssistantConversationSummary[]>([]);
 	let activeConversationId = $state<string | null>(null);
 	let historyOpen = $state(false);
 	let loadingConversation = $state(false);
 	let conversationError = $state<string>();
+	let conversationQuery = $state('');
+	let renamingId = $state<string | null>(null);
+	let renameValue = $state('');
+	let copiedMessageId = $state<string | null>(null);
 	let started = false;
 
 	const transport = new DefaultChatTransport({
 		api: '/api/agent/chat',
-		// The controller keeps the transcript; only the new prompt is sent, so a
-		// long conversation never re-uploads its whole history.
-		prepareSendMessagesRequest: ({ messages: outgoing, body }) => ({
+		// The controller keeps the transcript; only the newest message is sent, so
+		// a long conversation never re-uploads its whole history.
+		prepareSendMessagesRequest: ({ messages: outgoing, body, trigger, messageId }) => ({
 			body: {
 				...body,
 				conversation_id: activeConversationId,
+				trigger,
+				messageId,
 				messages: outgoing.slice(-1)
 			}
 		})
 	});
 	const chat = new Chat({
 		transport,
-		onFinish: () => void refreshConversations()
+		onFinish: () => {
+			void refreshConversations();
+			broadcast();
+		}
 	});
 	let messages = $derived(chat.messages);
 	let streaming = $derived(chat.status === 'submitted' || chat.status === 'streaming');
@@ -137,8 +183,35 @@
 		}
 	});
 
-	const refreshConversations = async () => {
-		conversations = await listConversations();
+	$effect(() => {
+		if (!open || started) return;
+		started = true;
+		void loadSavedConversations();
+	});
+
+	$effect(() => {
+		if (!open) return;
+		void tick().then(() => inputField?.focus());
+	});
+
+	$effect(() => {
+		if (!channel) return;
+		const onMessage = () => {
+			void refreshConversations();
+			if (activeConversationId && !streaming) {
+				void loadConversation(activeConversationId);
+			}
+		};
+		channel.addEventListener('message', onMessage);
+		return () => channel.removeEventListener('message', onMessage);
+	});
+
+	const refreshConversations = async (query: string = conversationQuery) => {
+		const requested = query;
+		const listed = await listConversations(requested);
+		// A newer keystroke may have overtaken this response.
+		if (requested !== conversationQuery) return;
+		conversations = listed;
 	};
 
 	/**
@@ -157,16 +230,13 @@
 		}
 	};
 
-	const selectConversation = async (id: string) => {
-		if (streaming) return;
-		historyOpen = false;
-		if (id === activeConversationId) return;
-
+	const loadConversation = async (id: string) => {
 		loadingConversation = true;
 		conversationError = undefined;
 		const conversation = await getConversation(id);
 		loadingConversation = false;
 		if (!conversation) {
+			resetConversation();
 			await refreshConversations();
 			return;
 		}
@@ -179,6 +249,13 @@
 		await scrollToLatestMessage();
 	};
 
+	const selectConversation = async (id: string) => {
+		if (streaming) return;
+		historyOpen = false;
+		if (id === activeConversationId) return;
+		await loadConversation(id);
+	};
+
 	const loadSavedConversations = async () => {
 		loadingConversation = true;
 		conversationError = undefined;
@@ -187,12 +264,10 @@
 			const mostRecent = conversations[0];
 			if (mostRecent) {
 				loadingConversation = false;
-				await selectConversation(mostRecent.id);
-				return;
+				await loadConversation(mostRecent.id);
 			}
 		} catch (error) {
-			conversationError =
-				error instanceof Error ? error.message : 'Could not load saved conversations.';
+			conversationError = error instanceof Error ? error.message : $_('assistant.error-load');
 		} finally {
 			loadingConversation = false;
 		}
@@ -216,80 +291,139 @@
 		if (streaming || !(await deleteConversation(id))) return;
 		if (id === activeConversationId) resetConversation();
 		await refreshConversations();
+		broadcast();
 	};
 
 	const ensureConversation = async (): Promise<boolean> => {
 		if (activeConversationId) return true;
 		const conversation = await createConversation();
 		if (!conversation) {
-			conversationError = 'Could not start a new conversation.';
+			conversationError = $_('assistant.error-new');
 			return false;
 		}
 		activeConversationId = conversation.id;
 		conversations = [conversation, ...conversations];
+		broadcast();
 		return true;
 	};
 
-	$effect(() => {
-		if (!open || started) return;
-		started = true;
-		void loadSavedConversations();
-	});
+	const startRename = (conversation: AssistantConversationSummary) => {
+		renamingId = conversation.id;
+		renameValue = conversation.title;
+	};
+
+	const submitRename = async () => {
+		const id = renamingId;
+		const title = renameValue.trim();
+		renamingId = null;
+		if (!id || !title) return;
+		if (!(await renameConversation(id, title))) {
+			conversationError = $_('assistant.error-rename');
+			return;
+		}
+		await refreshConversations();
+		broadcast();
+	};
+
+	const exportActiveConversation = () => {
+		const title =
+			conversations.find((conversation) => conversation.id === activeConversationId)?.title ??
+			$_('assistant.title');
+		downloadMarkdown(title, transcriptMarkdown(title, messages));
+	};
+
+	const copyMessage = async (message: UIMessage) => {
+		await navigator.clipboard.writeText(messageText(message));
+		copiedMessageId = message.id;
+		setTimeout(() => {
+			if (copiedMessageId === message.id) copiedMessageId = null;
+		}, 2000);
+	};
+
+	const regenerate = async (messageId?: string) => {
+		if (streaming) return;
+		chat.clearError();
+		attachmentError = undefined;
+		shouldFollowLatest = true;
+		await chat.regenerate(messageId === undefined ? undefined : { messageId });
+		await scrollToLatestMessage();
+	};
 
 	const stop = () => void chat.stop();
 
-	const send = async () => {
+	const send = async (text: string, dataUrl?: string) => {
+		if (streaming || !(await ensureConversation())) return;
+		shouldFollowLatest = true;
+		await chat.sendMessage({
+			metadata: { createdAt: new Date().toISOString() },
+			parts:
+				dataUrl === undefined
+					? [{ type: 'text' as const, text }]
+					: [
+							{ type: 'text' as const, text },
+							{
+								type: 'file' as const,
+								mediaType: 'image/png',
+								filename: 'vnc-screenshot.png',
+								url: dataUrl
+							}
+						]
+		});
+		await scrollToLatestMessage();
+	};
+
+	const sendTypedMessage = async () => {
 		const content = input.trim();
 		if (!content || streaming) return;
-
-		shouldFollowLatest = true;
 		attachmentError = undefined;
 		input = '';
-		if (!(await ensureConversation())) {
-			input = content;
-			return;
-		}
-		await chat.sendMessage({ text: content });
-		await scrollToLatestMessage();
+		await send(content);
 	};
 
 	const attachVncScreenshot = async () => {
 		if (streaming || !$vncScreenshotAvailable) return;
-
 		attachmentError = undefined;
 		try {
 			const screenshot = await captureActiveVncScreenshot();
-			const url = await new Promise<string>((resolve, reject) => {
-				const reader = new FileReader();
-				reader.onerror = () => reject(new Error('Could not read the VNC screenshot.'));
-				reader.onload = () => resolve(String(reader.result));
-				reader.readAsDataURL(screenshot);
-			});
-
-			shouldFollowLatest = true;
-			if (!(await ensureConversation())) return;
-			await chat.sendMessage({
-				parts: [
-					{ type: 'text', text: 'Please analyze this screenshot from the current VNC session.' },
-					{
-						type: 'file',
-						mediaType: screenshot.type,
-						filename: screenshot.name,
-						url
-					}
-				]
-			});
-			await scrollToLatestMessage();
+			await send($_('assistant.screenshot-prompt'), await readAsDataUrl(screenshot));
 		} catch (error) {
-			attachmentError =
-				error instanceof Error ? error.message : 'Could not attach the VNC screenshot.';
+			attachmentError = error instanceof Error ? error.message : $_('assistant.error-screenshot');
+		}
+	};
+
+	const attachImage = async (event: Event) => {
+		const field = event.currentTarget as HTMLInputElement;
+		const file = field.files?.[0];
+		field.value = '';
+		if (!file || streaming) return;
+		attachmentError = undefined;
+		if (file.type !== 'image/png') {
+			attachmentError = $_('assistant.error-image-type');
+			return;
+		}
+		try {
+			await send($_('assistant.image-prompt'), await readAsDataUrl(file));
+		} catch (error) {
+			attachmentError = error instanceof Error ? error.message : $_('assistant.error-image');
+		}
+	};
+
+	const closeAssistant = () => {
+		open = false;
+		void tick().then(() => launcher?.focus());
+	};
+
+	const handleDialogKeydown = (event: KeyboardEvent) => {
+		if (event.key === 'Escape') {
+			event.stopPropagation();
+			closeAssistant();
 		}
 	};
 
 	const handleInputKeydown = (event: KeyboardEvent) => {
 		if (event.key === 'Enter' && !event.shiftKey) {
 			event.preventDefault();
-			void send();
+			void sendTypedMessage();
 		}
 	};
 </script>
@@ -299,16 +433,17 @@
 		<dialog
 			id="thymis-assistant"
 			class="assistant-window"
-			aria-label="Thymis Assistant"
+			aria-label={$_('assistant.title')}
 			aria-modal="false"
 			open
+			onkeydown={handleDialogKeydown}
 		>
 			<header class="assistant-header">
 				<div class="assistant-title">
 					<span class="assistant-mark"><Bot size={18} /></span>
 					<span>
-						<strong>Thymis Assistant</strong>
-						<small>Can inspect, change, and act on controller data</small>
+						<strong>{$_('assistant.title')}</strong>
+						<small>{$_('assistant.subtitle')}</small>
 					</span>
 				</div>
 				<div class="assistant-actions">
@@ -317,8 +452,8 @@
 						type="button"
 						onclick={startNewChat}
 						disabled={streaming}
-						aria-label="New conversation"
-						title="New conversation"
+						aria-label={$_('assistant.new-conversation')}
+						title={$_('assistant.new-conversation')}
 					>
 						<Plus size={16} />
 					</button>
@@ -327,18 +462,18 @@
 						class:assistant-icon-active={historyOpen}
 						type="button"
 						onclick={() => (historyOpen = !historyOpen)}
-						aria-label="Saved conversations"
+						aria-label={$_('assistant.saved-conversations')}
 						aria-pressed={historyOpen}
-						title="Saved conversations"
+						title={$_('assistant.saved-conversations')}
 					>
 						<History size={16} />
 					</button>
 					<button
 						class="assistant-icon-button"
 						type="button"
-						onclick={() => (open = false)}
-						aria-label="Close Thymis Assistant"
-						title="Close"
+						onclick={closeAssistant}
+						aria-label={$_('assistant.close')}
+						title={$_('common.cancel')}
 					>
 						<X size={18} />
 					</button>
@@ -346,36 +481,108 @@
 			</header>
 
 			{#if historyOpen}
-				<div class="assistant-history" aria-label="Saved conversations">
+				<div class="assistant-history" aria-label={$_('assistant.saved-conversations')}>
+					<div class="assistant-history-toolbar">
+						<label class="assistant-search">
+							<Search size={14} />
+							<input
+								type="search"
+								bind:value={conversationQuery}
+								oninput={() => void refreshConversations()}
+								placeholder={$_('assistant.search-placeholder')}
+								aria-label={$_('assistant.search-placeholder')}
+							/>
+						</label>
+						<button
+							class="assistant-icon-button"
+							type="button"
+							onclick={exportActiveConversation}
+							disabled={messages.length === 0}
+							aria-label={$_('assistant.export-conversation')}
+							title={$_('assistant.export-conversation')}
+						>
+							<Download size={15} />
+						</button>
+					</div>
 					{#if conversations.length === 0}
 						<p class="assistant-history-empty">
-							No saved conversations yet. Send a message to start one.
+							{conversationQuery
+								? $_('assistant.search-empty')
+								: $_('assistant.saved-conversations-empty')}
 						</p>
 					{:else}
 						<ul>
 							{#each conversations as conversation (conversation.id)}
 								<li>
-									<button
-										class="assistant-history-item"
-										class:assistant-history-item-active={conversation.id === activeConversationId}
-										type="button"
-										onclick={() => void selectConversation(conversation.id)}
-									>
-										<span>{conversation.title}</span>
-										<small>
-											{conversation.message_count}
-											{conversation.message_count === 1 ? 'message' : 'messages'}
-										</small>
-									</button>
-									<button
-										class="assistant-icon-button"
-										type="button"
-										onclick={() => void removeConversation(conversation.id)}
-										aria-label={`Delete ${conversation.title}`}
-										title="Delete conversation"
-									>
-										<Trash2 size={15} />
-									</button>
+									{#if renamingId === conversation.id}
+										<form
+											class="assistant-rename"
+											onsubmit={(event) => {
+												event.preventDefault();
+												void submitRename();
+											}}
+										>
+											<input
+												bind:value={renameValue}
+												maxlength="120"
+												aria-label={$_('assistant.rename-conversation')}
+											/>
+											<button
+												class="assistant-icon-button"
+												type="submit"
+												aria-label={$_('common.save')}
+												title={$_('common.save')}
+											>
+												<Check size={15} />
+											</button>
+											<button
+												class="assistant-icon-button"
+												type="button"
+												onclick={() => (renamingId = null)}
+												aria-label={$_('common.cancel')}
+												title={$_('common.cancel')}
+											>
+												<X size={15} />
+											</button>
+										</form>
+									{:else}
+										<button
+											class="assistant-history-item"
+											class:assistant-history-item-active={conversation.id === activeConversationId}
+											type="button"
+											onclick={() => void selectConversation(conversation.id)}
+										>
+											<span>{conversation.title}</span>
+											<small>
+												{$_(
+													conversation.message_count === 1
+														? 'assistant.message-count'
+														: 'assistant.message-count-plural',
+													{ values: { count: conversation.message_count } }
+												)}
+											</small>
+										</button>
+										<button
+											class="assistant-icon-button"
+											type="button"
+											onclick={() => startRename(conversation)}
+											aria-label={$_('assistant.rename-conversation')}
+											title={$_('assistant.rename-conversation')}
+										>
+											<Pencil size={15} />
+										</button>
+										<button
+											class="assistant-icon-button"
+											type="button"
+											onclick={() => void removeConversation(conversation.id)}
+											aria-label={$_('assistant.delete-conversation-named', {
+												values: { title: conversation.title }
+											})}
+											title={$_('assistant.delete-conversation')}
+										>
+											<Trash2 size={15} />
+										</button>
+									{/if}
 								</li>
 							{/each}
 						</ul>
@@ -391,19 +598,18 @@
 					{#if loadingConversation}
 						<div class="assistant-empty">
 							<LoaderCircle size={24} class="assistant-empty-icon animate-spin" />
-							<p>Loading conversation…</p>
+							<p>{$_('assistant.loading-conversation')}</p>
 						</div>
 					{:else if messages.length === 0}
 						<div class="assistant-empty">
 							<Bot size={24} class="assistant-empty-icon" />
-							<p>Ask about devices, fleet health, configurations, tasks, or repository state.</p>
-							<span
-								>The assistant can inspect controller data, apply requested changes, and open
-								relevant dashboard pages. Conversations are saved for you.</span
-							>
+							<p>{$_('assistant.empty-title')}</p>
+							<span>{$_('assistant.empty-hint')}</span>
 						</div>
 					{:else}
 						{#each messages as message, index (message.id)}
+							{@const createdAt = messageCreatedAt(message)}
+							{@const text = messageText(message)}
 							{@const hasVisibleParts = message.parts.some(
 								(part) =>
 									(part.type === 'text' && part.text) ||
@@ -422,14 +628,19 @@
 									<div class="assistant-message-content">
 										{#each message.parts as part}
 											{#if part.type === 'text' && part.text}
-												<div class="assistant-markdown">{@html renderMarkdown(part.text)}</div>
+												<div class="assistant-markdown">
+													<AssistantMarkdown
+														markdown={part.text}
+														complete={part.state !== 'streaming'}
+													/>
+												</div>
 											{:else if isEntityLinkPart(part)}
 												<AssistantEntityLink {globalState} entity={part.data} />
 											{:else if isImageAttachmentPart(part)}
 												<img
 													class="assistant-attachment"
 													src={part.url}
-													alt={part.filename ?? 'Attached screenshot'}
+													alt={part.filename ?? $_('assistant.attach-image')}
 												/>
 											{:else if isVisibleToolPart(part)}
 												<div
@@ -445,6 +656,43 @@
 												</div>
 											{/if}
 										{/each}
+										<div class="assistant-message-footer">
+											{#if createdAt}
+												<time class="assistant-time" datetime={createdAt.toISOString()}>
+													{createdAt.toLocaleString(undefined, {
+														dateStyle: 'short',
+														timeStyle: 'short'
+													})}
+												</time>
+											{/if}
+											{#if text}
+												<button
+													class="assistant-message-action"
+													type="button"
+													onclick={() => void copyMessage(message)}
+													aria-label={$_('assistant.copy-response')}
+													title={$_('assistant.copy-response')}
+												>
+													{#if copiedMessageId === message.id}
+														<Check size={12} />
+													{:else}
+														<Copy size={12} />
+													{/if}
+												</button>
+											{/if}
+											{#if message.role === 'assistant' && index === messages.length - 1}
+												<button
+													class="assistant-message-action"
+													type="button"
+													onclick={() => void regenerate(message.id)}
+													disabled={streaming}
+													aria-label={$_('assistant.regenerate')}
+													title={$_('assistant.regenerate')}
+												>
+													<RotateCcw size={12} />
+												</button>
+											{/if}
+										</div>
 									</div>
 								</div>
 							{/if}
@@ -456,13 +704,22 @@
 			{#if streaming}
 				<div class="assistant-status" aria-live="polite">
 					<LoaderCircle size={15} class="animate-spin" />
-					Thinking…
-					<button type="button" onclick={stop}><Square size={12} /> Stop</button>
+					{$_('assistant.thinking')}
+					<button type="button" onclick={stop}>
+						<Square size={12} />
+						{$_('assistant.stop')}
+					</button>
 				</div>
 			{/if}
 			{#if errorMessage || attachmentError || conversationError}
 				<p class="assistant-error" role="alert">
 					{attachmentError ?? conversationError ?? errorMessage}
+					{#if errorMessage}
+						<button type="button" onclick={() => void regenerate()}>
+							<RotateCcw size={12} />
+							{$_('assistant.retry')}
+						</button>
+					{/if}
 				</p>
 			{/if}
 
@@ -470,27 +727,51 @@
 				class="assistant-composer"
 				onsubmit={(event) => {
 					event.preventDefault();
-					void send();
+					void sendTypedMessage();
 				}}
 			>
+				<input
+					class="assistant-file-input"
+					bind:this={attachInput}
+					type="file"
+					accept="image/png"
+					onchange={(event) => void attachImage(event)}
+					tabindex="-1"
+					aria-hidden="true"
+				/>
+				<button
+					class="assistant-attachment-button"
+					type="button"
+					onclick={() => attachInput?.click()}
+					disabled={streaming}
+					aria-label={$_('assistant.attach-image')}
+					title={$_('assistant.attach-image')}
+				>
+					<ImagePlus size={17} />
+				</button>
 				<button
 					class="assistant-attachment-button"
 					type="button"
 					onclick={() => void attachVncScreenshot()}
 					disabled={!$vncScreenshotAvailable || streaming}
-					aria-label="Attach current VNC screenshot"
-					title="Attach current VNC screenshot"
+					aria-label={$_('assistant.attach-screenshot')}
+					title={$_('assistant.attach-screenshot')}
 				>
 					<Camera size={17} />
 				</button>
 				<textarea
+					bind:this={inputField}
 					bind:value={input}
 					onkeydown={handleInputKeydown}
-					placeholder="Ask Thymis…"
-					aria-label="Message Thymis Assistant"
+					placeholder={$_('assistant.input-placeholder')}
+					aria-label={$_('assistant.input-label')}
 					rows="2"
 					disabled={streaming}></textarea>
-				<button type="submit" aria-label="Send message" disabled={!input.trim() || streaming}>
+				<button
+					type="submit"
+					aria-label={$_('assistant.send')}
+					disabled={!input.trim() || streaming}
+				>
 					<Send size={17} />
 				</button>
 			</form>
@@ -500,11 +781,12 @@
 	<button
 		class="assistant-launcher"
 		type="button"
-		onclick={() => (open = !open)}
-		aria-label={open ? 'Close Thymis Assistant' : 'Open Thymis Assistant'}
+		bind:this={launcher}
+		onclick={() => (open ? closeAssistant() : (open = true))}
+		aria-label={open ? $_('assistant.close') : $_('assistant.open')}
 		aria-expanded={open}
 		aria-controls="thymis-assistant"
-		title="Thymis Assistant"
+		title={$_('assistant.title')}
 	>
 		{#if open}
 			<X size={23} />
@@ -623,6 +905,52 @@
 		overflow-y: auto;
 		padding: 8px;
 	}
+	.assistant-history-toolbar {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		margin-bottom: 6px;
+	}
+	.assistant-search {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		padding: 0 8px;
+		border: 1px solid var(--ds-border-strong);
+		border-radius: 8px;
+		color: var(--ds-text-mute);
+		background: var(--ds-surface);
+	}
+	.assistant-search input {
+		flex: 1;
+		min-width: 0;
+		border: 0;
+		background: none;
+		font-size: 12.5px;
+		color: var(--ds-text);
+	}
+	.assistant-search input:focus {
+		outline: none;
+	}
+	.assistant-rename {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
+	.assistant-rename input {
+		flex: 1;
+		min-width: 0;
+		padding: 6px 8px;
+		border: 1px solid var(--ds-accent);
+		border-radius: 8px;
+		background: var(--ds-surface);
+		font-size: 13px;
+		color: var(--ds-text);
+	}
 	.assistant-history ul {
 		margin: 0;
 		padding: 0;
@@ -734,6 +1062,46 @@
 	.assistant-message-content {
 		min-width: 0;
 	}
+	.assistant-message-footer {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin-top: 5px;
+		opacity: 0.7;
+	}
+	.assistant-time {
+		font-size: 10.5px;
+		color: var(--ds-text-mute);
+	}
+	.user-message .assistant-time {
+		color: color-mix(in srgb, white 78%, transparent);
+	}
+	.assistant-message-action {
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+		padding: 2px;
+		border-radius: 4px;
+		color: inherit;
+		transition: opacity 0.12s;
+	}
+	.assistant-message-action:hover {
+		opacity: 1;
+		background: color-mix(in srgb, currentColor 14%, transparent);
+	}
+	.assistant-message-action:disabled {
+		cursor: not-allowed;
+		opacity: 0.4;
+	}
+	.assistant-file-input {
+		display: none;
+	}
+	:global(.assistant-markdown .assistant-code pre),
+	:global(.assistant-markdown .assistant-code code) {
+		padding: 0;
+		border-radius: 0;
+		background: none;
+	}
 	.assistant-attachment {
 		display: block;
 		max-width: 100%;
@@ -813,12 +1181,27 @@
 		color: var(--ds-text);
 	}
 	.assistant-error {
+		display: flex;
+		align-items: center;
+		gap: 8px;
 		margin: 0;
 		padding: 8px 14px;
 		border-top: 1px solid var(--ds-danger);
 		background: var(--ds-danger-dim);
 		font-size: 12px;
 		color: var(--ds-danger);
+	}
+	.assistant-error button {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		flex: none;
+		margin-left: auto;
+		padding: 2px 6px;
+		border: 1px solid currentColor;
+		border-radius: 6px;
+		font-size: 11px;
+		color: inherit;
 	}
 	.assistant-composer {
 		align-items: flex-end;
