@@ -124,6 +124,8 @@ The floating **Thymis Assistant** is available to every signed-in controller use
 
 The assistant acts through the signed-in user's controller API permissions. It can inspect controller data and perform the supported dashboard actions, but it cannot access secrets, run arbitrary device commands, or delete records.
 
+Conversations are stored in the controller database and listed per user, so a chat survives page reloads and sign-ins. Each turn sends only the new prompt; the transcript the model sees comes from the stored conversation. Attached VNC screenshots are used for that one turn but are not stored.
+
 ---
 
 ## Project Roadmap

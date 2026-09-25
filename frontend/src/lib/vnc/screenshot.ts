@@ -1,4 +1,4 @@
-import { derived, writable } from 'svelte/store';
+import { derived, get, writable } from 'svelte/store';
 
 type VncScreenshotCapture = () => Promise<File>;
 
@@ -15,9 +15,7 @@ export const registerVncScreenshotCapture = (capture: VncScreenshotCapture) => {
 };
 
 export const captureActiveVncScreenshot = async () => {
-	let capture: VncScreenshotCapture | null = null;
-	const unsubscribe = activeCapture.subscribe((currentCapture) => (capture = currentCapture));
-	unsubscribe();
+	const capture = get(activeCapture);
 
 	if (!capture) {
 		throw new Error('Open a connected VNC session before attaching a screenshot.');

@@ -10,10 +10,19 @@
 	import { tick } from 'svelte';
 	import { captureActiveVncScreenshot, vncScreenshotAvailable } from '$lib/vnc/screenshot';
 	import type { GlobalState } from '$lib/state.svelte';
+	import {
+		createConversation,
+		deleteConversation,
+		getConversation,
+		listConversations,
+		type AssistantConversationSummary
+	} from './conversations';
 	import Bot from 'lucide-svelte/icons/bot';
 	import Camera from 'lucide-svelte/icons/camera';
+	import History from 'lucide-svelte/icons/history';
 	import LoaderCircle from 'lucide-svelte/icons/loader-circle';
 	import MessageCircle from 'lucide-svelte/icons/message-circle';
+	import Plus from 'lucide-svelte/icons/plus';
 	import Send from 'lucide-svelte/icons/send';
 	import Square from 'lucide-svelte/icons/square';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
@@ -45,7 +54,9 @@
 	): part is UIMessage['parts'][number] & { type: 'data-entity-link'; data: EntityLink } =>
 		part.type === 'data-entity-link' && isAssistantEntityLink(part.data);
 
-	const isVisibleToolPart = (part: UIMessage['parts'][number]) =>
+	const isVisibleToolPart = (
+		part: UIMessage['parts'][number]
+	): part is UIMessage['parts'][number] & ToolPart =>
 		isToolPart(part) && part.toolName !== 'link_entity';
 
 	const toolName = (part: ToolPart) =>
@@ -57,7 +68,29 @@
 	let shouldFollowLatest = $state(true);
 	let input = $state('');
 	let messageList = $state<HTMLDivElement>();
-	const chat = new Chat({ transport: new DefaultChatTransport({ api: '/api/agent/chat' }) });
+	let conversations = $state<AssistantConversationSummary[]>([]);
+	let activeConversationId = $state<string | null>(null);
+	let historyOpen = $state(false);
+	let loadingConversation = $state(false);
+	let conversationError = $state<string>();
+	let started = false;
+
+	const transport = new DefaultChatTransport({
+		api: '/api/agent/chat',
+		// The controller keeps the transcript; only the new prompt is sent, so a
+		// long conversation never re-uploads its whole history.
+		prepareSendMessagesRequest: ({ messages: outgoing, body }) => ({
+			body: {
+				...body,
+				conversation_id: activeConversationId,
+				messages: outgoing.slice(-1)
+			}
+		})
+	});
+	const chat = new Chat({
+		transport,
+		onFinish: () => void refreshConversations()
+	});
 	let messages = $derived(chat.messages);
 	let streaming = $derived(chat.status === 'submitted' || chat.status === 'streaming');
 	let errorMessage = $derived(chat.error?.message);
@@ -99,10 +132,104 @@
 		}
 	});
 
-	const clearConversation = () => {
+	const refreshConversations = async () => {
+		conversations = await listConversations();
+	};
+
+	/**
+	 * A saved transcript replays its tool calls, but a restored
+	 * `navigate_frontend` call already ran when it was first streamed and must not
+	 * move the operator again.
+	 */
+	const markLoadedFrontendActions = (loaded: UIMessage[]) => {
+		for (const message of loaded) {
+			for (const part of message.parts) {
+				if (!isToolPart(part) || !part.toolCallId) continue;
+				if ((part.toolName ?? part.type.replace(/^tool-/, '')) === 'navigate_frontend') {
+					frontendActionCalls.add(part.toolCallId);
+				}
+			}
+		}
+	};
+
+	const selectConversation = async (id: string) => {
+		if (streaming) return;
+		historyOpen = false;
+		if (id === activeConversationId) return;
+
+		loadingConversation = true;
+		conversationError = undefined;
+		const conversation = await getConversation(id);
+		loadingConversation = false;
+		if (!conversation) {
+			await refreshConversations();
+			return;
+		}
+		activeConversationId = conversation.id;
+		markLoadedFrontendActions(conversation.messages);
+		chat.messages = conversation.messages;
+		chat.clearError();
+		attachmentError = undefined;
+		shouldFollowLatest = true;
+		await scrollToLatestMessage();
+	};
+
+	const loadSavedConversations = async () => {
+		loadingConversation = true;
+		conversationError = undefined;
+		try {
+			await refreshConversations();
+			const mostRecent = conversations[0];
+			if (mostRecent) {
+				loadingConversation = false;
+				await selectConversation(mostRecent.id);
+				return;
+			}
+		} catch (error) {
+			conversationError =
+				error instanceof Error ? error.message : 'Could not load saved conversations.';
+		} finally {
+			loadingConversation = false;
+		}
+	};
+
+	const resetConversation = () => {
+		activeConversationId = null;
 		chat.messages = [];
 		chat.clearError();
+		attachmentError = undefined;
+		conversationError = undefined;
 	};
+
+	const startNewChat = () => {
+		if (streaming) return;
+		historyOpen = false;
+		resetConversation();
+	};
+
+	const removeConversation = async (id: string) => {
+		if (streaming || !(await deleteConversation(id))) return;
+		if (id === activeConversationId) resetConversation();
+		await refreshConversations();
+	};
+
+	const ensureConversation = async (): Promise<boolean> => {
+		if (activeConversationId) return true;
+		const conversation = await createConversation();
+		if (!conversation) {
+			conversationError = 'Could not start a new conversation.';
+			return false;
+		}
+		activeConversationId = conversation.id;
+		conversations = [conversation, ...conversations];
+		return true;
+	};
+
+	$effect(() => {
+		if (!open || started) return;
+		started = true;
+		void loadSavedConversations();
+	});
 
 	const stop = () => void chat.stop();
 
@@ -113,6 +240,10 @@
 		shouldFollowLatest = true;
 		attachmentError = undefined;
 		input = '';
+		if (!(await ensureConversation())) {
+			input = content;
+			return;
+		}
 		await chat.sendMessage({ text: content });
 		await scrollToLatestMessage();
 	};
@@ -131,6 +262,7 @@
 			});
 
 			shouldFollowLatest = true;
+			if (!(await ensureConversation())) return;
 			await chat.sendMessage({
 				parts: [
 					{ type: 'text', text: 'Please analyze this screenshot from the current VNC session.' },
@@ -175,17 +307,27 @@
 					</span>
 				</div>
 				<div class="assistant-actions">
-					{#if messages.length > 0}
-						<button
-							class="assistant-icon-button"
-							type="button"
-							onclick={clearConversation}
-							aria-label="Clear conversation"
-							title="Clear conversation"
-						>
-							<Trash2 size={16} />
-						</button>
-					{/if}
+					<button
+						class="assistant-icon-button"
+						type="button"
+						onclick={startNewChat}
+						disabled={streaming}
+						aria-label="New conversation"
+						title="New conversation"
+					>
+						<Plus size={16} />
+					</button>
+					<button
+						class="assistant-icon-button"
+						class:assistant-icon-active={historyOpen}
+						type="button"
+						onclick={() => (historyOpen = !historyOpen)}
+						aria-label="Saved conversations"
+						aria-pressed={historyOpen}
+						title="Saved conversations"
+					>
+						<History size={16} />
+					</button>
 					<button
 						class="assistant-icon-button"
 						type="button"
@@ -198,63 +340,106 @@
 				</div>
 			</header>
 
-			<div
-				class="assistant-messages"
-				bind:this={messageList}
-				onscroll={updateMessageScrollPosition}
-				aria-live="polite"
-			>
-				{#if messages.length === 0}
-					<div class="assistant-empty">
-						<Bot size={24} class="assistant-empty-icon" />
-						<p>Ask about devices, fleet health, configurations, tasks, or repository state.</p>
-						<span
-							>The assistant can inspect controller data, apply requested changes, and open relevant
-							dashboard pages.</span
-						>
-					</div>
-				{:else}
-					{#each messages as message, index (message.id)}
-						{@const hasVisibleParts = message.parts.some(
-							(part) =>
-								(part.type === 'text' && part.text) ||
-								isEntityLinkPart(part) ||
-								isVisibleToolPart(part)
-						)}
-						{#if hasVisibleParts || (streaming && index === messages.length - 1)}
-							<div
-								class:assistant-message={message.role === 'assistant'}
-								class:user-message={message.role === 'user'}
+			{#if historyOpen}
+				<div class="assistant-history" aria-label="Saved conversations">
+					{#if conversations.length === 0}
+						<p class="assistant-history-empty">
+							No saved conversations yet. Send a message to start one.
+						</p>
+					{:else}
+						<ul>
+							{#each conversations as conversation (conversation.id)}
+								<li>
+									<button
+										class="assistant-history-item"
+										class:assistant-history-item-active={conversation.id === activeConversationId}
+										type="button"
+										onclick={() => void selectConversation(conversation.id)}
+									>
+										<span>{conversation.title}</span>
+										<small>
+											{conversation.message_count}
+											{conversation.message_count === 1 ? 'message' : 'messages'}
+										</small>
+									</button>
+									<button
+										class="assistant-icon-button"
+										type="button"
+										onclick={() => void removeConversation(conversation.id)}
+										aria-label={`Delete ${conversation.title}`}
+										title="Delete conversation"
+									>
+										<Trash2 size={15} />
+									</button>
+								</li>
+							{/each}
+						</ul>
+					{/if}
+				</div>
+			{:else}
+				<div
+					class="assistant-messages"
+					bind:this={messageList}
+					onscroll={updateMessageScrollPosition}
+					aria-live="polite"
+				>
+					{#if loadingConversation}
+						<div class="assistant-empty">
+							<LoaderCircle size={24} class="assistant-empty-icon animate-spin" />
+							<p>Loading conversation…</p>
+						</div>
+					{:else if messages.length === 0}
+						<div class="assistant-empty">
+							<Bot size={24} class="assistant-empty-icon" />
+							<p>Ask about devices, fleet health, configurations, tasks, or repository state.</p>
+							<span
+								>The assistant can inspect controller data, apply requested changes, and open
+								relevant dashboard pages. Conversations are saved for you.</span
 							>
-								{#if message.role === 'assistant'}
-									<Bot size={16} class="assistant-message-icon" />
-								{/if}
-								<div class="assistant-message-content">
-									{#each message.parts as part}
-										{#if part.type === 'text' && part.text}
-											<div class="assistant-markdown">{@html renderMarkdown(part.text)}</div>
-										{:else if isEntityLinkPart(part)}
-											<AssistantEntityLink {globalState} entity={part.data} />
-										{:else if isVisibleToolPart(part)}
-											<div
-												class:assistant-tool-complete={part.state === 'output-available'}
-												class="assistant-tool"
-											>
-												{#if part.state === 'output-available'}
-													<Bot size={14} />
-												{:else}
-													<LoaderCircle size={14} class="animate-spin" />
-												{/if}
-												<span>{toolName(part)}</span>
-											</div>
-										{/if}
-									{/each}
+						</div>
+					{:else}
+						{#each messages as message, index (message.id)}
+							{@const hasVisibleParts = message.parts.some(
+								(part) =>
+									(part.type === 'text' && part.text) ||
+									isEntityLinkPart(part) ||
+									isVisibleToolPart(part)
+							)}
+							{#if hasVisibleParts || (streaming && index === messages.length - 1)}
+								<div
+									class:assistant-message={message.role === 'assistant'}
+									class:user-message={message.role === 'user'}
+								>
+									{#if message.role === 'assistant'}
+										<Bot size={16} class="assistant-message-icon" />
+									{/if}
+									<div class="assistant-message-content">
+										{#each message.parts as part}
+											{#if part.type === 'text' && part.text}
+												<div class="assistant-markdown">{@html renderMarkdown(part.text)}</div>
+											{:else if isEntityLinkPart(part)}
+												<AssistantEntityLink {globalState} entity={part.data} />
+											{:else if isVisibleToolPart(part)}
+												<div
+													class:assistant-tool-complete={part.state === 'output-available'}
+													class="assistant-tool"
+												>
+													{#if part.state === 'output-available'}
+														<Bot size={14} />
+													{:else}
+														<LoaderCircle size={14} class="animate-spin" />
+													{/if}
+													<span>{toolName(part)}</span>
+												</div>
+											{/if}
+										{/each}
+									</div>
 								</div>
-							</div>
-						{/if}
-					{/each}
-				{/if}
-			</div>
+							{/if}
+						{/each}
+					{/if}
+				</div>
+			{/if}
 
 			{#if streaming}
 				<div class="assistant-status" aria-live="polite">
@@ -263,8 +448,10 @@
 					<button type="button" onclick={stop}><Square size={12} /> Stop</button>
 				</div>
 			{/if}
-			{#if errorMessage || attachmentError}
-				<p class="assistant-error" role="alert">{attachmentError ?? errorMessage}</p>
+			{#if errorMessage || attachmentError || conversationError}
+				<p class="assistant-error" role="alert">
+					{attachmentError ?? conversationError ?? errorMessage}
+				</p>
 			{/if}
 
 			<form
@@ -410,6 +597,71 @@
 	.assistant-icon-button:hover {
 		color: var(--ds-text);
 		background: var(--ds-surface-3);
+	}
+	.assistant-icon-button:disabled {
+		cursor: not-allowed;
+		opacity: 0.45;
+	}
+	.assistant-icon-active {
+		color: var(--ds-accent);
+		background: var(--ds-accent-dim);
+	}
+	.assistant-history {
+		flex: 1;
+		overflow-y: auto;
+		padding: 8px;
+	}
+	.assistant-history ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+	.assistant-history li {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+	}
+	.assistant-history-item {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 2px;
+		padding: 8px 10px;
+		border-radius: 8px;
+		text-align: left;
+	}
+	.assistant-history-item:hover {
+		background: var(--ds-surface-3);
+	}
+	.assistant-history-item-active {
+		background: var(--ds-accent-dim);
+	}
+	.assistant-history-item span {
+		width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-size: 13px;
+		color: var(--ds-text);
+	}
+	.assistant-history-item-active span {
+		color: var(--ds-accent);
+		font-weight: 600;
+	}
+	.assistant-history-item small {
+		font-size: 11px;
+		color: var(--ds-text-mute);
+	}
+	.assistant-history-empty {
+		margin: 24px 12px;
+		text-align: center;
+		font-size: 12.5px;
+		color: var(--ds-text-dim);
 	}
 	.assistant-messages {
 		flex: 1;
