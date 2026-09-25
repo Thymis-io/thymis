@@ -28,7 +28,7 @@
     };
     "{%- endif %}"
     "{%- if nameservers %}"
-    nameservers = lib.mkOverride "{{priority}}" [
+    nameservers = lib.mkOverride "{{nameservers_priority}}" [
       "{%- for ns in nameservers %}"
       ""{{ns.nameserver}}""
       "{%- endfor %}"

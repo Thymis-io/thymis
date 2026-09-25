@@ -102,6 +102,7 @@ class ThymisDevice(modules.Module):
         ),
         example="my-raspberry-pi",
         order=20,
+        priority_overridable=True,
     )
 
     nix_state_version = modules.Setting(
@@ -134,6 +135,7 @@ class ThymisDevice(modules.Module):
         ),
         example="",
         order=80,
+        priority_overridable=True,
     )
 
     def write_nix_settings(
@@ -180,8 +182,11 @@ class ThymisDevice(modules.Module):
         f.write("  ];\n")
 
         if agent_controller_url:
+            controller_url_priority = module_settings.setting_priority(
+                "agent_controller_url", priority
+            )
             f.write(
-                f"  thymis.config.agent.controller-url = lib.mkOverride {priority} {convert_python_value_to_nix(agent_controller_url)};\n"
+                f"  thymis.config.agent.controller-url = lib.mkOverride {controller_url_priority} {convert_python_value_to_nix(agent_controller_url)};\n"
             )
         else:
             default_agent_controller_url = (
@@ -194,8 +199,11 @@ class ThymisDevice(modules.Module):
         # omit device-name when blank so the Nix module default ("thymis") applies
         device_name_value = module_settings.settings.get("device_name", "") or ""
         if device_name_value:
+            device_name_priority = module_settings.setting_priority(
+                "device_name", priority
+            )
             f.write(
-                f"  thymis.config.device-name = lib.mkOverride {priority} "
+                f"  thymis.config.device-name = lib.mkOverride {device_name_priority} "
                 f"{convert_python_value_to_nix(device_name_value)};\n"
             )
 

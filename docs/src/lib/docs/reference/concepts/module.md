@@ -62,6 +62,16 @@ def write_nix_settings(self, f, path, module_settings, priority, project):
     f.write(f"  my_nix_option = {convert_python_value_to_nix(my_value)};")
 ```
 
+`priority` is the `lib.mkOverride` priority of the tag or configuration the settings belong to (lower wins). Settings that declare `nix_attr_name` are written by the base implementation with that priority. To write a setting yourself and still support per-setting priority overrides, mark it as `priority_overridable=True` and resolve its priority through the settings object:
+
+```python
+my_setting = Setting(..., nix_attr_name=None, priority_overridable=True)
+
+def write_nix_settings(self, f, path, module_settings, priority, project):
+    my_priority = module_settings.setting_priority("my_setting", priority)
+    f.write(f"  my_nix_option = lib.mkOverride {my_priority} ...;")
+```
+
 ### register_secret_settings
 
 Registers secrets that need to be managed securely:

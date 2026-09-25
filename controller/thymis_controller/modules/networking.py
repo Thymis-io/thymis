@@ -291,6 +291,7 @@ ca_file="/etc/ssl/certs/ca-certificates.crt" # uses system ca (default mozilla) 
         ),
         example="",
         order=50,
+        priority_overridable=True,
     )
 
     nameservers = modules.Setting(
@@ -326,6 +327,7 @@ ca_file="/etc/ssl/certs/ca-certificates.crt" # uses system ca (default mozilla) 
         ),
         example="",
         order=60,
+        priority_overridable=True,
     )
 
     def write_nix_settings(
@@ -376,7 +378,12 @@ ca_file="/etc/ssl/certs/ca-certificates.crt" # uses system ca (default mozilla) 
                     "default_gateway": default_gateway,
                     "default_gateway6": default_gateway6,
                     "nameservers": nameservers,
-                    "priority": priority,
+                    "priority": module_settings.setting_priority(
+                        "static_networks", priority
+                    ),
+                    "nameservers_priority": module_settings.setting_priority(
+                        "nameservers", priority
+                    ),
                 }
             )
             f.write(rt + "\n")

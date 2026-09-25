@@ -98,8 +98,9 @@ class Module(ABC):
                 continue
             assert isinstance(my_attr, Setting)
             if my_attr.nix_attr_name is not None:
+                setting_priority = module_settings.setting_priority(attr, priority)
                 f.write(
-                    f"  {my_attr.nix_attr_name} = lib.mkOverride {priority} {convert_python_value_to_nix(value)};\n"
+                    f"  {my_attr.nix_attr_name} = lib.mkOverride {setting_priority} {convert_python_value_to_nix(value)};\n"
                 )
 
     def register_secret_settings(
@@ -277,6 +278,11 @@ class Setting:
     order: int = 0
 
     nix_attr_name: Optional[str] = None
+    # True when the module emits the settings' nix definitions itself (instead
+    # of via nix_attr_name) and honours a per-setting priority override for
+    # them. Settings whose value is embedded in a single shared definition
+    # (e.g. a whole service blob) cannot carry a per-setting priority.
+    priority_overridable: bool = False
 
     def get_model(self, locale: str) -> models.Setting:
         return models.Setting(
@@ -286,6 +292,8 @@ class Setting:
             default=self.default,
             example=self.example,
             order=self.order,
+            priorityOverridable=self.priority_overridable
+            or self.nix_attr_name is not None,
         )
 
 
