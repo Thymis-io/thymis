@@ -369,6 +369,51 @@ def deploy_device_task(
             report_task_finished(task, conn, False, "Copy closure failed")
             return
 
+        # Devices flashed with the previous raspberry-pi-nix layout still carry
+        # kernel.img/initrd on the firmware partition and a cmdline.txt that
+        # passes init=/sbin/init. The Raspberry Pi firmware reads those files,
+        # and on the 128 MiB firmware partition those devices have they leave no
+        # room for the new bootloader: installBootLoader runs before the
+        # activation that would clean them up, so the switch dies with ENOSPC.
+        # Removing them here also stops a stale cmdline.txt from shadowing the
+        # new boot path on the next boot.
+        cleanup_returncode = run_command(
+            task,
+            conn,
+            process_list,
+            [
+                "ssh",
+                "-i",
+                task_data.ssh_key_path,
+                "-o",
+                f"UserKnownHostsFile={task_data.known_hosts_path}",
+                "-o",
+                "StrictHostKeyChecking=yes",
+                "-o",
+                "PasswordAuthentication=no",
+                "-o",
+                "KbdInteractiveAuthentication=no",
+                "-o",
+                "ConnectTimeout=10",
+                "-o",
+                "BatchMode=yes",
+                "-o",
+                f"ProxyCommand={access_client_proxy_command(task_data.controller_access_client_endpoint, task_data.device.deployment_info_id)}",
+                "root@localhost",
+                "rm -f /boot/firmware/cmdline.txt /boot/firmware/kernel.img /boot/firmware/initrd",
+            ],
+            env={
+                "PATH": os.getenv("PATH"),
+                "HTTP_NETWORK_RELAY_SECRET": task_data.access_client_token,
+            },
+            cwd=tmpdir,
+            process_index=3,
+        )
+        if cleanup_returncode != 0:
+            # best effort: the files only exist on devices flashed with the old
+            # layout, and a failure here must not block the deploy
+            logger.warning("Legacy firmware cleanup returned %s", cleanup_returncode)
+
         # send message to agent on device that it should switch to the new configuration
         conn.send(
             models_task.RunnerToControllerTaskUpdate(
