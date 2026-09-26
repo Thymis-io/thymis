@@ -371,3 +371,78 @@ def test_localization_merges_timezone_and_time_servers(tmp_path):
     # the time servers are one list setting, so the configuration's list
     # replaces the tag's (the tag's value is not merged into it)
     assert result["timeServers"] == ["cfg.ntp"]
+
+
+def test_empty_value_clears_the_tag_but_empty_element_fields_do_not(tmp_path):
+    """A whole setting the configuration sets to an empty value clears the tag's
+    value. Empty fields of a list element are not written, so the fields the tag
+    sets for the same element survive."""
+    tag = models.Tag(
+        displayName="Base",
+        identifier="base",
+        priority=TAG_PRIORITY,
+        modules=[
+            _networking(
+                {
+                    "wifi_ssid": "tagnet",
+                    "static_networks": [
+                        {
+                            "interface": "ens3",
+                            "ipv4address": "10.0.0.2",
+                            "ipv4prefixLength": 24,
+                            "isDefaultGateway": True,
+                            "gateway": "10.0.0.1",
+                        }
+                    ],
+                }
+            )
+        ],
+    )
+    config = models.Config(
+        displayName="c1",
+        identifier="c1",
+        tags=["base"],
+        modules=[
+            _networking(
+                {
+                    # cleared in the configuration: must not keep the tag's SSID
+                    "wifi_ssid": "",
+                    # the configuration only adds an IPv6 address to the tag's
+                    # network, the empty fields are the empty UI template
+                    "static_networks": [
+                        {
+                            "interface": "ens3",
+                            "ipv4address": "",
+                            "ipv4prefixLength": "",
+                            "ipv6address": "fd00::2",
+                            "ipv6prefixLength": 64,
+                            "isDefaultGateway": "",
+                            "gateway": "",
+                        }
+                    ],
+                }
+            )
+        ],
+    )
+    project = nix_fixture.render_project(tmp_path, tags=[tag], configs=[config])
+    try:
+        result = nix_fixture.eval_project(
+            project,
+            """
+            let cfg = flake.nixosConfigurations.c1.config; in {
+              wifiSsid = cfg.thymis.config.wifi-ssid;
+              ipv4 = cfg.networking.interfaces."ens3".ipv4.addresses;
+              ipv6 = cfg.networking.interfaces."ens3".ipv6.addresses;
+              gateway = cfg.networking.defaultGateway;
+            }
+            """,
+        )
+    except nix_fixture.NixUnavailable as e:
+        pytest.skip(str(e))
+
+    assert result["wifiSsid"] == ""
+    # the tag's IPv4 address and default gateway survive the configuration's
+    # element, which has empty values for those fields
+    assert result["ipv4"] == [{"address": "10.0.0.2", "prefixLength": 24}]
+    assert result["ipv6"] == [{"address": "fd00::2", "prefixLength": 64}]
+    assert result["gateway"]["address"] == "10.0.0.1"

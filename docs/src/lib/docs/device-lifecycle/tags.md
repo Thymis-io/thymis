@@ -33,14 +33,26 @@ It often makes sense to split logical components into different tags (e.g., netw
 
 ## Setting Priority
 
-When the same module is used on both a tag and a config, the settings are merged or overridden depending on the context.
+When the same module is used on both a tag and a config, the settings are merged:
 
-- Generally, device settings take precedence
-- Single values (e.g., Wi‑Fi SSID) are overwritten
-- Lists (e.g., Authorized keys) are merged
+- Fields of a setting merge individually, so a tag can set the Wi‑Fi SSID while the
+  configuration sets the password of the same module.
+- Device settings take precedence: a field the configuration sets wins over the tag's value.
+  Which of two sources wins is decided by priority (the lower number wins); device
+  configurations use a lower priority than tags by default.
+- A field a source does not set keeps the value of the source that does, and if no source
+  sets it, the module default applies. Removing a field (click the X button on the right of
+  the input) means "not set by this source", so the tag's value applies:
 
-When moving a setting from a device configuration to a tag, remove any existing device-level value to ensure the tag's value is applied.
-An empty value is still treated as a set value.
-Click the X button on the right to clear the field:
+  ![Overwritten setting](./overwritten-setting.png)
 
-![Overwritten setting](./overwritten-setting.png)
+- Setting a single-value field to an empty value counts as set by this source and clears the
+  value of a tag (for example to remove the Wi‑Fi network a tag configures). Empty fields
+  inside a list element are ignored instead, so a device configuration can add to the other
+  fields of an element a tag defines.
+- Lists that different sources contribute to are merged, not replaced: authorized keys,
+  certificates, firewall ports, time servers and artifact rules of a tag and of a
+  configuration all end up on the device.
+- List settings whose elements are separate entities (static network interfaces, OCI
+  containers, artifacts) merge per element, so a device configuration can add an interface
+  next to the interfaces a tag defines.

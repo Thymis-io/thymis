@@ -38,15 +38,22 @@ def localize(locale: str, value: Optional[Localizable]) -> Optional[str]:
 DEFAULT_PRIORITY = 1500
 
 
-def is_unset_setting_value(value: JsonValue) -> bool:
-    """A setting counts as unset when it carries no information.
+def is_unset_setting_value(value: JsonValue, nested: bool = False) -> bool:
+    """A setting value counts as unset when it carries no information.
 
-    Empty strings, empty lists and empty attribute sets mean "not configured"
-    for the same reason a missing key does: nothing must be defined for them in
-    nix, so that other sources and the shipped nix defaults can win. `False`
-    and `0` are real values.
+    Empty lists and empty attribute sets mean "not configured" for the same
+    reason a missing key does: nothing must be defined for them in nix, so that
+    other sources and the shipped defaults can win. `False` and `0` are real
+    values.
+
+    A whole setting that a source sets to an empty string counts as set (that is
+    how a tag's value is cleared for one configuration), while an empty field
+    inside a list element is the empty template of that element and must not
+    shadow the value another source sets for the same field (`nested`).
     """
-    return value is None or value == "" or value == [] or value == {}
+    if value is None or value == [] or value == {}:
+        return True
+    return nested and value == ""
 
 
 def nix_attr_path(path: List[str]) -> str:
@@ -67,6 +74,7 @@ def write_nix_definitions(
     value: JsonValue,
     priority: int,
     element_key: Optional[str] = None,
+    nested: bool = False,
 ):
     """Write the nix definitions of one setting value.
 
@@ -84,24 +92,25 @@ def write_nix_definitions(
             if not isinstance(element, dict):
                 continue
             key = element.get(element_key)
-            if not isinstance(key, str) or is_unset_setting_value(key):
+            if not isinstance(key, str) or is_unset_setting_value(key, nested=True):
                 continue
             write_nix_definitions(
                 f,
                 path + [key],
                 {k: v for k, v in element.items() if k != element_key},
                 priority,
+                nested=True,
             )
         return
 
     if isinstance(value, dict):
         for key in sorted(value.keys()):
-            if is_unset_setting_value(value[key]):
+            if is_unset_setting_value(value[key], nested=True):
                 continue
-            write_nix_definitions(f, path + [key], value[key], priority)
+            write_nix_definitions(f, path + [key], value[key], priority, nested=True)
         return
 
-    if is_unset_setting_value(value):
+    if is_unset_setting_value(value, nested=nested):
         return
 
     f.write(
@@ -204,11 +213,18 @@ class Module(ABC):
             if setting.nix_attr_name is None:
                 continue
             if attr in module_settings.settings:
+                # set by this source: written even when empty, which is how a
+                # configuration clears the value a tag sets
                 value, value_priority = module_settings.settings[attr], priority
+                if is_unset_setting_value(value):
+                    continue
             else:
+                # not set by this source: written as a default that loses
+                # against the value another source sets, and empty defaults
+                # (which carry no information) are left out entirely
                 value, value_priority = setting.default, DEFAULT_PRIORITY
-            if is_unset_setting_value(value):
-                continue
+                if is_unset_setting_value(value, nested=True):
+                    continue
             write_nix_definitions(
                 f,
                 setting.nix_attr_name.split("."),
