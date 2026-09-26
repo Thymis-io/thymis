@@ -158,6 +158,35 @@ def test_networking_writes_settings_definitions():
     assert "networking.interfaces" not in out
 
 
+def test_setting_set_to_empty_string_is_written_but_empty_fields_are_not():
+    """A whole setting set to an empty value clears the value of another source
+    (e.g. of a tag), while an empty field inside a list element is only the
+    empty template of that element and must not shadow the other source."""
+    out = _write(
+        NetworkingModule(),
+        {
+            "wifi_ssid": "",
+            "static_networks": [
+                {
+                    "interface": "ens3",
+                    "ipv4address": "",
+                    "ipv6address": "fd00::2",
+                    "ipv6prefixLength": 64,
+                    "isDefaultGateway": "",
+                }
+            ],
+        },
+    )
+    assert 'thymis.config.wifi-ssid = lib.mkOverride 100 "";' in out
+    assert (
+        'thymis.config.networking.static-networks.ens3.ipv6address = lib.mkOverride 100 "fd00::2";'
+        in out
+    )
+    # the empty fields are not written: the tag's values for them win
+    assert "static-networks.ens3.ipv4address" not in out
+    assert "static-networks.ens3.isDefaultGateway" not in out
+
+
 def test_localization_writes_timezone_and_time_servers():
     out = _write(
         LocalizationModule(),
