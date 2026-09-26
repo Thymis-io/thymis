@@ -70,7 +70,7 @@ jobs:
       - name: Run tests
         run: |
           export THYMIS_FLAKE_ROOT='..'
-          nix develop --accept-flake-config .#forNpmTesting --command npm run test:integration -- --update-snapshots
+          ../.github/npm_test_integration.sh -- --update-snapshots
         working-directory: frontend
       - name: Upload Playwright report
         uses: actions/upload-artifact@v7
@@ -181,7 +181,7 @@ jobs:
         run: |
           if [ -f "tests/x86_vm.spec.ts" ]; then
             export THYMIS_FLAKE_ROOT='..'
-            nix develop --accept-flake-config .#forNpmTesting --command npm run test:integration -- "tests/x86_vm.spec.ts" --update-snapshots
+            ../.github/npm_test_integration.sh -- "tests/x86_vm.spec.ts" --update-snapshots
           fi
         working-directory: frontend
       - name: Upload Playwright report
