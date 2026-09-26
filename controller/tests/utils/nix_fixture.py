@@ -57,8 +57,16 @@ def _device_module(identifier: str) -> models.ModuleSettings:
     )
 
 
-def render_project(tmp_path: pathlib.Path, tags=None, configs=None) -> pathlib.Path:
-    """Render a project repository for `tags` and `configs` into `tmp_path`."""
+def render_project(
+    tmp_path: pathlib.Path, tags=None, configs=None, extra_modules=None
+) -> pathlib.Path:
+    """Render a project repository for `tags` and `configs` into `tmp_path`.
+
+    `extra_modules` registers additional module instances (e.g. a module that
+    stands in for a module from an external repository).
+    """
+    for module in extra_modules or []:
+        _MODULES[module.type] = module
     root = tmp_path / "project"
     shutil.rmtree(root, ignore_errors=True)
     root.mkdir(parents=True)

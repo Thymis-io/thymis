@@ -204,10 +204,18 @@ class Module(ABC):
         for attr, setting in self.iter_settings().items():
             if self.settings_namespace is not None:
                 # Presence and priority of the setting, see `settings_namespace`.
-                # Written even when the setting itself is unset, so that the nix
-                # side can tell which settings a module instance provides.
+                # Named like the setting in `thymis.config` (the last component of
+                # its `nix_attr_name`), so that the nix side can read the value
+                # and the priority of a setting with the same name. Written even
+                # when the setting itself is unset, so that the nix side can tell
+                # which settings a module instance provides.
+                name = (
+                    setting.nix_attr_name.rsplit(".", 1)[-1]
+                    if setting.nix_attr_name is not None
+                    else attr
+                )
                 f.write(
-                    f"  {nix_attr_path(['thymis', 'priority', self.settings_namespace, attr])} = "
+                    f"  {nix_attr_path(['thymis', 'priority', self.settings_namespace, name])} = "
                     f"lib.mkOverride {priority} {priority};\n"
                 )
             if setting.nix_attr_name is None:

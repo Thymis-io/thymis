@@ -68,14 +68,39 @@ device configuration or tag it belongs to, and the NixOS module system merges th
 
 NixOS configuration should be derived in nix, not in python: a module that sets
 `settings_namespace` ships a nix module (built-in modules put theirs in
-`nix/settings/<namespace>.nix`) that reads the merged settings from
-`config.thymis.config.<namespace>` and writes the resulting configuration with the priority
-of the setting it comes from. List-valued options that other modules also contribute to
-(like `systemd.tmpfiles.rules`) must be written *without* `mkOverride`, because a priority
-on a list option drops the definitions of all other sources instead of merging with them.
+`nix/settings/<namespace>.nix`) that reads the merged settings and writes the resulting
+configuration with the priority of the setting it comes from:
+
+```nix
+{ config, lib, ... }:
+let
+  settings = import ../module-settings.nix { inherit config lib; };
+in
+{
+  systemd.services.my-service = {
+    environment.URL = settings.apply "my-module" "url" "https://fallback";
+    description = settings.override "my-module" "name" "My service";
+  };
+}
+```
+
+`nix/module-settings.nix` provides the helpers for that (`settings`, `value`, `isSet`,
+`priority`, `priorityOf`, `used`, `lowestPriority`, `apply`, `override`, `overrideOf`). A
+module from an external repository imports the same file from the thymis input of the
+project: `import (inputs.thymis + "/nix/module-settings.nix") { inherit config lib; }`. See
+[Thymis Modules](../external-projects/thymis-modules.md) for how an external module ships
+its nix code.
+
+List-valued options that other modules also contribute to (like `systemd.tmpfiles.rules`)
+must be written *without* `mkOverride`, because a priority on a list option drops the
+definitions of all other sources instead of merging with them; use `settings.value` for
+those.
 
 `write_nix_settings` is only needed for settings whose nix representation is not a settings
-value, for example the device type, which selects the modules to import.
+value (for example the device type, which selects the modules to import). When it writes
+NixOS configuration itself, it must apply `lib.mkOverride <priority>` to every definition it
+writes, so that the configuration of a tag and of a device configuration still merge by
+priority.
 
 ## Overridable Functions
 

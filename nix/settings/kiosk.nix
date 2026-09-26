@@ -6,23 +6,20 @@
 # provided by the controller.
 { config, lib, pkgs, ... }:
 let
-  cfg = config.thymis.config.kiosk or { };
-  priorities = config.thymis.priority.kiosk or { };
-  enabled = priorities != { };
-  priority =
-    if enabled
-    then lib.foldl' (a: b: if a < b then a else b) 1500 (lib.attrValues priorities)
-    else 1500;
+  settings = import ../module-settings.nix { inherit config lib; };
 
-  url = cfg.url or "";
-  xrandrMode = cfg.xrandr-mode or "1920x1080";
-  rotation = cfg.xrandr-rotation or "normal";
-  volume = cfg.volume or 100;
-  audioSinkFuzzy = cfg.audio-sink-fuzzy or "";
-  enableVnc = cfg.enable-vnc or false;
-  vncPassword = cfg.vnc-password or "password";
+  enabled = settings.used "kiosk";
+  priority = settings.lowestPriority "kiosk";
+
+  url = settings.value "kiosk" "url" "";
+  xrandrMode = settings.value "kiosk" "xrandr-mode" "1920x1080";
+  rotation = settings.value "kiosk" "xrandr-rotation" "normal";
+  volume = settings.value "kiosk" "volume" 100;
+  audioSinkFuzzy = settings.value "kiosk" "audio-sink-fuzzy" "";
+  enableVnc = settings.value "kiosk" "enable-vnc" false;
+  vncPassword = settings.value "kiosk" "vnc-password" "password";
   # changes whenever any kiosk setting changes, which restarts the display manager
-  nonce = builtins.hashString "sha256" (builtins.toJSON cfg);
+  nonce = builtins.hashString "sha256" (builtins.toJSON (settings.settings "kiosk"));
 
   # Parse width/height/refresh from the xrandr mode for CVT modeline generation.
   # Handles "1360x768", "1360x768_60.00" and "1360x768@60".
