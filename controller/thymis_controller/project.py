@@ -29,6 +29,7 @@ from thymis_controller.nix import (
     nix_flake_prefetch,
     nix_subprocess_env,
 )
+from thymis_controller.nix.module_settings import write_project_module_files
 from thymis_controller.nix.templating import render_flake_nix
 from thymis_controller.notifications import NotificationManager
 from thymis_controller.repo import Repo
@@ -490,10 +491,18 @@ class Project:
                 self.lockfile = None  # force lockfile reload
         if self.has_lockfile_changed(self.repo_dir):
             self.load_repositories(repositories)
-        # create modules folder if not exists
+        # create modules folder if not exists, with the settings helpers and the
+        # derivation of every module the project uses
         modules_path = self.repo_dir / "modules"
         del_path(modules_path)
         modules_path.mkdir(exist_ok=True)
+        write_project_module_files(
+            modules_path,
+            self.used_module_instances(
+                [module for config in state.configs for module in config.modules]
+                + [module for tag in state.tags for module in tag.modules]
+            ),
+        )
         # create and empty hosts, tags folder
         del_path(self.repo_dir / "hosts")
         del_path(self.repo_dir / "tags")
@@ -551,6 +560,23 @@ class Project:
 
     def reload_from_disk(self):
         self.write_state_and_reload(self.read_state())
+
+    def used_module_instances(self, module_settings_list):
+        """The module instances of `module_settings_list`, ignoring modules whose
+        type cannot be imported."""
+        instances = {}
+        for module_settings in module_settings_list:
+            if module_settings.type in instances:
+                continue
+            try:
+                instances[module_settings.type] = get_module_class_instance_by_type(
+                    module_settings.type
+                )
+            except Exception as e:
+                logger.error(
+                    "Error while getting module %s: %s", module_settings.type, e
+                )
+        return list(instances.values())
 
     def create_folder_and_write_modules(
         self, base_path: str, identifier: str, modules, priority

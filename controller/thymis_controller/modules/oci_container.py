@@ -29,6 +29,7 @@ class OCIContainers(modules.Module):
     )
 
     settings_namespace = "oci-containers"
+    nix_derivation = "oci-containers"
 
     containers = modules.Setting(
         display_name=modules.LocalizedString(

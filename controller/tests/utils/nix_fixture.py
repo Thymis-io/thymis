@@ -7,7 +7,6 @@ settings, the generated module files, the nix module system merging them, and
 the settings translation in `nix/settings/`.
 """
 
-import io
 import json
 import pathlib
 import shutil
@@ -16,6 +15,7 @@ import subprocess
 from thymis_controller import models
 from thymis_controller.lib import HOST_PRIORITY
 from thymis_controller.modules.builtin_modules import ALL_MODULES
+from thymis_controller.nix.module_settings import write_project_module_files
 from thymis_controller.nix.templating import render_flake_nix
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
@@ -30,18 +30,25 @@ class NixUnavailable(RuntimeError):
 DEVICE = "thymis_controller.modules.thymis.ThymisDevice"
 
 
+class _Project:
+    """The modules that name their systemd units after their source path need the
+    project the module files are written into."""
+
+    def __init__(self, path: pathlib.Path):
+        self.path = path
+
+
 def _write_modules(
     root: pathlib.Path, kind: str, identifier: str, modules, priority: int
 ):
     path = root / kind / identifier
     path.mkdir(parents=True, exist_ok=True)
+    project = _Project(root)
     for module_settings in modules:
         module = _MODULES[module_settings.type]
-        f = io.StringIO()
-        module.write_nix_settings(f, path, module_settings, priority, None)
-        (path / f"{module.type}.nix").write_text(
-            "{ pkgs, lib, inputs, config, ... }:\n{\n" + f.getvalue() + "\n}\n"
-        )
+        # the real writer, so that the generated files are exactly what the
+        # controller produces
+        module.write_nix(path, module_settings, priority, project)
 
 
 def _device_module(identifier: str) -> models.ModuleSettings:
@@ -80,6 +87,20 @@ def render_project(
         if not any(module.type == DEVICE for module in config.modules):
             config.modules.insert(0, _device_module(config.identifier))
     (root / "state.json").write_text(state.model_dump_json(indent=2))
+    # the settings helpers and the derivations of the modules the project uses
+    write_project_module_files(
+        root / "modules",
+        list(
+            dict.fromkeys(
+                _MODULES[module_settings.type]
+                for module_settings in [
+                    module for config in state.configs for module in config.modules
+                ]
+                + [module for tag in state.tags for module in tag.modules]
+                if module_settings.type in _MODULES
+            )
+        ),
+    )
     for config in state.configs:
         _write_modules(root, "hosts", config.identifier, config.modules, HOST_PRIORITY)
     for tag in state.tags:

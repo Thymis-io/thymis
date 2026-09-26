@@ -129,9 +129,19 @@ class Module(ABC):
     # Namespace of this module's settings in the generated nix, e.g.
     # "networking" for `thymis.config.networking.*`. Modules that set it also
     # publish the priority their settings are written with as
-    # `thymis.priority.<namespace>.<setting>`, which the nix side uses to derive
-    # NixOS configuration from the merged settings.
+    # `thymis.config._priority.<namespace>.<setting>`, which the nix side uses
+    # to derive NixOS configuration from the merged settings.
     settings_namespace: Optional[str] = None
+
+    # Name of the nix file (in `thymis_controller/templates_nix/settings/`) that
+    # derives this module's NixOS configuration from the merged settings. The
+    # controller copies it into the `modules` directory of the project, so that
+    # the project keeps building with any version of the thymis flake.
+    nix_derivation: Optional[str] = None
+
+    # The same for a module that ships its derivation as source (e.g. a module
+    # from an external repository), instead of as a file of the controller.
+    nix_derivation_source: Optional[str] = None
 
     def get_model(self, locale: str) -> models.Module:
         # collect all settings
@@ -167,12 +177,28 @@ class Module(ABC):
         with open(path / filename, "w+", encoding="utf-8") as f:
             f.write("{ pkgs, lib, inputs, config, ... }:\n")
             f.write("{\n")
+            if (
+                self.nix_derivation is not None
+                or self.nix_derivation_source is not None
+            ):
+                # the derivation of this module, copied into the project
+                f.write(f"  imports = [ {self.nix_derivation_import_path()} ];\n")
 
             self.write_nix_settings(f, path, module_settings, priority, project)
 
             f.write("\n}\n")
 
         format_nix_file(str(path / filename))
+
+    def nix_derivation_import_path(self) -> str:
+        """Path of this module's derivation, relative to a generated module file
+        (`hosts/<identifier>/<module>.nix` and `tags/<identifier>/<module>.nix`)."""
+        filename = (
+            f"settings/{self.nix_derivation}.nix"
+            if self.nix_derivation is not None
+            else f"{self.settings_namespace}.nix"
+        )
+        return f"../../modules/{filename}"
 
     def iter_settings(self) -> dict[str, "Setting"]:
         """All settings of this module, in a stable order.
@@ -208,14 +234,17 @@ class Module(ABC):
                 # its `nix_attr_name`), so that the nix side can read the value
                 # and the priority of a setting with the same name. Written even
                 # when the setting itself is unset, so that the nix side can tell
-                # which settings a module instance provides.
+                # which settings a module instance provides. The `_priority`
+                # namespace is reserved for this and lives in `thymis.config`,
+                # which every version of the device module has, so that a project
+                # keeps building with a thymis flake that does not know about it.
                 name = (
                     setting.nix_attr_name.rsplit(".", 1)[-1]
                     if setting.nix_attr_name is not None
                     else attr
                 )
                 f.write(
-                    f"  {nix_attr_path(['thymis', 'priority', self.settings_namespace, name])} = "
+                    f"  {nix_attr_path(['thymis', 'config', '_priority', self.settings_namespace, name])} = "
                     f"lib.mkOverride {priority} {priority};\n"
                 )
             if setting.nix_attr_name is None:
