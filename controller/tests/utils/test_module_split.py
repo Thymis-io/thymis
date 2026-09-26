@@ -153,7 +153,10 @@ def test_networking_writes_settings_definitions():
         "thymis.config.networking.nameservers = lib.mkOverride 100 [\n" "  {\n" in out
     )
     # the priority of every setting is published for the nix side
-    assert "thymis.priority.networking.static-networks = lib.mkOverride 100 100;" in out
+    assert (
+        "thymis.config._priority.networking.static-networks = lib.mkOverride 100 100;"
+        in out
+    )
     # the module never renders NixOS configuration itself
     assert "networking.interfaces" not in out
 
@@ -197,7 +200,9 @@ def test_localization_writes_timezone_and_time_servers():
         in out
     )
     assert 'server = "pool.ntp.org";' in out
-    assert "thymis.priority.localization.timezone = lib.mkOverride 100 100;" in out
+    assert (
+        "thymis.config._priority.localization.timezone = lib.mkOverride 100 100;" in out
+    )
 
 
 def test_security_writes_password_keys_and_certs():

@@ -67,9 +67,11 @@ device configuration or tag it belongs to, and the NixOS module system merges th
   the configuration it derives.
 
 NixOS configuration should be derived in nix, not in python: a module that sets
-`settings_namespace` ships a nix module (built-in modules put theirs in
-`nix/settings/<namespace>.nix`) that reads the merged settings and writes the resulting
-configuration with the priority of the setting it comes from:
+`settings_namespace` declares its derivation with `nix_derivation` (built-in modules name a
+file of the controller) or `nix_derivation_source` (a module that ships the derivation
+itself), and the controller copies it into the `modules` directory of the project. The
+derivation reads the merged settings and writes the resulting configuration with the
+priority of the setting it comes from:
 
 ```nix
 { config, lib, ... }:
@@ -84,12 +86,11 @@ in
 }
 ```
 
-`nix/module-settings.nix` provides the helpers for that (`settings`, `value`, `isSet`,
-`priority`, `priorityOf`, `used`, `lowestPriority`, `apply`, `override`, `overrideOf`). A
-module from an external repository imports the same file from the thymis input of the
-project: `import (inputs.thymis + "/nix/module-settings.nix") { inherit config lib; }`. See
-[Thymis Modules](../external-projects/thymis-modules.md) for how an external module ships
-its nix code.
+The helpers (`settings`, `value`, `isSet`, `priority`, `priorityOf`, `used`,
+`lowestPriority`, `apply`, `override`, `overrideOf`) are in the `module-settings.nix` the
+controller writes into every project, so a derivation imports them relative to itself. See
+[Thymis Modules](../external-projects/thymis-modules.md) for how an external module ships its
+nix code.
 
 List-valued options that other modules also contribute to (like `systemd.tmpfiles.rules`)
 must be written *without* `mkOverride`, because a priority on a list option drops the

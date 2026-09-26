@@ -11,8 +11,8 @@ Each setting is written as `lib.mkOverride <priority>` definitions:
   that the nix side can derive NixOS configuration from the merged settings.
 """
 
-import io
 import pathlib
+import tempfile
 
 import pytest
 from thymis_controller import models
@@ -27,7 +27,8 @@ class _Project:
     """The modules that name their systemd units after their source path need
     the project the module file is written into."""
 
-    path = pathlib.Path("/tmp/project")
+    def __init__(self, path: pathlib.Path):
+        self.path = path
 
 
 def _value_for(setting: modules_lib.Setting):
@@ -62,20 +63,26 @@ def _render(module: modules_lib.Module) -> str:
         if value is None:
             continue
         settings[attr] = value
-    f = io.StringIO()
-    module.write_nix_settings(
-        f,
-        pathlib.Path("/tmp/project/repository/hosts/c1"),
+    # the real writer, into the directory layout of a generated project
+    project = pathlib.Path(tempfile.mkdtemp())
+    path = project / "repository" / "hosts" / "c1"
+    path.mkdir(parents=True)
+    module.write_nix(
+        path,
         models.ModuleSettings(type=module.type, settings=settings),
         PRIORITY,
-        _Project(),
+        _Project(project),
     )
-    return f.getvalue()
+    return (path / f"{module.type}.nix").read_text()
 
 
 @pytest.mark.parametrize("module", ALL_MODULES, ids=lambda m: m.type.rsplit(".", 1)[-1])
 def test_all_settings_are_written_as_numbered_definitions(module):
     out = _render(module)
+    # a module that derives configuration from its settings imports the
+    # derivation the controller copies into the project
+    if module.nix_derivation is not None or module.nix_derivation_source is not None:
+        assert f"imports = [ {module.nix_derivation_import_path()} ];" in out
 
     # quoted priorities make nix fail to merge the definition
     assert 'lib.mkOverride "' not in out
@@ -92,7 +99,7 @@ def test_all_settings_are_written_as_numbered_definitions(module):
                 if setting.nix_attr_name is not None
                 else attr
             )
-            namespace = f"thymis.priority.{module.settings_namespace}.{name}"
+            namespace = f"thymis.config._priority.{module.settings_namespace}.{name}"
             assert (
                 f"  {namespace} = lib.mkOverride {PRIORITY} {PRIORITY};" in out
             ), f"{module.type}.{attr} does not publish its priority"

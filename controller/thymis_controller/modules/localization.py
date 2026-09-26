@@ -29,6 +29,7 @@ class LocalizationModule(modules.Module):
     )
 
     settings_namespace = "localization"
+    nix_derivation = "localization"
 
     timezone = modules.Setting(
         display_name=modules.LocalizedString(

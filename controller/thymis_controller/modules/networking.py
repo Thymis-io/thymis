@@ -57,6 +57,7 @@ class NetworkingModule(modules.Module):
     )
 
     settings_namespace = "networking"
+    nix_derivation = "networking"
 
     wifi_ssid = modules.Setting(
         display_name=modules.LocalizedString(

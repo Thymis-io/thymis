@@ -26,6 +26,7 @@ class Kiosk(modules.Module):
     )
 
     settings_namespace = "kiosk"
+    nix_derivation = "kiosk"
 
     kiosk_url = modules.Setting(
         nix_attr_name="thymis.config.kiosk.url",

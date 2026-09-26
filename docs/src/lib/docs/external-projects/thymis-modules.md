@@ -111,32 +111,38 @@ class MyModule(thymis_controller.modules.Module):
 ```
 
 The controller writes every setting as `lib.mkOverride <priority>` definitions and publishes
-the priority of each setting as `thymis.priority.<namespace>.<name>`, so the module derives
-its NixOS configuration from the *merged* settings and keeps the priority:
+the priority of each setting as `thymis.config._priority.<namespace>.<name>`, so the module
+derives its NixOS configuration from the *merged* settings and keeps the priority:
 
 ```python
+    # the nix code that derives the configuration from the merged settings; the
+    # controller writes it into the `modules` directory of the project
+    nix_derivation_source = """
+{ config, lib, ... }:
+let
+  settings = import ../module-settings.nix { inherit config lib; };
+in
+{
+  systemd.services.my-service.description =
+    settings.apply "my-module" "url" "https://fallback";
+}
+"""
+
     def write_nix_settings(self, f, path, module_settings, priority, project):
         # the settings of this module instance, with their priorities
         super().write_nix_settings(f, path, module_settings, priority, project)
-
-        # the derivation of the module: it reads the merged settings, so it sees
-        # the values a tag provides as well
-        f.write(
-            """
-  systemd.services.my-service.description =
-    (import (inputs.thymis + "/nix/module-settings.nix") { inherit config lib; })
-      .apply "my-module" "url" "https://fallback";
-"""
-        )
 ```
 
-The helpers in `nix/module-settings.nix` (`settings`, `value`, `isSet`, `priority`,
-`priorityOf`, `used`, `lowestPriority`, `apply`, `override`, `overrideOf`) are documented in
-[Thymis Module](../reference/concepts/module.md#how-settings-reach-the-device). Instead of
-writing the derivation as nix source, a module can ship a NixOS module in its own
-repository and import it from the module: the flake outputs of an external repository are
-available as `inputs.<input-name>` in the generated configuration, so
-`imports = [ inputs.<input-name>.nixosModules.my-module ];` is enough.
+The helpers in `module-settings.nix` (`settings`, `value`, `isSet`, `priority`, `priorityOf`,
+`used`, `lowestPriority`, `apply`, `override`, `overrideOf`) are documented in
+[Thymis Module](../reference/concepts/module.md#how-settings-reach-the-device); the
+controller copies the file into the `modules` directory of the project next to the
+derivation, so the derivation imports it relative to itself. Instead of providing the
+derivation as source, a module can ship a NixOS module in its own repository and import it:
+the flake outputs of an external repository are available as `inputs.<input-name>` in the
+generated configuration, so `imports = [ inputs.<input-name>.nixosModules.my-module ];` is
+enough (and that nix module imports the helpers from the `modules` directory of the
+project).
 
 Two things to keep in mind:
 

@@ -46,7 +46,7 @@ class ExternalStyleModule(modules.Module):
         f.write(
             """
   systemd.services.external-style-message.description =
-    (import (inputs.thymis + "/nix/module-settings.nix") { inherit config lib; })
+    (import ../../modules/module-settings.nix { inherit config lib; })
       .apply "external-style" "message" "fallback";
 """
         )
@@ -133,11 +133,15 @@ def test_external_module_writes_the_settings_of_its_instance(tmp_path):
         'thymis.config.external-style.message = lib.mkOverride 90 "from-tag";'
         in tag_file
     )
-    assert "thymis.priority.external-style.message = lib.mkOverride 90 90;" in tag_file
+    assert (
+        "thymis.config._priority.external-style.message = lib.mkOverride 90 90;"
+        in tag_file
+    )
     # the configuration does not set the message (and the module default is
     # empty), so it does not define a value that could shadow the tag's
     assert "thymis.config.external-style.message" not in config_file
     assert (
-        "thymis.priority.external-style.message = lib.mkOverride 80 80;" in config_file
+        "thymis.config._priority.external-style.message = lib.mkOverride 80 80;"
+        in config_file
     )
     assert HOST_PRIORITY == 80
