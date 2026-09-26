@@ -59,7 +59,7 @@ class SecurityAccessModule(modules.Module):
             en="Authorized Keys",
             de="Authorisierte Schlüssel",
         ),
-        nix_attr_name="thymis.config.authorized-keys",
+        nix_attr_name=None,  # written directly in write_nix_settings
         type=modules.ListType(
             settings={
                 "key": modules.Setting(
@@ -129,6 +129,19 @@ class SecurityAccessModule(modules.Module):
         priority: int,
         project: Project,
     ):
+        """Write the target definitions of this module.
+
+        These settings have no `nix_attr_name`: their NixOS representation is not
+        a settings value that the nix side derives from, so the module writes it
+        directly. Each setting still maps to exactly one definition of one
+        option:
+        - `password_secret` is the on-device path of the hashed password the
+          agent places, so it carries the priority of the module instance;
+        - `authorized_keys` and `security_pki_certificates` are lists that
+          different sources contribute to (dropping the trusted keys or
+          certificates of a tag would lock users out), so they are written
+          without a priority and merged by nix;
+        """
         password_secret = (
             module_settings.settings["password_secret"]
             if "password_secret" in module_settings.settings
@@ -149,7 +162,8 @@ class SecurityAccessModule(modules.Module):
 
         if password_secret:
             f.write(
-                f"  users.users.root.hashedPasswordFile = {convert_python_value_to_nix(self.password_secret.type.on_device_path)};\n"
+                f"  users.users.root.hashedPasswordFile = lib.mkOverride {priority} "
+                f"{convert_python_value_to_nix(self.password_secret.type.on_device_path)};\n"
             )
 
         if authorized_keys:

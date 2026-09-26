@@ -32,11 +32,15 @@ class FilesModule(modules.Module):
         str(pathlib.Path(__file__).parent / "icons" / "Files_dark.svg")
     )
 
+    settings_namespace = "files"
+    nix_derivation = "files"
+
     secrets = modules.Setting(
         display_name=modules.LocalizedString(
             en="Secrets",
             de="Secrets",
         ),
+        nix_attr_name="thymis.config.files.secrets",
         description=modules.LocalizedString(
             en="""Secrets to be placed on the device.
 
@@ -148,6 +152,7 @@ Secrets sind perfekt für
                 en="Secret",
                 de="Secret",
             ),
+            element_key="path",
         ),
         default=[],
         example="",
@@ -159,6 +164,7 @@ Secrets sind perfekt für
             en="Artifacts",
             de="Artifacts",
         ),
+        nix_attr_name="thymis.config.files.artifacts",
         description=modules.LocalizedString(
             en="Artifacts to be placed on the device.",
             de="Artifacts, die auf dem Gerät platziert werden",
@@ -240,6 +246,7 @@ Secrets sind perfekt für
                 en="Artifact",
                 de="Artifact",
             ),
+            element_key="path",
         ),
         default=[],
         example="",
@@ -275,34 +282,3 @@ Secrets sind perfekt für
                 )
                 secret_settings.append((this_secret_type, secret["secret"]))
         return secret_settings
-
-    def write_nix_settings(
-        self,
-        f,
-        path,
-        module_settings: models.ModuleSettings,
-        priority: int,
-        project: Project,
-    ):
-        artifacts = (
-            module_settings.settings["artifacts"]
-            if "artifacts" in module_settings.settings
-            else self.artifacts.default
-        )
-
-        if artifacts:
-            f.write("  systemd.tmpfiles.rules = [\n")
-            artifact: dict
-            for artifact in artifacts:
-                artifact_path = artifact.get("artifact", None)
-                result_path = artifact.get("path", "/") or "/"
-                mode = artifact.get("mode", "-") or "-"
-                user = artifact.get("owner", "-") or "-"
-                group = artifact.get("group", "-") or "-"
-                if artifact_path:
-                    f.write(
-                        f'    "C+ {result_path} {mode} {user} {group} - ${{pkgs.copyPathToStore (inputs.self + "/artifacts/{artifact_path}")}}"\n'
-                    )
-            f.write("  ];")
-
-        return super().write_nix_settings(f, path, module_settings, priority, project)

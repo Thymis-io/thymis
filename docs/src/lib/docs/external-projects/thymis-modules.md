@@ -79,6 +79,80 @@ When multiple modules are applied to a device, their configurations are merged b
 
 This priority system ensures that device-specific settings can override tag settings, which can in turn override module defaults.
 
+## Settings of a Module From an External Repository
+
+The settings of a module are merged by the NixOS module system, so that a tag and a device
+configuration can each set different fields of the same module, and a setting a source does
+not set keeps the value of the source that does. A module takes part in that by declaring
+where its settings live in the generated configuration:
+
+```python
+class MyModule(thymis_controller.modules.Module):
+    # namespace of this module's settings in the generated nix
+    settings_namespace = "my-module"
+
+    url = thymis_controller.modules.Setting(
+        display_name="URL",
+        # where the setting is written; keep `thymis.config.<namespace>.<name>`
+        nix_attr_name="thymis.config.my-module.url",
+        type="string",
+        default="https://example.com",
+    )
+
+    containers = thymis_controller.modules.Setting(
+        display_name="Containers",
+        nix_attr_name="thymis.config.my-module.containers",
+        # elements that are entities of their own merge per element, keyed by
+        # this field of the element
+        type=thymis_controller.modules.ListType(
+            settings={...}, element_name="Container", element_key="name"
+        ),
+    )
+```
+
+The controller writes every setting as `lib.mkOverride <priority>` definitions and publishes
+the priority of each setting as `thymis.config._priority.<namespace>.<name>`, so the module
+derives its NixOS configuration from the *merged* settings and keeps the priority:
+
+```python
+    # the nix code that derives the configuration from the merged settings; the
+    # controller writes it into the `modules` directory of the project
+    nix_derivation_source = """
+{ config, lib, ... }:
+let
+  settings = import ../module-settings.nix { inherit config lib; };
+in
+{
+  systemd.services.my-service.description =
+    settings.apply "my-module" "url" "https://fallback";
+}
+"""
+
+    def write_nix_settings(self, f, path, module_settings, priority, project):
+        # the settings of this module instance, with their priorities
+        super().write_nix_settings(f, path, module_settings, priority, project)
+```
+
+The helpers in `module-settings.nix` (`settings`, `value`, `isSet`, `priority`, `priorityOf`,
+`used`, `lowestPriority`, `apply`, `override`, `overrideOf`) are documented in
+[Thymis Module](../reference/concepts/module.md#how-settings-reach-the-device); the
+controller copies the file into the `modules` directory of the project next to the
+derivation, so the derivation imports it relative to itself. Instead of providing the
+derivation as source, a module can ship a NixOS module in its own repository and import it:
+the flake outputs of an external repository are available as `inputs.<input-name>` in the
+generated configuration, so `imports = [ inputs.<input-name>.nixosModules.my-module ];` is
+enough (and that nix module imports the helpers from the `modules` directory of the
+project).
+
+Two things to keep in mind:
+
+- Configuration derived from several settings at once (for example a file built from a URL
+  and a title) should use `settings.overrideOf`/`settings.lowestPriority`, so it carries the
+  lowest priority of the settings it comes from.
+- A list option that other modules contribute to as well (`systemd.tmpfiles.rules`, firewall
+  ports, authorized keys) must be written *without* `lib.mkOverride`, because a priority on
+  a list option replaces the definitions of all other sources instead of merging with them.
+
 ## See also
 
 - [Creating your first Thymis module](thymis-modules/first-module.md)

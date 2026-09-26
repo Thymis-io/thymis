@@ -11,6 +11,7 @@ from thymis_controller.models.module import SettingTypes, ValueTypes
 from thymis_controller.nix.templating import (
     convert_python_value_to_nix,
     format_nix_file,
+    string_can_be_identifier_for_attrs_key,
 )
 from thymis_controller.project import Project
 
@@ -31,12 +32,116 @@ def localize(locale: str, value: Optional[Localizable]) -> Optional[str]:
     return value.localize(locale)
 
 
+# Priority values that are not configured by anyone explicitly are written with.
+# It is the priority `lib.mkOptionDefault` uses, so a value that one source
+# explicitly configures always wins over the default another source fills in.
+DEFAULT_PRIORITY = 1500
+
+
+def is_unset_setting_value(value: JsonValue, nested: bool = False) -> bool:
+    """A setting value counts as unset when it carries no information.
+
+    Empty lists and empty attribute sets mean "not configured" for the same
+    reason a missing key does: nothing must be defined for them in nix, so that
+    other sources and the shipped defaults can win. `False` and `0` are real
+    values.
+
+    A whole setting that a source sets to an empty string counts as set (that is
+    how a tag's value is cleared for one configuration), while an empty field
+    inside a list element is the empty template of that element and must not
+    shadow the value another source sets for the same field (`nested`).
+    """
+    if value is None or value == [] or value == {}:
+        return True
+    return nested and value == ""
+
+
+def nix_attr_path(path: List[str]) -> str:
+    """Render an attribute path, quoting segments that are not identifiers."""
+    return ".".join(
+        (
+            segment
+            if string_can_be_identifier_for_attrs_key(segment)
+            else convert_python_value_to_nix(segment)
+        )
+        for segment in path
+    )
+
+
+def write_nix_definitions(
+    f: StringIO,
+    path: List[str],
+    value: JsonValue,
+    priority: int,
+    element_key: Optional[str] = None,
+    nested: bool = False,
+):
+    """Write the nix definitions of one setting value.
+
+    A setting value is written as one `lib.mkOverride <priority>` definition per
+    leaf, so that nix merges the fields of settings coming from different
+    sources (device configuration, tags) individually instead of replacing whole
+    subtrees, and resolves a leaf defined by several sources by priority.
+
+    Lists whose elements are identified by a setting (`element_key`) are written
+    as one definition tree per element, keyed by that identity, so that elements
+    defined by different sources are merged by nix as well.
+    """
+    if element_key is not None and isinstance(value, list):
+        for element in value:
+            if not isinstance(element, dict):
+                continue
+            key = element.get(element_key)
+            if not isinstance(key, str) or is_unset_setting_value(key, nested=True):
+                continue
+            write_nix_definitions(
+                f,
+                path + [key],
+                {k: v for k, v in element.items() if k != element_key},
+                priority,
+                nested=True,
+            )
+        return
+
+    if isinstance(value, dict):
+        for key in sorted(value.keys()):
+            if is_unset_setting_value(value[key], nested=True):
+                continue
+            write_nix_definitions(f, path + [key], value[key], priority, nested=True)
+        return
+
+    if is_unset_setting_value(value, nested=nested):
+        return
+
+    f.write(
+        f"  {nix_attr_path(path)} = lib.mkOverride {priority} "
+        f"{convert_python_value_to_nix(value)};\n"
+    )
+
+
 class Module(ABC):
     display_name: Localizable
     description: Optional[Localizable] = None
     category: Optional[Localizable] = None
     icon: Optional[str] = None
     icon_dark: Optional[str] = None
+
+    # Namespace of this module's settings in the generated nix, e.g.
+    # "networking" for `thymis.config.networking.*`. Modules that set it also
+    # publish the priority their settings are written with as
+    # `thymis.config._priority.<namespace>.<setting>`, which the nix side uses
+    # to derive NixOS configuration from the merged settings.
+    settings_namespace: Optional[str] = None
+
+    # Name of the nix file (in `thymis_controller/templates_nix/settings/`) that
+    # derives this module's NixOS configuration from the merged settings. The
+    # controller copies it into the `modules` directory of the project, so that
+    # the project keeps building with any version of the thymis flake.
+    nix_derivation: Optional[str] = None
+
+    # The same for a module that ships its derivation as source (e.g. a module
+    # from an external repository), instead of as a file of the controller.
+    nix_derivation_source: Optional[str] = None
 
     def get_model(self, locale: str) -> models.Module:
         # collect all settings
@@ -72,12 +177,41 @@ class Module(ABC):
         with open(path / filename, "w+", encoding="utf-8") as f:
             f.write("{ pkgs, lib, inputs, config, ... }:\n")
             f.write("{\n")
+            if (
+                self.nix_derivation is not None
+                or self.nix_derivation_source is not None
+            ):
+                # the derivation of this module, copied into the project
+                f.write(f"  imports = [ {self.nix_derivation_import_path()} ];\n")
 
             self.write_nix_settings(f, path, module_settings, priority, project)
 
             f.write("\n}\n")
 
         format_nix_file(str(path / filename))
+
+    def nix_derivation_import_path(self) -> str:
+        """Path of this module's derivation, relative to a generated module file
+        (`hosts/<identifier>/<module>.nix` and `tags/<identifier>/<module>.nix`)."""
+        filename = (
+            f"settings/{self.nix_derivation}.nix"
+            if self.nix_derivation is not None
+            else f"{self.settings_namespace}.nix"
+        )
+        return f"../../modules/{filename}"
+
+    def iter_settings(self) -> dict[str, "Setting"]:
+        """All settings of this module, in a stable order.
+
+        Named `iter_settings` because a module may declare a setting called
+        `settings` (the Custom Nix module does).
+        """
+        return {
+            attr: value
+            for attr in dir(self)
+            if not attr.startswith("_")
+            and isinstance(value := getattr(self, attr), Setting)
+        }
 
     def write_nix_settings(
         self,
@@ -87,20 +221,58 @@ class Module(ABC):
         priority: int,
         project: Project,
     ):
-        for attr, value in module_settings.settings.items():
-            try:
-                my_attr = getattr(self, attr)
-            except AttributeError:
-                import traceback
+        """Write one `lib.mkOverride` definition per setting into `thymis.config`.
 
-                traceback.print_exc()
-                print(f"Attribute {attr} not found in {self}")
-                continue
-            assert isinstance(my_attr, Setting)
-            if my_attr.nix_attr_name is not None:
-                f.write(
-                    f"  {my_attr.nix_attr_name} = lib.mkOverride {priority} {convert_python_value_to_nix(value)};\n"
+        A setting that a source does not configure is written with its default
+        and `DEFAULT_PRIORITY`, so that the value another source explicitly
+        configures wins; a setting nobody configures still gets the default.
+        """
+        for attr, setting in self.iter_settings().items():
+            if self.settings_namespace is not None:
+                # Presence and priority of the setting, see `settings_namespace`.
+                # Named like the setting in `thymis.config` (the last component of
+                # its `nix_attr_name`), so that the nix side can read the value
+                # and the priority of a setting with the same name. Written even
+                # when the setting itself is unset, so that the nix side can tell
+                # which settings a module instance provides. The `_priority`
+                # namespace is reserved for this and lives in `thymis.config`,
+                # which every version of the device module has, so that a project
+                # keeps building with a thymis flake that does not know about it.
+                name = (
+                    setting.nix_attr_name.rsplit(".", 1)[-1]
+                    if setting.nix_attr_name is not None
+                    else attr
                 )
+                f.write(
+                    f"  {nix_attr_path(['thymis', 'config', '_priority', self.settings_namespace, name])} = "
+                    f"lib.mkOverride {priority} {priority};\n"
+                )
+            if setting.nix_attr_name is None:
+                continue
+            if attr in module_settings.settings:
+                # set by this source: written even when empty, which is how a
+                # configuration clears the value a tag sets
+                value, value_priority = module_settings.settings[attr], priority
+                if is_unset_setting_value(value):
+                    continue
+            else:
+                # not set by this source: written as a default that loses
+                # against the value another source sets, and empty defaults
+                # (which carry no information) are left out entirely
+                value, value_priority = setting.default, DEFAULT_PRIORITY
+                if is_unset_setting_value(value, nested=True):
+                    continue
+            write_nix_definitions(
+                f,
+                setting.nix_attr_name.split("."),
+                value,
+                value_priority,
+                element_key=(
+                    setting.type.element_key
+                    if isinstance(setting.type, ListType)
+                    else None
+                ),
+            )
 
     def register_secret_settings(
         self,
@@ -173,6 +345,13 @@ class SelectOneType:
 class ListType:
     settings: dict[str, "Setting"]
     element_name: Optional[Localizable]
+    # Name of the setting inside `settings` that identifies an element, e.g.
+    # "interface" for a list of static networks or "container_name" for a list of
+    # OCI containers. Elements of such a list are written to nix as separate
+    # definitions under `"<identity value>"`, so that the nix module system can
+    # merge elements and their fields coming from different sources (device
+    # configuration, tags) instead of one source replacing the whole list.
+    element_key: Optional[str] = None
 
     def get_model(self, locale: str) -> models.ListType:
         return models.ListType(
@@ -295,6 +474,10 @@ __all__ = [
     "HasLocalize",
     "Localizable",
     "localize",
+    "DEFAULT_PRIORITY",
+    "is_unset_setting_value",
+    "nix_attr_path",
+    "write_nix_definitions",
     "SelectOneType",
     "ListType",
     "SettingTypes",

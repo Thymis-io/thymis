@@ -45,13 +45,73 @@ Setting(type=SecretType(...))       # For sensitive data
 Setting(type=ArtifactType())        # For file artifacts
 ```
 
+## How Settings Reach the Device
+
+The controller writes the settings of a module instance into the nix configuration of the
+device configuration or tag it belongs to, and the NixOS module system merges them:
+
+- a setting that declares `nix_attr_name` (built-in modules use
+  `thymis.config.<namespace>.<setting>`) is written as one `lib.mkOverride <priority>`
+  definition per value leaf, so fields of one setting coming from different sources
+  (device configuration, tags, custom nix) merge individually and a field defined by
+  several sources is resolved by priority (lower wins);
+- a list setting whose elements have an identity (an interface, a container, an artifact
+  path) declares it with `ListType(element_key="<setting name of the identity>")`; its
+  elements are then written as separate definitions keyed by that identity, so elements
+  and their fields coming from different sources merge as well;
+- a setting a source does not configure is written with the module default and a
+  `lib.mkOptionDefault` priority, so it never overrides a value another source configured
+  explicitly;
+- modules that set `settings_namespace` additionally publish the priority of every setting
+  of the instance as `thymis.priority.<namespace>.<setting>`, which the nix side uses for
+  the configuration it derives.
+
+NixOS configuration should be derived in nix, not in python: a module that sets
+`settings_namespace` declares its derivation with `nix_derivation` (built-in modules name a
+file of the controller) or `nix_derivation_source` (a module that ships the derivation
+itself), and the controller copies it into the `modules` directory of the project. The
+derivation reads the merged settings and writes the resulting configuration with the
+priority of the setting it comes from:
+
+```nix
+{ config, lib, ... }:
+let
+  settings = import ../module-settings.nix { inherit config lib; };
+in
+{
+  systemd.services.my-service = {
+    environment.URL = settings.apply "my-module" "url" "https://fallback";
+    description = settings.override "my-module" "name" "My service";
+  };
+}
+```
+
+The helpers (`settings`, `value`, `isSet`, `priority`, `priorityOf`, `used`,
+`lowestPriority`, `apply`, `override`, `overrideOf`) are in the `module-settings.nix` the
+controller writes into every project, so a derivation imports them relative to itself. See
+[Thymis Modules](../external-projects/thymis-modules.md) for how an external module ships its
+nix code.
+
+List-valued options that other modules also contribute to (like `systemd.tmpfiles.rules`)
+must be written *without* `mkOverride`, because a priority on a list option drops the
+definitions of all other sources instead of merging with them; use `settings.value` for
+those.
+
+`write_nix_settings` is only needed for settings whose nix representation is not a settings
+value (for example the device type, which selects the modules to import). When it writes
+NixOS configuration itself, it must apply `lib.mkOverride <priority>` to every definition it
+writes, so that the configuration of a tag and of a device configuration still merge by
+priority.
+
 ## Overridable Functions
 
 Modules can override several functions to customize their behavior:
 
 ### write_nix_settings
 
-Generates Nix configuration based on module settings:
+Writes Nix configuration for the settings of a module instance. Modules only need this when
+their settings cannot be expressed as settings values (see above), otherwise the value of
+each setting is written by the base implementation from its `nix_attr_name`:
 
 ```python
 def write_nix_settings(self, f, path, module_settings, priority, project):
@@ -59,7 +119,7 @@ def write_nix_settings(self, f, path, module_settings, priority, project):
     my_value = module_settings.settings.get("my_setting", self.my_setting.default)
 
     # Generate Nix configuration
-    f.write(f"  my_nix_option = {convert_python_value_to_nix(my_value)};")
+    f.write(f"  my_nix_option = lib.mkOverride {priority} {convert_python_value_to_nix(my_value)};")
 ```
 
 ### register_secret_settings
