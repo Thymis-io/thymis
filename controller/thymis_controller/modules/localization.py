@@ -1,10 +1,7 @@
 import pathlib
 
 import thymis_controller.modules.modules as modules
-from thymis_controller import models
 from thymis_controller.lib import read_into_base64
-from thymis_controller.nix.templating import convert_python_value_to_nix
-from thymis_controller.project import Project
 
 
 class LocalizationModule(modules.Module):
@@ -31,11 +28,14 @@ class LocalizationModule(modules.Module):
         str(pathlib.Path(__file__).parent / "icons" / "Localization_dark.svg")
     )
 
+    settings_namespace = "localization"
+
     timezone = modules.Setting(
         display_name=modules.LocalizedString(
             en="Timezone",
             de="Zeitzone",
         ),
+        nix_attr_name="thymis.config.localization.timezone",
         type="string",
         default="Europe/Berlin",
         description=modules.LocalizedString(
@@ -51,6 +51,7 @@ class LocalizationModule(modules.Module):
             en="Time Servers",
             de="Zeitserver",
         ),
+        nix_attr_name="thymis.config.localization.time-servers",
         type=modules.ListType(
             settings={
                 "server": modules.Setting(
@@ -80,35 +81,3 @@ class LocalizationModule(modules.Module):
         example="",
         order=20,
     )
-
-    def write_nix_settings(
-        self,
-        f,
-        path,
-        module_settings: models.ModuleSettings,
-        priority: int,
-        project: Project,
-    ):
-        time_servers = (
-            module_settings.settings["time_servers"]
-            if "time_servers" in module_settings.settings
-            else self.time_servers.default
-        )
-
-        time_zone = (
-            module_settings.settings["timezone"]
-            if "timezone" in module_settings.settings
-            else self.timezone.default
-        )
-
-        if time_servers:
-            servers = list(
-                map(lambda x: x["server"] if "server" in x else None, time_servers)
-            )
-            time_servers_nix = convert_python_value_to_nix(servers, ident=1)
-            f.write(f"  networking.timeServers = {time_servers_nix};\n")
-
-        if time_zone:
-            f.write(f'  time.timeZone = "{time_zone}";\n')
-
-        return super().write_nix_settings(f, path, module_settings, priority, project)
