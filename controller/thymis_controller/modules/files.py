@@ -33,6 +33,7 @@ class FilesModule(modules.Module):
     )
 
     settings_namespace = "files"
+    nix_derivation = "files"
 
     secrets = modules.Setting(
         display_name=modules.LocalizedString(

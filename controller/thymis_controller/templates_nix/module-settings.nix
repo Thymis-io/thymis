@@ -11,28 +11,24 @@
 # A module derives its NixOS configuration from the merged settings and uses
 # these helpers to read them and to write the result with the priority of the
 # setting it comes from, so that the device configuration or tag that set the
-# setting keeps winning over lower priority sources. A module of the thymis
-# repository imports this file directly:
+# setting keeps winning over lower priority sources. A module imports them from
+# the project it is generated into (the controller copies this file and the
+# derivation of every used module into the `modules` directory of the project,
+# so that a project keeps building with any version of the thymis flake):
 #
 #     { config, lib, ... }:
 #     let
-#       settings = import ../module-settings.nix { inherit config lib; };
+#       settings = import ../../modules/module-settings.nix { inherit config lib; };
 #     in
 #     {
 #       systemd.services.mymodule.environment.URL =
 #         settings.override "mymodule" "url" "https://fallback";
 #     }
 #
-# A module from an external repository imports it from the thymis input of the
-# project (see the module documentation for the two ways to ship such a module):
-#
-#     let
-#       settings = import (inputs.thymis + "/nix/module-settings.nix") { inherit config lib; };
-#     in
-#
 # `namespace` is the `settings_namespace` of the module and `name` is the name
 # the setting has in `thymis.config.<namespace>` (the last component of the
-# setting's `nix_attr_name`, e.g. `time-servers`).
+# setting's `nix_attr_name`, e.g. `time-servers`). The priorities are written to
+# `thymis.config._priority.<namespace>.<name>`.
 #
 # Note that a list option that several modules contribute to
 # (`systemd.tmpfiles.rules`, firewall ports, authorized keys, ...) must be
@@ -48,14 +44,14 @@ rec {
   value = namespace: name: fallback: (settings namespace).${name} or fallback;
 
   # Whether any source set the setting.
-  isSet = namespace: name: (config.thymis.priority.${namespace} or { }) ? ${name};
+  isSet = namespace: name: (config.thymis.config._priority.${namespace} or { }) ? ${name};
 
   # The priority the setting was written with (1500 when no source set it).
   priority = namespace: name:
-    (config.thymis.priority.${namespace} or { }).${name} or 1500;
+    (config.thymis.config._priority.${namespace} or { }).${name} or 1500;
 
   # The names of all settings of the namespace that a source published.
-  usedSettings = namespace: lib.attrNames (config.thymis.priority.${namespace} or { });
+  usedSettings = namespace: lib.attrNames (config.thymis.config._priority.${namespace} or { });
 
   # Whether any source uses the module, i.e. added an instance of it.
   used = namespace: usedSettings namespace != [ ];
