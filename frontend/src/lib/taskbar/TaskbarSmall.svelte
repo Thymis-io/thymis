@@ -75,7 +75,12 @@
 				</span>
 			{/if}
 			<span class="opacity-50 shrink-0">·</span>
-			<RenderTimeAgo class="shrink-0" timestamp={latestTask.submitted_time} minSeconds={1} />
+			<RenderTimeAgo
+				id="taskbar-small-latest-task-time"
+				class="shrink-0"
+				timestamp={latestTask.submitted_time}
+				minSeconds={1}
+			/>
 		{:else}
 			<span class="ds-stat-dot online shrink-0"></span>
 			<span class="font-medium whitespace-nowrap">{$t('taskbar.activity.all-clear')}</span>

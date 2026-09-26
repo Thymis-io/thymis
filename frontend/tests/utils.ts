@@ -109,6 +109,23 @@ export const unhighlightAll = async (screenshotTarget: Page | Locator) => {
 	`);
 };
 
+// The mask box takes the element's width, so "5 seconds ago" -> "1 minute ago" flakes the diff
+// Fix the width for a screenshot to be stable
+const LATEST_TASK_TIME_STYLE_ID = 'taskbar-small-latest-task-time-sizing';
+const LATEST_TASK_TIME_CSS = '#taskbar-small-latest-task-time { min-width: 7rem; }';
+
+const applyStableMaskSizing = (page: Page, styleId: string, css: string) =>
+	page.evaluate(
+		({ id, content }) => {
+			if (document.getElementById(id)) return;
+			const style = document.createElement('style');
+			style.id = id;
+			style.textContent = content;
+			document.head.append(style);
+		},
+		{ id: styleId, content: css }
+	);
+
 export const expectScreenshot = async (
 	screenshotTarget: Page | Locator,
 	testInfo: TestInfo,
@@ -127,6 +144,7 @@ export const expectScreenshotReal = async (
 ) => {
 	counter.count++;
 	const page = 'page' in screenshotTarget ? screenshotTarget.page() : screenshotTarget;
+	await applyStableMaskSizing(page, LATEST_TASK_TIME_STYLE_ID, LATEST_TASK_TIME_CSS);
 
 	// if options or options.mask is undefined, set it to an array with the default mask
 	if (!options || options.mask === undefined) {

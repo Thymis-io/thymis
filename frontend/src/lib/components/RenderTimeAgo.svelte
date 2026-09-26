@@ -5,10 +5,11 @@
 	interface Props {
 		timestamp?: string | null;
 		minSeconds?: number;
+		id?: string;
 		class?: string;
 	}
 
-	let { timestamp, minSeconds = 0, class: customClass = '' }: Props = $props();
+	let { timestamp, minSeconds = 0, id, class: customClass = '' }: Props = $props();
 
 	let currentDate = $state(new Date());
 	let date = $derived(timestamp ? new Date(timestamp) : undefined);
@@ -24,6 +25,7 @@
 
 {#if date}
 	<span
+		{id}
 		title={date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'long' })}
 		class="playwright-snapshot-unstable {customClass}"
 	>
