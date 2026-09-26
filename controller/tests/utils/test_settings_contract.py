@@ -103,3 +103,20 @@ def test_all_settings_are_written_as_numbered_definitions(module):
             assert (
                 f"  {namespace} = lib.mkOverride {PRIORITY} {PRIORITY};" in out
             ), f"{module.type}.{attr} does not publish its priority"
+
+
+def test_module_settings_files_are_shipped_with_the_controller():
+    """The derivations and the helpers are copied into a project at runtime, so
+    they must be part of the built package (setuptools includes only the
+    suffixes declared in `tool.setuptools.package-data`)."""
+    from thymis_controller.nix import module_settings
+
+    pyproject = pathlib.Path(__file__).parents[2] / "pyproject.toml"
+    package_data = pyproject.read_text()
+    for file in module_settings.module_settings_files():
+        assert file.is_file(), f"{file} does not exist"
+        suffix = f"**/*{file.suffix}"
+        assert suffix in package_data, (
+            f"{suffix} is not a package data suffix, {file} would be missing "
+            "from the built controller"
+        )
