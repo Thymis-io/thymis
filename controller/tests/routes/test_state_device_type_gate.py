@@ -181,3 +181,52 @@ class TestStateDeviceTypeGate:
             resp.json()["configs"][0]["modules"][0]["settings"]["device_type"]
             == "raspberry-pi-4"
         )
+
+
+class TestConfigFieldPatch:
+    def test_patch_nested_module_setting_preserves_other_configuration_fields(
+        self, state_gate_client
+    ):
+        client = state_gate_client
+        _write_state(client._project, [_make_config("config-a")])
+
+        response = client.patch(
+            "/api/configs/config-a/field",
+            json={
+                "operation": "set",
+                "path": "/modules/0/settings/image_format",
+                "value": "sd-card",
+            },
+        )
+
+        assert response.status_code == 200, response.text
+        assert response.json()["modules"][0]["settings"] == {
+            "device_type": "generic-x86_64",
+            "image_format": "sd-card",
+        }
+        assert client.get("/api/configs/config-a").json()["identifier"] == "config-a"
+
+    def test_patch_device_type_keeps_connected_device_safety_gate(
+        self, state_gate_client
+    ):
+        client = state_gate_client
+        _write_state(client._project, [_make_config("config-a")])
+        _create_deployment_info(client, "config-a")
+        client._fake_network_relay.public_key_to_connection_id["ssh-key-1"] = "conn-1"
+
+        response = client.patch(
+            "/api/configs/config-a/field",
+            json={
+                "operation": "set",
+                "path": "/modules/0/settings/device_type",
+                "value": "raspberry-pi-4",
+            },
+        )
+
+        assert response.status_code == 400
+        assert "Cannot change device type" in response.json()["detail"]
+        persisted = client.get("/api/configs/config-a")
+        assert (
+            persisted.json()["modules"][0]["settings"]["device_type"]
+            == "generic-x86_64"
+        )

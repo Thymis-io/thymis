@@ -14,6 +14,11 @@ class GlobalSettings(BaseSettings):
     FRONTEND_BINARY_PATH: str | None = None
     AUTH_BASIC: bool = True
     AUTH_BASIC_USERNAME: str = "admin"
+    AGENT_MODEL: str | None = None
+    # OpenAI-compatible gateway for the assistant, e.g. the meowl proxy. When set,
+    # AGENT_MODEL must name an OpenAI-compatible model (`openai:<model-id>`).
+    AGENT_BASE_URL: str | None = None
+    AGENT_API_KEY: str | None = None
     AUTH_BASIC_PASSWORD_FILE: str = "/var/lib/thymis/auth-basic-password"
 
     AUTH_OAUTH: bool = False

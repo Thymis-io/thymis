@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from thymis_controller.dependencies import require_valid_user_session
 from thymis_controller.routers import (
     api_action,
+    api_agent,
     api_artifacts,
     api_config,
     api_controller_settings,
@@ -35,3 +36,4 @@ router.include_router(api_config.router)
 router.include_router(api_ui_sockets.router)
 router.include_router(api_logging.router)
 router.include_router(api_controller_settings.router)
+router.include_router(api_agent.router)

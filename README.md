@@ -109,6 +109,33 @@ uv run uvicorn thymis_controller.main:app --reload
 
 The controller takes care of running the frontend for you. You can access thymis at `http://localhost:8000`.
 
+### Optional: Run the Thymis Assistant
+
+The floating **Thymis Assistant** is available to every signed-in controller user. It is disabled until a model is configured.
+
+1. Copy `controller/.env.example` to `controller/.env`. The default points at our own OpenAI-compatible gateway, the meowl proxy:
+
+   ```sh
+   THYMIS_AGENT_MODEL=openai:qwen3.8-27b
+   THYMIS_AGENT_BASE_URL=https://meowl.dev/openai/v1
+   ```
+
+2. Export the gateway token in the shell that starts the controller. Do not add API keys to `.env` or commit them:
+
+   ```sh
+   export THYMIS_AGENT_API_KEY='sk-meowl-…'
+   ```
+
+   To use a hosted provider instead, drop `THYMIS_AGENT_BASE_URL` and name the provider in the model, for example `THYMIS_AGENT_MODEL=openrouter:openai/gpt-4.1-mini` with `OPENROUTER_API_KEY` exported. `THYMIS_AGENT_BASE_URL` only applies to OpenAI-compatible models (`openai:<model-id>`).
+
+3. Start the controller from `controller/` as above, open `http://localhost:8000`, sign in, then select **Thymis Assistant** in the bottom-right corner.
+
+The assistant acts through the signed-in user's controller API permissions. It can inspect controller data and perform the supported dashboard actions, but it cannot access secrets, run arbitrary device commands, or delete records.
+
+Conversations are stored in the controller database and listed per user, so a chat survives page reloads and sign-ins. Each turn sends only the new prompt; the transcript the model sees comes from the stored conversation. Conversations are kept until the operator deletes them. Attached VNC screenshots are stored with the conversation and rendered in the transcript; the model analyzes a screenshot on the turn that attached it.
+
+The history panel renames, searches, exports as Markdown, and deletes conversations. Answers can be copied or regenerated, replies show their timestamps, and fenced code blocks are syntax-highlighted with a copy button. Every tool call is listed with its arguments and its result, and the model's reasoning is kept in a collapsed block; both expand on click. Long thinking and tool output are truncated when stored. Attachments must be PNG images (the VNC button or a file picker); other file types are not supported yet.
+
 ---
 
 ## Project Roadmap
