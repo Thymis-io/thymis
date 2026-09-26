@@ -153,7 +153,7 @@ def test_networking_writes_settings_definitions():
         "thymis.config.networking.nameservers = lib.mkOverride 100 [\n" "  {\n" in out
     )
     # the priority of every setting is published for the nix side
-    assert "thymis.priority.networking.static_networks = lib.mkOverride 100 100;" in out
+    assert "thymis.priority.networking.static-networks = lib.mkOverride 100 100;" in out
     # the module never renders NixOS configuration itself
     assert "networking.interfaces" not in out
 

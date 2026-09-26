@@ -87,7 +87,12 @@ def test_all_settings_are_written_as_numbered_definitions(module):
                 f"  {setting.nix_attr_name} = lib.mkOverride" in out or prefix in out
             ), f"{module.type}.{attr} is not written to {setting.nix_attr_name}"
         if module.settings_namespace is not None:
-            namespace = f"thymis.priority.{module.settings_namespace}.{attr}"
+            name = (
+                setting.nix_attr_name.rsplit(".", 1)[-1]
+                if setting.nix_attr_name is not None
+                else attr
+            )
+            namespace = f"thymis.priority.{module.settings_namespace}.{name}"
             assert (
                 f"  {namespace} = lib.mkOverride {PRIORITY} {PRIORITY};" in out
             ), f"{module.type}.{attr} does not publish its priority"
