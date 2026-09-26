@@ -17,7 +17,8 @@ from thymis_controller.project import Project
 
 
 class HasLocalize(typing.Protocol):
-    def localize(self, locale: str) -> str: ...
+    def localize(self, locale: str) -> str:
+        ...
 
 
 type Localizable = str | HasLocalize
