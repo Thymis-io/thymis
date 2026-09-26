@@ -15,7 +15,6 @@ import io
 import pathlib
 
 import pytest
-
 from thymis_controller import models
 from thymis_controller.modules import modules as modules_lib
 from thymis_controller.modules.builtin_modules import ALL_MODULES
@@ -84,13 +83,11 @@ def test_all_settings_are_written_as_numbered_definitions(module):
     for attr, setting in module.iter_settings().items():
         if setting.nix_attr_name is not None:
             prefix = f"{setting.nix_attr_name}."
-            assert f"  {setting.nix_attr_name} = lib.mkOverride" in out or prefix in out, (
-                f"{module.type}.{attr} is not written to {setting.nix_attr_name}"
-            )
+            assert (
+                f"  {setting.nix_attr_name} = lib.mkOverride" in out or prefix in out
+            ), f"{module.type}.{attr} is not written to {setting.nix_attr_name}"
         if module.settings_namespace is not None:
-            namespace = (
-                f"thymis.priority.{module.settings_namespace}.{attr}"
-            )
-            assert f"  {namespace} = lib.mkOverride {PRIORITY} {PRIORITY};" in out, (
-                f"{module.type}.{attr} does not publish its priority"
-            )
+            namespace = f"thymis.priority.{module.settings_namespace}.{attr}"
+            assert (
+                f"  {namespace} = lib.mkOverride {PRIORITY} {PRIORITY};" in out
+            ), f"{module.type}.{attr} does not publish its priority"
