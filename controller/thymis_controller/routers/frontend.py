@@ -3,6 +3,7 @@ import logging
 import os
 import pathlib
 import re
+import signal
 import socket
 import subprocess
 import sys
@@ -202,7 +203,11 @@ class Frontend:
         return_code = await self.process.wait()
         self.stopped = True
         self.started.set()
-        logger.error("frontend process terminated with code %s", return_code)
+        # Ctrl-C signals the whole process group, so a signalled exit is normal.
+        if return_code in (-signal.SIGINT, -signal.SIGTERM):
+            logger.info("frontend process terminated by signal %s", -return_code)
+        else:
+            logger.error("frontend process terminated with code %s", return_code)
         await asyncio.sleep(0.1)
 
     async def stop(self):
