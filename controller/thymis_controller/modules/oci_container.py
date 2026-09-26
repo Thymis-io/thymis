@@ -1,10 +1,7 @@
 import pathlib
 
 import thymis_controller.modules.modules as modules
-from thymis_controller import models
 from thymis_controller.lib import read_into_base64
-from thymis_controller.nix.templating import template_env
-from thymis_controller.project import Project
 
 
 class OCIContainers(modules.Module):
@@ -31,11 +28,14 @@ class OCIContainers(modules.Module):
         str(pathlib.Path(__file__).parent / "icons" / "Containers_dark.svg")
     )
 
+    settings_namespace = "oci-containers"
+
     containers = modules.Setting(
         display_name=modules.LocalizedString(
             en="Containers",
             de="Container",
         ),
+        nix_attr_name="thymis.config.oci-containers.containers",
         type=modules.ListType(
             settings={
                 "container_name": modules.Setting(
@@ -208,6 +208,7 @@ class OCIContainers(modules.Module):
                 en="Container",
                 de="Container",
             ),
+            element_key="container_name",
         ),
         default=[],
         description=modules.LocalizedString(
@@ -217,18 +218,3 @@ class OCIContainers(modules.Module):
         example=None,
         order=10,
     )
-
-    def write_nix(
-        self,
-        path,
-        module_settings: "models.ModuleSettings",
-        priority: int,
-        project: Project,
-    ):
-        filename = f"{self.type}.nix"
-
-        with open(path / filename, "w+") as f:
-            template = template_env.get_template("oci_container.nix.j2")
-
-            rt = template.render({**module_settings.settings, "priority": priority})
-            f.write(rt)

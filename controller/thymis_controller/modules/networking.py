@@ -1,10 +1,7 @@
 import pathlib
 
 import thymis_controller.modules.modules as modules
-from thymis_controller import models
 from thymis_controller.lib import read_into_base64
-from thymis_controller.nix.templating import template_env
-from thymis_controller.project import Project
 
 # list of (one of "WPA-PSK", "WPA-EAP", "IEEE8021X", "NONE", "WPA-NONE", "FT-PSK",
 # "FT-EAP", "FT-EAP-SHA384", "WPA-PSK-SHA256", "WPA-EAP-SHA256", "SAE", "FT-SAE",
@@ -58,6 +55,8 @@ class NetworkingModule(modules.Module):
     icon_dark: str = read_into_base64(
         str(pathlib.Path(__file__).parent / "icons" / "Networking_dark.svg")
     )
+
+    settings_namespace = "networking"
 
     wifi_ssid = modules.Setting(
         display_name=modules.LocalizedString(
@@ -172,6 +171,7 @@ ca_file="/etc/ssl/certs/ca-certificates.crt" # uses system ca (default mozilla) 
             en="Static Network",
             de="Statisches Netzwerk",
         ),
+        nix_attr_name="thymis.config.networking.static-networks",
         type=modules.ListType(
             settings={
                 "interface": modules.Setting(
@@ -283,6 +283,7 @@ ca_file="/etc/ssl/certs/ca-certificates.crt" # uses system ca (default mozilla) 
                 en="Network",
                 de="Netzwerk",
             ),
+            element_key="interface",
         ),
         default=None,
         description=modules.LocalizedString(
@@ -298,6 +299,7 @@ ca_file="/etc/ssl/certs/ca-certificates.crt" # uses system ca (default mozilla) 
             en="Nameservers",
             de="Nameserver",
         ),
+        nix_attr_name="thymis.config.networking.nameservers",
         type=modules.ListType(
             settings={
                 "nameserver": modules.Setting(
@@ -327,59 +329,3 @@ ca_file="/etc/ssl/certs/ca-certificates.crt" # uses system ca (default mozilla) 
         example="",
         order=60,
     )
-
-    def write_nix_settings(
-        self,
-        f,
-        path,
-        module_settings: models.ModuleSettings,
-        priority: int,
-        project: Project,
-    ):
-        static_networks = (
-            module_settings.settings["static_networks"]
-            if "static_networks" in module_settings.settings
-            else self.static_networks.default
-        )
-
-        nameservers = (
-            module_settings.settings["nameservers"]
-            if "nameservers" in module_settings.settings
-            else self.nameservers.default
-        )
-
-        if static_networks:
-            template = template_env.get_template("networking.nix.j2")
-
-            # get first network with isDefaultGateway set to True
-            default_gateway_network = next(
-                (
-                    network
-                    for network in static_networks
-                    if network.get("isDefaultGateway", False)
-                ),
-                None,
-            )
-            default_gateway = {}
-            default_gateway6 = {}
-            if default_gateway_network:
-                if default_gateway_network.get("ipv4address"):
-                    default_gateway["address"] = default_gateway_network["gateway"]
-                    default_gateway["interface"] = default_gateway_network["interface"]
-                if default_gateway_network.get("ipv6address"):
-                    default_gateway6["address"] = default_gateway_network["gateway6"]
-                    default_gateway6["interface"] = default_gateway_network["interface"]
-
-            rt = template.render(
-                {
-                    "static_networks": static_networks,
-                    "default_gateway": default_gateway,
-                    "default_gateway6": default_gateway6,
-                    "nameservers": nameservers,
-                    "priority": priority,
-                }
-            )
-            f.write(rt + "\n")
-
-        # wifi_* settings are written via their nix_attr_name by the base implementation
-        return super().write_nix_settings(f, path, module_settings, priority, project)
