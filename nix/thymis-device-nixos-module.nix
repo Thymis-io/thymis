@@ -9,8 +9,23 @@ in
   imports = [
     inputs.thymis.inputs.home-manager.nixosModules.default
     "${modulesPath}/profiles/base.nix"
+    ./settings/networking.nix
+    ./settings/oci-containers.nix
+    ./settings/localization.nix
+    ./settings/files.nix
+    ./settings/kiosk.nix
   ];
   options = {
+    thymis.priority = lib.mkOption {
+      type = lib.types.attrsOf (lib.types.attrsOf lib.types.int);
+      default = { };
+      description = ''
+        Priority (lower wins) each setting of a module instance is written with,
+        as `thymis.priority.<settings namespace>.<setting>`. Written by the
+        controller, read by the settings translation modules to define NixOS
+        configuration with the priority of the setting it is derived from.
+      '';
+    };
     thymis.config = lib.mkOption {
       type = lib.types.submodule {
         freeformType = settingsFormat.type;
