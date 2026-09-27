@@ -95,6 +95,26 @@ class NetworkRelay(nr.NetworkRelay):
         self.task_controller: Optional["TaskController"] = None
         self.notification_manager: "NotificationManager" = notification_manager
 
+    def release_agent_connection(self, connection_id: str):
+        """Unbind an agent connection from the in-memory relay registries.
+
+        The public key binding is only dropped when it still points at this
+        connection: a reconnect with the same public key can register a newer
+        connection while this one is still tearing down (teardown awaits
+        database work and the closing of relayed connections), and dropping
+        the key unconditionally then unbinds the live connection — key-based
+        lookups (terminal, VNC, access clients, `connected`) fail until the
+        agent reconnects, while keep-alives on the live connection keep
+        working because they are resolved by connection id.
+        """
+        public_key = self.connection_id_to_public_key.pop(connection_id, None)
+        if (
+            public_key is not None
+            and self.public_key_to_connection_id.get(public_key) == connection_id
+        ):
+            del self.public_key_to_connection_id[public_key]
+        self.connection_id_to_start_message.pop(connection_id, None)
+
     async def handle_custom_agent_message(
         self, message: agent.AgentToRelayMessage, connection_id: str
     ):
@@ -303,10 +323,7 @@ class NetworkRelay(nr.NetworkRelay):
                 # connection is not healthy, just close it
                 await other_con.close()
                 # and remove the ssh public key reservation
-                other_con_public_key = self.connection_id_to_public_key[other_con_id]
-                del self.public_key_to_connection_id[other_con_public_key]
-                del self.connection_id_to_public_key[other_con_id]
-                del self.connection_id_to_start_message[other_con_id]
+                self.release_agent_connection(other_con_id)
 
         connection_id = str(uuid.uuid4())
         self.public_key_to_connection_id[start_message.public_key] = connection_id
@@ -540,12 +557,7 @@ class NetworkRelay(nr.NetworkRelay):
             try:
                 await msg_loop
             finally:
-                # close the connection
-                if connection_id in self.connection_id_to_public_key:
-                    public_key = self.connection_id_to_public_key[connection_id]
-                    del self.public_key_to_connection_id[public_key]
-                    del self.connection_id_to_public_key[connection_id]
-                    del self.connection_id_to_start_message[connection_id]
+                self.release_agent_connection(connection_id)
 
         self.notification_manager.broadcast_invalidate_notification(
             [
