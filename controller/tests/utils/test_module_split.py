@@ -213,6 +213,9 @@ def test_device_module_keeps_core_settings_and_writes_imports():
         "nix_state_version",
         "agent_controller_url",
     }
+    nix_state_version = model.settings["nix_state_version"]
+    assert nix_state_version.default == "26.05"
+    assert ("26.05", "26.05") in nix_state_version.type.select_one
     out = _write(device, {"device_type": "generic-x86_64", "image_format": "nixos-vm"})
     assert "imports = [" in out
     assert "thymis-device-generic-x86_64" in out
