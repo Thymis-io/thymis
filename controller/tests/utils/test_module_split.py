@@ -116,7 +116,9 @@ def _write(module, settings):
     return f.getvalue()
 
 
-def test_networking_writes_static_network_and_wifi():
+def test_networking_writes_settings_definitions():
+    """The module writes settings, the nix derivation in nix/settings/ turns them
+    into NixOS configuration (see test_setting_nix_merging.py)."""
     out = _write(
         NetworkingModule(),
         {
@@ -133,11 +135,59 @@ def test_networking_writes_static_network_and_wifi():
             "nameservers": [{"nameserver": "1.1.1.1"}],
         },
     )
-    assert "networking" in out
-    assert "ens3" in out
-    assert "10.0.0.2" in out
-    assert "1.1.1.1" in out
-    assert "thymis.config.wifi-ssid" in out
+    assert 'thymis.config.wifi-ssid = lib.mkOverride 100 "mynet";' in out
+    # list elements are keyed by their identity, all other settings are one definition
+    assert (
+        "thymis.config.networking.static-networks.ens3.ipv4address = "
+        'lib.mkOverride 100 "10.0.0.2";' in out
+    )
+    assert (
+        "thymis.config.networking.static-networks.ens3.gateway = "
+        'lib.mkOverride 100 "10.0.0.1";' in out
+    )
+    assert (
+        "thymis.config.networking.static-networks.ens3.ipv4prefixLength = "
+        "lib.mkOverride 100 24;" in out
+    )
+    assert (
+        "thymis.config.networking.nameservers = lib.mkOverride 100 [\n" "  {\n" in out
+    )
+    # the priority of every setting is published for the nix side
+    assert (
+        "thymis.config._priority.networking.static-networks = lib.mkOverride 100 100;"
+        in out
+    )
+    # the module never renders NixOS configuration itself
+    assert "networking.interfaces" not in out
+
+
+def test_setting_set_to_empty_string_is_written_but_empty_fields_are_not():
+    """A whole setting set to an empty value clears the value of another source
+    (e.g. of a tag), while an empty field inside a list element is only the
+    empty template of that element and must not shadow the other source."""
+    out = _write(
+        NetworkingModule(),
+        {
+            "wifi_ssid": "",
+            "static_networks": [
+                {
+                    "interface": "ens3",
+                    "ipv4address": "",
+                    "ipv6address": "fd00::2",
+                    "ipv6prefixLength": 64,
+                    "isDefaultGateway": "",
+                }
+            ],
+        },
+    )
+    assert 'thymis.config.wifi-ssid = lib.mkOverride 100 "";' in out
+    assert (
+        'thymis.config.networking.static-networks.ens3.ipv6address = lib.mkOverride 100 "fd00::2";'
+        in out
+    )
+    # the empty fields are not written: the tag's values for them win
+    assert "static-networks.ens3.ipv4address" not in out
+    assert "static-networks.ens3.isDefaultGateway" not in out
 
 
 def test_localization_writes_timezone_and_time_servers():
@@ -145,9 +195,14 @@ def test_localization_writes_timezone_and_time_servers():
         LocalizationModule(),
         {"timezone": "Europe/Berlin", "time_servers": [{"server": "pool.ntp.org"}]},
     )
-    assert 'time.timeZone = "Europe/Berlin"' in out
-    assert "networking.timeServers" in out
-    assert "pool.ntp.org" in out
+    assert (
+        'thymis.config.localization.timezone = lib.mkOverride 100 "Europe/Berlin";'
+        in out
+    )
+    assert 'server = "pool.ntp.org";' in out
+    assert (
+        "thymis.config._priority.localization.timezone = lib.mkOverride 100 100;" in out
+    )
 
 
 def test_security_writes_password_keys_and_certs():
@@ -165,16 +220,27 @@ def test_security_writes_password_keys_and_certs():
     assert "security.pki.certificates" in out
 
 
-def test_files_writes_artifact_tmpfiles():
+def test_files_writes_artifact_and_secret_settings():
     out = _write(
         FilesModule(),
         {
             "artifacts": [{"artifact": "app.bin", "path": "/opt/app", "mode": "0755"}],
+            "secrets": [{"secret": "deadbeef", "path": "/run/secret"}],
         },
     )
-    assert "systemd.tmpfiles.rules" in out
-    assert "/opt/app" in out
-    assert "app.bin" in out
+    # keyed by the target path
+    assert (
+        'thymis.config.files.artifacts."/opt/app".artifact = '
+        'lib.mkOverride 100 "app.bin";' in out
+    )
+    assert (
+        'thymis.config.files.artifacts."/opt/app".mode = lib.mkOverride 100 "0755";'
+        in out
+    )
+    assert (
+        'thymis.config.files.secrets."/run/secret".secret = lib.mkOverride 100 "deadbeef";'
+        in out
+    )
 
 
 def test_files_register_secret_settings_uses_per_secret_metadata():

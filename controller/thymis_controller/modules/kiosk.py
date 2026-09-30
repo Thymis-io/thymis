@@ -1,12 +1,7 @@
-import hashlib
-import json
 import pathlib
-import re
 
 import thymis_controller.modules.modules as modules
-from thymis_controller import models
 from thymis_controller.lib import read_into_base64
-from thymis_controller.project import Project
 
 
 class Kiosk(modules.Module):
@@ -30,7 +25,11 @@ class Kiosk(modules.Module):
         str(pathlib.Path(__file__).parent / "icons" / "Display_dark.svg")
     )
 
+    settings_namespace = "kiosk"
+    nix_derivation = "kiosk"
+
     kiosk_url = modules.Setting(
+        nix_attr_name="thymis.config.kiosk.url",
         display_name=modules.LocalizedString(
             en="URL",
             de="URL",
@@ -43,6 +42,7 @@ class Kiosk(modules.Module):
     )
 
     xrandr_mode = modules.Setting(
+        nix_attr_name="thymis.config.kiosk.xrandr-mode",
         display_name=modules.LocalizedString(
             en="Display mode",
             de="Bildschirmmodus",
@@ -55,6 +55,7 @@ class Kiosk(modules.Module):
     )
 
     xrandr_rotation = modules.Setting(
+        nix_attr_name="thymis.config.kiosk.xrandr-rotation",
         display_name=modules.LocalizedString(
             en="Display rotation",
             de="Bildschirmrotation",
@@ -67,6 +68,7 @@ class Kiosk(modules.Module):
     )
 
     volume = modules.Setting(
+        nix_attr_name="thymis.config.kiosk.volume",
         display_name=modules.LocalizedString(
             en="Volume",
             de="Lautstärke",
@@ -79,6 +81,7 @@ class Kiosk(modules.Module):
     )
 
     audio_sink_fuzzy = modules.Setting(
+        nix_attr_name="thymis.config.kiosk.audio-sink-fuzzy",
         display_name=modules.LocalizedString(
             en="Audio Sink",
             de="Audio Sink",
@@ -91,6 +94,7 @@ class Kiosk(modules.Module):
     )
 
     enable_vnc = modules.Setting(
+        nix_attr_name="thymis.config.kiosk.enable-vnc",
         display_name=modules.LocalizedString(
             en="Enable VNC server",
             de="VNC-Server aktivieren",
@@ -103,6 +107,7 @@ class Kiosk(modules.Module):
     )
 
     vnc_password = modules.Setting(
+        nix_attr_name="thymis.config.kiosk.vnc-password",
         display_name=modules.LocalizedString(
             en="VNC password",
             de="VNC-Passwort",
@@ -113,162 +118,3 @@ class Kiosk(modules.Module):
         example="password",
         order=70,
     )
-
-    def write_nix_settings(
-        self,
-        f,
-        path,
-        module_settings: models.ModuleSettings,
-        priority: int,
-        project: Project,
-    ):
-        kiosk_url = (
-            module_settings.settings["kiosk_url"]
-            if "kiosk_url" in module_settings.settings
-            else self.kiosk_url.default
-        )
-
-        enable_vnc = (
-            module_settings.settings["enable_vnc"]
-            if "enable_vnc" in module_settings.settings
-            else self.enable_vnc.default
-        )
-
-        vnc_password = (
-            module_settings.settings["vnc_password"]
-            if "vnc_password" in module_settings.settings
-            else self.vnc_password.default
-        )
-
-        xrandr_mode = (
-            module_settings.settings["xrandr_mode"]
-            if "xrandr_mode" in module_settings.settings
-            else self.xrandr_mode.default
-        )
-
-        xrandr_rotation = (
-            module_settings.settings["xrandr_rotation"]
-            if "xrandr_rotation" in module_settings.settings
-            else self.xrandr_rotation.default
-        )
-
-        # Parse width/height/refresh from xrandr_mode for CVT modeline generation.
-        # Handles formats: "1360x768", "1360x768_60.00", "1360x768@60"
-        _mode_match = re.match(r"^(\d+)x(\d+)(?:[_@](\d+(?:\.\d+)?))?", xrandr_mode)
-        if _mode_match:
-            mode_w = _mode_match.group(1)
-            mode_h = _mode_match.group(2)
-            mode_r = (
-                str(int(float(_mode_match.group(3)))) if _mode_match.group(3) else "60"
-            )
-        else:
-            mode_w, mode_h, mode_r = "1920", "1080", "60"
-
-        volume = (
-            module_settings.settings["volume"]
-            if "volume" in module_settings.settings
-            else self.volume.default
-        )
-
-        volume = max(0, min(100, int(volume)))
-
-        audio_sink_fuzzy = (
-            module_settings.settings["audio_sink_fuzzy"]
-            if "audio_sink_fuzzy" in module_settings.settings
-            else self.audio_sink_fuzzy.default
-        )
-
-        nonce = hashlib.sha256(
-            json.dumps(module_settings.__dict__, sort_keys=True).encode()
-        ).hexdigest()
-
-        f.write(
-            f"""
-            services.xserver.enable = lib.mkOverride {priority} true;
-            services.displayManager.sddm.enable = lib.mkOverride {priority} true;
-            services.displayManager.autoLogin.enable = lib.mkOverride {priority} true;
-            services.displayManager.autoLogin.user = lib.mkOverride {priority} "thymiskiosk";
-            users.users.thymiskiosk = lib.mkOverride {priority} {{
-                isNormalUser = true;
-                createHome = true;
-            }};
-            services.pipewire.enable = false;
-            hardware.pulseaudio.enable = true;
-            hardware.pulseaudio.support32Bit = true;
-            services.xserver.windowManager.i3.enable = lib.mkOverride {priority} true;
-            services.xserver.windowManager.i3.configFile = lib.mkOverride {priority} (
-              let
-                # Generate a CVT modeline for the target resolution at build time so
-                # xrandr can set it even when the RPi firmware chose the wrong HDMI
-                # mode group (CEA vs DMT) and the native mode is absent from the list.
-                xrandrSetup = pkgs.writeShellScript "thymis-xrandr-setup" ''
-                  sleep 2
-                  CVT_OUT=$(${{pkgs.libxcvt}}/bin/cvt {mode_w} {mode_h} {mode_r})
-                  MODELINE=$(echo "$CVT_OUT" | grep -i modeline | sed 's/Modeline //')
-                  MODENAME=$(echo "$MODELINE" | cut -d'"' -f2)
-                  MODEPARAMS=$(echo "$MODELINE" | sed 's/"[^"]*" *//')
-                  # Register the modeline once per X session.
-                  ${{pkgs.xorg.xrandr}}/bin/xrandr --newmode "$MODENAME" $MODEPARAMS 2>/dev/null || true
-                  apply() {{
-                      ${{pkgs.xorg.xrandr}}/bin/xrandr --addmode HDMI-1 "$MODENAME" 2>/dev/null || true
-                      ${{pkgs.xorg.xrandr}}/bin/xrandr --output HDMI-1 --rotate {xrandr_rotation} 2>/dev/null || true
-                      ${{pkgs.xorg.xrandr}}/bin/xrandr --output HDMI-1 --mode "$MODENAME" 2>/dev/null || true
-                  }}
-                  apply
-                  # Reapply on every screen-change event (KVM switch, display power cycle).
-                  while IFS= read -r _; do
-                      sleep 1
-                      apply
-                  done < <(${{pkgs.xorg.xev}}/bin/xev -root -event randr | grep --line-buffered RRScreenChangeNotify)
-                '';
-              in pkgs.writeText "i3-config" ''
-            # i3 config file (v4)
-            bar {{
-                mode invisible
-            }}
-            new_window pixel 0
-            new_float pixel 0
-            exec "${{xrandrSetup}}"
-            exec "/run/current-system/sw/bin/xset s off"
-            exec "/run/current-system/sw/bin/xset -dpms"
-            exec "${{pkgs.unclutter}}/bin/unclutter"
-            exec ${{pkgs.bash}}/bin/bash -c "\
-                ${{pkgs.killall}}/bin/killall chromium; \
-                rm -rf ~/.config/chromium/Singleton*; \
-                mkdir -p ~/.config/chromium/Default; \
-                [ -s ~/.config/chromium/Default/Preferences ] || echo \\\\"{{}}\\\\" > ~/.config/chromium/Default/Preferences; \
-                ${{pkgs.jq}}/bin/jq '.translate_blocked_languages = ((.translate_blocked_languages // []) + [\\\\"de\\\\"] | unique)' ~/.config/chromium/Default/Preferences > tmp.json && \
-                mv tmp.json ~/.config/chromium/Default/Preferences; \
-                ${{pkgs.ungoogled-chromium}}/bin/chromium --app='data:text/html,<html><body><h1>Loading...</h1></body></html>' & \
-                sleep 30; \
-                ${{pkgs.killall}}/bin/killall chromium; \
-                sleep 3; \
-                while ! ${{pkgs.curl}}/bin/curl --fail --silent --max-time 10 --head '{kiosk_url}'; do \
-                sleep 3; \
-                done; \
-                sleep 1; \
-                ${{pkgs.ungoogled-chromium}}/bin/chromium --app='{kiosk_url}' \
-                ${{if (pkgs.stdenv.system == "aarch64-linux") then "--disable-gpu" else ""}} \
-                --disable-features=Translate --hide-scrollbars;"
-
-            {'exec ${pkgs.bash}/bin/bash -c "mkdir -p $HOME/tigervnc; ${pkgs.tigervnc}/bin/vncpasswd -f <<< \\"'+ vnc_password + '\\" > $HOME/tigervnc/passwd"' if enable_vnc else ''}
-            {'exec ${pkgs.tigervnc}/bin/x0vncserver -display :0 -PasswordFile=$HOME/tigervnc/passwd' if enable_vnc else ''}
-            exec "${{pkgs.pamixer}}/bin/pamixer --set-volume {volume}"
-            {f'exec "${{pkgs.pulseaudio}}/bin/pactl set-default-sink \'\'$(${{pkgs.pulseaudio}}/bin/pactl list short sinks | grep -m1 -i \'{audio_sink_fuzzy}\' | cut -f1)"' if audio_sink_fuzzy else ''}
-            '');
-            systemd.services.display-manager.restartIfChanged = lib.mkOverride {priority} true;
-            systemd.services.display-manager.environment.NONCE = lib.mkOverride {priority} "{nonce}";
-            # networking.firewall.allowedTCPPorts = [ 5900 ];
-            system.activationScripts.restart-display-manager-thymis = {{
-                supportsDryActivation = true;
-                text = ''
-                    mkdir -p /run/nixos
-                    if [ "$NIXOS_ACTION" != dry-activate ]; then
-                        echo display-manager.service > /run/nixos/activation-restart-list
-                    else
-                        echo display-manager.service > /run/nixos/dry-activation-restart-list
-                    fi
-                '';
-            }};
-            """.strip()
-        )

@@ -45,7 +45,7 @@ build-backend = "setuptools.build_meta"
 include-package-data = true
 
 [tool.setuptools.package-data]
-"*" = ["**/*.j2", "**/*.json", "**/*.svg", "**/*.png"]
+"*" = ["**/*.j2", "**/*.json", "**/*.svg", "**/*.png", "**/*.nix"]
 
 [tool.uv.sources]
 thymis-agent = { path = "../agent" }
