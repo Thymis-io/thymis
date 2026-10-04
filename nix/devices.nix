@@ -76,20 +76,30 @@ let
     # the outgoing generation.
     boot.initrd.compressor = "xz";
 
-    # Staging needs room for the incoming kernel + initrd, so refuse the switch
-    # before the bootloader install touches the partition. Runs before
-    # `do_install_bootloader` and aborts the switch on non-zero exit.
+    # Staging needs room for the incoming kernel + initrd next to the outgoing
+    # generation. The installer reclaims the firmware files it does not copy
+    # (`removeObsolete` over start*.elf / fixup*.dat) *before* it stages them, so
+    # count that as available - otherwise the check refuses updates that would
+    # fit. Runs before `do_install_bootloader` (switch-to-configuration runs
+    # pre-switch checks first) and aborts the switch on non-zero exit.
     system.preSwitchChecks.raspberry-pi-firmware-space = ''
       fw=/boot/firmware
       if [ -d "$fw" ]; then
         kernel=$(stat -c %s "$1/kernel" 2>/dev/null || echo 0)
         initrd=$(stat -c %s "$1/initrd" 2>/dev/null || echo 0)
         need=$((kernel + initrd))
+        reclaim=0
+        for obsolete in ${lib.concatStringsSep " " (map (n: "\"$fw/${n}\"") (firmwareDropFor board))}; do
+          if [ -e "$obsolete" ]; then
+            reclaim=$((reclaim + $(stat -c %s "$obsolete" 2>/dev/null || echo 0)))
+          fi
+        done
         avail=$(df -B1 --output=avail "$fw" | tail -n 1)
-        if [ "$avail" -lt "$need" ]; then
+        effective=$((avail + reclaim))
+        if [ "$effective" -lt "$need" ]; then
           echo "refusing to switch: $fw cannot hold the new kernel + initrd"
-          echo "  need  $((need / 1048576)) MiB free (kernel $((kernel / 1048576)) MiB + initrd $((initrd / 1048576)) MiB)"
-          echo "  avail $((avail / 1048576)) MiB"
+          echo "  need      $((need / 1048576)) MiB (kernel $((kernel / 1048576)) + initrd $((initrd / 1048576)))"
+          echo "  available $((effective / 1048576)) MiB free ($((avail / 1048576)) now + $((reclaim / 1048576)) reclaimed)"
           echo "Boot files are staged next to the current generation, so the partition needs room for the incoming pair."
           exit 1
         fi
