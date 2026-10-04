@@ -59,6 +59,20 @@ let
     boot.loader.raspberry-pi.configurationLimit = lib.mkDefault 0;
     boot.loader.raspberry-pi.firmwarePackage = trimmedFirmware board pkgs;
 
+    # 26.05 made stage 1 systemd-based, which took this board's initrd from
+    # ~11 MiB / 578 entries (25.11, scripted) to ~27 MiB / 2120 entries. The
+    # staging transaction (see below) then needs kernel + initrd = ~60.5 MiB
+    # with only ~42 MiB free on a 128 MiB partition, so every switch fails with
+    # ENOSPC *even on a single generation*. Same initrd, xz instead of zstd:
+    # 23.8 -> 20.1 MiB in a local render of this board, and the kernel
+    # decompresses it (CONFIG_RD_XZ=y in linux_rpi-bcm2711 6.18.34).
+    #
+    # Simulated on a 128 MiB vfat image carrying the field byte counts
+    # (homepi4): untrimmed -> ENOSPC; firmware trim alone -> still ENOSPC;
+    # trim + xz -> succeeds, with the incoming kernel + initrd staged next to
+    # the outgoing generation.
+    boot.initrd.compressor = "xz";
+
     # Staging needs room for the incoming kernel + initrd, so refuse the switch
     # before the bootloader install touches the partition. Runs before
     # `do_install_bootloader` and aborts the switch on non-zero exit.
