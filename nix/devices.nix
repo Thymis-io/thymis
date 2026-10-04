@@ -37,8 +37,11 @@ let
       "start4cd.elf"
     ]
     ++ {
-      raspberry-pi-3 = [ "start4.elf" "start4x.elf" ];
-      raspberry-pi-4 = [ "start.elf" "start_x.elf" ];
+      # Only the base firmware for the board's own SoC. The `x` variants are the
+      # legacy MMAL/camera builds; the generated config.txt never references them
+      # (camera_auto_detect=1 goes through the kernel/vc4-kms stack).
+      raspberry-pi-3 = [ "start4.elf" "start4x.elf" "start_x.elf" ];
+      raspberry-pi-4 = [ "start.elf" "start_x.elf" "start4x.elf" ];
       # BCM2712: which family the Pi 5 firmware picks has not been verified
       # here, so keep both.
       raspberry-pi-5 = [ ];
