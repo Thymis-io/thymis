@@ -1,5 +1,5 @@
 import datetime
-import random
+import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -33,7 +33,7 @@ def create(
     email: str | None = None,
 ) -> db_models.WebSession:
     id = uuid.uuid4()
-    session_token = random.randbytes(64).hex()
+    session_token = secrets.token_hex(64)
     created_at = datetime.now(timezone.utc)
     web_session = db_models.WebSession(
         id=id,

@@ -21,8 +21,9 @@ class AgentToken(Base):
     created_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(timezone.utc)
     )
-    original_disk_config_commit: Mapped[str] = mapped_column(nullable=False)
-    original_disk_config_id: Mapped[str] = mapped_column(nullable=False)
+    expires_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    original_disk_config_commit: Mapped[str | None] = mapped_column(nullable=True)
+    original_disk_config_id: Mapped[str | None] = mapped_column(nullable=True)
     token: Mapped[str] = mapped_column(nullable=False, unique=True, index=True)
     revoked: Mapped[bool] = mapped_column(nullable=False, default=False)
 
