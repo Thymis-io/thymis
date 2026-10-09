@@ -5,6 +5,7 @@ from .deployment_info import DeploymentInfo
 from .device_metric import DeviceMetric
 from .hardware_device import HardwareDevice
 from .logs import LogEntry
+from .pairing_code import PairingCode
 from .secrets import *
 from .task import Task, TaskProcess
 from .web_session import WebSession

@@ -1,4 +1,5 @@
-import random
+import datetime
+import secrets
 import uuid
 from typing import Optional
 
@@ -8,8 +9,8 @@ from thymis_controller import db_models
 
 def create(
     session: Session,
-    original_disk_config_commit: str,
-    original_disk_config_id: str,
+    original_disk_config_commit: str | None,
+    original_disk_config_id: str | None,
     token: str,
 ) -> db_models.AgentToken:
     new_agent_token = db_models.AgentToken(
@@ -24,11 +25,22 @@ def create(
 
 
 def check_token_validity(session: Session, token: str) -> bool:
+    return get_valid_token(session, token) is not None
+
+
+def _unexpired():
+    now = datetime.datetime.now(datetime.timezone.utc)
+    return (db_models.AgentToken.expires_at.is_(None)) | (
+        db_models.AgentToken.expires_at > now
+    )
+
+
+def get_valid_token(session: Session, token: str) -> db_models.AgentToken | None:
     return (
         session.query(db_models.AgentToken)
         .filter_by(token=token, revoked=False)
-        .count()
-        > 0
+        .filter(_unexpired())
+        .first()
     )
 
 
@@ -83,7 +95,7 @@ def get_or_create_access_client_token(
         token = create_access_client_token(
             session,
             deployment_info_id,
-            random.randbytes(32).hex(),
+            secrets.token_hex(32),
             deploy_device_task_id,
         )
 
@@ -94,4 +106,9 @@ def revoke_access_client_token(session: Session, token: str):
     session.query(db_models.AccessClientToken).filter_by(token=token).update(
         {"revoked": True}
     )
+    session.commit()
+
+
+def revoke_agent_token(session: Session, token: str):
+    session.query(db_models.AgentToken).filter_by(token=token).update({"revoked": True})
     session.commit()

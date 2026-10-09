@@ -2,11 +2,12 @@ import logging
 import os
 import uuid
 from datetime import datetime, timedelta, timezone
+from typing import Annotated
 
 import thymis_controller.crud.agent_connection as crud_agent_connection
 import thymis_controller.crud.device_metric as crud_device_metric
 import thymis_controller.crud.logs as crud_logs
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Body, HTTPException, Query
 from thymis_controller import crud, db_models, models
 from thymis_controller.dependencies import DBSessionAD, NetworkRelayAD, ProjectAD
 from thymis_controller.models import device
@@ -221,3 +222,27 @@ def get_error_logs(id: uuid.UUID, db_session: DBSessionAD):
         max_severity=3,  # syslog: 0=Emergency, 1=Alert, 2=Critical, 3=Error
     )
     return log_list.logs
+
+
+@router.post("/pairing-code/create", response_model=models.PairingCode)
+def create_pairing_code(db_session: DBSessionAD):
+    return crud.pairing_code.create(db_session)
+
+
+@router.post("/pairing-code/revoke", status_code=204)
+def revoke_pairing_code(
+    db_session: DBSessionAD, code: Annotated[str, Body(embed=True)]
+):
+    if not crud.pairing_code.revoke(db_session, code):
+        raise HTTPException(
+            status_code=404, detail="Pairing code not found or already revoked"
+        )
+
+
+@router.post("/agent-token/revoke", status_code=204)
+def invalidate_token(db_session: DBSessionAD, token: Annotated[str, Body(embed=True)]):
+    if not crud.agent_token.check_token_validity(db_session, token):
+        raise HTTPException(
+            status_code=404, detail="Token not found or already revoked"
+        )
+    crud.agent_token.revoke_agent_token(db_session, token)
