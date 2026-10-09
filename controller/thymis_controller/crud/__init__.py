@@ -7,6 +7,7 @@ from . import (
     device_metric,
     hardware_device,
     logs,
+    pairing_code,
     secrets,
     task,
     web_session,

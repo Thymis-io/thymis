@@ -3,6 +3,7 @@ from .artifacts import *
 from .auth import *
 from .device import *
 from .device_metric import *
+from .enrollment import *
 from .fleet_alert import *
 from .logs import *
 from .module import *

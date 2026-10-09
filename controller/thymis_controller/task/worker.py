@@ -7,6 +7,7 @@ import pathlib
 import platform
 import queue
 import random
+import secrets
 import shutil
 import signal
 import subprocess
@@ -592,14 +593,13 @@ def build_device_image_task(
             report_task_finished(task, conn, False, "Build failed")
             return
 
-        token = f"thymis-{random.randbytes(64).hex()}"  # see agent/thymis_agent/agent.py `AGENT_TOKEN_EXPECTED_FORMAT =`
-        # get secrets
-        secrets = task_data.secrets
+        token = f"thymis-{secrets.token_hex(64)}"  # see agent/thymis_agent/agent.py `AGENT_TOKEN_EXPECTED_FORMAT =`
+
         conn.send(
             models_task.RunnerToControllerTaskUpdate(
                 id=task.id,
                 update=models_task.WorkerRequestsSecretsUpdate(
-                    secret_ids=[secret.secret_id for secret in secrets],
+                    secret_ids=[secret.secret_id for secret in task_data.secrets],
                     target_recipient_token=token,
                 ),
             )
@@ -621,7 +621,7 @@ def build_device_image_task(
             "secrets": {
                 k: base64.b64encode(v) for k, v in message.inner.secrets.items()
             },
-            "secret_infos": secrets,
+            "secret_infos": task_data.secrets,
         }
         with open(
             f"{secrets_dir}/thymis-secrets-initial.json", "w", encoding="utf-8"

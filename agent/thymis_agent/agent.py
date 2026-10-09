@@ -5,13 +5,15 @@ import json
 import logging
 import os
 import pathlib
+import re
 import shutil
 import socket
 import subprocess
 import sys
+import time
 import uuid
 from datetime import timezone
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 import http_network_relay.edge_agent
 import http_network_relay.edge_agent as ea
@@ -41,6 +43,7 @@ AGENT_DATA_PATHS = list(
         [
             "/boot/firmware",  # raspberry-pi-nix generated sd-cards
             "/boot",  # boot.loader.efi.efiSysMountPoint
+            "/etc/thymis",  # non-nixos systems
         ],
     )
 )
@@ -133,12 +136,114 @@ def find_file_multiple_names(paths, filenames):
     return None
 
 
+def atomic_write(path, data: str, mode: int = 0o600):
+    """Durably replace `path` with `data`, forcing its permissions to `mode`.
+
+    rename(2) atomically replaces the destination, so the readable path never
+    points at a partial file. fsync of the data before and of the directory
+    after means a crash leaves either the old or the new contents, never a
+    truncated one.
+    """
+    path = pathlib.Path(path)
+    tmp_path = path.with_name(f"{path.name}.new")
+    # create restrictively, then apply `mode`: the content is never readable
+    # by anyone else, not even for the instant between create and chmod
+    fd = os.open(tmp_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    try:
+        f = os.fdopen(fd, "w", encoding="utf-8")
+    except Exception:
+        os.close(fd)
+        raise
+    with f:
+        try:
+            # O_CREAT's mode is masked by umask and ignored when tmp_path
+            # survived an earlier crash, so set it explicitly
+            os.fchmod(f.fileno(), mode)
+        except OSError as e:
+            # /boot and /boot/firmware are usually vfat, which has no per-file
+            # permission bits; the mount's fmask governs instead
+            logger.warning("Could not set mode %o on %s: %s", mode, tmp_path, e)
+        f.write(data)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp_path, path)
+    dir_fd = os.open(path.parent, os.O_DIRECTORY)
+    try:
+        os.fsync(dir_fd)
+    finally:
+        os.close(dir_fd)
+
+
 def find_agent_token():
     token_path = find_file(AGENT_DATA_PATHS, AGENT_TOKEN_FILENAME)
     if token_path:
         with open(token_path, "r", encoding="utf-8") as f:
             return f.read().strip()
     return None
+
+
+def update_token(new_token: str) -> None:
+    token_path = find_file(AGENT_DATA_PATHS, AGENT_TOKEN_FILENAME)
+    if not token_path:
+        token_path = pathlib.Path("/etc/thymis") / AGENT_TOKEN_FILENAME
+        os.makedirs(token_path.parent, exist_ok=True, mode=0o700)
+    atomic_write(token_path, new_token)
+    logger.info("Token updated successfully")
+
+
+def is_real_agent_token(token: Optional[str]) -> bool:
+    return bool(re.fullmatch(AGENT_TOKEN_EXPECTED_FORMAT, token or ""))
+
+
+def enroll(
+    controller_host: str, code: Optional[str], notifier: "SystemdNotifier"
+) -> str:
+    """A 404 is terminal; transport errors and 5xx back off and retry.
+
+    `notifier` is pinged each attempt so systemd's 90 s start timeout (the
+    unit is `Type=notify` with no `TimeoutStartSec`) does not kill a slow
+    but progressing enrollment.
+    """
+    url = f"{controller_host.rstrip('/')}/agent/enroll"
+    delay = 5
+    max_delay = 60
+    attempt = 0
+    while True:
+        attempt += 1
+        notifier.notify("EXTEND_TIMEOUT_USEC=30000000")
+        notifier.status(f"Enrolling with controller (attempt {attempt})")
+        try:
+            response = requests.post(url, json={"code": code}, timeout=10)
+        except requests.exceptions.RequestException as e:
+            logger.warning(
+                "Enrollment request to %s failed: %s, retrying in %ds", url, e, delay
+            )
+            time.sleep(delay)
+            delay = min(delay * 2, max_delay)
+            continue
+
+        if response.status_code == 404:
+            logger.error(
+                "Controller rejected pairing code (404); it is unknown, expired, "
+                "revoked, or already consumed. Cannot enroll."
+            )
+            sys.exit(1)
+
+        if response.status_code >= 500:
+            logger.warning(
+                "Controller returned %d during enrollment, retrying in %ds",
+                response.status_code,
+                delay,
+            )
+            time.sleep(delay)
+            delay = min(delay * 2, max_delay)
+            continue
+
+        response.raise_for_status()
+        token = response.json()["token"]
+        update_token(token)
+        logger.info("Enrollment successful")
+        return token
 
 
 def find_data_path():
@@ -156,8 +261,7 @@ def find_agent_metadata():
         AGENT_DATA_PATHS,
         [
             AGENT_METADATA_FILENAME,
-            f"{AGENT_METADATA_FILENAME}.new",
-            f"{AGENT_METADATA_FILENAME}.old",
+            f"{AGENT_METADATA_FILENAME}.old",  # legacy recovery
         ],
     )
     if metadata_path:
@@ -287,7 +391,8 @@ class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
     token: str
     hardware_ids: Dict[str, str]
     public_key: str
-    deployed_config_id: str
+    deployed_config_commit: Optional[str] = None
+    deployed_config_id: Optional[str] = None
     ip_addresses: List[str] = []  # deprecated, used for backwards compatibility
     network_interfaces: List[Dict[str, Any]] = []
     ram_bytes: Optional[int] = None
@@ -555,24 +660,28 @@ class Agent(ea.EdgeAgent):
                 else:
                     logger.info("Hostname updated to: %s", new_hostname)
                     # update rsyslog so X-Thymis-Hostname reflects the new hostname
-                    if self._write_rsyslog_config():
-                        proc = await asyncio.create_subprocess_exec(
-                            "systemctl",
-                            "reload",
-                            "syslog.service",
-                            stdout=asyncio.subprocess.PIPE,
-                            stderr=asyncio.subprocess.PIPE,
-                        )
-                        stdout, stderr = await proc.communicate()
-                        if proc.returncode != 0:
-                            logger.error(
-                                "Failed to reload syslog.service: %s",
-                                stderr.decode(),
-                            )
-                        else:
-                            logger.info("syslog.service reloaded successfully")
+                    await self.update_rsyslog()
             case _:
                 logger.error("Unknown message: %s", message)
+
+    async def update_rsyslog(self):
+        if not self._write_rsyslog_config():
+            return
+        proc = await asyncio.create_subprocess_exec(
+            "systemctl",
+            "reload",
+            "syslog.service",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate()
+        if proc.returncode != 0:
+            logger.error(
+                "Failed to reload syslog.service: %s",
+                stderr.decode(),
+            )
+        else:
+            logger.info("syslog.service reloaded successfully")
 
     @classmethod
     def place_secrets_on_message(cls, message: RtESendSecretsMessage):
@@ -742,7 +851,9 @@ class Agent(ea.EdgeAgent):
             return
         secrets_path = data_path / "thymis-secrets-initial.json"
         if not secrets_path.exists():
-            logger.error("Secrets not found")
+            logger.info(
+                "No initial secrets file present (normal for an enrolled device)"
+            )
             return
         with open(secrets_path, "r", encoding="utf-8") as f:
             s_file = f.read()
@@ -782,7 +893,8 @@ class Agent(ea.EdgeAgent):
             token=self.token,
             hardware_ids=self.detect_hardware_id(),
             public_key=self.detect_public_key(),
-            deployed_config_id=self.detect_system_config()[0],
+            deployed_config_id=self.detect_configuration_id(),
+            deployed_config_commit=self.detect_configuration_commit(),
             network_interfaces=self.detect_network_interfaces(),
             ram_bytes=self.detect_ram_bytes(),
             last_error=last_error,
@@ -844,25 +956,17 @@ class Agent(ea.EdgeAgent):
         self.agent_metadata["configuration_commit"] = new_commit
         metadata_path = find_file(AGENT_DATA_PATHS, AGENT_METADATA_FILENAME)
         if metadata_path:
-            # with open(metadata_path, "w", encoding="utf-8") as f:
-            #     json.dump(self.agent_metadata, f)
-            new_path = f"{metadata_path}.new"
-            old_path = f"{metadata_path}.old"
-            # first, write to a new file
-            with open(new_path, "w", encoding="utf-8") as f:
-                json.dump(self.agent_metadata, f)
-            # then, rename the old file
-            os.rename(metadata_path, old_path)
-            # then, rename the new file
-            os.rename(new_path, metadata_path)
-            # then, remove the old file
-            os.remove(old_path)
+            atomic_write(metadata_path, json.dumps(self.agent_metadata), mode=0o644)
 
-    def detect_system_config(self) -> Tuple[str, str]:
-        return (
-            self.agent_metadata["configuration_id"],
-            self.agent_metadata["configuration_commit"],
-        )
+    def update_token(self, new_token: str):
+        update_token(new_token)
+        self.token = new_token
+
+    def detect_configuration_id(self) -> str | None:
+        return self.agent_metadata.get("configuration_id", None)
+
+    def detect_configuration_commit(self) -> str | None:
+        return self.agent_metadata.get("configuration_commit", None)
 
     def detect_hostname(self):
         return socket.gethostname()
@@ -1001,6 +1105,8 @@ def main():
 
     load_controller_public_key_into_root_authorized_keys()
     agent_token = find_agent_token()
+    if "--just-place-secrets" not in sys.argv and not is_real_agent_token(agent_token):
+        agent_token = enroll(controller_host, agent_token, systemd_notifier)
     agent = Agent(controller_host, agent_token, agent_metadata, systemd_notifier)
     agent.place_secrets_on_start(agent_token)
     if "--just-place-secrets" not in sys.argv:
