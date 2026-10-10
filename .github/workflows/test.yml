@@ -30,11 +30,22 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - uses: ./.github/actions/snapshot-nix-store
 
+      # No hashFiles() here on purpose. The self-hosted runners build
+      # github-runner with nodeRuntimes = [ "node24" ] (node 20 is EOL and marked
+      # insecure in nixpkgs 26.05), yet the runner evaluates hashFiles() with its
+      # bundled node20, which is therefore absent:
+      #   An error occurred trying to start process
+      #   '…-github-runner-2.337.0/lib/externals/node20/bin/node'
+      # Hash the lockfile with nix instead, so nothing in this workflow needs node20.
+      - name: Hash the controller lockfile
+        id: lock
+        run: echo "hash=$(nix hash file --type sha256 --base32 controller/uv.lock)" >> "$GITHUB_OUTPUT"
+
       - name: Cache the virtualenv
         uses: actions/cache@v6
         with:
           path: ./controller/.venv
-          key: ${{ runner.os }}-venv-${{ hashFiles('**/uv.lock') }}
+          key: ${{ runner.os }}-venv-${{ steps.lock.outputs.hash }}
 
       - name: Cache dev env
         run: |
