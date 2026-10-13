@@ -223,14 +223,17 @@ def enroll(
     url = f"{controller_host.rstrip('/')}/agent/enroll"
     delay = 5
     max_delay = 60
+    request_timeout = 10
     attempt = 0
     while True:
         attempt += 1
-        notifier.notify("EXTEND_TIMEOUT_USEC=30000000")
+        notifier.notify(
+            f"EXTEND_TIMEOUT_USEC={(delay + request_timeout + 10) * 1000 * 1000}"
+        )
         notifier.status(f"Enrolling with controller (attempt {attempt})")
         try:
             response = requests.post(
-                url, json={"code": code, "nonce": nonce}, timeout=10
+                url, json={"code": code, "nonce": nonce}, timeout=request_timeout
             )
         except requests.exceptions.RequestException as e:
             logger.warning(
@@ -703,14 +706,12 @@ class Agent(ea.EdgeAgent):
 
     @classmethod
     def place_secrets_on_message(cls, message: RtESendSecretsMessage):
-        secrets = message.secrets
-        secret_infos = message.secret_infos
         # load /etc/ssh/ssh_host_ed25519_key
         with open("/etc/ssh/ssh_host_ed25519_key", "rb") as f:
             key = f.read()
         identity = ssh.Identity.from_buffer(key)
-        for secret_info in secret_infos:
-            secret = secrets[secret_info.secret_id]
+        for secret_info in message.secret_infos:
+            secret = message.secrets[secret_info.secret_id]
             path = secret_info.path
             owner = secret_info.owner
             group = secret_info.group
@@ -876,12 +877,12 @@ class Agent(ea.EdgeAgent):
         with open(secrets_path, "r", encoding="utf-8") as f:
             s_file = f.read()
         s_data = json.loads(s_file)
-        secrets = s_data["secrets"]
+        secrets_by_id = s_data["secrets"]
         secret_infos = s_data["secret_infos"]
         # decrypt secrets using token
 
         for secret_info in secret_infos:
-            secret = secrets[secret_info["secret_id"]]
+            secret = secrets_by_id[secret_info["secret_id"]]
             path = secret_info["path"]
             owner = secret_info["owner"]
             group = secret_info["group"]
@@ -1122,7 +1123,13 @@ def main():
     if "--just-place-secrets" not in sys.argv and not agent_token:
         pairing_code = get_pairing_code_arg()
         nonce = get_device_nonce()
-        agent_token = enroll(controller_host, pairing_code, nonce, systemd_notifier)
+        if pairing_code and nonce:
+            agent_token = enroll(controller_host, pairing_code, nonce, systemd_notifier)
+        else:
+            logger.error(
+                "Agent token not found and no pairing code provided, cannot connect to controller"
+            )
+            sys.exit(1)
     agent = Agent(controller_host, agent_token, agent_metadata, systemd_notifier)
     agent.place_secrets_on_start(agent_token)
     if "--just-place-secrets" not in sys.argv:
