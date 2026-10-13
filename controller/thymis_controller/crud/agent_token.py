@@ -1,4 +1,3 @@
-import datetime
 import secrets
 import uuid
 from typing import Optional
@@ -28,18 +27,10 @@ def check_token_validity(session: Session, token: str) -> bool:
     return get_valid_token(session, token) is not None
 
 
-def _unexpired():
-    now = datetime.datetime.now(datetime.timezone.utc)
-    return (db_models.AgentToken.expires_at.is_(None)) | (
-        db_models.AgentToken.expires_at > now
-    )
-
-
 def get_valid_token(session: Session, token: str) -> db_models.AgentToken | None:
     return (
         session.query(db_models.AgentToken)
         .filter_by(token=token, revoked=False)
-        .filter(_unexpired())
         .first()
     )
 

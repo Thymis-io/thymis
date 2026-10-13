@@ -14,7 +14,6 @@ import thymis_controller.crud.agent_token as crud_agent_token
 import thymis_controller.crud.deployment_info as crud_deployment_info
 import thymis_controller.crud.device_metric as crud_device_metric
 import thymis_controller.crud.hardware_device as crud_hardware_device
-import thymis_controller.crud.pairing_code as crud_pairing_code
 import thymis_controller.crud.task as crud_task
 import thymis_controller.models.task as models_task
 from fastapi import WebSocket
@@ -463,12 +462,6 @@ class NetworkRelay(nr.NetworkRelay):
                 connection_type="connect",
                 deployment_info_id=deployment_info_id,
             )
-
-            connected_token = crud_agent_token.get_valid_token(
-                db_session, self.connection_id_to_start_message[connection_id].token
-            )
-            if connected_token is not None:
-                crud_pairing_code.consume(db_session, connected_token)
 
             if len(self.connection_id_to_start_message[connection_id].hardware_ids) > 0:
                 hardware_device = crud_hardware_device.create_or_update(

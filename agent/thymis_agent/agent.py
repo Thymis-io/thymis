@@ -5,7 +5,7 @@ import json
 import logging
 import os
 import pathlib
-import re
+import secrets
 import shutil
 import socket
 import subprocess
@@ -182,6 +182,14 @@ def find_agent_token():
     return None
 
 
+def get_pairing_code_arg():
+    if "--pairing-code" in sys.argv:
+        token_index = sys.argv.index("--pairing-code") + 1
+        if token_index < len(sys.argv):
+            return sys.argv[token_index]
+    return None
+
+
 def update_token(new_token: str) -> None:
     token_path = find_file(AGENT_DATA_PATHS, AGENT_TOKEN_FILENAME)
     if not token_path:
@@ -191,12 +199,20 @@ def update_token(new_token: str) -> None:
     logger.info("Token updated successfully")
 
 
-def is_real_agent_token(token: Optional[str]) -> bool:
-    return bool(re.fullmatch(AGENT_TOKEN_EXPECTED_FORMAT, token or ""))
+def get_device_nonce() -> str:
+    nonce_path = pathlib.Path("/etc/thymis/device-nonce.txt")
+    if nonce_path.exists():
+        with open(nonce_path, "r", encoding="utf-8") as f:
+            return f.read().strip()
+    nonce = secrets.token_hex(32)
+    os.makedirs(nonce_path.parent, exist_ok=True, mode=0o700)
+    atomic_write(nonce_path, nonce)
+    logger.info("Generated new device nonce and stored in %s", nonce_path)
+    return nonce
 
 
 def enroll(
-    controller_host: str, code: Optional[str], notifier: "SystemdNotifier"
+    controller_host: str, code: str, nonce: str, notifier: "SystemdNotifier"
 ) -> str:
     """A 404 is terminal; transport errors and 5xx back off and retry.
 
@@ -213,7 +229,9 @@ def enroll(
         notifier.notify("EXTEND_TIMEOUT_USEC=30000000")
         notifier.status(f"Enrolling with controller (attempt {attempt})")
         try:
-            response = requests.post(url, json={"code": code}, timeout=10)
+            response = requests.post(
+                url, json={"code": code, "nonce": nonce}, timeout=10
+            )
         except requests.exceptions.RequestException as e:
             logger.warning(
                 "Enrollment request to %s failed: %s, retrying in %ds", url, e, delay
@@ -958,10 +976,6 @@ class Agent(ea.EdgeAgent):
         if metadata_path:
             atomic_write(metadata_path, json.dumps(self.agent_metadata), mode=0o644)
 
-    def update_token(self, new_token: str):
-        update_token(new_token)
-        self.token = new_token
-
     def detect_configuration_id(self) -> str | None:
         return self.agent_metadata.get("configuration_id", None)
 
@@ -1105,8 +1119,10 @@ def main():
 
     load_controller_public_key_into_root_authorized_keys()
     agent_token = find_agent_token()
-    if "--just-place-secrets" not in sys.argv and not is_real_agent_token(agent_token):
-        agent_token = enroll(controller_host, agent_token, systemd_notifier)
+    if "--just-place-secrets" not in sys.argv and not agent_token:
+        pairing_code = get_pairing_code_arg()
+        nonce = get_device_nonce()
+        agent_token = enroll(controller_host, pairing_code, nonce, systemd_notifier)
     agent = Agent(controller_host, agent_token, agent_metadata, systemd_notifier)
     agent.place_secrets_on_start(agent_token)
     if "--just-place-secrets" not in sys.argv:

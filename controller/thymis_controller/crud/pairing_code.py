@@ -1,6 +1,7 @@
 import datetime
 import secrets
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
 
@@ -20,34 +21,17 @@ def normalize(code: str) -> str:
 
 
 def _unexpired():
-    return db_models.PairingCode.expires_at > datetime.datetime.now(
-        datetime.timezone.utc
-    )
+    return db_models.PairingCode.expires_at > datetime.datetime.now(datetime.UTC)
 
 
 def create(
     session: Session, lifetime: datetime.timedelta = DEFAULT_LIFETIME
 ) -> db_models.PairingCode:
-    """Minting the token with the code is what keeps redemption a pure
-    lookup, with no window for two requests to race a successor onto one
-    code. The successor inherits the code's expiry so an abandoned code
-    leaves no permanent credential; `consume` promotes it on proven use.
-    """
-    expires_at = datetime.datetime.now(datetime.timezone.utc) + lifetime
-    successor = db_models.AgentToken(
-        original_disk_config_commit=None,
-        original_disk_config_id=None,
-        token=f"thymis-{secrets.token_hex(64)}",
-        expires_at=expires_at,
-    )
-    session.add(successor)
-    session.flush()  # assign successor.id without ending the transaction
     code = generate_code()
     pairing_code = db_models.PairingCode(
         code=code,
         normalized_code=normalize(code),
-        expires_at=expires_at,
-        successor_id=successor.id,
+        expires_at=datetime.datetime.now(datetime.UTC) + lifetime,
     )
     session.add(pairing_code)
     session.commit()
@@ -64,38 +48,37 @@ def get_valid(session: Session, code: str) -> db_models.PairingCode | None:
     )
 
 
-def redeem(session: Session, code: str) -> db_models.AgentToken | None:
+def redeem(session: Session, code: str, nonce: str) -> db_models.AgentToken | None:
+    if not nonce:
+        return None
     pairing_code = get_valid(session, code)
     if pairing_code is None:
         return None
     if pairing_code.redeemed_at is None:
-        pairing_code.redeemed_at = datetime.datetime.now(datetime.timezone.utc)
-        session.commit()
+        pairing_code.redeemed_at = datetime.datetime.now(datetime.UTC)
+        pairing_code.device_nonce = nonce
+        session.add(
+            db_models.AgentToken(
+                token=f"thymis-{secrets.token_hex(64)}",
+                pairing_code_id=pairing_code.id,
+            )
+        )
+        try:
+            session.commit()
+        except IntegrityError:
+            # Lost the race; the reloaded claim fails the check below.
+            session.rollback()
+    if pairing_code.device_nonce != nonce:
+        return None
     return pairing_code.successor
 
 
-def consume(session: Session, successor: db_models.AgentToken) -> None:
-    """Call on proven use. Idempotent, and a no-op for image-built tokens,
-    which have no pairing code."""
-    pairing_code = (
-        session.query(db_models.PairingCode)
-        .filter_by(successor_id=successor.id, revoked=False)
-        .first()
-    )
-    if pairing_code is None:
-        return
-    pairing_code.revoked = True
-    successor.expires_at = None
-    session.commit()
-
-
 def revoke(session: Session, code: str) -> bool:
-    """Revokes the successor too: an unredeemed credential must not outlive
-    the code naming it."""
     pairing_code = get_valid(session, code)
     if pairing_code is None:
         return False
     pairing_code.revoked = True
-    pairing_code.successor.revoked = True
+    if pairing_code.successor is not None:
+        pairing_code.successor.revoked = True
     session.commit()
     return True

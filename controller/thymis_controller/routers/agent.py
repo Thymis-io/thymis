@@ -24,7 +24,7 @@ router = APIRouter()
 def enroll(
     request: models.EnrollRequest, db_session: DBSessionAD
 ) -> models.EnrollResponse:
-    successor = crud.pairing_code.redeem(db_session, request.code)
+    successor = crud.pairing_code.redeem(db_session, request.code, request.nonce)
     if successor is None:
         raise HTTPException(status_code=404)
     return models.EnrollResponse(token=successor.token)
