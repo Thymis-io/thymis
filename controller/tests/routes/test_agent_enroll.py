@@ -1,11 +1,12 @@
 import datetime
 import re
+import types
 
 import pytest
 import thymis_agent.agent as agent
 from sqlalchemy.exc import IntegrityError
 from thymis_controller import crud, db_models
-from thymis_controller.dependencies import get_db_session
+from thymis_controller.dependencies import get_db_session, get_project
 from thymis_controller.network_relay import NetworkRelay
 from thymis_controller.notifications import NotificationManager
 
@@ -21,6 +22,11 @@ def _db_session(test_client):
 
 def _enroll(test_client, code: str, nonce: str = NONCE_A):
     return test_client.post("/agent/enroll", json={"code": code, "nonce": nonce})
+
+
+def _controller_pubkey(test_client, token: str | None):
+    headers = {"x-thymis-token": token} if token is not None else {}
+    return test_client.get("/agent/controller-ssh-pubkey", headers=headers)
 
 
 def _start_message(token: str) -> agent.EdgeAgentToRelayStartMessage:
@@ -302,3 +308,50 @@ def test_agent_token_revoke_cannot_reach_a_pairing_code(test_client):
 
     db_session.refresh(pairing_code)
     assert pairing_code.revoked is False
+
+
+def test_enroll_hands_out_the_controller_ssh_pubkey(test_client, controller_pubkey):
+    db_session = _db_session(test_client)
+    pairing_code = crud.pairing_code.create(db_session)
+
+    response = _enroll(test_client, pairing_code.code)
+
+    assert response.json()["controller_ssh_pubkey"] == controller_pubkey
+
+
+def test_controller_pubkey_needs_a_redeemed_token(test_client, controller_pubkey):
+    db_session = _db_session(test_client)
+    pairing_code = crud.pairing_code.create(db_session)
+
+    assert _controller_pubkey(test_client, None).status_code == 404
+    assert _controller_pubkey(test_client, pairing_code.code).status_code == 404
+
+    token = _enroll(test_client, pairing_code.code).json()["token"]
+    accepted = _controller_pubkey(test_client, token)
+    assert accepted.status_code == 200
+    assert accepted.json()["controller_ssh_pubkey"] == controller_pubkey
+
+
+def test_revoked_token_loses_the_controller_pubkey(test_client):
+    db_session = _db_session(test_client)
+    pairing_code = crud.pairing_code.create(db_session)
+    token = _enroll(test_client, pairing_code.code).json()["token"]
+
+    crud.agent_token.revoke_agent_token(db_session, token)
+
+    assert _controller_pubkey(test_client, token).status_code == 404
+
+
+def test_controller_without_a_pubkey_hands_out_nothing(test_client):
+    db_session = _db_session(test_client)
+    pairing_code = crud.pairing_code.create(db_session)
+    token = _enroll(test_client, pairing_code.code).json()["token"]
+
+    test_client.app.dependency_overrides[get_project] = lambda: types.SimpleNamespace(
+        public_key=None
+    )
+
+    response = _controller_pubkey(test_client, token)
+
+    assert response.status_code == 200
+    assert response.json()["controller_ssh_pubkey"] is None

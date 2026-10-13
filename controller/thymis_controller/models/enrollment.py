@@ -12,6 +12,11 @@ class EnrollRequest(BaseModel):
 
 class EnrollResponse(BaseModel):
     token: str
+    controller_ssh_pubkey: Optional[str] = None
+
+
+class ControllerPublicKeyResponse(BaseModel):
+    controller_ssh_pubkey: Optional[str] = None
 
 
 class PairingCode(BaseModel):
@@ -28,4 +33,9 @@ class PairingCode(BaseModel):
     redeemed_at: Optional[datetime]
 
 
-__all__ = ["EnrollRequest", "EnrollResponse", "PairingCode"]
+__all__ = [
+    "ControllerPublicKeyResponse",
+    "EnrollRequest",
+    "EnrollResponse",
+    "PairingCode",
+]

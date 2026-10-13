@@ -22,12 +22,31 @@ router = APIRouter()
 
 @router.post("/enroll")
 def enroll(
-    request: models.EnrollRequest, db_session: DBSessionAD
+    request: models.EnrollRequest, db_session: DBSessionAD, project: ProjectAD
 ) -> models.EnrollResponse:
     successor = crud.pairing_code.redeem(db_session, request.code, request.nonce)
     if successor is None:
         raise HTTPException(status_code=404)
-    return models.EnrollResponse(token=successor.token)
+    return models.EnrollResponse(
+        token=successor.token, controller_ssh_pubkey=project.public_key
+    )
+
+
+@router.get("/controller-ssh-pubkey")
+def controller_ssh_pubkey(
+    request: Request,
+    db_session: DBSessionAD,
+    project: ProjectAD,
+    x_thymis_token: Annotated[str | None, Header()] = None,
+) -> models.ControllerPublicKeyResponse:
+    if x_thymis_token is None or not check_token_validity(db_session, x_thymis_token):
+        logger.warning(f"Invalid token from {request.client.host}")
+        raise HTTPException(status_code=404)
+    if not project.public_key:
+        # Misconfigured controller: hand back nothing so the agent keeps whatever
+        # key it already trusts instead of erroring out mid-boot.
+        logger.error("Controller has no SSH public key to hand out")
+    return models.ControllerPublicKeyResponse(controller_ssh_pubkey=project.public_key)
 
 
 @router.post("/register")
