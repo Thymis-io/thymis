@@ -8,6 +8,7 @@ from thymis_controller.database.base import Base
 
 if TYPE_CHECKING:
     from thymis_controller.db_models.deployment_info import DeploymentInfo
+    from thymis_controller.db_models.pairing_code import PairingCode
     from thymis_controller.db_models.task import Task
 
 
@@ -21,11 +22,23 @@ class AgentToken(Base):
     created_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(timezone.utc)
     )
-    expires_at: Mapped[datetime | None] = mapped_column(nullable=True)
     original_disk_config_commit: Mapped[str | None] = mapped_column(nullable=True)
     original_disk_config_id: Mapped[str | None] = mapped_column(nullable=True)
     token: Mapped[str] = mapped_column(nullable=False, unique=True, index=True)
     revoked: Mapped[bool] = mapped_column(nullable=False, default=False)
+
+    # Null for image-baked tokens, which have no code.
+    pairing_code_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("pairing_codes.id"),
+        nullable=True,
+        unique=True,
+        index=True,
+    )
+
+    pairing_code: Mapped["PairingCode | None"] = relationship(
+        back_populates="successor"
+    )
 
 
 class AccessClientToken(Base):

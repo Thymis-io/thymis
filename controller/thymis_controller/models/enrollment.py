@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict
 
 class EnrollRequest(BaseModel):
     code: str
+    nonce: str
 
 
 class EnrollResponse(BaseModel):
