@@ -1,8 +1,8 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_serializer
 
 
 class EnrollRequest(BaseModel):
@@ -32,10 +32,29 @@ class PairingCode(BaseModel):
     expires_at: datetime
     redeemed_at: Optional[datetime]
 
+    @field_serializer("created_at", "expires_at", "redeemed_at")
+    def _ser_dt(self, dt: datetime | None) -> str | None:
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            # treat stored naive values as UTC
+            dt = dt.replace(tzinfo=timezone.utc)
+        else:
+            dt = dt.astimezone(timezone.utc)
+        return dt.isoformat().replace("+00:00", "Z")
+
+
+class PairingCodeList(BaseModel):
+    """`recent` holds codes from the last days that can no longer be redeemed."""
+
+    active: list[PairingCode]
+    recent: list[PairingCode]
+
 
 __all__ = [
     "ControllerPublicKeyResponse",
     "EnrollRequest",
     "EnrollResponse",
     "PairingCode",
+    "PairingCodeList",
 ]

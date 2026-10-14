@@ -1,12 +1,15 @@
 import datetime
 import secrets
+import uuid
 
+import sqlalchemy
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
 
 ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"  # Crockford Base32
 DEFAULT_LIFETIME = datetime.timedelta(days=1)
+RECENT_WINDOW = datetime.timedelta(days=7)
 
 
 def generate_code(groups: int = 3, group_len: int = 4) -> str:
@@ -22,6 +25,14 @@ def normalize(code: str) -> str:
 
 def _unexpired():
     return db_models.PairingCode.expires_at > datetime.datetime.now(datetime.UTC)
+
+
+def _active():
+    return (
+        _unexpired(),
+        db_models.PairingCode.revoked.is_(False),
+        db_models.PairingCode.redeemed_at.is_(None),
+    )
 
 
 def create(
@@ -73,12 +84,37 @@ def redeem(session: Session, code: str, nonce: str) -> db_models.AgentToken | No
     return pairing_code.successor
 
 
-def revoke(session: Session, code: str) -> bool:
-    pairing_code = get_valid(session, code)
+def list_active(session: Session) -> list[db_models.PairingCode]:
+    return (
+        session.query(db_models.PairingCode)
+        .filter(*_active())
+        .order_by(db_models.PairingCode.created_at.desc())
+        .all()
+    )
+
+
+def list_recent_inactive(
+    session: Session, window: datetime.timedelta = RECENT_WINDOW
+) -> list[db_models.PairingCode]:
+    cutoff = datetime.datetime.now(datetime.UTC) - window
+    return (
+        session.query(db_models.PairingCode)
+        .filter(db_models.PairingCode.created_at >= cutoff)
+        .filter(~sqlalchemy.and_(*_active()))
+        .order_by(db_models.PairingCode.created_at.desc())
+        .all()
+    )
+
+
+def revoke(session: Session, pairing_code_id: uuid.UUID) -> bool:
+    pairing_code = (
+        session.query(db_models.PairingCode)
+        .filter_by(id=pairing_code_id)
+        .filter(*_active())
+        .first()
+    )
     if pairing_code is None:
         return False
     pairing_code.revoked = True
-    if pairing_code.successor is not None:
-        pairing_code.successor.revoked = True
     session.commit()
     return True

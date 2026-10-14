@@ -180,11 +180,45 @@
 		"tabs": {
 			"active": "Aktiv",
 			"without-deployment": "Ohne Deployment",
-			"archived": "Archiviert"
+			"archived": "Archiviert",
+			"pairing-codes": "Pairing-Codes"
 		},
 		"archive-device": "Gerät archivieren",
 		"unarchive-device": "Gerät aus Archiv wiederherstellen",
 		"no-known-hardware-devices-without-known-deployment": "Keine bekannten Hardware-Geräte ohne Deployment"
+	},
+	"pairing-codes": {
+		"create": "Pairing-Code erstellen",
+		"created-title": "Neuer Pairing-Code",
+		"instructions-title": "Externes Gerät koppeln",
+		"info-title": "Nur externe Geräte müssen gekoppelt werden",
+		"external-only": "Geräte mit einem Thymis-Image verbinden sich automatisch. Nutze einen Pairing-Code nur für Geräte, die du selbst eingerichtet hast. Jeder Code funktioniert nur einmal.",
+		"copy-code": "Code kopieren",
+		"copy-command": "Befehl kopieren",
+		"copied": "In die Zwischenablage kopiert",
+		"code-label": "Pairing-Code",
+		"command-label": "Auf dem Gerät ausführen",
+		"expires-at": "Gültig bis {date}. Danach verfallen ungenutzte Codes.",
+		"active": "Aktiv",
+		"recent": "Kürzlich",
+		"recent-hint": "Eingelöste, abgelaufene oder widerrufene Codes der letzten 7 Tage.",
+		"no-active": "Keine aktiven Pairing-Codes.",
+		"no-recent": "Keine kürzlich verwendeten Pairing-Codes.",
+		"actions": "Pairing-Code-Aktionen",
+		"show-instructions": "Kopplungsanleitung anzeigen",
+		"revoke": "Code widerrufen",
+		"table": {
+			"code": "Code",
+			"status": "Status",
+			"created": "Erstellt",
+			"expires": "Läuft ab",
+			"redeemed": "Eingelöst"
+		},
+		"status": {
+			"redeemed": "Eingelöst",
+			"revoked": "Widerrufen",
+			"expired": "Abgelaufen"
+		}
 	},
 	"create-configuration": {
 		"title": "Neue Gerätekonfiguration Erstellen",

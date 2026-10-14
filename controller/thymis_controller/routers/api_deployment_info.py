@@ -224,6 +224,14 @@ def get_error_logs(id: uuid.UUID, db_session: DBSessionAD):
     return log_list.logs
 
 
+@router.get("/pairing-codes", response_model=models.PairingCodeList)
+def list_pairing_codes(db_session: DBSessionAD):
+    return models.PairingCodeList(
+        active=crud.pairing_code.list_active(db_session),
+        recent=crud.pairing_code.list_recent_inactive(db_session),
+    )
+
+
 @router.post("/pairing-code/create", response_model=models.PairingCode)
 def create_pairing_code(db_session: DBSessionAD):
     return crud.pairing_code.create(db_session)
@@ -231,11 +239,12 @@ def create_pairing_code(db_session: DBSessionAD):
 
 @router.post("/pairing-code/revoke", status_code=204)
 def revoke_pairing_code(
-    db_session: DBSessionAD, code: Annotated[str, Body(embed=True)]
+    db_session: DBSessionAD, id: Annotated[uuid.UUID, Body(embed=True)]
 ):
-    if not crud.pairing_code.revoke(db_session, code):
+    if not crud.pairing_code.revoke(db_session, id):
         raise HTTPException(
-            status_code=404, detail="Pairing code not found or already revoked"
+            status_code=404,
+            detail="Pairing code not found, already redeemed, expired or revoked",
         )
 
 
