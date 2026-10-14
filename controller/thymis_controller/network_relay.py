@@ -286,15 +286,19 @@ class NetworkRelay(nr.NetworkRelay):
             return None
         # check for valid token
         with sqlalchemy.orm.Session(self.db_engine) as db_session:
-            if not crud_agent_token.check_token_validity(
+            agent_token = crud_agent_token.get_valid_token(
                 db_session, start_message.token
-            ):
+            )
+            if agent_token is None:
                 logging.error(
                     "Agent with start message %s has invalid token %s",
                     start_message,
                     start_message.token,
                 )
                 return None
+            # External devices are not built by Thymis: their host keys belong to
+            # the owner, so the controller must never ask them to rekey.
+            external = agent_token.pairing_code_id is not None
 
         # check for valid public key, we don't want to have multiple simultaneous agent connections with the same public key
         # so we check if the public key is already in use by another agent
@@ -323,6 +327,15 @@ class NetworkRelay(nr.NetworkRelay):
                     global_settings.PROJECT_PATH / "id_thymis"
                 ),
             )
+            if verify_alive and external:
+                logger.error(
+                    "Refusing external agent from %s: host key %s is already used by "
+                    "a live connection, likely a cloned device. Regenerate its SSH "
+                    "host keys and re-enroll it with a new pairing code.",
+                    edge_agent_connection.client.host,
+                    start_message.public_key,
+                )
+                return None
             if verify_alive:
                 # notify the agent to rekey
                 await self.registered_agent_connections[
@@ -375,7 +388,7 @@ class NetworkRelay(nr.NetworkRelay):
             await edge_agent_connection.close()
             return
 
-        # the agent should also rekey if the public key has a deployment_info with a different hardware_device
+        # managed agents rekey if the public key has a deployment_info with a different hardware_device
         with sqlalchemy.orm.Session(self.db_engine) as db_session:
             # current state: device is reachable via ssh and has a valid public key
 
@@ -415,12 +428,30 @@ class NetworkRelay(nr.NetworkRelay):
                 )
                 return
 
-            if (
+            agent_token = crud_agent_token.get_valid_token(
+                db_session, self.connection_id_to_start_message[connection_id].token
+            )
+            external = (
+                agent_token is not None and agent_token.pairing_code_id is not None
+            )
+            hardware_changed = (
                 len(same_public_key) == 1
                 and not overlapping_devices
                 and len(self.connection_id_to_start_message[connection_id].hardware_ids)
                 > 0
-            ):
+            )
+
+            if hardware_changed and external:
+                # Same installation on new hardware, e.g. an SD card moved to
+                # another Pi. Its host keys belong to the owner, so keep them and
+                # let create_or_update below re-attach the new hardware.
+                logger.warning(
+                    "External agent %s with public key %s reports new hardware ids %s",
+                    edge_agent_connection.client.host,
+                    self.connection_id_to_public_key[connection_id],
+                    self.connection_id_to_start_message[connection_id].hardware_ids,
+                )
+            elif hardware_changed:
                 # this branch means: if your underlying hardware has changed, you need to update your public key
                 logger.info(
                     "Force public key update for agent %s",
