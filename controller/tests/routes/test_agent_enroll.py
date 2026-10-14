@@ -173,30 +173,60 @@ def test_enroll_revoked_code_404(test_client):
     db_session = _db_session(test_client)
     pairing_code = crud.pairing_code.create(db_session)
     code = pairing_code.code
-    assert crud.pairing_code.revoke(db_session, code) is True
+    assert crud.pairing_code.revoke(db_session, pairing_code.id) is True
 
     response = _enroll(test_client, code)
     assert response.status_code == 404
 
 
-def test_revoking_a_redeemed_code_also_kills_its_token(test_client):
+def test_revoking_a_redeemed_code_is_refused_and_keeps_its_token(test_client):
     db_session = _db_session(test_client)
     pairing_code = crud.pairing_code.create(db_session)
     token = _enroll(test_client, pairing_code.code).json()["token"]
 
-    assert crud.pairing_code.revoke(db_session, pairing_code.code) is True
+    response = test_client.post(
+        "/api/pairing-code/revoke", json={"id": str(pairing_code.id)}
+    )
+    assert response.status_code == 404
 
-    assert crud.agent_token.check_token_validity(db_session, token) is False
+    assert crud.agent_token.check_token_validity(db_session, token) is True
+    db_session.refresh(pairing_code)
+    assert pairing_code.revoked is False
 
 
 def test_revoking_an_unredeemed_code_blocks_enrollment(test_client):
     db_session = _db_session(test_client)
     pairing_code = crud.pairing_code.create(db_session)
 
-    assert crud.pairing_code.revoke(db_session, pairing_code.code) is True
+    response = test_client.post(
+        "/api/pairing-code/revoke", json={"id": str(pairing_code.id)}
+    )
+    assert response.status_code == 204
 
     assert _enroll(test_client, pairing_code.code).status_code == 404
     assert db_session.query(db_models.AgentToken).count() == 0
+
+
+def test_pairing_code_list_splits_redeemable_from_recent(test_client):
+    db_session = _db_session(test_client)
+    active = crud.pairing_code.create(db_session)
+    redeemed = crud.pairing_code.create(db_session)
+    _enroll(test_client, redeemed.code)
+    expired = crud.pairing_code.create(db_session)
+    expired.expires_at = datetime.datetime.now(
+        datetime.timezone.utc
+    ) - datetime.timedelta(seconds=1)
+    stale = crud.pairing_code.create(db_session)
+    stale.created_at = datetime.datetime.now(
+        datetime.timezone.utc
+    ) - datetime.timedelta(days=8)
+    stale.expires_at = stale.created_at + datetime.timedelta(days=1)
+    db_session.commit()
+
+    body = test_client.get("/api/pairing-codes").json()
+
+    assert [c["code"] for c in body["active"]] == [active.code]
+    assert {c["code"] for c in body["recent"]} == {redeemed.code, expired.code}
 
 
 def test_enroll_real_agent_token_404(test_client):

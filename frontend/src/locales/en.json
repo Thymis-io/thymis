@@ -180,11 +180,45 @@
 		"tabs": {
 			"active": "Active",
 			"without-deployment": "Without Deployment",
-			"archived": "Archived"
+			"archived": "Archived",
+			"pairing-codes": "Pairing Codes"
 		},
 		"archive-device": "Archive device",
 		"unarchive-device": "Restore device from archive",
 		"no-known-hardware-devices-without-known-deployment": "No known hardware devices without known deployment"
+	},
+	"pairing-codes": {
+		"create": "Create pairing code",
+		"created-title": "New pairing code",
+		"instructions-title": "Pair an external device",
+		"info-title": "Only external devices need pairing",
+		"external-only": "Devices flashed with a Thymis image connect automatically. Use a pairing code only for devices you set up yourself. Each code works once.",
+		"copy-code": "Copy code",
+		"copy-command": "Copy command",
+		"copied": "Copied to clipboard",
+		"code-label": "Pairing code",
+		"command-label": "Run on the device",
+		"expires-at": "Valid until {date}. Unused codes expire after that.",
+		"active": "Active",
+		"recent": "Recent",
+		"recent-hint": "Redeemed, expired or revoked codes from the last 7 days.",
+		"no-active": "No active pairing codes.",
+		"no-recent": "No recent pairing codes.",
+		"actions": "Pairing code actions",
+		"show-instructions": "Show pairing instructions",
+		"revoke": "Revoke code",
+		"table": {
+			"code": "Code",
+			"status": "Status",
+			"created": "Created",
+			"expires": "Expires",
+			"redeemed": "Redeemed"
+		},
+		"status": {
+			"redeemed": "Redeemed",
+			"revoked": "Revoked",
+			"expired": "Expired"
+		}
 	},
 	"create-configuration": {
 		"title": "Create a new device configuration",
