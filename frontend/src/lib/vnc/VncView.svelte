@@ -354,6 +354,15 @@
 		opacity: 1;
 		pointer-events: auto;
 	}
+	/* Touch devices can't hover: noVNC's gesture handler calls preventDefault()
+	   on touch events, so browsers never synthesize hover for the canvas and the
+	   buttons would be unreachable. Reveal them permanently there instead. */
+	@media (hover: none), (pointer: coarse) {
+		.vnc-actions {
+			opacity: 1;
+			pointer-events: auto;
+		}
+	}
 	.vnc-action {
 		display: grid;
 		place-items: center;
