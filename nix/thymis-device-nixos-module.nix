@@ -25,6 +25,11 @@ in
             default = "thymis";
             description = "Name of the device";
           };
+          default-hostname = lib.mkOption {
+            type = lib.types.str;
+            default = "thymis";
+            description = "Default hostname of the device, used until a device-specific name is set";
+          };
           password = lib.mkOption {
             type = lib.types.nullOr lib.types.str;
             description = "Password for the root user";
@@ -135,6 +140,8 @@ in
       ];
       environment = {
         CONTROLLER_HOST = cfg.agent.controller-url;
+        MANAGE_HOSTNAME = "true";
+        DEFAULT_HOSTNAME = cfg.default-hostname;
       };
       serviceConfig.Restart = "always";
       serviceConfig.Type = "notify";
@@ -153,25 +160,6 @@ in
       };
       serviceConfig.Type = "oneshot";
     };
-    systemd.tmpfiles.rules = lib.mkIf cfg.agent.enable [
-      "f /etc/hostname 0644 root root - ${cfg.device-name}"
-    ];
-    systemd.services.thymis-apply-hostname = lib.mkIf cfg.agent.enable {
-      description = "Apply hostname from /etc/hostname";
-      wantedBy = [ "multi-user.target" "thymis-apply-hostname.path" ];
-      serviceConfig.Type = "oneshot";
-      script = ''
-        if [ -f /etc/hostname ]; then
-          ${pkgs.inetutils}/bin/hostname -F /etc/hostname
-        fi
-      '';
-    };
-    systemd.paths.thymis-apply-hostname = lib.mkIf cfg.agent.enable {
-      description = "Watch /etc/hostname for changes";
-      wantedBy = [ "multi-user.target" ];
-      pathConfig.PathModified = "/etc/hostname";
-      pathConfig.Unit = "thymis-apply-hostname.service";
-    };
     services.rsyslogd.enable = true;
     services.rsyslogd.defaultConfig = ''
       include(file="/etc/rsyslog.d/thymis.conf")
@@ -180,7 +168,7 @@ in
     systemd.services.syslog.serviceConfig.ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
     system.activationScripts.thymis = lib.mkIf (cfg.agent.enable) {
       text = ''
-        CONTROLLER_HOST=${cfg.agent.controller-url} ${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent --just-place-secrets
+        CONTROLLER_HOST=${lib.escapeShellArg cfg.agent.controller-url} MANAGE_HOSTNAME=true DEFAULT_HOSTNAME=${lib.escapeShellArg cfg.default-hostname} ${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent --just-place-secrets
       '';
     };
     system.activationScripts.users.deps = lib.mkIf (cfg.agent.enable) [ "thymis" ];

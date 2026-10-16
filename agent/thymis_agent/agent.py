@@ -5,13 +5,15 @@ import json
 import logging
 import os
 import pathlib
+import secrets
 import shutil
 import socket
 import subprocess
 import sys
+import time
 import uuid
 from datetime import timezone
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 import http_network_relay.edge_agent
 import http_network_relay.edge_agent as ea
@@ -35,15 +37,12 @@ HARDWARE_ID_FILE_PATHS = {
 }
 
 AGENT_TOKEN_FILENAME = "thymis-token.txt"
-AGENT_DATA_PATHS = list(
-    map(
-        pathlib.Path,
-        [
-            "/boot/firmware",  # raspberry-pi-nix generated sd-cards
-            "/boot",  # boot.loader.efi.efiSysMountPoint
-        ],
-    )
-)
+DEFAULT_DATA_PATH = pathlib.Path("/etc/thymis")
+AGENT_DATA_PATHS = [
+    pathlib.Path("/boot/firmware"),  # raspberry-pi-nix generated sd-cards
+    pathlib.Path("/boot"),  # boot.loader.efi.efiSysMountPoint
+    DEFAULT_DATA_PATH,  # non-nixos systems
+]
 
 AGENT_TOKEN_EXPECTED_FORMAT = (
     "thymis-[0-9a-f]{128}"  # see controller/thymis_controller/task/worker.py `token =`
@@ -51,6 +50,10 @@ AGENT_TOKEN_EXPECTED_FORMAT = (
 
 AGENT_METADATA_FILENAME = "thymis-metadata.json"
 CONTROLLER_PUBLIC_KEY_FILENAME = "thymis-controller-ssh-pubkey.txt"
+ROOT_AUTHORIZED_KEYS_PATH = "/root/.ssh/authorized_keys"
+DEVICE_HOSTNAME_FILENAME = "thymis-hostname.txt"
+HOSTNAME_PATH = pathlib.Path("/etc/hostname")
+DEFAULT_HOSTNAME = "thymis"
 
 
 # see https://www.freedesktop.org/software/systemd/man/latest/sd_notify.html
@@ -101,12 +104,137 @@ def find_file_multiple_names(paths, filenames):
     return None
 
 
+def atomic_write(path, data: str, mode: int = 0o600):
+    """Durably replace `path` with `data`, forcing its permissions to `mode`.
+
+    rename(2) atomically replaces the destination, so the readable path never
+    points at a partial file. fsync of the data before and of the directory
+    after means a crash leaves either the old or the new contents, never a
+    truncated one.
+    """
+    path = pathlib.Path(path)
+    tmp_path = path.with_name(f"{path.name}.new")
+    # create restrictively, then apply `mode`: the content is never readable
+    # by anyone else, not even for the instant between create and chmod
+    fd = os.open(tmp_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    try:
+        f = os.fdopen(fd, "w", encoding="utf-8")
+    except Exception:
+        os.close(fd)
+        raise
+    with f:
+        try:
+            # O_CREAT's mode is masked by umask and ignored when tmp_path
+            # survived an earlier crash, so set it explicitly
+            os.fchmod(f.fileno(), mode)
+        except OSError as e:
+            # /boot and /boot/firmware are usually vfat, which has no per-file
+            # permission bits; the mount's fmask governs instead
+            logger.warning("Could not set mode %o on %s: %s", mode, tmp_path, e)
+        f.write(data)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp_path, path)
+    dir_fd = os.open(path.parent, os.O_DIRECTORY)
+    try:
+        os.fsync(dir_fd)
+    finally:
+        os.close(dir_fd)
+
+
 def find_agent_token():
     token_path = find_file(AGENT_DATA_PATHS, AGENT_TOKEN_FILENAME)
     if token_path:
         with open(token_path, "r", encoding="utf-8") as f:
             return f.read().strip()
     return None
+
+
+def get_pairing_code_arg():
+    if "--pairing-code" in sys.argv:
+        token_index = sys.argv.index("--pairing-code") + 1
+        if token_index < len(sys.argv):
+            return sys.argv[token_index]
+    return None
+
+
+def update_token(new_token: str) -> None:
+    token_path = find_file(AGENT_DATA_PATHS, AGENT_TOKEN_FILENAME)
+    if not token_path:
+        token_path = DEFAULT_DATA_PATH / AGENT_TOKEN_FILENAME
+        os.makedirs(token_path.parent, exist_ok=True, mode=0o700)
+    atomic_write(token_path, new_token)
+    logger.info("Token updated successfully")
+
+
+def get_device_nonce() -> str:
+    nonce_path = DEFAULT_DATA_PATH / "device-nonce.txt"
+    if nonce_path.exists():
+        with open(nonce_path, "r", encoding="utf-8") as f:
+            return f.read().strip()
+    nonce = secrets.token_hex(32)
+    os.makedirs(nonce_path.parent, exist_ok=True, mode=0o700)
+    atomic_write(nonce_path, nonce)
+    logger.info("Generated new device nonce and stored in %s", nonce_path)
+    return nonce
+
+
+def enroll(
+    controller_host: str, code: str, nonce: str, notifier: "SystemdNotifier"
+) -> tuple[str, str | None]:
+    """A 404 is terminal; transport errors and 5xx back off and retry.
+
+    `notifier` is pinged each attempt so systemd's 90 s start timeout (the
+    unit is `Type=notify` with no `TimeoutStartSec`) does not kill a slow
+    but progressing enrollment.
+    """
+    url = f"{controller_host.rstrip('/')}/agent/enroll"
+    delay = 5
+    max_delay = 60
+    request_timeout = 10
+    attempt = 0
+    while True:
+        attempt += 1
+        notifier.notify(
+            f"EXTEND_TIMEOUT_USEC={(delay + request_timeout + 10) * 1000 * 1000}"
+        )
+        notifier.status(f"Enrolling with controller (attempt {attempt})")
+        try:
+            response = requests.post(
+                url, json={"code": code, "nonce": nonce}, timeout=request_timeout
+            )
+        except requests.exceptions.RequestException as e:
+            logger.warning(
+                "Enrollment request to %s failed: %s, retrying in %ds", url, e, delay
+            )
+            time.sleep(delay)
+            delay = min(delay * 2, max_delay)
+            continue
+
+        if response.status_code == 404:
+            logger.error(
+                "Controller rejected pairing code (404); it is unknown, expired, "
+                "revoked, or already consumed. Cannot enroll."
+            )
+            sys.exit(1)
+
+        if response.status_code >= 500:
+            logger.warning(
+                "Controller returned %d during enrollment, retrying in %ds",
+                response.status_code,
+                delay,
+            )
+            time.sleep(delay)
+            delay = min(delay * 2, max_delay)
+            continue
+
+        response.raise_for_status()
+        body = response.json()
+        token = body.get("token")
+        controller_ssh_pubkey = body.get("controller_ssh_pubkey", None)
+        update_token(token)
+        logger.info("Enrollment successful")
+        return token, controller_ssh_pubkey
 
 
 def find_data_path():
@@ -124,8 +252,7 @@ def find_agent_metadata():
         AGENT_DATA_PATHS,
         [
             AGENT_METADATA_FILENAME,
-            f"{AGENT_METADATA_FILENAME}.new",
-            f"{AGENT_METADATA_FILENAME}.old",
+            f"{AGENT_METADATA_FILENAME}.old",  # legacy recovery
         ],
     )
     if metadata_path:
@@ -148,7 +275,6 @@ def find_agent_metadata():
 
 
 def load_controller_public_key_into_root_authorized_keys():
-    # only if not already there at /root/.ssh/authorized_keys
     controller_public_key_path = find_file(
         AGENT_DATA_PATHS, CONTROLLER_PUBLIC_KEY_FILENAME
     )
@@ -156,15 +282,71 @@ def load_controller_public_key_into_root_authorized_keys():
         logger.error("Controller public key file not found")
         return
     with open(controller_public_key_path, "r", encoding="utf-8") as f:
-        controller_public_key = f.read()
-    if os.path.exists("/root/.ssh/authorized_keys"):
-        with open("/root/.ssh/authorized_keys", "r", encoding="utf-8") as f:
+        controller_public_key = f.read().strip()
+    if not controller_public_key:
+        logger.error(
+            "Controller public key file %s is empty", controller_public_key_path
+        )
+        return
+    separator = ""
+    if os.path.exists(ROOT_AUTHORIZED_KEYS_PATH):
+        with open(ROOT_AUTHORIZED_KEYS_PATH, "r", encoding="utf-8") as f:
             contents = f.read()
-        if controller_public_key in contents:
+        if controller_public_key in contents.splitlines():
             return
-    os.makedirs("/root/.ssh", exist_ok=True, mode=0o700)
-    with open("/root/.ssh/authorized_keys", "a+", encoding="utf-8") as f:
-        f.write(f"{controller_public_key}\n")
+        if contents and not contents.endswith("\n"):
+            separator = "\n"
+    os.makedirs(os.path.dirname(ROOT_AUTHORIZED_KEYS_PATH), exist_ok=True, mode=0o700)
+    with open(ROOT_AUTHORIZED_KEYS_PATH, "a+", encoding="utf-8") as f:
+        f.write(f"{separator}{controller_public_key}\n")
+
+
+def revoke_key_from_root_authorized_keys(public_key: str) -> None:
+    if not os.path.exists(ROOT_AUTHORIZED_KEYS_PATH):
+        return
+    with open(ROOT_AUTHORIZED_KEYS_PATH, "r", encoding="utf-8") as f:
+        lines = f.read().splitlines()
+    kept = [line for line in lines if line.strip() != public_key]
+    if len(kept) == len(lines):
+        return
+    atomic_write(
+        ROOT_AUTHORIZED_KEYS_PATH, "".join(f"{line}\n" for line in kept), mode=0o600
+    )
+    logger.info("Removed superseded controller public key from root authorized_keys")
+
+
+def store_controller_public_key(controller_public_key: str) -> None:
+    controller_public_key = controller_public_key.strip()
+    path = find_file(AGENT_DATA_PATHS, CONTROLLER_PUBLIC_KEY_FILENAME)
+    previous_key = None
+    if path:
+        with open(path, "r", encoding="utf-8") as f:
+            previous_key = f.read().strip()
+    else:
+        data_path = find_data_path() or DEFAULT_DATA_PATH
+        os.makedirs(data_path, exist_ok=True, mode=0o700)
+        path = data_path / CONTROLLER_PUBLIC_KEY_FILENAME
+    if previous_key == controller_public_key:
+        return
+    atomic_write(path, f"{controller_public_key}\n", mode=0o644)
+    logger.info("Stored controller public key at %s", path)
+    if previous_key:
+        revoke_key_from_root_authorized_keys(previous_key)
+
+
+def refresh_controller_public_key(controller_host: str, token: str) -> None:
+    """Best-effort: the controller may rotate its key, but a device that cannot
+    reach it still has to boot with whatever key it was given last."""
+    url = f"{controller_host.rstrip('/')}/agent/controller-ssh-pubkey"
+    try:
+        response = requests.get(url, headers={"x-thymis-token": token}, timeout=10)
+        response.raise_for_status()
+        controller_public_key = response.json()["controller_ssh_pubkey"]
+    except (requests.exceptions.RequestException, KeyError, ValueError) as e:
+        logger.warning("Could not fetch controller public key from %s: %s", url, e)
+        return
+    if controller_public_key:
+        store_controller_public_key(controller_public_key)
 
 
 class AgentToRelayMessage(BaseModel):
@@ -245,14 +427,15 @@ class RtESendSecretsMessage(BaseModel):
 
 class RtEUpdateHostnameMessage(BaseModel):
     kind: Literal["update_hostname"] = "update_hostname"
-    hostname: str
+    hostname: str | None = None
 
 
 class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
     token: str
     hardware_ids: Dict[str, str]
     public_key: str
-    deployed_config_id: str
+    deployed_config_commit: Optional[str] = None
+    deployed_config_id: Optional[str] = None
     ip_addresses: List[str] = []  # deprecated, used for backwards compatibility
     network_interfaces: List[Dict[str, Any]] = []
     ram_bytes: Optional[int] = None
@@ -269,7 +452,13 @@ class Agent(ea.EdgeAgent):
     controller_host: str
 
     def __init__(
-        self, controller_host, token, agent_metadata, systemd_notifier: SystemdNotifier
+        self,
+        controller_host,
+        token,
+        agent_metadata,
+        systemd_notifier: SystemdNotifier,
+        manage_hostname: bool = False,
+        default_hostname: str = DEFAULT_HOSTNAME,
     ):
         super().__init__(
             f"{replace_url_protocol_with_ws(controller_host)}/agent/relay",
@@ -281,6 +470,8 @@ class Agent(ea.EdgeAgent):
         self.agent_metadata = agent_metadata
         self.signal_ssh_connected = asyncio.Event()
         self.systemd_notifier = systemd_notifier
+        self.manage_hostname = manage_hostname
+        self.default_hostname = default_hostname
 
     async def async_main(self):
         asyncio.create_task(self.collect_and_send_metrics())
@@ -494,54 +685,92 @@ class Agent(ea.EdgeAgent):
                 asyncio.create_task(wait_for_reconnect_and_send_result())
 
             case RtEUpdateHostnameMessage():
-                new_hostname = message.inner.hostname
-                logger.info("Updating hostname to: %s", new_hostname)
-                with open("/etc/hostname", "w") as f:
-                    f.write(new_hostname + "\n")
-                proc = await asyncio.create_subprocess_exec(
-                    "hostname",
-                    new_hostname,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                )
-                stdout, stderr = await proc.communicate()
-                if proc.returncode != 0:
-                    logger.error(
-                        "Failed to set hostname: %s",
-                        stderr.decode(),
-                    )
+                if not self.manage_hostname:
+                    logger.info("Ignoring hostname update: MANAGE_HOSTNAME is not set")
                 else:
-                    logger.info("Hostname updated to: %s", new_hostname)
-                    # update rsyslog so X-Thymis-Hostname reflects the new hostname
-                    if self._write_rsyslog_config():
-                        proc = await asyncio.create_subprocess_exec(
-                            "systemctl",
-                            "reload",
-                            "syslog.service",
-                            stdout=asyncio.subprocess.PIPE,
-                            stderr=asyncio.subprocess.PIPE,
-                        )
-                        stdout, stderr = await proc.communicate()
-                        if proc.returncode != 0:
-                            logger.error(
-                                "Failed to reload syslog.service: %s",
-                                stderr.decode(),
-                            )
-                        else:
-                            logger.info("syslog.service reloaded successfully")
+                    self.store_hostname(message.inner.hostname)
+                    if await asyncio.to_thread(
+                        self.apply_hostname, self.read_hostname()
+                    ):
+                        # update rsyslog so X-Thymis-Hostname reflects the new hostname
+                        await self.update_rsyslog()
             case _:
                 logger.error("Unknown message: %s", message)
 
+    def store_hostname(self, hostname: str | None):
+        path = DEFAULT_DATA_PATH / DEVICE_HOSTNAME_FILENAME
+        try:
+            if hostname:
+                os.makedirs(DEFAULT_DATA_PATH, exist_ok=True, mode=0o700)
+                atomic_write(path, hostname + "\n", mode=0o644)
+            else:
+                path.unlink(missing_ok=True)
+        except OSError as e:
+            logger.error("Failed to store device hostname: %s", e)
+
+    def read_hostname(self) -> str:
+        """The stored device hostname, else the deployed default."""
+        try:
+            device_hostname_path = DEFAULT_DATA_PATH / DEVICE_HOSTNAME_FILENAME
+            stored = device_hostname_path.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            stored = ""
+        except OSError as e:
+            logger.error("Failed to read device hostname: %s", e)
+            stored = ""
+        return stored.strip() or self.default_hostname
+
+    def apply_hostname(self, hostname: str) -> bool:
+        """Set `hostname`. Returns True if the hostname changed."""
+        try:
+            return self._set_hostname(hostname)
+        except OSError as e:
+            logger.error("Failed to apply hostname %r: %s", hostname, e)
+            return False
+
+    def _set_hostname(self, hostname: str) -> bool:
+        changed = False
+        try:
+            static_hostname = HOSTNAME_PATH.read_text(encoding="utf-8").strip()
+        except FileNotFoundError:
+            static_hostname = None
+        if static_hostname != hostname:
+            atomic_write(HOSTNAME_PATH, hostname + "\n", mode=0o644)
+            changed = True
+        if socket.gethostname() != hostname:
+            socket.sethostname(hostname)
+            changed = True
+        if changed:
+            logger.info("Hostname set to: %s", hostname)
+        return changed
+
+    async def update_rsyslog(self):
+        if not self._write_rsyslog_config():
+            return
+        proc = await asyncio.create_subprocess_exec(
+            "systemctl",
+            "reload",
+            "syslog.service",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate()
+        if proc.returncode != 0:
+            logger.error(
+                "Failed to reload syslog.service: %s",
+                stderr.decode(),
+            )
+        else:
+            logger.info("syslog.service reloaded successfully")
+
     @classmethod
     def place_secrets_on_message(cls, message: RtESendSecretsMessage):
-        secrets = message.secrets
-        secret_infos = message.secret_infos
         # load /etc/ssh/ssh_host_ed25519_key
         with open("/etc/ssh/ssh_host_ed25519_key", "rb") as f:
             key = f.read()
         identity = ssh.Identity.from_buffer(key)
-        for secret_info in secret_infos:
-            secret = secrets[secret_info.secret_id]
+        for secret_info in message.secret_infos:
+            secret = message.secrets[secret_info.secret_id]
             path = secret_info.path
             owner = secret_info.owner
             group = secret_info.group
@@ -700,17 +929,19 @@ class Agent(ea.EdgeAgent):
             return
         secrets_path = data_path / "thymis-secrets-initial.json"
         if not secrets_path.exists():
-            logger.error("Secrets not found")
+            logger.info(
+                "No initial secrets file present (normal for an enrolled device)"
+            )
             return
         with open(secrets_path, "r", encoding="utf-8") as f:
             s_file = f.read()
         s_data = json.loads(s_file)
-        secrets = s_data["secrets"]
+        secrets_by_id = s_data["secrets"]
         secret_infos = s_data["secret_infos"]
         # decrypt secrets using token
 
         for secret_info in secret_infos:
-            secret = secrets[secret_info["secret_id"]]
+            secret = secrets_by_id[secret_info["secret_id"]]
             path = secret_info["path"]
             owner = secret_info["owner"]
             group = secret_info["group"]
@@ -740,7 +971,8 @@ class Agent(ea.EdgeAgent):
             token=self.token,
             hardware_ids=self.detect_hardware_id(),
             public_key=self.detect_public_key(),
-            deployed_config_id=self.detect_system_config()[0],
+            deployed_config_id=self.detect_configuration_id(),
+            deployed_config_commit=self.detect_configuration_commit(),
             network_interfaces=self.detect_network_interfaces(),
             ram_bytes=self.detect_ram_bytes(),
             last_error=last_error,
@@ -802,25 +1034,13 @@ class Agent(ea.EdgeAgent):
         self.agent_metadata["configuration_commit"] = new_commit
         metadata_path = find_file(AGENT_DATA_PATHS, AGENT_METADATA_FILENAME)
         if metadata_path:
-            # with open(metadata_path, "w", encoding="utf-8") as f:
-            #     json.dump(self.agent_metadata, f)
-            new_path = f"{metadata_path}.new"
-            old_path = f"{metadata_path}.old"
-            # first, write to a new file
-            with open(new_path, "w", encoding="utf-8") as f:
-                json.dump(self.agent_metadata, f)
-            # then, rename the old file
-            os.rename(metadata_path, old_path)
-            # then, rename the new file
-            os.rename(new_path, metadata_path)
-            # then, remove the old file
-            os.remove(old_path)
+            atomic_write(metadata_path, json.dumps(self.agent_metadata), mode=0o644)
 
-    def detect_system_config(self) -> Tuple[str, str]:
-        return (
-            self.agent_metadata["configuration_id"],
-            self.agent_metadata["configuration_commit"],
-        )
+    def detect_configuration_id(self) -> str | None:
+        return self.agent_metadata.get("configuration_id", None)
+
+    def detect_configuration_commit(self) -> str | None:
+        return self.agent_metadata.get("configuration_commit", None)
 
     def detect_hostname(self):
         return socket.gethostname()
@@ -951,15 +1171,44 @@ def main():
     if not controller_host:
         raise ValueError("CONTROLLER_HOST environment variable is required")
 
+    manage_hostname = os.getenv("MANAGE_HOSTNAME", "").lower() in ("1", "true", "yes")
+    default_hostname = os.getenv("DEFAULT_HOSTNAME", "").strip() or DEFAULT_HOSTNAME
+
     logger.setLevel(logging.INFO)
     if agent_metadata:
         set_minimum_time(agent_metadata["datetime"])
 
     systemd_notifier = SystemdNotifier()
 
-    load_controller_public_key_into_root_authorized_keys()
     agent_token = find_agent_token()
-    agent = Agent(controller_host, agent_token, agent_metadata, systemd_notifier)
+    if "--just-place-secrets" not in sys.argv and not agent_token:
+        pairing_code = get_pairing_code_arg()
+        nonce = get_device_nonce()
+        if pairing_code and nonce:
+            agent_token, controller_public_key = enroll(
+                controller_host, pairing_code, nonce, systemd_notifier
+            )
+            if controller_public_key:
+                store_controller_public_key(controller_public_key)
+        else:
+            logger.error(
+                "Agent token not found and no pairing code provided, cannot connect to controller"
+            )
+            sys.exit(1)
+    elif agent_token:
+        refresh_controller_public_key(controller_host, agent_token)
+    load_controller_public_key_into_root_authorized_keys()
+    agent = Agent(
+        controller_host,
+        agent_token,
+        agent_metadata,
+        systemd_notifier,
+        manage_hostname=manage_hostname,
+        default_hostname=default_hostname,
+    )
+    if manage_hostname:
+        # before place_secrets_on_start, so the rsyslog config gets the applied hostname
+        agent.apply_hostname(agent.read_hostname())
     agent.place_secrets_on_start(agent_token)
     if "--just-place-secrets" not in sys.argv:
         asyncio.run(agent.async_main())

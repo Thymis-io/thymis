@@ -2,11 +2,12 @@ import logging
 import os
 import uuid
 from datetime import datetime, timedelta, timezone
+from typing import Annotated
 
 import thymis_controller.crud.agent_connection as crud_agent_connection
 import thymis_controller.crud.device_metric as crud_device_metric
 import thymis_controller.crud.logs as crud_logs
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Body, HTTPException, Query
 from thymis_controller import crud, db_models, models
 from thymis_controller.dependencies import DBSessionAD, NetworkRelayAD, ProjectAD
 from thymis_controller.models import device
@@ -18,24 +19,12 @@ logger = logging.getLogger(__name__)
 async def _send_hostname_update(
     network_relay: NetworkRelay,
     deployment_info: db_models.DeploymentInfo,
-    project,
 ):
-    """Send hostname update to the connected agent for a deployment."""
+    """Send the device-specific hostname to the connected agent for a deployment."""
     import thymis_agent.agent as agent
-    from thymis_controller.lib import effective_hostname, get_config_device_name
+    from thymis_controller.lib import sanitize_hostname
 
-    state = project.read_state()
-    config = next(
-        (
-            c
-            for c in state.configs
-            if c.identifier == deployment_info.deployed_config_id
-        ),
-        None,
-    )
-    hostname = effective_hostname(
-        deployment_info.name, get_config_device_name(config, state)
-    )
+    hostname = sanitize_hostname(deployment_info.name)
 
     connection_id = network_relay.public_key_to_connection_id.get(
         deployment_info.ssh_public_key
@@ -146,7 +135,7 @@ async def update_deployment_info(
         project.update_known_hosts(db_session)
     # Send hostname update to the agent if name changed
     if "name" in deployment_info.model_fields_set:
-        await _send_hostname_update(network_relay, result, project)
+        await _send_hostname_update(network_relay, result)
     return models.DeploymentInfo.from_deployment_info(result, network_relay)
 
 
@@ -221,3 +210,36 @@ def get_error_logs(id: uuid.UUID, db_session: DBSessionAD):
         max_severity=3,  # syslog: 0=Emergency, 1=Alert, 2=Critical, 3=Error
     )
     return log_list.logs
+
+
+@router.get("/pairing-codes", response_model=models.PairingCodeList)
+def list_pairing_codes(db_session: DBSessionAD):
+    return models.PairingCodeList(
+        active=crud.pairing_code.list_active(db_session),
+        recent=crud.pairing_code.list_recent_inactive(db_session),
+    )
+
+
+@router.post("/pairing-code/create", response_model=models.PairingCode)
+def create_pairing_code(db_session: DBSessionAD):
+    return crud.pairing_code.create(db_session)
+
+
+@router.post("/pairing-code/revoke", status_code=204)
+def revoke_pairing_code(
+    db_session: DBSessionAD, id: Annotated[uuid.UUID, Body(embed=True)]
+):
+    if not crud.pairing_code.revoke(db_session, id):
+        raise HTTPException(
+            status_code=404,
+            detail="Pairing code not found, already redeemed, expired or revoked",
+        )
+
+
+@router.post("/agent-token/revoke", status_code=204)
+def invalidate_token(db_session: DBSessionAD, token: Annotated[str, Body(embed=True)]):
+    if not crud.agent_token.check_token_validity(db_session, token):
+        raise HTTPException(
+            status_code=404, detail="Token not found or already revoked"
+        )
+    crud.agent_token.revoke_agent_token(db_session, token)

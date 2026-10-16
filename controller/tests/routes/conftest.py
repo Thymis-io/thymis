@@ -1,9 +1,11 @@
 """
 Route-level conftest: provides a working test_client without needing
 the Project fixture (which requires a real Engine, not a Session).
-The new device-details endpoints don't use ProjectAD, so we can
-override get_project with a simple None-returning mock.
+The routes under test only read `Project.public_key`, so get_project is
+overridden with a stub carrying just that.
 """
+import types
+
 import pytest
 from fastapi.testclient import TestClient
 from thymis_controller.dependencies import (
@@ -12,6 +14,13 @@ from thymis_controller.dependencies import (
     get_project,
     require_valid_user_session,
 )
+
+CONTROLLER_PUBKEY = "ssh-ed25519 AAAAcontroller controller@thymis"
+
+
+@pytest.fixture(scope="function")
+def controller_pubkey() -> str:
+    return CONTROLLER_PUBKEY
 
 
 @pytest.fixture(scope="function")
@@ -26,7 +35,7 @@ def test_client(db_session) -> TestClient:
             pass
 
     def override_get_project():
-        return None
+        return types.SimpleNamespace(public_key=CONTROLLER_PUBKEY)
 
     def override_authenticate():
         return True
