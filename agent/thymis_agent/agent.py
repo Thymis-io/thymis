@@ -83,6 +83,9 @@ def switch_needs_reboot(returncode: int, is_activated: bool) -> bool:
 AGENT_METADATA_FILENAME = "thymis-metadata.json"
 CONTROLLER_PUBLIC_KEY_FILENAME = "thymis-controller-ssh-pubkey.txt"
 ROOT_AUTHORIZED_KEYS_PATH = "/root/.ssh/authorized_keys"
+DEVICE_HOSTNAME_FILENAME = "thymis-hostname.txt"
+HOSTNAME_PATH = pathlib.Path("/etc/hostname")
+DEFAULT_HOSTNAME = "thymis"
 
 
 # see https://www.freedesktop.org/software/systemd/man/latest/sd_notify.html
@@ -459,7 +462,7 @@ class RtESendSecretsMessage(BaseModel):
 
 class RtEUpdateHostnameMessage(BaseModel):
     kind: Literal["update_hostname"] = "update_hostname"
-    hostname: str
+    hostname: str | None = None
 
 
 class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
@@ -484,7 +487,13 @@ class Agent(ea.EdgeAgent):
     controller_host: str
 
     def __init__(
-        self, controller_host, token, agent_metadata, systemd_notifier: SystemdNotifier
+        self,
+        controller_host,
+        token,
+        agent_metadata,
+        systemd_notifier: SystemdNotifier,
+        manage_hostname: bool = False,
+        default_hostname: str = DEFAULT_HOSTNAME,
     ):
         super().__init__(
             f"{replace_url_protocol_with_ws(controller_host)}/agent/relay",
@@ -496,6 +505,8 @@ class Agent(ea.EdgeAgent):
         self.agent_metadata = agent_metadata
         self.signal_ssh_connected = asyncio.Event()
         self.systemd_notifier = systemd_notifier
+        self.manage_hostname = manage_hostname
+        self.default_hostname = default_hostname
 
     async def async_main(self):
         asyncio.create_task(self.collect_and_send_metrics())
@@ -716,28 +727,64 @@ class Agent(ea.EdgeAgent):
                 asyncio.create_task(wait_for_reconnect_and_send_result())
 
             case RtEUpdateHostnameMessage():
-                new_hostname = message.inner.hostname
-                logger.info("Updating hostname to: %s", new_hostname)
-                with open("/etc/hostname", "w") as f:
-                    f.write(new_hostname + "\n")
-                proc = await asyncio.create_subprocess_exec(
-                    "hostname",
-                    new_hostname,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                )
-                stdout, stderr = await proc.communicate()
-                if proc.returncode != 0:
-                    logger.error(
-                        "Failed to set hostname: %s",
-                        stderr.decode(),
-                    )
+                if not self.manage_hostname:
+                    logger.info("Ignoring hostname update: MANAGE_HOSTNAME is not set")
                 else:
-                    logger.info("Hostname updated to: %s", new_hostname)
-                    # update rsyslog so X-Thymis-Hostname reflects the new hostname
-                    await self.update_rsyslog()
+                    self.store_hostname(message.inner.hostname)
+                    if await asyncio.to_thread(
+                        self.apply_hostname, self.read_hostname()
+                    ):
+                        # update rsyslog so X-Thymis-Hostname reflects the new hostname
+                        await self.update_rsyslog()
             case _:
                 logger.error("Unknown message: %s", message)
+
+    def store_hostname(self, hostname: str | None):
+        path = DEFAULT_DATA_PATH / DEVICE_HOSTNAME_FILENAME
+        try:
+            if hostname:
+                os.makedirs(DEFAULT_DATA_PATH, exist_ok=True, mode=0o700)
+                atomic_write(path, hostname + "\n", mode=0o644)
+            else:
+                path.unlink(missing_ok=True)
+        except OSError as e:
+            logger.error("Failed to store device hostname: %s", e)
+
+    def read_hostname(self) -> str:
+        """The stored device hostname, else the deployed default."""
+        try:
+            device_hostname_path = DEFAULT_DATA_PATH / DEVICE_HOSTNAME_FILENAME
+            stored = device_hostname_path.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            stored = ""
+        except OSError as e:
+            logger.error("Failed to read device hostname: %s", e)
+            stored = ""
+        return stored.strip() or self.default_hostname
+
+    def apply_hostname(self, hostname: str) -> bool:
+        """Set `hostname`. Returns True if the hostname changed."""
+        try:
+            return self._set_hostname(hostname)
+        except OSError as e:
+            logger.error("Failed to apply hostname %r: %s", hostname, e)
+            return False
+
+    def _set_hostname(self, hostname: str) -> bool:
+        changed = False
+        try:
+            static_hostname = HOSTNAME_PATH.read_text(encoding="utf-8").strip()
+        except FileNotFoundError:
+            static_hostname = None
+        if static_hostname != hostname:
+            atomic_write(HOSTNAME_PATH, hostname + "\n", mode=0o644)
+            changed = True
+        if socket.gethostname() != hostname:
+            socket.sethostname(hostname)
+            changed = True
+        if changed:
+            logger.info("Hostname set to: %s", hostname)
+        return changed
 
     async def update_rsyslog(self):
         if not self._write_rsyslog_config():
@@ -1166,6 +1213,9 @@ def main():
     if not controller_host:
         raise ValueError("CONTROLLER_HOST environment variable is required")
 
+    manage_hostname = os.getenv("MANAGE_HOSTNAME", "").lower() in ("1", "true", "yes")
+    default_hostname = os.getenv("DEFAULT_HOSTNAME", "").strip() or DEFAULT_HOSTNAME
+
     logger.setLevel(logging.INFO)
     if agent_metadata:
         set_minimum_time(agent_metadata["datetime"])
@@ -1190,7 +1240,17 @@ def main():
     elif agent_token:
         refresh_controller_public_key(controller_host, agent_token)
     load_controller_public_key_into_root_authorized_keys()
-    agent = Agent(controller_host, agent_token, agent_metadata, systemd_notifier)
+    agent = Agent(
+        controller_host,
+        agent_token,
+        agent_metadata,
+        systemd_notifier,
+        manage_hostname=manage_hostname,
+        default_hostname=default_hostname,
+    )
+    if manage_hostname:
+        # before place_secrets_on_start, so the rsyslog config gets the applied hostname
+        agent.apply_hostname(agent.read_hostname())
     agent.place_secrets_on_start(agent_token)
     if "--just-place-secrets" not in sys.argv:
         asyncio.run(agent.async_main())
