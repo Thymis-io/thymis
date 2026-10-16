@@ -847,7 +847,7 @@
 		"console": "Console",
 		"not-connected": "Device is offline. Connect it to use this view.",
 		"name-placeholder": "e.g. Display 1, Rack A",
-		"name-helper": "Changing this will also update the device hostname."
+		"name-helper": "This name is also used as the device's hostname."
 	},
 	"auto-update": {
 		"subtitle": "Schedule automatic updates and pick the release channel for your devices.",

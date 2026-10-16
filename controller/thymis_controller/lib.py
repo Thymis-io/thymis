@@ -3,12 +3,9 @@ from __future__ import annotations
 import base64
 import logging
 import os
-from typing import TYPE_CHECKING
+import unicodedata
 
 import uvicorn.logging
-
-if TYPE_CHECKING:
-    from thymis_controller.models.state import Config, State
 
 ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
@@ -71,51 +68,12 @@ def sanitize_hostname(name: str | None) -> str | None:
     """
     if not name or not name.strip():
         return None
-    hostname = name.strip().lower()
-    hostname = "".join(c if c.isalnum() or c == "-" else "-" for c in hostname)[:63]
+    hostname = name.strip().casefold()
+    hostname = unicodedata.normalize("NFKD", hostname)
+    hostname = hostname.encode("ascii", "ignore").decode()
+    hostname = "".join(c if c.isalnum() or c == "-" else "-" for c in hostname)
+    hostname = "-".join(part for part in hostname.split("-") if part)
+    hostname = hostname[:63]
     # RFC 1123: labels must not start or end with a hyphen
     hostname = hostname.strip("-")
     return hostname if hostname else None
-
-
-def effective_hostname(
-    deployment_info_name: str | None, config_device_name: str
-) -> str:
-    """Per-device name → config default → 'thymis'. Never empty."""
-    return (
-        sanitize_hostname(deployment_info_name)
-        or sanitize_hostname(config_device_name)
-        or "thymis"
-    )
-
-
-def get_config_device_name(config: Config | None, state: State | None = None) -> str:
-    """Return the effective device_name for a config, merging tag sources by priority.
-
-    Mirrors lib.mkOverride semantics: lowest priority number wins.
-    Config modules use HOST_PRIORITY (80); tags use their own priority field.
-    Returns '' when no source provides a non-empty value.
-    """
-    if config is None:
-        return ""
-
-    candidates: list[tuple[int, str]] = []  # (priority, value)
-
-    for ms in config.modules:
-        if "ThymisDevice" in ms.type:
-            val = ms.settings.get("device_name", "") or ""
-            if val:
-                candidates.append((HOST_PRIORITY, val))
-
-    if state is not None:
-        for tag in state.tags:
-            if tag.identifier in config.tags:
-                for ms in tag.modules:
-                    if "ThymisDevice" in ms.type:
-                        val = ms.settings.get("device_name", "") or ""
-                        if val:
-                            candidates.append((tag.priority, val))
-
-    if not candidates:
-        return ""
-    return min(candidates, key=lambda c: c[0])[1]
