@@ -3,7 +3,7 @@ import pathlib
 import thymis_controller.modules.modules as modules
 from thymis_controller import models
 from thymis_controller.config import global_settings
-from thymis_controller.lib import read_into_base64
+from thymis_controller.lib import read_into_base64, sanitize_hostname
 from thymis_controller.nix.templating import convert_python_value_to_nix
 from thymis_controller.project import Project
 
@@ -93,12 +93,12 @@ class ThymisDevice(modules.Module):
         type="string",
         default="",
         description=modules.LocalizedString(
-            en="The hostname used for all devices in this configuration, "
-            "until a device-specific name is set via the device details page. "
-            "Leave blank to use the built-in default 'thymis'.",
-            de="Der Hostname, der für alle Geräte dieser Konfiguration verwendet wird, "
-            "bis ein gerätespezifischer Name über die Gerätedetailseite gesetzt wird. "
-            "Leer lassen, um den Standard-Hostnamen 'thymis' zu verwenden.",
+            en="The hostname of all devices with this configuration. "
+            "A name given to a single device on its details page is used as its hostname instead. "
+            "Leave blank to use 'thymis'.",
+            de="Der Hostname aller Geräte mit dieser Konfiguration. "
+            "Ein Name, der einem einzelnen Gerät auf seiner Detailseite gegeben wird, wird stattdessen als Hostname verwendet. "
+            "Leer lassen, um 'thymis' zu verwenden.",
         ),
         example="my-raspberry-pi",
         order=20,
@@ -191,12 +191,17 @@ class ThymisDevice(modules.Module):
                 f"  thymis.config.agent.controller-url = lib.mkOverride 100 {convert_python_value_to_nix(default_agent_controller_url)};\n"
             )
 
-        # omit device-name when blank so the Nix module default ("thymis") applies
         device_name_value = module_settings.settings.get("device_name", "") or ""
         if device_name_value:
             f.write(
                 f"  thymis.config.device-name = lib.mkOverride {priority} "
                 f"{convert_python_value_to_nix(device_name_value)};\n"
+            )
+        default_hostname_value = sanitize_hostname(device_name_value)
+        if default_hostname_value:
+            f.write(
+                f"  thymis.config.default-hostname = lib.mkOverride {priority} "
+                f"{convert_python_value_to_nix(default_hostname_value)};\n"
             )
 
         return super().write_nix_settings(f, path, module_settings, priority, project)

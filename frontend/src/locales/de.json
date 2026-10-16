@@ -846,7 +846,7 @@
 		"console": "Konsole",
 		"not-connected": "Das Gerät ist offline. Für diese Ansicht muss es verbunden sein.",
 		"name-placeholder": "z.B. Display 1, Rack A",
-		"name-helper": "Diese Änderung aktualisiert auch den Hostnamen des Geräts."
+		"name-helper": "Dieser Name wird auch als Hostname des Geräts verwendet."
 	},
 	"auto-update": {
 		"subtitle": "Planen Sie automatische Updates und wählen Sie den Release-Kanal für Ihre Geräte.",
