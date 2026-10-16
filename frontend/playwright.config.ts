@@ -37,7 +37,9 @@ const commandFrame = (cmd) =>
 						THYMIS_AGENT_ACCESS_URL: `http://10.0.2.2:${port}`,
 						THYMIS_BASE_URL: `http://localhost:${port}`,
 						UVICORN_HOST: '0.0.0.0',
-						UVICORN_PORT: `${port}`
+						UVICORN_PORT: `${port}`,
+						// In CI, log event-loop callbacks that block for >100ms
+						...(process.env.CI ? { PYTHONASYNCIODEBUG: '1' } : {})
 					},
 					withContentInFile('testadminpassword', '$THYMIS_AUTH_BASIC_PASSWORD_FILE', cmd)
 				)
