@@ -69,10 +69,15 @@ async def deploy(
         if (matches_config or matches_device) and is_connected:
             state = project.read_state()
             config = next(
-                config
-                for config in state.configs
-                if config.identifier == deployment_info.deployed_config_id
+                (
+                    config
+                    for config in state.configs
+                    if config.identifier == deployment_info.deployed_config_id
+                ),
+                None,
             )
+            if not config:
+                continue
             modules = project.get_modules_for_config(state, config)
             secrets = []
             for module, settings in modules:

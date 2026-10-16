@@ -94,7 +94,7 @@
 			),
 			...globalState.deploymentInfos.filter((d) => selectedDeviceIds.includes(d.id))
 		]) {
-			if (!seen.has(d.id) && d.connected) {
+			if (!seen.has(d.id) && d.connected && d.deployed_config_id) {
 				seen.add(d.id);
 				result.push(d);
 			}
