@@ -7,7 +7,9 @@ import json
 import re
 import sys
 
-BOOT_RISK = re.compile(r"nixpkgs|nixos-raspberrypi|raspberry-pi-nix|nixos-hardware|home-manager")
+BOOT_RISK = re.compile(
+    r"nixpkgs|nixos-raspberrypi|raspberry-pi-nix|nixos-hardware|home-manager"
+)
 LABEL_LOCK_ONLY = "risk:lock-only"
 LABEL_BOOT = "risk:boot-firmware-kernel"
 
@@ -25,7 +27,9 @@ def locked_by_input(lock):
 
 def changed_inputs(old_lock, new_lock):
     old, new = locked_by_input(old_lock), locked_by_input(new_lock)
-    return sorted(name for name in old.keys() | new.keys() if old.get(name) != new.get(name))
+    return sorted(
+        name for name in old.keys() | new.keys() if old.get(name) != new.get(name)
+    )
 
 
 def risk_label(names):
