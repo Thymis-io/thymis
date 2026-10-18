@@ -67,3 +67,21 @@ def test_deploy_device_task_appends_extra_known_hosts_from_global_settings():
     assert "localhost device-key" in lines
     assert "builder.example.com ssh-ed25519 AAAABuilderKey" in lines
     assert len(lines) == 3
+
+
+def test_deploy_device_task_keeps_boot_files_when_switch_fails():
+    task = _make_task_submission(uuid.uuid4())
+    process_list = worker.ProcessList()
+    process_list.msg_queue = mock.Mock()
+    process_list.msg_queue.get.side_effect = worker.queue.Empty
+    commands = []
+
+    def fake_run_command(_task, _conn, _process_list, cmd, *_args, **_kwargs):
+        commands.append(" ".join(cmd))
+        return 0
+
+    with mock.patch.object(worker, "run_command", fake_run_command):
+        worker.deploy_device_task(task, mock.Mock(), process_list)
+
+    assert commands
+    assert not any("/boot/firmware" in c for c in commands)
