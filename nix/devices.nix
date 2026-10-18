@@ -114,8 +114,10 @@ let
   # raspberry-pi-nix kept kernel.img/initrd on the firmware partition and passed
   # init=/sbin/init through cmdline.txt. The Raspberry Pi firmware still reads
   # those files, so an in-place upgrade has to remove them or they shadow the
-  # u-boot/extlinux boot path that nixos-raspberrypi installs. The path is
-  # automounted, and `rm -f` is a no-op when it is not.
+  # firmware-native (`kernel` bootloader) boot path under nixos/. This runs in
+  # activation, i.e. only after installBootLoader succeeded, so a failed switch
+  # leaves the old generation bootable. The path is automounted, and `rm -f` is
+  # a no-op when it is not.
   # Takes pkgs because activation scripts run with a minimal PATH as well, so a
   # bare `rm` is not guaranteed to resolve.
   legacyFirmwareCleanup = pkgs: ''
