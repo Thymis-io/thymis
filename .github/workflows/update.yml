@@ -8,13 +8,19 @@ on:
   schedule:
     - cron: "0 6 * * 1" # every Monday at 6:00 UTC
 
-concurrency:
-  group: nix-flake-update
-  cancel-in-progress: true
-
 jobs:
   update:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        base: [master, v0.9] # supported branches; edit on each release
+    concurrency:
+      group: nix-flake-update-${{ matrix.base }}
+      cancel-in-progress: true
+    env:
+      BASE: ${{ matrix.base }}
+      BRANCH: auto/flake-update-${{ matrix.base }}
     permissions:
       contents: write
       pull-requests: write
@@ -28,7 +34,8 @@ jobs:
       - uses: actions/checkout@v5
         with:
           token: ${{ steps.generate-token.outputs.token }}
-          ref: ${{ github.head_ref || github.ref_name }}
+          ref: ${{ matrix.base }}
+          fetch-depth: 0
       - uses: ./.github/actions/setup-nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -44,9 +51,19 @@ jobs:
           git config user.name $USER_NAME
       - uses: ./.github/actions/snapshot-nix-store
 
-      - name: Update flake lock
+      - name: Update flake lock on fixed branch
+        id: update
         run: |
+          git switch -C "$BRANCH" # always restart from the base tip
+          cp flake.lock /tmp/flake.lock.old
           nix flake update --commit-lock-file
+          if git diff --quiet "origin/$BASE" -- flake.lock; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "inputs=$(python3 .github/scripts/changed_inputs.py /tmp/flake.lock.old flake.lock)" >> "$GITHUB_OUTPUT"
+            echo "label=$(python3 .github/scripts/changed_inputs.py /tmp/flake.lock.old flake.lock --label)" >> "$GITHUB_OUTPUT"
+          fi
       - name: Upload new store paths to Nix cache
         if: always()
         uses: ./.github/actions/upload-nix-store-diff
@@ -54,19 +71,35 @@ jobs:
           aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
-      - name: Commit and push changes
-        run: |
-            # if on master, create a new branch
-            BRANCH_NAME=${{ github.head_ref || github.ref_name }}
-            if [ "$BRANCH_NAME" = "master" ] && [ "$BRANCH_NAME" != "update-flake-lock" ]; then
-              BRANCH_NAME=update-flake-lock
-              git switch -c update-flake-lock
-            fi
-            git push origin HEAD --force
-            # create a PR if not exists for this branch
-            if [ "$(gh pr list --state open --head $BRANCH_NAME --json id -q '. | length')" -eq 0 ]; then
-              gh pr create --fill
-            fi
+      - name: Push, create or refresh PR, close superseded
+        if: steps.update.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
-          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+          LABEL: ${{ steps.update.outputs.label }}
+          INPUTS: ${{ steps.update.outputs.inputs }}
+        run: |
+          git push --force origin "HEAD:$BRANCH"
+          TITLE="flake.lock: update ($BASE)"
+          BODY="Weekly lock refresh for \`$BASE\`. Risk label: **$LABEL**. Changed inputs: $INPUTS. Re-created every run from the tip of \`$BASE\`; do not edit. Merging this PR is the patch update."
+          gh label create "risk:lock-only" --color 0e8a16 2>/dev/null || true
+          gh label create "risk:boot-firmware-kernel" --color d93f0b 2>/dev/null || true
+          PR=$(gh pr list --state open --head "$BRANCH" --base "$BASE" --json number -q '.[0].number')
+          if [ -z "$PR" ]; then
+            gh pr create --base "$BASE" --head "$BRANCH" --title "$TITLE" --body "$BODY" --label "$LABEL"
+          else
+            gh pr edit "$PR" --title "$TITLE" --body "$BODY" \
+              --remove-label risk:lock-only --remove-label risk:boot-firmware-kernel --add-label "$LABEL"
+          fi
+          for old in update-flake-lock renovate/lock-file-maintenance; do
+            for n in $(gh pr list --state open --head "$old" --base "$BASE" --json number -q '.[].number'); do
+              gh pr close "$n" --delete-branch --comment "Superseded by $BRANCH"
+            done
+          done
+      - name: Close standing PR when nothing changed
+        if: steps.update.outputs.changed == 'false'
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          for n in $(gh pr list --state open --head "$BRANCH" --json number -q '.[].number'); do
+            gh pr close "$n" --delete-branch --comment "Lock already up to date"
+          done
