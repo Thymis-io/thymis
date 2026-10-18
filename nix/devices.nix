@@ -90,9 +90,16 @@ let
     system.preSwitchChecks.raspberry-pi-firmware-space = ''
       fw=/boot/firmware
       if [ -d "$fw" ]; then
-        kernel=$(${pkgs.coreutils}/bin/stat -c %s "$1/kernel" 2>/dev/null || echo 0)
-        initrd=$(${pkgs.coreutils}/bin/stat -c %s "$1/initrd" 2>/dev/null || echo 0)
-        need=$((kernel + initrd))
+        # The installer copies the generation's DTBs and overlays into
+        # nixos/default/ as well (install-device-tree.sh), a few hundred small
+        # files. Count them, rounded to 4 KiB blocks (>= the FAT cluster size of
+        # a 128 MiB partition), or the check passes and the copy hits ENOSPC.
+        size() { ${pkgs.coreutils}/bin/du -sLB1 "$1" 2>/dev/null | ${pkgs.coreutils}/bin/cut -f1 || echo 0; }
+        kernel=$(size "$1/kernel")
+        initrd=$(size "$1/initrd")
+        dtbs=0
+        if [ -e "$1/dtbs" ]; then dtbs=$(size "$1/dtbs/"); fi
+        need=$((kernel + initrd + ''${dtbs:-0}))
         reclaim=0
         for obsolete in ${lib.concatStringsSep " " (map (n: "\"$fw/${n}\"") (firmwareDropFor board))}; do
           if [ -e "$obsolete" ]; then
@@ -103,7 +110,7 @@ let
         effective=$((avail + reclaim))
         if [ "$effective" -lt "$need" ]; then
           echo "refusing to switch: $fw cannot hold the new kernel + initrd"
-          echo "  need      $((need / 1048576)) MiB (kernel $((kernel / 1048576)) + initrd $((initrd / 1048576)))"
+          echo "  need      $((need / 1048576)) MiB (kernel $((kernel / 1048576)) + initrd $((initrd / 1048576)) + device tree $((dtbs / 1048576)))"
           echo "  available $((effective / 1048576)) MiB free ($((avail / 1048576)) now + $((reclaim / 1048576)) reclaimed)"
           echo "Boot files are staged next to the current generation, so the partition needs room for the incoming pair."
           exit 1
