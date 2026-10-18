@@ -5,7 +5,7 @@
     "enabled": true
   },
   "lockFileMaintenance": {
-    "enabled": true
+    "enabled": false
   },
   "automerge": true,
   "automergeType": "squash",

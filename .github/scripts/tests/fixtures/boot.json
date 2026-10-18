@@ -1,0 +1,24 @@
+{
+  "nodes": {
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "flake_utils": "flake_utils"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "rev": "a2",
+        "narHash": "sha256-a2"
+      }
+    },
+    "flake_utils": {
+      "locked": {
+        "rev": "b1",
+        "narHash": "sha256-b1"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
