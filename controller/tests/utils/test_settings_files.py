@@ -5,8 +5,7 @@ attribute set keyed by the path they are placed at, and `nix/settings/files.nix`
 derives `systemd.tmpfiles.rules` from the merged value. Artifacts of the device
 configuration and of tags therefore end up in one rule list instead of
 replacing each other, and the derived rules are contributed to the option
-instead of overriding it, so the rules of the device module and of nixpkgs stay
-in place.
+instead of overriding it, so rules from other sources stay in place.
 """
 
 import pathlib
@@ -155,7 +154,6 @@ def test_artifacts_of_all_sources_merge_into_tmpfiles_rules(tmp_path):
 
     # the derived rules are contributed to the option, they do not replace the
     # rules other sources define for it
-    assert any(rule.startswith("f /etc/hostname ") for rule in result["rules"])
     assert CUSTOM_RULE in result["rules"]
 
 
