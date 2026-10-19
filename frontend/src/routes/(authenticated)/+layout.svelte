@@ -19,7 +19,7 @@
 
 	import ProgressBar from '#lib/components/ProgressBar.svelte';
 	import { beforeNavigate } from '$app/navigation';
-	import type { Length } from '#lib/splitpane/types';
+	import type { Length } from '#lib/splitpane/types.js';
 
 	interface Props {
 		data: LayoutData;
