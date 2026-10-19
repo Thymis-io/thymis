@@ -184,8 +184,15 @@ class ActivitiesDoneExpectedFailed:
     failed: int = 0
 
 
+# Store URIs that name the store on this machine. nix logs the default
+# daemon-backed store as plain "daemon" and a chroot store as "local://...":
+# neither is a remote store, so bytes moving between them and a cache or a
+# device are not uploads just because the URI is not literally "local://".
+_LOCAL_STORE_URIS = frozenset({"daemon", "local"})
+
+
 def _is_local_store(store_uri: str) -> bool:
-    return store_uri.startswith("local://")
+    return store_uri in _LOCAL_STORE_URIS or store_uri.startswith("local://")
 
 
 def transfer_direction_of(start: StartActivityNixLine) -> Optional[str]:

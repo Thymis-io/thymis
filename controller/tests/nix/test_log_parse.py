@@ -1,5 +1,6 @@
 import json
 
+import pytest
 from thymis_controller.nix.log_parse import ActivityType, NixParser, ResultType
 
 
@@ -74,7 +75,7 @@ def test_copy_to_target_device_is_reported_as_upload():
                     copy_path(
                         2,
                         "/nix/store/aaa-first",
-                        "local://",
+                        "daemon",
                         "ssh-ng://root@127.0.0.1",
                     )
                 ),
@@ -102,7 +103,7 @@ def test_copy_to_target_device_is_reported_as_upload():
                     copy_path(
                         3,
                         "/nix/store/bbb-second",
-                        "local://",
+                        "daemon",
                         "ssh-ng://root@127.0.0.1",
                     )
                 ),
@@ -153,7 +154,7 @@ def test_multi_path_copy_keeps_one_denominator():
                     copy_path(
                         2,
                         "/nix/store/aaa-first",
-                        "local://",
+                        "daemon",
                         "ssh-ng://root@127.0.0.1",
                     )
                 ),
@@ -164,7 +165,7 @@ def test_multi_path_copy_keeps_one_denominator():
                     copy_path(
                         3,
                         "/nix/store/bbb-second",
-                        "local://",
+                        "daemon",
                         "ssh-ng://root@127.0.0.1",
                     )
                 ),
@@ -193,7 +194,7 @@ def test_download_from_cache_is_not_counted_twice():
                         2,
                         "/nix/store/aaa-first",
                         "https://cache.nixos.org",
-                        "local://",
+                        "daemon",
                     )
                 ),
                 nix_line(
@@ -214,6 +215,40 @@ def test_download_from_cache_is_not_counted_twice():
     assert status.transfer.download.done == 1000
     assert status.transfer.download.expected == 1000
     assert status.transfer.download.running == 0
+    assert status.transfer.upload is None
+
+
+@pytest.mark.parametrize("local_store", ["daemon", "local://"])
+def test_cache_download_to_the_local_store_is_never_an_upload(local_store):
+    """Regression: a build task that only fetches packages must not claim to copy to a device.
+
+    nix logs the default store as "daemon"; matching only "local://" made every
+    cache download look like an upload to the target device.
+    """
+    parser = NixParser()
+    buffer = bytearray(
+        b"".join(
+            [
+                nix_line(start_activity(1, ActivityType.COPY_PATHS, "copying 1 paths")),
+                nix_line(set_expected(1, ActivityType.COPY_PATH, 4096)),
+                nix_line(
+                    copy_path(
+                        2,
+                        "/nix/store/aaa-cached",
+                        "https://cache.nixos.org",
+                        local_store,
+                    )
+                ),
+                nix_line(progress(2, 1024, 4096)),
+            ]
+        )
+    )
+
+    assert parser.process_buffer(buffer)
+
+    status = parser.get_model()
+    assert status.transfer.download.done == 1024
+    assert status.transfer.download.expected == 4096
     assert status.transfer.upload is None
 
 
@@ -256,7 +291,7 @@ def test_download_and_upload_are_reported_side_by_side():
                         1,
                         "/nix/store/aaa-cached",
                         "https://cache.nixos.org",
-                        "local://",
+                        "daemon",
                     )
                 ),
                 nix_line(progress(1, 250, 500)),
@@ -264,7 +299,7 @@ def test_download_and_upload_are_reported_side_by_side():
                     copy_path(
                         2,
                         "/nix/store/bbb-built",
-                        "local://",
+                        "daemon",
                         "ssh-ng://root@127.0.0.1",
                     )
                 ),
