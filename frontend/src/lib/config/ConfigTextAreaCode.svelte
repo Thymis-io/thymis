@@ -2,7 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import { Tooltip } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import type { TextAreaCodeSettingType } from '$lib/state';
 	// import MonacoTextarea from '$lib/components/MonacoTextarea.svelte';
 

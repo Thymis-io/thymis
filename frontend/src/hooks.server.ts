@@ -1,7 +1,7 @@
 import type { Handle, HandleFetch } from '@sveltejs/kit';
 import { normalizeLocale } from '$lib/i18n';
 import { locale, waitLocale } from 'svelte-i18n';
-import { env } from '$env/dynamic/private';
+import { PRIVATE_BASE_URL } from '$app/env/private';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// normalizeLocale clamps the untrusted cookie/header value before it reaches the
@@ -21,7 +21,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 const cookiesToSend = ['session-id', 'session-token'];
 
 const DEFAULT_BASE_URL = 'http://127.0.0.1:8000';
-let privateBaseUrl = new URL(env.PRIVATE_BASE_URL ? env.PRIVATE_BASE_URL : DEFAULT_BASE_URL);
+let privateBaseUrl = new URL(PRIVATE_BASE_URL ? PRIVATE_BASE_URL : DEFAULT_BASE_URL);
 
 const validHosts = ['localhost', '127.0.0.1', '::1'];
 if (!(

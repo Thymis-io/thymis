@@ -8,7 +8,7 @@
 	import type { AttachAddon as AttachAddonType } from '@xterm/addon-attach';
 	import type { FitAddon as FitAddonType } from '@xterm/addon-fit';
 	import type { WebglAddon as WebglAddonType } from '@xterm/addon-webgl';
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import type { DeploymentInfo } from '$lib/deploymentInfo';
 
 	let Terminal: typeof TerminalType;

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { locale, t } from 'svelte-i18n';
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import { Select } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import { invalidate } from '$app/navigation';

@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import { get, writable } from 'svelte/store';
 import { fetchWithNotify } from './fetchWithNotify';
 
@@ -112,6 +112,7 @@ export const aggregateTransfers = (processes: TaskProcess[] | undefined): TaskTr
 		for (const direction of TRANSFER_DIRECTIONS) {
 			const status = summary[direction];
 			if (!status) continue;
+
 			const total = (totals[direction] ??= {
 				direction,
 				done: 0,
@@ -119,6 +120,7 @@ export const aggregateTransfers = (processes: TaskProcess[] | undefined): TaskTr
 				running: 0,
 				failed: 0
 			});
+
 			total.done += status.done;
 			total.expected += status.expected;
 			total.running += status.running;
@@ -136,17 +138,8 @@ type ShortTaskMessage = {
 	task: TaskShort;
 };
 
-type SubscripedTaskMessage = {
-	type: 'subscribed_task';
-	task_id: string;
-	task: Task;
-};
-
-type SubscripedTaskOutputMessage = {
-	type: 'subscribed_task_output';
-	task_id: string;
-	task: Task;
-};
+type SubscripedTaskMessage = { type: 'subscribed_task'; task_id: string; task: Task };
+type SubscripedTaskOutputMessage = { type: 'subscribed_task_output'; task_id: string; task: Task };
 
 let socket: WebSocket | undefined;
 
@@ -161,10 +154,8 @@ export const getAllTasks = async (
 	const url = `/api/tasks?limit=${limit}&offset=${offset}`;
 	const response = await fetchWithNotify(url, undefined, {}, fetch);
 	const totalCount = response.headers.get('total-count');
-	return {
-		tasks: (await response.json()) as TaskShort[],
-		totalCount: totalCount
-	};
+
+	return { tasks: (await response.json()) as TaskShort[], totalCount };
 };
 
 export const getTask = async (taskId: string, fetch: typeof window.fetch = window.fetch) => {

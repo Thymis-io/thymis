@@ -1,6 +1,6 @@
 import { toast } from '@zerodevx/svelte-toast';
 import type { LayoutServerLoad } from './$types';
-import { env } from '$env/dynamic/private';
+import { RUNNING_IN_PLAYWRIGHT } from '$app/env/private';
 import { redirectToLogin } from '$lib/login';
 import { normalizeLocale } from '$lib/i18n';
 
@@ -20,10 +20,10 @@ export const load: LayoutServerLoad = async ({ cookies, fetch, url, request }) =
 			const user = await loggedInResponse.json().catch(() => null);
 
 			return {
-				locale: locale,
-				minimizeTaskbar: minimizeTaskbar,
-				user: user,
-				inPlaywright: 'RUNNING_IN_PLAYWRIGHT' in env && env.RUNNING_IN_PLAYWRIGHT === 'true'
+				locale,
+				minimizeTaskbar,
+				user,
+				inPlaywright: RUNNING_IN_PLAYWRIGHT === 'true'
 			};
 		}
 	}

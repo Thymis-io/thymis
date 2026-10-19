@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import EllipsisVertical from 'lucide-svelte/icons/ellipsis-vertical';
 	import type { Component, ComponentType } from 'svelte';
 
