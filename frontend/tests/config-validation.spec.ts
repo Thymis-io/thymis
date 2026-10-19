@@ -34,11 +34,20 @@ test('controller URL shows an error and is not saved while invalid', async ({ pa
 		.locator('..')
 		.locator('input');
 
+	let statePatches = 0;
+	page.on('request', (request) => {
+		if (request.method() === 'PATCH' && new URL(request.url()).pathname === '/api/state') {
+			statePatches += 1;
+		}
+	});
+
 	await controllerUrlInput.fill('not a url');
 	await controllerUrlInput.blur();
 
 	await expect(page.getByText('Enter a valid URL starting with http:// or https://')).toBeVisible();
 	await expect(controllerUrlInput).toHaveAttribute('aria-invalid', 'true');
+	await page.waitForTimeout(500);
+	expect(statePatches).toBe(0);
 	expect(await persistedControllerUrl(page)).not.toBe('not a url');
 
 	const invalidState = await (await page.request.get('/api/state')).json();
