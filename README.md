@@ -47,7 +47,7 @@ Key features of Thymis include:
     - **[nixpkgs](https://github.com/NixOS/nixpkgs)**: According to [Repology](https://repology.org/repositories/statistics/newest), nixpkgs has over 60000 packages with the latest version available. This makes it the largest collection of up-to-date software packages available for any Linux distribution. You can use any of these packages in your Thymis project.
     - Deployments without wasted bandwidth: Only changed paths are sent to the device, reducing the amount of data sent over the network.
     - Deployments without downtime: The device is updated atomically, ensuring that the device is always in a consistent state.
-    - Rollbacks: If the device cannot reconnect to the controller within 60 seconds after an update, the agent switches back to the previous configuration. You can also revert to an earlier configuration manually via History.
+    - Rollbacks: If the device cannot reconnect to the controller within 60 seconds after an update, the agent switches back to the previous configuration.
     - Reproducible builds: The same configuration will always produce the same result, ensuring that the device is always in a consistent state.
     - Air-gapped deployments: Devices can be updated without needing to connect to the internet. Only a connection to the Thymis controller is required. Deployments using Mass Storage is possible but not yet implemented.
 - **Device tagging**: Tag devices to group them together for easier management.
@@ -125,7 +125,7 @@ The controller takes care of running the frontend for you. You can access thymis
   - Update to nixpkgs/NixOS 24.11
 
 - [x] Release [0.4.0](https://github.com/Thymis-io/thymis/releases/tag/0.4.0)
-  - Automatic rollback if the device fails to reconnect to the controller after an update (manual revert via History)
+  - Automatic rollback if the device fails to reconnect to the controller within 60 seconds after an update
 
 - [x] Release [0.5.0](https://github.com/Thymis-io/thymis/releases/tag/0.5.0)
   - Added secrets management
