@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import { invalidate } from '$app/navigation';
 import { toast } from '@zerodevx/svelte-toast';
 import { fetchWithNotify } from './fetchWithNotify';
@@ -11,15 +11,8 @@ export type Notification = {
 		ShouldInvalidate | FrontendToast | ImageBuiltNotification | DeploymentInfoUpdateNotification;
 };
 
-export type ShouldInvalidate = {
-	kind: 'should_invalidate';
-	should_invalidate_paths: string[];
-};
-
-export type FrontendToast = {
-	kind: 'frontend_toast';
-	message: string;
-};
+export type ShouldInvalidate = { kind: 'should_invalidate'; should_invalidate_paths: string[] };
+export type FrontendToast = { kind: 'frontend_toast'; message: string };
 
 export type ImageBuiltNotification = {
 	kind: 'image_built';

@@ -12,7 +12,7 @@
 	import MainWindow from './MainWindow.svelte';
 	import TaskbarMinimize from '$lib/taskbar/TaskbarMinimize.svelte';
 	import TaskbarSmall from '$lib/taskbar/TaskbarSmall.svelte';
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import { SvelteToast } from '@zerodevx/svelte-toast';
 	import { onMount } from 'svelte';
 	import { startNotificationSocket } from '$lib/notification';

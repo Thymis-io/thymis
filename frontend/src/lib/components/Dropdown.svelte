@@ -1,5 +1,5 @@
 <script lang="ts" generics="T extends string | number">
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 	import { onDestroy, onMount, type Component, type ComponentType, type Snippet } from 'svelte';
 

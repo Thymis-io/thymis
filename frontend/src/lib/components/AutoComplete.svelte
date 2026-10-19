@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import { Input } from 'flowbite-svelte';
 	import { onDestroy, onMount, type Component, type ComponentType } from 'svelte';
 

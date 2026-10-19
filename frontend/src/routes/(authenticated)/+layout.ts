@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 import { localeFromCookieString, normalizeLocale } from '$lib/i18n'; // Import to initialize. Important :)
 import { locale, waitLocale } from 'svelte-i18n';
 import type { LayoutLoad } from './$types';
@@ -191,13 +191,13 @@ export const load = (async ({ fetch, url, data }) => {
 
 	return {
 		globalState: new GlobalState(globalState, url.searchParams, availableModules, deploymentInfos),
-		secrets: secrets,
-		nav: nav,
-		availableModules: availableModules,
-		repoStatus: repoStatus,
-		allTasks: allTasks,
-		minimizeTaskbar: minimizeTaskbar,
-		user: user,
-		inPlaywright: inPlaywright
+		secrets,
+		nav,
+		availableModules,
+		repoStatus,
+		allTasks,
+		minimizeTaskbar,
+		user,
+		inPlaywright
 	};
 }) satisfies LayoutLoad;

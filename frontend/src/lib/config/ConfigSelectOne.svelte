@@ -4,7 +4,7 @@
 	import { t } from 'svelte-i18n';
 	import { Select, Tooltip } from 'flowbite-svelte';
 	import type { ModuleSettings, SelectOneSettingType, Setting } from '$lib/state';
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 
 	interface Props {
 		value?: string;
@@ -73,10 +73,7 @@
 <Select
 	{value}
 	on:change={changeInternal}
-	items={available_settings?.map((option) => ({
-		name: option[0],
-		value: option[1]
-	}))}
+	items={available_settings?.map((option) => ({ name: option[0], value: option[1] }))}
 	{disabled}
 	class={`h-8 px-2 py-1 ${disabled ? 'opacity-70' : ''}`}
 />
