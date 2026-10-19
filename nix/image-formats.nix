@@ -131,7 +131,7 @@ let
         START_VM_SCRIPT="$TMPDIR/start-vm"
 
         # insert "-b $FINAL_IMAGE_DESTINATION" to replace previous "-b whatever/nixos.qcow2"
-        sed -e "s@-b .*nixos.qcow2@-b \"$FINAL_IMAGE_DESTINATION\"@" "$start_vm" > "$START_VM_SCRIPT"
+        ${pkgs.gnused}/bin/sed -e "s@-b .*nixos.qcow2@-b \"$FINAL_IMAGE_DESTINATION\"@" "$start_vm" > "$START_VM_SCRIPT"
 
         cp "$START_VM_SCRIPT" "$final_image_destination_base.start-vm"
 
