@@ -167,7 +167,7 @@ let
         _module.args.nixos-raspberrypi = inputs.nixos-raspberrypi;
         nixpkgs.hostPlatform = "aarch64-linux";
         system.activationScripts.raspberry-pi-legacy-firmware = (legacyFirmwareCleanup pkgs);
-        systemd.watchdog.runtimeTime = "15s";
+        systemd.settings.Manager.RuntimeWatchdogSec = "15s";
         boot.kernel.sysctl."vm.mmap_rnd_bits" = 24;
       };
       raspberry-pi-4 = { pkgs, ... }: {
@@ -181,7 +181,7 @@ let
         _module.args.nixos-raspberrypi = inputs.nixos-raspberrypi;
         nixpkgs.hostPlatform = "aarch64-linux";
         system.activationScripts.raspberry-pi-legacy-firmware = (legacyFirmwareCleanup pkgs);
-        systemd.watchdog.runtimeTime = "15s";
+        systemd.settings.Manager.RuntimeWatchdogSec = "15s";
         boot.kernelParams = [ "brcmfmac.roamoff=1" "brcmfmac.feature_disable=0x282000" ];
         boot.kernel.sysctl."vm.mmap_rnd_bits" = 24;
       };
@@ -196,7 +196,7 @@ let
         _module.args.nixos-raspberrypi = inputs.nixos-raspberrypi;
         nixpkgs.hostPlatform = "aarch64-linux";
         system.activationScripts.raspberry-pi-legacy-firmware = (legacyFirmwareCleanup pkgs);
-        systemd.watchdog.runtimeTime = "15s";
+        systemd.settings.Manager.RuntimeWatchdogSec = "15s";
         boot.kernel.sysctl."vm.mmap_rnd_bits" = 24;
       };
     };
