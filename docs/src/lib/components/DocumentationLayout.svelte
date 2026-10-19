@@ -13,7 +13,7 @@
 	import { afterNavigate } from '$app/navigation';
 
 	onMount(() => {
-		mermaid.initialize({});
+		mermaid.initialize({theme: 'default'});
 	});
 	afterNavigate(() => {
 		mermaid.run();
