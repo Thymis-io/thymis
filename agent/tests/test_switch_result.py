@@ -7,7 +7,7 @@ exit 4 on an otherwise fully switched device.
 """
 
 import pytest
-from thymis_agent.agent import interpret_switch_result
+from thymis_agent.agent import interpret_switch_result, switch_needs_reboot
 
 ACTIVATED = """
 Running as unit: thymis-nixos-rebuild-switch-to-configuration.service
@@ -55,3 +55,17 @@ error: cannot switch to a different systemd version
 )
 def test_interpret_switch_result(returncode, stderr, expected):
     assert interpret_switch_result(returncode, stderr) == expected
+
+
+@pytest.mark.parametrize(
+    ("returncode", "is_activated", "expected"),
+    [
+        (0, True, False),  # clean switch, nothing to do
+        (4, True, True),  # tolerated dbus-broker reload failure
+        (1, True, True),  # any tolerated post-activation failure needs a reboot
+        (4, False, False),  # nothing was activated
+        (1, False, False),
+    ],
+)
+def test_switch_needs_reboot(returncode, is_activated, expected):
+    assert switch_needs_reboot(returncode, is_activated) is expected
