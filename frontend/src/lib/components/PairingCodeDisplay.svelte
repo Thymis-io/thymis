@@ -2,7 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import { toast } from '@zerodevx/svelte-toast';
 	import Copy from 'lucide-svelte/icons/copy';
-	import type { PairingCode } from '$lib/pairingCodes';
+	import type { PairingCode } from '#lib/pairingCodes.js';
 
 	interface Props {
 		pairingCode: PairingCode;
