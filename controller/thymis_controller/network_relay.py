@@ -166,6 +166,21 @@ class NetworkRelay(nr.NetworkRelay):
                             deployed_config_commit=inner.config_commit,
                             pending_config_id=None,
                         )
+                        if getattr(inner, "reboot_required", False):
+                            # The configuration was activated but units failed to
+                            # reload/restart (dbus-broker is the usual one on a
+                            # 25.11 -> 26.05 switch). The device runs the new
+                            # generation, but the update only takes full effect
+                            # after a reboot.
+                            logger.warning(
+                                "Switch of %s activated but requires a reboot to "
+                                "finish the update",
+                                activated_config_id,
+                            )
+                            self.notification_manager.broadcast_toast_notification(
+                                f"Configuration {activated_config_id} is active, "
+                                "but a reboot is required to finish the update."
+                            )
                 self.task_controller.executor.send_message_to_task(
                     inner.task_id,
                     models_task.ControllerToRunnerTaskUpdate(

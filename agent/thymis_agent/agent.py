@@ -71,6 +71,16 @@ def interpret_switch_result(returncode: int, stderr: str) -> tuple[bool, bool]:
     return is_activated, switch_success
 
 
+def switch_needs_reboot(returncode: int, is_activated: bool) -> bool:
+    """True when the configuration is active but a reboot is needed to finish.
+
+    That is the tolerated non-zero exit of `switch-to-configuration`: units
+    failed to reload/restart, so the new generation is on disk and the profile
+    switched, but running services still come from the old generation.
+    """
+    return bool(is_activated and returncode != 0)
+
+
 AGENT_METADATA_FILENAME = "thymis-metadata.json"
 CONTROLLER_PUBLIC_KEY_FILENAME = "thymis-controller-ssh-pubkey.txt"
 
@@ -209,6 +219,9 @@ class EtRSwitchToNewConfigResultMessage(BaseModel):
     switch_success: bool | None = None  # in v3 final
     stdout: str | None = None  # in v3 final
     stderr: str | None = None  # in v3 final
+    # the switch was activated but units failed to reload/restart, so a reboot
+    # is needed before the update is fully in effect
+    reboot_required: bool | None = None
 
 
 class EtRMetricsMessage(BaseModel):
@@ -384,11 +397,13 @@ class Agent(ea.EdgeAgent):
                 is_activated, switch_success = interpret_switch_result(
                     proc.returncode, stderr_str
                 )
-                if switch_success and proc.returncode != 0:
+                reboot_required = switch_needs_reboot(proc.returncode, is_activated)
+                if reboot_required:
                     logger.warning(
                         "switch-to-configuration exited %s after activating the "
                         "configuration (some units failed to reload/restart); "
-                        "treating the switch as successful: %s",
+                        "treating the switch as successful, a reboot is "
+                        "required to finish the update: %s",
                         proc.returncode,
                         stderr_str,
                     )
@@ -507,6 +522,7 @@ class Agent(ea.EdgeAgent):
                                 config_commit=message.inner.config_commit,
                                 is_activated=is_activated,
                                 switch_success=switch_success,
+                                reboot_required=reboot_required,
                                 stdout=stdout.decode(),
                                 stderr=stderr.decode(),
                             )
