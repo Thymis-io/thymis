@@ -34,6 +34,7 @@ Modules define settings using the `Setting` class, which supports various types:
 ```python
 # Simple setting types
 Setting(type="string")      # Text input
+Setting(type="url")         # Absolute http(s) URL input, validated before saving
 Setting(type="int")         # Number input
 Setting(type="bool")        # Checkbox
 Setting(type="textarea")    # Multi-line text input
@@ -191,7 +192,7 @@ class KioskModule(modules.Module):
 
     kiosk_url = modules.Setting(
         display_name="Kiosk URL",
-        type="string",
+        type="url",
         default="https://example.com",
         description="The URL to display in kiosk mode",
     )

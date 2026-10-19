@@ -34,7 +34,7 @@ class Kiosk(modules.Module):
             en="URL",
             de="URL",
         ),
-        type="string",
+        type="url",
         default="https://example.com",
         description="The URL to display in kiosk mode.",
         example="https://example.com",

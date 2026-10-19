@@ -4,10 +4,12 @@
 	import type { HTMLInputAttributes } from 'svelte/elements';
 
 	interface Props {
-		placeholder: string | null;
+		placeholder: string | null | undefined;
 		value: unknown;
 		onChange?: (value: string) => void;
 		disabled: boolean;
+		validate?: (value: unknown) => boolean;
+		validationError?: string;
 		props: HTMLInputAttributes;
 	}
 
@@ -16,11 +18,35 @@
 		value,
 		onChange = () => {},
 		disabled,
+		validate = () => true,
+		validationError = '',
 		...props
 	}: Props & HTMLInputAttributes = $props();
 
+	let edited = $state<string | null>(null);
+	let lastValue = $state<unknown>(undefined);
+	let initialized = false;
+
+	let draft = $derived(edited ?? (typeof value === 'string' ? value : ''));
+	let invalid = $derived(!validate(draft));
+
+	$effect(() => {
+		if (!initialized || value !== lastValue) {
+			initialized = true;
+			lastValue = value;
+			edited = null;
+		}
+	});
+
+	let inputInternal = (e: Event) => {
+		edited = (e.target as HTMLInputElement).value;
+	};
+
 	let changeInternal = (e: Event) => {
-		onChange((e.target as HTMLInputElement).value);
+		const newValue = (e.target as HTMLInputElement).value;
+		if (validate(newValue)) {
+			onChange(newValue);
+		}
 	};
 
 	const className =
@@ -33,12 +59,35 @@
 <input
 	type="text"
 	class={className}
+	class:invalid
 	{placeholder}
-	value={value || ''}
+	value={draft}
 	{disabled}
+	aria-invalid={invalid}
+	oninput={inputInternal}
 	onchange={changeInternal}
 	{...props}
 />
+{#if invalid && validationError}
+	<p class="validation-error" role="alert">{validationError}</p>
+{/if}
 {#if disabled}
 	<Tooltip type="auto" placement={'top'}>{$t('config.editDisabled')}</Tooltip>
 {/if}
+
+<style>
+	input.invalid {
+		border-color: var(--ds-danger) !important;
+	}
+
+	input.invalid:focus {
+		border-color: var(--ds-danger) !important;
+		box-shadow: 0 0 0 3px var(--ds-danger-dim);
+	}
+
+	.validation-error {
+		margin-top: 4px;
+		color: var(--ds-danger);
+		font-size: 11.5px;
+	}
+</style>

@@ -5,6 +5,7 @@ from abc import ABC
 from dataclasses import dataclass
 from io import StringIO
 from typing import List, Literal, Optional, Tuple, Union
+from urllib.parse import urlparse
 
 from pydantic import JsonValue
 from thymis_controller import db_models, models
@@ -506,6 +507,31 @@ class Setting:
         )
 
 
+def validate_url(value: JsonValue) -> Optional[str]:
+    if value is None or value == "":
+        return None
+    if not isinstance(value, str):
+        return "must be a string"
+    if any(character.isspace() for character in value):
+        return "must not contain whitespace"
+    try:
+        parsed = urlparse(value)
+        # Accessing port/hostname validates the authority (including IPv6 brackets).
+        parsed.port
+        hostname = parsed.hostname
+    except ValueError:
+        return "must be a valid URL"
+    if parsed.scheme not in ("http", "https") or not hostname:
+        return "must be an absolute http:// or https:// URL"
+    return None
+
+
+def validate_setting_value(setting: Setting, value: JsonValue) -> Optional[str]:
+    if setting.type == "url":
+        return validate_url(value)
+    return None
+
+
 __all__ = [
     "Module",
     "Setting",
@@ -516,6 +542,8 @@ __all__ = [
     "is_unset_setting_value",
     "nix_attr_path",
     "write_nix_definitions",
+    "validate_setting_value",
+    "validate_url",
     "SelectOneType",
     "ListType",
     "SettingTypes",
