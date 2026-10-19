@@ -380,6 +380,86 @@ def deploy_device_task(
             report_task_finished(task, conn, False, "Copy closure failed")
             return
 
+        # `nix copy` writes large files in place, so a power loss while copying
+        # can leave a truncated path in the device's store. Nix skips existing
+        # paths on the next copy and the switch then dies with `203/EXEC`, which
+        # looks like a broken configuration and never recovers by itself. Verify
+        # the closure, drop a corrupt path and tell the user to re-run.
+        verify_returncode = run_command(
+            task,
+            conn,
+            process_list,
+            [
+                "ssh",
+                "-i",
+                task_data.ssh_key_path,
+                "-o",
+                f"UserKnownHostsFile={hostfile_path}",
+                "-o",
+                "StrictHostKeyChecking=yes",
+                "-o",
+                "PasswordAuthentication=no",
+                "-o",
+                "KbdInteractiveAuthentication=no",
+                "-o",
+                "ConnectTimeout=10",
+                "-o",
+                "BatchMode=yes",
+                "-o",
+                f"ProxyCommand={access_client_proxy_command(task_data.controller_access_client_endpoint, task_data.device.deployment_info_id)}",
+                "root@localhost",
+                f"/run/current-system/sw/bin/nix-store --verify-path {config_path}",
+            ],
+            env={
+                "PATH": os.getenv("PATH"),
+                "HTTP_NETWORK_RELAY_SECRET": task_data.access_client_token,
+            },
+            cwd=tmpdir,
+            process_index=4,
+        )
+        if verify_returncode != 0:
+            # remove the corrupt path so that a re-run of the deploy copies it
+            # again instead of skipping it
+            run_command(
+                task,
+                conn,
+                process_list,
+                [
+                    "ssh",
+                    "-i",
+                    task_data.ssh_key_path,
+                    "-o",
+                    f"UserKnownHostsFile={hostfile_path}",
+                    "-o",
+                    "StrictHostKeyChecking=yes",
+                    "-o",
+                    "PasswordAuthentication=no",
+                    "-o",
+                    "KbdInteractiveAuthentication=no",
+                    "-o",
+                    "ConnectTimeout=10",
+                    "-o",
+                    "BatchMode=yes",
+                    "-o",
+                    f"ProxyCommand={access_client_proxy_command(task_data.controller_access_client_endpoint, task_data.device.deployment_info_id)}",
+                    "root@localhost",
+                    f"/run/current-system/sw/bin/nix-store --delete --ignore-liveness {config_path}",
+                ],
+                env={
+                    "PATH": os.getenv("PATH"),
+                    "HTTP_NETWORK_RELAY_SECRET": task_data.access_client_token,
+                },
+                cwd=tmpdir,
+                process_index=5,
+            )
+            report_task_finished(
+                task,
+                conn,
+                False,
+                "Copied closure is incomplete on the device (corrupt path removed, re-run the deploy)",
+            )
+            return
+
         # send message to agent on device that it should switch to the new configuration
         conn.send(
             models_task.RunnerToControllerTaskUpdate(
