@@ -17,7 +17,7 @@
 	import { onMount } from 'svelte';
 	import { startNotificationSocket } from '$lib/notification';
 
-	import { ProgressBar } from '@prgm/sveltekit-progress-bar';
+	import ProgressBar from '$lib/components/ProgressBar.svelte';
 	import { beforeNavigate } from '$app/navigation';
 	import type { Length } from '$lib/splitpane/types';
 
