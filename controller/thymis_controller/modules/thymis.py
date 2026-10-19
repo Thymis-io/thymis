@@ -128,7 +128,7 @@ class ThymisDevice(modules.Module):
             de="Thymis Controller-URL",
         ),
         # nix_attr_name="thymis.config.agent.controller-url",
-        type="string",
+        type="url",
         default="",
         description=modules.LocalizedString(
             en="URL of this Thymis Controller instance",

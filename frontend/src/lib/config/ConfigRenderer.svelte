@@ -20,6 +20,8 @@
 	import ConfigTextAreaCode from './ConfigTextAreaCode.svelte';
 	import type { Artifact } from '../../routes/(authenticated)/artifacts/[...rest]/+page';
 	import ConfigSystemdTimer from './ConfigSystemdTimer.svelte';
+	import { isValidSettingValue } from './settingValidation';
+	import { t } from 'svelte-i18n';
 
 	interface Props {
 		key: string;
@@ -37,6 +39,7 @@
 		if (setting.type === 'int') return 'int';
 		if (setting.type === 'bool') return 'bool';
 		if (setting.type === 'string') return 'string';
+		if (setting.type === 'url') return 'url';
 		if (setting.type === 'textarea') return 'textarea';
 		if (typeof setting.type === 'object' && setting.type.hasOwnProperty('select-one')) {
 			return 'select-one';
@@ -87,6 +90,10 @@
 		return getTypeKeyFromSetting(setting) === 'string';
 	};
 
+	const settingIsUrl = (setting: Setting): setting is Setting<'url'> => {
+		return getTypeKeyFromSetting(setting) === 'url';
+	};
+
 	const settingIsTextarea = (setting: Setting): setting is Setting<'textarea'> => {
 		return getTypeKeyFromSetting(setting) === 'textarea';
 	};
@@ -128,6 +135,16 @@
 	/>
 {:else if settingIsString(setting)}
 	<ConfigString {value} placeholder={setting.example} {onChange} {disabled} aria-labelledby={key} />
+{:else if settingIsUrl(setting)}
+	<ConfigString
+		{value}
+		placeholder={setting.example}
+		{onChange}
+		{disabled}
+		aria-labelledby={key}
+		validate={(newValue) => isValidSettingValue(setting, newValue)}
+		validationError={$t('config.invalid-url')}
+	/>
 {:else if settingIsTextarea(setting)}
 	<ConfigTextarea {value} placeholder={setting.example} {onChange} {disabled} />
 {:else if settingIsSelectOne(setting)}

@@ -21,6 +21,28 @@ def changed_device_type_configs(old_state: State, new_state: State) -> list[Conf
     return changed_configs
 
 
+def invalid_setting_errors(state: State) -> list[str]:
+    modules_by_type = {module.type: module for module in modules.ALL_MODULES}
+    errors = []
+    for target_type, targets in (("config", state.configs), ("tag", state.tags)):
+        for target in targets:
+            for module_settings in target.modules:
+                module = modules_by_type.get(module_settings.type)
+                if module is None:
+                    continue
+                for key, value in module_settings.settings.items():
+                    setting = getattr(module, key, None)
+                    if not isinstance(setting, modules.Setting):
+                        continue
+                    error = modules.validate_setting_value(setting, value)
+                    if error:
+                        errors.append(
+                            f"{target_type} '{target.identifier}', module "
+                            f"'{module_settings.type}', setting '{key}': {error}"
+                        )
+    return errors
+
+
 @router.get("/state")
 def get_state(state: State = Depends(dependencies.get_state)):
     return state
@@ -35,6 +57,12 @@ def update_state(
     background_tasks: BackgroundTasks,
 ):
     new_state = State.model_validate(payload)
+    setting_errors = invalid_setting_errors(new_state)
+    if setting_errors:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid configuration values: " + "; ".join(setting_errors),
+        )
     for config in changed_device_type_configs(project.read_state(), new_state):
         connected_devices = [
             deployment_info

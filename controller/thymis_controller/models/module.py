@@ -3,7 +3,7 @@ from typing import List, Literal, Optional, Tuple, Union
 from pydantic import BaseModel, Field, JsonValue
 from thymis_controller import db_models
 
-type ValueTypes = Literal["bool", "string", "path", "package", "textarea", "int"]
+type ValueTypes = Literal["bool", "string", "url", "path", "package", "textarea", "int"]
 
 
 class SelectOneType(BaseModel):

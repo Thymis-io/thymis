@@ -527,6 +527,7 @@
 		"priority": "Priority {priority}",
 		"editDisabled": "Editing disabled",
 		"no-settings": "No settings found for this module",
+		"invalid-url": "Enter a valid URL starting with http:// or https://",
 		"timer-type": "Timer Type",
 		"timer-type-realtime": "Realtime",
 		"timer-type-realtime-long": "Realtime: runs at a specific date or time",

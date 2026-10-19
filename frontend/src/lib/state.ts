@@ -85,6 +85,7 @@ export type SystemdTimerSettingType = {
 
 export type SettingType =
 	| 'string'
+	| 'url'
 	| 'number'
 	| 'bool'
 	| 'textarea'
