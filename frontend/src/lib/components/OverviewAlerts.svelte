@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { FleetAlert } from '$lib/fleet';
+	import type { FleetAlert } from '#lib/fleet.js';
 	import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
 	import CircleCheck from 'lucide-svelte/icons/check-circle';
 

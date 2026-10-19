@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { GlobalState } from '$lib/state.svelte';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import type { GlobalState } from '#lib/state.svelte.js';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
 	import DeploymentInstanceRow, { type ConfigInstance } from './DeploymentInstanceRow.svelte';
 
 	export type ConfigCard = {

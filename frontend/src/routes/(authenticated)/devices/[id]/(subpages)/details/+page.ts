@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import { getConnectionHistory, getDeviceMetrics, getErrorLogs } from '$lib/deploymentInfo';
+import { getConnectionHistory, getDeviceMetrics, getErrorLogs } from '#lib/deploymentInfo.js';
 
 export const load: PageLoad = async ({ params, fetch, url }) => {
 	const hours = url.searchParams.get('hours');

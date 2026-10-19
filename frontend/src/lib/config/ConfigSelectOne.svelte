@@ -3,7 +3,7 @@
 
 	import { t } from 'svelte-i18n';
 	import { Select, Tooltip } from 'flowbite-svelte';
-	import type { ModuleSettings, SelectOneSettingType, Setting } from '$lib/state';
+	import type { ModuleSettings, SelectOneSettingType, Setting } from '#lib/state.js';
 	import { browser } from '$app/env';
 
 	interface Props {

@@ -1,4 +1,4 @@
-import type { SecretProcessingType, SecretType } from '$lib/state';
+import type { SecretProcessingType, SecretType } from '#lib/state.js';
 
 export type SecretShort = {
 	id: string;

@@ -1,10 +1,17 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import ModuleList from '$lib/config/ModuleList.svelte';
-	import { getTagByIdentifier } from '$lib/state';
-	import type { ModuleSettingsWithOrigin, Tag, Config, Module, Origin, Setting } from '$lib/state';
+	import ModuleList from '#lib/config/ModuleList.svelte';
+	import { getTagByIdentifier } from '#lib/state.js';
+	import type {
+		ModuleSettingsWithOrigin,
+		Tag,
+		Config,
+		Module,
+		Origin,
+		Setting
+	} from '#lib/state.js';
 	import type { PageData } from './$types';
-	import ModuleCard from '$lib/config/ModuleCard.svelte';
+	import ModuleCard from '#lib/config/ModuleCard.svelte';
 
 	interface Props {
 		data: PageData;

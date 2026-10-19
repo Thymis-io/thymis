@@ -2,12 +2,12 @@
 	import { t } from 'svelte-i18n';
 	import { Input, Label, Modal, Textarea } from 'flowbite-svelte';
 	import Pen from 'lucide-svelte/icons/pen';
-	import type { DeploymentInfo } from '$lib/deploymentInfo';
-	import { updateDeploymentInfo } from '$lib/deploymentInfo';
-	import { formatRamSize } from '$lib/config/configUtils';
-	import type { GlobalState } from '$lib/state.svelte';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
-	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
+	import type { DeploymentInfo } from '#lib/deploymentInfo.js';
+	import { updateDeploymentInfo } from '#lib/deploymentInfo.js';
+	import { formatRamSize } from '#lib/config/configUtils.js';
+	import type { GlobalState } from '#lib/state.svelte.js';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
+	import RenderTimeAgo from '#lib/components/RenderTimeAgo.svelte';
 	import { invalidate } from '$app/navigation';
 
 	interface Props {

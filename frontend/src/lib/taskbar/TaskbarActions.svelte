@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { type TaskShort, cancelTask, retryTask } from '$lib/taskstatus';
+	import { type TaskShort, cancelTask, retryTask } from '#lib/taskstatus.js';
 	import { page } from '$app/stores';
 	interface Props {
 		task: TaskShort;

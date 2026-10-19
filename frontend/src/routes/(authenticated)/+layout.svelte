@@ -3,23 +3,23 @@
 
 	import '../../app.css';
 	import { t } from 'svelte-i18n';
-	import Navbar from '$lib/navbar/Navbar.svelte';
-	import Sidebar from '$lib/sidebar/Sidebar.svelte';
-	import SplitPane from '$lib/splitpane/SplitPane.svelte';
+	import Navbar from '#lib/navbar/Navbar.svelte';
+	import Sidebar from '#lib/sidebar/Sidebar.svelte';
+	import SplitPane from '#lib/splitpane/SplitPane.svelte';
 	import type { LayoutData } from './$types';
-	import { taskStatus } from '$lib/taskstatus';
-	import Taskbar from '$lib/taskbar/Taskbar.svelte';
+	import { taskStatus } from '#lib/taskstatus.js';
+	import Taskbar from '#lib/taskbar/Taskbar.svelte';
 	import MainWindow from './MainWindow.svelte';
-	import TaskbarMinimize from '$lib/taskbar/TaskbarMinimize.svelte';
-	import TaskbarSmall from '$lib/taskbar/TaskbarSmall.svelte';
+	import TaskbarMinimize from '#lib/taskbar/TaskbarMinimize.svelte';
+	import TaskbarSmall from '#lib/taskbar/TaskbarSmall.svelte';
 	import { browser } from '$app/env';
 	import { SvelteToast } from '@zerodevx/svelte-toast';
 	import { onMount } from 'svelte';
-	import { startNotificationSocket } from '$lib/notification';
+	import { startNotificationSocket } from '#lib/notification.js';
 
-	import ProgressBar from '$lib/components/ProgressBar.svelte';
+	import ProgressBar from '#lib/components/ProgressBar.svelte';
 	import { beforeNavigate } from '$app/navigation';
-	import type { Length } from '$lib/splitpane/types';
+	import type { Length } from '#lib/splitpane/types';
 
 	interface Props {
 		data: LayoutData;

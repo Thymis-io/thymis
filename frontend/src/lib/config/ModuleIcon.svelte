@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Module } from '$lib/state';
+	import type { Module } from '#lib/state.js';
 
 	interface Props {
 		module: Module;

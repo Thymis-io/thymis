@@ -16,9 +16,9 @@
 	import RefreshCcwDot from 'lucide-svelte/icons/refresh-ccw-dot';
 	import Logout from 'lucide-svelte/icons/log-out';
 	import ChevronUp from 'lucide-svelte/icons/chevron-up';
-	import type { GlobalState } from '$lib/state.svelte';
-	import { targetShouldShowVNC } from '$lib/vnc/vnc';
-	import LanguageSelect from '$lib/navbar/LanguageSelect.svelte';
+	import type { GlobalState } from '#lib/state.svelte.js';
+	import { targetShouldShowVNC } from '#lib/vnc/vnc.js';
+	import LanguageSelect from '#lib/navbar/LanguageSelect.svelte';
 
 	type UserInfo = {
 		username?: string | null;

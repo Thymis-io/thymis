@@ -2,7 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import Copy from 'lucide-svelte/icons/copy';
 	import { toast } from '@zerodevx/svelte-toast';
-	import type { DeploymentInfo } from '$lib/deploymentInfo';
+	import type { DeploymentInfo } from '#lib/deploymentInfo.js';
 
 	interface Props {
 		deploymentInfo: DeploymentInfo;

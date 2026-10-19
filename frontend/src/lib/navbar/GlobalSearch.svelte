@@ -4,9 +4,9 @@
 	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import { Dropdown, DropdownItem, Search } from 'flowbite-svelte';
 	import { page } from '$app/stores';
-	import type { GlobalState } from '$lib/state.svelte';
-	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
-	import { targetShouldShowVNC } from '$lib/vnc/vnc';
+	import type { GlobalState } from '#lib/state.svelte.js';
+	import { buildGlobalNavSearchParam } from '#lib/searchParamHelpers.js';
+	import { targetShouldShowVNC } from '#lib/vnc/vnc.js';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
 
 	interface Props {

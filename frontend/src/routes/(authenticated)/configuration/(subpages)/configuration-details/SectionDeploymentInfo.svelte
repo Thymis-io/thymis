@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import Section from '$lib/components/layout/Section.svelte';
-	import type { GlobalState } from '$lib/state.svelte';
+	import Section from '#lib/components/layout/Section.svelte';
+	import type { GlobalState } from '#lib/state.svelte.js';
 	import DeploymentInstanceRow, {
 		type ConfigInstance
-	} from '$lib/components/DeploymentInstanceRow.svelte';
+	} from '#lib/components/DeploymentInstanceRow.svelte';
 
 	interface Props {
 		globalState: GlobalState;

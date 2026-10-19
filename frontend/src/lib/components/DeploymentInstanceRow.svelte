@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { GlobalState } from '$lib/state.svelte';
-	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import type { GlobalState } from '#lib/state.svelte.js';
+	import RenderTimeAgo from '#lib/components/RenderTimeAgo.svelte';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
 	import GitCommit from 'lucide-svelte/icons/git-commit-horizontal';
 	import HeadTag from './HeadTag.svelte';
 

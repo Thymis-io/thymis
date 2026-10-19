@@ -9,7 +9,7 @@
 	import type { FitAddon as FitAddonType } from '@xterm/addon-fit';
 	import type { WebglAddon as WebglAddonType } from '@xterm/addon-webgl';
 	import { browser } from '$app/env';
-	import type { DeploymentInfo } from '$lib/deploymentInfo';
+	import type { DeploymentInfo } from '#lib/deploymentInfo.js';
 
 	let Terminal: typeof TerminalType;
 	let AttachAddon: typeof AttachAddonType;

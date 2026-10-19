@@ -7,9 +7,9 @@
 	import Play from 'lucide-svelte/icons/play';
 	import Command from 'lucide-svelte/icons/square-chevron-right';
 	import RefreshCcwDot from 'lucide-svelte/icons/refresh-ccw-dot';
-	import type { TaskShort } from '$lib/taskstatus';
-	import type { GlobalState } from '$lib/state.svelte';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import type { TaskShort } from '#lib/taskstatus.js';
+	import type { GlobalState } from '#lib/state.svelte.js';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
 
 	type DeployDeviceInfo = {
 		identifier?: string;

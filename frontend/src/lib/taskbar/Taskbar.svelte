@@ -2,14 +2,14 @@
 	import { t } from 'svelte-i18n';
 	import ResizableColumns from 'svelte-resizable-columns/src/ResizableColumns';
 	import 'svelte-resizable-columns/src/resizableColumns.css';
-	import { taskStatus } from '$lib/taskstatus';
+	import { taskStatus } from '#lib/taskstatus.js';
 	import TaskbarActions from './TaskbarActions.svelte';
 	import TaskbarStatus from './TaskbarStatus.svelte';
 	import TaskbarMinimize from './TaskbarMinimize.svelte';
 	import TaskbarName from './TaskbarName.svelte';
-	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
-	import RenderTimeDuration from '$lib/components/RenderTimeDuration.svelte';
-	import type { GlobalState } from '$lib/state.svelte';
+	import RenderTimeAgo from '#lib/components/RenderTimeAgo.svelte';
+	import RenderTimeDuration from '#lib/components/RenderTimeDuration.svelte';
+	import type { GlobalState } from '#lib/state.svelte.js';
 
 	interface Props {
 		globalState: GlobalState;

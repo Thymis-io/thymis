@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import Terminal from '$lib/terminal/Terminal.svelte';
-	import CopySSHCommandButton from '$lib/terminal/CopySSHCommandButton.svelte';
+	import Terminal from '#lib/terminal/Terminal.svelte';
+	import CopySSHCommandButton from '#lib/terminal/CopySSHCommandButton.svelte';
 	import type { PageData } from './$types';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
 
 	interface Props {
 		data: PageData;

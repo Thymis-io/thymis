@@ -2,8 +2,8 @@
 	import { t } from 'svelte-i18n';
 	import { invalidate } from '$app/navigation';
 	import { Button, Modal } from 'flowbite-svelte';
-	import type { Commit } from '$lib/history';
-	import { fetchWithNotify } from '$lib/fetchWithNotify';
+	import type { Commit } from '#lib/history.js';
+	import { fetchWithNotify } from '#lib/fetchWithNotify.js';
 
 	interface Props {
 		commit: Commit | undefined;

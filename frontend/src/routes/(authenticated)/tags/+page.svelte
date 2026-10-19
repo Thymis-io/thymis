@@ -1,23 +1,23 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
-	import { saveState, type Tag } from '$lib/state';
+	import { saveState, type Tag } from '#lib/state.js';
 	import Trash from 'lucide-svelte/icons/trash';
 	import Pen from 'lucide-svelte/icons/pen';
 	import Server from 'lucide-svelte/icons/server';
 	import GripVertical from 'lucide-svelte/icons/grip-vertical';
 	import { SOURCES, TRIGGERS, type DndEvent } from 'svelte-dnd-action';
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
-	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
-	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
+	import { buildGlobalNavSearchParam } from '#lib/searchParamHelpers.js';
+	import DeleteConfirm from '#lib/components/DeleteConfirm.svelte';
 	import CreateTagModal from './CreateTagModal.svelte';
-	import Page from '$lib/components/layout/Page.svelte';
-	import CreateButton from '$lib/components/layout/CreateButton.svelte';
-	import RowActions from '$lib/components/layout/RowActions.svelte';
-	import RowMenu from '$lib/components/layout/RowMenu.svelte';
-	import DataTable from '$lib/components/layout/DataTable.svelte';
+	import Page from '#lib/components/layout/Page.svelte';
+	import CreateButton from '#lib/components/layout/CreateButton.svelte';
+	import RowActions from '#lib/components/layout/RowActions.svelte';
+	import RowMenu from '#lib/components/layout/RowMenu.svelte';
+	import DataTable from '#lib/components/layout/DataTable.svelte';
 	import type { PageData } from './$types';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
 
 	interface Props {
 		data: PageData;

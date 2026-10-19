@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { type TaskShort } from '$lib/taskstatus';
+	import { type TaskShort } from '#lib/taskstatus.js';
 
 	interface Props {
 		tasks: TaskShort[];

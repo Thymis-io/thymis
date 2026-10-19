@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { queryParameters } from 'sveltekit-search-params';
 	import type { PageData } from './$types';
-	import LogsView from '$lib/components/LogsView.svelte';
+	import LogsView from '#lib/components/LogsView.svelte';
 
 	interface Props {
 		data: PageData;

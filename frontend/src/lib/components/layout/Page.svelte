@@ -1,5 +1,5 @@
 <script lang="ts">
-	import PageHead from '$lib/components/layout/PageHead.svelte';
+	import PageHead from '#lib/components/layout/PageHead.svelte';
 	import type { Snippet } from 'svelte';
 
 	interface Props {

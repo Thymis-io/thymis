@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import { getTask } from '$lib/taskstatus';
+import { getTask } from '#lib/taskstatus.js';
 import { error } from '@sveltejs/kit';
 
 export const load = (async ({ params, fetch }) => {

@@ -2,7 +2,7 @@
 	import { P } from 'flowbite-svelte';
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
-	import type { Origin } from '$lib/state';
+	import type { Origin } from '#lib/state.js';
 
 	interface Props {
 		origin: Origin;

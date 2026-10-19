@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { type TaskShort } from '$lib/taskstatus';
+	import { type TaskShort } from '#lib/taskstatus.js';
 	import PendingIcon from 'lucide-svelte/icons/clock';
 	import RunningIcon from 'lucide-svelte/icons/play';
 	import CompletedIcon from 'lucide-svelte/icons/check';

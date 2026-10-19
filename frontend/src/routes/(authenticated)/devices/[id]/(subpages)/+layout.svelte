@@ -7,14 +7,14 @@
 	import TerminalIcon from 'lucide-svelte/icons/terminal';
 	import FileText from 'lucide-svelte/icons/file-text';
 	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
-	import PageHead from '$lib/components/layout/PageHead.svelte';
-	import Tabbar from '$lib/components/Tabbar.svelte';
-	import { targetShouldShowVNC } from '$lib/vnc/vnc';
-	import { fetchWithNotify } from '$lib/fetchWithNotify';
-	import { updateDeploymentInfo } from '$lib/deploymentInfo';
+	import PageHead from '#lib/components/layout/PageHead.svelte';
+	import Tabbar from '#lib/components/Tabbar.svelte';
+	import { targetShouldShowVNC } from '#lib/vnc/vnc.js';
+	import { fetchWithNotify } from '#lib/fetchWithNotify.js';
+	import { updateDeploymentInfo } from '#lib/deploymentInfo.js';
 	import { invalidate } from '$app/navigation';
 	import type { LayoutData } from './$types';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
 
 	interface Props {
 		data: LayoutData;

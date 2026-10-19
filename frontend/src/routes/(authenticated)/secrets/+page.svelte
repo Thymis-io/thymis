@@ -1,20 +1,20 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import Page from '$lib/components/layout/Page.svelte';
-	import CreateButton from '$lib/components/layout/CreateButton.svelte';
-	import DataTable from '$lib/components/layout/DataTable.svelte';
-	import RowActions from '$lib/components/layout/RowActions.svelte';
-	import RowMenu from '$lib/components/layout/RowMenu.svelte';
+	import Page from '#lib/components/layout/Page.svelte';
+	import CreateButton from '#lib/components/layout/CreateButton.svelte';
+	import DataTable from '#lib/components/layout/DataTable.svelte';
+	import RowActions from '#lib/components/layout/RowActions.svelte';
+	import RowMenu from '#lib/components/layout/RowMenu.svelte';
 	import type { PageData } from './$types';
 	import { invalidate } from '$app/navigation';
-	import SecretEditModal from '$lib/components/secrets/SecretEditModal.svelte';
-	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
+	import SecretEditModal from '#lib/components/secrets/SecretEditModal.svelte';
+	import DeleteConfirm from '#lib/components/DeleteConfirm.svelte';
 	import {
 		downloadSecretFile,
 		resetFileInputById,
 		stringToEnvVars
-	} from '$lib/components/secrets/secretUtils';
-	import type { SecretProcessingType, SecretType } from '$lib/state';
+	} from '#lib/components/secrets/secretUtils.js';
+	import type { SecretProcessingType, SecretType } from '#lib/state.js';
 	import Alert from 'lucide-svelte/icons/triangle-alert';
 	import Pen from 'lucide-svelte/icons/pen';
 	import Copy from 'lucide-svelte/icons/copy';

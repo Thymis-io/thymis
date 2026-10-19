@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import SplitPane from '$lib/splitpane/SplitPane.svelte';
+	import SplitPane from '#lib/splitpane/SplitPane.svelte';
 	import type { RepoStatus } from './repo';
 	import FileIcon from 'lucide-svelte/icons/file';
-	import MonospaceText from '$lib/components/MonospaceText.svelte';
+	import MonospaceText from '#lib/components/MonospaceText.svelte';
 
 	interface Props {
 		selectedFile?: string;

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import VncView from '$lib/vnc/VncView.svelte';
-	import { targetShouldShowVNC } from '$lib/vnc/vnc';
+	import VncView from '#lib/vnc/VncView.svelte';
+	import { targetShouldShowVNC } from '#lib/vnc/vnc.js';
 	import type { PageData } from './$types';
-	import PageHead from '$lib/components/layout/PageHead.svelte';
-	import DynamicGrid from '$lib/components/DynamicGrid.svelte';
-	import VncColumnPicker from '$lib/vnc/VncColumnPicker.svelte';
+	import PageHead from '#lib/components/layout/PageHead.svelte';
+	import DynamicGrid from '#lib/components/DynamicGrid.svelte';
+	import VncColumnPicker from '#lib/vnc/VncColumnPicker.svelte';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 
 	interface Props {

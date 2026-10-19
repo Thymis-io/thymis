@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { getDeviceType, getDeviceTypesMap } from '$lib/config/configUtils';
-	import type { GlobalState } from '$lib/state.svelte';
-	import type { Module } from '$lib/state';
+	import { getDeviceType, getDeviceTypesMap } from '#lib/config/configUtils.js';
+	import type { GlobalState } from '#lib/state.svelte.js';
+	import type { Module } from '#lib/state.js';
 
 	interface Props {
 		globalState: GlobalState;

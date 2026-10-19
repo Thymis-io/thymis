@@ -1,17 +1,17 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import Section from '$lib/components/layout/Section.svelte';
-	import type { Config } from '$lib/state';
-	import type { GlobalState } from '$lib/state.svelte';
-	import { type DeploymentInfo } from '$lib/deploymentInfo';
-	import type { RepoStatus } from '$lib/repo/repo';
+	import Section from '#lib/components/layout/Section.svelte';
+	import type { Config } from '#lib/state.js';
+	import type { GlobalState } from '#lib/state.svelte.js';
+	import { type DeploymentInfo } from '#lib/deploymentInfo.js';
+	import type { RepoStatus } from '#lib/repo/repo.js';
 	import ArrowRightLeft from 'lucide-svelte/icons/arrow-right-left';
 	import { Select } from 'flowbite-svelte';
-	import { fetchWithNotify } from '$lib/fetchWithNotify';
-	import CommitModal from '$lib/repo/CommitModal.svelte';
-	import { invalidateButDeferUntilNavigation } from '$lib/notification';
-	import { getDeviceType } from '$lib/config/configUtils';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import { fetchWithNotify } from '#lib/fetchWithNotify.js';
+	import CommitModal from '#lib/repo/CommitModal.svelte';
+	import { invalidateButDeferUntilNavigation } from '#lib/notification.js';
+	import { getDeviceType } from '#lib/config/configUtils.js';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
 
 	interface Props {
 		deploymentInfo: DeploymentInfo;

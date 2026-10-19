@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import '$lib/i18n'; // Import to initialize. Important :)
-import { redirectToLogin } from '$lib/login';
+import '#lib/i18n/index.js'; // Import to initialize. Important :)
+import { redirectToLogin } from '#lib/login.js';
 
 export const load = (async ({ fetch, cookies, url }) => {
 	const session = cookies.get('session-id');

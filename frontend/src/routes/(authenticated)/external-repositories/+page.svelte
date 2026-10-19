@@ -1,21 +1,21 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { saveState } from '$lib/state';
+	import { saveState } from '#lib/state.js';
 	import { Modal, Spinner } from 'flowbite-svelte';
-	import Page from '$lib/components/layout/Page.svelte';
-	import DataTable from '$lib/components/layout/DataTable.svelte';
-	import CreateButton from '$lib/components/layout/CreateButton.svelte';
-	import RowMenu from '$lib/components/layout/RowMenu.svelte';
-	import RowActions from '$lib/components/layout/RowActions.svelte';
+	import Page from '#lib/components/layout/Page.svelte';
+	import DataTable from '#lib/components/layout/DataTable.svelte';
+	import CreateButton from '#lib/components/layout/CreateButton.svelte';
+	import RowMenu from '#lib/components/layout/RowMenu.svelte';
+	import RowActions from '#lib/components/layout/RowActions.svelte';
 	import type { PageData } from './$types';
 	import Pen from 'lucide-svelte/icons/pen';
 	import RefreshCw from 'lucide-svelte/icons/refresh-cw';
 	import Trash from 'lucide-svelte/icons/trash-2';
-	import EditExternalRepoUrl from '$lib/components/EditExternalRepoUrl.svelte';
-	import ModuleIcon from '$lib/config/ModuleIcon.svelte';
-	import DetailsModal from '$lib/components/DetailsModal.svelte';
-	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
-	import RepoConnectionTest from '$lib/components/RepoConnectionTest.svelte';
+	import EditExternalRepoUrl from '#lib/components/EditExternalRepoUrl.svelte';
+	import ModuleIcon from '#lib/config/ModuleIcon.svelte';
+	import DetailsModal from '#lib/components/DetailsModal.svelte';
+	import DeleteConfirm from '#lib/components/DeleteConfirm.svelte';
+	import RepoConnectionTest from '#lib/components/RepoConnectionTest.svelte';
 
 	interface Props {
 		data: PageData;

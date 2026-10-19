@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
-	import MonospaceText from '$lib/components/MonospaceText.svelte';
-	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
-	import RenderTimeDuration from '$lib/components/RenderTimeDuration.svelte';
+	import MonospaceText from '#lib/components/MonospaceText.svelte';
+	import RenderTimeAgo from '#lib/components/RenderTimeAgo.svelte';
+	import RenderTimeDuration from '#lib/components/RenderTimeDuration.svelte';
 	import {
 		subscribedTask,
 		subscribeTask,
@@ -14,12 +14,12 @@
 		type TaskShort,
 		type TaskProcess,
 		type TransferDirection
-	} from '$lib/taskstatus';
-	import PageHead from '$lib/components/layout/PageHead.svelte';
-	import { formatBytes } from '$lib/format';
-	import Section from '$lib/components/layout/Section.svelte';
-	import TaskbarName from '$lib/taskbar/TaskbarName.svelte';
-	import TaskbarStatus from '$lib/taskbar/TaskbarStatus.svelte';
+	} from '#lib/taskstatus.js';
+	import PageHead from '#lib/components/layout/PageHead.svelte';
+	import { formatBytes } from '#lib/format.js';
+	import Section from '#lib/components/layout/Section.svelte';
+	import TaskbarName from '#lib/taskbar/TaskbarName.svelte';
+	import TaskbarStatus from '#lib/taskbar/TaskbarStatus.svelte';
 	import Copy from 'lucide-svelte/icons/copy';
 	import Check from 'lucide-svelte/icons/check';
 	import AlertTriangle from 'lucide-svelte/icons/triangle-alert';

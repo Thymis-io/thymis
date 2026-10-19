@@ -1,6 +1,6 @@
 import type { PageLoad, PageParentData } from './$types';
-import type { Commit } from '$lib/history';
-import { fetchWithNotify } from '$lib/fetchWithNotify';
+import type { Commit } from '#lib/history.js';
+import { fetchWithNotify } from '#lib/fetchWithNotify.js';
 import { redirect } from '@sveltejs/kit';
 
 export const load: PageLoad = async ({ fetch, url, parent }) => {

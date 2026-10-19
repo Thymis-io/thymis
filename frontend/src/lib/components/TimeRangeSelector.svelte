@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { RANGE_OPTIONS, type TimeRange } from '$lib/fleet';
+	import { RANGE_OPTIONS, type TimeRange } from '#lib/fleet.js';
 
 	interface Props {
 		value: TimeRange | 'custom';

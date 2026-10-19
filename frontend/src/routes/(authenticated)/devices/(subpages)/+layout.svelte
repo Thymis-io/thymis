@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import Page from '$lib/components/layout/Page.svelte';
-	import Tabbar from '$lib/components/Tabbar.svelte';
+	import Page from '#lib/components/layout/Page.svelte';
+	import Tabbar from '#lib/components/Tabbar.svelte';
 	import Server from 'lucide-svelte/icons/server';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
 	import Archive from 'lucide-svelte/icons/archive';

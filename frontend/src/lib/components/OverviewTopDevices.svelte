@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { FleetDeviceMetric } from '$lib/fleet';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
-	import type { GlobalState } from '$lib/state.svelte';
+	import type { FleetDeviceMetric } from '#lib/fleet.js';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
+	import type { GlobalState } from '#lib/state.svelte.js';
 
 	interface Props {
 		globalState: GlobalState;

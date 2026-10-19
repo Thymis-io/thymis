@@ -3,17 +3,17 @@
 	import { page } from '$app/state';
 	import { invalidate } from '$app/navigation';
 	import type { PageData } from './$types';
-	import { getDeviceTypesMap, getDeviceType, formatRamSize } from '$lib/config/configUtils';
-	import DataTable from '$lib/components/layout/DataTable.svelte';
-	import FilterChips from '$lib/components/layout/FilterChips.svelte';
-	import RowActions from '$lib/components/layout/RowActions.svelte';
-	import RowMenu from '$lib/components/layout/RowMenu.svelte';
-	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
-	import { updateDeploymentInfo } from '$lib/deploymentInfo';
+	import { getDeviceTypesMap, getDeviceType, formatRamSize } from '#lib/config/configUtils.js';
+	import DataTable from '#lib/components/layout/DataTable.svelte';
+	import FilterChips from '#lib/components/layout/FilterChips.svelte';
+	import RowActions from '#lib/components/layout/RowActions.svelte';
+	import RowMenu from '#lib/components/layout/RowMenu.svelte';
+	import RenderTimeAgo from '#lib/components/RenderTimeAgo.svelte';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
+	import { updateDeploymentInfo } from '#lib/deploymentInfo.js';
 	import ArchiveIcon from 'lucide-svelte/icons/archive';
 	import DetailsIcon from 'lucide-svelte/icons/info';
-	import { getHardwareKeyDisplayName } from '$lib/hardwareDevices';
+	import { getHardwareKeyDisplayName } from '#lib/hardwareDevices.js';
 
 	interface Props {
 		data: PageData;

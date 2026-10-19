@@ -8,7 +8,7 @@
 		Setting,
 		SystemdTimerSettingType,
 		TextAreaCodeSettingType
-	} from '$lib/state';
+	} from '#lib/state.js';
 	import ConfigString from './ConfigString.svelte';
 	import ConfigBool from './ConfigBool.svelte';
 	import ConfigTextarea from './ConfigTextarea.svelte';

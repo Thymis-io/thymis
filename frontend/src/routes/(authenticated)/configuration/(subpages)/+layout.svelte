@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { saveState } from '$lib/state';
-	import Tabbar from '$lib/components/Tabbar.svelte';
-	import PageHead from '$lib/components/layout/PageHead.svelte';
+	import { saveState } from '#lib/state.js';
+	import Tabbar from '#lib/components/Tabbar.svelte';
+	import PageHead from '#lib/components/layout/PageHead.svelte';
 	import Download from 'lucide-svelte/icons/download';
 	import Play from 'lucide-svelte/icons/play';
 	import Sliders from 'lucide-svelte/icons/sliders-horizontal';
@@ -10,13 +10,13 @@
 	import LogIcon from 'lucide-svelte/icons/text-search';
 	import ScreenShare from 'lucide-svelte/icons/screen-share';
 	import ListCollapse from 'lucide-svelte/icons/list-collapse';
-	import { targetShouldShowVNC } from '$lib/vnc/vnc';
-	import { type Config } from '$lib/state';
-	import { getConfigImageFormat } from '$lib/config/configUtils';
-	import { fetchWithNotify } from '$lib/fetchWithNotify';
-	import CommitModal from '$lib/repo/CommitModal.svelte';
+	import { targetShouldShowVNC } from '#lib/vnc/vnc.js';
+	import { type Config } from '#lib/state.js';
+	import { getConfigImageFormat } from '#lib/config/configUtils.js';
+	import { fetchWithNotify } from '#lib/fetchWithNotify.js';
+	import CommitModal from '#lib/repo/CommitModal.svelte';
 	import type { LayoutData } from './$types';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
 	import Pen from 'lucide-svelte/icons/pen';
 	import { Modal, Button } from 'flowbite-svelte';
 	import { invalidate } from '$app/navigation';

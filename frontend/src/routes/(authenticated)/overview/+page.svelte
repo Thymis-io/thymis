@@ -3,19 +3,19 @@
 	import type { PageData } from './$types';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import PageHead from '$lib/components/layout/PageHead.svelte';
+	import PageHead from '#lib/components/layout/PageHead.svelte';
 	import Server from 'lucide-svelte/icons/server';
-	import OverviewConfigCard, { type ConfigCard } from '$lib/components/OverviewConfigCard.svelte';
-	import OverviewKpiCards from '$lib/components/OverviewKpiCards.svelte';
-	import FleetConnectivityChart from '$lib/components/FleetConnectivityChart.svelte';
-	import OverviewAvailabilityHeatmap from '$lib/components/OverviewAvailabilityHeatmap.svelte';
-	import OverviewAlerts from '$lib/components/OverviewAlerts.svelte';
-	import OverviewVersions from '$lib/components/OverviewVersions.svelte';
-	import OverviewDeviceTypes from '$lib/components/OverviewDeviceTypes.svelte';
-	import OverviewTopDevices from '$lib/components/OverviewTopDevices.svelte';
-	import TimeRangeSelector from '$lib/components/TimeRangeSelector.svelte';
-	import { getDeviceType, getDeviceTypesMap } from '$lib/config/configUtils';
-	import type { TimeRange } from '$lib/fleet';
+	import OverviewConfigCard, { type ConfigCard } from '#lib/components/OverviewConfigCard.svelte';
+	import OverviewKpiCards from '#lib/components/OverviewKpiCards.svelte';
+	import FleetConnectivityChart from '#lib/components/FleetConnectivityChart.svelte';
+	import OverviewAvailabilityHeatmap from '#lib/components/OverviewAvailabilityHeatmap.svelte';
+	import OverviewAlerts from '#lib/components/OverviewAlerts.svelte';
+	import OverviewVersions from '#lib/components/OverviewVersions.svelte';
+	import OverviewDeviceTypes from '#lib/components/OverviewDeviceTypes.svelte';
+	import OverviewTopDevices from '#lib/components/OverviewTopDevices.svelte';
+	import TimeRangeSelector from '#lib/components/TimeRangeSelector.svelte';
+	import { getDeviceType, getDeviceTypesMap } from '#lib/config/configUtils.js';
+	import type { TimeRange } from '#lib/fleet.js';
 
 	interface Props {
 		data: PageData;

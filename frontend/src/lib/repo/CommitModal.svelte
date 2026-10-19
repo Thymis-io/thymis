@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Button, Input, Modal } from 'flowbite-svelte';
-	import { type RepoStatus } from '$lib/repo/repo';
+	import { type RepoStatus } from '#lib/repo/repo.js';
 	import FileChanges from './FileChanges.svelte';
 
 	interface Props {

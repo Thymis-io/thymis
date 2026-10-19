@@ -3,7 +3,7 @@
 	import { Tooltip } from 'flowbite-svelte';
 	import Plus from 'lucide-svelte/icons/plus';
 	import X from 'lucide-svelte/icons/x';
-	import type { Setting, ListSettingType, ModuleSettings } from '$lib/state';
+	import type { Setting, ListSettingType, ModuleSettings } from '#lib/state.js';
 	import ConfigRenderer from './ConfigRenderer.svelte';
 	import type { Artifact } from '../../routes/(authenticated)/artifacts/[...rest]/+page';
 

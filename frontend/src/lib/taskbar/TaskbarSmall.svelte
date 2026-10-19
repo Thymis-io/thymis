@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { taskStatus } from '$lib/taskstatus';
+	import { taskStatus } from '#lib/taskstatus.js';
 	import PendingIcon from 'lucide-svelte/icons/clock';
 	import RunningIcon from 'lucide-svelte/icons/loader-circle';
 	import ListIcon from 'lucide-svelte/icons/list';
 	import TaskbarName from './TaskbarName.svelte';
 	import TaskbarStatus from './TaskbarStatus.svelte';
-	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
-	import type { GlobalState } from '$lib/state.svelte';
+	import RenderTimeAgo from '#lib/components/RenderTimeAgo.svelte';
+	import type { GlobalState } from '#lib/state.svelte.js';
 
 	interface Props {
 		globalState: GlobalState;
