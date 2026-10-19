@@ -26,7 +26,6 @@ dependencies = [
     "paramiko>=5.0.0",
     "http-network-relay @ git+https://github.com/Thymis-io/http-network-relay.git",
     # "thymis-agent @ path=../agent,develop=true",
-    "thymis-agent",
     "watchdog>=6.0.0",
     "pyrage>=1.2.4",
     "pyjwt>=2.13.0",
@@ -48,7 +47,9 @@ include-package-data = true
 "*" = ["**/*.j2", "**/*.json", "**/*.svg", "**/*.png"]
 
 [tool.uv.sources]
-thymis-agent = { path = "../agent" }
+# editable: the controller venv must track agent source changes, otherwise a
+# cached .venv keeps an older copy of the agent
+thymis-agent = { path = "../agent", editable = true }
 # Thymis fork of uvicorn: logs which background tasks a shutdown is waiting for
 # (Thymis-io/uvicorn branch describe-pending-tasks).  Switch back to the PyPI
 # release once the change is upstreamed.

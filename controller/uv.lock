@@ -1633,7 +1633,7 @@ wheels = [
 [[package]]
 name = "thymis-agent"
 version = "0.9.3.dev0"
-source = { directory = "../agent" }
+source = { editable = "../agent" }
 dependencies = [
     { name = "http-network-relay" },
     { name = "psutil" },
@@ -1698,7 +1698,7 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "python-multipart", specifier = ">=0.0.20" },
     { name = "sqlalchemy", specifier = ">=2.0.36" },
-    { name = "thymis-agent", directory = "../agent" },
+    { name = "thymis-agent", editable = "../agent" },
     { name = "uvicorn", git = "https://github.com/Thymis-io/uvicorn?rev=b8db01247bb7a346735e7305cca16fa89c9d55dc" },
     { name = "watchdog", specifier = ">=6.0.0" },
     { name = "websockets", specifier = ">=15.0.0" },
@@ -1760,6 +1760,7 @@ dependencies = [
 
 [package.optional-dependencies]
 standard = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
     { name = "httptools" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
