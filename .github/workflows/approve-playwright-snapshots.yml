@@ -2,6 +2,10 @@ name: Update Snapshots on Comment
 on:
   issue_comment:
     types: [created]
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 jobs:
   comment-action-start:
     name: Comment action started
