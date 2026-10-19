@@ -25,16 +25,42 @@ def write_project_module_files(modules_dir: pathlib.Path, modules: Iterable):
     modules_dir.mkdir(parents=True, exist_ok=True)
     (modules_dir / "settings").mkdir(exist_ok=True)
     shutil.copyfile(TEMPLATES / HELPERS_FILE, modules_dir / HELPERS_FILE)
+    written: dict[pathlib.Path, str] = {}
     for module in modules:
         if module.nix_derivation is not None:
-            shutil.copyfile(
-                TEMPLATES / "settings" / f"{module.nix_derivation}.nix",
-                modules_dir / "settings" / f"{module.nix_derivation}.nix",
-            )
+            source = TEMPLATES / "settings" / f"{module.nix_derivation}.nix"
+            if not source.is_file():
+                raise FileNotFoundError(
+                    f"module {module.type} declares nix_derivation "
+                    f"{module.nix_derivation!r}, but {source} does not exist"
+                )
+            target = modules_dir / "settings" / f"{module.nix_derivation}.nix"
+            content = source.read_text()
+            _write_checked(written, target, content)
         if module.nix_derivation_source is not None:
-            (modules_dir / "settings" / f"{module.settings_namespace}.nix").write_text(
-                module.nix_derivation_source
-            )
+            if module.settings_namespace is None:
+                raise ValueError(
+                    f"module {module.type} ships nix_derivation_source but sets "
+                    "no settings_namespace; the file name of the derivation is "
+                    "the namespace"
+                )
+            target = modules_dir / "settings" / f"{module.settings_namespace}.nix"
+            _write_checked(written, target, module.nix_derivation_source)
+
+
+def _write_checked(
+    written: dict[pathlib.Path, str], target: pathlib.Path, content: str
+) -> None:
+    """Write a copied derivation, refusing to let one module silently replace
+    the file another module contributed."""
+    previous = written.get(target)
+    if previous is not None and previous != content:
+        raise ValueError(
+            f"two modules contribute different content for {target}; "
+            "each module needs its own nix_derivation name or settings_namespace"
+        )
+    written[target] = content
+    target.write_text(content)
 
 
 def module_settings_files() -> list[pathlib.Path]:

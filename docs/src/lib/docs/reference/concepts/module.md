@@ -62,9 +62,12 @@ device configuration or tag it belongs to, and the NixOS module system merges th
 - a setting a source does not configure is written with the module default and a
   `lib.mkOptionDefault` priority, so it never overrides a value another source configured
   explicitly;
+- a setting a source configures *is* written even when it is empty: setting a list or an
+  attribute-set setting to empty in a device configuration clears the elements another
+  source (e.g. a tag) contributes;
 - modules that set `settings_namespace` additionally publish the priority of every setting
-  of the instance as `thymis.priority.<namespace>.<setting>`, which the nix side uses for
-  the configuration it derives.
+  of the instance as `thymis.config._priority.<namespace>.<setting>`, which the nix side
+  uses for the configuration it derives (see the helpers below).
 
 NixOS configuration should be derived in nix, not in python: a module that sets
 `settings_namespace` declares its derivation with `nix_derivation` (built-in modules name a

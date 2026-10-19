@@ -1,3 +1,4 @@
+import logging
 import pathlib
 import typing
 from abc import ABC
@@ -14,6 +15,8 @@ from thymis_controller.nix.templating import (
     string_can_be_identifier_for_attrs_key,
 )
 from thymis_controller.project import Project
+
+logger = logging.getLogger(__name__)
 
 
 class HasLocalize(typing.Protocol):
@@ -75,6 +78,7 @@ def write_nix_definitions(
     priority: int,
     element_key: Optional[str] = None,
     nested: bool = False,
+    explicit: bool = False,
 ):
     """Write the nix definitions of one setting value.
 
@@ -88,11 +92,29 @@ def write_nix_definitions(
     defined by different sources are merged by nix as well.
     """
     if element_key is not None and isinstance(value, list):
+        if not value:
+            if explicit:
+                # an empty list written by a configuration clears the elements
+                # another source contributes; without this the tag's elements
+                # would survive
+                f.write(f"  {nix_attr_path(path)} = lib.mkOverride {priority} {{ }};\n")
+            return
         for element in value:
             if not isinstance(element, dict):
+                logger.warning(
+                    "Ignoring %s element that is not an attribute set: %r",
+                    nix_attr_path(path),
+                    element,
+                )
                 continue
             key = element.get(element_key)
             if not isinstance(key, str) or is_unset_setting_value(key, nested=True):
+                logger.warning(
+                    "Ignoring %s element without a usable %r key: %r",
+                    nix_attr_path(path),
+                    element_key,
+                    element,
+                )
                 continue
             write_nix_definitions(
                 f,
@@ -104,13 +126,27 @@ def write_nix_definitions(
         return
 
     if isinstance(value, dict):
+        if not value:
+            if explicit:
+                # an empty attribute set written by a configuration clears the
+                # fields another source contributes
+                f.write(f"  {nix_attr_path(path)} = lib.mkOverride {priority} {{ }};\n")
+            return
         for key in sorted(value.keys()):
             if is_unset_setting_value(value[key], nested=True):
                 continue
             write_nix_definitions(f, path + [key], value[key], priority, nested=True)
         return
 
+    if value is None:
+        return
     if is_unset_setting_value(value, nested=nested):
+        # an empty list or attribute set written by a configuration clears the
+        # value another source contributes; the empty literal keeps the type of
+        # the setting (a list setting stays a list)
+        if explicit and value in ([], {}):
+            empty = "[]" if isinstance(value, list) else "{ }"
+            f.write(f"  {nix_attr_path(path)} = lib.mkOverride {priority} {empty};\n")
         return
 
     f.write(
@@ -251,9 +287,10 @@ class Module(ABC):
                 continue
             if attr in module_settings.settings:
                 # set by this source: written even when empty, which is how a
-                # configuration clears the value a tag sets
+                # configuration clears the value a tag sets. Only an explicit
+                # JSON null counts as "this source says nothing".
                 value, value_priority = module_settings.settings[attr], priority
-                if is_unset_setting_value(value):
+                if value is None:
                     continue
             else:
                 # not set by this source: written as a default that loses
@@ -272,6 +309,7 @@ class Module(ABC):
                     if isinstance(setting.type, ListType)
                     else None
                 ),
+                explicit=attr in module_settings.settings,
             )
 
     def register_secret_settings(

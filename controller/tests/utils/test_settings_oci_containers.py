@@ -72,8 +72,13 @@ def _render(tmp_path: pathlib.Path):
             models.ModuleSettings(
                 type=WHATEVER,
                 settings={
-                    # raw custom nix must lose against the derived configuration
-                    "settings": 'virtualisation.oci-containers.containers."web".image = "custom-image";'
+                    # raw custom nix must lose against the derived configuration;
+                    # a container only defined here must survive next to the
+                    # module's containers (the priority is per container)
+                    "settings": (
+                        'virtualisation.oci-containers.containers."web".image = "custom-image";\n'
+                        'virtualisation.oci-containers.containers."sidecar".image = "busybox";'
+                    )
                 },
             ),
         ],
@@ -111,12 +116,17 @@ def test_oci_container_fields_and_elements_merge(tmp_path):
             labels = containers."db".labels;
             logDriver = containers."db".log-driver;
           };
+          sidecar = {
+            image = containers."sidecar".image;
+          };
         }
         """,
     )
 
-    # one element per source: the tag's container and the configuration only one
-    assert result["names"] == ["db", "web"]
+    # one element per source: the tag's container and the configuration only one;
+    # a container only defined by custom nix survives next to the module's
+    # containers because the priority is on each container, not on the option
+    assert result["names"] == ["db", "sidecar", "web"]
 
     # fields of one container coming from different sources merge
     assert result["web"]["image"] == "docker.io/library/nginx"
@@ -132,6 +142,8 @@ def test_oci_container_fields_and_elements_merge(tmp_path):
     assert result["db"]["environment"] == {}
     assert result["db"]["ports"] == []
     assert result["db"]["logDriver"] == "journald"
+
+    assert result["sidecar"]["image"] == "busybox"
 
 
 def test_podman_is_configured_while_the_module_exists(tmp_path):
@@ -165,13 +177,13 @@ def test_priority_of_derived_configuration_is_the_setting_priority(tmp_path):
         let
           options = flake.nixosConfigurations.c1.options;
         in {
-          containersPriority = options.virtualisation.oci-containers.containers.highestPrio;
           podmanPriority = options.virtualisation.podman.enable.highestPrio;
         }
         """,
     )
 
-    # the configuration sets the containers, so the derived definitions carry
-    # its priority (HOST_PRIORITY), not the priority of the tag
-    assert result["containersPriority"] == HOST_PRIORITY
+    # the derived definitions carry the priority of the setting (HOST_PRIORITY),
+    # not the priority of the tag. The per-container priority is exercised by
+    # `test_oci_container_fields_and_elements_merge` (the custom-nix sidecar
+    # would be dropped by a priority on the whole option).
     assert result["podmanPriority"] == HOST_PRIORITY
