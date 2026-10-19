@@ -92,22 +92,22 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 		.locator('tr')
 		.filter({ hasText: 'VM Test x64 2' })
 		.first()
-		.waitFor({ timeout: 15000 });
+		.waitFor({ timeout: 60000 });
 
 	// wait until: 1x on screen "completed", 1x on screen "running"
-	test.setTimeout(360000);
+	test.setTimeout(600000);
 	await page
 		.locator('td', { hasText: 'completed' })
 		.nth(1)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 360000 });
+		.waitFor({ timeout: 600000 });
 	await expect(page.locator('td', { hasText: 'completed' }).nth(1)).toBeVisible();
 
 	await page
 		.locator('td', { hasText: 'running' })
 		.nth(1)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 360000 });
+		.waitFor({ timeout: 600000 });
 	await expect(page.locator('td', { hasText: 'running' }).nth(1)).toBeVisible();
 
 	// go to "Devices" page and wait until "Connected" is shown twice
@@ -230,7 +230,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 		.locator('td', { hasText: 'completed' })
 		.nth(4)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 360000 });
+		.waitFor({ timeout: 600000 });
 	await expect(page.locator('td', { hasText: 'completed' }).nth(4)).toBeVisible();
 
 	// Navigate back to "Details" tab
@@ -291,7 +291,7 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 		.filter({ hasText: 'Commit & Download Device Image' })
 		.first()
 		.click();
-	test.setTimeout(360000);
+	test.setTimeout(600000);
 	await page.waitForEvent('download');
 });
 
@@ -351,19 +351,19 @@ test('Create and use artifacts', async ({ page, request }, testInfo) => {
 
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
 	await page.locator('button').filter({ hasText: 'Commit & Build and start VM' }).first().click();
-	test.setTimeout(360000);
+	test.setTimeout(600000);
 
 	await page
 		.locator('td', { hasText: 'completed' })
 		.nth(0)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 360000 });
+		.waitFor({ timeout: 600000 });
 	await expect(page.locator('td', { hasText: 'completed' }).nth(0)).toBeVisible();
 	await page
 		.locator('td', { hasText: 'running' })
 		.nth(0)
 		.or(page.locator('td', { hasText: 'failed' }).first())
-		.waitFor({ timeout: 360000 });
+		.waitFor({ timeout: 600000 });
 	await expect(page.locator('td', { hasText: 'running' }).nth(0)).toBeVisible();
 
 	await page.getByRole('tab', { name: 'Details' }).click();

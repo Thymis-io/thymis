@@ -190,7 +190,8 @@ def build_project_task(
             "build",
             ".#thymis",
             "--out-link",
-            "/tmp/thymis",
+            # concurrent controllers on one runner must not share a gc root
+            str(pathlib.Path(task_data.project_path) / "result-thymis"),
             "--allow-dirty-locks",
         ],
         cwd=repo_path,
