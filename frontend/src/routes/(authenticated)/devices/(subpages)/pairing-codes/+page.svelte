@@ -3,12 +3,12 @@
 	import { invalidate } from '$app/navigation';
 	import { Modal } from 'flowbite-svelte';
 	import type { PageData } from './$types';
-	import DataTable from '$lib/components/layout/DataTable.svelte';
-	import RowActions from '$lib/components/layout/RowActions.svelte';
-	import RowMenu from '$lib/components/layout/RowMenu.svelte';
-	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
-	import PairingCodeDisplay from '$lib/components/PairingCodeDisplay.svelte';
-	import { revokePairingCode, type PairingCode } from '$lib/pairingCodes';
+	import DataTable from '#lib/components/layout/DataTable.svelte';
+	import RowActions from '#lib/components/layout/RowActions.svelte';
+	import RowMenu from '#lib/components/layout/RowMenu.svelte';
+	import RenderTimeAgo from '#lib/components/RenderTimeAgo.svelte';
+	import PairingCodeDisplay from '#lib/components/PairingCodeDisplay.svelte';
+	import { revokePairingCode, type PairingCode } from '#lib/pairingCodes.js';
 	import Info from 'lucide-svelte/icons/info';
 	import Ban from 'lucide-svelte/icons/ban';
 	import Terminal from 'lucide-svelte/icons/terminal';
