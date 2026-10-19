@@ -27,6 +27,7 @@ jobs:
               - 'frontend/package-lock.json'
   test-controller:
     runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-nix
@@ -64,6 +65,7 @@ jobs:
 
   test-frontend-integration:
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
@@ -155,6 +157,7 @@ jobs:
 
   test-frontend-integration-stable-input:
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
@@ -201,6 +204,7 @@ jobs:
 
   test-frontend-integration-x64:
     runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 30
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
@@ -252,6 +256,7 @@ jobs:
 
   test-frontend-integration-stable-input-x64:
     runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 30
     needs: changes
     if: ${{ ! (needs.changes.outputs.package-lock-json == 'true' && github.actor == 'renovate[bot]' && github.event_name == 'pull_request') }}
     steps:
