@@ -1,6 +1,6 @@
 <script lang="ts">
 	import DeployActions from '#lib/components/layout/DeployActions.svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { type RepoStatus } from '#lib/repo/repo.js';
 	import type { GlobalState } from '#lib/state.svelte.js';
 	import type { DeploymentInfo } from '#lib/deploymentInfo.js';
@@ -38,8 +38,9 @@
 	// The authenticated layout load provides these; read them from the page store
 	// so individual pages don't have to thread them through every <PageHead>.
 	let layoutData = $derived(
-		$page.data as { nav: Nav; globalState: GlobalState; repoStatus: RepoStatus }
+		page.data as { nav: Nav; globalState: GlobalState; repoStatus: RepoStatus }
 	);
+
 	let resolvedNav = $derived(nav ?? layoutData.nav);
 	let resolvedGlobalState = $derived(globalState ?? layoutData.globalState);
 	let resolvedRepoStatus = $derived(repoStatus ?? layoutData.repoStatus);

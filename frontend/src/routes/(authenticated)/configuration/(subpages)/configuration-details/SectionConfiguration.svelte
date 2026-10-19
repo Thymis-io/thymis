@@ -3,7 +3,7 @@
 	import Section from '#lib/components/layout/Section.svelte';
 	import { type Config, type Module } from '#lib/state.js';
 	import { buildConfigSelectModuleSearchParam } from '#lib/searchParamHelpers.js';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import Pen from 'lucide-svelte/icons/pen';
 	import EditTagModal from '#lib/EditTagModal.svelte';
 	import ModuleIcon from '#lib/config/ModuleIcon.svelte';
@@ -33,21 +33,14 @@
 </script>
 
 <EditTagModal {globalState} bind:currentlyEditingConfig />
+
 <Section class={className} title={$t('configuration-details.config')}>
 	{@const ownModules = getOwnModules(config, availableModules)}
 	<p class="cfg-label">{$t('configuration-details.modules')}</p>
 	<div class="flex flex-wrap items-center gap-2 text-base">
 		{#each ownModules as module}
 			<a
-				href={`/configuration/edit?${buildConfigSelectModuleSearchParam(
-					globalState,
-					$page.url.search,
-					'config',
-					config.identifier,
-					'config',
-					config.identifier,
-					module
-				)}`}
+				href={`/configuration/edit?${buildConfigSelectModuleSearchParam(globalState, page.url.search, 'config', config.identifier, 'config', config.identifier, module)}`}
 				class="cfg-module"
 			>
 				<ModuleIcon {module} theme="dark" />
@@ -68,6 +61,7 @@
 				<span class="cfg-empty">{$t('configuration-details.no-tags')}</span>
 			{/each}
 		</div>
+
 		<button class="ds-btn ds-btn-sm" onclick={() => (currentlyEditingConfig = config)}>
 			<Pen size="16" />
 			<span>{$t('configuration-details.edit-tags')}</span>

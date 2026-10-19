@@ -2,7 +2,7 @@
 	import { t } from 'svelte-i18n';
 	import { Button, Helper, Input, Label, Modal, P, Select } from 'flowbite-svelte';
 	import { type Config, type Module, saveState } from '#lib/state.js';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { nameToIdentifier, nameValidation, deviceTypeValidation } from '#lib/nameValidation.js';
 	import MultiSelect from 'svelte-multiselect';
 	import {
@@ -21,13 +21,10 @@
 
 	let displayName = $state('');
 
-	let availableModules = $derived($page.data.availableModules as Module[]);
+	let availableModules = $derived(page.data.availableModules as Module[]);
 	let thymisDeviceModule = $derived(getThymisDeviceModule(availableModules));
 	let deviceTypesSelect = $derived(
-		Object.entries(getDeviceTypesMap(availableModules)).map(([key, name]) => ({
-			name: name,
-			value: key
-		}))
+		Object.entries(getDeviceTypesMap(availableModules)).map(([key, name]) => ({ name, value: key }))
 	);
 	let selectedDeviceType: string | undefined = $state(undefined);
 

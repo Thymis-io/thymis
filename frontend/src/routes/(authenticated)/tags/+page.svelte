@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { saveState, type Tag } from '#lib/state.js';
 	import Trash from 'lucide-svelte/icons/trash';
 	import Pen from 'lucide-svelte/icons/pen';
@@ -169,12 +169,12 @@
 				</div>
 			</td>
 			{@const deviceCount = deviceCountForTag(tag.data.identifier)}
-			<td>
-				<span class="ds-count" class:empty={deviceCount === 0}>
-					<Server size={14} />
-					{deviceCount}
-				</span>
-			</td>
+			<td
+				><span class="ds-count" class:empty={deviceCount === 0}
+					><Server size={14} />{deviceCount}</span
+				></td
+			>
+
 			<td>
 				<RowActions>
 					<RowMenu
@@ -183,7 +183,7 @@
 							{
 								label: $t('tags.actions.edit'),
 								icon: Pen,
-								href: `/configuration/edit?${buildGlobalNavSearchParam(data.globalState, $page.url.search, 'tag', tag.data.identifier)}`
+								href: `/configuration/edit?${buildGlobalNavSearchParam(data.globalState, page.url.search, 'tag', tag.data.identifier)}`
 							},
 							{
 								label: $t('tags.actions.delete'),
