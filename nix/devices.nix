@@ -62,6 +62,20 @@ let
     boot.loader.raspberry-pi.configurationLimit = lib.mkDefault 0;
     boot.loader.raspberry-pi.firmwarePackage = trimmedFirmware board pkgs;
 
+    # nixos-raspberrypi declares /boot/firmware as `noauto,x-systemd.automount`
+    # so it is only mounted when something touches it. That unit type cannot be
+    # introduced in place: on an OTA from the raspberry-pi-nix layout the path is
+    # already a regular fstab mount (`boot-firmware.mount`). switch-to-configuration
+    # re-execs and reloads PID 1, then the new `boot-firmware.automount` refuses
+    # to start ("Path /boot/firmware is already a mount point"), local-fs.target
+    # fails on the dependency and its OnFailure drops the device into emergency
+    # mode - no network, no agent, a dead device in the field.
+    # Verified on a Pi 3 128 MiB OTA (2026-10-19): generation staged, profile
+    # switched, then exactly that failure. Keep a plain mount instead (the legacy
+    # layout mounts it the same way) and pick up `neededForBoot` from
+    # nixos-raspberrypi. mkOverride because that module uses mkForce here.
+    fileSystems."/boot/firmware".options = lib.mkOverride 40 [ "noatime" ];
+
     # 26.05 made stage 1 systemd-based, which took this board's initrd from
     # ~11 MiB / 578 entries (25.11, scripted) to ~27 MiB / 2120 entries. The
     # staging transaction (see below) then needs kernel + initrd = ~60.5 MiB
@@ -123,8 +137,8 @@ let
   # those files, so an in-place upgrade has to remove them or they shadow the
   # firmware-native (`kernel` bootloader) boot path under nixos/. This runs in
   # activation, i.e. only after installBootLoader succeeded, so a failed switch
-  # leaves the old generation bootable. The path is automounted, and `rm -f` is
-  # a no-op when it is not.
+  # leaves the old generation bootable. /boot/firmware is a plain mount (see
+  # rpiBootloader), and `rm -f` is a no-op if it is not mounted.
   # Takes pkgs because activation scripts run with a minimal PATH as well, so a
   # bare `rm` is not guaranteed to resolve.
   legacyFirmwareCleanup = pkgs: ''
