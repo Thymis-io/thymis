@@ -44,7 +44,7 @@
 		searchParams.set('timewindow', window);
 		searchParams.set('hours', hoursMap[window].toString());
 		searchParams.set('granularity', granularityMap[window]);
-		goto(`?${searchParams.toString()}`, { replaceState: true });
+		goto(`?${searchParams.toString()}`, { replace: true });
 	}
 </script>
 

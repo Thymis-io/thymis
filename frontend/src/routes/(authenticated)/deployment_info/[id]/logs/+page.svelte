@@ -108,7 +108,7 @@
 	const applyFilters = () => {
 		isLoading = true;
 		isApplyingFilters = true;
-		const url = new URL(page.url);
+		const url = new URL(page.url.href);
 
 		// Check if parameters have changed
 		const currentFromDateTime = urlFromDateTime;
@@ -133,7 +133,7 @@
 			if (searchQuery) url.searchParams.set('search', searchQuery);
 			else url.searchParams.delete('search');
 
-			goto(url.toString(), { replaceState: false, noScroll: true }).then(() => {
+			goto(url.toString(), { replace: false, reset: false }).then(() => {
 				isApplyingFilters = false;
 			});
 		} else {
@@ -150,10 +150,10 @@
 		isApplyingFilters = true;
 		const now = new Date();
 		const from = new Date(now.getTime() - minutes * 60 * 1000);
-		const url = new URL(page.url);
+		const url = new URL(page.url.href);
 		url.searchParams.set('toDateTime', now.toISOString());
 		url.searchParams.set('fromDateTime', from.toISOString());
-		goto(url.toString(), { replaceState: false, noScroll: true }).then(() => {
+		goto(url.toString(), { replace: false, reset: false }).then(() => {
 			isApplyingFilters = false;
 		});
 	};
@@ -161,9 +161,9 @@
 	// Pagination handlers
 	const handlePageChange = (newPage: number) => {
 		isApplyingFilters = true;
-		const url = new URL(page.url);
+		const url = new URL(page.url.href);
 		url.searchParams.set('offset', ((newPage - 1) * urlLimit).toString());
-		goto(url.toString(), { replaceState: false, noScroll: true }).then(() => {
+		goto(url.toString(), { replace: false, reset: false }).then(() => {
 			isApplyingFilters = false;
 		});
 	};
@@ -173,10 +173,10 @@
 		if (isApplyingFilters) return;
 
 		isApplyingFilters = true;
-		const url = new URL(page.url);
+		const url = new URL(page.url.href);
 		url.searchParams.set('limit', limit);
 		url.searchParams.set('offset', '0'); // Reset to first page when changing limit
-		goto(url.toString(), { replaceState: false, noScroll: true }).then(() => {
+		goto(url.toString(), { replace: false, reset: false }).then(() => {
 			isApplyingFilters = false;
 		});
 	};
@@ -187,9 +187,9 @@
 			refreshTimer = setInterval(() => {
 				// Update toDateTime to current time for live logs
 				isApplyingFilters = true;
-				const url = new URL(page.url);
+				const url = new URL(page.url.href);
 				url.searchParams.set('toDateTime', new Date().toISOString());
-				goto(url.toString(), { replaceState: true, noScroll: true }).then(() => {
+				goto(url.toString(), { replace: true, reset: false }).then(() => {
 					isApplyingFilters = false;
 				});
 			}, refreshInterval * 1000);

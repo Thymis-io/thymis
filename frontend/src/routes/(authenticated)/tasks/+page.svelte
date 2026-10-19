@@ -75,9 +75,9 @@
 	};
 
 	const goToPage = (newPage: number) => {
-		const params = new URLSearchParams(pageStore.url.searchParams);
+		const params = new URLSearchParams(pageStore.url.search);
 		params.set('page', newPage.toString());
-		goto(`?${params.toString()}`, { noScroll: true, keepFocus: true });
+		goto(`?${params.toString()}`, { reset: false });
 	};
 
 	// Make the task name navigate to its details page. The name can contain its
