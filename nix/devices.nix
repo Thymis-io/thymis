@@ -42,9 +42,13 @@ let
       # (camera_auto_detect=1 goes through the kernel/vc4-kms stack).
       raspberry-pi-3 = [ "start4.elf" "start4x.elf" "start_x.elf" ];
       raspberry-pi-4 = [ "start.elf" "start_x.elf" "start4x.elf" ];
-      # BCM2712: which family the Pi 5 firmware picks has not been verified
-      # here, so keep both.
-      raspberry-pi-5 = [ ];
+      # BCM2712 uses the "4" family (`start4.elf`, like BCM2711); the Pi 1/2/3
+      # family and the `x`/debug/cut-down builds are never loaded. Dropping them
+      # is what makes a 128 MiB legacy card fit: such a card has 62,418,944 B
+      # free (measured on customer Pi 5 hardware: 133,937,152 usable, 71,518,208
+      # used) and the 26.05 generation is 63,086,592 B, i.e. 0.64 MB too big -
+      # with the drop list the installer reclaims ~19.9 MB before staging.
+      raspberry-pi-5 = [ "start.elf" "start_x.elf" "start4x.elf" ];
     }.${board};
 
   trimmedFirmware = board: pkgs:
@@ -89,6 +93,14 @@ let
     # trim + xz -> succeeds, with the incoming kernel + initrd staged next to
     # the outgoing generation.
     boot.initrd.compressor = "xz";
+
+    # Escape hatch for 128 MiB legacy cards: the systemd stage-1 initrd is
+    # ~24 MB (xz) on these boards, the scripted stage 1 is ~11.9 MB, which
+    # halves the per-generation payload. A 128 MiB partition must hold two
+    # generations while staging (old + .tmp), so boards whose payload is close
+    # to the budget can set `boot.initrd.systemd.enable = false` per device/tag.
+    # The default stays the systemd stage 1 that 26.05 ships.
+    boot.initrd.systemd.enable = lib.mkDefault true;
 
     # Staging needs room for the incoming kernel + initrd next to the outgoing
     # generation. The installer reclaims the firmware files it does not copy
