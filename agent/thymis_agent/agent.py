@@ -367,6 +367,23 @@ class Agent(ea.EdgeAgent):
 
                 switch_success = proc.returncode == 0
 
+                # `switch-to-configuration` exits 4 when units failed to
+                # reload/restart *after* activation (dbus-broker is the common
+                # one: on the 25.11 -> 26.05 transition its reload times out
+                # after 90 s). The device is already on the new configuration in
+                # that case; reporting a failed switch makes the controller show
+                # a failed deploy for a device that is fine, and can trigger the
+                # rollback path. Treat exit 4 plus activation as success, but
+                # keep the failure visible in the log.
+                if not switch_success and is_activated and proc.returncode == 4:
+                    logger.warning(
+                        "switch-to-configuration exited 4 after activating the "
+                        "configuration (some units failed to reload/restart); "
+                        "treating the switch as successful: %s",
+                        stderr_str,
+                    )
+                    switch_success = True
+
                 # switch_success should imply is_activated, if not, then it's a bug
                 if switch_success and not is_activated:
                     logger.error(
