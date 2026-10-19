@@ -13,8 +13,8 @@
 	} from 'flowbite-svelte';
 	import Download from 'lucide-svelte/icons/download';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
-	import type { SecretProcessingType, SecretType } from '$lib/state';
-	import { formatBytes } from '$lib/format';
+	import type { SecretProcessingType, SecretType } from '#lib/state.js';
+	import { formatBytes } from '#lib/format.js';
 	import { createSecretRequest, sendSecretRequest } from './secretUtils';
 
 	interface Props {

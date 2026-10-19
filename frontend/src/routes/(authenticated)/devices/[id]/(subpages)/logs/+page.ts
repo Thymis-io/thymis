@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import { getLogs, getProgramNames } from '$lib/logs';
+import { getLogs, getProgramNames } from '#lib/logs.js';
 
 export const load: PageLoad = async ({ params, fetch, url }) => {
 	const programName = url.searchParams.get('program-name');

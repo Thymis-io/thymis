@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { SystemdTimerSetting } from '$lib/state';
-	import Dropdown from '$lib/components/Dropdown.svelte';
-	import SystemdTimeSpanInput from '$lib/components/SystemdTimeSpanInput.svelte';
-	import SystemdCalendarInput from '$lib/components/SystemdCalendarInput.svelte';
+	import type { SystemdTimerSetting } from '#lib/state.js';
+	import Dropdown from '#lib/components/Dropdown.svelte';
+	import SystemdTimeSpanInput from '#lib/components/SystemdTimeSpanInput.svelte';
+	import SystemdCalendarInput from '#lib/components/SystemdCalendarInput.svelte';
 	import ConfigBool from './ConfigBool.svelte';
 	import X from 'lucide-svelte/icons/x';
 	import Plus from 'lucide-svelte/icons/plus';

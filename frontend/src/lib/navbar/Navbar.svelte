@@ -6,10 +6,10 @@
 	import Menu from 'lucide-svelte/icons/menu';
 	import GlobalSearch from './GlobalSearch.svelte';
 	import GithubIcon from './GithubIcon.svelte';
-	import type { GlobalState } from '$lib/state.svelte';
+	import type { GlobalState } from '#lib/state.svelte.js';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
-	import TaskbarName from '$lib/taskbar/TaskbarName.svelte';
-	import type { Task, TaskShort } from '$lib/taskstatus';
+	import TaskbarName from '#lib/taskbar/TaskbarName.svelte';
+	import type { Task, TaskShort } from '#lib/taskstatus.js';
 
 	interface Props {
 		nav?: Nav;

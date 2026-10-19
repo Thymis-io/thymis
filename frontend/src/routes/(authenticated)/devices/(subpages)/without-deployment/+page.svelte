@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import type { PageData } from './$types';
-	import DataTable from '$lib/components/layout/DataTable.svelte';
-	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
-	import { getHardwareKeyDisplayName } from '$lib/hardwareDevices';
+	import DataTable from '#lib/components/layout/DataTable.svelte';
+	import RenderTimeAgo from '#lib/components/RenderTimeAgo.svelte';
+	import { getHardwareKeyDisplayName } from '#lib/hardwareDevices.js';
 
 	interface Props {
 		data: PageData;

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { Config, Module } from '$lib/state';
+	import type { Config, Module } from '#lib/state.js';
 	import { Spinner } from 'flowbite-svelte';
 	import { onDestroy, onMount } from 'svelte';
-	import { configVNCPassword, targetShouldShowVNC } from '$lib/vnc/vnc';
+	import { configVNCPassword, targetShouldShowVNC } from '#lib/vnc/vnc.js';
 	import { page } from '$app/stores';
-	import { type DeploymentInfo } from '$lib/deploymentInfo';
-	import type { GlobalState } from '$lib/state.svelte';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import { type DeploymentInfo } from '#lib/deploymentInfo.js';
+	import type { GlobalState } from '#lib/state.svelte.js';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
 	import Expand from 'lucide-svelte/icons/expand';
 	import Shrink from 'lucide-svelte/icons/shrink';
 	import MonitorOff from 'lucide-svelte/icons/monitor-off';

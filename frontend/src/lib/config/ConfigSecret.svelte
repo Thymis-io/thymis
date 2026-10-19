@@ -4,16 +4,16 @@
 	import { t } from 'svelte-i18n';
 
 	import { invalidate } from '$app/navigation';
-	import SecretEditModal from '$lib/components/secrets/SecretEditModal.svelte';
-	import type { SecretProcessingType, SecretSettingType, SecretType, Setting } from '$lib/state';
+	import SecretEditModal from '#lib/components/secrets/SecretEditModal.svelte';
+	import type { SecretProcessingType, SecretSettingType, SecretType, Setting } from '#lib/state.js';
 	import { page } from '$app/stores';
 	import {
 		stringToEnvVars,
 		downloadSecretFile,
 		resetFileInputById
-	} from '$lib/components/secrets/secretUtils';
+	} from '#lib/components/secrets/secretUtils.js';
 	import { onMount } from 'svelte';
-	import SecretSelect from '$lib/components/secrets/SecretSelect.svelte';
+	import SecretSelect from '#lib/components/secrets/SecretSelect.svelte';
 
 	interface Props {
 		value?: string | null;

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import VncView from '$lib/vnc/VncView.svelte';
-	import { targetShouldShowVNC } from '$lib/vnc/vnc';
-	import Section from '$lib/components/layout/Section.svelte';
+	import VncView from '#lib/vnc/VncView.svelte';
+	import { targetShouldShowVNC } from '#lib/vnc/vnc.js';
+	import Section from '#lib/components/layout/Section.svelte';
 	import type { PageData } from './$types';
 
 	interface Props {

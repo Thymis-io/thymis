@@ -1,19 +1,25 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { saveState, type Config, type Module, type ModuleSettings, type Tag } from '$lib/state';
+	import {
+		saveState,
+		type Config,
+		type Module,
+		type ModuleSettings,
+		type Tag
+	} from '#lib/state.js';
 	import { Modal, Tooltip } from 'flowbite-svelte';
 	import { page } from '$app/stores';
 	import Pen from 'lucide-svelte/icons/pen';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Trash from 'lucide-svelte/icons/trash';
 	import Search from 'lucide-svelte/icons/search';
-	import { buildConfigSelectModuleSearchParam } from '$lib/searchParamHelpers';
-	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
+	import { buildConfigSelectModuleSearchParam } from '#lib/searchParamHelpers.js';
+	import DeleteConfirm from '#lib/components/DeleteConfirm.svelte';
 	import { goto } from '$app/navigation';
 	import ModuleIcon from './ModuleIcon.svelte';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
-	import type { GlobalState } from '$lib/state.svelte';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import type { GlobalState } from '#lib/state.svelte.js';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
 
 	interface Props {
 		nav: Nav;

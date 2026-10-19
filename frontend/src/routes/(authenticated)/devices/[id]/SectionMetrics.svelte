@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { DeviceMetricsEntry } from '$lib/deploymentInfo';
+	import type { DeviceMetricsEntry } from '#lib/deploymentInfo.js';
 	import { Line } from 'svelte-chartjs';
 	import {
 		Chart as ChartJS,

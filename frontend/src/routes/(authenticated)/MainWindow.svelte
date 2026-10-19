@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { GlobalState } from '$lib/state.svelte';
+	import type { GlobalState } from '#lib/state.svelte.js';
 
 	interface Props {
 		globalState: GlobalState;

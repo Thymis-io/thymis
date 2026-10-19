@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { page } from '$app/stores';
-	import { saveState, type Config, type Tag } from '$lib/state';
+	import { saveState, type Config, type Tag } from '#lib/state.js';
 	import { Tooltip } from 'flowbite-svelte';
 	import Search from 'lucide-svelte/icons/search';
 	import Trash from 'lucide-svelte/icons/trash-2';
@@ -11,15 +11,15 @@
 	import CreateConfigModal from './CreateConfigModal.svelte';
 	import type { PageData } from '../../devices/$types';
 	import { SOURCES, TRIGGERS, type DndEvent } from 'svelte-dnd-action';
-	import { buildGlobalNavSearchParam } from '$lib/searchParamHelpers';
+	import { buildGlobalNavSearchParam } from '#lib/searchParamHelpers.js';
 	import type { KeyboardEventHandler, MouseEventHandler, TouchEventHandler } from 'svelte/elements';
-	import Page from '$lib/components/layout/Page.svelte';
-	import CreateButton from '$lib/components/layout/CreateButton.svelte';
-	import RowActions from '$lib/components/layout/RowActions.svelte';
-	import RowMenu from '$lib/components/layout/RowMenu.svelte';
-	import DataTable from '$lib/components/layout/DataTable.svelte';
-	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import Page from '#lib/components/layout/Page.svelte';
+	import CreateButton from '#lib/components/layout/CreateButton.svelte';
+	import RowActions from '#lib/components/layout/RowActions.svelte';
+	import RowMenu from '#lib/components/layout/RowMenu.svelte';
+	import DataTable from '#lib/components/layout/DataTable.svelte';
+	import DeleteConfirm from '#lib/components/DeleteConfirm.svelte';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
 
 	const flipDurationMs = 200;
 	let dragDisabled = $state(true);

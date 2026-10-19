@@ -1,5 +1,5 @@
 import { browser } from '$app/env';
-import { localeFromCookieString, normalizeLocale } from '$lib/i18n'; // Import to initialize. Important :)
+import { localeFromCookieString, normalizeLocale } from '#lib/i18n/index.js'; // Import to initialize. Important :)
 import { locale, waitLocale } from 'svelte-i18n';
 import type { LayoutLoad } from './$types';
 import {
@@ -11,15 +11,15 @@ import {
 	getTagByIdentifier,
 	getConfigByIdentifier,
 	type Secret
-} from '$lib/state';
+} from '#lib/state.js';
 import { error } from '@sveltejs/kit';
-import { getAllTasks } from '$lib/taskstatus';
-import { fetchWithNotify } from '$lib/fetchWithNotify';
-import { type RepoStatus } from '$lib/repo/repo';
-import { GlobalState } from '$lib/state.svelte';
+import { getAllTasks } from '#lib/taskstatus.js';
+import { fetchWithNotify } from '#lib/fetchWithNotify.js';
+import { type RepoStatus } from '#lib/repo/repo.js';
+import { GlobalState } from '#lib/state.svelte.js';
 import { toast } from '@zerodevx/svelte-toast';
-import { redirectToLogin } from '$lib/login';
-import { getAllDeploymentInfos } from '$lib/deploymentInfo';
+import { redirectToLogin } from '#lib/login.js';
+import { getAllDeploymentInfos } from '#lib/deploymentInfo.js';
 
 export type Nav = {
 	selectedTargetType: ContextType | null;

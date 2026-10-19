@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { type DeploymentInfo } from '$lib/deploymentInfo';
-	import type { GlobalState } from '$lib/state.svelte';
+	import { type DeploymentInfo } from '#lib/deploymentInfo.js';
+	import type { GlobalState } from '#lib/state.svelte.js';
 
 	interface Props {
 		globalState: GlobalState;

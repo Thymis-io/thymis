@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { calcTimeSince } from '$lib/hardwareDevices';
+	import { calcTimeSince } from '#lib/hardwareDevices.js';
 
 	interface Props {
 		timestamp?: string | null;

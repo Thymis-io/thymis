@@ -1,4 +1,4 @@
-import { fetchWithNotify } from '$lib/fetchWithNotify';
+import { fetchWithNotify } from '#lib/fetchWithNotify.js';
 import type { PageLoad } from './$types';
 
 export type ExternalRepositoryStatus = {

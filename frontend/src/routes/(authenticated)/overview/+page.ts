@@ -7,9 +7,9 @@ import {
 	hoursToParams,
 	RANGE_OPTIONS,
 	type TimeRange
-} from '$lib/fleet';
-import type { Commit } from '$lib/history';
-import { fetchWithNotify } from '$lib/fetchWithNotify';
+} from '#lib/fleet.js';
+import type { Commit } from '#lib/history.js';
+import { fetchWithNotify } from '#lib/fetchWithNotify.js';
 import type { PageLoad } from './$types';
 
 export const load = (async ({ fetch, url }) => {

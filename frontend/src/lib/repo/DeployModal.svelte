@@ -4,17 +4,17 @@
 	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
 	import { Button, Modal, Input, Tooltip } from 'flowbite-svelte';
-	import { fetchWithNotify } from '$lib/fetchWithNotify';
-	import { type Config, type Tag } from '$lib/state';
-	import FloatingMultiSelect from '$lib/components/FloatingMultiSelect.svelte';
-	import type { RepoStatus } from '$lib/repo/repo';
+	import { fetchWithNotify } from '#lib/fetchWithNotify.js';
+	import { type Config, type Tag } from '#lib/state.js';
+	import FloatingMultiSelect from '#lib/components/FloatingMultiSelect.svelte';
+	import type { RepoStatus } from '#lib/repo/repo.js';
 	import FileChanges from './FileChanges.svelte';
 	import type { ObjectOption } from 'svelte-multiselect';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
-	import { invalidateButDeferUntilNavigation } from '$lib/notification';
-	import type { GlobalState } from '$lib/state.svelte';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
-	import { type DeploymentInfo } from '$lib/deploymentInfo';
+	import { invalidateButDeferUntilNavigation } from '#lib/notification.js';
+	import type { GlobalState } from '#lib/state.svelte.js';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
+	import { type DeploymentInfo } from '#lib/deploymentInfo.js';
 
 	interface Props {
 		nav: Nav;

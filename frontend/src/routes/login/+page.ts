@@ -1,4 +1,4 @@
-import '$lib/i18n'; // Import to initialize. Important :)
+import '#lib/i18n/index.js'; // Import to initialize. Important :)
 import { locale, waitLocale } from 'svelte-i18n';
 import type { PageLoad } from './$types';
 import { browser } from '$app/env';

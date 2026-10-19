@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import { getAllTasks } from '$lib/taskstatus';
+import { getAllTasks } from '#lib/taskstatus.js';
 
 export const load = (async ({ url, fetch }) => {
 	const perPage = 50;

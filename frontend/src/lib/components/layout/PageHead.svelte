@@ -1,9 +1,9 @@
 <script lang="ts">
-	import DeployActions from '$lib/components/layout/DeployActions.svelte';
+	import DeployActions from '#lib/components/layout/DeployActions.svelte';
 	import { page } from '$app/stores';
-	import { type RepoStatus } from '$lib/repo/repo';
-	import type { GlobalState } from '$lib/state.svelte';
-	import type { DeploymentInfo } from '$lib/deploymentInfo';
+	import { type RepoStatus } from '#lib/repo/repo.js';
+	import type { GlobalState } from '#lib/state.svelte.js';
+	import type { DeploymentInfo } from '#lib/deploymentInfo.js';
 	import type { Snippet } from 'svelte';
 	import type { Nav } from '../../../routes/(authenticated)/+layout';
 

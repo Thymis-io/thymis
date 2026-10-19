@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { FlakeReference } from '$lib/externalRepo';
+	import type { FlakeReference } from '#lib/externalRepo.js';
 	import { Modal, Label, Input, Select, Button, Spinner } from 'flowbite-svelte';
 	import AutoComplete from './AutoComplete.svelte';
 	import SecretSelect from './secrets/SecretSelect.svelte';

@@ -1,5 +1,5 @@
-import { fetchWithNotify } from '$lib/fetchWithNotify';
-import type { Commit } from '$lib/history';
+import { fetchWithNotify } from '#lib/fetchWithNotify.js';
+import type { Commit } from '#lib/history.js';
 import type { PageLoad } from './$types';
 
 export const load = (async ({ fetch }) => {

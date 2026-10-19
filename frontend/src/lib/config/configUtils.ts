@@ -1,5 +1,5 @@
-import type { Config, Module, SelectOneSettingType, SettingType } from '$lib/state';
-import { formatBytes } from '$lib/format';
+import type { Config, Module, SelectOneSettingType, SettingType } from '#lib/state.js';
+import { formatBytes } from '#lib/format.js';
 
 export const isASelectOneSetting = (
 	type: SettingType | undefined

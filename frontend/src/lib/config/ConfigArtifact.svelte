@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Dropdown from '$lib/components/Dropdown.svelte';
-	import type { ArtifactSettingType, Setting } from '$lib/state';
+	import Dropdown from '#lib/components/Dropdown.svelte';
+	import type { ArtifactSettingType, Setting } from '#lib/state.js';
 	import type { Artifact } from '../../routes/(authenticated)/artifacts/[...rest]/+page';
 	import FileIcon from 'lucide-svelte/icons/file';
 

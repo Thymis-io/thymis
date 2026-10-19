@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { Module, ModuleSettingsWithOrigin, Origin, Setting, SettingType } from '$lib/state';
+	import type {
+		Module,
+		ModuleSettingsWithOrigin,
+		Origin,
+		Setting,
+		SettingType
+	} from '#lib/state.js';
 	import { P, Tooltip } from 'flowbite-svelte';
 	import Route from 'lucide-svelte/icons/route';
 	import RouteOff from 'lucide-svelte/icons/route-off';
@@ -12,7 +18,7 @@
 	import ConfigRenderer from './ConfigRenderer.svelte';
 	import ModuleIcon from './ModuleIcon.svelte';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
-	import type { GlobalState } from '$lib/state.svelte';
+	import type { GlobalState } from '#lib/state.svelte.js';
 	import type { Artifact } from '../../routes/(authenticated)/artifacts/[...rest]/+page';
 
 	interface Props {

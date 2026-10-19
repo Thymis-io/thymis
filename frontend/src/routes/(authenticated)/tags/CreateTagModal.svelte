@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Button, Helper, Input, Label, Modal } from 'flowbite-svelte';
-	import { type Tag, saveState } from '$lib/state';
-	import { nameToIdentifier, nameValidation } from '$lib/nameValidation';
-	import type { GlobalState } from '$lib/state.svelte';
+	import { type Tag, saveState } from '#lib/state.js';
+	import { nameToIdentifier, nameValidation } from '#lib/nameValidation.js';
+	import type { GlobalState } from '#lib/state.svelte.js';
 
 	interface Props {
 		globalState: GlobalState;

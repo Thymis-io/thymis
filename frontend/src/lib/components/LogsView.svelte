@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import Dropdown from '$lib/components/Dropdown.svelte';
-	import type { DeploymentInfo } from '$lib/deploymentInfo';
-	import type { LogLine } from '$lib/logs';
-	import type { GlobalState } from '$lib/state.svelte';
+	import Dropdown from '#lib/components/Dropdown.svelte';
+	import type { DeploymentInfo } from '#lib/deploymentInfo.js';
+	import type { LogLine } from '#lib/logs.js';
+	import type { GlobalState } from '#lib/state.svelte.js';
 	import { queryParameters } from 'sveltekit-search-params';
-	import { invalidateButDeferUntilNavigation } from '$lib/notification';
+	import { invalidateButDeferUntilNavigation } from '#lib/notification.js';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 	import { Toggle, Dropdown as FlowbiteDropdown, DropdownItem } from 'flowbite-svelte';
-	import AutoComplete from '$lib/components/AutoComplete.svelte';
-	import { calcTimeSince } from '$lib/hardwareDevices';
+	import AutoComplete from '#lib/components/AutoComplete.svelte';
+	import { calcTimeSince } from '#lib/hardwareDevices.js';
 	import { onMount } from 'svelte';
 
 	interface Props {

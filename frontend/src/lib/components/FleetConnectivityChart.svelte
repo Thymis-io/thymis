@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import type { ConnectivityPoint } from '$lib/fleet';
+	import type { ConnectivityPoint } from '#lib/fleet.js';
 	import { Line } from 'svelte-chartjs';
 	import {
 		Chart as ChartJS,

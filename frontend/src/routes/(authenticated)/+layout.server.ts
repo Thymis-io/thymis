@@ -1,8 +1,8 @@
 import { toast } from '@zerodevx/svelte-toast';
 import type { LayoutServerLoad } from './$types';
 import { RUNNING_IN_PLAYWRIGHT } from '$app/env/private';
-import { redirectToLogin } from '$lib/login';
-import { normalizeLocale } from '$lib/i18n';
+import { redirectToLogin } from '#lib/login.js';
+import { normalizeLocale } from '#lib/i18n/index.js';
 
 export const load: LayoutServerLoad = async ({ cookies, fetch, url, request }) => {
 	// Pass the resolved locale to the client so it hydrates in the server-rendered language.

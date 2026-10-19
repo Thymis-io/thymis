@@ -9,9 +9,9 @@
 	import Download from 'lucide-svelte/icons/download';
 	import Calendar from 'lucide-svelte/icons/calendar';
 	import Clock from 'lucide-svelte/icons/clock';
-	import MonospaceText from '$lib/components/MonospaceText.svelte';
-	import PageHead from '$lib/components/layout/PageHead.svelte';
-	import RenderTimeAgo from '$lib/components/RenderTimeAgo.svelte';
+	import MonospaceText from '#lib/components/MonospaceText.svelte';
+	import PageHead from '#lib/components/layout/PageHead.svelte';
+	import RenderTimeAgo from '#lib/components/RenderTimeAgo.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

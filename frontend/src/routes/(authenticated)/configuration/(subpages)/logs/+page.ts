@@ -1,5 +1,5 @@
 import { redirect } from '@sveltejs/kit';
-import { getLogs, getProgramNames } from '$lib/logs';
+import { getLogs, getProgramNames } from '#lib/logs.js';
 import type { PageLoad } from './$types';
 
 export const load = (async ({ fetch, url, parent }) => {

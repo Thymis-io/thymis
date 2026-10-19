@@ -6,7 +6,7 @@
 	import SectionDeviceInfo from '../../SectionDeviceInfo.svelte';
 	import SectionOnlineStatus from '../../SectionOnlineStatus.svelte';
 	import SectionErrorLogs from '../../SectionErrorLogs.svelte';
-	import Section from '$lib/components/layout/Section.svelte';
+	import Section from '#lib/components/layout/Section.svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { queryParameters } from 'sveltekit-search-params';

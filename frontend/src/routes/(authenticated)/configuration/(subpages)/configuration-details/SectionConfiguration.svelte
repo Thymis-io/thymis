@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import Section from '$lib/components/layout/Section.svelte';
-	import { type Config, type Module } from '$lib/state';
-	import { buildConfigSelectModuleSearchParam } from '$lib/searchParamHelpers';
+	import Section from '#lib/components/layout/Section.svelte';
+	import { type Config, type Module } from '#lib/state.js';
+	import { buildConfigSelectModuleSearchParam } from '#lib/searchParamHelpers.js';
 	import { page } from '$app/stores';
 	import Pen from 'lucide-svelte/icons/pen';
-	import EditTagModal from '$lib/EditTagModal.svelte';
-	import ModuleIcon from '$lib/config/ModuleIcon.svelte';
-	import type { GlobalState } from '$lib/state.svelte';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
+	import EditTagModal from '#lib/EditTagModal.svelte';
+	import ModuleIcon from '#lib/config/ModuleIcon.svelte';
+	import type { GlobalState } from '#lib/state.svelte.js';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
 
 	interface Props {
 		globalState: GlobalState;

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import LogsView from '$lib/components/LogsView.svelte';
+	import LogsView from '#lib/components/LogsView.svelte';
 	import type { PageData } from './$types';
 
 	interface Props {

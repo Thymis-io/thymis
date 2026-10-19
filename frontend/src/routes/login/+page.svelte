@@ -1,9 +1,9 @@
 <script lang="ts">
 	import '../../app.css';
 	import { t } from 'svelte-i18n';
-	import Navbar from '$lib/navbar/Navbar.svelte';
+	import Navbar from '#lib/navbar/Navbar.svelte';
 	import { page } from '$app/state';
-	import ProgressBar from '$lib/components/ProgressBar.svelte';
+	import ProgressBar from '#lib/components/ProgressBar.svelte';
 
 	const redirectString = page.url.searchParams.get('redirect');
 	const redirectStringDecoded = redirectString ? decodeURI(redirectString) : null;

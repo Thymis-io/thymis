@@ -4,14 +4,14 @@
 	import Refresh from 'lucide-svelte/icons/refresh-ccw';
 	import Boxes from 'lucide-svelte/icons/boxes';
 	import GitCommitVertical from 'lucide-svelte/icons/git-commit-vertical';
-	import DeployModal from '$lib/repo/DeployModal.svelte';
-	import CommitModal from '$lib/repo/CommitModal.svelte';
-	import { invalidateButDeferUntilNavigation } from '$lib/notification';
-	import { fetchWithNotify } from '$lib/fetchWithNotify';
-	import { type RepoStatus } from '$lib/repo/repo';
+	import DeployModal from '#lib/repo/DeployModal.svelte';
+	import CommitModal from '#lib/repo/CommitModal.svelte';
+	import { invalidateButDeferUntilNavigation } from '#lib/notification.js';
+	import { fetchWithNotify } from '#lib/fetchWithNotify.js';
+	import { type RepoStatus } from '#lib/repo/repo.js';
 	import type { Nav } from '../../../routes/(authenticated)/+layout';
-	import type { GlobalState } from '$lib/state.svelte';
-	import type { DeploymentInfo } from '$lib/deploymentInfo';
+	import type { GlobalState } from '#lib/state.svelte.js';
+	import type { DeploymentInfo } from '#lib/deploymentInfo.js';
 
 	interface Props {
 		nav: Nav;

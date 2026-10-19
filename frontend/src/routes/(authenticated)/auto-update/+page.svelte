@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { Label, Select, Toggle } from 'flowbite-svelte';
-	import PageHead from '$lib/components/layout/PageHead.svelte';
-	import { fetchWithNotify } from '$lib/fetchWithNotify';
+	import PageHead from '#lib/components/layout/PageHead.svelte';
+	import { fetchWithNotify } from '#lib/fetchWithNotify.js';
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
 

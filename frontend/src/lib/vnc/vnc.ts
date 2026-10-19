@@ -1,4 +1,4 @@
-import type { Config, Module, ModuleSettings, State, Tag } from '$lib/state';
+import type { Config, Module, ModuleSettings, State, Tag } from '#lib/state.js';
 
 const isVNCModule = (module: ModuleSettings | Module | undefined) => {
 	return (

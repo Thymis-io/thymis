@@ -3,8 +3,8 @@
 	import { Tooltip } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/env';
-	import type { TextAreaCodeSettingType } from '$lib/state';
-	// import MonacoTextarea from '$lib/components/MonacoTextarea.svelte';
+	import type { TextAreaCodeSettingType } from '#lib/state.js';
+	// import MonacoTextarea from '#lib/components/MonacoTextarea.svelte';
 
 	interface Props {
 		placeholder: string | null;
@@ -15,9 +15,9 @@
 	}
 
 	let { placeholder, value, onChange = () => {}, disabled, setting }: Props = $props();
-	let MonacoTextarea: typeof import('$lib/components/MonacoTextarea.svelte').default = $state();
+	let MonacoTextarea: typeof import('#lib/components/MonacoTextarea.svelte').default = $state();
 	onMount(async () => {
-		MonacoTextarea = (await import('$lib/components/MonacoTextarea.svelte')).default;
+		MonacoTextarea = (await import('#lib/components/MonacoTextarea.svelte')).default;
 	});
 </script>
 

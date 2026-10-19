@@ -1,5 +1,5 @@
 import type { Handle, HandleFetch } from '@sveltejs/kit/hooks';
-import { normalizeLocale } from '$lib/i18n';
+import { normalizeLocale } from '#lib/i18n/index.js';
 import { locale, waitLocale } from 'svelte-i18n';
 import { PRIVATE_BASE_URL } from '$app/env/private';
 

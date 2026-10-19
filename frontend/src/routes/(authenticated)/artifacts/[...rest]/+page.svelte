@@ -1,21 +1,21 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import Page from '$lib/components/layout/Page.svelte';
-	import DataTable from '$lib/components/layout/DataTable.svelte';
-	import CreateButton from '$lib/components/layout/CreateButton.svelte';
-	import RowMenu from '$lib/components/layout/RowMenu.svelte';
-	import RowActions from '$lib/components/layout/RowActions.svelte';
+	import Page from '#lib/components/layout/Page.svelte';
+	import DataTable from '#lib/components/layout/DataTable.svelte';
+	import CreateButton from '#lib/components/layout/CreateButton.svelte';
+	import RowMenu from '#lib/components/layout/RowMenu.svelte';
+	import RowActions from '#lib/components/layout/RowActions.svelte';
 	import type { PageData } from './$types';
 	import { invalidate } from '$app/navigation';
 	import { Button, Helper, Modal } from 'flowbite-svelte';
 	import Trash from 'lucide-svelte/icons/trash-2';
 	import Download from 'lucide-svelte/icons/download';
-	import DeleteConfirm from '$lib/components/DeleteConfirm.svelte';
+	import DeleteConfirm from '#lib/components/DeleteConfirm.svelte';
 	import type { Artifact } from './+page';
 	import Pen from 'lucide-svelte/icons/pen';
-	import type { ModuleSettings } from '$lib/state';
-	import IdentifierLink from '$lib/IdentifierLink.svelte';
-	import { formatBytes } from '$lib/format';
+	import type { ModuleSettings } from '#lib/state.js';
+	import IdentifierLink from '#lib/IdentifierLink.svelte';
+	import { formatBytes } from '#lib/format.js';
 
 	interface Props {
 		data: PageData;

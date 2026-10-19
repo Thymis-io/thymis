@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import Section from '$lib/components/layout/Section.svelte';
-	import type { ConnectionHistoryEntry } from '$lib/deploymentInfo';
+	import Section from '#lib/components/layout/Section.svelte';
+	import type { ConnectionHistoryEntry } from '#lib/deploymentInfo.js';
 
 	interface Props {
 		connectionHistory: ConnectionHistoryEntry[];

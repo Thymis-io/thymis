@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { SecretType } from '$lib/state';
+	import type { SecretType } from '#lib/state.js';
 	import { Select } from 'flowbite-svelte';
 	import type { SecretShort } from './secretUtils';
 	import { t } from 'svelte-i18n';
