@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { type TaskShort, cancelTask, retryTask } from '#lib/taskstatus.js';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
+
 	interface Props {
 		task: TaskShort;
 	}
@@ -21,8 +22,6 @@
 	{/if}
 	<a
 		class="ds-btn ds-btn-sm ds-btn-primary whitespace-nowrap"
-		href="/tasks/{task.id}{$page.url.search}"
+		href="/tasks/{task.id}{page.url.search}">{$t('taskbar.details')}</a
 	>
-		{$t('taskbar.details')}
-	</a>
 </div>

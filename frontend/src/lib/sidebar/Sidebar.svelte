@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { afterNavigate } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { t, locale } from 'svelte-i18n';
 	import { DarkMode, Popover } from 'flowbite-svelte';
 	import ChartBar from 'lucide-svelte/icons/chart-bar';
@@ -48,12 +48,10 @@
 		drawerHidden = true;
 	};
 
-	let activeUrl: string = $state($page.url.pathname);
+	let activeUrl: string = $state(page.url.pathname);
 	// Config and tag detail pages share the /configuration/* routes and are only
 	// distinguished by this query param, so track it to highlight the right item.
-	let activeTargetType: string | null = $state(
-		$page.url.searchParams.get('global-nav-target-type')
-	);
+	let activeTargetType: string | null = $state(page.url.searchParams.get('global-nav-target-type'));
 
 	afterNavigate((navigation) => {
 		// this fixes https://github.com/themesberg/flowbite-svelte/issues/364

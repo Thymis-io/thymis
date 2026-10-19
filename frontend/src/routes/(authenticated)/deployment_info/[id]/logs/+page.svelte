@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { invalidate } from '$app/navigation';
 	import { Alert, Spinner, Toggle } from 'flowbite-svelte';
@@ -28,11 +28,11 @@
 	};
 
 	// URL parameters and state
-	let deploymentId = $derived($page.params.id);
+	let deploymentId = $derived(page.params.id);
 
 	// URL-derived values for reading current state
 	let urlFromDateTime = $derived.by(() => {
-		const param = $page.url.searchParams.get('fromDateTime');
+		const param = page.url.searchParams.get('fromDateTime');
 		if (param) {
 			// If parameter exists, convert to local datetime format for form inputs
 			return toLocalDateTimeString(
@@ -42,7 +42,7 @@
 		return toLocalDateTimeString(new Date(new Date().getTime() - 60 * 60 * 1000).toISOString());
 	});
 	let urlToDateTime = $derived.by(() => {
-		const param = $page.url.searchParams.get('toDateTime');
+		const param = page.url.searchParams.get('toDateTime');
 		if (param) {
 			// If parameter exists, convert to local datetime format for form inputs
 			return toLocalDateTimeString(
@@ -51,9 +51,9 @@
 		}
 		return toLocalDateTimeString(new Date().toISOString());
 	});
-	let urlLimit = $derived(parseInt($page.url.searchParams.get('limit') || '100'));
-	let urlOffset = $derived(parseInt($page.url.searchParams.get('offset') || '0'));
-	let urlSearchQuery = $derived($page.url.searchParams.get('search') || '');
+	let urlLimit = $derived(parseInt(page.url.searchParams.get('limit') || '100'));
+	let urlOffset = $derived(parseInt(page.url.searchParams.get('offset') || '0'));
+	let urlSearchQuery = $derived(page.url.searchParams.get('search') || '');
 	// Form input state - initialized with defaults, synced with URL via effect
 	let fromDateTime = $state('');
 	let toDateTime = $state('');
@@ -108,7 +108,7 @@
 	const applyFilters = () => {
 		isLoading = true;
 		isApplyingFilters = true;
-		const url = new URL($page.url);
+		const url = new URL(page.url);
 
 		// Check if parameters have changed
 		const currentFromDateTime = urlFromDateTime;
@@ -150,7 +150,7 @@
 		isApplyingFilters = true;
 		const now = new Date();
 		const from = new Date(now.getTime() - minutes * 60 * 1000);
-		const url = new URL($page.url);
+		const url = new URL(page.url);
 		url.searchParams.set('toDateTime', now.toISOString());
 		url.searchParams.set('fromDateTime', from.toISOString());
 		goto(url.toString(), { replaceState: false, noScroll: true }).then(() => {
@@ -161,7 +161,7 @@
 	// Pagination handlers
 	const handlePageChange = (newPage: number) => {
 		isApplyingFilters = true;
-		const url = new URL($page.url);
+		const url = new URL(page.url);
 		url.searchParams.set('offset', ((newPage - 1) * urlLimit).toString());
 		goto(url.toString(), { replaceState: false, noScroll: true }).then(() => {
 			isApplyingFilters = false;
@@ -173,7 +173,7 @@
 		if (isApplyingFilters) return;
 
 		isApplyingFilters = true;
-		const url = new URL($page.url);
+		const url = new URL(page.url);
 		url.searchParams.set('limit', limit);
 		url.searchParams.set('offset', '0'); // Reset to first page when changing limit
 		goto(url.toString(), { replaceState: false, noScroll: true }).then(() => {
@@ -187,7 +187,7 @@
 			refreshTimer = setInterval(() => {
 				// Update toDateTime to current time for live logs
 				isApplyingFilters = true;
-				const url = new URL($page.url);
+				const url = new URL(page.url);
 				url.searchParams.set('toDateTime', new Date().toISOString());
 				goto(url.toString(), { replaceState: true, noScroll: true }).then(() => {
 					isApplyingFilters = false;
@@ -456,6 +456,7 @@
 					<div class="text-sm" style="color: var(--ds-text-dim);">
 						{$t('logs.showing-logs', { values: { count: processedLogs.length } })}
 					</div>
+
 					<div class="text-sm" style="color: var(--ds-text-dim);">
 						{#if processedLogs.length > 0}
 							<RenderTimeAgo timestamp={processedLogs[0]?.timestamp} class="inline" />

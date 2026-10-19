@@ -3,7 +3,7 @@
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import { Dropdown, DropdownItem, Search } from 'flowbite-svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import type { GlobalState } from '#lib/state.svelte.js';
 	import { buildGlobalNavSearchParam } from '#lib/searchParamHelpers.js';
 	import { targetShouldShowVNC } from '#lib/vnc/vnc.js';
@@ -47,13 +47,18 @@
 		{@const subpage = [
 			'/configuration/edit',
 			targetShouldShowVNC(tag, globalState) ? '/configuration/vnc' : undefined
-		].includes($page.url.pathname)
-			? $page.url.pathname
+		].includes(page.url.pathname)
+			? page.url.pathname
 			: '/configuration/edit'}
+
 		{#if isSearched(search, tag.displayName)}
 			<DropdownItem
-				href={`${subpage}?${buildGlobalNavSearchParam(globalState, $page.url.search, 'tag', tag.identifier)}`}
-				class={`flex gap-2 p-1 hover:bg-[var(--ds-surface-2)] items-center rounded ${active ? 'text-[var(--ds-accent-strong)]' : 'text-[var(--ds-text-dim)] hover:text-[var(--ds-text)]'}`}
+				href={`${subpage}?${buildGlobalNavSearchParam(globalState, page.url.search, 'tag', tag.identifier)}`}
+				class={`flex gap-2 p-1 hover:bg-[var(--ds-surface-2)] items-center rounded ${
+					active
+						? 'text-[var(--ds-accent-strong)]'
+						: 'text-[var(--ds-text-dim)] hover:text-[var(--ds-text)]'
+				}`}
 				on:click={() => (open = false)}
 			>
 				<TagIcon size={'1rem'} class="min-w-4" />
@@ -70,13 +75,17 @@
 			targetShouldShowVNC(config, globalState) ? '/configuration/vnc' : undefined,
 			'/configuration/terminal',
 			'/configuration/logs'
-		].includes($page.url.pathname)
-			? $page.url.pathname
+		].includes(page.url.pathname)
+			? page.url.pathname
 			: '/configuration/configuration-details'}
 		{#if isSearched(search, config.displayName)}
 			<DropdownItem
-				href={`${subpage}?${buildGlobalNavSearchParam(globalState, $page.url.search, 'config', config.identifier)}`}
-				class={`flex gap-2 p-1 hover:bg-[var(--ds-surface-2)] items-center rounded ${active ? 'text-[var(--ds-accent-strong)]' : 'text-[var(--ds-text-dim)] hover:text-[var(--ds-text)]'}`}
+				href={`${subpage}?${buildGlobalNavSearchParam(globalState, page.url.search, 'config', config.identifier)}`}
+				class={`flex gap-2 p-1 hover:bg-[var(--ds-surface-2)] items-center rounded ${
+					active
+						? 'text-[var(--ds-accent-strong)]'
+						: 'text-[var(--ds-text-dim)] hover:text-[var(--ds-text)]'
+				}`}
 				on:click={() => (open = false)}
 			>
 				<FileCode size={'1rem'} class="min-w-4" />

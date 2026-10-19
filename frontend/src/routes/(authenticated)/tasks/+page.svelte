@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
-	import { page as pageStore } from '$app/stores';
+	import { page as pageStore } from '$app/state';
 	import type { PageData } from './$types';
 	import Page from '#lib/components/layout/Page.svelte';
 	import DataTable from '#lib/components/layout/DataTable.svelte';
@@ -36,6 +36,7 @@
 		const fresh = Object.values($taskStatus).filter(
 			(task) => !knownIds.has(task.id) && task.submitted_time > newestLoaded
 		);
+
 		return [...fresh, ...overlaid].sort((a, b) => (a.submitted_time < b.submitted_time ? 1 : -1));
 	});
 
@@ -53,7 +54,7 @@
 			{
 				label: $t('taskbar.details'),
 				icon: Eye,
-				href: `/tasks/${task.id}${$pageStore.url.search}`
+				href: `/tasks/${task.id}${pageStore.url.search}`
 			}
 		];
 		if (task.state === 'pending' || task.state === 'running') {
@@ -74,7 +75,7 @@
 	};
 
 	const goToPage = (newPage: number) => {
-		const params = new URLSearchParams($pageStore.url.searchParams);
+		const params = new URLSearchParams(pageStore.url.searchParams);
 		params.set('page', newPage.toString());
 		goto(`?${params.toString()}`, { noScroll: true, keepFocus: true });
 	};
@@ -139,9 +140,9 @@
 					<TaskbarName globalState={data.globalState} {task} />
 				</div>
 			</td>
-			<td>
-				<TaskbarStatus {task} showProgress={false} />
-			</td>
+
+			<td><TaskbarStatus {task} showProgress={false} /></td>
+
 			<td>
 				<RenderTimeAgo class="block" timestamp={task.submitted_time} minSeconds={1} />
 			</td>

@@ -6,7 +6,7 @@
 	import { invalidate } from '$app/navigation';
 	import SecretEditModal from '#lib/components/secrets/SecretEditModal.svelte';
 	import type { SecretProcessingType, SecretSettingType, SecretType, Setting } from '#lib/state.js';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import {
 		stringToEnvVars,
 		downloadSecretFile,
@@ -54,7 +54,7 @@
 	let isLoadingFile = $state(false);
 
 	// Access secrets from $page.data
-	let secrets = $derived($page.data?.secrets || {});
+	let secrets = $derived(page.data?.secrets || {});
 	let secret = $derived((value && secrets[value]) || null);
 	run(() => {
 		editedSecretType = secret?.type || 'single_line';
@@ -234,18 +234,14 @@
 		<button
 			class="ds-btn whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
 			onclick={openEditModal}
-			{disabled}
+			{disabled}>{$t('secrets.edit')}</button
 		>
-			{$t('secrets.edit')}
-		</button>
 	{:else}
 		<button
 			class="ds-btn ds-btn-primary whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
 			onclick={openCreateModal}
-			{disabled}
+			{disabled}>{$t('secrets.create')}</button
 		>
-			{$t('secrets.create')}
-		</button>
 	{/if}
 </div>
 
@@ -273,7 +269,7 @@
 		on:error={handleError}
 		on:download={downloadFile}
 		on:fileChange={handleFileChange}
-		on:addEnvVariable={addEnvVariable}
+		on:addEnvVariable
 		on:removeEnvVariable={(e) => removeEnvVariable(e.detail)}
 	/>
 {/if}

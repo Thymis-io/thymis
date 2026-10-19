@@ -4,7 +4,7 @@
 	import { Spinner } from 'flowbite-svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { configVNCPassword, targetShouldShowVNC } from '#lib/vnc/vnc.js';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { type DeploymentInfo } from '#lib/deploymentInfo.js';
 	import type { GlobalState } from '#lib/state.svelte.js';
 	import IdentifierLink from '#lib/IdentifierLink.svelte';
@@ -71,12 +71,7 @@
 
 		const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
 		const url = `${scheme}://${window.location.host}/api/vnc/${deploymentInfo.id}`;
-
-		const password = configVNCPassword(
-			config,
-			globalState,
-			$page.data.availableModules as Module[]
-		);
+		const password = configVNCPassword(config, globalState, page.data.availableModules as Module[]);
 
 		if (rfb) {
 			rfb.disconnect();
@@ -85,7 +80,7 @@
 		connected = false;
 		connectionFailed = false;
 
-		rfb = new RFB.default(div, url, { credentials: { password: password } });
+		rfb = new RFB.default(div, url, { credentials: { password } });
 		rfb.addEventListener('connect', () => {
 			connected = true;
 			connectionFailed = false;

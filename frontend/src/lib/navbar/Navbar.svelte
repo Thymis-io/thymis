@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import BookOpen from 'lucide-svelte/icons/book-open';
 	import Globe from 'lucide-svelte/icons/globe';
 	import Menu from 'lucide-svelte/icons/menu';
@@ -32,7 +32,7 @@
 	// Build a breadcrumb trail (parent section + leaf) from the current route so
 	// the top bar shows hierarchy instead of just repeating the page title.
 	let crumbs = $derived.by<Crumb[]>(() => {
-		const path = $page.url.pathname;
+		const path = page.url.pathname;
 		const sections: { prefix: string; label: string; href?: string }[] = [
 			{ prefix: '/overview', label: $t('nav.overview') },
 			{ prefix: '/configuration', label: $t('nav.configurations'), href: '/configuration/list' },
@@ -60,7 +60,7 @@
 		} else if (path.startsWith('/configuration/') && path !== '/configuration/list') {
 			// Config and tag detail pages share /configuration/*; the target type
 			// decides whether the root crumb points to Configs or Config-Tags.
-			const isTag = $page.url.searchParams.get('global-nav-target-type') === 'tag';
+			const isTag = page.url.searchParams.get('global-nav-target-type') === 'tag';
 			if (isTag) {
 				trail[0] = { label: $t('nav.tags'), href: '/tags' };
 			}
@@ -76,7 +76,7 @@
 			if (segs[2] === 'logs') trail.push({ label: $t('logs.title') });
 		} else if (path.startsWith('/tasks/')) {
 			const id = decodeURIComponent(path.split('/').filter(Boolean)[1] ?? '');
-			const taskData = ($page.data?.task as Task | undefined) ?? undefined;
+			const taskData = (page.data?.task as Task | undefined) ?? undefined;
 			if (taskData && globalState) {
 				trail.push({ label: id, task: taskData as TaskShort });
 			} else if (id) {
@@ -92,10 +92,8 @@
 		<button
 			class="ds-icon-btn ds-hamburger"
 			aria-label={$t('common.toggle-navigation')}
-			onclick={() => (drawerHidden = !drawerHidden)}
+			onclick={() => (drawerHidden = !drawerHidden)}><Menu size={18} /></button
 		>
-			<Menu size={18} />
-		</button>
 	{/if}
 
 	<nav class="breadcrumb" aria-label={$t('common.breadcrumb')}>
@@ -116,9 +114,7 @@
 	</nav>
 
 	{#if authenticated && globalState && nav}
-		<div class="search-wrap">
-			<GlobalSearch {globalState} {nav} />
-		</div>
+		<div class="search-wrap"><GlobalSearch {globalState} {nav} /></div>
 	{/if}
 
 	<div class="topbar-actions">

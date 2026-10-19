@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { t } from 'svelte-i18n';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { saveState, type Config, type Tag } from '#lib/state.js';
 	import { Tooltip } from 'flowbite-svelte';
 	import Search from 'lucide-svelte/icons/search';
@@ -100,10 +100,7 @@
 		<CreateButton
 			class="disabled:cursor-not-allowed disabled:opacity-50"
 			label={$t('configurations.create-new', {
-				values: {
-					configCount: configs.length,
-					configLimit: 5
-				}
+				values: { configCount: configs.length, configLimit: 5 }
 			})}
 			onclick={() => (newConfigModalOpen = true)}
 			disabled={configs.length >= 5}
@@ -178,12 +175,12 @@
 				</div>
 			</td>
 			{@const deviceCount = deviceCountForConfig(config.data.identifier)}
-			<td>
-				<span class="ds-count" class:empty={deviceCount === 0}>
-					<Server size={14} />
-					{deviceCount}
-				</span>
-			</td>
+			<td
+				><span class="ds-count" class:empty={deviceCount === 0}
+					><Server size={14} />{deviceCount}</span
+				></td
+			>
+
 			<td>
 				<RowActions>
 					<RowMenu
@@ -192,22 +189,12 @@
 							{
 								label: $t('configurations.actions.view-details'),
 								icon: Search,
-								href: `/configuration/configuration-details?${buildGlobalNavSearchParam(
-									data.globalState,
-									$page.url.search,
-									'config',
-									config.data.identifier
-								)}`
+								href: `/configuration/configuration-details?${buildGlobalNavSearchParam(data.globalState, page.url.search, 'config', config.data.identifier)}`
 							},
 							{
 								label: $t('nav.configure'),
 								icon: Sliders,
-								href: `/configuration/edit?${buildGlobalNavSearchParam(
-									data.globalState,
-									$page.url.search,
-									'config',
-									config.data.identifier
-								)}`
+								href: `/configuration/edit?${buildGlobalNavSearchParam(data.globalState, page.url.search, 'config', config.data.identifier)}`
 							},
 							{
 								label: $t('configurations.actions.delete'),

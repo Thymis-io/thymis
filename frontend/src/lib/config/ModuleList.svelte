@@ -8,7 +8,7 @@
 		type Tag
 	} from '#lib/state.js';
 	import { Modal, Tooltip } from 'flowbite-svelte';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import Pen from 'lucide-svelte/icons/pen';
 	import Plus from 'lucide-svelte/icons/plus';
 	import Trash from 'lucide-svelte/icons/trash';
@@ -43,15 +43,7 @@
 
 	const goToModule = async (module: Module | undefined) => {
 		await goto(
-			`/configuration/edit?${buildConfigSelectModuleSearchParam(
-				globalState,
-				$page.url.search,
-				nav.selectedTargetType,
-				nav.selectedTargetIdentifier,
-				contextType,
-				context?.identifier,
-				module
-			)}`
+			`/configuration/edit?${buildConfigSelectModuleSearchParam(globalState, page.url.search, nav.selectedTargetType, nav.selectedTargetIdentifier, contextType, context?.identifier, module)}`
 		);
 	};
 
@@ -89,6 +81,7 @@
 		addableModules.filter((m) => {
 			const q = moduleSearch.trim().toLowerCase();
 			if (!q) return true;
+
 			return (
 				m.displayName.toLowerCase().includes(q) || (m.description ?? '').toLowerCase().includes(q)
 			);
@@ -144,16 +137,15 @@
 			class="ds-icon-btn"
 			href="/configuration/edit?{buildConfigSelectModuleSearchParam(
 				globalState,
-				$page.url.search,
+				page.url.search,
 				contextType,
 				context?.identifier,
 				contextType,
 				context?.identifier,
 				nav.selectedModule
-			)}"
+			)}"><Pen size="18" /></a
 		>
-			<Pen size="18" />
-		</a>
+
 		<Tooltip type="auto">{$t('config.edit_tag_modules')}</Tooltip>
 	{/if}
 </div>
@@ -175,7 +167,7 @@
 				<a
 					href="/configuration/edit?{buildConfigSelectModuleSearchParam(
 						globalState,
-						$page.url.search,
+						page.url.search,
 						nav.selectedTargetType,
 						nav.selectedTarget?.identifier,
 						contextType,
@@ -189,9 +181,10 @@
 					<span class="truncate text-sm">{module.displayName}</span>
 				</a>
 				{#if canChangeModules && (nav.selectedTargetType !== 'config' || module.type !== 'thymis_controller.modules.thymis.ThymisDevice')}
-					<button class="ds-icon-btn self-center mr-1" onclick={() => (moduleToRemove = module)}>
-						<Trash size={18} />
-					</button>
+					<button class="ds-icon-btn self-center mr-1" onclick={() => (moduleToRemove = module)}
+						><Trash size={18} /></button
+					>
+
 					<Tooltip type="auto">{$t('config.remove_module')}</Tooltip>
 				{/if}
 			</div>
@@ -202,10 +195,9 @@
 			id="add-module"
 			class="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[var(--ds-border-strong)] p-2 text-sm font-medium text-[var(--ds-text-dim)] transition-colors hover:border-[var(--ds-accent)] hover:bg-[var(--ds-accent-dim)] hover:text-[var(--ds-accent-strong)]"
 			onclick={() => (addModuleModalOpen = true)}
+			><Plus size={16} />{$t('config.add_module')}</button
 		>
-			<Plus size={16} />
-			{$t('config.add_module')}
-		</button>
+
 		<Modal title={$t('config.add_module')} bind:open={addModuleModalOpen} outsideclose>
 			<div class="flex flex-col gap-3">
 				<div class="relative">
