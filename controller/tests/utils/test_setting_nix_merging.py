@@ -446,3 +446,85 @@ def test_empty_value_clears_the_tag_but_empty_element_fields_do_not(tmp_path):
     assert result["ipv4"] == [{"address": "10.0.0.2", "prefixLength": 24}]
     assert result["ipv6"] == [{"address": "fd00::2", "prefixLength": 64}]
     assert result["gateway"]["address"] == "10.0.0.1"
+
+
+def test_empty_element_list_in_configuration_clears_the_tag(tmp_path):
+    """A configuration that empties an element-identified list removes the
+    elements its tag contributes."""
+    tag = models.Tag(
+        displayName="Base",
+        identifier="base",
+        priority=TAG_PRIORITY,
+        modules=[
+            _networking(
+                {
+                    "static_networks": [
+                        {
+                            "interface": "ens3",
+                            "ipv4address": "10.0.0.2",
+                            "ipv4prefixLength": 24,
+                        }
+                    ]
+                }
+            )
+        ],
+    )
+    config = models.Config(
+        displayName="c1",
+        identifier="c1",
+        tags=["base"],
+        modules=[_networking({"static_networks": []})],
+    )
+    project = nix_fixture.render_project(tmp_path, tags=[tag], configs=[config])
+    try:
+        result = nix_fixture.eval_project(
+            project,
+            """
+            let cfg = flake.nixosConfigurations.c1.config; in {
+              interfaces = cfg.networking.interfaces;
+            }
+            """,
+        )
+    except nix_fixture.NixUnavailable as e:
+        pytest.skip(str(e))
+
+    assert result["interfaces"] == {}
+
+
+def test_empty_plain_list_in_configuration_clears_the_tag(tmp_path):
+    """The same for a list setting without element identity."""
+    localization = "thymis_controller.modules.localization.LocalizationModule"
+    tag = models.Tag(
+        displayName="Base",
+        identifier="base",
+        priority=TAG_PRIORITY,
+        modules=[
+            models.ModuleSettings(
+                type=localization,
+                settings={"time_servers": [{"server": "pool.ntp.org"}]},
+            )
+        ],
+    )
+    config = models.Config(
+        displayName="c1",
+        identifier="c1",
+        tags=["base"],
+        modules=[
+            models.ModuleSettings(type=localization, settings={"time_servers": []})
+        ],
+    )
+    project = nix_fixture.render_project(tmp_path, tags=[tag], configs=[config])
+    try:
+        result = nix_fixture.eval_project(
+            project,
+            """
+            let cfg = flake.nixosConfigurations.c1.config; in {
+              timeServers = cfg.networking.timeServers;
+            }
+            """,
+        )
+    except nix_fixture.NixUnavailable as e:
+        pytest.skip(str(e))
+
+    # nixpkgs ships its own default time servers; the tag's server must be gone
+    assert "pool.ntp.org" not in result["timeServers"]

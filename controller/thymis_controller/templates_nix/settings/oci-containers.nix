@@ -14,6 +14,11 @@ let
   # container is configured, so its presence means "the module instance exists".
   moduleEnabled = settings.isSet "oci-containers" "containers";
 
+  # `containers` is an attribute set of submodules: the priority has to sit on
+  # each container, not on the option as a whole, otherwise the definition
+  # would replace containers that other modules add to the same option.
+  containerPriority = settings.priority "oci-containers" "containers";
+
   # `environment` and `labels` are lists of `{ key, value }` settings, the
   # NixOS container options take them as attribute sets.
   entriesToAttrs = entries:
@@ -53,6 +58,7 @@ in
     settings.override "oci-containers" "containers" "podman";
 
   virtualisation.oci-containers.containers = lib.mkIf (containers != { })
-    (settings.override "oci-containers" "containers"
-      (lib.mapAttrs (name: container: containerConfig container) containers));
+    (lib.mapAttrs
+      (name: container: lib.mkOverride containerPriority (containerConfig container))
+      containers);
 }
