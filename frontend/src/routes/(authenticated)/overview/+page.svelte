@@ -84,13 +84,13 @@
 		const sp = new URLSearchParams(page.url.search);
 		sp.set('range', r);
 		sp.delete('hours');
-		goto(`?${sp.toString()}`, { replaceState: true, invalidateAll: true });
+		goto(`?${sp.toString()}`, { replace: true, refreshAll: true });
 	}
 	function setCustom(hours: number) {
 		const sp = new URLSearchParams(page.url.search);
 		sp.delete('range');
 		sp.set('hours', Math.round(hours).toString());
-		goto(`?${sp.toString()}`, { replaceState: true, invalidateAll: true });
+		goto(`?${sp.toString()}`, { replace: true, refreshAll: true });
 	}
 
 	let connTimewindow = $derived(range === '24h' ? '24h' : '7d') as '1h' | '24h' | '7d';

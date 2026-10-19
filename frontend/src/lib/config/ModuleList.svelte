@@ -175,7 +175,7 @@
 						module
 					)}"
 					class={`block px-2 py-1.5 w-full flex gap-2 items-center`}
-					data-sveltekit-noscroll
+					data-sveltekit-reset="false"
 				>
 					<ModuleIcon {module} />
 					<span class="truncate text-sm">{module.displayName}</span>
