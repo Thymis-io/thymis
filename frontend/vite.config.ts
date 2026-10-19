@@ -13,23 +13,14 @@ try {
 		(process.env.GIT_REV || '').search('dirty') != -1 ||
 		(!((process.env.GIT_REV || '').search('dirty') != -1) &&
 			execSync('git status --porcelain').toString().trim()) != '';
-} catch (e) {}
+} catch {
+	// not a git checkout (e.g. built from a source tarball)
+}
 
-/* empty */ const versionInfo = { version: pkg.version, headRev, dirty };
+const versionInfo = { version: pkg.version, headRev, dirty };
+const version = dirty ? `${headRev}-dirty-${Date.now().toString()}` : headRev;
 
 const target = ['es2024', 'chrome122', 'edge122', 'safari17', 'firefox127', 'opera108'];
-
-const headRev2 = process.env.GIT_REV || execSync('git rev-parse HEAD').toString().trim();
-let dirty2 = false;
-
-try {
-	dirty2 =
-		(process.env.GIT_REV || '').search('dirty') != -1 ||
-		(!((process.env.GIT_REV || '').search('dirty') != -1) &&
-			execSync('git status --porcelain').toString().trim()) != '';
-} catch (e) {}
-
-/* empty */ const version = dirty2 ? `${headRev2}-dirty-${Date.now().toString()}` : headRev2;
 
 console.log(`SvelteKit reloading version: ${version}`);
 

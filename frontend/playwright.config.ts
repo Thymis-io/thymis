@@ -9,13 +9,13 @@ if (process.env.THYMIS_DEV_SHELL) {
 	command = `uv run uvicorn thymis_controller.main:app --reload`;
 }
 
-const port = process.env.UVICORN_PORT || 8000;
+const port = Number(process.env.UVICORN_PORT || 8000);
 
-const runInShell = (cmd) => `sh -c '${cmd}'`;
+const runInShell = (cmd: string) => `sh -c '${cmd}'`;
 
-const withErrorHandling = (cmd) => `set -e; ( ${cmd} )`;
+const withErrorHandling = (cmd: string) => `set -e; ( ${cmd} )`;
 
-const withTempPathVar = (cmd) => `TMPDIR=$(mktemp -d) && ( ${cmd} ) && rm -rf $TMPDIR`;
+const withTempPathVar = (cmd: string) => `TMPDIR=$(mktemp -d) && ( ${cmd} ) && rm -rf $TMPDIR`;
 
 const withEnv = (env: Record<string, string>, cmd: string) =>
 	`export ${Object.entries(env)
@@ -25,7 +25,7 @@ const withEnv = (env: Record<string, string>, cmd: string) =>
 const withContentInFile = (content: string, file: string, cmd: string) =>
 	`echo '${content}' > ${file} && ${cmd}`;
 
-const commandFrame = (cmd) =>
+const commandFrame = (cmd: string) =>
 	runInShell(
 		withErrorHandling(
 			withTempPathVar(
