@@ -161,4 +161,6 @@ def test_priority_overridable_capability_is_exposed():
     # when the module opts in
     from thymis_controller.modules.security import SecurityAccessModule
 
-    assert not SecurityAccessModule().authorized_keys.get_model("en").priorityOverridable
+    assert (
+        not SecurityAccessModule().authorized_keys.get_model("en").priorityOverridable
+    )
