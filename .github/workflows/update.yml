@@ -44,25 +44,44 @@ jobs:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
           git fetch --all
-          USER_NAME=${{ steps.generate-token.outputs.app-slug }}[bot]
+          USER_NAME="${{ steps.generate-token.outputs.app-slug }}[bot]"
           USER_ID=$(gh api "/users/${USER_NAME}" --jq '.id')
           USER_EMAIL="${USER_ID}+${{ steps.generate-token.outputs.app-slug }}[bot]@users.noreply.github.com"
-          git config user.email $USER_EMAIL
-          git config user.name $USER_NAME
+          git config user.email "$USER_EMAIL"
+          git config user.name "$USER_NAME"
       - uses: ./.github/actions/snapshot-nix-store
 
       - name: Update flake lock on fixed branch
         id: update
+        env:
+          # commit whose tree contains this workflow file; always has the helper,
+          # unlike the checked-out base tree of an older supported branch
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
         run: |
           git switch -C "$BRANCH" # always restart from the base tip
           cp flake.lock /tmp/flake.lock.old
           nix flake update --commit-lock-file
+          # This step runs inside the checked-out base tree. Supported version
+          # branches can predate the helper (v0.9 has no .github/scripts at all),
+          # so resolve it from the workflow commit first, then the default branch.
+          SCRIPT=/tmp/changed_inputs.py
+          if [ -f .github/scripts/changed_inputs.py ]; then
+            cp .github/scripts/changed_inputs.py "$SCRIPT"
+          elif git show "${WORKFLOW_SHA:-HEAD}:.github/scripts/changed_inputs.py" > "$SCRIPT" 2>/dev/null; then
+            :
+          else
+            git show "origin/master:.github/scripts/changed_inputs.py" > "$SCRIPT"
+          fi
           if git diff --quiet "origin/$BASE" -- flake.lock; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "inputs=$(python3 .github/scripts/changed_inputs.py /tmp/flake.lock.old flake.lock)" >> "$GITHUB_OUTPUT"
-            echo "label=$(python3 .github/scripts/changed_inputs.py /tmp/flake.lock.old flake.lock --label)" >> "$GITHUB_OUTPUT"
+            INPUTS=$(python3 "$SCRIPT" /tmp/flake.lock.old flake.lock)
+            LABEL=$(python3 "$SCRIPT" /tmp/flake.lock.old flake.lock --label)
+            {
+              echo "inputs=$INPUTS"
+              echo "label=$LABEL"
+            } >> "$GITHUB_OUTPUT"
           fi
       - name: Upload new store paths to Nix cache
         if: always()
