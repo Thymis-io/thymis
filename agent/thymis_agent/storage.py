@@ -118,7 +118,7 @@ def find_agent_metadata() -> dict[str, Any] | None:
         f"{AGENT_METADATA_FILENAME}.old",  # legacy recovery
     )
     if not metadata_path:
-        logger.error("Agent metadata not found")
+        logger.warning("Agent metadata not found")
         return None
     logger.debug("Found agent metadata at %s", metadata_path)
     with open(metadata_path, "r", encoding="utf-8") as f:

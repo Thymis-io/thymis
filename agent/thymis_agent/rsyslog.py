@@ -2,7 +2,6 @@
 
 import asyncio
 import os
-import subprocess
 
 from thymis_agent import logger
 from thymis_agent.host_keys import detect_public_key
@@ -122,10 +121,6 @@ def schedule_rsyslog_reload_on_activation() -> None:
     os.makedirs("/run/nixos", exist_ok=True, mode=0o755)
     with open("/run/nixos/activation-reload-list", "a+", encoding="utf-8") as f:
         f.write("syslog.service\n")
-
-
-def reload_rsyslog_sync() -> None:
-    subprocess.run(["systemctl", "reload", "syslog.service"], check=False)
 
 
 async def reload_rsyslog() -> None:
