@@ -80,6 +80,7 @@ jobs:
       - name: Build thymis-frontend
         run: |
           cd thymis
+          set -o pipefail
           nix build .#thymis-frontend --print-build-logs --fallback --accept-flake-config 2>&1 | tee build.log
           sleep 1
       - name: Get Thymis App Token
