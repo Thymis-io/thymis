@@ -29,6 +29,7 @@ def test_validate_url_accepts_absolute_http_urls():
         "http://localhost:8000",
         "https://example.com/base/path?query=1",
         "http://[::1]:8080",
+        "file:///var/image.png",
         "",
     ):
         assert module_lib.validate_url(value) is None
@@ -41,7 +42,9 @@ def test_validate_url_rejects_non_urls():
         "https://",
         "https://example.com:99999",
         "https://exa mple.com",
-        42,
+        "file:/var/image.png",
+        "file://host/var/image.png",
+        "file:///",
     ):
         assert module_lib.validate_url(value) is not None
 
@@ -52,7 +55,7 @@ def test_invalid_setting_errors_reports_bad_controller_url():
     assert len(errors) == 1
     assert "config 'device'" in errors[0]
     assert "agent_controller_url" in errors[0]
-    assert "absolute http:// or https://" in errors[0]
+    assert "absolute http://, https:// or file:// URL" in errors[0]
 
 
 def test_invalid_setting_errors_allows_valid_and_empty_controller_urls():

@@ -18,7 +18,7 @@
 	import ConfigRenderer from './ConfigRenderer.svelte';
 	import ModuleIcon from './ModuleIcon.svelte';
 	import { toast } from '@zerodevx/svelte-toast';
-	import { isValidSettingValue } from './settingValidation';
+	import { settingValueError } from './settingValidation';
 	import type { Nav } from '../../routes/(authenticated)/+layout';
 	import type { GlobalState } from '#lib/state.svelte.js';
 	import type { Artifact } from '../../routes/(authenticated)/artifacts/[...rest]/+page';
@@ -48,8 +48,9 @@
 	}: Props = $props();
 
 	const setSetting = async (setting: Setting<SettingType>, key: string, value: any) => {
-		if (!isValidSettingValue(setting, value)) {
-			toast.push($t('config.invalid-url'));
+		const error = settingValueError(setting, value);
+		if (error) {
+			toast.push($t(error));
 			return;
 		}
 

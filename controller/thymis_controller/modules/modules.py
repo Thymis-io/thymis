@@ -1,5 +1,6 @@
 import logging
 import pathlib
+import re
 import typing
 from abc import ABC
 from dataclasses import dataclass
@@ -521,8 +522,14 @@ def validate_url(value: JsonValue) -> Optional[str]:
         hostname = parsed.hostname
     except ValueError:
         return "must be a valid URL"
+    if parsed.scheme == "file":
+        # urlparse treats `file:/path` like `file:///path`; require the literal
+        # empty authority followed by an absolute path.
+        if parsed.netloc or not re.match(r"file:///[^/\\]", value, re.IGNORECASE):
+            return "must be a file:// URL with an absolute path"
+        return None
     if parsed.scheme not in ("http", "https") or not hostname:
-        return "must be an absolute http:// or https:// URL"
+        return "must be an absolute http://, https:// or file:// URL"
     return None
 
 
