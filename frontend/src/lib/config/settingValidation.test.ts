@@ -26,6 +26,10 @@ describe('isValidUrl', () => {
 		expect(isValidUrl('https://example.com:99999')).toBe(false);
 		expect(isValidUrl('https://exa mple.com')).toBe(false);
 		expect(isValidUrl(42)).toBe(false);
+		expect(isValidUrl('http:/123')).toBe(false);
+		expect(isValidUrl('http:example.com')).toBe(false);
+		expect(isValidUrl('http:\\\\example.com')).toBe(false);
+		expect(isValidUrl('http:///path')).toBe(false);
 	});
 });
 
