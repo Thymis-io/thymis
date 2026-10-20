@@ -5,16 +5,24 @@ import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import rehypeSlug from 'rehype-slug';
 import relativeImages from 'mdsvex-relative-images';
-import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import rehypeAutolinkHeadings, {
+	type Options as RehypeAutolinkHeadingsOptions
+} from 'rehype-autolink-headings';
 import { fromHtmlIsomorphic } from 'hast-util-from-html-isomorphic';
 import { visit } from 'unist-util-visit';
 import devtoolsJson from 'vite-plugin-devtools-json';
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import type { Root } from 'mdast';
+import type { Plugin, Settings } from 'unified';
+import type { ElementContent } from 'hast';
 
-export const remarkExtractToc = (options) => {
-	return (tree, vFile) => {
+// mdsvex passes its own (legacy) VFile; only the fields used here are typed.
+type MdsvexVFile = { data: { fm?: Record<string, unknown> }; contents?: unknown };
+
+export const remarkExtractToc = () => {
+	return (tree: Root, vFile: MdsvexVFile) => {
 		if (!vFile.data) {
 			vFile.data = {};
 		}
@@ -25,17 +33,14 @@ export const remarkExtractToc = (options) => {
 
 		vFile.data.fm.toc = vFile.data.fm.toc || [];
 
-		let headings = [];
+		const headings: { level: number; text: string; id: unknown }[] = [];
 
 		tree.children.forEach((node) => {
 			if (node.type === 'heading') {
 				const heading = {
 					level: node.depth,
-					text: node.children.map((child) => child.value).join(''),
-					id:
-						node.data && node.data.hProperties && node.data.hProperties.id
-							? node.data.hProperties.id
-							: null
+					text: node.children.map((child) => ('value' in child ? child.value : '')).join(''),
+					id: (node.data as { hProperties?: { id?: unknown } } | undefined)?.hProperties?.id || null
 				};
 
 				headings.push(heading);
@@ -46,13 +51,13 @@ export const remarkExtractToc = (options) => {
 
 		// Now, recursively visit
 		// to get all links
-		let links = [];
+		const links: { href: string; text: string }[] = [];
 
 		visit(tree, 'link', (node) => {
 			// get all links in the document
 			links.push({
 				href: node.url,
-				text: node.children.map((child) => child.value).join('')
+				text: node.children.map((child) => ('value' in child ? child.value : '')).join('')
 			});
 		});
 
@@ -72,19 +77,21 @@ export default defineConfig({
 			preprocess: [
 				mdsvex({
 					extensions: ['.svx', '.md'],
-					remarkPlugins: [remarkExtractToc, relativeImages],
+					// mdsvex types plugins with the bare unified `Plugin` (Node -> Node), which does
+					// not overlap with current remark/rehype plugin signatures.
+					remarkPlugins: [remarkExtractToc as unknown as Plugin, relativeImages],
 					rehypePlugins: [
-						rehypeSlug,
+						rehypeSlug as unknown as Plugin,
 						[
-							rehypeAutolinkHeadings,
+							rehypeAutolinkHeadings as unknown as Plugin,
 							{
 								behavior: 'append',
 								headingProperties: { class: 'group' },
 								content: fromHtmlIsomorphic(
 									'<span class="fa-solid fa-link ml-3 lg:!hidden group-hover:!inline-block !text-black"></span>',
 									{ fragment: true }
-								).children
-							}
+								).children as ElementContent[]
+							} satisfies RehypeAutolinkHeadingsOptions as Settings
 						]
 					],
 					layout: {
@@ -103,11 +110,11 @@ export default defineConfig({
 								return `<div class="not-prose"><pre class="mermaid">${code}</pre></div>`;
 							}
 
-							if (_filename.includes('src/lib/docs') && !_filename.includes('SUMMARY.md')) {
+							if (_filename?.includes('src/lib/docs') && !_filename.includes('SUMMARY.md')) {
 								return result
 									.replace(
 										/^<pre/g,
-										`<Components.pre lang={"${lang}"} code={"${encodeURIComponent(code).replace(/\%([0-9A-F]{2})/g, '\\x$1')}"}`
+										`<Components.pre lang={"${lang}"} code={"${encodeURIComponent(code).replace(/%([0-9A-F]{2})/g, '\\x$1')}"}`
 									)
 									.replace(/pre>$/g, 'Components.pre>');
 							}

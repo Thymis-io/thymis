@@ -117,7 +117,7 @@ The built-in modules write their settings as `lib.mkOverride <priority>` definit
 setting path (`nix_attr_name`) and derive the NixOS configuration from the merged settings in
 a nix module, so that a setting of a tag, of a device configuration and of custom nix are
 merged field by field and the priority of the winning setting is kept. See
-[How Settings Reach the Device](../reference/concepts/module.md#how-settings-reach-the-device)
+[How Settings Reach the Device](../../reference/concepts/module.md#how-settings-reach-the-device)
 for that contract.
 
 Generating the configuration directly from python, as the example above does, is the fallback
