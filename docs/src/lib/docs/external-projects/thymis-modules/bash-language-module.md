@@ -14,11 +14,11 @@ The **Bash Language Module** for Thymis allows you to write and run bash scripts
 
 ## Module Settings
 
-| Setting | Type | Purpose |
-|---------|------|---------|
+| Setting                 | Type         | Purpose                                                  |
+| ----------------------- | ------------ | -------------------------------------------------------- |
 | **Timer Configuration** | SystemdTimer | Controls when the script runs (oneshot, recurring, etc.) |
-| **Required Packages** | List | System packages from nixpkgs to include in PATH |
-| **Bash Script** | Code | The bash script to execute |
+| **Required Packages**   | List         | System packages from nixpkgs to include in PATH          |
+| **Bash Script**         | Code         | The bash script to execute                               |
 
 ## Example: System Status Logger
 
@@ -109,7 +109,6 @@ fi
 BACKUP_SIZE=$(du -h "$BACKUP_DIR/$BACKUP_NAME" | cut -f1)
 echo "Backup size: $BACKUP_SIZE"
 ```
-
 
 ## Common Use Cases
 

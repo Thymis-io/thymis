@@ -3,6 +3,7 @@
 Run the Thymis Controller in a Docker/OCI container.
 
 Important:
+
 - The standard `latest` image builds for **x86_64** only.
 - To build Raspberry Pi / ARM (aarch64) images, you must use the **ARM64** container variant (`:latest-arm64`).
   - On x86 hosts, this requires QEMU user emulation (see below).
@@ -37,6 +38,7 @@ Login with the default user `admin` and the password at `/var/lib/thymis/auth-ba
 ## Persistent state
 
 Mount host storage to keep the repo, DB, images, and keys:
+
 - `-v /var/lib/thymis:/var/lib/thymis`
 
 Ensure the directory is writable by the container.
@@ -44,6 +46,7 @@ Ensure the directory is writable by the container.
 ## Configuration (env vars)
 
 NixOS module defaults do not apply in Docker, pass what you need explicitly:
+
 - THYMIS_BASE_URL: public URL for users/UI (e.g. `https://thymis.example.com`).
 - THYMIS_AGENT_ACCESS_URL: URL devices use to connect (often same as BASE_URL).
 - THYMIS_PROJECT_PATH: data dir in container (use `/var/lib/thymis`).
@@ -54,6 +57,7 @@ NixOS module defaults do not apply in Docker, pass what you need explicitly:
 - UVICORN_PORT: internal port (default 8000); map a host port accordingly.
 
 Example with basic auth:
+
 ```bash
 -e THYMIS_AUTH_BASIC=true \
 -e THYMIS_AUTH_BASIC_USERNAME=admin \
@@ -101,7 +105,7 @@ You can run the ARM container on an x86 machine using QEMU emulation.
      ghcr.io/thymis-io/thymis-controller:latest-arm64
    ```
 
-*Note: Emulated builds will be significantly slower than native builds.*
+_Note: Emulated builds will be significantly slower than native builds._
 
 ## Troubleshooting
 

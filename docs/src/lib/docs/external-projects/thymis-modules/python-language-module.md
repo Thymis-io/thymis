@@ -16,12 +16,12 @@ The **Python Language Module** for Thymis allows you to write and run Python cod
 
 ## Module Settings
 
-| Setting | Type | Purpose |
-|---------|------|---------|
+| Setting                 | Type         | Purpose                                                  |
+| ----------------------- | ------------ | -------------------------------------------------------- |
 | **Timer Configuration** | SystemdTimer | Controls when the script runs (oneshot, recurring, etc.) |
-| **Python Packages** | List | Python packages from `python3Packages` to include |
-| **System Packages** | List | System packages from nixpkgs to include in PATH |
-| **Python Script** | Code | The Python code to execute |
+| **Python Packages**     | List         | Python packages from `python3Packages` to include        |
+| **System Packages**     | List         | System packages from nixpkgs to include in PATH          |
+| **Python Script**       | Code         | The Python code to execute                               |
 
 ## Example: Temperature Logger
 

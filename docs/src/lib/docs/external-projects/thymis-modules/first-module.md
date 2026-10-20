@@ -17,8 +17,8 @@ my-thymis-project/
 
 File content:
 
-
 README.md:
+
 ```readme
 # Temperature Logger
 
@@ -26,6 +26,7 @@ This projects contains thymis modules
 ```
 
 flake.nix:
+
 ```nix
 {
   description = "";
@@ -37,6 +38,7 @@ flake.nix:
 ```
 
 temperature_logger.py:
+
 ```python
 from thymis_controller.modules.modules import Module, Setting, LocalizedString
 from thymis_controller.project import Project
@@ -109,7 +111,6 @@ This is not required but makes development much easier. Here we use `uv` to add 
 uv add git+ssh://git@github.com/Thymis-io/thymis#subdirectory=controller
 ```
 
-
 ## Where Should the Nix Configuration Come From?
 
 The built-in modules write their settings as `lib.mkOverride <priority>` definitions of a
@@ -123,7 +124,6 @@ Generating the configuration directly from python, as the example above does, is
 for settings whose nix representation is not a settings value (like a device type that selects
 which modules are imported): such a module writes the definition itself and applies
 `lib.mkOverride <priority>` to it.
-
 
 ## Part Breakdown
 

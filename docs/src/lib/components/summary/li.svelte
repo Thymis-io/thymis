@@ -1,6 +1,7 @@
 <script lang="ts">
-    let { children } = $props();
+	let { children } = $props();
 </script>
+
 <li class="space-y-1">
-    {@render children()}
+	{@render children()}
 </li>

@@ -63,7 +63,7 @@ device configuration or tag it belongs to, and the NixOS module system merges th
 - a setting a source does not configure is written with the module default and a
   `lib.mkOptionDefault` priority, so it never overrides a value another source configured
   explicitly;
-- a setting a source configures *is* written even when it is empty: setting a list or an
+- a setting a source configures _is_ written even when it is empty: setting a list or an
   attribute-set setting to empty in a device configuration clears the elements another
   source (e.g. a tag) contributes;
 - modules that set `settings_namespace` additionally publish the priority of every setting
@@ -97,7 +97,7 @@ controller writes into every project, so a derivation imports them relative to i
 nix code.
 
 List-valued options that other modules also contribute to (like `systemd.tmpfiles.rules`)
-must be written *without* `mkOverride`, because a priority on a list option drops the
+must be written _without_ `mkOverride`, because a priority on a list option drops the
 definitions of all other sources instead of merging with them; use `settings.value` for
 those.
 
@@ -277,6 +277,7 @@ device_settings = modules.Setting(
 The module system is implemented in the [controller/thymis_controller/modules/modules.py](https://github.com/Thymis-io/thymis/blob/master/controller/thymis_controller/modules/modules.py) file, which defines the base `Module` class and setting types.
 
 ## See Also:
+
 - [Device Configuration](configuration.md)
 - [Secrets](secrets.md)
 - [Artifacts](artifacts.md)
