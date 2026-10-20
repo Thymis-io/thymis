@@ -12,7 +12,7 @@ from thymis_agent.files import atomic_write, find_file
 from thymis_agent.storage import find_data_path
 
 
-def load_controller_public_key_into_root_authorized_keys():
+def load_controller_public_key_into_root_authorized_keys() -> None:
     controller_public_key_path = find_file(
         AGENT_DATA_PATHS, CONTROLLER_PUBLIC_KEY_FILENAME
     )

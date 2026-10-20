@@ -1,3 +1,49 @@
+import asyncio
+
+SYSTEM_PROFILE = "/nix/var/nix/profiles/system"
+SWITCH_UNIT = "thymis-nixos-rebuild-switch-to-configuration"
+ROLLBACK_UNIT = "thymis-nixos-rebuild-switch-to-configuration-rollback"
+
+
+def set_system_profile_args(config_path: str) -> list[str]:
+    return ["nix-env", "-p", SYSTEM_PROFILE, "--set", config_path]
+
+
+def switch_to_configuration_args(
+    config_path: str, unit: str, quiet: bool = False
+) -> list[str]:
+    return [
+        "systemd-run",
+        "-E",
+        "LOCALE_ARCHIVE",
+        "-E",
+        "NIXOS_INSTALL_BOOTLOADER=1",
+        "--collect",
+        "--no-ask-password",
+        "--pipe",
+        *(["--quiet"] if quiet else []),
+        "--service-type=exec",
+        f"--unit={unit}",
+        "--wait",
+        f"{config_path}/bin/switch-to-configuration",
+        "switch",
+    ]
+
+
+async def run_process(args: list[str]) -> tuple[int, bytes, bytes]:
+    """Run `args` to completion. Returns ``(returncode, stdout, stderr)``."""
+    proc = await asyncio.create_subprocess_exec(
+        args[0],
+        *args[1:],
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await proc.communicate()
+    # the process has exited, so this returns its exit code without waiting
+    returncode = await proc.wait()
+    return returncode, stdout, stderr
+
+
 def interpret_switch_result(returncode: int, stderr: str) -> tuple[bool, bool]:
     """Interpret a finished `switch-to-configuration switch`.
 

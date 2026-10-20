@@ -7,7 +7,7 @@ from thymis_agent.storage import update_token
 from thymis_agent.systemd import SystemdNotifier
 
 
-def get_pairing_code_arg():
+def get_pairing_code_arg() -> str | None:
     if "--pairing-code" in sys.argv:
         token_index = sys.argv.index("--pairing-code") + 1
         if token_index < len(sys.argv):
@@ -16,7 +16,7 @@ def get_pairing_code_arg():
 
 
 def enroll(
-    controller_host: str, code: str, nonce: str, notifier: "SystemdNotifier"
+    controller_host: str, code: str, nonce: str, notifier: SystemdNotifier
 ) -> tuple[str, str | None]:
     """A 404 is terminal; transport errors and 5xx back off and retry.
 
