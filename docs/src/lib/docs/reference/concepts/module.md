@@ -93,7 +93,7 @@ in
 The helpers (`settings`, `value`, `isSet`, `priority`, `priorityOf`, `used`,
 `lowestPriority`, `apply`, `override`, `overrideOf`) are in the `module-settings.nix` the
 controller writes into every project, so a derivation imports them relative to itself. See
-[Thymis Modules](../external-projects/thymis-modules.md) for how an external module ships its
+[Thymis Modules](../../external-projects/thymis-modules.md) for how an external module ships its
 nix code.
 
 List-valued options that other modules also contribute to (like `systemd.tmpfiles.rules`)
