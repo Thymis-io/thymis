@@ -1,3 +1,10 @@
+"""Secrets the controller deploys onto the device.
+
+They arrive in a `send_secrets` message, encrypted to the SSH host key, and
+are kept on disk to be placed again on every start. A freshly flashed image
+instead ships them encrypted to the agent token.
+"""
+
 import base64
 import json
 import os
@@ -9,10 +16,10 @@ from typing import cast
 from pydantic import ValidationError
 from pyrage import decrypt, passphrase, ssh
 from thymis_agent import logger
+from thymis_agent.host_keys import SSH_HOST_ED25519_KEY_PATH
 from thymis_agent.messages import RtESendSecretsMessage
 from thymis_agent.storage import find_data_path
 
-SSH_HOST_ED25519_KEY_PATH = "/etc/ssh/ssh_host_ed25519_key"
 ROOT_PASSWORD_HASH_PATH = "/run/thymis/root_password_hash"
 SECRETS_MESSAGE_FILENAME = "thymis-secrets-message.json"
 SECRETS_INITIAL_FILENAME = "thymis-secrets-initial.json"
@@ -29,10 +36,7 @@ def place_secret(
     """Decrypt base64 `secret` into `path` and apply ownership and mode."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as f:
-        decoded = base64.b64decode(secret)
-        # use rage to decrypt the secret
-        decrypted = decrypt_secret(decoded)
-        f.write(decrypted)
+        f.write(decrypt_secret(base64.b64decode(secret)))
 
     if owner and group:
         shutil.chown(path, owner, group)
@@ -50,8 +54,7 @@ def place_secret(
 
 
 def place_secrets_from_message(message: RtESendSecretsMessage) -> None:
-    """Place secrets encrypted to the SSH host key, then keep the message on
-    disk so they can be placed again on the next start."""
+    """Place the secrets, then keep the message to place them on next start."""
     with open(SSH_HOST_ED25519_KEY_PATH, "rb") as f:
         key = f.read()
     identity = ssh.Identity.from_buffer(key)
@@ -72,10 +75,9 @@ def place_secrets_from_message(message: RtESendSecretsMessage) -> None:
 
 
 def place_initial_secrets(secrets_path: pathlib.Path, token: str) -> None:
-    """Place the secrets the image was built with, encrypted to the token."""
+    """Place the secrets the image was built with."""
     with open(secrets_path, "r", encoding="utf-8") as f:
-        s_file = f.read()
-    s_data = json.loads(s_file)
+        s_data = json.loads(f.read())
     secrets_by_id = s_data["secrets"]
     for secret_info in s_data["secret_infos"]:
         place_secret(

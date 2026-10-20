@@ -1,3 +1,5 @@
+"""Forwarding the device's syslog to the controller via rsyslog's omhttp."""
+
 import asyncio
 import os
 import subprocess
@@ -7,37 +9,29 @@ from thymis_agent.host_keys import detect_public_key
 from thymis_agent.system_info import detect_hostname
 
 RSYSLOG_CONFIG_DIR = "/etc/rsyslog.d"
-RSYSLOG_CONFIG_PATH = "/etc/rsyslog.d/thymis.conf"
+RSYSLOG_CONFIG_PATH = f"{RSYSLOG_CONFIG_DIR}/thymis.conf"
 
 
 def parse_controller_host(controller_host: str) -> tuple[str, str, str, str]:
-    """Split the controller URL into rsyslog omhttp settings.
+    """Split the controller URL into omhttp settings.
 
     Returns ``(server, serverport, restpath, useHttps)``.
     """
-    controller_host_domain_and_maybe_port = controller_host.split("://")[1].split("/")[
-        0
-    ]
-    controller_host_domain = controller_host_domain_and_maybe_port.split(":")[0]
-    if ":" in controller_host_domain_and_maybe_port:
-        controller_host_port = controller_host_domain_and_maybe_port.split(":")[1]
+    is_https = controller_host.startswith("https")
+    authority, _, path = controller_host.split("://")[1].partition("/")
+    server = authority.split(":")[0]
+    if ":" in authority:
+        port = authority.split(":")[1]
     else:
-        controller_host_port = "443" if controller_host.startswith("https") else "80"
-    controller_host_path = controller_host.split("://")[1].partition("/")[2]
-    restpath = f"{controller_host_path}/agent/logs".lstrip("/")
-    use_https = "on" if controller_host.startswith("https") else "off"
-    return controller_host_domain, controller_host_port, restpath, use_https
+        port = "443" if is_https else "80"
+    restpath = f"{path}/agent/logs".lstrip("/")
+    return server, port, restpath, "on" if is_https else "off"
 
 
 def render_rsyslog_config(
     controller_host: str, token: str, public_key: str, hostname: str
 ) -> str:
-    (
-        controller_host_domain,
-        controller_host_port,
-        restpath,
-        use_https,
-    ) = parse_controller_host(controller_host)
+    server, port, restpath, use_https = parse_controller_host(controller_host)
     return f"""
             module(load="imuxsock")
             module(load="imklog")
@@ -63,8 +57,8 @@ def render_rsyslog_config(
                         "X-Thymis-Token: {token}",
                         "X-Thymis-Hostname: {hostname}"
                     ]
-                    server="{controller_host_domain}"
-                    serverport="{controller_host_port}"
+                    server="{server}"
+                    serverport="{port}"
                     restpath="{restpath}"
                     useHttps="{use_https}"
                     batch="on"
@@ -83,8 +77,8 @@ def render_rsyslog_config(
                         "X-Thymis-Token: {token}",
                         "X-Thymis-Hostname: {hostname}"
                     ]
-                    server="{controller_host_domain}"
-                    serverport="{controller_host_port}"
+                    server="{server}"
+                    serverport="{port}"
                     restpath="{restpath}"
                     useHttps="{use_https}"
                     batch="on"
@@ -101,7 +95,7 @@ def render_rsyslog_config(
             """
 
 
-def write_rsyslog_config(controller_host: str, token: str | None) -> bool:
+def write_rsyslog_config(controller_host: str, token: str) -> bool:
     """Write the rsyslog config. Returns True if the file changed."""
     if not token:
         return False

@@ -1,32 +1,27 @@
+"""What the agent reports about the device it runs on."""
+
 import datetime
-import os
 import socket
-from collections.abc import Iterator
 from datetime import timezone
 from typing import Any
 
 import psutil
 from thymis_agent import logger
-from thymis_agent.constants import HARDWARE_ID_FILE_PATHS
 from thymis_agent.messages import EtRMetricsMessage
+
+HARDWARE_ID_FILE_PATHS = {
+    "pi-serial-number": "/sys/firmware/devicetree/base/serial-number",
+    "dmi-board-serial": "/sys/class/dmi/id/board_serial",
+    "dmi-product-uuid": "/sys/class/dmi/id/product_uuid",
+}
 
 
 def detect_hostname() -> str:
     return socket.gethostname()
 
 
-def detect_build_hash() -> str:
-    store_path = os.readlink("/run/current-system")
-    return store_path[len("/nix/store/") :].split("-")[0]
-
-
 def detect_hardware_id() -> dict[str, str]:
-    """
-    Extracts hardware IDs from the system.
-
-    Returns:
-    dict: A dictionary containing the hardware IDs.
-    """
+    """The readable entries of `HARDWARE_ID_FILE_PATHS`, by name."""
 
     def extract_file_content(path: str) -> str | None:
         try:
@@ -85,21 +80,6 @@ def detect_network_interfaces() -> list[dict[str, Any]]:
         ),
         key=lambda x: x["interface"],
     )
-
-
-def detect_ip_addresses() -> list[str]:
-    def get_ip_addresses(family: socket.AddressFamily) -> Iterator[str]:
-        for interface, snics in psutil.net_if_addrs().items():
-            if interface == "lo":
-                continue
-            for snic in snics:
-                if snic.family == family:
-                    yield snic.address
-
-    ipv4s = set(get_ip_addresses(socket.AF_INET))
-    ipv6s = set(get_ip_addresses(socket.AF_INET6))
-
-    return [*ipv4s, *ipv6s]
 
 
 def init_metrics() -> None:

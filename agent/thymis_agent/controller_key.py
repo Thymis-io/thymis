@@ -1,15 +1,19 @@
+"""The controller's SSH public key, which root's authorized_keys must trust."""
+
 import os
 
 import requests
 from thymis_agent import logger
-from thymis_agent.constants import (
+from thymis_agent.storage import (
     AGENT_DATA_PATHS,
-    CONTROLLER_PUBLIC_KEY_FILENAME,
     DEFAULT_DATA_PATH,
-    ROOT_AUTHORIZED_KEYS_PATH,
+    atomic_write,
+    find_data_path,
+    find_file,
 )
-from thymis_agent.files import atomic_write, find_file
-from thymis_agent.storage import find_data_path
+
+CONTROLLER_PUBLIC_KEY_FILENAME = "thymis-controller-ssh-pubkey.txt"
+ROOT_AUTHORIZED_KEYS_PATH = "/root/.ssh/authorized_keys"
 
 
 def load_controller_public_key_into_root_authorized_keys() -> None:

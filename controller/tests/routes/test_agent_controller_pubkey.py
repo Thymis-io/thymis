@@ -3,7 +3,7 @@ import pathlib
 import pytest
 import requests
 from thymis_agent import controller_key, enrollment, storage, systemd
-from thymis_agent.constants import CONTROLLER_PUBLIC_KEY_FILENAME
+from thymis_agent.controller_key import CONTROLLER_PUBLIC_KEY_FILENAME
 
 PUBKEY = "ssh-ed25519 AAAAcontroller controller@thymis"
 OTHER_PUBKEY = "ssh-ed25519 AAAArotated controller@thymis"

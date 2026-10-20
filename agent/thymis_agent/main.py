@@ -7,64 +7,28 @@ import sys
 
 from thymis_agent import logger
 from thymis_agent.agent import Agent
-from thymis_agent.constants import DEFAULT_HOSTNAME
 from thymis_agent.controller_key import (
     load_controller_public_key_into_root_authorized_keys,
     refresh_controller_public_key,
-    store_controller_public_key,
 )
 from thymis_agent.device_secrets import place_stored_secrets
-from thymis_agent.enrollment import enroll, get_pairing_code_arg
-from thymis_agent.hostname import apply_hostname, read_hostname
+from thymis_agent.enrollment import enroll_with_pairing_code
+from thymis_agent.hostname import DEFAULT_HOSTNAME, apply_hostname, read_hostname
 from thymis_agent.rsyslog import (
     reload_rsyslog_sync,
     schedule_rsyslog_reload_on_activation,
     write_rsyslog_config,
 )
-from thymis_agent.storage import find_agent_metadata, find_agent_token, get_device_nonce
+from thymis_agent.storage import find_agent_metadata, find_agent_token
 from thymis_agent.systemd import SystemdNotifier
 
 
 def set_minimum_time(datetime_str: str) -> None:
+    """Never run with a clock older than the deployed configuration."""
     time = datetime.datetime.now()
     metadata_time = datetime.datetime.fromisoformat(datetime_str)
     if time < metadata_time:
         subprocess.run(["date", "-s", datetime_str])
-
-
-def place_secrets_on_start(
-    controller_host: str, token: str | None, just_place_secrets: bool
-) -> None:
-    # use message if there, if not
-    # try using thymis-secrets-initial.json and decrypting using token,
-    if token is not None:
-        changed = write_rsyslog_config(controller_host, token)
-        if changed:
-            logger.info("Rsyslog config changed, reloading")
-            if just_place_secrets:
-                schedule_rsyslog_reload_on_activation()
-            else:
-                reload_rsyslog_sync()
-
-    place_stored_secrets(token)
-
-
-def enroll_with_pairing_code(
-    controller_host: str, systemd_notifier: SystemdNotifier
-) -> str:
-    pairing_code = get_pairing_code_arg()
-    nonce = get_device_nonce()
-    if not (pairing_code and nonce):
-        logger.error(
-            "Agent token not found and no pairing code provided, cannot connect to controller"
-        )
-        sys.exit(1)
-    agent_token, controller_public_key = enroll(
-        controller_host, pairing_code, nonce, systemd_notifier
-    )
-    if controller_public_key:
-        store_controller_public_key(controller_public_key)
-    return agent_token
 
 
 def prepare_device(
@@ -76,19 +40,28 @@ def prepare_device(
 ) -> None:
     load_controller_public_key_into_root_authorized_keys()
     if manage_hostname:
-        # before place_secrets_on_start, so the rsyslog config gets the applied hostname
+        # before the rsyslog config is written, so it gets the applied hostname
         apply_hostname(read_hostname(default_hostname))
-    place_secrets_on_start(controller_host, token, just_place_secrets)
+    if token is not None and write_rsyslog_config(controller_host, token):
+        logger.info("Rsyslog config changed, reloading")
+        if just_place_secrets:
+            schedule_rsyslog_reload_on_activation()
+        else:
+            reload_rsyslog_sync()
+    place_stored_secrets(token)
 
 
 def main() -> None:
-    agent_metadata = find_agent_metadata()
+    """Prepare the device, then stay connected to the controller.
 
+    With `--just-place-secrets` (run during NixOS activation) only the device
+    is prepared.
+    """
+    agent_metadata = find_agent_metadata()
     if not agent_metadata:
         logging.error("Agent metadata not found, continuing without metadata")
 
     controller_host = os.getenv("CONTROLLER_HOST")
-
     if not controller_host:
         raise ValueError("CONTROLLER_HOST environment variable is required")
 

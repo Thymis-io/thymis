@@ -1,13 +1,15 @@
+"""The hostname the controller assigns to this device."""
+
 import os
+import pathlib
 import socket
 
 from thymis_agent import logger
-from thymis_agent.constants import (
-    DEFAULT_DATA_PATH,
-    DEVICE_HOSTNAME_FILENAME,
-    HOSTNAME_PATH,
-)
-from thymis_agent.files import atomic_write
+from thymis_agent.storage import DEFAULT_DATA_PATH, atomic_write
+
+DEVICE_HOSTNAME_FILENAME = "thymis-hostname.txt"
+HOSTNAME_PATH = pathlib.Path("/etc/hostname")
+DEFAULT_HOSTNAME = "thymis"
 
 
 def store_hostname(hostname: str | None) -> None:
@@ -25,8 +27,9 @@ def store_hostname(hostname: str | None) -> None:
 def read_hostname(default_hostname: str) -> str:
     """The stored device hostname, else the deployed default."""
     try:
-        device_hostname_path = DEFAULT_DATA_PATH / DEVICE_HOSTNAME_FILENAME
-        stored = device_hostname_path.read_text(encoding="utf-8")
+        stored = (DEFAULT_DATA_PATH / DEVICE_HOSTNAME_FILENAME).read_text(
+            encoding="utf-8"
+        )
     except FileNotFoundError:
         stored = ""
     except OSError as e:

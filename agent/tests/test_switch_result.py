@@ -7,7 +7,7 @@ exit 4 on an otherwise fully switched device.
 """
 
 import pytest
-from thymis_agent.switch import interpret_switch_result, switch_needs_reboot
+from thymis_agent.nixos_switch import interpret_switch_result, switch_needs_reboot
 
 ACTIVATED = """
 Running as unit: thymis-nixos-rebuild-switch-to-configuration.service

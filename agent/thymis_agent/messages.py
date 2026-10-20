@@ -1,25 +1,33 @@
+"""Messages exchanged between the agent and the controller's relay.
+
+`EtR*` messages go from the edge agent to the relay, `RtE*` the other way.
+"""
+
 import datetime
 import uuid
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Literal
 
 import http_network_relay.edge_agent as ea
 from pydantic import BaseModel, Field
 
 
-class AgentToRelayMessage(BaseModel):
-    # This is a custom message that the agent sends to the relay
-    inner: Union[
-        "EtRSwitchToNewConfigResultMessage",
-        "EtRMetricsMessage",
-        "EtRNetworkInterfacesMessage",
-    ] = Field(discriminator="kind")
+class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
+    token: str
+    hardware_ids: dict[str, str]
+    public_key: str
+    deployed_config_commit: str | None = None
+    deployed_config_id: str | None = None
+    ip_addresses: list[str] = []  # deprecated, used for backwards compatibility
+    network_interfaces: list[dict[str, Any]] = []
+    ram_bytes: int | None = None
+    last_error: str | None = None
 
 
 class EtRSwitchToNewConfigResultMessage(BaseModel):
     kind: Literal["switch_to_new_config_result"] = "switch_to_new_config_result"
     task_id: uuid.UUID
-    success: Optional[bool] = None  # in v3 dev
-    error: Optional[str] = None  # in v3 dev
+    success: bool | None = None  # in v3 dev
+    error: str | None = None  # in v3 dev
     configuration_id: str | None = None  # v3 final
     config_commit: str | None = None  # in v3 final
     is_activated: bool | None = None  # in v3 final
@@ -41,18 +49,15 @@ class EtRMetricsMessage(BaseModel):
 
 class EtRNetworkInterfacesMessage(BaseModel):
     kind: Literal["network_interfaces"] = "network_interfaces"
-    network_interfaces: List[Dict[str, Any]]
+    network_interfaces: list[dict[str, Any]]
 
 
-class RelayToAgentMessage(BaseModel):
-    # This is a custom message that the relay sends to the agent
-    inner: Union[
-        "RtEUpdatePublicKeyMessage",
-        "RtESwitchToNewConfigMessage",
-        "RtESuccesfullySSHConnectedMessage",
-        "RtESendSecretsMessage",
-        "RtEUpdateHostnameMessage",
-    ] = Field(discriminator="kind")
+class AgentToRelayMessage(BaseModel):
+    inner: (
+        EtRSwitchToNewConfigResultMessage
+        | EtRMetricsMessage
+        | EtRNetworkInterfacesMessage
+    ) = Field(discriminator="kind")
 
 
 class RtEUpdatePublicKeyMessage(BaseModel):
@@ -74,15 +79,15 @@ class RtESuccesfullySSHConnectedMessage(BaseModel):
 class SecretForDevice(BaseModel):
     secret_id: uuid.UUID
     path: str
-    owner: Optional[str]
-    group: Optional[str]
-    mode: Optional[str]
+    owner: str | None
+    group: str | None
+    mode: str | None
 
 
 class RtESendSecretsMessage(BaseModel):
     kind: Literal["send_secrets"] = "send_secrets"
-    secrets: Dict[uuid.UUID, str]
-    secret_infos: List[SecretForDevice]
+    secrets: dict[uuid.UUID, str]
+    secret_infos: list[SecretForDevice]
 
 
 class RtEUpdateHostnameMessage(BaseModel):
@@ -90,13 +95,11 @@ class RtEUpdateHostnameMessage(BaseModel):
     hostname: str | None = None
 
 
-class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
-    token: str
-    hardware_ids: Dict[str, str]
-    public_key: str
-    deployed_config_commit: Optional[str] = None
-    deployed_config_id: Optional[str] = None
-    ip_addresses: List[str] = []  # deprecated, used for backwards compatibility
-    network_interfaces: List[Dict[str, Any]] = []
-    ram_bytes: Optional[int] = None
-    last_error: Optional[str] = None
+class RelayToAgentMessage(BaseModel):
+    inner: (
+        RtEUpdatePublicKeyMessage
+        | RtESwitchToNewConfigMessage
+        | RtESuccesfullySSHConnectedMessage
+        | RtESendSecretsMessage
+        | RtEUpdateHostnameMessage
+    ) = Field(discriminator="kind")

@@ -594,7 +594,7 @@ def build_device_image_task(
             report_task_finished(task, conn, False, "Build failed")
             return
 
-        token = f"thymis-{secrets.token_hex(64)}"  # see agent/thymis_agent/constants.py `AGENT_TOKEN_EXPECTED_FORMAT =`
+        token = f"thymis-{secrets.token_hex(64)}"  # see agent/thymis_agent/storage.py `AGENT_TOKEN_EXPECTED_FORMAT =`
 
         conn.send(
             models_task.RunnerToControllerTaskUpdate(
