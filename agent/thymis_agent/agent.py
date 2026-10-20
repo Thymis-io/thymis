@@ -80,6 +80,7 @@ class Agent(ea.EdgeAgent):
         self.default_hostname = default_hostname
 
     async def async_main(self) -> NoReturn:
+        await self.update_rsyslog()
         asyncio.create_task(self.collect_and_send_metrics())
         asyncio.create_task(self.collect_and_send_network_interfaces())
         await super().async_main()
