@@ -3,8 +3,8 @@ import re
 import types
 
 import pytest
-import thymis_agent.agent as agent
 from sqlalchemy.exc import IntegrityError
+from thymis_agent import messages
 from thymis_controller import crud, db_models
 from thymis_controller.dependencies import get_db_session, get_project
 from thymis_controller.network_relay import NetworkRelay
@@ -29,8 +29,8 @@ def _controller_pubkey(test_client, token: str | None):
     return test_client.get("/agent/controller-ssh-pubkey", headers=headers)
 
 
-def _start_message(token: str) -> agent.EdgeAgentToRelayStartMessage:
-    return agent.EdgeAgentToRelayStartMessage(
+def _start_message(token: str) -> messages.EdgeAgentToRelayStartMessage:
+    return messages.EdgeAgentToRelayStartMessage(
         token=token, hardware_ids={}, public_key="ssh-ed25519 AAAA test"
     )
 

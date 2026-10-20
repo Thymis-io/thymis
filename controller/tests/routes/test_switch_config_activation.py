@@ -2,7 +2,7 @@ import asyncio
 import uuid
 from datetime import datetime, timezone
 
-import thymis_agent.agent as agent
+from thymis_agent import messages
 from thymis_controller import crud, models
 from thymis_controller.network_relay import NetworkRelay
 from thymis_controller.notifications import NotificationManager
@@ -66,8 +66,8 @@ def test_switch_activation_promotes_deployed_config_id_from_task(db_session):
 
     asyncio.run(
         relay.handle_custom_agent_message(
-            agent.AgentToRelayMessage(
-                inner=agent.EtRSwitchToNewConfigResultMessage(
+            messages.AgentToRelayMessage(
+                inner=messages.EtRSwitchToNewConfigResultMessage(
                     task_id=task.id,
                     switch_success=True,
                     is_activated=True,

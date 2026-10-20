@@ -5,7 +5,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from fastapi.responses import FileResponse, RedirectResponse
-from thymis_agent import agent
+from thymis_agent import messages
 from thymis_controller import crud, dependencies, models
 from thymis_controller.config import global_settings
 from thymis_controller.crud.agent_token import get_or_create_access_client_token
@@ -86,7 +86,7 @@ async def deploy(
                 ):
                     project.get_secret(db_session, uuid.UUID(secret))
                     secrets.append(
-                        agent.SecretForDevice(
+                        messages.SecretForDevice(
                             secret_id=secret,
                             path=secret_type.on_device_path,
                             owner=secret_type.on_device_owner,
@@ -148,7 +148,7 @@ def build_download_image(
             db_secret = project.get_secret(db_session, uuid.UUID(secret))
             if db_secret and db_secret.include_in_image and secret_type.on_device_path:
                 secrets.append(
-                    agent.SecretForDevice(
+                    messages.SecretForDevice(
                         secret_id=secret,
                         path=secret_type.on_device_path,
                         owner=secret_type.on_device_owner,
@@ -335,7 +335,7 @@ async def switch_config(
         for secret_type, secret in module.register_secret_settings(settings, project):
             project.get_secret(session, uuid.UUID(secret))
             secrets.append(
-                agent.SecretForDevice(
+                messages.SecretForDevice(
                     secret_id=secret,
                     path=secret_type.on_device_path,
                     owner=secret_type.on_device_owner,
@@ -429,7 +429,7 @@ async def auto_update(
                 ):
                     project.get_secret(db_session, uuid.UUID(secret))
                     secrets.append(
-                        agent.SecretForDevice(
+                        messages.SecretForDevice(
                             secret_id=secret,
                             path=secret_type.on_device_path,
                             owner=secret_type.on_device_owner,

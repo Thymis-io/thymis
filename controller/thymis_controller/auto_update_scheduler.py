@@ -25,7 +25,7 @@ from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Literal
 
 import sqlalchemy.orm
-from thymis_agent import agent
+from thymis_agent import messages
 from thymis_controller import crud, models
 from thymis_controller.config import global_settings
 
@@ -209,7 +209,7 @@ def _collect_devices(
             ):
                 project.get_secret(db_session, _uuid.UUID(secret))
                 secrets.append(
-                    agent.SecretForDevice(
+                    messages.SecretForDevice(
                         secret_id=secret,
                         path=secret_type.on_device_path,
                         owner=secret_type.on_device_owner,

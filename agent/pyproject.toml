@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [project.scripts]
-thymis-agent = "thymis_agent.agent:main"
+thymis-agent = "thymis_agent.main:main"
 
 [build-system]
 requires = ["setuptools>=67.7.2", "wheel>=0.40.0"]

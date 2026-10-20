@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Any, Optional, assert_never
 import http_network_relay.network_relay as nr
 import paramiko
 import sqlalchemy.orm
-import thymis_agent.agent as agent
 import thymis_controller.crud.agent_connection as crud_agent_connection
 import thymis_controller.crud.agent_token as crud_agent_token
 import thymis_controller.crud.deployment_info as crud_deployment_info
@@ -20,6 +19,7 @@ from fastapi import WebSocket
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from pyrage import ssh
+from thymis_agent import messages
 from thymis_controller import models
 from thymis_controller.config import global_settings
 
@@ -81,8 +81,8 @@ def verify_alive_with_ssh_host_key_and_connection_perms(
 
 
 class NetworkRelay(nr.NetworkRelay):
-    CustomAgentToRelayMessage = agent.AgentToRelayMessage
-    CustomAgentToRelayStartMessage = agent.EdgeAgentToRelayStartMessage
+    CustomAgentToRelayMessage = messages.AgentToRelayMessage
+    CustomAgentToRelayStartMessage = messages.EdgeAgentToRelayStartMessage
 
     def __init__(self, db_engine, notification_manager):
         super().__init__()
@@ -90,7 +90,7 @@ class NetworkRelay(nr.NetworkRelay):
         self.public_key_to_connection_id = {}
         self.connection_id_to_public_key = {}
         self.connection_id_to_start_message: dict[
-            str, agent.EdgeAgentToRelayStartMessage
+            str, messages.EdgeAgentToRelayStartMessage
         ] = {}
         self.task_controller: Optional["TaskController"] = None
         self.notification_manager: "NotificationManager" = notification_manager
@@ -116,15 +116,15 @@ class NetworkRelay(nr.NetworkRelay):
         self.connection_id_to_start_message.pop(connection_id, None)
 
     async def handle_custom_agent_message(
-        self, message: agent.AgentToRelayMessage, connection_id: str
+        self, message: messages.AgentToRelayMessage, connection_id: str
     ):
         match message.inner:
-            case agent.EtRSwitchToNewConfigResultMessage():
+            case messages.EtRSwitchToNewConfigResultMessage():
                 inner = message.inner
                 # compat: v3 dev to v3 final
                 if hasattr(inner, "success") and inner.success is not None:
                     # agent is old, update message to new format
-                    inner = agent.EtRSwitchToNewConfigResultMessage(
+                    inner = messages.EtRSwitchToNewConfigResultMessage(
                         switch_success=inner.success,
                         stdout="",
                         stderr=inner.error or "",
@@ -191,7 +191,7 @@ class NetworkRelay(nr.NetworkRelay):
                         )
                     ),
                 )
-            case agent.EtRMetricsMessage():
+            case messages.EtRMetricsMessage():
                 inner = message.inner
                 with sqlalchemy.orm.Session(self.db_engine) as db_session:
                     deployment_infos = crud_deployment_info.get_by_ssh_public_key(
@@ -213,7 +213,7 @@ class NetworkRelay(nr.NetworkRelay):
                                 for info in deployment_infos
                             ]
                         )
-            case agent.EtRNetworkInterfacesMessage():
+            case messages.EtRNetworkInterfacesMessage():
                 logger.info(
                     "Received network interfaces update from agent with public key %s: %s",
                     self.connection_id_to_public_key[connection_id],
@@ -282,7 +282,7 @@ class NetworkRelay(nr.NetworkRelay):
     async def get_agent_msg_loop_permission_and_create_connection_id(
         self, start_message: BaseModel, edge_agent_connection: WebSocket
     ) -> str | None:
-        if not isinstance(start_message, agent.EdgeAgentToRelayStartMessage):
+        if not isinstance(start_message, messages.EdgeAgentToRelayStartMessage):
             return None
         # check for valid token
         with sqlalchemy.orm.Session(self.db_engine) as db_session:
@@ -341,8 +341,8 @@ class NetworkRelay(nr.NetworkRelay):
                 await self.registered_agent_connections[
                     self.public_key_to_connection_id[start_message.public_key]
                 ].send_text(
-                    agent.RelayToAgentMessage(
-                        inner=agent.RtEUpdatePublicKeyMessage()
+                    messages.RelayToAgentMessage(
+                        inner=messages.RtEUpdatePublicKeyMessage()
                     ).model_dump_json()
                 )
                 # and close the connection
@@ -462,8 +462,8 @@ class NetworkRelay(nr.NetworkRelay):
                 ] = None
                 self.connection_id_to_public_key[connection_id] = None
                 await self.registered_agent_connections[connection_id].send_text(
-                    agent.RelayToAgentMessage(
-                        inner=agent.RtEUpdatePublicKeyMessage()
+                    messages.RelayToAgentMessage(
+                        inner=messages.RtEUpdatePublicKeyMessage()
                     ).model_dump_json()
                 )
                 return
@@ -546,7 +546,7 @@ class NetworkRelay(nr.NetworkRelay):
                         ):
                             secret_ids.append(uuid.UUID(secret))
                             secret_infos.append(
-                                agent.SecretForDevice(
+                                messages.SecretForDevice(
                                     secret_id=secret,
                                     path=secret_type.on_device_path,
                                     owner=secret_type.on_device_owner,
@@ -565,8 +565,8 @@ class NetworkRelay(nr.NetworkRelay):
                     )
 
                     await edge_agent_connection.send_text(
-                        agent.RelayToAgentMessage(
-                            inner=agent.RtESendSecretsMessage(
+                        messages.RelayToAgentMessage(
+                            inner=messages.RtESendSecretsMessage(
                                 secrets={
                                     k: base64.b64encode(v).decode("utf-8")
                                     for k, v in processed_secrets.items()
@@ -581,14 +581,14 @@ class NetworkRelay(nr.NetworkRelay):
 
                 hostname = sanitize_hostname(deployment_info.name)
                 await edge_agent_connection.send_text(
-                    agent.RelayToAgentMessage(
-                        inner=agent.RtEUpdateHostnameMessage(hostname=hostname)
+                    messages.RelayToAgentMessage(
+                        inner=messages.RtEUpdateHostnameMessage(hostname=hostname)
                     ).model_dump_json()
                 )
 
                 await edge_agent_connection.send_text(
-                    agent.RelayToAgentMessage(
-                        inner=agent.RtESuccesfullySSHConnectedMessage(
+                    messages.RelayToAgentMessage(
+                        inner=messages.RtESuccesfullySSHConnectedMessage(
                             deployment_info_id=deployment_info_id
                         )
                     ).model_dump_json()
