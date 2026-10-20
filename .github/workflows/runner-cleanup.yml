@@ -5,10 +5,6 @@ name: runner-cleanup
 # runner diagnostic logs older than 2 days, and temp files of this job.
 on:
   workflow_dispatch:
-    inputs:
-      parallel:
-        description: "How many cleanup jobs to queue (one per runner, ideally)"
-        default: "4"
 
 permissions:
   contents: read
