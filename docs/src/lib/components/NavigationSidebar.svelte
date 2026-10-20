@@ -6,7 +6,7 @@
 	import { writable } from 'svelte/store';
 	import { Index } from 'flexsearch';
 	import { afterNavigate } from '$app/navigation';
-	import { dev } from '$app/environment';
+	import { dev } from '$app/env';
 
 	interface Props {
 		onNavigate?: () => void;
@@ -54,6 +54,7 @@
 
 					// Pre-process and cache module data
 					const cleanContent = preprocessContent(fullContent);
+
 					const title =
 						module?.metadata?.toc?.[0]?.text ||
 						cleanPath
@@ -63,11 +64,7 @@
 							.replace(/\b\w/g, (l: string) => l.toUpperCase()) ||
 						cleanPath;
 
-					moduleCache.set(cleanPath, {
-						moduleData: module,
-						cleanContent,
-						title
-					});
+					moduleCache.set(cleanPath, { moduleData: module, cleanContent, title });
 				}
 			});
 		} else {
@@ -80,6 +77,7 @@
 
 					// Pre-process and cache module data
 					const cleanContent = preprocessContent(fullContent);
+
 					const title =
 						module?.metadata?.toc?.[0]?.text ||
 						path
@@ -89,11 +87,7 @@
 							.replace(/\b\w/g, (l: string) => l.toUpperCase()) ||
 						path;
 
-					moduleCache.set(path, {
-						moduleData: module,
-						cleanContent,
-						title
-					});
+					moduleCache.set(path, { moduleData: module, cleanContent, title });
 				}
 			});
 		}
@@ -139,12 +133,7 @@
 					resultPath = prefix ? `${prefix}/${idString}` : `/${idString}`;
 				}
 
-				return {
-					id: idString,
-					title: cached.title,
-					path: resultPath,
-					excerpt: excerpt
-				};
+				return { id: idString, title: cached.title, path: resultPath, excerpt };
 			})
 			.filter(
 				(result): result is { id: string; title: string; path: string; excerpt: string } =>
@@ -316,7 +305,7 @@
 		<i class="fas fa-random"></i> Random Page
 	</a>
 
-	<WordCountDistributionDocs {allModules} {randomValue}></WordCountDistributionDocs>
+	<WordCountDistributionDocs {allModules} {randomValue} />
 {/if}
 
 <nav class="summary-nav max-h-[calc(100vh-8rem)] overflow-y-auto pb-8">
