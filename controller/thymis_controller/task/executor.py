@@ -13,12 +13,12 @@ from multiprocessing.connection import Connection, Pipe
 from typing import TYPE_CHECKING, assert_never
 
 import sqlalchemy.orm
-import thymis_agent.agent as agent
 import thymis_controller.crud as crud
 import thymis_controller.crud.task as crud_task
 import thymis_controller.db_models as db_models
 import thymis_controller.models.task as models_task
 from pyrage import ssh
+from thymis_agent import messages
 from thymis_controller.notifier import Notifier
 from thymis_controller.task.worker import worker_run_task
 
@@ -322,8 +322,8 @@ class TaskWorkerPoolManager:
                                 )
                                 asyncio.run_coroutine_threadsafe(
                                     relay_con.send_text(
-                                        agent.RelayToAgentMessage(
-                                            inner=agent.RtESwitchToNewConfigMessage(
+                                        messages.RelayToAgentMessage(
+                                            inner=messages.RtESwitchToNewConfigMessage(
                                                 new_path_to_config=message.update.path_to_configuration,
                                                 configuration_id=message.update.configuration_id,
                                                 config_commit=message.update.config_commit,
@@ -365,8 +365,8 @@ class TaskWorkerPoolManager:
                                 ]
                                 asyncio.run_coroutine_threadsafe(
                                     relay_con.send_text(
-                                        agent.RelayToAgentMessage(
-                                            inner=agent.RtESendSecretsMessage(
+                                        messages.RelayToAgentMessage(
+                                            inner=messages.RtESendSecretsMessage(
                                                 secrets={
                                                     k: base64.b64encode(v).decode(
                                                         "utf-8"

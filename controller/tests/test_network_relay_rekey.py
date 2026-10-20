@@ -7,8 +7,8 @@ import types
 
 import http_network_relay.network_relay as nr
 import pytest
-import thymis_agent.agent as agent
 import thymis_controller.network_relay as network_relay
+from thymis_agent import messages
 from thymis_controller import crud, db_models
 from thymis_controller.network_relay import NetworkRelay
 from thymis_controller.notifications import NotificationManager
@@ -70,7 +70,7 @@ def relay(db_session, monkeypatch):
 
 
 def _start_message(token: str, hardware_ids: dict):
-    return agent.EdgeAgentToRelayStartMessage(
+    return messages.EdgeAgentToRelayStartMessage(
         token=token, hardware_ids=hardware_ids, public_key=PUBLIC_KEY
     )
 

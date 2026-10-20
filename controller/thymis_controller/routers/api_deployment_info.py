@@ -21,7 +21,7 @@ async def _send_hostname_update(
     deployment_info: db_models.DeploymentInfo,
 ):
     """Send the device-specific hostname to the connected agent for a deployment."""
-    import thymis_agent.agent as agent
+    from thymis_agent import messages
     from thymis_controller.lib import sanitize_hostname
 
     hostname = sanitize_hostname(deployment_info.name)
@@ -38,8 +38,8 @@ async def _send_hostname_update(
     if not ws:
         return
     await ws.send_text(
-        agent.RelayToAgentMessage(
-            inner=agent.RtEUpdateHostnameMessage(hostname=hostname)
+        messages.RelayToAgentMessage(
+            inner=messages.RtEUpdateHostnameMessage(hostname=hostname)
         ).model_dump_json()
     )
 

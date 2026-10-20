@@ -21,7 +21,7 @@ from typing import IO, AnyStr, List, assert_never
 
 import thymis_controller.models.task as models_task
 from pydantic import BaseModel
-from thymis_agent import agent
+from thymis_agent import messages
 from thymis_controller.config import global_settings
 from thymis_controller.nix import NIX_CMD, nix_subprocess_env
 from thymis_controller.nix.log_parse import NixParser
@@ -520,7 +520,7 @@ def deploy_devices_task(
 
 class SecretsDiskJson(BaseModel):
     secrets: dict[uuid.UUID, str]
-    secret_infos: list[agent.SecretForDevice]
+    secret_infos: list[messages.SecretForDevice]
 
 
 def build_device_image_task(
@@ -594,7 +594,7 @@ def build_device_image_task(
             report_task_finished(task, conn, False, "Build failed")
             return
 
-        token = f"thymis-{secrets.token_hex(64)}"  # see agent/thymis_agent/agent.py `AGENT_TOKEN_EXPECTED_FORMAT =`
+        token = f"thymis-{secrets.token_hex(64)}"  # see agent/thymis_agent/constants.py `AGENT_TOKEN_EXPECTED_FORMAT =`
 
         conn.send(
             models_task.RunnerToControllerTaskUpdate(

@@ -10,7 +10,7 @@ from pydantic import (
     ValidationError,
     field_serializer,
 )
-from thymis_agent import agent
+from thymis_agent import messages
 from thymis_controller.nix.log_parse import (
     NixTransferStatus,
     NixTransferSummary,
@@ -214,7 +214,7 @@ class DeployDeviceInformation(BaseModel):
     source_identifier: str | None = None
     deployment_info_id: uuid.UUID
     deployment_public_key: str
-    secrets: list[agent.SecretForDevice] = []
+    secrets: list[messages.SecretForDevice] = []
 
 
 class DeployDevicesTaskSubmission(BaseModel):
@@ -259,7 +259,7 @@ class BuildDeviceImageTaskSubmission(BaseModel):
     config_state: dict
     commit: str
     controller_ssh_pubkey: str
-    secrets: list[agent.SecretForDevice] = []
+    secrets: list[messages.SecretForDevice] = []
 
 
 class SSHCommandTaskSubmission(BaseModel):
@@ -392,7 +392,7 @@ class AgentShouldReceiveNewSecretsUpdate(BaseModel):
     type: Literal[
         "agent_should_receive_new_secrets"
     ] = "agent_should_receive_new_secrets"
-    secrets: list[agent.SecretForDevice]
+    secrets: list[messages.SecretForDevice]
     target_deployment_info_id: uuid.UUID
     target_recipient_ssh_pubkey: str
 
