@@ -28,7 +28,6 @@ The editor accepts a **complete NixOS module** in the usual function/attribute s
 }
 ```
 
-
 This is the recommended way of using the Nix language module, since it matches the standard NixOS module structure used in `configuration.nix` and flake-based systems.
 
 ## Legacy style: only the module body

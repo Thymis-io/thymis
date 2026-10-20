@@ -19,11 +19,11 @@ The Auto-Update task shows as **Completed** only once all device deploys have fi
 
 ### Frequency
 
-| Frequency | Description |
-|---|---|
-| **Daily** | Fires on the selected days of the week at the configured time. Select one or more days. |
-| **Weekly** | Fires once per week on a single selected day at the configured time. |
-| **Monthly** | Fires on a specific day of the month (1–28) at the configured time. |
+| Frequency                | Description                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ |
+| **Daily**                | Fires on the selected days of the week at the configured time. Select one or more days.                |
+| **Weekly**               | Fires once per week on a single selected day at the configured time.                                   |
+| **Monthly**              | Fires on a specific day of the month (1–28) at the configured time.                                    |
 | **Monthly (by weekday)** | Fires on the *n*th occurrence of a specific weekday in the month (e.g. "first Monday", "last Friday"). |
 
 ### Default schedule

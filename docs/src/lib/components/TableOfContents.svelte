@@ -34,10 +34,12 @@
 
 	// Function to determine which section is currently active
 	const updateActiveSection = () => {
-		const sections = tocItems.map((item: any) => {
-			const element = document.getElementById(item.id);
-			return element ? { id: item.id, element } : null;
-		}).filter(Boolean);
+		const sections = tocItems
+			.map((item: any) => {
+				const element = document.getElementById(item.id);
+				return element ? { id: item.id, element } : null;
+			})
+			.filter(Boolean);
 
 		if (sections.length === 0) return;
 
@@ -84,7 +86,6 @@
 	};
 
 	onMount(() => {
-
 		// Initial update
 		updateActiveSection();
 
@@ -107,16 +108,17 @@
 			}
 		};
 
-	// Listen for hash changes (when clicking TOC links)
-	const handleHashChange = () => {
-		// Get the hash and immediately set it as active
-		const hash = window.location.hash.slice(1); // Remove the #
-		if (hash && tocItems.some((item: any) => item.id === hash)) {
-			activeId = hash;
-		}
-		// Also schedule an update after scroll completes to handle any edge cases
-		setTimeout(updateActiveSection, 150);
-	};		window.addEventListener('scroll', handleScroll);
+		// Listen for hash changes (when clicking TOC links)
+		const handleHashChange = () => {
+			// Get the hash and immediately set it as active
+			const hash = window.location.hash.slice(1); // Remove the #
+			if (hash && tocItems.some((item: any) => item.id === hash)) {
+				activeId = hash;
+			}
+			// Also schedule an update after scroll completes to handle any edge cases
+			setTimeout(updateActiveSection, 150);
+		};
+		window.addEventListener('scroll', handleScroll);
 		window.addEventListener('hashchange', handleHashChange);
 
 		return () => {
@@ -127,7 +129,7 @@
 </script>
 
 <div class="sticky top-8">
-	<h3 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-900">On this page</h3>
+	<h3 class="mb-4 text-sm font-semibold tracking-wide text-gray-900 uppercase">On this page</h3>
 
 	{#if tocItems.length > 0}
 		<nav>
@@ -136,7 +138,7 @@
 					<li>
 						<a
 							href="#{item.id}"
-							class="block py-1 transition-all duration-200 border-l-2"
+							class="block border-l-2 py-1 transition-all duration-200"
 							class:font-medium={item.level === 1}
 							class:pl-2={item.level === 1 && activeId === item.id}
 							class:pl-0={item.level === 1 && activeId !== item.id}

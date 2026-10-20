@@ -65,7 +65,6 @@ Thymis automatically rolls back if:
 - The device fails during the switch phase and can’t reconnect
 - The connection to the controller fails before activation completes
 
-
 ## Task Management
 
 Deployment creates two levels of tasks:

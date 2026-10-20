@@ -66,16 +66,19 @@ You can use API keys to add a private repositories.
 This is supported by Github, Gitlab and should also work with arbitrary Git servers via the `Bearer <api-key>` header.
 
 GitHub Legacy Tokens:
+
 - Go to your [GitHub Settings](https://github.com/settings/profile)
 - Navigate to Developer Settings -> Personal Access Tokens -> Tokens (classic)
 - Generate new token with at least the `repo` scope
 
 GitHub Fine-Grained Tokens:
+
 - Go to your [GitHub Settings](https://github.com/settings/profile)
 - Navigate to Developer Settings -> Personal Access Tokens -> Fine-grained tokens
 - Generate new token with at least the `Contents: Read` permission for the repository
 
 GitLab Access Tokens:
+
 - Go to your [GitLab User Settings](https://gitlab.com/-/user_settings/profile)
 - Navigate to Access Tokens
 - Generate new token with at least the `read_repository` scope

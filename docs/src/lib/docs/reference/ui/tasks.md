@@ -28,6 +28,7 @@ Thymis provides a **task system** to track long-running operations such as build
 ## Task Details
 
 Opening a task shows more information such as:
+
 - Submission Data: all information used to process the task
 - Process: the command that was executed and its arguments
 - Downloads and transfers: progress of fetching store paths from caches and copying them to the target device, summed over all processes of the task

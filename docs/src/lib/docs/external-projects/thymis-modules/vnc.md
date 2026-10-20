@@ -14,6 +14,7 @@ The simplest way to enable VNC is by using the built-in Kiosk module:
 3. **Deploy the configuration** to your devices
 
 Once deployed, you can access VNC through:
+
 - The **VNC tab** in the device configuration page
 - Live view of the device's screen
 - Remote control by checking **Control Device**
@@ -23,6 +24,7 @@ Once deployed, you can access VNC through:
 ### Detection Logic
 
 Thymis automatically shows VNC controls when:
+
 - A module type contains "vnc" (case-insensitive)
 - The Kiosk module is enabled with VNC
 - A custom module has "vnc" in its JSON configuration

@@ -31,6 +31,7 @@ When integrating with an application, you reference a secret by specifying the p
 ## Device Images
 
 Secrets can be included in device images during the initial deployment. When a secret is included in a device image:
+
 - It's encrypted with a symmetric key during the image creation
 - After deployment to a device, the secret is re-encrypted with the device's public key
 - This ensures that secrets remain secure even in static device images
@@ -50,11 +51,13 @@ Secrets can be managed through the Secrets page in the Thymis UI or created dire
 ## Troubleshooting
 
 For advanced troubleshooting, you can use the terminal to verify secret deployment:
+
 - Check if secrets are properly decrypted at their specified paths using `cat /run/your-secret-path`
 - Verify permissions and ownership of secret files
 - Monitor system logs for any secret-related errors
 
 ## See also
+
 - [Deploying Secrets to devices](../../device-lifecycle/secrets.md)
 - [Creating Your First Thymis Module](../../external-projects/thymis-modules/first-module.md)
 - [Accessing the Terminal](../../device-lifecycle/ssh-terminal.md)

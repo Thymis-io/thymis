@@ -17,7 +17,7 @@
 
 <div class="group relative">
 	<button
-		class="pointer-events-auto absolute right-2 top-2 z-10 flex cursor-pointer items-center gap-2 rounded border border-gray-200 bg-white/80 px-3 py-2 text-sm text-gray-500 opacity-0 shadow-sm transition hover:bg-white/90 focus:opacity-100 active:bg-white group-hover:opacity-100"
+		class="pointer-events-auto absolute top-2 right-2 z-10 flex cursor-pointer items-center gap-2 rounded border border-gray-200 bg-white/80 px-3 py-2 text-sm text-gray-500 opacity-0 shadow-sm transition group-hover:opacity-100 hover:bg-white/90 focus:opacity-100 active:bg-white"
 		style="backdrop-filter: blur(1px);"
 		onclick={copyCode}
 		aria-label="Copy code"

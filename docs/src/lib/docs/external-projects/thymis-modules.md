@@ -112,7 +112,7 @@ class MyModule(thymis_controller.modules.Module):
 
 The controller writes every setting as `lib.mkOverride <priority>` definitions and publishes
 the priority of each setting as `thymis.config._priority.<namespace>.<name>`, so the module
-derives its NixOS configuration from the *merged* settings and keeps the priority:
+derives its NixOS configuration from the _merged_ settings and keeps the priority:
 
 ```python
     # the nix code that derives the configuration from the merged settings; the
@@ -150,7 +150,7 @@ Two things to keep in mind:
   and a title) should use `settings.overrideOf`/`settings.lowestPriority`, so it carries the
   lowest priority of the settings it comes from.
 - A list option that other modules contribute to as well (`systemd.tmpfiles.rules`, firewall
-  ports, authorized keys) must be written *without* `lib.mkOverride`, because a priority on
+  ports, authorized keys) must be written _without_ `lib.mkOverride`, because a priority on
   a list option replaces the definitions of all other sources instead of merging with them.
 
 ## See also

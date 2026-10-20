@@ -1,6 +1,7 @@
 <script lang="ts">
-    let { children } = $props();
+	let { children } = $props();
 </script>
-<ul class="space-y-1 list-none pl-0 [&_ul]:ml-4 [&_ul]:mt-2">
-    {@render children()}
+
+<ul class="list-none space-y-1 pl-0 [&_ul]:mt-2 [&_ul]:ml-4">
+	{@render children()}
 </ul>
