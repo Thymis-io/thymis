@@ -1,10 +1,11 @@
 import os
 import pathlib
+from collections.abc import Iterable
 
 from thymis_agent import logger
 
 
-def find_file(paths, filename):
+def find_file(paths: Iterable[pathlib.Path], filename: str) -> pathlib.Path | None:
     for path in paths:
         file_path = path / filename
         if os.path.exists(file_path):
@@ -12,7 +13,9 @@ def find_file(paths, filename):
     return None
 
 
-def find_file_multiple_names(paths, filenames):
+def find_file_multiple_names(
+    paths: Iterable[pathlib.Path], filenames: Iterable[str]
+) -> pathlib.Path | None:
     for path in paths:
         for filename in filenames:
             file_path = path / filename
@@ -21,7 +24,7 @@ def find_file_multiple_names(paths, filenames):
     return None
 
 
-def atomic_write(path, data: str, mode: int = 0o600):
+def atomic_write(path: str | os.PathLike[str], data: str, mode: int = 0o600) -> None:
     """Durably replace `path` with `data`, forcing its permissions to `mode`.
 
     rename(2) atomically replaces the destination, so the readable path never

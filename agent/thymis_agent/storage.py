@@ -1,6 +1,8 @@
 import json
 import os
+import pathlib
 import secrets
+from typing import Any, cast
 
 from thymis_agent import logger
 from thymis_agent.constants import (
@@ -12,7 +14,7 @@ from thymis_agent.constants import (
 from thymis_agent.files import atomic_write, find_file, find_file_multiple_names
 
 
-def find_agent_token():
+def find_agent_token() -> str | None:
     token_path = find_file(AGENT_DATA_PATHS, AGENT_TOKEN_FILENAME)
     if token_path:
         with open(token_path, "r", encoding="utf-8") as f:
@@ -41,7 +43,7 @@ def get_device_nonce() -> str:
     return nonce
 
 
-def find_data_path():
+def find_data_path() -> pathlib.Path | None:
     # find the first path in AGENT_DATA_PATHS that exists and contains the token
     token_path = find_file(AGENT_DATA_PATHS, AGENT_TOKEN_FILENAME)
     if token_path:
@@ -49,7 +51,7 @@ def find_data_path():
     return None
 
 
-def find_agent_metadata():
+def find_agent_metadata() -> dict[str, Any] | None:
     val = None
     logger.debug("Looking for agent metadata in %s", AGENT_DATA_PATHS)
     metadata_path = find_file_multiple_names(
@@ -71,8 +73,9 @@ def find_agent_metadata():
     if not isinstance(val, dict):
         logger.error("Agent metadata is not a dict")
         val = {}
+    metadata = cast(dict[str, Any], val)
     # then, populate missing keys
     for key in ["configuration_id", "configuration_commit", "datetime"]:
-        val.setdefault(key, None)
+        metadata.setdefault(key, None)
 
-    return val
+    return metadata
