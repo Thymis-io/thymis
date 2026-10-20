@@ -1,9 +1,12 @@
+"""Exchanging a one-time pairing code for the agent token."""
+
 import sys
 import time
 
 import requests
 from thymis_agent import logger
-from thymis_agent.storage import update_token
+from thymis_agent.controller_key import store_controller_public_key
+from thymis_agent.storage import get_device_nonce, update_token
 from thymis_agent.systemd import SystemdNotifier
 
 
@@ -71,3 +74,20 @@ def enroll(
         update_token(token)
         logger.info("Enrollment successful")
         return token, controller_ssh_pubkey
+
+
+def enroll_with_pairing_code(controller_host: str, notifier: SystemdNotifier) -> str:
+    """Enroll using `--pairing-code`; exits when there is none."""
+    pairing_code = get_pairing_code_arg()
+    nonce = get_device_nonce()
+    if not (pairing_code and nonce):
+        logger.error(
+            "Agent token not found and no pairing code provided, cannot connect to controller"
+        )
+        sys.exit(1)
+    token, controller_public_key = enroll(
+        controller_host, pairing_code, nonce, notifier
+    )
+    if controller_public_key:
+        store_controller_public_key(controller_public_key)
+    return token

@@ -1,8 +1,17 @@
-import asyncio
+"""Switching the device to a new NixOS system configuration."""
 
+import asyncio
+import os
+
+CURRENT_SYSTEM_PATH = "/run/current-system"
 SYSTEM_PROFILE = "/nix/var/nix/profiles/system"
 SWITCH_UNIT = "thymis-nixos-rebuild-switch-to-configuration"
 ROLLBACK_UNIT = "thymis-nixos-rebuild-switch-to-configuration-rollback"
+
+
+def read_current_system() -> str:
+    """The store path of the running system configuration."""
+    return os.readlink(CURRENT_SYSTEM_PATH)
 
 
 def set_system_profile_args(config_path: str) -> list[str]:

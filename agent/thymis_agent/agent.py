@@ -1,5 +1,4 @@
 import asyncio
-import json
 import os
 import subprocess
 from typing import Any, NoReturn, cast
@@ -7,15 +6,14 @@ from typing import Any, NoReturn, cast
 import http_network_relay.edge_agent as ea
 from pydantic import BaseModel
 from thymis_agent import logger
-from thymis_agent.constants import (
-    AGENT_DATA_PATHS,
-    AGENT_METADATA_FILENAME,
-    DEFAULT_HOSTNAME,
-)
 from thymis_agent.device_secrets import place_secrets_from_message
-from thymis_agent.files import atomic_write, find_file
 from thymis_agent.host_keys import detect_public_key, rotate_host_keys
-from thymis_agent.hostname import apply_hostname, read_hostname, store_hostname
+from thymis_agent.hostname import (
+    DEFAULT_HOSTNAME,
+    apply_hostname,
+    read_hostname,
+    store_hostname,
+)
 from thymis_agent.messages import (
     AgentToRelayMessage,
     EdgeAgentToRelayStartMessage,
@@ -28,16 +26,18 @@ from thymis_agent.messages import (
     RtEUpdateHostnameMessage,
     RtEUpdatePublicKeyMessage,
 )
-from thymis_agent.rsyslog import reload_rsyslog, write_rsyslog_config
-from thymis_agent.switch import (
+from thymis_agent.nixos_switch import (
     ROLLBACK_UNIT,
     SWITCH_UNIT,
     interpret_switch_result,
+    read_current_system,
     run_process,
     set_system_profile_args,
     switch_needs_reboot,
     switch_to_configuration_args,
 )
+from thymis_agent.rsyslog import reload_rsyslog, write_rsyslog_config
+from thymis_agent.storage import update_agent_metadata
 from thymis_agent.system_info import (
     collect_metrics,
     detect_hardware_id,
@@ -73,9 +73,7 @@ class Agent(ea.EdgeAgent):
         )
         self.controller_host = controller_host
         self.token = token
-        if not agent_metadata:
-            agent_metadata = {}
-        self.agent_metadata = agent_metadata
+        self.agent_metadata = agent_metadata or {}
         self.signal_ssh_connected = asyncio.Event()
         self.systemd_notifier = systemd_notifier
         self.manage_hostname = manage_hostname
@@ -138,8 +136,10 @@ class Agent(ea.EdgeAgent):
         )
 
     async def switch_to_new_config(self, message: RtESwitchToNewConfigMessage) -> None:
+        """Switch to the new configuration, then report the result once the
+        agent has reconnected from it, rolling back if it cannot."""
         new_path_to_config = message.new_path_to_config
-        current_config = os.readlink("/run/current-system")
+        current_config = read_current_system()
         logger.info("Switching to new configuration: %s", new_path_to_config)
         args = set_system_profile_args(new_path_to_config)
         returncode, stdout, stderr = await run_process(args)
@@ -224,7 +224,6 @@ class Agent(ea.EdgeAgent):
             logger.error("Timeout waiting for connection, rolling back")
             await self.rollback_and_send_result(message, current_config, stdout, stderr)
             return
-        # we are now reconnected
         await self.send_switch_result(
             message,
             is_activated=is_activated,
@@ -233,9 +232,8 @@ class Agent(ea.EdgeAgent):
             stdout=stdout.decode(),
             stderr=stderr.decode(),
         )
-        # wait a few seconds
         await asyncio.sleep(2)
-        # restart agent using systemd
+        # pick up the agent from the new configuration
         os.system("systemctl restart thymis-agent")
 
     async def rollback_and_send_result(
@@ -263,12 +261,8 @@ class Agent(ea.EdgeAgent):
                 stderr_l.decode(),
             )
 
-        # wait for reconnect
         await self.signal_connected.wait()
         await self.signal_ssh_connected.wait()
-
-        # we are now reconnected with the old configuration
-
         await self.send_switch_result(
             message,
             is_activated=False,
@@ -303,8 +297,8 @@ class Agent(ea.EdgeAgent):
             token=self.token,
             hardware_ids=detect_hardware_id(),
             public_key=detect_public_key(),
-            deployed_config_id=self.detect_configuration_id(),
-            deployed_config_commit=self.detect_configuration_commit(),
+            deployed_config_id=self.agent_metadata.get("configuration_id"),
+            deployed_config_commit=self.agent_metadata.get("configuration_commit"),
             network_interfaces=detect_network_interfaces(),
             ram_bytes=detect_ram_bytes(),
             last_error=last_error,
@@ -357,12 +351,4 @@ class Agent(ea.EdgeAgent):
     def update_config_metadata(self, new_config_id: str, new_commit: str) -> None:
         self.agent_metadata["configuration_id"] = new_config_id
         self.agent_metadata["configuration_commit"] = new_commit
-        metadata_path = find_file(AGENT_DATA_PATHS, AGENT_METADATA_FILENAME)
-        if metadata_path:
-            atomic_write(metadata_path, json.dumps(self.agent_metadata), mode=0o644)
-
-    def detect_configuration_id(self) -> str | None:
-        return self.agent_metadata.get("configuration_id", None)
-
-    def detect_configuration_commit(self) -> str | None:
-        return self.agent_metadata.get("configuration_commit", None)
+        update_agent_metadata(self.agent_metadata)
