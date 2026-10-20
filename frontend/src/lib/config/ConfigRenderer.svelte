@@ -20,7 +20,7 @@
 	import ConfigTextAreaCode from './ConfigTextAreaCode.svelte';
 	import type { Artifact } from '../../routes/(authenticated)/artifacts/[...rest]/+page';
 	import ConfigSystemdTimer from './ConfigSystemdTimer.svelte';
-	import { isValidSettingValue } from './settingValidation';
+	import { settingValueError } from './settingValidation';
 	import { t } from 'svelte-i18n';
 
 	interface Props {
@@ -142,8 +142,10 @@
 		{onChange}
 		{disabled}
 		aria-labelledby={key}
-		validate={(newValue) => isValidSettingValue(setting, newValue)}
-		validationError={$t('config.invalid-url')}
+		validate={(newValue) => {
+			const error = settingValueError(setting, newValue);
+			return error && $t(error);
+		}}
 	/>
 {:else if settingIsTextarea(setting)}
 	<ConfigTextarea {value} placeholder={setting.example} {onChange} {disabled} />

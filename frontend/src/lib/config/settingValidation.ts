@@ -1,32 +1,50 @@
 import type { Setting } from '#lib/state.js';
 
+/** i18n key describing why a setting value was rejected. */
+export type SettingValueError = 'config.invalid-url' | 'config.invalid-file-url';
+
 /**
- * Settings with `type: 'url'` must be absolute HTTP(S) URLs.
+ * Settings with `type: 'url'` must be absolute HTTP(S) URLs or `file://` URLs with an
+ * absolute path (e.g. `file:///var/image.png`).
  * Empty values are allowed: they mean "use the default / unset".
  */
-export const isValidUrl = (value: unknown): boolean => {
+export const urlError = (value: unknown): SettingValueError | null => {
 	if (value === undefined || value === null || value === '') {
-		return true;
+		return null;
 	}
 	if (typeof value !== 'string' || /\s/.test(value)) {
-		return false;
+		return 'config.invalid-url';
 	}
-	// `new URL` silently repairs inputs like `http:/host`, `http:host` or `http:///host`
-	// into `http://host/`; the backend (urllib.parse) does not, so require a literal `//`
+	// `new URL` silently repairs inputs like `http:/host`, `http:host`, `http:///host` or
+	// `file:/path` into canonical form; the backend (urllib.parse) does not, so require
+	// the literal `//` followed by a non-empty authority (or `///` + path for file URLs).
+	if (/^file:/i.test(value)) {
+		if (!/^file:\/\/\/[^/\\]/i.test(value)) {
+			return 'config.invalid-file-url';
+		}
+		try {
+			const url = new URL(value);
+			return url.protocol === 'file:' && url.hostname === '' ? null : 'config.invalid-file-url';
+		} catch {
+			return 'config.invalid-file-url';
+		}
+	}
 	if (!/^https?:\/\/[^/\\]/i.test(value)) {
-		return false;
+		return 'config.invalid-url';
 	}
 	try {
 		const url = new URL(value);
-		return (url.protocol === 'http:' || url.protocol === 'https:') && url.hostname.length > 0;
+		return (url.protocol === 'http:' || url.protocol === 'https:') && url.hostname.length > 0
+			? null
+			: 'config.invalid-url';
 	} catch {
-		return false;
+		return 'config.invalid-url';
 	}
 };
 
-export const isValidSettingValue = (setting: Setting, value: unknown): boolean => {
+export const settingValueError = (setting: Setting, value: unknown): SettingValueError | null => {
 	if (setting.type === 'url') {
-		return isValidUrl(value);
+		return urlError(value);
 	}
-	return true;
+	return null;
 };

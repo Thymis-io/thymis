@@ -44,7 +44,9 @@ test('controller URL shows an error and is not saved while invalid', async ({ pa
 	await controllerUrlInput.fill('not a url');
 	await controllerUrlInput.blur();
 
-	await expect(page.getByText('Enter a valid URL starting with http:// or https://')).toBeVisible();
+	await expect(
+		page.getByText('Enter a valid URL starting with http://, https:// or file://')
+	).toBeVisible();
 	await expect(controllerUrlInput).toHaveAttribute('aria-invalid', 'true');
 	await page.waitForTimeout(500);
 	expect(statePatches).toBe(0);
@@ -66,7 +68,17 @@ test('controller URL shows an error and is not saved while invalid', async ({ pa
 
 	await controllerUrlInput.fill('ftp://controller.example.com');
 	await controllerUrlInput.blur();
-	await expect(page.getByText('Enter a valid URL starting with http:// or https://')).toBeVisible();
+	await expect(
+		page.getByText('Enter a valid URL starting with http://, https:// or file://')
+	).toBeVisible();
+	await expect(controllerUrlInput).toHaveAttribute('aria-invalid', 'true');
+	expect(await persistedControllerUrl(page)).toBe('https://controller.example.com');
+
+	await controllerUrlInput.fill('file://var/image.png');
+	await controllerUrlInput.blur();
+	await expect(
+		page.getByText('Use a full file path starting with /, e.g. file:///var/image.png')
+	).toBeVisible();
 	await expect(controllerUrlInput).toHaveAttribute('aria-invalid', 'true');
 	expect(await persistedControllerUrl(page)).toBe('https://controller.example.com');
 });

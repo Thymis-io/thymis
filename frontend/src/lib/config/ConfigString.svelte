@@ -8,8 +8,8 @@
 		value: unknown;
 		onChange?: (value: string) => void;
 		disabled: boolean;
-		validate?: (value: unknown) => boolean;
-		validationError?: string;
+		/** Returns an error message for invalid values, `null` when valid. */
+		validate?: (value: unknown) => string | null;
 		props: HTMLInputAttributes;
 	}
 
@@ -18,8 +18,7 @@
 		value,
 		onChange = () => {},
 		disabled,
-		validate = () => true,
-		validationError = '',
+		validate = () => null,
 		...props
 	}: Props & HTMLInputAttributes = $props();
 
@@ -28,7 +27,8 @@
 	let initialized = false;
 
 	let draft = $derived(edited ?? (typeof value === 'string' ? value : ''));
-	let invalid = $derived(!validate(draft));
+	let validationError = $derived(validate(draft));
+	let invalid = $derived(validationError !== null);
 
 	$effect(() => {
 		if (!initialized || value !== lastValue) {
@@ -44,7 +44,7 @@
 
 	let changeInternal = (e: Event) => {
 		const newValue = (e.target as HTMLInputElement).value;
-		if (validate(newValue)) {
+		if (validate(newValue) === null) {
 			onChange(newValue);
 		}
 	};
@@ -68,7 +68,7 @@
 	onchange={changeInternal}
 	{...props}
 />
-{#if invalid && validationError}
+{#if validationError}
 	<p class="validation-error" role="alert">{validationError}</p>
 {/if}
 {#if disabled}
