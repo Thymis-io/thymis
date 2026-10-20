@@ -152,6 +152,22 @@ Two things to keep in mind:
 - A list option that other modules contribute to as well (`systemd.tmpfiles.rules`, firewall
   ports, authorized keys) must be written *without* `lib.mkOverride`, because a priority on
   a list option replaces the definitions of all other sources instead of merging with them.
+### Per-setting priority overrides
+
+A single setting can carry its own priority, which overrides the priority of the tag or configuration it is defined in. In the UI, open the route/priority indicator next to a setting field and enter a number: lower numbers win, and an empty field inherits the priority of its configuration or tag.
+
+Module authors can support this for settings that a module writes itself:
+
+```python
+setting = Setting(..., priority_overridable=True)
+
+def write_nix_settings(self, f, path, module_settings, priority, project):
+    # uses the setting's own priority override, falling back to the tag/config priority
+    setting_priority = module_settings.setting_priority("my_setting", priority)
+    f.write(f"  my_nix_option = lib.mkOverride {setting_priority} ...;")
+```
+
+Settings written through `nix_attr_name` support overrides automatically.
 
 ## See also
 
