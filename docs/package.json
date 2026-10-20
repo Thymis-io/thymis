@@ -74,5 +74,8 @@
 		"vite-plugin-devtools-json": {
 			"vite": "$vite"
 		}
+	},
+	"imports": {
+		"#lib/*": "./src/lib/*"
 	}
 }
