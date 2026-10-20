@@ -1,0 +1,36 @@
+name: runner-cleanup
+
+# Manual disk cleanup for the self-hosted x64 runners.
+# Only removes data that is safe to lose: unreferenced Nix store paths,
+# runner diagnostic logs older than 2 days, and temp files of this job.
+on:
+  workflow_dispatch:
+    inputs:
+      parallel:
+        description: "How many cleanup jobs to queue (one per runner, ideally)"
+        default: "4"
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    strategy:
+      fail-fast: false
+      matrix:
+        slot: [1, 2, 3, 4]
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 60
+    steps:
+      - name: Disk usage before
+        run: df -h / /nix /var/lib/github-runner 2>/dev/null || df -h
+      - name: Remove old runner diagnostic logs
+        run: |
+          find /var/lib/github-runner/*/_diag -type f -mtime +2 -delete 2>/dev/null || true
+      - name: Clear this runner's temp dir
+        run: |
+          if [ -n "${RUNNER_TEMP:-}" ]; then find "$RUNNER_TEMP" -mindepth 1 -delete 2>/dev/null || true; fi
+      - name: Collect unreferenced Nix store paths
+        run: nix-collect-garbage || nix store gc || true
+      - name: Disk usage after
+        run: df -h / /nix /var/lib/github-runner 2>/dev/null || df -h
