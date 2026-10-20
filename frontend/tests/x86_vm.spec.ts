@@ -29,6 +29,8 @@ const goToDevicesPage = async (page: Page, baseURL?: string) => {
 };
 
 test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) => {
+	// the image build and the VM run need minutes, not the 30 s default
+	test.setTimeout(600000);
 	const screenshotCounter = { count: 0 };
 	await clearState(page, request);
 	await deleteAllTasks(page, request);
@@ -95,7 +97,6 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 		.waitFor({ timeout: 60000 });
 
 	// wait until: 1x on screen "completed", 1x on screen "running"
-	test.setTimeout(600000);
 	await page
 		.locator('td', { hasText: 'completed' })
 		.nth(1)
@@ -291,11 +292,12 @@ test('Create a x64 vm and run it', async ({ page, request, baseURL }, testInfo) 
 		.filter({ hasText: 'Commit & Download Device Image' })
 		.first()
 		.click();
-	test.setTimeout(600000);
 	await page.waitForEvent('download');
 });
 
 test('Create and use artifacts', async ({ page, request }, testInfo) => {
+	// the image build and the VM run need minutes, not the 30 s default
+	test.setTimeout(600000);
 	const screenshotCounter = { count: 0 };
 	await clearState(page, request);
 	await deleteAllTasks(page, request);
@@ -351,7 +353,6 @@ test('Create and use artifacts', async ({ page, request }, testInfo) => {
 
 	await page.locator('button').filter({ hasText: 'Build and start VM' }).first().click();
 	await page.locator('button').filter({ hasText: 'Commit & Build and start VM' }).first().click();
-	test.setTimeout(600000);
 
 	await page
 		.locator('td', { hasText: 'completed' })
