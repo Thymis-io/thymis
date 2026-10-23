@@ -43,9 +43,13 @@ def set_minimum_time(datetime_str: str) -> None:
             logger.warning("Failed to set minimum system time: %s", e)
 
 
-def initialize() -> Settings:
-    logger.setLevel(logging.INFO)
+def configure_logging() -> None:
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    logging.basicConfig(level=logging.INFO, handlers=[handler])
 
+
+def initialize() -> Settings:
     agent_metadata = find_agent_metadata()
     controller_host = os.getenv("CONTROLLER_HOST")
     manage_hostname = os.getenv("MANAGE_HOSTNAME", "").lower() in ("1", "true", "yes")
@@ -110,6 +114,7 @@ def run() -> None:
 
 
 def main() -> None:
+    configure_logging()
     if "--just-place-secrets" in sys.argv:
         place_secrets()
     else:
