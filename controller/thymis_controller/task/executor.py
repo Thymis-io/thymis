@@ -2,6 +2,7 @@ import asyncio
 import base64
 import concurrent.futures
 import logging
+import multiprocessing
 import os
 import sys
 import threading
@@ -30,7 +31,13 @@ logger = logging.getLogger(__name__)
 
 class TaskWorkerPoolManager:
     def __init__(self, controller: "TaskController"):
-        self.pool = ProcessPoolExecutor()
+        # forkserver: workers are forked from a clean helper process, so they don't
+        # inherit the controller's open file descriptors (e.g. uvicorn client
+        # sockets, which would otherwise stay open after the server closes them).
+        # Also the default start method from Python 3.14 on.
+        self.pool = ProcessPoolExecutor(
+            mp_context=multiprocessing.get_context("forkserver")
+        )
         self.futures = {}
         self.future_to_id = {}
         self.listen_threads = {}
