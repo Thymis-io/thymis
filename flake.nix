@@ -26,6 +26,10 @@
     };
     disko.url = "github:nix-community/disko/master";
     disko.inputs.nixpkgs.follows = "nixpkgs";
+    # Only used for openssh 10.6p1 (see `securityModule` below): the 26.05 channel still
+    # ships 10.5p1, which is affected by nine CVEs, and a hand `overrideAttrs` bump to 10.6
+    # does not build.  nixos-unstable carries 10.6p1 and is cache-backed at 02c087f3fe67.
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   nixConfig = {
@@ -45,6 +49,28 @@
         thymis = self;
       };
       forAllSystems = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ];
+
+      # 2026-10 security remediation.  The gaps the pinned nixos-26.05 channel does not
+      # carry yet (brotli 1.2.1, curl 8.23.0, c-ares 1.34.9, node 22.23.4/24.22.1/26.12.1,
+      # bun 1.4.4) live in `overlays/security-2026-10.nix`; the file header lists the CVEs
+      # and why nothing the pin already fixes is overlaid.  Applied to every pkgs this flake
+      # instantiates plus the four controller images below, so no vulnerable copy is left in
+      # an artifact we publish.
+      securityOverlay = import ./overlays/security-2026-10.nix;
+      pkgsFor = system: import nixpkgs {
+        inherit system;
+        overlays = [ securityOverlay ];
+      };
+
+      # openssh 10.6p1 — nine CVEs in 10.5p1 (CVE-2026-106552/-106553/-106555/-106582..-106587),
+      # and no 26.05 channel carries the fix yet.  A hand `overrideAttrs` to 10.6 does not
+      # build, so take the whole package from the nixos-unstable input (cache-backed).
+      securityModule = { pkgs, ... }: {
+        nixpkgs.overlays = [ securityOverlay ];
+        services.openssh.package =
+          inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system}.openssh;
+      };
+
       nixosModules = {
         thymis-device = ./nix/thymis-device-nixos-module.nix;
         thymis-controller = {
@@ -85,6 +111,7 @@
           nixosModules."thymis-image-sd-card-image"
           nixosModules.thymis-controller
           activate-thymis-controller-module
+          securityModule
         ];
         specialArgs = {
           inherit inputs;
@@ -98,6 +125,7 @@
           nixosModules."thymis-image-sd-card-image"
           nixosModules.thymis-controller
           activate-thymis-controller-module
+          securityModule
         ];
         specialArgs = {
           inherit inputs;
@@ -111,6 +139,7 @@
           nixosModules."thymis-image-sd-card-image"
           nixosModules.thymis-controller
           activate-thymis-controller-module
+          securityModule
         ];
         specialArgs = {
           inherit inputs;
@@ -124,6 +153,7 @@
           nixosModules."thymis-image-qcow"
           nixosModules.thymis-controller
           activate-thymis-controller-module
+          securityModule
         ];
         specialArgs = {
           inherit inputs;
@@ -133,10 +163,10 @@
     in
     {
       inputs = inputs;
-      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
+      formatter = forAllSystems (system: (pkgsFor system).nixpkgs-fmt);
       devShells = forAllSystems (system:
         let
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgsFor system;
         in
         {
           default = pkgs.mkShell {
@@ -189,7 +219,7 @@
         });
       packages = forAllSystems (system:
         let
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgsFor system;
           thymis-frontend = pkgs.callPackage ./frontend {
             git-rev = inputs.self.rev or inputs.self.dirtyRev or null;
           };
