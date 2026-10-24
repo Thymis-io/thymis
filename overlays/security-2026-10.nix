@@ -82,8 +82,19 @@ in
   # python3Packages.brotli (it does `inherit (brotli) version src`) and brotlicffi
   # (built with USE_SHARED_BROTLI=1 against the C package).  Same src hash as the
   # nixpkgs staging bump (PR #577208).
+  #
+  # `dontPatch`/`patches` are required here, not cosmetic: nixpkgs' nodejs.nix wraps the
+  # `brotli` attribute with a patch carrying upstream 0ed4268a (the CVE-2026-111497 fix) for
+  # every node line except 24 (pkgs/development/web/nodejs/nodejs.nix:154-166), and that
+  # commit is already in the 1.2.1 tarball — re-applying it aborts with "Reversed (or
+  # previously applied) patch detected" and takes node 20/22/26 plus everything downstream
+  # (system-units, etc.drv, the toplevel) with it.  The pin's own patch entry (e230f474) is a
+  # LoongArch64/IA64 build fix our platforms do not need, so skipping the patch phase
+  # entirely is the correct form.  Same shape as elikoga-nixos and udysseus/thymis/servers.
   brotli = prev.brotli.overrideAttrs (old: {
     version = "1.2.1";
+    dontPatch = true;
+    patches = [ ];
     src = final.fetchFromGitHub {
       owner = "google";
       repo = "brotli";
