@@ -807,6 +807,60 @@ test('device-lifecycle: connected device', async ({ page, request }) => {
 	await fullShot(page, path.join(DEVICE_LIFECYCLE_DIR, 'vnc-control.png'));
 });
 
+test('device-lifecycle: pairing codes for external devices', async ({ page, request }) => {
+	await clearState(page, request);
+	await deleteAllTasks(page, request);
+
+	// Start from an empty "Active" table so the screenshots stay predictable.
+	const existing = await (await page.request.get('/api/pairing-codes')).json();
+	for (const code of existing.active) {
+		await page.request.post('/api/pairing-code/revoke', { data: { id: code.id } });
+	}
+	// One code redeemed by a device and one revoked code fill the "Recent" table.
+	const redeemed = await (await page.request.post('/api/pairing-code/create')).json();
+	const enroll = await request.post('/agent/enroll', {
+		data: { code: redeemed.code, nonce: 'docs-screenshot-device' }
+	});
+	expect(enroll.ok()).toBeTruthy();
+	const revoked = await (await page.request.post('/api/pairing-code/create')).json();
+	await page.request.post('/api/pairing-code/revoke', { data: { id: revoked.id } });
+
+	await page
+		.locator('nav.nav:visible')
+		.locator('a', { hasText: 'Devices', hasNotText: 'VNC Devices' })
+		.click();
+	await page.waitForURL('/devices/active*');
+	await page.getByRole('link', { name: 'Pairing Codes' }).click();
+	await page.waitForURL('/devices/pairing-codes');
+
+	const createButton = page.locator('button').filter({ hasText: 'Create pairing code' });
+	await highlight(page, createButton);
+	await fullShot(page, path.join(DEVICE_LIFECYCLE_DIR, 'pairing-codes-create.png'));
+	await unhighlight(page);
+
+	await createButton.click();
+	const dialog = page.getByRole('dialog');
+	await dialog.getByTestId('pairing-code').waitFor();
+	// The test controller gives devices the QEMU host address (10.0.2.2); show a
+	// public-looking URL in the screenshot instead.
+	const { agent_access_url } = await (await page.request.get('/api/controller-info')).json();
+	await dialog.locator('pre').evaluate((pre, from) => {
+		for (const node of pre.childNodes) {
+			if (node.nodeType === Node.TEXT_NODE) {
+				node.textContent = node.textContent!.replaceAll(from, 'https://demo.thymis.cloud');
+			}
+		}
+	}, agent_access_url);
+	await shot(modalBox(dialog), path.join(DEVICE_LIFECYCLE_DIR, 'pairing-code-created.png'));
+	await page.keyboard.press('Escape');
+	await dialog.waitFor({ state: 'hidden' });
+
+	await page.locator('tbody tr').filter({ hasText: 'Redeemed' }).waitFor();
+	await page.getByRole('button', { name: 'Pairing code actions' }).click();
+	await page.getByText('Show pairing instructions').waitFor();
+	await fullShot(page, path.join(DEVICE_LIFECYCLE_DIR, 'pairing-codes-list.png'));
+});
+
 test('external-projects: repositories and device type', async ({ page, request }) => {
 	await clearState(page, request);
 	await deleteAllTasks(page, request);
