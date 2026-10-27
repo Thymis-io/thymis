@@ -26,6 +26,12 @@
 		await invalidate('/api/pairing-codes');
 	};
 
+	const showCode = (pairingCode: PairingCode) => {
+		// selecting the code to copy it must not open the dialog
+		if (window.getSelection()?.toString()) return;
+		shownCode = pairingCode;
+	};
+
 	type Status = { label: string; pill: 'online' | 'offline' | 'danger' };
 
 	const status = (pairingCode: PairingCode): Status => {
@@ -61,7 +67,14 @@
 >
 	{#snippet row(pairingCode)}
 		<td class="playwright-snapshot-unstable" style="font-family: var(--ds-mono)">
-			{pairingCode.code}
+			<span
+				role="button"
+				tabindex="0"
+				class="code-link"
+				title={$t('pairing-codes.show-instructions')}
+				onclick={() => showCode(pairingCode)}
+				onkeydown={(e) => e.key === 'Enter' && showCode(pairingCode)}>{pairingCode.code}</span
+			>
 		</td>
 		<td><RenderTimeAgo timestamp={pairingCode.created_at} /></td>
 		<td class="playwright-snapshot-unstable">{formatDate(pairingCode.expires_at)}</td>
@@ -133,3 +146,12 @@
 		/>
 	{/if}
 </Modal>
+
+<style>
+	.code-link {
+		cursor: pointer;
+	}
+	.code-link:hover {
+		text-decoration: underline;
+	}
+</style>
