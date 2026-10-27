@@ -20,6 +20,7 @@ layout: summary
   - [Deploying Files using Artifacts](device-lifecycle/artifacts.md)
   - [Accessing the Terminal](device-lifecycle/ssh-terminal.md)
   - [Test your configuration with VMs](device-lifecycle/vms.md)
+  - [Connecting external devices](device-lifecycle/external-devices.md)
 - [Your Project in Thymis](external-projects.md)
   - [Setting up external repositories](external-projects/external-repositories.md)
   - [Accessing the Thymis project git repository](external-projects/git-repository.md)

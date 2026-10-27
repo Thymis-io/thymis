@@ -10,6 +10,7 @@ This covers everything from [initial provisioning](device-lifecycle/getting-star
 The first step in the device lifecycle is provisioning, where you set up your devices with the necessary software and configurations to make them operational. This includes installing the Thymis agent, configuring network settings, and ensuring that the device can communicate with the Thymis Controller.
 
 See the [Getting Started](device-lifecycle/getting-started.md) guide for detailed instructions on how to provision your devices.
+To connect a device you set up yourself instead of flashing a Thymis image, see [Connecting external devices](device-lifecycle/external-devices.md).
 
 ### Deployment
 
