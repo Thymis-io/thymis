@@ -124,13 +124,18 @@ def schedule_rsyslog_reload_on_activation() -> None:
 
 
 async def reload_rsyslog() -> None:
-    proc = await asyncio.create_subprocess_exec(
-        "systemctl",
-        "reload",
-        "syslog.service",
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            "systemctl",
+            "reload",
+            "syslog.service",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+    except FileNotFoundError:
+        # not systemd-managed, e.g. the agent container
+        logger.error("Failed to reload syslog.service: systemctl not found")
+        return
     _, stderr = await proc.communicate()
     if proc.returncode != 0:
         logger.error(
