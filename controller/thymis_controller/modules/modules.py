@@ -281,9 +281,10 @@ class Module(ABC):
                     if setting.nix_attr_name is not None
                     else attr
                 )
+                effective_priority = module_settings.setting_priority(attr, priority)
                 f.write(
                     f"  {nix_attr_path(['thymis', 'config', '_priority', self.settings_namespace, name])} = "
-                    f"lib.mkOverride {priority} {priority};\n"
+                    f"lib.mkOverride {effective_priority} {effective_priority};\n"
                 )
             if setting.nix_attr_name is None:
                 continue
@@ -291,7 +292,10 @@ class Module(ABC):
                 # set by this source: written even when empty, which is how a
                 # configuration clears the value a tag sets. Only an explicit
                 # JSON null counts as "this source says nothing".
-                value, value_priority = module_settings.settings[attr], priority
+                value, value_priority = (
+                    module_settings.settings[attr],
+                    module_settings.setting_priority(attr, priority),
+                )
                 if value is None:
                     continue
             else:
@@ -496,6 +500,11 @@ class Setting:
     order: int = 0
 
     nix_attr_name: Optional[str] = None
+    # True when the module emits the settings' nix definitions itself (instead
+    # of via nix_attr_name) and honours a per-setting priority override for
+    # them. Settings whose value is embedded in a single shared definition
+    # (e.g. a whole service blob) cannot carry a per-setting priority.
+    priority_overridable: bool = False
 
     def get_model(self, locale: str) -> models.Setting:
         return models.Setting(
@@ -505,6 +514,8 @@ class Setting:
             default=self.default,
             example=self.example,
             order=self.order,
+            priorityOverridable=self.priority_overridable
+            or self.nix_attr_name is not None,
         )
 
 

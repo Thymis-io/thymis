@@ -671,6 +671,34 @@ body {
 	color: var(--ds-text-mute);
 }
 
+/* ---- Per-setting priority override (module settings rows) ---- */
+.ds-priority-input {
+	width: 3.25rem;
+	min-width: 3.25rem;
+	flex: none;
+	padding: 3px 4px;
+	text-align: center;
+	font-size: 11.5px;
+	font-variant-numeric: tabular-nums;
+	color: var(--ds-text-mute);
+	background-color: transparent;
+}
+.ds-priority-input:focus,
+.ds-priority-input:hover {
+	color: var(--ds-text);
+	background-color: var(--ds-surface-2);
+}
+/* hide the number spinners: the field is a single small number */
+.ds-priority-input::-webkit-outer-spin-button,
+.ds-priority-input::-webkit-inner-spin-button {
+	appearance: none;
+	margin: 0;
+}
+.ds-priority-input[type='number'] {
+	appearance: textfield;
+	-moz-appearance: textfield;
+}
+
 /* ---- Key/value list ---- */
 .ds-kv {
 	display: flex;
