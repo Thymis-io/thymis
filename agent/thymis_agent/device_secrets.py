@@ -16,7 +16,7 @@ from typing import cast
 from pydantic import ValidationError
 from pyrage import decrypt, passphrase, ssh
 from thymis_agent import logger
-from thymis_agent.host_keys import SSH_HOST_ED25519_KEY_PATH
+from thymis_agent.host_keys import host_key_path
 from thymis_agent.messages import RtESendSecretsMessage
 from thymis_agent.storage import find_data_path
 
@@ -55,7 +55,7 @@ def place_secret(
 
 def place_secrets_from_message(message: RtESendSecretsMessage) -> None:
     """Place the secrets, then keep the message to place them on next start."""
-    with open(SSH_HOST_ED25519_KEY_PATH, "rb") as f:
+    with open(host_key_path(), "rb") as f:
         key = f.read()
     identity = ssh.Identity.from_buffer(key)
     for secret_info in message.secret_infos:
