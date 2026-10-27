@@ -37,5 +37,10 @@ class GlobalSettings(BaseSettings):
         env_prefix="THYMIS_", env_file=".env", env_file_encoding="utf-8"
     )
 
+    @property
+    def agent_access_url(self) -> str:
+        """The URL devices use to reach the controller."""
+        return self.AGENT_ACCESS_URL or self.BASE_URL
+
 
 global_settings = GlobalSettings()

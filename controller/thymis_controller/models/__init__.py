@@ -1,6 +1,7 @@
 from .agent_connection import *
 from .artifacts import *
 from .auth import *
+from .controller_info import *
 from .device import *
 from .device_metric import *
 from .enrollment import *

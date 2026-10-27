@@ -20,6 +20,7 @@ import { GlobalState } from '#lib/state.svelte.js';
 import { toast } from '@zerodevx/svelte-toast';
 import { redirectToLogin } from '#lib/login.js';
 import { getAllDeploymentInfos } from '#lib/deploymentInfo.js';
+import { getControllerInfo } from '#lib/controllerInfo.js';
 
 export type Nav = {
 	selectedTargetType: ContextType | null;
@@ -137,7 +138,10 @@ export const load = (async ({ fetch, url, data }) => {
 	// is uuid -> secret
 	const secrets = (await secretsResponse.json()) as Record<string, Secret>;
 
-	const deploymentInfos = await getAllDeploymentInfos(fetch);
+	const [deploymentInfos, controllerInfo] = await Promise.all([
+		getAllDeploymentInfos(fetch),
+		getControllerInfo(fetch)
+	]);
 
 	// The taskbar only ever shows the latest tasks, so load the 20 most recent.
 	// Full browsing/pagination lives on the dedicated /tasks page.
@@ -198,6 +202,7 @@ export const load = (async ({ fetch, url, data }) => {
 		allTasks,
 		minimizeTaskbar,
 		user,
-		inPlaywright
+		inPlaywright,
+		controllerInfo
 	};
 }) satisfies LayoutLoad;

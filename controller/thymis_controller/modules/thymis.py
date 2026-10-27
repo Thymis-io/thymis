@@ -134,7 +134,7 @@ class ThymisDevice(modules.Module):
             en="URL of this Thymis Controller instance",
             de="URL dieser Thymis Controller-Instanz",
         ),
-        example="",
+        example=global_settings.agent_access_url,
         order=80,
     )
 
@@ -186,9 +186,7 @@ class ThymisDevice(modules.Module):
                 f"  thymis.config.agent.controller-url = lib.mkOverride {priority} {convert_python_value_to_nix(agent_controller_url)};\n"
             )
         else:
-            default_agent_controller_url = (
-                global_settings.AGENT_ACCESS_URL or global_settings.BASE_URL or ""
-            )
+            default_agent_controller_url = global_settings.agent_access_url
             f.write(
                 f"  thymis.config.agent.controller-url = lib.mkOverride 100 {convert_python_value_to_nix(default_agent_controller_url)};\n"
             )
