@@ -211,6 +211,7 @@
           thymis-frontend = thymis-frontend;
           thymis-controller = thymis-controller;
           thymis-agent = thymis-agent;
+          thymis-agent-container = import ./nix/agent-docker.nix { inherit pkgs thymis-agent; };
           thymis-controller-container = import ./nix/docker.nix { inherit pkgs thymis-controller; };
         }
       );

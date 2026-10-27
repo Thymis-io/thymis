@@ -1,0 +1,86 @@
+name: "Agent Container"
+on:
+  pull_request:
+    paths:
+      - "agent/**"
+      - "nix/agent-docker.nix"
+      - "flake.nix"
+      - "flake.lock"
+      - ".github/workflows/agent-container.yml"
+  merge_group:
+  push:
+    branches:
+      - master
+    tags:
+      - "v*"
+    # not evaluated for tag pushes
+    paths:
+      - "agent/**"
+      - "nix/agent-docker.nix"
+      - "flake.nix"
+      - "flake.lock"
+      - ".github/workflows/agent-container.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-agent-container:
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - runs-on: [self-hosted, Linux, X64]
+            suffix: ""
+          - runs-on: ubuntu-24.04-arm
+            suffix: "-arm64"
+    runs-on: ${{ matrix.runs-on }}
+    env:
+      IMAGE: ghcr.io/thymis-io/thymis-agent
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-nix
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ./.github/actions/snapshot-nix-store
+      - name: Build thymis-agent-container
+        run: |
+          nix build .#thymis-agent-container --print-build-logs --fallback --accept-flake-config
+      - name: Upload new store paths to Nix cache
+        if: always()
+        uses: ./.github/actions/upload-nix-store-diff
+        with:
+          aws_access_key_id: ${{ secrets.NIX_CACHE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
+          signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
+          exclude_result: "true"
+      - name: Login to GitHub Container Registry
+        if: github.event_name == 'push'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: push docker image
+        if: github.event_name == 'push'
+        run: |
+          docker load < result
+          docker tag thymis-agent:latest $IMAGE:${{ github.sha }}${{ matrix.suffix }}
+          docker push $IMAGE:${{ github.sha }}${{ matrix.suffix }}
+      - name: push latest if on main branch
+        if: github.ref == 'refs/heads/master'
+        run: |
+          docker tag $IMAGE:${{ github.sha }}${{ matrix.suffix }} $IMAGE:latest${{ matrix.suffix }}
+          docker push $IMAGE:latest${{ matrix.suffix }}
+      - name: push version tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          docker tag $IMAGE:${{ github.sha }}${{ matrix.suffix }} $IMAGE:$VERSION${{ matrix.suffix }}
+          docker push $IMAGE:$VERSION${{ matrix.suffix }}
