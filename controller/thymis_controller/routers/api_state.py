@@ -2,6 +2,7 @@ from typing import Annotated, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Request
 from thymis_controller import crud, dependencies, models, modules
+from thymis_controller.config import global_settings
 from thymis_controller.dependencies import DBSessionAD, NetworkRelayAD, ProjectAD
 from thymis_controller.models.state import Config, State
 from thymis_controller.repo import RepoStatus
@@ -129,3 +130,8 @@ def get_repo_status(project: ProjectAD):
 def get_available_modules(request: Request) -> list[models.Module]:
     locale = request.cookies.get("locale", "en")
     return [module.get_model(locale) for module in modules.ALL_MODULES]
+
+
+@router.get("/controller-info")
+def get_controller_info() -> models.ControllerInfo:
+    return models.ControllerInfo(agent_access_url=global_settings.agent_access_url)
