@@ -198,6 +198,8 @@
 		"copied": "In die Zwischenablage kopiert",
 		"code-label": "Pairing-Code",
 		"command-label": "Auf dem Gerät ausführen",
+		"run-as-root": "Als root ausführen.",
+		"docs-link": "Einrichtungsanleitung",
 		"expires-at": "Gültig bis {date}. Danach verfallen ungenutzte Codes.",
 		"active": "Aktiv",
 		"recent": "Kürzlich",
