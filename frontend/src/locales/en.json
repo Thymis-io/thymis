@@ -198,6 +198,8 @@
 		"copied": "Copied to clipboard",
 		"code-label": "Pairing code",
 		"command-label": "Run on the device",
+		"run-as-root": "Run as root.",
+		"docs-link": "Setup guide",
 		"expires-at": "Valid until {date}. Unused codes expire after that.",
 		"active": "Active",
 		"recent": "Recent",

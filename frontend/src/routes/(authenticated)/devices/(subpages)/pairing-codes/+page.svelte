@@ -127,6 +127,9 @@
 	on:close={() => (shownCode = undefined)}
 >
 	{#if shownCode}
-		<PairingCodeDisplay pairingCode={shownCode} />
+		<PairingCodeDisplay
+			pairingCode={shownCode}
+			controllerUrl={data.controllerInfo.agent_access_url}
+		/>
 	{/if}
 </Modal>
