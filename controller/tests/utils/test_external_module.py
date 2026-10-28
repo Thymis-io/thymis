@@ -145,3 +145,65 @@ def test_external_module_writes_the_settings_of_its_instance(tmp_path):
         in config_file
     )
     assert HOST_PRIORITY == 80
+
+
+class ShippedDerivationModule(modules.Module):
+    """An external module that ships its derivation as nix source instead of
+    writing it in python (`nix_derivation_source`)."""
+
+    display_name = "Shipped Derivation Module"
+
+    settings_namespace = "shipped-derivation"
+
+    nix_derivation_source = """
+{ config, lib, ... }:
+let
+  settings = import ../module-settings.nix { inherit config lib; };
+in
+{
+  systemd.services.shipped-derivation-message.description =
+    settings.apply "shipped-derivation" "message" "fallback";
+}
+"""
+
+    message = modules.Setting(
+        display_name="Message",
+        nix_attr_name="thymis.config.shipped-derivation.message",
+        type="string",
+        default="",
+    )
+
+
+def test_module_with_shipped_derivation_builds(tmp_path):
+    """`nix_derivation_source` is copied into `modules/settings/<namespace>.nix`
+    and the generated module must import it from there."""
+    module_type = ShippedDerivationModule().type
+    config = models.Config(
+        displayName="c1",
+        identifier="c1",
+        tags=[],
+        modules=[
+            models.ModuleSettings(type=module_type, settings={"message": "from-config"})
+        ],
+    )
+    project = nix_fixture.render_project(
+        tmp_path,
+        configs=[config],
+        extra_modules=[ShippedDerivationModule()],
+    )
+    shipped = project / "modules" / "settings" / "shipped-derivation.nix"
+    assert shipped.is_file()
+    module_file = (project / "hosts" / "c1" / f"{module_type}.nix").read_text()
+    assert "imports = [ ../../modules/settings/shipped-derivation.nix ];" in module_file
+    try:
+        result = nix_fixture.eval_project(
+            project,
+            """
+let cfg = flake.nixosConfigurations.c1.config; in {
+  message = cfg.systemd.services.shipped-derivation-message.description;
+}
+""",
+        )
+    except nix_fixture.NixUnavailable as e:
+        pytest.skip(str(e))
+    assert result["message"] == "from-config"
