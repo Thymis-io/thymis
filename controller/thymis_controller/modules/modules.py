@@ -231,11 +231,9 @@ class Module(ABC):
     def nix_derivation_import_path(self) -> str:
         """Path of this module's derivation, relative to a generated module file
         (`hosts/<identifier>/<module>.nix` and `tags/<identifier>/<module>.nix`)."""
-        filename = (
-            f"settings/{self.nix_derivation}.nix"
-            if self.nix_derivation is not None
-            else f"{self.settings_namespace}.nix"
-        )
+        # `nix_derivation_source` is written to the same directory as the
+        # controller's own derivations (`modules/settings/<namespace>.nix`).
+        filename = f"settings/{self.nix_derivation or self.settings_namespace}.nix"
         return f"../../modules/{filename}"
 
     def iter_settings(self) -> dict[str, "Setting"]:
