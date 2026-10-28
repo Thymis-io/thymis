@@ -38,21 +38,93 @@ let
     MODEPARAMS=$(echo "$MODELINE" | sed 's/"[^"]*" *//')
     # Register the modeline once per X session.
     ${pkgs.xorg.xrandr}/bin/xrandr --newmode "$MODENAME" $MODEPARAMS 2>/dev/null || true
-    apply() {
+
+    output_connected() {
+        ${pkgs.xorg.xrandr}/bin/xrandr --query 2>/dev/null | awk '
+            $1 == "HDMI-1" { connected = ($2 == "connected") }
+            END { exit !connected }'
+    }
+
+    # A working display has HDMI-1 connected, a CRTC mode assigned and the
+    # framebuffer geometry matching that output. The mode name is not compared,
+    # so an equivalent EDID mode with different timings is accepted and a
+    # rejected custom modeline does not cause a restart loop.
+    display_healthy() {
+        QUERY=$(${pkgs.xorg.xrandr}/bin/xrandr --query 2>/dev/null) || return 1
+        ACTIVE=$(printf '%s\n' "$QUERY" | awk '
+            $1 == "HDMI-1" {
+                if ($2 != "connected") exit 1
+                for (i = 3; i <= NF; i++)
+                    if ($i ~ /^[0-9]+x[0-9]+\+[0-9]+\+[0-9]+$/) {
+                        print $i, $(i + 1)
+                        exit 0
+                    }
+                exit 1
+            }') || return 1
+        set -- $ACTIVE
+        [ "$#" -eq 2 ] || return 1
+        GEOMETRY=$(printf '%s\n' "$QUERY" | sed -n '1s/.*current \([0-9]*\) x \([0-9]*\).*/\1x\2/p')
+        # 320x200 is X's fallback when no mode could be set; no real display
+        # mode uses it.
+        [ "$GEOMETRY" != "320x200" ] || return 1
+        [ "$GEOMETRY" = "$(echo "$1" | cut -d+ -f1)" ] || return 1
+        [ "$2" = "${rotation}" ]
+    }
+
+    apply_mode() {
         ${pkgs.xorg.xrandr}/bin/xrandr --addmode HDMI-1 "$MODENAME" 2>/dev/null || true
+        # A failed modeset drops rotation as well, so set both again. This only
+        # runs while the display is unhealthy, not on every screen change.
         ${pkgs.xorg.xrandr}/bin/xrandr --output HDMI-1 --rotate ${rotation} 2>/dev/null || true
         ${pkgs.xorg.xrandr}/bin/xrandr --output HDMI-1 --mode "$MODENAME" 2>/dev/null || true
     }
-    apply
-    # Reapply on every screen-change event (KVM switch, display power cycle).
-    while IFS= read -r _; do
-        sleep 1
-        apply
+
+    # One failed modeset is transient: X falls back to 320x200 and retries. When
+    # the retries keep failing (stale KMS state), X never recovers by itself and
+    # the output stays black, so after a few failed attempts restart the X
+    # session instead of retrying forever.
+    FAILURES=0
+    check() {
+        if display_healthy; then
+            FAILURES=0
+            return 0
+        fi
+        if ! output_connected; then
+            # Nothing to recover while the display is off or unplugged; the next
+            # screen-change event applies the configuration again.
+            FAILURES=0
+            return 0
+        fi
+        FAILURES=$((FAILURES + 1))
+        echo "thymis-xrandr-setup: display unhealthy ($FAILURES/6), reapplying mode" >&2
+        apply_mode
+        if [ "$FAILURES" -ge 6 ]; then
+            echo "thymis-xrandr-setup: display did not recover, restarting display-manager" >&2
+            if ${pkgs.systemd}/bin/systemctl --no-block restart display-manager.service; then
+                exit 0
+            fi
+            FAILURES=0
+        fi
+    }
+
+    check
+    # Reapply on screen-change events (KVM switch, display power cycle) and poll
+    # every 30 seconds, so a wedged output is recovered even without an event.
+    while true; do
+        if IFS= read -r -t 30 _; then
+            sleep 1
+            check
+        elif [ $? -gt 128 ]; then
+            check
+        else
+            sleep 30
+            check
+        fi
     done < <(${pkgs.xorg.xev}/bin/xev -root -event randr | grep --line-buffered RRScreenChangeNotify)
   '';
 
   vncPasswordLine = lib.optionalString enableVnc ''exec ${pkgs.bash}/bin/bash -c "mkdir -p $HOME/tigervnc; ${pkgs.tigervnc}/bin/vncpasswd -f <<< \"${vncPassword}\" > $HOME/tigervnc/passwd"'';
-  vncServerLine = lib.optionalString enableVnc ''exec ${pkgs.tigervnc}/bin/x0vncserver -display :0 -PasswordFile=$HOME/tigervnc/passwd'';
+  vncServerLine = lib.optionalString enableVnc ''exec ${pkgs.tigervnc}/bin/x0vncserver -display :0 -PasswordFile=$HOME/tigervnc/passwd -AcceptSetDesktopSize=1'';
   audioSinkLine = lib.optionalString (audioSinkFuzzy != "") ''exec "${pkgs.pulseaudio}/bin/pactl set-default-sink ''$(${pkgs.pulseaudio}/bin/pactl list short sinks | grep -m1 -i '${audioSinkFuzzy}' | cut -f1)"'';
 in
 {
@@ -65,6 +137,21 @@ in
       isNormalUser = true;
       createHome = true;
     });
+    # The kiosk session restarts the display manager itself when its X modeset
+    # state got wedged (see the xrandr watchdog in the i3 configuration), which
+    # polkit otherwise forbids for an unprivileged user. `mkAfter` merges this
+    # rule with other polkit rules instead of replacing them.
+    security.polkit.extraConfig = lib.mkIf enabled (lib.mkAfter ''
+      polkit.addRule(function(action, subject) {
+        var unit = action.lookup("unit");
+        if (action.id == "org.freedesktop.systemd1.manage-units" &&
+            subject.user == "thymiskiosk" &&
+            (unit == "display-manager.service" || unit == "sddm.service") &&
+            action.lookup("verb") == "restart") {
+          return polkit.Result.YES;
+        }
+      });
+    '');
     services.pipewire.enable = lib.mkIf enabled (lib.mkOverride priority false);
     # `hardware.pulseaudio.*` is an alias of `services.pulseaudio.*`; aliases cannot carry
     # `mkIf`/`mkOverride` markers, so the new option names are written directly
