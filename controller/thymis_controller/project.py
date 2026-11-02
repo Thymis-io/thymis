@@ -431,8 +431,7 @@ class Project:
         with self.state_lock:
             with open(self.repo_dir / "state.json", "r", encoding="utf-8") as f:
                 state_json = f.read()
-            state = State.model_validate_json(state_json)
-            return state
+        return State.model_validate_json(state_json)
 
     def write_state(self, state: State):
         with self.state_lock:
@@ -441,11 +440,12 @@ class Project:
 
     def write_state_and_reload(self, state: State):
         self.write_state(state)
-        self.reload_state(state)
+        self.reload_state()
 
-    def reload_state(self, state: State):
-        repositories = BUILTIN_REPOSITORIES | state.repositories
+    def reload_state(self):
         with self.write_repo_lock:
+            state = self.read_state()
+            repositories = BUILTIN_REPOSITORIES | state.repositories
             self._reload_state_unsafe(state, repositories)
 
     def _reload_state_unsafe(self, state: State, repositories: dict[str, Repo]):

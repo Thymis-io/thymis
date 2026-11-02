@@ -80,7 +80,7 @@ def update_state(
                 detail=f"Cannot change device type for config '{config.identifier}' while devices are connected",
             )
     project.write_state(new_state)
-    background_tasks.add_task(project.reload_state, new_state)
+    background_tasks.add_task(project.reload_state)
     return new_state
 
 
