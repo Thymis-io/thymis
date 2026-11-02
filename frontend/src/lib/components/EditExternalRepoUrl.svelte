@@ -23,8 +23,8 @@
 		/** When true, the repo does not exist yet: seed a default reference instead
 		 * of loading it from the backend by name. */
 		isNew?: boolean;
-		onSave: (newUrl: string) => void;
-		onRename?: (newName: string) => void;
+		/** `newName` is the trimmed name field; it may be empty or equal to `inputName`. */
+		onSave: (newUrl: string, newName: string) => void;
 		onSecretChange?: (secretId: string | null) => void;
 		onClose: () => void;
 	}
@@ -37,7 +37,6 @@
 		secrets = [],
 		isNew = false,
 		onSave,
-		onRename,
 		onSecretChange,
 		onClose
 	}: Props = $props();
@@ -442,9 +441,7 @@
 			<Button
 				class="flex-1 mt-4 mb-2"
 				on:click={() => {
-					if (compiledUrl) onSave(compiledUrl);
-					const newName = nameValue.trim();
-					if (newName && newName !== inputName) onRename?.(newName);
+					if (compiledUrl) onSave(compiledUrl, nameValue.trim());
 					open = false;
 				}}
 				disabled={!compiledUrl}
