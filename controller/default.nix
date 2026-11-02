@@ -15,7 +15,12 @@
 let
   python = python313;
 
-  workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
+  src = lib.fileset.toSource {
+    root = ../.;
+    fileset = import ./fileset.nix { inherit lib; };
+  };
+
+  workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = "${src}/controller"; };
 
   overlay = workspace.mkPyprojectOverlay {
     # Prefer prebuilt binary wheels as a package source.
