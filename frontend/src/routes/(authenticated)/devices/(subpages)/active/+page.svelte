@@ -108,6 +108,16 @@
 						{$t('hardware-devices.table.never-seen')}
 					{/if}
 				</span>
+				{#if deploymentInfo.reboot_required}
+					<span
+						class="ds-tag mt-1"
+						style="background: var(--ds-warning-dim); color: var(--ds-warning);"
+						title={deploymentInfo.reboot_required_reason ??
+							$t('device-details.reboot-recommended-hint')}
+					>
+						{$t('hardware-devices.table.reboot-recommended')}
+					</span>
+				{/if}
 			</div>
 		</td>
 		<td>

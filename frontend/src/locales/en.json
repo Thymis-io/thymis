@@ -161,7 +161,8 @@
 			"last-seen": "Last seen",
 			"no-hardware-ids": "No hardware ids detected",
 			"unknown-device-type": "Unknown device type",
-			"never-seen": "Never"
+			"never-seen": "Never",
+			"reboot-recommended": "Reboot recommended"
 		},
 		"hardware-keys": {
 			"pi-serial-number": "Pi Serial Number"
@@ -844,6 +845,8 @@
 		"no-notes": "No notes",
 		"edit-notes": "Edit Notes",
 		"notes-placeholder": "e.g. Additional room, floor 3",
+		"reboot-recommended": "Reboot recommended",
+		"reboot-recommended-hint": "The new configuration is active, but a reboot is recommended to finish the update.",
 		"save": "Save",
 		"error-logs": "Error Logs",
 		"no-error-logs": "No errors recorded",

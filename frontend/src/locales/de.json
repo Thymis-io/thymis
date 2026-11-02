@@ -161,7 +161,8 @@
 			"last-seen": "Zuletzt gesehen",
 			"no-hardware-ids": "Keine Hardware -IDs gefunden",
 			"unknown-device-type": "Unbekannter Gerätetyp",
-			"never-seen": "Nie"
+			"never-seen": "Nie",
+			"reboot-recommended": "Neustart empfohlen"
 		},
 		"hardware-keys": {
 			"pi-serial-number": "Pi Seriennummer"
@@ -843,6 +844,8 @@
 		"no-notes": "Keine Notizen",
 		"edit-notes": "Notizen bearbeiten",
 		"notes-placeholder": "z.B. Zusätzlicher Raum, 3. Stock",
+		"reboot-recommended": "Neustart empfohlen",
+		"reboot-recommended-hint": "Die neue Konfiguration ist aktiv, aber ein Neustart wird empfohlen, um das Update abzuschließen.",
 		"save": "Speichern",
 		"error-logs": "Fehler-Protokolle",
 		"no-error-logs": "Keine Fehler aufgezeichnet",

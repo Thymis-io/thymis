@@ -30,10 +30,11 @@ from thymis_agent.nixos_switch import (
     ROLLBACK_UNIT,
     SWITCH_UNIT,
     interpret_switch_result,
+    read_boot_id,
     read_current_system,
     run_process,
     set_system_profile_args,
-    switch_needs_reboot,
+    switch_reboot_requirement,
     switch_to_configuration_args,
 )
 from thymis_agent.rsyslog import reload_rsyslog, write_rsyslog_config
@@ -118,6 +119,7 @@ class Agent(ea.EdgeAgent):
         stdout: str,
         stderr: str,
         reboot_required: bool | None = None,
+        reboot_required_reason: str | None = None,
     ) -> None:
         # the base class types the connection as optional; switch results are
         # only sent while connected
@@ -132,6 +134,7 @@ class Agent(ea.EdgeAgent):
                     stdout=stdout,
                     stderr=stderr,
                     reboot_required=reboot_required,
+                    reboot_required_reason=reboot_required_reason,
                 )
             ).model_dump_json()
         )
@@ -160,15 +163,13 @@ class Agent(ea.EdgeAgent):
 
         stderr_str = stderr.decode()
         is_activated, switch_success = interpret_switch_result(returncode, stderr_str)
-        reboot_required = switch_needs_reboot(returncode, is_activated)
+        reboot_required, reboot_required_reason = switch_reboot_requirement(
+            returncode, is_activated, current_config, new_path_to_config
+        )
         if reboot_required:
             logger.warning(
-                "switch-to-configuration exited %s after activating the "
-                "configuration (some units failed to reload/restart); "
-                "treating the switch as successful, a reboot is "
-                "required to finish the update: %s",
-                returncode,
-                stderr_str,
+                "switch completed; a reboot is recommended: %s",
+                reboot_required_reason,
             )
 
         # switch_success should imply is_activated, if not, then it's a bug
@@ -198,6 +199,7 @@ class Agent(ea.EdgeAgent):
                 is_activated,
                 switch_success,
                 reboot_required,
+                reboot_required_reason,
                 stdout,
                 stderr,
             )
@@ -210,6 +212,7 @@ class Agent(ea.EdgeAgent):
         is_activated: bool,
         switch_success: bool,
         reboot_required: bool,
+        reboot_required_reason: str | None,
         stdout: bytes,
         stderr: bytes,
     ) -> None:
@@ -230,6 +233,7 @@ class Agent(ea.EdgeAgent):
             is_activated=is_activated,
             switch_success=switch_success,
             reboot_required=reboot_required,
+            reboot_required_reason=reboot_required_reason,
             stdout=stdout.decode(),
             stderr=stderr.decode(),
         )
@@ -302,6 +306,7 @@ class Agent(ea.EdgeAgent):
             deployed_config_commit=self.agent_metadata.get("configuration_commit"),
             network_interfaces=detect_network_interfaces(),
             ram_bytes=detect_ram_bytes(),
+            boot_id=read_boot_id(),
             last_error=last_error,
         )
 

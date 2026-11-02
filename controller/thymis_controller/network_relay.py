@@ -22,6 +22,11 @@ from pyrage import ssh
 from thymis_agent import messages
 from thymis_controller import models
 from thymis_controller.config import global_settings
+from thymis_controller.switch_result import (
+    interpret_switch_result,
+    reboot_reason_from_stderr,
+    systemd_run_exit_status,
+)
 
 if TYPE_CHECKING:
     from thymis_controller.notifications import NotificationManager
@@ -37,7 +42,7 @@ def verify_alive_with_ssh_host_key_and_connection_perms(
     sock: Any | None = None,
     username: str = "root",
     pkey: paramiko.PKey = None,
-):
+) -> tuple[bool, str | None]:
     class ExpectedHostKeyNotFound(Exception):
         pass
 
@@ -62,22 +67,31 @@ def verify_alive_with_ssh_host_key_and_connection_perms(
         )
     except ExpectedHostKeyNotFound:
         logger.error("Host key mismatch for %s", host)
-        return False
+        return False, None
     except paramiko.AuthenticationException:
         logger.error("Authentication failed for %s", host)
-        return False
+        return False, None
     except paramiko.SSHException as e:
         logger.error("SSH error for %s: %s", host, e)
-        return False
+        return False, None
 
     # run a command to verify the connection
     etc_os_release = client.exec_command("cat /etc/os-release")[1].read()
     logger.debug("Remote /etc/os-release: %s", etc_os_release)
+    # old agents do not send a boot id with their start message; read it over
+    # the connection we already have so their reboot-required flag clears too
+    boot_id = (
+        client.exec_command("cat /proc/sys/kernel/random/boot_id")[1]
+        .read()
+        .decode("utf-8", "replace")
+        .strip()
+        or None
+    )
 
     client.close()
-    logger.debug("Verified host key for %s", host)
+    logger.debug("Verified host key for %s (boot id %s)", host, boot_id)
 
-    return True
+    return True, boot_id
 
 
 class NetworkRelay(nr.NetworkRelay):
@@ -132,6 +146,38 @@ class NetworkRelay(nr.NetworkRelay):
                         config_commit=None,
                         task_id=inner.task_id,
                     )
+                (
+                    is_activated,
+                    switch_success,
+                    tolerated_reboot_required,
+                ) = interpret_switch_result(
+                    is_activated=inner.is_activated,
+                    switch_success=inner.switch_success,
+                    stderr=inner.stderr or "",
+                )
+                switch_status = systemd_run_exit_status(inner.stderr or "")
+                reboot_required = (
+                    bool(getattr(inner, "reboot_required", False))
+                    or tolerated_reboot_required
+                    or switch_status == 100
+                )
+                reboot_reason = None
+                if reboot_required:
+                    reboot_reason = getattr(
+                        inner, "reboot_required_reason", None
+                    ) or reboot_reason_from_stderr(inner.stderr or "")
+                boot_id = getattr(
+                    self.connection_id_to_start_message.get(connection_id),
+                    "boot_id",
+                    None,
+                )
+                if tolerated_reboot_required:
+                    logger.warning(
+                        "Agent reported a failed switch for task %s, but the "
+                        "configuration was activated and only unit reloads/"
+                        "restarts failed; treating it as successful",
+                        inner.task_id,
+                    )
                 # update deployment_info
                 with sqlalchemy.orm.Session(self.db_engine) as db_session:
                     deployment_info = crud_deployment_info.get_by_ssh_public_key(
@@ -143,7 +189,8 @@ class NetworkRelay(nr.NetworkRelay):
                             self.connection_id_to_public_key[connection_id],
                         )
                         raise ValueError("Deployment info not found")
-                    if inner.is_activated:
+                    device_label = deployment_info[0].name or str(deployment_info[0].id)
+                    if is_activated:
                         activated_config_id = inner.configuration_id
                         if activated_config_id is None:
                             try:
@@ -166,26 +213,38 @@ class NetworkRelay(nr.NetworkRelay):
                             deployed_config_commit=inner.config_commit,
                             pending_config_id=None,
                         )
-                        if getattr(inner, "reboot_required", False):
-                            # The configuration was activated but units failed to
-                            # reload/restart (dbus-broker is the usual one on a
-                            # 25.11 -> 26.05 switch). The device runs the new
-                            # generation, but the update only takes full effect
-                            # after a reboot.
-                            logger.warning(
-                                "Switch of %s activated but requires a reboot to "
-                                "finish the update",
-                                activated_config_id,
-                            )
-                            self.notification_manager.broadcast_toast_notification(
-                                f"Configuration {activated_config_id} is active, "
-                                "but a reboot is required to finish the update."
-                            )
+                    if reboot_required:
+                        # The device runs the new generation, but the update
+                        # only fully takes effect after a reboot (kernel
+                        # change, or units that failed to reload/restart).
+                        logger.warning(
+                            "Switch of %s recommends a reboot: %s",
+                            device_label,
+                            reboot_reason,
+                        )
+                        self.notification_manager.broadcast_toast_notification(
+                            f"Reboot recommended: {reboot_reason}.",
+                            href=f"/devices/{deployment_info[0].id}",
+                            link_text=device_label,
+                        )
+                    crud_deployment_info.update(
+                        db_session,
+                        deployment_info[0].id,
+                        reboot_required=reboot_required,
+                        reboot_required_reason=reboot_reason,
+                        reboot_required_boot_id=(boot_id if reboot_required else None),
+                    )
+                    self.notification_manager.broadcast_invalidate_notification(
+                        [
+                            "/api/all_deployment_infos",
+                            f"/api/deployment_info/{deployment_info[0].id}",
+                        ]
+                    )
                 self.task_controller.executor.send_message_to_task(
                     inner.task_id,
                     models_task.ControllerToRunnerTaskUpdate(
                         inner=models_task.AgentSwitchToNewConfigurationResult(
-                            success=inner.switch_success,
+                            success=switch_success,
                             stdout=inner.stdout,
                             stderr=inner.stderr,
                         )
@@ -318,7 +377,7 @@ class NetworkRelay(nr.NetworkRelay):
             # to rekey
             # if we can't, then we can just remove the connection
             # and add the new one
-            verify_alive = await run_in_threadpool(
+            verify_alive, _ = await run_in_threadpool(
                 verify_alive_with_ssh_host_key_and_connection_perms,
                 start_message.public_key,
                 sock=await self.create_connection(other_con_id, "localhost", 22, "tcp"),
@@ -372,7 +431,7 @@ class NetworkRelay(nr.NetworkRelay):
         # we can establish ssh connections here
         # check that the public key is valid
 
-        public_key_valid = await run_in_threadpool(
+        public_key_valid, ssh_boot_id = await run_in_threadpool(
             verify_alive_with_ssh_host_key_and_connection_perms,
             self.connection_id_to_public_key[connection_id],
             sock=await self.create_connection(connection_id, "localhost", 22, "tcp"),
@@ -387,6 +446,10 @@ class NetworkRelay(nr.NetworkRelay):
             )
             await edge_agent_connection.close()
             return
+
+        start_message = self.connection_id_to_start_message[connection_id]
+        if ssh_boot_id and not start_message.boot_id:
+            start_message.boot_id = ssh_boot_id
 
         # managed agents rekey if the public key has a deployment_info with a different hardware_device
         with sqlalchemy.orm.Session(self.db_engine) as db_session:
@@ -474,6 +537,11 @@ class NetworkRelay(nr.NetworkRelay):
                 self.connection_id_to_public_key[connection_id],
                 self.connection_id_to_start_message[connection_id].deployed_config_id,
                 None,
+                boot_id=getattr(
+                    self.connection_id_to_start_message[connection_id],
+                    "boot_id",
+                    None,
+                ),
                 preserve_confirmed_switch=True,
             )
 

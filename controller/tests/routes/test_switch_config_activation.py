@@ -1,4 +1,5 @@
 import asyncio
+import types
 import uuid
 from datetime import datetime, timezone
 
@@ -56,7 +57,10 @@ def test_switch_activation_promotes_deployed_config_id_from_task(db_session):
         deployed_config_id="config-a",
     )
     crud.deployment_info.update(
-        db_session, deployment_info.id, pending_config_id="config-b"
+        db_session,
+        deployment_info.id,
+        pending_config_id="config-b",
+        name="Test Device",
     )
     task = _create_switch_task(db_session, deployment_info.id)
 
@@ -85,3 +89,237 @@ def test_switch_activation_promotes_deployed_config_id_from_task(db_session):
     assert updated.pending_config_id is None
     assert updated.deployed_config_commit == "commit-b"
     assert relay.task_controller.executor.messages
+
+
+ACTIVATED_EXIT_4_STDERR = """
+Running as unit: thymis-nixos-rebuild-switch-to-configuration.service
+activating the configuration...
+Failed to reload dbus-broker.service
+          Finished with result: exit-code
+Main processes terminated with: code=exited, status=4/NOPERMISSION
+"""
+
+ACTIVATED_EXIT_1_STDERR = """
+Running as unit: thymis-nixos-rebuild-switch-to-configuration.service
+activating the configuration...
+reloading user units for thymiskiosk...
+Error: Failed to get GID for root
+          Finished with result: exit-code
+Main processes terminated with: code=exited, status=1/FAILURE
+"""
+
+ROLLED_BACK_STDERR = """
+activating the configuration...
+          Finished with result: success
+Main processes terminated with: code=exited, status=0/SUCCESS
+
+Reloading old configuration, cannot connect using new configuration
+"""
+
+INIT_CHANGED_STDERR = """
+Running as unit: thymis-nixos-rebuild-switch-to-configuration.service
+Warning: the new NixOS configuration has an ‘init’ that is
+incompatible with the current configuration.  The new configuration
+won't take effect until you reboot the system.
+          Finished with result: exit-code
+Main processes terminated with: code=exited, status=100/FAILURE
+"""
+
+MISSING_EXECUTABLE_STDERR = """
+Running as unit: thymis-nixos-rebuild-switch-to-configuration.service
+          Finished with result: exit-code
+Main processes terminated with: code=exited, status=203/EXEC
+"""
+
+
+def _report_switch_result(db_session, switch_success, is_activated, stderr):
+    deployment_info = crud.deployment_info.create(
+        db_session,
+        ssh_public_key="key-a",
+        deployed_config_id="config-a",
+    )
+    crud.deployment_info.update(
+        db_session,
+        deployment_info.id,
+        pending_config_id="config-b",
+        name="Test Device",
+    )
+    task = _create_switch_task(db_session, deployment_info.id)
+
+    relay = NetworkRelay(db_session.bind, NotificationManager())
+    relay.connection_id_to_public_key["conn-1"] = "key-a"
+    relay.connection_id_to_start_message["conn-1"] = types.SimpleNamespace(
+        boot_id="boot-1"
+    )
+    relay.task_controller = FakeTaskController()
+
+    asyncio.run(
+        relay.handle_custom_agent_message(
+            messages.AgentToRelayMessage(
+                inner=messages.EtRSwitchToNewConfigResultMessage(
+                    task_id=task.id,
+                    switch_success=switch_success,
+                    is_activated=is_activated,
+                    config_commit="commit-b",
+                    stdout="",
+                    stderr=stderr,
+                )
+            ),
+            "conn-1",
+        )
+    )
+    return deployment_info, relay
+
+
+def test_old_agent_tolerated_exit_4_reports_success(db_session):
+    """An agent without the switch-result fix still reports a successful deploy."""
+    deployment_info, relay = _report_switch_result(
+        db_session,
+        switch_success=False,
+        is_activated=True,
+        stderr=ACTIVATED_EXIT_4_STDERR,
+    )
+
+    updated = crud.deployment_info.get_by_id(db_session, deployment_info.id)
+    assert updated.deployed_config_id == "config-b"
+    assert updated.pending_config_id is None
+    assert updated.deployed_config_commit == "commit-b"
+    assert updated.reboot_required is True
+    assert "exited 4 after activation" in updated.reboot_required_reason
+    assert updated.reboot_required_boot_id == "boot-1"
+
+    notification = relay.notification_manager.queue.get_nowait()
+    assert notification.data.inner.kind == "frontend_toast"
+    assert notification.data.inner.link_text == "Test Device"
+    assert notification.data.inner.href == f"/devices/{deployment_info.id}"
+    assert "Reboot recommended" in notification.data.inner.message
+
+    [(_, message)] = relay.task_controller.executor.messages
+    assert message.inner.success is True
+
+
+def test_old_agent_tolerated_exit_1_reports_success(db_session):
+    """A later systemd/logind error after activation is not a failed switch."""
+    deployment_info, relay = _report_switch_result(
+        db_session,
+        switch_success=False,
+        is_activated=True,
+        stderr=ACTIVATED_EXIT_1_STDERR,
+    )
+
+    updated = crud.deployment_info.get_by_id(db_session, deployment_info.id)
+    assert updated.deployed_config_id == "config-b"
+    assert updated.pending_config_id is None
+    assert updated.deployed_config_commit == "commit-b"
+    assert updated.reboot_required is True
+    assert "exited 1 after activation" in updated.reboot_required_reason
+
+    [(_, message)] = relay.task_controller.executor.messages
+    assert message.inner.success is True
+
+
+def test_switch_with_incompatible_init_requires_reboot(db_session):
+    """Exit 100 is a failed switch, but the new init still needs a reboot."""
+    deployment_info, relay = _report_switch_result(
+        db_session,
+        switch_success=False,
+        is_activated=False,
+        stderr=INIT_CHANGED_STDERR,
+    )
+
+    updated = crud.deployment_info.get_by_id(db_session, deployment_info.id)
+    assert updated.deployed_config_id == "config-a"
+    assert updated.reboot_required is True
+    assert "different init" in updated.reboot_required_reason
+
+    notification = relay.notification_manager.queue.get_nowait()
+    assert notification.data.inner.link_text == "Test Device"
+    assert "Reboot recommended" in notification.data.inner.message
+
+    [(_, message)] = relay.task_controller.executor.messages
+    assert message.inner.success is False
+
+
+def test_reboot_clears_the_flag(db_session):
+    deployment_info, _ = _report_switch_result(
+        db_session,
+        switch_success=False,
+        is_activated=True,
+        stderr=ACTIVATED_EXIT_4_STDERR,
+    )
+    assert crud.deployment_info.get_by_id(
+        db_session, deployment_info.id
+    ).reboot_required
+
+    # reconnecting on the same boot keeps the flag
+    crud.deployment_info.create_or_update_by_public_key(
+        db_session, "key-a", "config-b", boot_id="boot-1"
+    )
+    assert crud.deployment_info.get_by_id(
+        db_session, deployment_info.id
+    ).reboot_required
+
+    # reconnecting after a reboot clears it
+    crud.deployment_info.create_or_update_by_public_key(
+        db_session, "key-a", "config-b", boot_id="boot-2"
+    )
+    updated = crud.deployment_info.get_by_id(db_session, deployment_info.id)
+    assert updated.reboot_required is False
+    assert updated.reboot_required_reason is None
+    assert updated.reboot_required_boot_id is None
+
+
+def test_old_agent_failed_switch_stays_failed(db_session):
+    deployment_info, relay = _report_switch_result(
+        db_session,
+        switch_success=False,
+        is_activated=False,
+        stderr=MISSING_EXECUTABLE_STDERR,
+    )
+
+    updated = crud.deployment_info.get_by_id(db_session, deployment_info.id)
+    assert updated.deployed_config_id == "config-a"
+    assert updated.pending_config_id == "config-b"
+    assert updated.reboot_required is False
+
+    [(_, message)] = relay.task_controller.executor.messages
+    assert message.inner.success is False
+
+
+def test_rolled_back_switch_stays_failed(db_session):
+    deployment_info, relay = _report_switch_result(
+        db_session,
+        switch_success=False,
+        is_activated=False,
+        stderr=ROLLED_BACK_STDERR,
+    )
+
+    updated = crud.deployment_info.get_by_id(db_session, deployment_info.id)
+    assert updated.deployed_config_id == "config-a"
+    assert updated.pending_config_id == "config-b"
+    assert updated.reboot_required is False
+
+    [(_, message)] = relay.task_controller.executor.messages
+    assert message.inner.success is False
+
+
+def test_legacy_reboot_flag_without_boot_id_clears_on_next_connect(db_session):
+    """A flag set before boot ids were recorded clears on the next connection."""
+    deployment_info = crud.deployment_info.create(
+        db_session, ssh_public_key="key-a", deployed_config_id="config-a"
+    )
+    crud.deployment_info.update(
+        db_session,
+        deployment_info.id,
+        reboot_required=True,
+        reboot_required_reason="kernel changed",
+    )
+
+    crud.deployment_info.create_or_update_by_public_key(
+        db_session, "key-a", "config-a", boot_id="boot-1"
+    )
+
+    updated = crud.deployment_info.get_by_id(db_session, deployment_info.id)
+    assert updated.reboot_required is False
+    assert updated.reboot_required_reason is None
+    assert updated.reboot_required_boot_id is None

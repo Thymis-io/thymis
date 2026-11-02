@@ -44,6 +44,8 @@ class ShouldInvalidate(BaseModel):
 class FrontendToast(BaseModel):
     kind: Literal["frontend_toast"] = "frontend_toast"
     message: str
+    href: str | None = None
+    link_text: str | None = None
 
 
 class ImageBuiltNotification(BaseModel):
@@ -115,8 +117,15 @@ class NotificationManager:
             websocket.client_state,
         )
 
-    def broadcast_toast_notification(self, message: str):
-        self.queue.put(Notification(FrontendToast(message=message)))
+    def broadcast_toast_notification(
+        self,
+        message: str,
+        href: str | None = None,
+        link_text: str | None = None,
+    ):
+        self.queue.put(
+            Notification(FrontendToast(message=message, href=href, link_text=link_text))
+        )
 
     async def _broadcast(self, message: Notification):
         for connection, user_session_id in list(self.active_connections.items()):

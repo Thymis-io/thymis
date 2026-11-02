@@ -5,6 +5,7 @@ import { fetchWithNotify } from './fetchWithNotify';
 import { navigating } from '$app/state';
 import type { GlobalState } from './state.svelte';
 import type { DeploymentInfo } from './deploymentInfo';
+import DeviceLinkToast from './components/DeviceLinkToast.svelte';
 
 export type Notification = {
 	inner:
@@ -12,7 +13,12 @@ export type Notification = {
 };
 
 export type ShouldInvalidate = { kind: 'should_invalidate'; should_invalidate_paths: string[] };
-export type FrontendToast = { kind: 'frontend_toast'; message: string };
+export type FrontendToast = {
+	kind: 'frontend_toast';
+	message: string;
+	href?: string | null;
+	link_text?: string | null;
+};
 
 export type ImageBuiltNotification = {
 	kind: 'image_built';
@@ -68,7 +74,20 @@ export const startNotificationSocket = (
 	socket.onmessage = async (event) => {
 		const notification = JSON.parse(event.data) as Notification;
 		if (notification.inner.kind === 'frontend_toast') {
-			toast.push(notification.inner.message, { pausable: true });
+			const { message, href, link_text } = notification.inner;
+			if (href) {
+				toast.push({
+					component: {
+						// the toast package types expect a legacy SvelteComponent
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						src: DeviceLinkToast as any,
+						props: { message, href, linkText: link_text ?? href }
+					},
+					pausable: true
+				});
+			} else {
+				toast.push(message, { pausable: true });
+			}
 		} else if (notification.inner.kind === 'should_invalidate') {
 			const paths = notification.inner.should_invalidate_paths;
 			await invalidateButDeferUntilNavigation((url: URL) => {

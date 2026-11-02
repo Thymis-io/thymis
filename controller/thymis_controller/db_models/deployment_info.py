@@ -22,6 +22,11 @@ class DeploymentInfo(Base):
     deployed_config_commit: Mapped[str | None] = mapped_column(nullable=True)
     deployed_config_id: Mapped[str | None] = mapped_column(nullable=True)
     pending_config_id: Mapped[str | None] = mapped_column(nullable=True)
+    reboot_required: Mapped[bool] = mapped_column(default=False, nullable=False)
+    reboot_required_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # boot id when the flag was set; a different boot id means the device
+    # rebooted and the flag can be cleared
+    reboot_required_boot_id: Mapped[str | None] = mapped_column(nullable=True)
 
     reachable_deployed_host: Mapped[str | None]
 
