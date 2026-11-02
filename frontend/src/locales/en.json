@@ -579,6 +579,7 @@
 			"reference-type-git": "Git",
 			"reference-type-github": "GitHub",
 			"reference-type-gitlab": "GitLab",
+			"reference-type-raw": "Other (URL)",
 			"use-github-warning": "For GitHub repositories, consider using the 'GitHub' type. Some features and authentication might not work.",
 			"use-gitlab-warning": "For GitLab repositories, consider using the 'GitLab' type. Some features and authentication might not work.",
 			"file-not-absolute-warning": "File paths should be absolute and start with '/'",
@@ -595,6 +596,7 @@
 			"ref": "Branch / Tag / Full Commit SHA (optional)",
 			"refresh-refs": "Refresh Branches",
 			"compiled-url": "Compiled URL",
+			"url": "Repository URL",
 			"repo-url-placeholder": "Repository URL"
 		},
 		"repo-status": {

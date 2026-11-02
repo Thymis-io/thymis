@@ -496,6 +496,7 @@
 			"reference-type-git": "Git",
 			"reference-type-github": "GitHub",
 			"reference-type-gitlab": "GitLab",
+			"reference-type-raw": "Andere (URL)",
 			"use-github-warning": "Für GitHub-Repositories sollte der 'GitHub' Typ verwendet werden. Einige Funktionen und Authentifizierung funktionieren möglicherweise nicht.",
 			"use-gitlab-warning": "Für GitLab-Repositories sollte der 'GitLab' Typ verwendet werden. Einige Funktionen und Authentifizierung funktionieren möglicherweise nicht.",
 			"file-not-absolute-warning": "Dateipfade sollten absolut sein und mit '/' beginnen.",
@@ -512,6 +513,7 @@
 			"ref": "Branch / Tag / Vollständiger Commit SHA (optional)",
 			"refresh-refs": "Branches aktualisieren",
 			"compiled-url": "Kompilierte URL",
+			"url": "Repository-URL",
 			"repo-url-placeholder": "Repository-URL"
 		},
 		"repo-status": {

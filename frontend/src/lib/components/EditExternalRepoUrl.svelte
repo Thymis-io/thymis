@@ -46,9 +46,15 @@
 	let selectedSecretId = $state<string | null>(null);
 	let testConnectionUrl = $state<string>('');
 
-	let flakeReference = $state<FlakeReference>();
+	/** Not a backend flake type: holds URLs the form can't split into fields. */
+	type RawFlakeReference = { type: 'raw'; url: string };
+	type StructuredFlakeReference = Exclude<FlakeReference, { type: 'indirect' }>;
+	type EditableFlakeReference = StructuredFlakeReference | RawFlakeReference;
+
+	let flakeReference = $state<EditableFlakeReference>();
 	let compiledUrl = $derived.by(() => {
 		if (!flakeReference) return '';
+		if (flakeReference.type === 'raw') return flakeReference.url;
 		if (flakeReference.type === 'git') {
 			const protocol =
 				flakeReference.protocol && flakeReference.protocol !== 'git'
@@ -77,16 +83,31 @@
 	let repoBranches = $state<{ name: string }[]>([]);
 	let repoTags = $state<{ name: string }[]>([]);
 
+	const readStructuredReference = async (
+		response: Response
+	): Promise<StructuredFlakeReference | null> => {
+		if (!response.ok) return null;
+		const parsed: FlakeReference | null = await response.json();
+		if (parsed?.type === 'git' || parsed?.type === 'github' || parsed?.type === 'gitlab') {
+			return parsed;
+		}
+		return null;
+	};
+
+	const parseFlakeUrl = async (url: string) => {
+		const response = await fetch(
+			`/api/external-repositories/parse-flake-ref/${encodeURIComponent(url)}`
+		);
+		return readStructuredReference(response);
+	};
+
 	const loadRepo = async (name: string) => {
 		flakeReference = undefined;
 
-		const [flakeRefFetch] = await Promise.all([
-			fetch(`/api/external-repositories/flake-ref/${name}`)
-		]);
-
-		if (flakeRefFetch.ok) {
-			flakeReference = await flakeRefFetch.json();
-		}
+		const parsed = await readStructuredReference(
+			await fetch(`/api/external-repositories/flake-ref/${name}`)
+		);
+		flakeReference = parsed ?? { type: 'raw', url: inputUrl ?? '' };
 	};
 
 	const loadRefs = async (url: string) => {
@@ -115,7 +136,7 @@
 	};
 
 	const onBranchSelect = (value: string) => {
-		if (!flakeReference) return;
+		if (!flakeReference || flakeReference.type === 'raw') return;
 		if (value.length === 40) {
 			flakeReference.ref = null;
 			flakeReference.rev = value;
@@ -190,13 +211,50 @@
 				<Label class="mb-1">{$t('settings.external-modal.reference-type')}</Label>
 				<Select
 					value={flakeReference.type}
-					on:change={(e) => {
+					on:change={async (e) => {
 						const newType = (e.target as HTMLInputElement)?.value ?? '';
-						const prevType = flakeReference?.type;
-						if (!newType || !flakeReference) return;
+						if (!newType || !flakeReference || newType === flakeReference.type) return;
 
+						if (newType === 'raw') {
+							flakeReference = { type: 'raw', url: compiledUrl ?? '' };
+							return;
+						}
+
+						if (flakeReference.type === 'raw') {
+							const raw = flakeReference;
+							const url = raw.url;
+							const parsed = await parseFlakeUrl(url);
+							// The user may have acted while the request was pending.
+							if (flakeReference !== raw || raw.url !== url) return;
+							flakeReference =
+								parsed ??
+								(newType === 'git'
+									? {
+											type: 'git',
+											protocol: 'https',
+											url: '',
+											host: '',
+											owner: '',
+											repo: '',
+											ref: null,
+											rev: null
+										}
+									: {
+											type: newType as 'github' | 'gitlab',
+											host: null,
+											owner: '',
+											repo: '',
+											ref: null,
+											rev: null
+										});
+						}
+
+						// Mutate the $state proxy, not `parsed`, so changes stay reactive.
+						const current = flakeReference as StructuredFlakeReference;
+						const prevType = current.type;
+						if (newType === prevType) return;
 						if (newType === 'git') {
-							const gitRef = flakeReference as Extract<FlakeReference, { type: 'git' }>;
+							const gitRef = current as Extract<FlakeReference, { type: 'git' }>;
 
 							if (prevType === 'github') {
 								gitRef.host = 'github.com';
@@ -208,13 +266,14 @@
 
 							gitRef.type = 'git';
 						} else {
-							flakeReference.type = newType as FlakeReference['type'];
+							current.type = newType as 'github' | 'gitlab';
 						}
 					}}
 				>
 					<option value="git">{$t('settings.external-modal.reference-type-git')}</option>
 					<option value="github">{$t('settings.external-modal.reference-type-github')}</option>
 					<option value="gitlab">{$t('settings.external-modal.reference-type-gitlab')}</option>
+					<option value="raw">{$t('settings.external-modal.reference-type-raw')}</option>
 				</Select>
 			</div>
 			<div class="flex-1">
@@ -352,12 +411,21 @@
 	{#if flakeReference}
 		<div class="mt-6 flex gap-2">
 			<div class="flex-5">
-				<Label class="mb-1">{$t('settings.external-modal.compiled-url')}</Label>
-				<Input
-					class="flex-6 mb-2 w-full"
-					bind:value={compiledUrl}
-					placeholder={$t('settings.external-modal.repo-url-placeholder')}
-				/>
+				{#if flakeReference.type === 'raw'}
+					<Label class="mb-1">{$t('settings.external-modal.url')}</Label>
+					<Input
+						class="flex-6 mb-2 w-full"
+						bind:value={flakeReference.url}
+						placeholder={$t('settings.external-modal.repo-url-placeholder')}
+					/>
+				{:else}
+					<Label class="mb-1">{$t('settings.external-modal.compiled-url')}</Label>
+					<Input
+						class="flex-6 mb-2 w-full"
+						bind:value={compiledUrl}
+						placeholder={$t('settings.external-modal.repo-url-placeholder')}
+					/>
+				{/if}
 			</div>
 			<Button
 				class="flex-1 mt-4 mb-2"
