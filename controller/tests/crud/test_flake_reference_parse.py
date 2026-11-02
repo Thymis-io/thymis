@@ -118,6 +118,19 @@ def test_git_flake_reference():
     assert ref.rev is None
 
 
+def test_git_flake_reference_keeps_repo_names_ending_in_git_letters():
+    for url, repo in [
+        ("git+https://example.org/team/project.git", "project"),
+        ("git+https://example.org/team/project", "project"),
+        ("git+https://example.org/team/digit?ref=main", "digit"),
+        ("git:team/widget.git", "widget"),
+        ("git:gist", "gist"),
+    ]:
+        ref = parse_flake_reference(url)
+        assert isinstance(ref, GitFlakeReference)
+        assert ref.repo == repo, url
+
+
 def test_github_flake_reference():
     ref = parse_flake_reference("github:NixOS/nix")
     assert isinstance(ref, GithubFlakeReference)

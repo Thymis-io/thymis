@@ -71,16 +71,16 @@ def parse_flake_reference(flake_url: str):
         rev = None
         if len(url_parts) == 1:
             params = url_parts[0].split("?")
-            repo = params[0].rstrip(".git")
+            repo = params[0].removesuffix(".git")
         elif len(url_parts) == 2:
             owner = url_parts[0]
             params = url_parts[1].split("?")
-            repo = params[0].rstrip(".git")
+            repo = params[0].removesuffix(".git")
         elif len(url_parts) == 3:
             host = url_parts[0]
             owner = url_parts[1]
             params = url_parts[2].split("?")
-            repo = params[0].rstrip(".git")
+            repo = params[0].removesuffix(".git")
 
         for param in params[1:]:
             if param.startswith("ref="):

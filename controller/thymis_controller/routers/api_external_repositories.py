@@ -36,6 +36,11 @@ def parse_flake_url(flake_name: str, project: ProjectAD):
     return parse_flake_reference(flake.url)
 
 
+@router.get("/external-repositories/parse-flake-ref/{flake_url:path}")
+def parse_flake_url_direct(flake_url: str):
+    return parse_flake_reference(flake_url)
+
+
 @router.get("/external-repositories/test-flake-ref/prefetch/{flake_url:path}")
 async def test_fake_reference_prefetch(
     flake_url: str,
