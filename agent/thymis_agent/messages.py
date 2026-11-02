@@ -20,6 +20,8 @@ class EdgeAgentToRelayStartMessage(ea.EtRStartMessage):
     ip_addresses: list[str] = []  # deprecated, used for backwards compatibility
     network_interfaces: list[dict[str, Any]] = []
     ram_bytes: int | None = None
+    # changes on every boot; lets the controller clear a reboot-required flag
+    boot_id: str | None = None
     last_error: str | None = None
 
 
@@ -34,9 +36,10 @@ class EtRSwitchToNewConfigResultMessage(BaseModel):
     switch_success: bool | None = None  # in v3 final
     stdout: str | None = None  # in v3 final
     stderr: str | None = None  # in v3 final
-    # the switch was activated but units failed to reload/restart, so a reboot
-    # is needed before the update is fully in effect
+    # the switch needs a reboot before the update is fully in effect (kernel
+    # change, units that failed to reload/restart, incompatible init)
     reboot_required: bool | None = None
+    reboot_required_reason: str | None = None
 
 
 class EtRMetricsMessage(BaseModel):

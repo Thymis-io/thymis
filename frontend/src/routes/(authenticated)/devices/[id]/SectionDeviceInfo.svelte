@@ -109,6 +109,30 @@
 				</span>
 			</div>
 
+			<!-- Reboot recommended -->
+			{#if deploymentInfo.reboot_required}
+				<div class="ds-kv-row">
+					<span class="ds-kv-key">{$t('device-details.reboot-recommended')}</span>
+					<span
+						class="ds-kv-val"
+						title={deploymentInfo.reboot_required_reason ??
+							$t('device-details.reboot-recommended-hint')}
+					>
+						<span
+							class="ds-tag"
+							style="background: var(--ds-warning-dim); color: var(--ds-warning);"
+						>
+							{$t('device-details.reboot-recommended')}
+						</span>
+						{#if deploymentInfo.reboot_required_reason}
+							<span style="color: var(--ds-text-mute)">
+								{deploymentInfo.reboot_required_reason}
+							</span>
+						{/if}
+					</span>
+				</div>
+			{/if}
+
 			<!-- Hardware IDs -->
 			{#if deploymentInfo.hardware_devices.length > 0}
 				<div class="ds-kv-row">

@@ -52,6 +52,9 @@ def update(
     pending_config_id: str | None = _UNSET,
     ram_bytes: int | None = None,
     notes: str | None = _UNSET,
+    reboot_required: bool | None = None,
+    reboot_required_reason: str | None = _UNSET,
+    reboot_required_boot_id: str | None = _UNSET,
 ) -> db_models.DeploymentInfo | None:
     deployment_info = session.get(db_models.DeploymentInfo, id)
     if deployment_info is None:
@@ -82,6 +85,12 @@ def update(
         deployment_info.ram_bytes = ram_bytes
     if notes is not _UNSET:
         deployment_info.notes = notes
+    if reboot_required is not None:
+        deployment_info.reboot_required = reboot_required
+    if reboot_required_reason is not _UNSET:
+        deployment_info.reboot_required_reason = reboot_required_reason
+    if reboot_required_boot_id is not _UNSET:
+        deployment_info.reboot_required_boot_id = reboot_required_boot_id
     session.commit()
     session.refresh(deployment_info)
     return deployment_info
@@ -120,6 +129,7 @@ def create_or_update_by_public_key(
     deployed_config_id: str,
     reachable_deployed_host: str | None = None,
     network_interfaces: list | None = None,
+    boot_id: str | None = None,
     *,
     preserve_confirmed_switch: bool = False,
 ) -> db_models.DeploymentInfo:
@@ -139,6 +149,14 @@ def create_or_update_by_public_key(
                 if deployed_config_id == source_identifier:
                     effective_deployed_config_id = target_identifier
 
+        rebooted = False
+        if deployment_info.reboot_required and boot_id:
+            if deployment_info.reboot_required_boot_id is None:
+                # flag from before boot ids were recorded (old agent or an
+                # earlier controller); the next observed boot is the reboot
+                rebooted = True
+            elif boot_id != deployment_info.reboot_required_boot_id:
+                rebooted = True
         return update(
             session,
             deployment_info.id,
@@ -148,6 +166,9 @@ def create_or_update_by_public_key(
             reachable_deployed_host=reachable_deployed_host,
             last_seen=datetime.now(timezone.utc),
             network_interfaces=network_interfaces,
+            reboot_required=False if rebooted else None,
+            reboot_required_reason=None if rebooted else _UNSET,
+            reboot_required_boot_id=None if rebooted else _UNSET,
         )
     return create(
         session,

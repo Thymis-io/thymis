@@ -64,7 +64,7 @@ def relay(db_session, monkeypatch):
     monkeypatch.setattr(
         network_relay,
         "verify_alive_with_ssh_host_key_and_connection_perms",
-        lambda *args, **kwargs: True,
+        lambda *args, **kwargs: (True, None),
     )
     return relay
 

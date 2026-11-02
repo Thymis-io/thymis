@@ -54,6 +54,8 @@ class DeploymentInfo(BaseModel):
     deployed_config_id: str | None
     reachable_deployed_host: str | None
     pending_config_id: str | None
+    reboot_required: bool = False
+    reboot_required_reason: str | None = None
     last_seen: Optional[datetime]
     first_seen: Optional[datetime]
     archived: bool = False
@@ -93,6 +95,8 @@ class DeploymentInfo(BaseModel):
             deployed_config_commit=deployment_info.deployed_config_commit,
             deployed_config_id=deployment_info.deployed_config_id,
             pending_config_id=deployment_info.pending_config_id,
+            reboot_required=deployment_info.reboot_required,
+            reboot_required_reason=deployment_info.reboot_required_reason,
             reachable_deployed_host=deployment_info.reachable_deployed_host,
             hardware_devices=deployment_info.hardware_devices,
             last_seen=deployment_info.last_seen,

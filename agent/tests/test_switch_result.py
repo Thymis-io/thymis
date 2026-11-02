@@ -1,13 +1,17 @@
 """Tests for interpreting `switch-to-configuration switch` results.
 
 The agent must not report a failed switch when the configuration was activated
-and only unit reloads/restarts failed: on the 25.11 -> 26.05 transition
-dbus-broker's reload times out after 90 s, which makes switch-to-configuration
-exit 4 on an otherwise fully switched device.
+and the remaining work failed: on the 25.11 -> 26.05 transition dbus-broker's
+reload times out after 90 s (exit 4), and logind can make the user activation
+abort after the system configuration is active (exit 1).
 """
 
 import pytest
-from thymis_agent.nixos_switch import interpret_switch_result, switch_needs_reboot
+from thymis_agent.nixos_switch import (
+    interpret_switch_result,
+    switch_needs_reboot,
+    switch_reboot_requirement,
+)
 
 ACTIVATED = """
 Running as unit: thymis-nixos-rebuild-switch-to-configuration.service
@@ -37,11 +41,12 @@ error: cannot switch to a different systemd version
     [
         # clean switch
         (0, ACTIVATED, (True, True)),
-        # dbus-broker reload failure after activation: the device is switched
+        # units failed to reload/restart after activation: the device is switched
         (4, ACTIVATED, (True, True)),
-        # any other post-activation failure must stay a failure
-        (1, ACTIVATED, (True, False)),
-        (2, ACTIVATED, (True, False)),
+        # switch aborted on a later error (e.g. logind during user activation):
+        # the system configuration is active, only the remaining work failed
+        (1, ACTIVATED, (True, True)),
+        (2, ACTIVATED, (True, True)),
         # activation itself failed
         (1, FAILED_ACTIVATION, (False, False)),
         (4, FAILED_ACTIVATION, (False, False)),
@@ -69,3 +74,56 @@ def test_interpret_switch_result(returncode, stderr, expected):
 )
 def test_switch_needs_reboot(returncode, is_activated, expected):
     assert switch_needs_reboot(returncode, is_activated) is expected
+
+
+def _make_system(tmp_path, name, kernel, initrd):
+    path = tmp_path / name
+    path.mkdir()
+    (path / "kernel").symlink_to(kernel)
+    (path / "initrd").symlink_to(initrd)
+    return str(path)
+
+
+@pytest.mark.parametrize(
+    ("returncode", "is_activated", "kernel_changed", "initrd_changed", "expected"),
+    [
+        (0, True, False, False, (False, None)),
+        (0, True, True, False, (True, "kernel changed")),
+        (0, True, False, True, (True, "initrd changed")),
+        (0, True, True, True, (True, "kernel and initrd changed")),
+        (4, True, False, False, (True, "exited 4 after activation")),
+        (1, True, False, False, (True, "exited 1 after activation")),
+        (100, False, False, False, (True, "different init")),
+        (100, False, True, False, (True, "kernel changed")),
+        (203, False, False, False, (False, None)),
+    ],
+)
+def test_switch_reboot_requirement(
+    tmp_path, returncode, is_activated, kernel_changed, initrd_changed, expected
+):
+    current = _make_system(
+        tmp_path,
+        "current",
+        "/nix/store/old-kernel/bzImage",
+        "/nix/store/old-initrd/initrd",
+    )
+    new = _make_system(
+        tmp_path,
+        "new",
+        "/nix/store/new-kernel/bzImage"
+        if kernel_changed
+        else "/nix/store/old-kernel/bzImage",
+        "/nix/store/new-initrd/initrd"
+        if initrd_changed
+        else "/nix/store/old-initrd/initrd",
+    )
+
+    reboot_required, reason = switch_reboot_requirement(
+        returncode, is_activated, current, new
+    )
+
+    assert reboot_required is expected[0]
+    if expected[1] is None:
+        assert reason is None
+    else:
+        assert expected[1] in reason

@@ -14,6 +14,8 @@ export type DeploymentInfo = {
 	deployed_config_commit: string | null;
 	deployed_config_id: string | null;
 	pending_config_id: string | null;
+	reboot_required: boolean;
+	reboot_required_reason: string | null;
 	reachable_deployed_host: string | null;
 	last_seen: string | null;
 	first_seen: string | null;
