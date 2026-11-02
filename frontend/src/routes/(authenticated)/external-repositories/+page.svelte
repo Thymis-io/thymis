@@ -64,17 +64,6 @@
 		saveState(data.globalState);
 	};
 
-	const changeRepoName = (oldName: string, newName: string) => {
-		if (!data.globalState.repositories[newName]) {
-			data.globalState.repositories = Object.fromEntries(
-				Object.entries(data.globalState.repositories).map(([key, value]) =>
-					key === oldName ? [newName, value] : [key, value]
-				)
-			);
-			saveState(data.globalState);
-		}
-	};
-
 	const openEditRepo = (name: string, url: string, apiKeySecret: string | null) => {
 		editRepoName = name;
 		editRepoUrl = url;
@@ -101,20 +90,26 @@
 				saveState(data.globalState);
 			}
 		}}
-		onSave={(newUrl) => {
-			if (creatingRepo && editRepoName) {
+		onSave={(newUrl, newName) => {
+			if (!editRepoName) return;
+			const repositories = data.globalState.repositories;
+			// One state update for URL and name: two separate saves race on the server.
+			const name = newName && !(newName in repositories) ? newName : editRepoName;
+			if (creatingRepo) {
 				data.globalState.repositories = {
-					...data.globalState.repositories,
-					[editRepoName]: { url: newUrl, api_key_secret: editRepoSecret ?? null }
+					...repositories,
+					[name]: { url: newUrl, api_key_secret: editRepoSecret ?? null }
 				};
-				saveState(data.globalState);
-			} else if (editRepoName && editRepoName in data.globalState.repositories) {
-				data.globalState.repositories[editRepoName].url = newUrl;
-				saveState(data.globalState);
+			} else if (editRepoName in repositories) {
+				data.globalState.repositories = Object.fromEntries(
+					Object.entries(repositories).map(([key, value]) =>
+						key === editRepoName ? [name, { ...value, url: newUrl }] : [key, value]
+					)
+				);
+			} else {
+				return;
 			}
-		}}
-		onRename={(newName) => {
-			if (editRepoName) changeRepoName(editRepoName, newName);
+			saveState(data.globalState);
 		}}
 		onClose={() => {
 			editRepoName = undefined;
