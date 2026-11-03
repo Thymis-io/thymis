@@ -293,6 +293,7 @@ ca_file="/etc/ssl/certs/ca-certificates.crt" # uses system ca (default mozilla) 
         ),
         example="",
         order=50,
+        priority_overridable=True,
     )
 
     nameservers = modules.Setting(
@@ -329,4 +330,5 @@ ca_file="/etc/ssl/certs/ca-certificates.crt" # uses system ca (default mozilla) 
         ),
         example="",
         order=60,
+        priority_overridable=True,
     )
