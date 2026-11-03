@@ -16,6 +16,7 @@ NotificationDataInner = Union[
     "FrontendToast",
     "ImageBuiltNotification",
     "DeploymentInfoUpdateNotification",
+    "RebootRecommendedNotification",
 ]
 
 INVALIDATE_DEBOUNCE_SECONDS: float = 0.2
@@ -44,8 +45,6 @@ class ShouldInvalidate(BaseModel):
 class FrontendToast(BaseModel):
     kind: Literal["frontend_toast"] = "frontend_toast"
     message: str
-    href: str | None = None
-    link_text: str | None = None
 
 
 class ImageBuiltNotification(BaseModel):
@@ -58,6 +57,12 @@ class ImageBuiltNotification(BaseModel):
 class DeploymentInfoUpdateNotification(BaseModel):
     kind: Literal["deployment_info_update"] = "deployment_info_update"
     deployment_infos: list["models.DeploymentInfo"]
+
+
+class RebootRecommendedNotification(BaseModel):
+    kind: Literal["reboot_recommended"] = "reboot_recommended"
+    deployment_info_id: uuid.UUID
+    reason: str
 
 
 class NotificationManager:
@@ -117,14 +122,18 @@ class NotificationManager:
             websocket.client_state,
         )
 
-    def broadcast_toast_notification(
-        self,
-        message: str,
-        href: str | None = None,
-        link_text: str | None = None,
+    def broadcast_toast_notification(self, message: str):
+        self.queue.put(Notification(FrontendToast(message=message)))
+
+    def broadcast_reboot_recommended_notification(
+        self, deployment_info_id: uuid.UUID, reason: str
     ):
         self.queue.put(
-            Notification(FrontendToast(message=message, href=href, link_text=link_text))
+            Notification(
+                RebootRecommendedNotification(
+                    deployment_info_id=deployment_info_id, reason=reason
+                )
+            )
         )
 
     async def _broadcast(self, message: Notification):

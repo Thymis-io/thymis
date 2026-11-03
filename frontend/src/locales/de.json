@@ -146,6 +146,9 @@
 		"ssh-copied": "SSH-Befehl in die Zwischenablage kopiert",
 		"ssh-copy-failed": "SSH-Befehl konnte nicht kopiert werden"
 	},
+	"notifications": {
+		"reboot-recommended": "Neustart für {device} empfohlen: {reason}"
+	},
 	"hardware-devices": {
 		"table": {
 			"device": "Gerät",
