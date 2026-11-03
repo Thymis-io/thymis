@@ -22,6 +22,7 @@ from pyrage import ssh
 from thymis_agent import messages
 from thymis_controller import models
 from thymis_controller.config import global_settings
+from thymis_controller.reboot import should_reboot_after_deploy
 from thymis_controller.switch_result import (
     interpret_switch_result,
     reboot_reason_from_stderr,
@@ -129,6 +130,18 @@ class NetworkRelay(nr.NetworkRelay):
             del self.public_key_to_connection_id[public_key]
         self.connection_id_to_start_message.pop(connection_id, None)
 
+    @staticmethod
+    def _deploy_task_reboots(db_session, task_id) -> bool:
+        """Whether the deploy task of a reboot-required switch reboots the device."""
+        try:
+            task = crud_task.get_task_by_id(db_session, task_id)
+            task_data = models_task.DeployDeviceTaskSubmission.model_validate(
+                task.task_submission_data
+            )
+        except Exception:
+            return False
+        return should_reboot_after_deploy(task_data.reboot_policy, True)
+
     async def handle_custom_agent_message(
         self, message: messages.AgentToRelayMessage, connection_id: str
     ):
@@ -222,9 +235,19 @@ class NetworkRelay(nr.NetworkRelay):
                             device_label,
                             reboot_reason,
                         )
-                        self.notification_manager.broadcast_reboot_recommended_notification(
-                            deployment_info[0].id, reboot_reason
-                        )
+                        if switch_success and self._deploy_task_reboots(
+                            db_session, inner.task_id
+                        ):
+                            # the deploy task reboots the device itself
+                            logger.info(
+                                "%s is rebooted by its deploy task %s",
+                                device_label,
+                                inner.task_id,
+                            )
+                        else:
+                            self.notification_manager.broadcast_reboot_recommended_notification(
+                                deployment_info[0].id, reboot_reason
+                            )
                     crud_deployment_info.update(
                         db_session,
                         deployment_info[0].id,

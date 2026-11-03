@@ -77,6 +77,10 @@
 		).length;
 	});
 
+	let rebootRequiredCount = $derived(
+		data.globalState.deploymentInfos.filter((di) => !di.archived && di.reboot_required).length
+	);
+
 	// Time range
 	let range = $derived(data.range as TimeRange);
 
@@ -106,6 +110,7 @@
 		{onlineConfigsCount}
 		{totalConfigsCount}
 		{behindCount}
+		{rebootRequiredCount}
 	/>
 </div>
 

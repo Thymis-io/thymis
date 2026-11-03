@@ -5,6 +5,7 @@
 	import { fetchWithNotify } from '#lib/fetchWithNotify.js';
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
+	import { type RebootPolicy, REBOOT_POLICIES } from '#lib/deploymentInfo.js';
 
 	interface Props {
 		data: PageData;
@@ -32,6 +33,7 @@
 	let dayOfMonth = $state(1);
 	let nthWeekday = $state(1);
 	let monthlyWeekday = $state(0); // weekday for monthly_weekday
+	let rebootPolicy = $state<RebootPolicy>('never');
 	let loading = $state(false);
 	let saving = $state(false);
 	let dirty = $state(false);
@@ -48,7 +50,8 @@
 			weekday,
 			dayOfMonth,
 			nthWeekday,
-			monthlyWeekday
+			monthlyWeekday,
+			rebootPolicy
 		});
 	}
 
@@ -72,6 +75,7 @@
 				dayOfMonth = s.day_of_month ?? 1;
 				nthWeekday = s.nth_weekday ?? 1;
 				monthlyWeekday = s.weekday ?? 0;
+				rebootPolicy = settings.auto_update_reboot_policy ?? 'never';
 				savedSnapshot = snapshot();
 				dirty = false;
 			}
@@ -95,7 +99,11 @@
 			const response = await fetchWithNotify('/api/controller-settings', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ auto_update_enabled: enabled, auto_update_schedule: schedule })
+				body: JSON.stringify({
+					auto_update_enabled: enabled,
+					auto_update_schedule: schedule,
+					auto_update_reboot_policy: rebootPolicy
+				})
 			});
 			if (response.ok) {
 				savedSnapshot = snapshot();
@@ -227,6 +235,10 @@
 		WEEKDAYS.map(({ value, labelKey }) => ({ value, name: $t(labelKey) }))
 	);
 
+	const rebootPolicyOptions = $derived(
+		REBOOT_POLICIES.map((value) => ({ value, name: $t(`reboot.policy.${value}`) }))
+	);
+
 	// weekday options annotated with local day name when shifted
 	const weekdayOptionsLocal = $derived(
 		localWeekdayLabels.map(({ value, labelKey, localLabelKey, shifted }) => ({
@@ -351,6 +363,15 @@
 			</p>
 		{/if}
 	{/if}
+
+	<!-- Reboot policy after the auto-update deploy -->
+	<div>
+		<Label class="mb-2">{$t('auto-update.reboot-policy-label')}</Label>
+		<Select bind:value={rebootPolicy} items={rebootPolicyOptions} disabled={loading} />
+		<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+			{$t('auto-update.reboot-policy-hint')}
+		</p>
+	</div>
 
 	<!-- Actions -->
 	<div class="flex items-center justify-between gap-2 border-t border-[var(--ds-border)] pt-5">

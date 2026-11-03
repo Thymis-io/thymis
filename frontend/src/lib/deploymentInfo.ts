@@ -29,6 +29,11 @@ export type DeploymentInfo = {
 	notes?: string | null;
 };
 
+/** When to reboot devices after a deploy or auto-update (`reboot_policy` / `auto_update_reboot_policy`). */
+export type RebootPolicy = 'never' | 'if_required' | 'always';
+
+export const REBOOT_POLICIES: RebootPolicy[] = ['never', 'if_required', 'always'];
+
 export type ConnectionHistoryEntry = {
 	id: string;
 	connected_at: string;

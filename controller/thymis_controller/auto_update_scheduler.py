@@ -245,6 +245,7 @@ async def auto_update_scheduler_loop(
                 settings = crud.controller_settings.get(db_session)
                 enabled = settings.auto_update_enabled
                 schedule_raw = settings.auto_update_schedule
+                reboot_policy = settings.auto_update_reboot_policy
 
             if not enabled:
                 await asyncio.sleep(60)
@@ -293,6 +294,7 @@ async def auto_update_scheduler_loop(
                             ),
                             known_hosts_path=str(project.known_hosts_path),
                             controller_ssh_pubkey=project.public_key,
+                            reboot_policy=reboot_policy,
                         ),
                         user_session_id=SCHEDULER_USER_SESSION_ID,
                         db_session=db_session,

@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from thymis_controller import crud
 from thymis_controller.dependencies import DBSessionAD
+from thymis_controller.models.task import RebootPolicy
 
 router = APIRouter()
 
@@ -23,11 +24,13 @@ class AutoUpdateSchedule(BaseModel):
 class ControllerSettingsResponse(BaseModel):
     auto_update_enabled: bool
     auto_update_schedule: AutoUpdateSchedule
+    auto_update_reboot_policy: RebootPolicy
 
 
 class ControllerSettingsPatch(BaseModel):
     auto_update_enabled: Optional[bool] = None
     auto_update_schedule: Optional[AutoUpdateSchedule] = None
+    auto_update_reboot_policy: Optional[RebootPolicy] = None
 
 
 def _parse_schedule(raw: str) -> AutoUpdateSchedule:
@@ -38,13 +41,18 @@ def _parse_schedule(raw: str) -> AutoUpdateSchedule:
         return AutoUpdateSchedule()
 
 
-@router.get("/controller-settings", response_model=ControllerSettingsResponse)
-def get_controller_settings(db_session: DBSessionAD):
-    settings = crud.controller_settings.get(db_session)
+def _response(settings) -> ControllerSettingsResponse:
     return ControllerSettingsResponse(
         auto_update_enabled=settings.auto_update_enabled,
         auto_update_schedule=_parse_schedule(settings.auto_update_schedule),
+        auto_update_reboot_policy=settings.auto_update_reboot_policy,
     )
+
+
+@router.get("/controller-settings", response_model=ControllerSettingsResponse)
+def get_controller_settings(db_session: DBSessionAD):
+    settings = crud.controller_settings.get(db_session)
+    return _response(settings)
 
 
 @router.patch("/controller-settings", response_model=ControllerSettingsResponse)
@@ -86,8 +94,6 @@ def patch_controller_settings(body: ControllerSettingsPatch, db_session: DBSessi
         db_session,
         auto_update_enabled=body.auto_update_enabled,
         auto_update_schedule=schedule_raw,
+        auto_update_reboot_policy=body.auto_update_reboot_policy,
     )
-    return ControllerSettingsResponse(
-        auto_update_enabled=settings.auto_update_enabled,
-        auto_update_schedule=_parse_schedule(settings.auto_update_schedule),
-    )
+    return _response(settings)

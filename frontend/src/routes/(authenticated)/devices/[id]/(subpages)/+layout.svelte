@@ -10,7 +10,7 @@
 	import PageHead from '#lib/components/layout/PageHead.svelte';
 	import Tabbar from '#lib/components/Tabbar.svelte';
 	import { targetShouldShowVNC } from '#lib/vnc/vnc.js';
-	import { fetchWithNotify } from '#lib/fetchWithNotify.js';
+	import RebootDevicesModal from '#lib/components/RebootDevicesModal.svelte';
 	import { updateDeploymentInfo } from '#lib/deploymentInfo.js';
 	import { invalidate } from '$app/navigation';
 	import type { LayoutData } from './$types';
@@ -73,11 +73,7 @@
 		}
 	}
 
-	const restartDevice = async () => {
-		await fetchWithNotify(`/api/action/reboot-devices?deployment_info_id=${deploymentInfo.id}`, {
-			method: 'POST'
-		});
-	};
+	let rebootModalOpen = $state(false);
 </script>
 
 <PageHead
@@ -103,7 +99,7 @@
 
 	{#snippet actions()}
 		{#if config}
-			<button class="ds-btn" onclick={restartDevice}>
+			<button class="ds-btn" onclick={() => (rebootModalOpen = true)}>
 				<RotateCcw size={'1rem'} class="min-w-4" />
 				<span class="whitespace-nowrap">{$t('configurations.actions.restart')}</span>
 			</button>
@@ -119,6 +115,12 @@
 		<button class="ds-btn ds-btn-primary" onclick={saveName}>{$t('device-details.save')}</button>
 	</div>
 </Modal>
+
+<RebootDevicesModal
+	bind:open={rebootModalOpen}
+	devices={[deploymentInfo]}
+	globalState={data.globalState}
+/>
 
 <Tabbar items={deviceTabs} />
 

@@ -210,6 +210,11 @@ class TaskSubmissionDataWrapper(BaseModel):
     inner: TaskSubmissionData = Field(discriminator="type")
 
 
+# Whether a device is rebooted once its deploy succeeded: never, only when it
+# reports a reboot is required, or always.
+RebootPolicy = Literal["never", "if_required", "always"]
+
+
 class DeployDeviceInformation(BaseModel):
     identifier: str
     source_identifier: str | None = None
@@ -226,6 +231,7 @@ class DeployDevicesTaskSubmission(BaseModel):
     known_hosts_path: str
     controller_ssh_pubkey: str
     config_commit: str
+    reboot_policy: RebootPolicy = "never"
     parent_task_id: Optional[uuid.UUID] = None
 
 
@@ -239,6 +245,7 @@ class DeployDeviceTaskSubmission(BaseModel):
     controller_access_client_endpoint: str
     access_client_token: str
     config_commit: str
+    reboot_policy: RebootPolicy = "never"
     parent_task_id: Optional[uuid.UUID] = None
 
 
@@ -306,6 +313,7 @@ class AutoUpdateTaskSubmission(BaseModel):
     controller_ssh_pubkey: str
     git_author_name: Optional[str] = None
     git_author_email: Optional[str] = None
+    reboot_policy: RebootPolicy = "never"
     parent_task_id: Optional[uuid.UUID] = None
 
 
@@ -462,6 +470,7 @@ __all__ = [
     "BuildProjectTaskSubmission",
     "BuildDeviceImageTaskSubmission",
     "SSHCommandTaskSubmission",
+    "RebootPolicy",
     "RebootDeviceInformation",
     "RebootDevicesTaskSubmission",
     "AutoUpdateTaskSubmission",

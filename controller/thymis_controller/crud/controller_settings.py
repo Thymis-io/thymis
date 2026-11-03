@@ -12,6 +12,7 @@ def get(db_session: sqlalchemy.orm.Session) -> ControllerSettings:
             id=1,
             auto_update_enabled=False,
             auto_update_schedule=DEFAULT_SCHEDULE,
+            auto_update_reboot_policy="never",
         )
         db_session.add(settings)
         db_session.commit()
@@ -22,11 +23,14 @@ def update(
     db_session: sqlalchemy.orm.Session,
     auto_update_enabled: bool | None = None,
     auto_update_schedule: str | None = None,
+    auto_update_reboot_policy: str | None = None,
 ) -> ControllerSettings:
     settings = get(db_session)
     if auto_update_enabled is not None:
         settings.auto_update_enabled = auto_update_enabled
     if auto_update_schedule is not None:
         settings.auto_update_schedule = auto_update_schedule
+    if auto_update_reboot_policy is not None:
+        settings.auto_update_reboot_policy = auto_update_reboot_policy
     db_session.commit()
     return settings

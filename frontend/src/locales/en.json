@@ -31,6 +31,8 @@
 		"save": "Save",
 		"cancel": "Cancel",
 		"rename": "Rename",
+		"select-all": "Select all",
+		"select-row": "Select row",
 		"name": "Name",
 		"no-tag-or-config-selected": "No tag or config selected",
 		"logout": "Logout",
@@ -149,6 +151,23 @@
 	"notifications": {
 		"reboot-recommended": "Reboot recommended for {device}: {reason}"
 	},
+	"reboot": {
+		"title": "Reboot devices",
+		"description": "The following devices will be rebooted and will be unavailable for a short time.",
+		"will-be-skipped": "Offline – will be skipped",
+		"confirm": "Reboot {count} {count, plural, one {device} other {devices}}",
+		"no-online-targets": "None of these devices are online, so none can be rebooted.",
+		"reboot-selected": "Reboot {count} selected",
+		"selected-count": "{count} selected",
+		"clear-selection": "Clear selection",
+		"row-action": "Reboot",
+		"policy": {
+			"label": "Reboot after deploy",
+			"never": "Never",
+			"if_required": "If recommended",
+			"always": "Always"
+		}
+	},
 	"hardware-devices": {
 		"table": {
 			"device": "Device",
@@ -179,7 +198,8 @@
 		"filter": {
 			"all": "All",
 			"online": "Online",
-			"offline": "Offline"
+			"offline": "Offline",
+			"reboot-required": "Reboot recommended"
 		},
 		"tabs": {
 			"active": "Active",
@@ -331,7 +351,8 @@
 			"config-status": "Config Status",
 			"assigned-devices": "devices assigned",
 			"devices-behind": "Devices Behind",
-			"all-up-to-date": "All up to date"
+			"all-up-to-date": "All up to date",
+			"reboot-required": "Need Reboot"
 		},
 		"range": {
 			"custom": "Custom",
@@ -872,6 +893,8 @@
 		"trigger-now": "Run Now",
 		"trigger-success": "Auto-update started",
 		"save-success": "Settings saved",
+		"reboot-policy-label": "Reboot after auto-update",
+		"reboot-policy-hint": "Applies to scheduled runs and \"Run Now\".",
 		"frequency": {
 			"label": "Frequency",
 			"daily": "Daily",
