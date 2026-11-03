@@ -22,7 +22,7 @@ class FakeTaskController:
         self.executor = FakeExecutor()
 
 
-def _create_switch_task(db_session, deployment_info_id):
+def _create_switch_task(db_session, deployment_info_id, reboot_policy="never"):
     task_data = models.DeployDeviceTaskSubmission(
         device=models.DeployDeviceInformation(
             identifier="config-b",
@@ -38,6 +38,7 @@ def _create_switch_task(db_session, deployment_info_id):
         controller_access_client_endpoint="ws://127.0.0.1:8080/agent/relay_for_clients",
         access_client_token="token",
         config_commit="commit-b",
+        reboot_policy=reboot_policy,
     )
     return crud.task.create(
         db_session,
@@ -132,7 +133,9 @@ Main processes terminated with: code=exited, status=203/EXEC
 """
 
 
-def _report_switch_result(db_session, switch_success, is_activated, stderr):
+def _report_switch_result(
+    db_session, switch_success, is_activated, stderr, reboot_policy="never"
+):
     deployment_info = crud.deployment_info.create(
         db_session,
         ssh_public_key="key-a",
@@ -144,7 +147,7 @@ def _report_switch_result(db_session, switch_success, is_activated, stderr):
         pending_config_id="config-b",
         name="Test Device",
     )
-    task = _create_switch_task(db_session, deployment_info.id)
+    task = _create_switch_task(db_session, deployment_info.id, reboot_policy)
 
     relay = NetworkRelay(db_session.bind, NotificationManager())
     relay.connection_id_to_public_key["conn-1"] = "key-a"
@@ -195,6 +198,43 @@ def test_old_agent_tolerated_exit_4_reports_success(db_session):
 
     [(_, message)] = relay.task_controller.executor.messages
     assert message.inner.success is True
+
+
+def _notification_kinds(relay):
+    queue = relay.notification_manager.queue
+    kinds = []
+    while not queue.empty():
+        kinds.append(getattr(queue.get_nowait().data.inner, "kind", None))
+    return kinds
+
+
+def test_no_reboot_notification_when_the_deploy_reboots(db_session):
+    # tolerated exit 4: a successful switch that still needs a reboot
+    deployment_info, relay = _report_switch_result(
+        db_session,
+        switch_success=False,
+        is_activated=True,
+        stderr=ACTIVATED_EXIT_4_STDERR,
+        reboot_policy="if_required",
+    )
+
+    assert crud.deployment_info.get_by_id(
+        db_session, deployment_info.id
+    ).reboot_required
+    assert "reboot_recommended" not in _notification_kinds(relay)
+
+
+def test_failed_switch_still_notifies_despite_reboot_policy(db_session):
+    """Failed deploys are not rebooted automatically, so the user is told."""
+    _, relay = _report_switch_result(
+        db_session,
+        switch_success=False,
+        is_activated=False,
+        stderr=INIT_CHANGED_STDERR,
+        reboot_policy="always",
+    )
+
+    assert "reboot_recommended" in _notification_kinds(relay)
 
 
 def test_old_agent_tolerated_exit_1_reports_success(db_session):

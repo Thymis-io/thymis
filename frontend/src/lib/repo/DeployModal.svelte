@@ -3,7 +3,7 @@
 	import TagIcon from 'lucide-svelte/icons/tag';
 	import FileCode from 'lucide-svelte/icons/file-code-2';
 	import HardDrive from 'lucide-svelte/icons/hard-drive';
-	import { Button, Modal, Input, Tooltip } from 'flowbite-svelte';
+	import { Button, Modal, Input, Tooltip, Label, Select } from 'flowbite-svelte';
 	import { fetchWithNotify } from '#lib/fetchWithNotify.js';
 	import { type Config, type Tag } from '#lib/state.js';
 	import FloatingMultiSelect from '#lib/components/FloatingMultiSelect.svelte';
@@ -14,7 +14,7 @@
 	import { invalidateButDeferUntilNavigation } from '#lib/notification.js';
 	import type { GlobalState } from '#lib/state.svelte.js';
 	import IdentifierLink from '#lib/IdentifierLink.svelte';
-	import { type DeploymentInfo } from '#lib/deploymentInfo.js';
+	import { type DeploymentInfo, type RebootPolicy, REBOOT_POLICIES } from '#lib/deploymentInfo.js';
 
 	interface Props {
 		nav: Nav;
@@ -35,6 +35,10 @@
 	let message = $state('deploy');
 	let selectedFile = $state('');
 	let hasFileChanges = $derived(repoStatus.changes.length > 0);
+	let rebootPolicy = $state<RebootPolicy>('never');
+	let rebootPolicyOptions = $derived(
+		REBOOT_POLICIES.map((value) => ({ value, name: $t(`reboot.policy.${value}`) }))
+	);
 
 	type MyOption = {
 		type: 'tag' | 'config' | 'device';
@@ -117,9 +121,12 @@
 			.map((config) => '&config=' + config.identifier)
 			.join('');
 		const deviceParams = selectedDeviceIds.map((id) => '&deployment_info_id=' + id).join('');
-		await fetchWithNotify(`/api/action/deploy?${configParams}${deviceParams}`, {
-			method: 'POST'
-		});
+		await fetchWithNotify(
+			`/api/action/deploy?reboot_policy=${rebootPolicy}${configParams}${deviceParams}`,
+			{
+				method: 'POST'
+			}
+		);
 		await invalidateButDeferUntilNavigation((url) => url.pathname === '/api/history');
 	};
 </script>
@@ -132,6 +139,7 @@
 	on:open={() => {
 		selectedFile = 'state.json';
 		message = 'deploy';
+		rebootPolicy = 'never';
 		if (selectedDeploymentInfo) {
 			selectedOptions = [toDeviceOption(selectedDeploymentInfo)];
 		} else if (nav.selectedTarget && nav.selectedTargetType) {
@@ -207,21 +215,25 @@
 						/>
 					{/each}
 				</div>
-				<div class="mt-auto ml-auto">
-					{#if hasFileChanges}
-						<Button
-							on:click={async () => {
-								await commit();
-								await deploy();
-								open = false;
-							}}
-							disabled={affectedDevices.length === 0 || message.length === 0}
-							class="w-48"
-						>
-							{$t('deploy.commit-deploy')}
-						</Button>
-					{:else}
-						<div class="mt-auto">
+				<div class="mt-auto flex items-end justify-end gap-2">
+					<div class="w-44">
+						<Label class="mb-1">{$t('reboot.policy.label')}</Label>
+						<Select bind:value={rebootPolicy} items={rebootPolicyOptions} />
+					</div>
+					<div>
+						{#if hasFileChanges}
+							<Button
+								on:click={async () => {
+									await commit();
+									await deploy();
+									open = false;
+								}}
+								disabled={affectedDevices.length === 0 || message.length === 0}
+								class="w-48"
+							>
+								{$t('deploy.commit-deploy')}
+							</Button>
+						{:else}
 							<Button
 								on:click={() => {
 									deploy();
@@ -232,13 +244,13 @@
 							>
 								{$t('deploy.deploy')}
 							</Button>
-						</div>
-					{/if}
-					{#if affectedDevices.length === 0}
-						<Tooltip>
-							{$t('deploy.no-targets-tooltip')}
-						</Tooltip>
-					{/if}
+						{/if}
+						{#if affectedDevices.length === 0}
+							<Tooltip>
+								{$t('deploy.no-targets-tooltip')}
+							</Tooltip>
+						{/if}
+					</div>
 				</div>
 			</div>
 		</div>

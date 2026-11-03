@@ -22,3 +22,5 @@ class ControllerSettings(Base):
     #   {"frequency": "monthly",         "time": "03:00", "day_of_month": 1}
     #   {"frequency": "monthly_weekday", "time": "03:00", "nth_weekday": 1, "weekday": 0}
     auto_update_schedule = Column(String(512), nullable=False, default=DEFAULT_SCHEDULE)
+    # reboot policy applied after the auto-update deploy: never | if_required | always
+    auto_update_reboot_policy = Column(String(32), nullable=False, default="never")

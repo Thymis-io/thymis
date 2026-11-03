@@ -21,6 +21,7 @@ import thymis_controller.models.task as models_task
 from pyrage import ssh
 from thymis_agent import messages
 from thymis_controller.notifier import Notifier
+from thymis_controller.reboot import reboot_targets, should_reboot_after_deploy
 from thymis_controller.task.worker import worker_run_task
 
 if TYPE_CHECKING:
@@ -443,6 +444,56 @@ class TaskWorkerPoolManager:
             if task.parent_task_id:
                 self.update_composite_task(task.parent_task_id)
 
+    def reboot_after_device_deploy(self, db_session, task) -> bool:
+        """Reboot a successfully deployed device as its reboot policy asks.
+
+        The reboot is an ssh_command_task child of the deploy_device_task, so
+        the device task (and its deploy) only finishes once the reboot was
+        sent. Returns whether the child was submitted.
+        """
+        task_data = models_task.DeployDeviceTaskSubmission.model_validate(
+            task.task_submission_data
+        )
+        deployment_info = crud.deployment_info.get_by_id(
+            db_session, task_data.device.deployment_info_id
+        )
+        if deployment_info is None or not should_reboot_after_deploy(
+            task_data.reboot_policy, deployment_info.reboot_required
+        ):
+            return False
+        devices, skipped = reboot_targets(
+            db_session, self.controller.network_relay, [deployment_info.id]
+        )
+        if not devices:
+            logger.warning(
+                "Not rebooting %s after deploy task %s: %s",
+                deployment_info.id,
+                task.id,
+                skipped[0]["reason"],
+            )
+            return False
+
+        task.state = "running"
+        task.end_time = None
+        reboot_task = self.controller.create_reboot_subtask(
+            devices[0],
+            task_data.ssh_key_path,
+            task.id,
+            task.user_session_id,
+            db_session,
+        )
+        task.children = [str(reboot_task.id)]
+        db_session.commit()
+        self.on_task_update.notify(task)
+        self.submit(models_task.TaskSubmission.from_orm_task(reboot_task))
+        logger.info(
+            "Rebooting %s after deploy task %s (%s)",
+            deployment_info.id,
+            task.id,
+            task_data.reboot_policy,
+        )
+        return True
+
     def format_nix_error_list(self, errors: list[dict]) -> str:
         return "\n".join([error["msg"] for error in errors if "msg" in error])
 
@@ -473,6 +524,12 @@ class TaskWorkerPoolManager:
                 db_session.commit()
                 self.on_task_update.notify(task)
                 logger.info("Task %s marked as failed", task_id)
+            elif task.state == "completed" and task.task_type == "deploy_device_task":
+                try:
+                    self.reboot_after_device_deploy(db_session, task)
+                except Exception:
+                    logger.exception("Failed to reboot after deploy task %s", task_id)
+                    db_session.rollback()
 
             if task.parent_task_id:
                 self.update_composite_task(task.parent_task_id)
@@ -504,6 +561,7 @@ class TaskWorkerPoolManager:
                             controller_ssh_pubkey=task_data.controller_ssh_pubkey,
                             config_commit=self.controller.project.repo.head_commit(),
                             parent_task_id=task_id,
+                            reboot_policy=task_data.reboot_policy,
                         )
                         # Mark auto_update_task as running again while deploy is pending
                         task.state = "running"

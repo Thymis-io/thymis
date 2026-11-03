@@ -94,6 +94,7 @@ class TaskController:
                     parent_task_id=task_db.id,
                     access_client_token=access_client_token.token,
                     config_commit=task.config_commit,
+                    reboot_policy=task.reboot_policy,
                 )
                 subtask = crud.task.create(
                     db_session,
@@ -112,37 +113,17 @@ class TaskController:
             task_db.children = children_uids
             db_session.commit()
         elif task.type == "reboot_devices_task":
-            children_uids = []
             for device in task.devices:
-                access_client_token = get_or_create_access_client_token(
-                    db_session,
-                    deployment_info_id=device.deployment_info_id,
+                subtasks.append(
+                    self.create_reboot_subtask(
+                        device,
+                        task.ssh_key_path,
+                        task_db.id,
+                        user_session_id,
+                        db_session,
+                    )
                 )
-                submission_data = SSHCommandTaskSubmission(
-                    controller_access_client_endpoint=self.access_client_endpoint,
-                    deployment_info_id=device.deployment_info_id,
-                    access_client_token=access_client_token.token,
-                    deployment_public_key=device.deployment_public_key,
-                    ssh_key_path=task.ssh_key_path,
-                    target_user="root",
-                    target_port=22,
-                    command=REBOOT_COMMAND,
-                )
-                subtask = crud.task.create(
-                    db_session,
-                    submitted_time=datetime.now(timezone.utc),
-                    state="pending",
-                    task_type="ssh_command_task",
-                    user_session_id=user_session_id,
-                    task_submission_data=submission_data.model_dump(mode="json"),
-                    parent_task_id=task_db.id,
-                )
-                access_client_token.deploy_device_task_id = subtask.id
-                db_session.add(access_client_token)
-                db_session.commit()
-                children_uids.append(str(subtask.id))
-                subtasks.append(subtask)
-            task_db.children = children_uids
+            task_db.children = [str(subtask.id) for subtask in subtasks]
             db_session.commit()
 
         self.executor.submit(TaskSubmission(id=task_db.id, data=task))
@@ -153,6 +134,43 @@ class TaskController:
             )
 
         return task_db
+
+    def create_reboot_subtask(
+        self,
+        device: models.RebootDeviceInformation,
+        ssh_key_path: str,
+        parent_task_id: uuid.UUID,
+        user_session_id: uuid.UUID,
+        db_session: Session,
+    ) -> db_models.Task:
+        """Create (not submit) an ssh_command_task child that reboots ``device``."""
+        access_client_token = get_or_create_access_client_token(
+            db_session,
+            deployment_info_id=device.deployment_info_id,
+        )
+        submission_data = SSHCommandTaskSubmission(
+            controller_access_client_endpoint=self.access_client_endpoint,
+            deployment_info_id=device.deployment_info_id,
+            access_client_token=access_client_token.token,
+            deployment_public_key=device.deployment_public_key,
+            ssh_key_path=ssh_key_path,
+            target_user="root",
+            target_port=22,
+            command=REBOOT_COMMAND,
+        )
+        subtask = crud.task.create(
+            db_session,
+            submitted_time=datetime.now(timezone.utc),
+            state="pending",
+            task_type="ssh_command_task",
+            user_session_id=user_session_id,
+            task_submission_data=submission_data.model_dump(mode="json"),
+            parent_task_id=parent_task_id,
+        )
+        access_client_token.deploy_device_task_id = subtask.id
+        db_session.add(access_client_token)
+        db_session.commit()
+        return subtask
 
     def get_task(self, task_id: str, db_session: Session) -> models.Task:
         return models.task.Task.from_orm_task(

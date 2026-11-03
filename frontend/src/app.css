@@ -417,6 +417,63 @@ body {
 	font-size: 13px;
 }
 
+/* Row-selection column: the label fills the whole cell so the click target
+   is the cell, not just the 16px box. */
+.ds-table th.ds-table-select,
+.ds-table td.ds-table-select {
+	position: relative;
+	width: 52px;
+	min-width: 52px;
+	padding: 0;
+}
+.ds-table-select > label {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding-left: 4px;
+	cursor: pointer;
+}
+.ds-table-select > label:has(input:disabled) {
+	cursor: not-allowed;
+}
+
+/* ---- Checkbox ---- */
+input[type='checkbox'].ds-checkbox {
+	width: 16px;
+	height: 16px;
+	border-radius: 4px;
+	border: 1.5px solid var(--ds-border-strong);
+	background-color: var(--ds-surface);
+	color: var(--ds-accent);
+	cursor: pointer;
+	transition:
+		border-color 0.12s,
+		background-color 0.12s;
+}
+.ds-table-select > label:hover input[type='checkbox'].ds-checkbox:not(:disabled),
+input[type='checkbox'].ds-checkbox:hover:not(:disabled) {
+	border-color: var(--ds-accent);
+}
+input[type='checkbox'].ds-checkbox:checked,
+input[type='checkbox'].ds-checkbox:indeterminate {
+	background-color: var(--ds-accent);
+	border-color: var(--ds-accent);
+}
+input[type='checkbox'].ds-checkbox:focus {
+	outline: none;
+	box-shadow: none;
+}
+input[type='checkbox'].ds-checkbox:focus-visible {
+	box-shadow: 0 0 0 3px var(--ds-accent-dim);
+	border-color: var(--ds-accent);
+}
+input[type='checkbox'].ds-checkbox:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
 /* ---- Filter chips ---- */
 .ds-chip-bar {
 	display: flex;

@@ -20,6 +20,7 @@ from thymis_controller.dependencies import (
     git_author_from_user_info,
 )
 from thymis_controller.models.state import State
+from thymis_controller.reboot import reboot_targets
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,7 @@ async def deploy(
     db_session: DBSessionAD,
     configs: list[str] = Query(None, alias="config"),
     deployment_info_ids: list[str] = Query(None, alias="deployment_info_id"),
+    reboot_policy: models.RebootPolicy = "never",
 ):
     if project.repo.is_dirty():
         raise HTTPException(
@@ -114,6 +116,7 @@ async def deploy(
             known_hosts_path=str(project.known_hosts_path),
             controller_ssh_pubkey=project.public_key,
             config_commit=project.repo.head_commit(),
+            reboot_policy=reboot_policy,
         ),
         user_session_id=user_session_id,
         db_session=session,
@@ -183,23 +186,7 @@ async def reboot_devices(
         Query(alias="deployment_info_id"),
     ],
 ):
-    devices: list[models.RebootDeviceInformation] = []
-    skipped: list[dict] = []
-    for deployment_info_id in dict.fromkeys(deployment_info_ids):
-        deployment_info = crud.deployment_info.get_by_id(db_session, deployment_info_id)
-        if deployment_info is None:
-            skipped.append({"id": str(deployment_info_id), "reason": "not_found"})
-        elif not network_relay.public_key_to_connection_id.get(
-            deployment_info.ssh_public_key
-        ):
-            skipped.append({"id": str(deployment_info_id), "reason": "offline"})
-        else:
-            devices.append(
-                models.RebootDeviceInformation(
-                    deployment_info_id=deployment_info.id,
-                    deployment_public_key=deployment_info.ssh_public_key,
-                )
-            )
+    devices, skipped = reboot_targets(db_session, network_relay, deployment_info_ids)
 
     task_id = None
     if devices:
@@ -469,6 +456,9 @@ async def auto_update(
             controller_ssh_pubkey=project.public_key,
             git_author_name=git_author[0] if git_author else None,
             git_author_email=git_author[1] if git_author else None,
+            reboot_policy=crud.controller_settings.get(
+                session
+            ).auto_update_reboot_policy,
         ),
         user_session_id=user_session_id,
         db_session=session,

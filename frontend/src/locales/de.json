@@ -31,6 +31,8 @@
 		"save": "Speichern",
 		"cancel": "Abbrechen",
 		"rename": "Umbenennen",
+		"select-all": "Alle auswählen",
+		"select-row": "Zeile auswählen",
 		"name": "Name",
 		"no-tag-or-config-selected": "Kein Tag oder Konfig ausgewählt",
 		"logout": "Abmelden",
@@ -149,6 +151,23 @@
 	"notifications": {
 		"reboot-recommended": "Neustart für {device} empfohlen: {reason}"
 	},
+	"reboot": {
+		"title": "Geräte neu starten",
+		"description": "Die folgenden Geräte werden neu gestartet und sind kurzzeitig nicht erreichbar.",
+		"will-be-skipped": "Offline – wird übersprungen",
+		"confirm": "{count} {count, plural, one {Gerät} other {Geräte}} neu starten",
+		"no-online-targets": "Keines dieser Geräte ist online, daher kann keines neu gestartet werden.",
+		"reboot-selected": "{count} ausgewählte neu starten",
+		"selected-count": "{count} ausgewählt",
+		"clear-selection": "Auswahl aufheben",
+		"row-action": "Neu starten",
+		"policy": {
+			"label": "Neustart nach Deployment",
+			"never": "Nie",
+			"if_required": "Wenn empfohlen",
+			"always": "Immer"
+		}
+	},
 	"hardware-devices": {
 		"table": {
 			"device": "Gerät",
@@ -179,7 +198,8 @@
 		"filter": {
 			"all": "Alle",
 			"online": "Online",
-			"offline": "Offline"
+			"offline": "Offline",
+			"reboot-required": "Neustart empfohlen"
 		},
 		"tabs": {
 			"active": "Aktiv",
@@ -330,7 +350,8 @@
 			"config-status": "Konfigurationsstatus",
 			"assigned-devices": "Geräte zugewiesen",
 			"devices-behind": "Veraltete Geräte",
-			"all-up-to-date": "Alle aktuell"
+			"all-up-to-date": "Alle aktuell",
+			"reboot-required": "Neustart nötig"
 		},
 		"range": {
 			"custom": "Benutzerdefiniert",
@@ -871,6 +892,8 @@
 		"trigger-now": "Jetzt ausführen",
 		"trigger-success": "Auto-Update gestartet",
 		"save-success": "Einstellungen gespeichert",
+		"reboot-policy-label": "Neustart nach Auto-Update",
+		"reboot-policy-hint": "Gilt für geplante Läufe und „Jetzt ausführen“.",
 		"frequency": {
 			"label": "Häufigkeit",
 			"daily": "Täglich",
