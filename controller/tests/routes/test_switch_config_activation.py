@@ -189,10 +189,9 @@ def test_old_agent_tolerated_exit_4_reports_success(db_session):
     assert updated.reboot_required_boot_id == "boot-1"
 
     notification = relay.notification_manager.queue.get_nowait()
-    assert notification.data.inner.kind == "frontend_toast"
-    assert notification.data.inner.link_text == "Test Device"
-    assert notification.data.inner.href == f"/devices/{deployment_info.id}"
-    assert "Reboot recommended" in notification.data.inner.message
+    assert notification.data.inner.kind == "reboot_recommended"
+    assert notification.data.inner.deployment_info_id == deployment_info.id
+    assert "exited 4 after activation" in notification.data.inner.reason
 
     [(_, message)] = relay.task_controller.executor.messages
     assert message.inner.success is True
@@ -233,8 +232,8 @@ def test_switch_with_incompatible_init_requires_reboot(db_session):
     assert "different init" in updated.reboot_required_reason
 
     notification = relay.notification_manager.queue.get_nowait()
-    assert notification.data.inner.link_text == "Test Device"
-    assert "Reboot recommended" in notification.data.inner.message
+    assert notification.data.inner.deployment_info_id == deployment_info.id
+    assert "different init" in notification.data.inner.reason
 
     [(_, message)] = relay.task_controller.executor.messages
     assert message.inner.success is False

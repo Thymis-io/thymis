@@ -146,6 +146,9 @@
 		"ssh-copied": "SSH command copied to clipboard",
 		"ssh-copy-failed": "Failed to copy SSH command"
 	},
+	"notifications": {
+		"reboot-recommended": "Reboot recommended for {device}: {reason}"
+	},
 	"hardware-devices": {
 		"table": {
 			"device": "Device",

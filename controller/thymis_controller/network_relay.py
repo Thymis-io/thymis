@@ -222,10 +222,8 @@ class NetworkRelay(nr.NetworkRelay):
                             device_label,
                             reboot_reason,
                         )
-                        self.notification_manager.broadcast_toast_notification(
-                            f"Reboot recommended: {reboot_reason}.",
-                            href=f"/devices/{deployment_info[0].id}",
-                            link_text=device_label,
+                        self.notification_manager.broadcast_reboot_recommended_notification(
+                            deployment_info[0].id, reboot_reason
                         )
                     crud_deployment_info.update(
                         db_session,

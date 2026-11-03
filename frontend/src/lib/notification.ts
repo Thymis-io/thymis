@@ -1,24 +1,24 @@
 import { browser } from '$app/env';
 import { invalidate } from '$app/navigation';
 import { toast } from '@zerodevx/svelte-toast';
+import type { ComponentType } from 'svelte';
 import { fetchWithNotify } from './fetchWithNotify';
 import { navigating } from '$app/state';
 import type { GlobalState } from './state.svelte';
 import type { DeploymentInfo } from './deploymentInfo';
-import DeviceLinkToast from './components/DeviceLinkToast.svelte';
+import RebootRecommendedToast from './components/RebootRecommendedToast.svelte';
 
 export type Notification = {
 	inner:
-		ShouldInvalidate | FrontendToast | ImageBuiltNotification | DeploymentInfoUpdateNotification;
+		| ShouldInvalidate
+		| FrontendToast
+		| ImageBuiltNotification
+		| DeploymentInfoUpdateNotification
+		| RebootRecommendedNotification;
 };
 
 export type ShouldInvalidate = { kind: 'should_invalidate'; should_invalidate_paths: string[] };
-export type FrontendToast = {
-	kind: 'frontend_toast';
-	message: string;
-	href?: string | null;
-	link_text?: string | null;
-};
+export type FrontendToast = { kind: 'frontend_toast'; message: string };
 
 export type ImageBuiltNotification = {
 	kind: 'image_built';
@@ -29,6 +29,12 @@ export type ImageBuiltNotification = {
 export type DeploymentInfoUpdateNotification = {
 	kind: 'deployment_info_update';
 	deployment_infos: DeploymentInfo[];
+};
+
+export type RebootRecommendedNotification = {
+	kind: 'reboot_recommended';
+	deployment_info_id: string;
+	reason: string;
 };
 
 let socket: WebSocket | undefined;
@@ -74,20 +80,20 @@ export const startNotificationSocket = (
 	socket.onmessage = async (event) => {
 		const notification = JSON.parse(event.data) as Notification;
 		if (notification.inner.kind === 'frontend_toast') {
-			const { message, href, link_text } = notification.inner;
-			if (href) {
-				toast.push({
-					component: {
-						// the toast package types expect a legacy SvelteComponent
-						// eslint-disable-next-line @typescript-eslint/no-explicit-any
-						src: DeviceLinkToast as any,
-						props: { message, href, linkText: link_text ?? href }
-					},
-					pausable: true
-				});
-			} else {
-				toast.push(message, { pausable: true });
-			}
+			toast.push(notification.inner.message, { pausable: true });
+		} else if (notification.inner.kind === 'reboot_recommended') {
+			const { deployment_info_id, reason } = notification.inner;
+			toast.push({
+				component: {
+					src: RebootRecommendedToast as unknown as ComponentType,
+					props: {
+						deploymentInfoId: deployment_info_id,
+						reason,
+						globalState: getGlobalState()
+					}
+				},
+				pausable: true
+			});
 		} else if (notification.inner.kind === 'should_invalidate') {
 			const paths = notification.inner.should_invalidate_paths;
 			await invalidateButDeferUntilNavigation((url: URL) => {
