@@ -518,6 +518,15 @@ def deploy_devices_task(
     report_task_finished(task, conn, True, "Waiting for child tasks to finish")
 
 
+def reboot_devices_task(
+    task: models_task.TaskSubmission, conn: Connection, process_list: ProcessList
+):
+    task_data = task.data
+    assert task_data.type == "reboot_devices_task"
+
+    report_task_finished(task, conn, True, "Waiting for child tasks to finish")
+
+
 class SecretsDiskJson(BaseModel):
     secrets: dict[uuid.UUID, str]
     secret_infos: list[messages.SecretForDevice]
@@ -894,6 +903,7 @@ SUPPORTED_TASK_TYPES = {
     "deploy_device_task": deploy_device_task,
     "build_device_image_task": build_device_image_task,
     "ssh_command_task": ssh_command_task,
+    "reboot_devices_task": reboot_devices_task,
     "run_nixos_vm_task": run_nixos_vm_task,
     "auto_update_task": auto_update_task,
 }

@@ -551,7 +551,8 @@
 			"deploy_device": "Gerät Ausrollen: {device}",
 			"switch_device_config": "Wechsel {device} von {source} zu {target}",
 			"build_device_image": "Geräte-Image Bauen: {device}",
-			"ssh_command": "SSH Befehl Ausführen",
+			"ssh_command": "SSH Befehl auf {device} ausführen",
+			"reboot_devices": "{count} {count, plural, one {Gerät} other {Geräte}} neu starten",
 			"run_nixos_vm_task": "NixOS VM für {device} ausführen",
 			"auto_update": "Auto-Update"
 		},

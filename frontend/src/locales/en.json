@@ -436,7 +436,8 @@
 			"deploy_device": "Deploy to {device}",
 			"switch_device_config": "Switch {device} from {source} to {target}",
 			"build_device_image": "Build Image for {device}",
-			"ssh_command": "Run SSH Command",
+			"ssh_command": "Run SSH Command on {device}",
+			"reboot_devices": "Reboot {count} {count, plural, one {device} other {devices}}",
 			"run_nixos_vm_task": "Run NixOS VM for {device}",
 			"auto_update": "Auto-Update"
 		},
