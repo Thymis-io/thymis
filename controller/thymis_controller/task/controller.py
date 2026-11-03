@@ -13,6 +13,7 @@ from thymis_controller.crud.agent_token import get_or_create_access_client_token
 from thymis_controller.crud.task import get_tasks_short
 from thymis_controller.models.task import (
     DeployDeviceTaskSubmission,
+    SSHCommandTaskSubmission,
     TaskSubmission,
     TaskSubmissionData,
 )
@@ -24,6 +25,11 @@ if TYPE_CHECKING:
     from thymis_controller.project import Project
 
 logger = logging.getLogger(__name__)
+
+# Schedule the reboot a few seconds out so the SSH command exits 0 before the
+# connection drops; a plain `reboot` can cut the session and make ssh fail.
+# Hosts without systemd fall back to `reboot`.
+REBOOT_COMMAND = "systemd-run --on-active=3 systemctl reboot || reboot"
 
 
 class TaskController:
@@ -94,6 +100,39 @@ class TaskController:
                     submitted_time=datetime.now(timezone.utc),
                     state="pending",
                     task_type="deploy_device_task",
+                    user_session_id=user_session_id,
+                    task_submission_data=submission_data.model_dump(mode="json"),
+                    parent_task_id=task_db.id,
+                )
+                access_client_token.deploy_device_task_id = subtask.id
+                db_session.add(access_client_token)
+                db_session.commit()
+                children_uids.append(str(subtask.id))
+                subtasks.append(subtask)
+            task_db.children = children_uids
+            db_session.commit()
+        elif task.type == "reboot_devices_task":
+            children_uids = []
+            for device in task.devices:
+                access_client_token = get_or_create_access_client_token(
+                    db_session,
+                    deployment_info_id=device.deployment_info_id,
+                )
+                submission_data = SSHCommandTaskSubmission(
+                    controller_access_client_endpoint=self.access_client_endpoint,
+                    deployment_info_id=device.deployment_info_id,
+                    access_client_token=access_client_token.token,
+                    deployment_public_key=device.deployment_public_key,
+                    ssh_key_path=task.ssh_key_path,
+                    target_user="root",
+                    target_port=22,
+                    command=REBOOT_COMMAND,
+                )
+                subtask = crud.task.create(
+                    db_session,
+                    submitted_time=datetime.now(timezone.utc),
+                    state="pending",
+                    task_type="ssh_command_task",
                     user_session_id=user_session_id,
                     task_submission_data=submission_data.model_dump(mode="json"),
                     parent_task_id=task_db.id,

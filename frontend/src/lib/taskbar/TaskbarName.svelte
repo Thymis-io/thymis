@@ -7,6 +7,7 @@
 	import Play from 'lucide-svelte/icons/play';
 	import Command from 'lucide-svelte/icons/square-chevron-right';
 	import RefreshCcwDot from 'lucide-svelte/icons/refresh-ccw-dot';
+	import RotateCcw from 'lucide-svelte/icons/rotate-ccw';
 	import type { TaskShort } from '#lib/taskstatus.js';
 	import type { GlobalState } from '#lib/state.svelte.js';
 	import IdentifierLink from '#lib/IdentifierLink.svelte';
@@ -65,6 +66,12 @@
 	const getConfigurationId = (task: TaskShort) => {
 		const submissionData = task.task_submission_data as ConfigurationTaskData | null | undefined;
 		return submissionData?.configuration_id;
+	};
+
+	const getSSHCommandDeploymentInfoId = (task: TaskShort) => {
+		const submissionData = task.task_submission_data as
+			{ deployment_info_id?: string } | null | undefined;
+		return submissionData?.deployment_info_id;
 	};
 </script>
 
@@ -156,7 +163,20 @@
 		{after}
 	{:else if task.task_type === 'ssh_command_task'}
 		<Command size={iconSize} class={iconClass} />
-		{$t('taskbar.task-types.ssh_command')}
+		{@const [before, after] = $t('taskbar.task-types.ssh_command').split('{device}')}
+		{before}
+		<IdentifierLink
+			{globalState}
+			identifier={getSSHCommandDeploymentInfoId(task)}
+			context="device"
+			{iconSize}
+		/>
+		{after}
+	{:else if task.task_type === 'reboot_devices_task'}
+		<RotateCcw size={iconSize} class={iconClass} />
+		{$t('taskbar.task-types.reboot_devices', {
+			values: { count: getDeployDevices(task).length }
+		})}
 	{:else if task.task_type === 'auto_update_task'}
 		<RefreshCcwDot size="18" class={iconClass} />
 		{$t('taskbar.task-types.auto_update')}

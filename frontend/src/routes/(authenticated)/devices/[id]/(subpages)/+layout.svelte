@@ -74,8 +74,7 @@
 	}
 
 	const restartDevice = async () => {
-		if (!config) return;
-		await fetchWithNotify(`/api/action/restart-device?identifier=${config.identifier}`, {
+		await fetchWithNotify(`/api/action/reboot-devices?deployment_info_id=${deploymentInfo.id}`, {
 			method: 'POST'
 		});
 	};

@@ -200,6 +200,7 @@ TaskSubmissionData = Union[
     "BuildProjectTaskSubmission",
     "BuildDeviceImageTaskSubmission",
     "SSHCommandTaskSubmission",
+    "RebootDevicesTaskSubmission",
     "RunNixOSVMTaskSubmission",
     "AutoUpdateTaskSubmission",
 ]
@@ -272,6 +273,20 @@ class SSHCommandTaskSubmission(BaseModel):
     target_user: str
     target_port: int
     command: str
+
+
+class RebootDeviceInformation(BaseModel):
+    deployment_info_id: uuid.UUID
+    deployment_public_key: str
+
+
+class RebootDevicesTaskSubmission(BaseModel):
+    """Parent task: one ssh_command_task child per device reboots it."""
+
+    type: Literal["reboot_devices_task"] = "reboot_devices_task"
+    devices: list[RebootDeviceInformation]
+    ssh_key_path: str
+    parent_task_id: Optional[uuid.UUID] = None
 
 
 class RunNixOSVMTaskSubmission(BaseModel):
@@ -447,6 +462,8 @@ __all__ = [
     "BuildProjectTaskSubmission",
     "BuildDeviceImageTaskSubmission",
     "SSHCommandTaskSubmission",
+    "RebootDeviceInformation",
+    "RebootDevicesTaskSubmission",
     "AutoUpdateTaskSubmission",
     "RunnerToControllerTaskUpdate",
     "TaskUpdate",

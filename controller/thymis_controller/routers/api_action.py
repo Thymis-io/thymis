@@ -2,6 +2,7 @@ import logging
 import os
 import time
 import uuid
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from fastapi.responses import FileResponse, RedirectResponse
@@ -171,41 +172,48 @@ def build_download_image(
     )
 
 
-@router.post("/action/restart-device")
-async def restart_device(
-    identifier: str,
+@router.post("/action/reboot-devices")
+async def reboot_devices(
     db_session: DBSessionAD,
     task_controller: TaskControllerAD,
     network_relay: NetworkRelayAD,
     user_session_id: UserSessionIDAD,
+    deployment_info_ids: Annotated[
+        list[uuid.UUID],
+        Query(alias="deployment_info_id"),
+    ],
 ):
-    for deployment_info in crud.deployment_info.get_by_config_id(
-        db_session, identifier
-    ):
-        if network_relay.public_key_to_connection_id.get(
+    devices: list[models.RebootDeviceInformation] = []
+    skipped: list[dict] = []
+    for deployment_info_id in dict.fromkeys(deployment_info_ids):
+        deployment_info = crud.deployment_info.get_by_id(db_session, deployment_info_id)
+        if deployment_info is None:
+            skipped.append({"id": str(deployment_info_id), "reason": "not_found"})
+        elif not network_relay.public_key_to_connection_id.get(
             deployment_info.ssh_public_key
         ):
-            access_client_token = get_or_create_access_client_token(
-                db_session, deployment_info_id=deployment_info.id
+            skipped.append({"id": str(deployment_info_id), "reason": "offline"})
+        else:
+            devices.append(
+                models.RebootDeviceInformation(
+                    deployment_info_id=deployment_info.id,
+                    deployment_public_key=deployment_info.ssh_public_key,
+                )
             )
 
-            task = task_controller.submit(
-                models.SSHCommandTaskSubmission(
-                    controller_access_client_endpoint=task_controller.access_client_endpoint,
-                    deployment_info_id=deployment_info.id,
-                    access_client_token=access_client_token.token,
-                    deployment_public_key=deployment_info.ssh_public_key,
-                    ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
-                    target_user="root",
-                    target_port=22,
-                    command="reboot",
-                ),
-                user_session_id=user_session_id,
-                db_session=db_session,
-            )
-            access_client_token.deploy_device_task_id = task.id
-            db_session.add(access_client_token)
-            db_session.commit()
+    task_id = None
+    if devices:
+        task = task_controller.submit(
+            models.RebootDevicesTaskSubmission(
+                devices=devices,
+                ssh_key_path=str(global_settings.PROJECT_PATH / "id_thymis"),
+            ),
+            user_session_id=user_session_id,
+            db_session=db_session,
+        )
+        task_id = task.id
+
+    return {"task_id": task_id, "skipped": skipped}
 
 
 @router.head("/download-image")
