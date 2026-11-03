@@ -650,7 +650,7 @@ test('Open Deploy With Identical Config And Tag Identifier', async ({
 	const deployButton = page.locator('button').filter({ hasText: 'Deploy' });
 	await deployButton.click();
 
-	const combobox = page.getByRole('combobox');
+	const combobox = page.locator('.multiselect').getByRole('combobox');
 	await combobox.click();
 
 	// The dropdown options live in the listbox; selected items render as separate
