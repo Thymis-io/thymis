@@ -9,64 +9,13 @@ import rehypeAutolinkHeadings, {
 	type Options as RehypeAutolinkHeadingsOptions
 } from 'rehype-autolink-headings';
 import { fromHtmlIsomorphic } from 'hast-util-from-html-isomorphic';
-import { visit } from 'unist-util-visit';
+import { remarkExtractToc } from './src/lib/remarkExtractToc.js';
 import devtoolsJson from 'vite-plugin-devtools-json';
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
-import type { Root } from 'mdast';
 import type { Plugin, Settings } from 'unified';
 import type { ElementContent } from 'hast';
-
-// mdsvex passes its own (legacy) VFile; only the fields used here are typed.
-type MdsvexVFile = { data: { fm?: Record<string, unknown> }; contents?: unknown };
-
-export const remarkExtractToc = () => {
-	return (tree: Root, vFile: MdsvexVFile) => {
-		if (!vFile.data) {
-			vFile.data = {};
-		}
-
-		if (!vFile.data.fm) {
-			vFile.data.fm = {};
-		}
-
-		vFile.data.fm.toc = vFile.data.fm.toc || [];
-
-		const headings: { level: number; text: string; id: unknown }[] = [];
-
-		tree.children.forEach((node) => {
-			if (node.type === 'heading') {
-				const heading = {
-					level: node.depth,
-					text: node.children.map((child) => ('value' in child ? child.value : '')).join(''),
-					id: (node.data as { hProperties?: { id?: unknown } } | undefined)?.hProperties?.id || null
-				};
-
-				headings.push(heading);
-			}
-		});
-
-		vFile.data.fm.toc = headings;
-
-		// Now, recursively visit
-		// to get all links
-		const links: { href: string; text: string }[] = [];
-
-		visit(tree, 'link', (node) => {
-			// get all links in the document
-			links.push({
-				href: node.url,
-				text: node.children.map((child) => ('value' in child ? child.value : '')).join('')
-			});
-		});
-
-		vFile.data.fm.links = links;
-
-		// also save vFile.contents
-		vFile.data.fm.contents = vFile.contents;
-	};
-};
 
 export default defineConfig({
 	plugins: [
