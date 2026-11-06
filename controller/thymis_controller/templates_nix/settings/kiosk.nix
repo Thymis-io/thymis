@@ -32,25 +32,58 @@ let
 
   xrandrSetup = pkgs.writeShellScript "thymis-xrandr-setup" ''
     sleep 2
-    CVT_OUT=$(${pkgs.libxcvt}/bin/cvt ${modeW} ${modeH} ${modeR})
-    MODELINE=$(echo "$CVT_OUT" | grep -i modeline | sed 's/Modeline //')
-    MODENAME=$(echo "$MODELINE" | cut -d'"' -f2)
-    MODEPARAMS=$(echo "$MODELINE" | sed 's/"[^"]*" *//')
-    # Register the modeline once per X session.
-    ${pkgs.xorg.xrandr}/bin/xrandr --newmode "$MODENAME" $MODEPARAMS 2>/dev/null || true
+
+    XRANDR="${pkgs.xorg.xrandr}/bin/xrandr"
+    XEV="${pkgs.xorg.xev}/bin/xev"
+    SYSTEMCTL="${pkgs.systemd}/bin/systemctl"
+    TARGET_MODE="${modeW}x${modeH}"
+
+    # Only one watchdog per X session.
+    mkdir -p "$HOME/.cache"
+    exec 9>"$HOME/.cache/thymis-xrandr.lock"
+    ${pkgs.util-linux}/bin/flock -n 9 || exit 0
+
+    hdmi_section() {
+        "$XRANDR" --query 2>/dev/null | sed -n '/^HDMI-1 connected/,/^[^[:space:]]/p'
+    }
+
+    # Prefer an EDID mode whose name is the requested resolution. A custom CVT
+    # modeline is only needed when the monitor does not advertise the target:
+    # setting a duplicate or stale modeline can fail with ENOENT on vc4, which
+    # is what kept the display in a restart loop.
+    if hdmi_section | grep -qE "^[[:space:]]+$TARGET_MODE([[:space:]]|$)"; then
+        MODENAME="$TARGET_MODE"
+    else
+        CVT_OUT=$(${pkgs.libxcvt}/bin/cvt ${modeW} ${modeH} ${modeR})
+        MODELINE=$(printf '%s\n' "$CVT_OUT" | grep -i modeline | sed 's/Modeline //')
+        MODENAME=$(printf '%s' "$MODELINE" | cut -d'"' -f2)
+        MODEPARAMS=$(printf '%s' "$MODELINE" | sed 's/"[^"]*" *//')
+        "$XRANDR" --newmode "$MODENAME" $MODEPARAMS >/dev/null 2>&1 || true
+    fi
+
+    # The monitor's preferred EDID mode is the fail-safe: it always exists.
+    preferred_mode() {
+        hdmi_section | awk '
+            $1 ~ /^[0-9]+x[0-9]+/ {
+                if ($0 ~ /\+/) { print $1; found = 1; exit }
+                if (!first) first = $1
+            }
+            END { if (!found && first) print first }
+        '
+    }
 
     output_connected() {
-        ${pkgs.xorg.xrandr}/bin/xrandr --query 2>/dev/null | awk '
+        "$XRANDR" --query 2>/dev/null | awk '
             $1 == "HDMI-1" { connected = ($2 == "connected") }
             END { exit !connected }'
     }
 
     # A working display has HDMI-1 connected, a CRTC mode assigned and the
     # framebuffer geometry matching that output. The mode name is not compared,
-    # so an equivalent EDID mode with different timings is accepted and a
-    # rejected custom modeline does not cause a restart loop.
+    # so the EDID fail-safe mode counts as healthy and a rejected custom
+    # modeline cannot cause a restart loop.
     display_healthy() {
-        QUERY=$(${pkgs.xorg.xrandr}/bin/xrandr --query 2>/dev/null) || return 1
+        QUERY=$("$XRANDR" --query 2>/dev/null) || return 1
         ACTIVE=$(printf '%s\n' "$QUERY" | awk '
             $1 == "HDMI-1" {
                 if ($2 != "connected") exit 1
@@ -72,18 +105,30 @@ let
     }
 
     apply_mode() {
-        ${pkgs.xorg.xrandr}/bin/xrandr --addmode HDMI-1 "$MODENAME" 2>/dev/null || true
-        # A failed modeset drops rotation as well, so set both again. This only
-        # runs while the display is unhealthy, not on every screen change.
-        ${pkgs.xorg.xrandr}/bin/xrandr --output HDMI-1 --rotate ${rotation} 2>/dev/null || true
-        ${pkgs.xorg.xrandr}/bin/xrandr --output HDMI-1 --mode "$MODENAME" 2>/dev/null || true
+        MODE="$1"
+        "$XRANDR" --addmode HDMI-1 "$MODE" >/dev/null 2>&1 || true
+        # A failed modeset drops rotation as well, so set both again.
+        "$XRANDR" --output HDMI-1 --rotate ${rotation} >/dev/null 2>&1 || true
+        # Keep xrandr's error: a rejected mode is the only useful diagnostic.
+        if ! ERR=$("$XRANDR" --output HDMI-1 --mode "$MODE" 2>&1 >/dev/null); then
+            echo "thymis-xrandr-setup: setting $MODE failed: $ERR" >&2
+        elif [ -n "$ERR" ]; then
+            echo "thymis-xrandr-setup: setting $MODE: $ERR" >&2
+        fi
     }
 
-    # One failed modeset is transient: X falls back to 320x200 and retries. When
-    # the retries keep failing (stale KMS state), X never recovers by itself and
-    # the output stays black, so after a few failed attempts restart the X
-    # session instead of retrying forever.
+    # Fail safe, never restart forever:
+    #  1. reapply the configured mode a few times (a failed modeset is often
+    #     transient),
+    #  2. fall back to the monitor's preferred EDID mode, which always exists,
+    #  3. restart display-manager at most once per boot,
+    #  4. after that stay on the fallback mode; never restart again, never
+    #     reboot the device.
+    RESTART_MARKER="''${THYMIS_XRANDR_RESTART_MARKER:-/tmp/thymis-xrandr-restarted-$(cat /proc/sys/kernel/random/boot_id)}"
     FAILURES=0
+    CURRENT_MODE="$MODENAME"
+    USING_FALLBACK=0
+
     check() {
         if display_healthy; then
             FAILURES=0
@@ -95,18 +140,39 @@ let
             FAILURES=0
             return 0
         fi
+
         FAILURES=$((FAILURES + 1))
-        echo "thymis-xrandr-setup: display unhealthy ($FAILURES/6), reapplying mode" >&2
-        apply_mode
-        if [ "$FAILURES" -ge 6 ]; then
-            echo "thymis-xrandr-setup: display did not recover, restarting display-manager" >&2
-            if ${pkgs.systemd}/bin/systemctl --no-block restart display-manager.service; then
-                exit 0
-            fi
-            FAILURES=0
+
+        if [ "$FAILURES" -le 3 ]; then
+            echo "thymis-xrandr-setup: display unhealthy ($FAILURES/3), reapplying $CURRENT_MODE" >&2
+            apply_mode "$CURRENT_MODE"
+            return 0
         fi
+
+        if [ "$USING_FALLBACK" -eq 0 ]; then
+            FALLBACK_MODE=$(preferred_mode)
+            if [ -n "$FALLBACK_MODE" ] && [ "$FALLBACK_MODE" != "$CURRENT_MODE" ]; then
+                USING_FALLBACK=1
+                CURRENT_MODE="$FALLBACK_MODE"
+                FAILURES=0
+                echo "thymis-xrandr-setup: falling back to native mode $CURRENT_MODE" >&2
+                apply_mode "$CURRENT_MODE"
+                return 0
+            fi
+        fi
+
+        if [ ! -e "$RESTART_MARKER" ]; then
+            : > "$RESTART_MARKER" 2>/dev/null || true
+            echo "thymis-xrandr-setup: display did not recover, restarting display-manager once" >&2
+            "$SYSTEMCTL" --no-block restart display-manager.service && exit 0
+        fi
+
+        echo "thymis-xrandr-setup: display still unhealthy, staying on $CURRENT_MODE (fail-safe)" >&2
+        apply_mode "$CURRENT_MODE"
     }
 
+    # Apply the configured mode once; the health check below only recovers.
+    apply_mode "$CURRENT_MODE"
     check
     # Reapply on screen-change events (KVM switch, display power cycle) and poll
     # every 30 seconds, so a wedged output is recovered even without an event.
@@ -120,7 +186,7 @@ let
             sleep 30
             check
         fi
-    done < <(${pkgs.xorg.xev}/bin/xev -root -event randr | grep --line-buffered RRScreenChangeNotify)
+    done < <("$XEV" -root -event randr | grep --line-buffered RRScreenChangeNotify)
   '';
 
   vncPasswordLine = lib.optionalString enableVnc ''exec ${pkgs.bash}/bin/bash -c "mkdir -p $HOME/tigervnc; ${pkgs.tigervnc}/bin/vncpasswd -f <<< \"${vncPassword}\" > $HOME/tigervnc/passwd"'';
