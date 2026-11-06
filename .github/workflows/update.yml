@@ -93,7 +93,7 @@ jobs:
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
       - name: Push, create or refresh PR, close superseded
-        if: steps.update.outputs.changed == 'true'
+        if: github.event_name != 'pull_request' && steps.update.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           LABEL: ${{ steps.update.outputs.label }}
@@ -117,7 +117,7 @@ jobs:
             done
           done
       - name: Close standing PR when nothing changed
-        if: steps.update.outputs.changed == 'false'
+        if: github.event_name != 'pull_request' && steps.update.outputs.changed == 'false'
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
