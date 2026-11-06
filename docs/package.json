@@ -20,6 +20,9 @@
 	"exports": {
 		".": {
 			"svelte": "./src/lib/index.ts"
+		},
+		"./remarkExtractToc.js": {
+			"default": "./src/lib/remarkExtractToc.js"
 		}
 	},
 	"devDependencies": {

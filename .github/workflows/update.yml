@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        base: [master, v0.9] # supported branches; edit on each release
+        base: [master, v0.10] # supported branches; edit on each release
     concurrency:
       group: nix-flake-update-${{ matrix.base }}
       cancel-in-progress: true
@@ -63,7 +63,7 @@ jobs:
           cp flake.lock /tmp/flake.lock.old
           nix flake update --commit-lock-file
           # This step runs inside the checked-out base tree. Supported version
-          # branches can predate the helper (v0.9 has no .github/scripts at all),
+          # branches can predate the helper,
           # so resolve it from the ref the workflow was loaded from, then master.
           SCRIPT=/tmp/changed_inputs.py
           if [ -f .github/scripts/changed_inputs.py ]; then
@@ -93,7 +93,7 @@ jobs:
           aws_secret_access_key: ${{ secrets.NIX_CACHE_AWS_SECRET_ACCESS_KEY }}
           signing_key: ${{ secrets.NIX_CACHE_SIGNING_KEY }}
       - name: Push, create or refresh PR, close superseded
-        if: steps.update.outputs.changed == 'true'
+        if: github.event_name != 'pull_request' && steps.update.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
           LABEL: ${{ steps.update.outputs.label }}
@@ -117,7 +117,7 @@ jobs:
             done
           done
       - name: Close standing PR when nothing changed
-        if: steps.update.outputs.changed == 'false'
+        if: github.event_name != 'pull_request' && steps.update.outputs.changed == 'false'
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
