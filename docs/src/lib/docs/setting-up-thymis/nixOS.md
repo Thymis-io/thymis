@@ -10,7 +10,7 @@ Using Nix Flakes, you can set up Thymis on NixOS by following these steps:
 
 ```nix
 {
-  inputs.thymis.url = "github:Thymis-io/thymis/v0.9";
+  inputs.thymis.url = "github:Thymis-io/thymis/v0.10";
 }
 ```
 

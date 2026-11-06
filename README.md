@@ -147,7 +147,11 @@ The controller takes care of running the frontend for you. You can access thymis
 - [x] Release [0.9.0](https://github.com/Thymis-io/thymis/releases/tag/0.9.0)
   - UI Redesign & performance fixes
 
-- [ ] Release 0.10.0
+- [x] Release [0.10.0](https://github.com/Thymis-io/thymis/releases/tag/0.10.0)
+  - Added support for external devices
+  - Update to nixpkgs/NixOS 26.05, update to nixos-raspberrypi
+
+- [ ] Release 0.11.0
   - New features and bug fixes, possibly containing breaking changes
 
 ---
