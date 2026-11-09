@@ -9,7 +9,6 @@ display-manager restart loop.
 import os
 import pathlib
 import re
-import shutil
 import subprocess
 import time
 
@@ -74,10 +73,6 @@ while true; do
 done
 """
 
-FAKE_FLOCK = r"""#!/usr/bin/env bash
-exec /usr/bin/flock "$@"
-"""
-
 
 def _render_script(tmp_path: pathlib.Path, mode: str, rotation: str = "normal") -> str:
     config = models.Config(
@@ -114,10 +109,6 @@ def _prepare(
         ("systemctl", FAKE_SYSTEMCTL),
         ("cvt", FAKE_CVT),
         ("xev", FAKE_XEV),
-        (
-            "flock",
-            FAKE_FLOCK.replace("/usr/bin/flock", shutil.which("flock") or "flock"),
-        ),
     ]:
         path = bindir / name
         path.write_text(body)
@@ -136,7 +127,7 @@ def _prepare(
 def _install_script(script: str, tmp_path: pathlib.Path) -> pathlib.Path:
     # Store paths are fixed at build time; route them through the fake bin.
     script = re.sub(
-        r"/nix/store/[a-z0-9]+-[^/]+/bin/(xrandr|xev|systemctl|flock|cvt)",
+        r"/nix/store/[a-z0-9]+-[^/]+/bin/(xrandr|xev|systemctl|cvt)",
         r"\1",
         script,
     )
@@ -273,10 +264,15 @@ def test_custom_mode_is_generated_when_edid_lacks_it(tmp_path):
     assert "--mode 1600x900_60.00" in calls
 
 
-FAKE_STALE_HOLDER = r"""#!/usr/bin/env bash
-exec 9>"$LOCK_FILE"
-flock 9
-exec -a "xev -root -event randr" bash -c 'while :; do sleep 1; done'
+FAKE_STALE_HOLDER = r"""#!/usr/bin/env python3
+import fcntl
+import os
+import time
+
+lock = os.environ["LOCK_FILE"]
+f = open(lock, "w")
+fcntl.flock(f, fcntl.LOCK_EX)
+time.sleep(60)
 """
 
 
@@ -361,3 +357,40 @@ def test_xev_child_does_not_inherit_the_lock_fd(tmp_path):
         assert not leaked, f"lock fd leaked to xev children {leaked}"
     finally:
         _stop(proc)
+
+
+def test_stale_lock_of_a_plain_child_is_waited_out(tmp_path):
+    """A killed watchdog leaves a sleep child that holds the lock for its
+    remaining runtime; the next session must wait it out instead of exiting."""
+    script = _render_script(tmp_path / "nix", "1920x1080")
+    state, work, env = _prepare(tmp_path, fail=False)
+    lock = pathlib.Path(env["HOME"]) / ".cache" / "thymis-xrandr.lock"
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    stale = subprocess.Popen(
+        [
+            __import__("sys").executable,
+            "-c",
+            "import fcntl, sys, time; f = open(sys.argv[1], 'w'); "
+            "fcntl.flock(f, fcntl.LOCK_EX); time.sleep(16)",
+            str(lock),
+        ],
+        start_new_session=True,
+    )
+    try:
+        deadline = time.time() + 5
+        while time.time() < deadline and not _lock_holders(lock):
+            time.sleep(0.1)
+        assert _lock_holders(lock)
+
+        proc = _start(_install_script(script, work), work, env)
+        try:
+            time.sleep(24)
+            assert proc.poll() is None, "watchdog exited on the stale lock"
+        finally:
+            _stop(proc)
+        calls = (state / "calls.log").read_text()
+        assert "--mode 1920x1080" in calls
+        assert "systemctl" not in calls
+    finally:
+        stale.kill()
+        stale.wait(timeout=5)
