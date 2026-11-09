@@ -38,10 +38,30 @@ let
     SYSTEMCTL="${pkgs.systemd}/bin/systemctl"
     TARGET_MODE="${modeW}x${modeH}"
 
-    # Only one watchdog per X session.
+    # Only one watchdog per X session. A watchdog from a previous session (or
+    # its orphaned xev child) can survive and keep the lock; take over instead
+    # of leaving the display without a watchdog.
     mkdir -p "$HOME/.cache"
-    exec 9>"$HOME/.cache/thymis-xrandr.lock"
-    ${pkgs.util-linux}/bin/flock -n 9 || exit 0
+    LOCK="$HOME/.cache/thymis-xrandr.lock"
+    exec 9>"$LOCK"
+    if ! ${pkgs.util-linux}/bin/flock -n 9; then
+        # Match the leftover processes by their command line: the watchdog of
+        # the previous session, its xev child or the grep reading xev. Only
+        # processes of this user are touched.
+        for cmdline in /proc/[0-9]*/cmdline; do
+            HOLDERCMD=$(tr '\0' ' ' <"$cmdline" 2>/dev/null) || continue
+            case "$HOLDERCMD" in
+                *thymis-xrandr-setup*|*"xev -root -event randr"*|*RRScreenChangeNotify*) ;;
+                *) continue ;;
+            esac
+            HOLDER=''${cmdline#/proc/}
+            HOLDER=''${HOLDER%%/*}
+            [ "$HOLDER" = "$$" ] && continue
+            [ "$(stat -c %u "/proc/$HOLDER" 2>/dev/null)" = "$UID" ] || continue
+            kill "$HOLDER" 2>/dev/null || true
+        done
+        ${pkgs.util-linux}/bin/flock -w 10 9 || exit 0
+    fi
 
     hdmi_section() {
         "$XRANDR" --query 2>/dev/null | sed -n '/^HDMI-1 connected/,/^[^[:space:]]/p'
@@ -191,7 +211,9 @@ let
             sleep 30
             check
         fi
-    done < <("$XEV" -root -event randr | grep --line-buffered RRScreenChangeNotify)
+    # The xev child must not inherit the lock fd, otherwise it keeps the lock
+    # held after this session ended and the next session's watchdog exits.
+    done < <(exec 9>&-; "$XEV" -root -event randr | grep --line-buffered RRScreenChangeNotify)
   '';
 
   vncPasswordLine = lib.optionalString enableVnc ''exec ${pkgs.bash}/bin/bash -c "mkdir -p $HOME/tigervnc; ${pkgs.tigervnc}/bin/vncpasswd -f <<< \"${vncPassword}\" > $HOME/tigervnc/passwd"'';
