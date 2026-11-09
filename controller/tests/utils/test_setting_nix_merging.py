@@ -275,7 +275,7 @@ def test_kiosk_settings_are_merged_and_derived(tmp_path):
     assert "cvt 1360 768 60" in result["xrandrSetup"]
     assert "--rotate left" in result["xrandrSetup"]
     # the health check verifies that the configured rotation is applied
-    assert '[ "$2" = "left" ]' in result["xrandrSetup"]
+    assert '[ "${2#(}" = "left" ]' in result["xrandrSetup"]
     # a wedged display is recovered by restarting the X session
     assert "display_healthy" in result["xrandrSetup"]
     assert "restart display-manager.service" in result["xrandrSetup"]
@@ -321,7 +321,7 @@ def test_kiosk_only_writes_vnc_lines_when_enabled(tmp_path):
     assert "cvt 1920 1080 60" in result["xrandrSetup"]
     assert "--rotate normal" in result["xrandrSetup"]
     # the display watchdog is independent of the vnc and audio settings
-    assert '[ "$2" = "normal" ]' in result["xrandrSetup"]
+    assert '[ "${2#(}" = "normal" ]' in result["xrandrSetup"]
     assert "restart display-manager.service" in result["xrandrSetup"]
     # the vnc and audio sink lines are only derived when their setting is set
     assert "x0vncserver" not in i3
