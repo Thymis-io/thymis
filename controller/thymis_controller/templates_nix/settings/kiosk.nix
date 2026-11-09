@@ -49,7 +49,8 @@ let
         # the previous session, its xev child or the grep reading xev. Only
         # processes of this user are touched.
         for cmdline in /proc/[0-9]*/cmdline; do
-            HOLDERCMD=$(tr '\0' ' ' <"$cmdline" 2>/dev/null) || continue
+            [ -r "$cmdline" ] || continue
+            HOLDERCMD=$({ tr '\0' ' ' <"$cmdline"; } 2>/dev/null) || continue
             case "$HOLDERCMD" in
                 *thymis-xrandr-setup*|*"xev -root -event randr"*|*RRScreenChangeNotify*) ;;
                 *) continue ;;
@@ -58,9 +59,12 @@ let
             HOLDER=''${HOLDER%%/*}
             [ "$HOLDER" = "$$" ] && continue
             [ "$(stat -c %u "/proc/$HOLDER" 2>/dev/null)" = "$UID" ] || continue
+            # Its sleep/xev children inherit the lock fd, so kill them too.
+            ${pkgs.psmisc}/bin/pkill -TERM -P "$HOLDER" 2>/dev/null || true
             kill "$HOLDER" 2>/dev/null || true
         done
-        ${pkgs.util-linux}/bin/flock -w 10 9 || exit 0
+        # A killed watchdog's sleep child can keep the lock for up to 30s.
+        ${pkgs.util-linux}/bin/flock -w 30 9 || exit 0
     fi
 
     hdmi_section() {
