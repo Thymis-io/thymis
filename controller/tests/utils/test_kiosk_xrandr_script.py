@@ -10,6 +10,7 @@ import os
 import pathlib
 import re
 import subprocess
+import sys
 import time
 
 import pytest
@@ -54,6 +55,30 @@ elif args[:2] == ["--output", "HDMI-1"] and "--mode" in args:
     if not fail:
         with open(mode_file, "w") as f:
             f.write(mode)
+"""
+
+FAKE_FLOCK = r"""#!/usr/bin/env python3
+import fcntl
+import sys
+import time
+
+args = sys.argv[1:]
+timeout = 0.0
+if args and args[0] == "-n":
+    args = args[1:]
+elif args and args[0] == "-w":
+    timeout = float(args[1])
+    args = args[2:]
+fd = int(args[0])
+deadline = time.time() + timeout
+while True:
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        break
+    except BlockingIOError:
+        if time.time() >= deadline:
+            sys.exit(1)
+        time.sleep(0.1)
 """
 
 FAKE_SYSTEMCTL = r"""#!/usr/bin/env bash
@@ -109,6 +134,7 @@ def _prepare(
         ("systemctl", FAKE_SYSTEMCTL),
         ("cvt", FAKE_CVT),
         ("xev", FAKE_XEV),
+        ("flock", FAKE_FLOCK.replace("#!/usr/bin/env python3", f"#!{sys.executable}")),
     ]:
         path = bindir / name
         path.write_text(body)
@@ -127,7 +153,7 @@ def _prepare(
 def _install_script(script: str, tmp_path: pathlib.Path) -> pathlib.Path:
     # Store paths are fixed at build time; route them through the fake bin.
     script = re.sub(
-        r"/nix/store/[a-z0-9]+-[^/]+/bin/(xrandr|xev|systemctl|cvt)",
+        r"/nix/store/[a-z0-9]+-[^/]+/bin/(xrandr|xev|systemctl|flock|cvt)",
         r"\1",
         script,
     )
@@ -368,7 +394,7 @@ def test_stale_lock_of_a_plain_child_is_waited_out(tmp_path):
     lock.parent.mkdir(parents=True, exist_ok=True)
     stale = subprocess.Popen(
         [
-            __import__("sys").executable,
+            sys.executable,
             "-c",
             "import fcntl, sys, time; f = open(sys.argv[1], 'w'); "
             "fcntl.flock(f, fcntl.LOCK_EX); time.sleep(16)",
