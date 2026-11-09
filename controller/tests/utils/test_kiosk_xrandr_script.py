@@ -9,6 +9,7 @@ display-manager restart loop.
 import os
 import pathlib
 import re
+import shutil
 import subprocess
 import time
 
@@ -74,7 +75,7 @@ done
 """
 
 FAKE_FLOCK = r"""#!/usr/bin/env bash
-exit 0
+exec /usr/bin/flock "$@"
 """
 
 
@@ -113,7 +114,10 @@ def _prepare(
         ("systemctl", FAKE_SYSTEMCTL),
         ("cvt", FAKE_CVT),
         ("xev", FAKE_XEV),
-        ("flock", FAKE_FLOCK),
+        (
+            "flock",
+            FAKE_FLOCK.replace("/usr/bin/flock", shutil.which("flock") or "flock"),
+        ),
     ]:
         path = bindir / name
         path.write_text(body)
@@ -267,3 +271,93 @@ def test_custom_mode_is_generated_when_edid_lacks_it(tmp_path):
     assert "cvt 1600 900 60" in calls
     assert "--newmode 1600x900_60.00" in calls
     assert "--mode 1600x900_60.00" in calls
+
+
+FAKE_STALE_HOLDER = r"""#!/usr/bin/env bash
+exec 9>"$LOCK_FILE"
+flock 9
+exec -a "xev -root -event randr" bash -c 'while :; do sleep 1; done'
+"""
+
+
+def _lock_holders(lock: pathlib.Path) -> set[int]:
+    holders = set()
+    for proc in pathlib.Path("/proc").iterdir():
+        if not proc.name.isdigit():
+            continue
+        try:
+            for fd in (proc / "fd").iterdir():
+                if os.readlink(fd) == str(lock):
+                    holders.add(int(proc.name))
+                    break
+        except (FileNotFoundError, PermissionError):
+            continue
+    return holders
+
+
+def test_stale_watchdog_of_a_previous_session_is_taken_over(tmp_path):
+    """A watchdog (or its orphaned xev child) from a previous X session keeps
+    the lock fd. The next session must take the lock over instead of silently
+    running without a watchdog."""
+    script = _render_script(tmp_path / "nix", "1920x1080")
+    state, work, env = _prepare(tmp_path, fail=False)
+    lock = pathlib.Path(env["HOME"]) / ".cache" / "thymis-xrandr.lock"
+    lock.parent.mkdir(parents=True, exist_ok=True)
+
+    stale_path = tmp_path / "stale-xev"
+    stale_path.write_text(FAKE_STALE_HOLDER)
+    stale_path.chmod(0o755)
+    stale = subprocess.Popen(
+        [str(stale_path), "-root", "-event", "randr"],
+        env={**os.environ, "LOCK_FILE": str(lock)},
+        start_new_session=True,
+    )
+    deadline = time.time() + 5
+    while time.time() < deadline and not _lock_holders(lock):
+        time.sleep(0.1)
+    assert _lock_holders(lock)
+
+    proc = _start(_install_script(script, work), work, env)
+    try:
+        time.sleep(12)
+        assert proc.poll() is None, "watchdog exited on the stale lock"
+    finally:
+        _stop(proc)
+        stale.kill()
+        stale.wait(timeout=5)
+
+    calls = (state / "calls.log").read_text()
+    assert "--mode 1920x1080" in calls
+    assert "systemctl" not in calls
+
+
+def test_xev_child_does_not_inherit_the_lock_fd(tmp_path):
+    """The xev child outlives the watchdog; if it inherited the lock fd it
+    would keep the lock held after the session ended."""
+    script = _render_script(tmp_path / "nix", "1920x1080")
+    state, work, env = _prepare(tmp_path, fail=False)
+    lock = pathlib.Path(env["HOME"]) / ".cache" / "thymis-xrandr.lock"
+
+    proc = _start(_install_script(script, work), work, env)
+    try:
+        time.sleep(6)
+        holders = _lock_holders(lock)
+        assert proc.pid in holders
+        leaked = {
+            pid
+            for pid in holders
+            if pid != proc.pid
+            and (
+                "xev"
+                in pathlib.Path(f"/proc/{pid}/cmdline")
+                .read_bytes()
+                .decode(errors="replace")
+                or "RRScreenChangeNotify"
+                in pathlib.Path(f"/proc/{pid}/cmdline")
+                .read_bytes()
+                .decode(errors="replace")
+            )
+        }
+        assert not leaked, f"lock fd leaked to xev children {leaked}"
+    finally:
+        _stop(proc)
