@@ -101,7 +101,12 @@ let
         # mode uses it.
         [ "$GEOMETRY" != "320x200" ] || return 1
         [ "$GEOMETRY" = "$(echo "$1" | cut -d+ -f1)" ] || return 1
-        [ "$2" = "${rotation}" ]
+        # The rotation follows the geometry, either bare (when rotated) or as
+        # the "(" prefixed X rotation list for a normal output:
+        #   HDMI-1 connected primary 1920x1080+0+0 (normal left inverted ...)
+        # Without stripping the "(" a normal output never matches, which made
+        # every check report unhealthy and restarted X in a loop.
+        [ "''${2#(}" = "${rotation}" ]
     }
 
     apply_mode() {
