@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import pathlib
+import time
 from urllib.parse import urlparse
 
 import sqlalchemy
@@ -54,12 +55,16 @@ def enable_auto_vacuum(db_session: Session):
         logger.info("Enabled auto_vacuum for the database")
 
 
-def compact_database(db_session: Session):
+def compact_database(db_engine: Engine):
     logger.info("Running VACUUM to compact the database...")
-    db_session.execute(sqlalchemy.text("VACUUM"))
-    db_session.execute(sqlalchemy.text("PRAGMA wal_checkpoint(TRUNCATE)"))
-    db_session.commit()
-    logger.info("Vacuum and WAL checkpoint completed")
+    start_time = time.monotonic()
+    with Session(db_engine) as db_session:
+        db_session.execute(sqlalchemy.text("VACUUM"))
+        db_session.execute(sqlalchemy.text("PRAGMA wal_checkpoint(TRUNCATE)"))
+        db_session.commit()
+    logger.info(
+        "Vacuum and WAL checkpoint completed in %.2fs", time.monotonic() - start_time
+    )
 
 
 def _delete_expired_metrics(session: Session) -> None:
@@ -78,7 +83,9 @@ async def initialize_cleanup(db_engine: Engine):
         enable_auto_vacuum(session)
         await crud.logs.remove_expired_logs(session)
         _delete_expired_metrics(session)
-        compact_database(session)
+    # VACUUM takes seconds on larger databases; keep it off the event loop so it
+    # doesn't stall startup (e.g. the frontend launch) and request handling
+    await asyncio.to_thread(compact_database, db_engine)
     # Also do initial image cleanup
     await images.periodic_image_cleanup()
 
