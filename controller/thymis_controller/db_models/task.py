@@ -7,6 +7,7 @@ from sqlalchemy import (
     Column,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     LargeBinary,
     String,
@@ -50,6 +51,14 @@ class TaskProcess(Base):
 
 class Task(Base):
     __tablename__ = "tasks"
+    __table_args__ = (
+        # Child lookups by parent, and top-level tasks (parent IS NULL) newest first.
+        Index(
+            "ix_tasks_parent_task_id_submitted_time",
+            "parent_task_id",
+            "submitted_time",
+        ),
+    )
 
     id = Column(Uuid(as_uuid=True), primary_key=True, index=True)
     submitted_time = Column(DateTime, nullable=False)
@@ -65,7 +74,6 @@ class Task(Base):
 
     # Composite Task Fields
     parent_task_id = Column(Uuid(as_uuid=True), ForeignKey("tasks.id"), nullable=True)
-    children = Column(JSON, nullable=True)
 
     access_client_tokens: Mapped[List["AccessClientToken"]] = relationship(
         back_populates="deploy_device_task"

@@ -18,9 +18,8 @@ Requirements
 
 Design notes
 ------------
-- ``build_device_image_task`` NEVER reaches state "completed" while its child
-  ``run_nixos_vm_task`` is "running" (executor.py:204-210 only sets state=completed
-  when task has no children).  Do NOT poll it for "completed".
+- ``run_nixos_vm_task`` is started as its own top-level task and outlives
+  ``build_device_image_task``.  Poll the VM task, not the build task.
 
 - After the agent first connects it sends a burst of 1300+ log batches to
   POST /agent/logs.  Each handler does synchronous SQLAlchemy writes with no
@@ -78,7 +77,7 @@ def _poll_tasks(
     target_state: str,
     count: int,
     timeout: int,
-    poll_interval: float = 15.0,
+    poll_interval: float = 5.0,
     request_timeout: float = 90.0,
     also_fail_on: tuple[str, ...] = (),
 ) -> list[dict]:
@@ -407,14 +406,9 @@ def test_x86_vm_build_start_deploy(controller: ControllerInfo) -> None:
     assert r.status_code == 200, f"build-download-image api-vm-1: {r.text}"
 
     # ── 4. wait for VM to start ───────────────────────────────────────────────
-    # IMPORTANT: build_device_image_task NEVER reaches state "completed" while
-    # its child run_nixos_vm_task is alive (executor.py marks parent completed
-    # only when it has no children).  Poll run_nixos_vm_task directly instead.
+    # The VM task outlives build_device_image_task, so poll run_nixos_vm_task.
     # also_fail_on catches a failed build early rather than timing out.
-    print(
-        f"[step 4] waiting for run_nixos_vm_task=running "
-        f"(build_device_image_task parent never completes while VM alive)"
-    )
+    print("[step 4] waiting for run_nixos_vm_task=running")
     _poll_tasks(
         s,
         base_url,
@@ -422,7 +416,6 @@ def test_x86_vm_build_start_deploy(controller: ControllerInfo) -> None:
         target_state="running",
         count=1,
         timeout=720,  # 12 min — nix build can be slow
-        poll_interval=15.0,
         also_fail_on=("build_device_image_task",),
     )
     print("[step 4] VM task is running")
@@ -561,7 +554,6 @@ def test_x86_vm_build_start_deploy(controller: ControllerInfo) -> None:
             target_state="completed",
             count=1,
             timeout=720,
-            poll_interval=15.0,
             also_fail_on=("deploy_devices_task",),
         )
     except (AssertionError, TimeoutError):

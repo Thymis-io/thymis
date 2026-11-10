@@ -480,7 +480,9 @@
 		"page-title": "Tasks",
 		"page-subtitle": "All tasks across your project, newest first.",
 		"recent-hint": "Showing the {count} most recent tasks.",
-		"empty": "No tasks yet."
+		"empty": "No tasks yet.",
+		"show-more": "{count} more",
+		"show-less": "Show less"
 	},
 	"task-details": {
 		"overview": "Overview",

@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING, assert_never
 
 import sqlalchemy.orm
 import thymis_controller.crud as crud
-import thymis_controller.crud.task as crud_task
 import thymis_controller.db_models as db_models
 import thymis_controller.models.task as models_task
 from pyrage import ssh
@@ -78,12 +77,12 @@ class TaskWorkerPoolManager:
         self._db_engine = db_engine
 
         with (sqlalchemy.orm.Session(bind=self.db_engine) as db_session,):
-            amount_running_when_shut_down = crud_task.fail_running_tasks(db_session)
+            amount_running_when_shut_down = crud.task.fail_running_tasks(db_session)
             logger.info(
                 "Failed %d tasks that were running when the controller shut down",
                 amount_running_when_shut_down,
             )
-            pending_tasks = crud_task.get_tasks_with_state(db_session, "pending")
+            pending_tasks = crud.task.get_tasks_with_state(db_session, "pending")
             for task in pending_tasks:
                 self.submit(models_task.TaskSubmission.from_orm_task(task))
             logger.info(
@@ -119,7 +118,7 @@ class TaskWorkerPoolManager:
 
     def cancel_task(self, task_id: uuid.UUID):
         with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
-            task = crud_task.get_task_by_id(db_session, task_id)
+            task = crud.task.get_task_by_id(db_session, task_id)
             task.add_exception("Task was cancelled")
             db_session.commit()
             self.on_task_update.notify(task)
@@ -143,7 +142,7 @@ class TaskWorkerPoolManager:
         message = None
         try:
             with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
-                task = crud_task.get_task_by_id(db_session, task_id)
+                task = crud.task.get_task_by_id(db_session, task_id)
                 self.on_new_task.notify(task)
 
             while True:
@@ -168,7 +167,7 @@ class TaskWorkerPoolManager:
                         )
                         continue
                     with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
-                        task = crud_task.get_task_by_id(db_session, message.id)
+                        task = crud.task.get_task_by_id(db_session, message.id)
                         if task is None:
                             logger.error(
                                 "Received message for unknown task: %s", message
@@ -237,8 +236,7 @@ class TaskWorkerPoolManager:
                                 db_session.commit()
                                 self.on_task_output.notify(task)
                             case models_task.TaskCompletedUpdate():
-                                # task.state = "completed"
-                                if not task.children:
+                                if not crud.task.child_task_states(db_session, task.id):
                                     task.state = "completed"
                                     task.end_time = datetime.now(timezone.utc)
                                 db_session.commit()
@@ -295,7 +293,6 @@ class TaskWorkerPoolManager:
 
                                     new_task_submission = models_task.RunNixOSVMTaskSubmission(
                                         configuration_id=message.update.configuration_id,
-                                        parent_task_id=task_id,
                                         project_path=task.task_submission_data[
                                             "project_path"
                                         ],
@@ -410,39 +407,35 @@ class TaskWorkerPoolManager:
             logger.info("Worker connection closed: %s", e)
         if message:
             with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
-                task = crud_task.get_task_by_id(db_session, message.id)
+                task = crud.task.get_task_by_id(db_session, message.id)
                 self.on_task_update.notify(task)
         conn.close()
 
-    def update_composite_task(self, task_id: uuid.UUID):
-        with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
-            task = crud_task.get_task_by_id(db_session, task_id)
+    def update_composite_task(self, db_session, task_id: uuid.UUID):
+        task = crud.task.get_task_by_id(db_session, task_id)
 
-            if not task.children:
-                return
+        child_states = crud.task.child_task_states(db_session, task_id)
+        if not child_states:
+            return
 
-            child_states = crud_task.child_task_states(
-                db_session, [uuid.UUID(child) for child in task.children]
-            )
+        if "pending" in child_states or "running" in child_states:
+            return
 
-            if "pending" in child_states or "running" in child_states:
-                return
+        # All children are terminal — determine final state
+        if "failed" in child_states and task.state != "failed":
+            task.state = "failed"
+        elif set(["completed"]) == child_states:
+            task.state = "completed"
 
-            # All children are terminal — determine final state
-            if "failed" in child_states and task.state != "failed":
-                task.state = "failed"
-            elif set(["completed"]) == child_states:
-                task.state = "completed"
+        if not task.end_time:
+            task.end_time = datetime.now(timezone.utc)
 
-            if not task.end_time:
-                task.end_time = datetime.now(timezone.utc)
+        db_session.commit()
+        self.on_task_update.notify(task)
 
-            db_session.commit()
-            self.on_task_update.notify(task)
-
-            # Propagate up to grandparent
-            if task.parent_task_id:
-                self.update_composite_task(task.parent_task_id)
+        # Propagate up to grandparent
+        if task.parent_task_id:
+            self.update_composite_task(db_session, task.parent_task_id)
 
     def reboot_after_device_deploy(self, db_session, task) -> bool:
         """Reboot a successfully deployed device as its reboot policy asks.
@@ -482,8 +475,6 @@ class TaskWorkerPoolManager:
             task.user_session_id,
             db_session,
         )
-        task.children = [str(reboot_task.id)]
-        db_session.commit()
         self.on_task_update.notify(task)
         self.submit(models_task.TaskSubmission.from_orm_task(reboot_task))
         logger.info(
@@ -507,7 +498,7 @@ class TaskWorkerPoolManager:
         # if task is still running in the database, mark it as failed due to worker finishing before signalling success
         with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
             try:
-                task = crud_task.get_task_by_id(db_session, task_id)
+                task = crud.task.get_task_by_id(db_session, task_id)
             except ValueError:
                 logger.error(
                     "Task %s not found in DB during finish_task (already deleted?)",
@@ -515,8 +506,8 @@ class TaskWorkerPoolManager:
                 )
                 return
 
-            if task.children:
-                self.update_composite_task(task_id)
+            if crud.task.child_task_states(db_session, task_id):
+                self.update_composite_task(db_session, task_id)
             elif task.state == "running" or task.state == "pending":
                 task.state = "failed"
                 task.end_time = datetime.now(timezone.utc)
@@ -532,10 +523,10 @@ class TaskWorkerPoolManager:
                     db_session.rollback()
 
             if task.parent_task_id:
-                self.update_composite_task(task.parent_task_id)
+                self.update_composite_task(db_session, task.parent_task_id)
 
                 if task.state == "failed":
-                    parent_task = crud_task.get_task_by_id(
+                    parent_task = crud.task.get_task_by_id(
                         db_session, task.parent_task_id
                     )
 
@@ -574,12 +565,8 @@ class TaskWorkerPoolManager:
                             task.user_session_id,
                             db_session,
                         )
-                        # Register deploy task as a child so update_composite_task
+                        # The deploy task is a child, so update_composite_task
                         # will flip the parent to completed when all deploys finish
-                        children = list(task.children or [])
-                        children.append(str(deploy_task.id))
-                        task.children = children
-                        db_session.commit()
                         logger.info(
                             "Spawned deploy_devices_task %s as child of auto_update_task %s",
                             deploy_task.id,

@@ -597,7 +597,9 @@
 		"page-title": "Vorgänge",
 		"page-subtitle": "Alle Vorgänge deines Projekts, neueste zuerst.",
 		"recent-hint": "Zeigt die {count} neuesten Vorgänge.",
-		"empty": "Noch keine Vorgänge."
+		"empty": "Noch keine Vorgänge.",
+		"show-more": "{count} weitere",
+		"show-less": "Weniger anzeigen"
 	},
 	"task-details": {
 		"overview": "Übersicht",
