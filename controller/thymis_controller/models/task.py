@@ -89,7 +89,6 @@ class Task(BaseModel):
     task_submission_data_raw: Optional[JsonValue]
 
     parent_task_id: Optional[uuid.UUID] = None
-    children: Optional[list[uuid.UUID]] = None
 
     processes: list[TaskProcess] = []
 
@@ -126,7 +125,6 @@ class Task(BaseModel):
             task_submission_data=submission_data,
             task_submission_data_raw=submission_data_raw,
             parent_task_id=task.parent_task_id,
-            children=task.children,
             processes=[TaskProcess.from_orm_task(tp) for tp in task.processes],
         )
 
@@ -302,7 +300,6 @@ class RunNixOSVMTaskSubmission(BaseModel):
     type: Literal["run_nixos_vm_task"] = "run_nixos_vm_task"
     configuration_id: str
     project_path: str
-    parent_task_id: Optional[uuid.UUID] = None
 
 
 class AutoUpdateTaskSubmission(BaseModel):

@@ -77,8 +77,6 @@ def test_reboots_only_the_requested_devices(reboot_client, db_session):
     assert children[0].data.command == REBOOT_COMMAND
     assert children[0].data.target_user == "root"
 
-    parent_db = crud.task.get_task_by_id(db_session, parent.id)
-    assert parent_db.children == [str(children[0].id)]
     child_db = crud.task.get_task_by_id(db_session, children[0].id)
     assert child_db.parent_task_id == parent.id
     assert child_db.task_type == "ssh_command_task"

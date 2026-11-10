@@ -6,7 +6,8 @@ from concurrent.futures import Future
 from datetime import datetime, timezone
 
 import pytest
-from thymis_controller import crud, models
+from sqlalchemy import select
+from thymis_controller import crud, db_models, models
 from thymis_controller.task.controller import REBOOT_COMMAND, TaskController
 
 
@@ -55,8 +56,10 @@ class Fleet:
             uuid.uuid4(),
             self.db_session,
         )
-        [device_task_id] = parent.children
-        return parent.id, uuid.UUID(device_task_id)
+        device_task_id = self.db_session.scalars(
+            select(db_models.Task.id).where(db_models.Task.parent_task_id == parent.id)
+        ).one()
+        return parent.id, device_task_id
 
     def worker_finished(self, task_id, state):
         """Report ``task_id`` as finished with ``state`` like its worker would."""
@@ -102,7 +105,6 @@ def test_policy_decides_reboot(db_session, policy, reboot_required, rebooted):
     if rebooted:
         [reboot] = fleet.reboots()
         assert reboot.data.deployment_info_id == deployment_info.id
-        assert device_task.children == [str(reboot.id)]
         assert fleet.task(reboot.id).parent_task_id == device_task_id
         assert device_task.state == "running"
         assert fleet.task(parent_id).state != "completed"

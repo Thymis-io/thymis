@@ -81,7 +81,6 @@ export type Task = {
 	processes: TaskProcess[];
 
 	parent_task_id?: string;
-	children?: string[];
 };
 
 export type TaskShort = {
