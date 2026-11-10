@@ -411,32 +411,31 @@ class TaskWorkerPoolManager:
                 self.on_task_update.notify(task)
         conn.close()
 
-    def update_composite_task(self, task_id: uuid.UUID):
-        with sqlalchemy.orm.Session(bind=self.db_engine) as db_session:
-            task = crud.task.get_task_by_id(db_session, task_id)
+    def update_composite_task(self, db_session, task_id: uuid.UUID):
+        task = crud.task.get_task_by_id(db_session, task_id)
 
-            child_states = crud.task.child_task_states(db_session, task_id)
-            if not child_states:
-                return
+        child_states = crud.task.child_task_states(db_session, task_id)
+        if not child_states:
+            return
 
-            if "pending" in child_states or "running" in child_states:
-                return
+        if "pending" in child_states or "running" in child_states:
+            return
 
-            # All children are terminal — determine final state
-            if "failed" in child_states and task.state != "failed":
-                task.state = "failed"
-            elif set(["completed"]) == child_states:
-                task.state = "completed"
+        # All children are terminal — determine final state
+        if "failed" in child_states and task.state != "failed":
+            task.state = "failed"
+        elif set(["completed"]) == child_states:
+            task.state = "completed"
 
-            if not task.end_time:
-                task.end_time = datetime.now(timezone.utc)
+        if not task.end_time:
+            task.end_time = datetime.now(timezone.utc)
 
-            db_session.commit()
-            self.on_task_update.notify(task)
+        db_session.commit()
+        self.on_task_update.notify(task)
 
-            # Propagate up to grandparent
-            if task.parent_task_id:
-                self.update_composite_task(task.parent_task_id)
+        # Propagate up to grandparent
+        if task.parent_task_id:
+            self.update_composite_task(db_session, task.parent_task_id)
 
     def reboot_after_device_deploy(self, db_session, task) -> bool:
         """Reboot a successfully deployed device as its reboot policy asks.
@@ -508,7 +507,7 @@ class TaskWorkerPoolManager:
                 return
 
             if crud.task.child_task_states(db_session, task_id):
-                self.update_composite_task(task_id)
+                self.update_composite_task(db_session, task_id)
             elif task.state == "running" or task.state == "pending":
                 task.state = "failed"
                 task.end_time = datetime.now(timezone.utc)
@@ -524,7 +523,7 @@ class TaskWorkerPoolManager:
                     db_session.rollback()
 
             if task.parent_task_id:
-                self.update_composite_task(task.parent_task_id)
+                self.update_composite_task(db_session, task.parent_task_id)
 
                 if task.state == "failed":
                     parent_task = crud.task.get_task_by_id(
