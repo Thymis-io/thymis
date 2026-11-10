@@ -5,6 +5,7 @@ import pathlib
 import secrets
 import subprocess
 import sys
+import time
 from contextlib import asynccontextmanager
 from importlib.metadata import version
 
@@ -165,6 +166,7 @@ def init_ssh_key():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up...")
+    startup_start_time = time.monotonic()
     peform_db_upgrade()
     init_password_file()
     init_ssh_key()
@@ -189,6 +191,9 @@ async def lifespan(app: FastAPI):
         await frontend.frontend.run()
         logger.info("frontend started")
         logger.info("Starting controller at \033[1m%s\033[0m", global_settings.BASE_URL)
+        logger.info(
+            "Controller startup took %.2fs", time.monotonic() - startup_start_time
+        )
         auto_update_task = asyncio.create_task(
             auto_update_scheduler_loop(
                 db_engine, project, task_controller, network_relay

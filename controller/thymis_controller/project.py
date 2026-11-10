@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import traceback
 import uuid
 from typing import TYPE_CHECKING
@@ -26,6 +27,7 @@ from thymis_controller.nix import (
     NIX_CMD,
     all_nix_access_tokens,
     get_input_out_path,
+    get_input_out_paths,
     nix_flake_prefetch,
     nix_subprocess_env,
 )
@@ -359,7 +361,18 @@ class Project:
             self.external_repo_status[input_name] = ExternalRepoStatus(status="loading")
         self.invalidate_external_repo_status()
 
-        # for each repository: get_input_out_path from the flake.nix in the path
+        # resolve the out path of every repository input; one nix call for all
+        # inputs is much cheaper than one per input (flake eval + path hashing)
+        resolve_names = [name for name, repo in repositories.items() if repo.url]
+        logger.info("Resolving %d repository inputs...", len(resolve_names))
+        start_time = time.monotonic()
+        batch_out_paths = get_input_out_paths(self.repo_dir, resolve_names) or {}
+        logger.info(
+            "Resolved %d/%d repository inputs in one nix call in %.2fs",
+            len(batch_out_paths),
+            len(resolve_names),
+            time.monotonic() - start_time,
+        )
         input_out_paths = {}
         for input_name, repo in repositories.items():
             self.external_repo_status[input_name] = ExternalRepoStatus(status="loading")
@@ -368,7 +381,16 @@ class Project:
                 self.invalidate_external_repo_status()
                 continue
             logger.info("Loading repository %s: %s", input_name, repo.url)
-            path, error_msg = get_input_out_path(self.repo_dir, input_name)
+            path = batch_out_paths.get(input_name)
+            error_msg = None
+            if path is None or not os.path.isdir(path):
+                start_time = time.monotonic()
+                path, error_msg = get_input_out_path(self.repo_dir, input_name)
+                logger.info(
+                    "Resolved repository %s individually in %.2fs",
+                    input_name,
+                    time.monotonic() - start_time,
+                )
             if path is None:
                 self.external_repo_status[input_name].status = "no-path"
                 self.external_repo_status[input_name].details = error_msg
@@ -395,6 +417,7 @@ class Project:
         sys.path = startup_python_path.copy()
         # for path in input_out_paths.values():
         importlib.invalidate_caches()
+        start_time = time.monotonic()
         modules_found = []
         for input_name, path in input_out_paths.items():
             logger.debug("Adding %s at %s to sys.path", input_name, path)
@@ -426,6 +449,12 @@ class Project:
         modules.ALL_MODULES = modules.ALL_MODULES_START.copy()
         modules.ALL_MODULES.extend(modules_found)
         self.invalidate_external_repo_status()
+        logger.info(
+            "Imported %d modules from %d repositories in %.2fs",
+            len(modules_found),
+            len(input_out_paths),
+            time.monotonic() - start_time,
+        )
 
     def read_state(self):
         with self.state_lock:
@@ -453,6 +482,7 @@ class Project:
         This method must always be called within a write_repo_lock to prevent race conditions
         """
         logger.info("Reloading state...")
+        reload_start_time = time.monotonic()
         error = None
         self.repo.pause_file_watcher()
         if (self.repo_dir / "flake.nix").exists():
@@ -526,7 +556,9 @@ class Project:
         self.notification_manager.broadcast_invalidate_notification(
             ["/api/repo_status"]
         )
-        logger.info("Reloading state done")
+        logger.info(
+            "Reloading state done in %.2fs", time.monotonic() - reload_start_time
+        )
         if error:
             raise error
 

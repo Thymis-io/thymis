@@ -34,40 +34,54 @@ def nix_subprocess_env(**extra: str) -> dict[str, str]:
     return env
 
 
-def get_input_out_path(flake_path, input_name):
-    # first run `nix build .#inputs.<input_name>.outPath`
-    # then run `nix eval .#inputs.<input_name>.outPath --json`
+def get_input_out_paths(flake_path, input_names) -> dict[str, str] | None:
+    """
+    Resolve the out paths of several flake inputs with a single `nix eval`.
+
+    Every nix invocation re-evaluates the flake and re-hashes `path:` inputs,
+    so resolving all inputs in one process is much faster than one call per
+    input. Returns None if the evaluation fails (e.g. one input is broken);
+    callers should then fall back to `get_input_out_path` per input to get
+    per-input error messages.
+    """
+    if not input_names:
+        return {}
+    wanted = json.dumps(json.dumps(dict.fromkeys(input_names)))
     cmd = NIX_CMD + [
-        "build",
-        f"{flake_path}#inputs.{input_name}.outPath",
-        "--no-link",
+        "eval",
+        f"{flake_path}#inputs",
+        "--json",
         "--allow-dirty-locks",
         "--refresh",
+        "--apply",
+        "inputs: builtins.mapAttrs (_: i: i.outPath) "
+        f"(builtins.intersectAttrs (builtins.fromJSON {wanted}) inputs)",
     ]
-
     try:
-        subprocess.run(
+        result = subprocess.run(
             cmd,
             check=True,
+            capture_output=True,
             cwd=flake_path,
-            stderr=subprocess.PIPE,
             env=nix_subprocess_env(),
         )
     except subprocess.CalledProcessError as e:
         nix_parser = NixParser()
         nix_parser.process_buffer(bytearray(e.stderr))
-        logger.error(
-            "Command failed: %s with exit code %s: %s",
-            e.cmd,
-            e.returncode,
+        logger.warning(
+            "Batch resolution of flake inputs failed, falling back to per-input resolution: %s",
             nix_parser.msg_output,
         )
-        return None, nix_parser.msg_output
+        return None
+    return json.loads(result.stdout)
 
+
+def get_input_out_path(flake_path, input_name):
     cmd = NIX_CMD + [
-        "eval",
+        "build",
         f"{flake_path}#inputs.{input_name}.outPath",
-        "--json",
+        "--no-link",
+        "--print-out-paths",
         "--allow-dirty-locks",
         "--refresh",
     ]
@@ -91,11 +105,12 @@ def get_input_out_path(flake_path, input_name):
         )
         return None, nix_parser.msg_output
 
-    # result.stdout is a json string
-    result = json.loads(result.stdout)
-    # should be a string
-    assert isinstance(result, str)
-    return result, None
+    out_paths = set(result.stdout.decode().split())
+    if len(out_paths) != 1:
+        msg = f"Expected exactly one out path for input {input_name}, got {sorted(out_paths)}"
+        logger.error(msg)
+        return None, msg
+    return out_paths.pop(), None
 
 
 def get_build_output(flake_path, identifier):
