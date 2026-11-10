@@ -15,6 +15,16 @@ class Repo(BaseModel):
 class ModuleSettings(BaseModel):
     type: str  # type of module this settings object is for
     settings: Dict[str, JsonValue]
+    # Per-setting priority overrides, keyed by setting name. The value is used
+    # as the lib.mkOverride priority for the nix definitions emitted for that
+    # setting (lowest number wins in the NixOS module system). Settings without
+    # an entry use the priority of the tag/config this object belongs to.
+    priorities: Dict[str, int] = {}
+
+    def setting_priority(self, setting_key: str, default: int) -> int:
+        """Priority to emit this setting with, defaulting to the owning
+        tag/config priority when the setting has no override."""
+        return self.priorities.get(setting_key, default)
 
 
 THYMIS_DEVICE_MODULE_TYPE = "thymis_controller.modules.thymis.ThymisDevice"
