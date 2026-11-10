@@ -77,7 +77,7 @@ def _poll_tasks(
     target_state: str,
     count: int,
     timeout: int,
-    poll_interval: float = 15.0,
+    poll_interval: float = 5.0,
     request_timeout: float = 90.0,
     also_fail_on: tuple[str, ...] = (),
 ) -> list[dict]:
@@ -416,7 +416,6 @@ def test_x86_vm_build_start_deploy(controller: ControllerInfo) -> None:
         target_state="running",
         count=1,
         timeout=720,  # 12 min — nix build can be slow
-        poll_interval=15.0,
         also_fail_on=("build_device_image_task",),
     )
     print("[step 4] VM task is running")
@@ -555,7 +554,6 @@ def test_x86_vm_build_start_deploy(controller: ControllerInfo) -> None:
             target_state="completed",
             count=1,
             timeout=720,
-            poll_interval=15.0,
             also_fail_on=("deploy_devices_task",),
         )
     except (AssertionError, TimeoutError):
