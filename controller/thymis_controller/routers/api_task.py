@@ -2,7 +2,7 @@ import traceback
 import uuid
 
 from fastapi import APIRouter, Response, WebSocket
-from thymis_controller import db_models
+from thymis_controller import crud, db_models
 from thymis_controller.dependencies import (
     DBSessionAD,
     EngineAD,
@@ -35,8 +35,14 @@ def get_tasks(
     limit: int = 100,
     offset: int = 0,
 ):
+    """Pages over top-level tasks with their subtasks; `total-count` counts roots."""
     response.headers["total-count"] = str(task_controller.get_task_count(session))
     return task_controller.get_tasks(session, limit, offset)
+
+
+@router.get("/tasks/{task_id}/subtasks")
+def get_subtasks(task_id: uuid.UUID, session: DBSessionAD):
+    return crud.task.get_subtasks(session, [task_id])
 
 
 @router.get("/tasks/{task_id}")

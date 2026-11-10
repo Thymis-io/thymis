@@ -95,6 +95,7 @@ export type TaskShort = {
 	task_submission_data: Record<string, unknown>;
 
 	nix_status?: NixProcessStatus;
+	parent_task_id?: string;
 };
 
 export type TasksShort = Record<string, TaskShort>;
@@ -146,6 +147,7 @@ let socket: WebSocket | undefined;
 export const taskStatus = writable<Record<string, TaskShort>>({});
 export const subscribedTask = writable<Task | null>(null);
 
+/** Pages over top-level tasks, each with all its subtasks; `totalCount` counts top-level tasks. */
 export const getAllTasks = async (
 	limit: number,
 	offset: number,
@@ -156,6 +158,11 @@ export const getAllTasks = async (
 	const totalCount = response.headers.get('total-count');
 
 	return { tasks: (await response.json()) as TaskShort[], totalCount };
+};
+
+export const getSubtasks = async (taskId: string, fetch: typeof window.fetch = window.fetch) => {
+	const response = await fetchWithNotify(`/api/tasks/${taskId}/subtasks`, undefined, {}, fetch);
+	return (await response.json()) as TaskShort[];
 };
 
 export const getTask = async (taskId: string, fetch: typeof window.fetch = window.fetch) => {

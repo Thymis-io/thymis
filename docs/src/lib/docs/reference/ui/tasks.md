@@ -13,6 +13,12 @@ Thymis provides a **task system** to track long-running operations such as build
 | Completed | The task finished successfully without errors.                                       |
 | Failed    | The task ended due to an error. The failure reason can be found in the task details. |
 
+## Subtasks
+
+Some tasks run other tasks as subtasks. **Deploy Devices**, for example, runs one **Deploy to Device** per device, and each of these may reboot its device with **Run SSH Command**. Subtasks are shown indented below the task that started them, in the order they were started. Only the first three are shown at first; click **… N more** to see the rest.
+
+A parent task's state sums up its subtasks: once they are all done, it is failed if any of them failed. The state filters and the page count on the tasks page therefore look at top-level tasks only, so a deploy to five devices counts once and its state tells whether all five succeeded.
+
 ## Task Types
 
 | Task Type                                       | Description                                                            |
@@ -29,6 +35,7 @@ Thymis provides a **task system** to track long-running operations such as build
 
 Opening a task shows more information such as:
 
+- Subtasks: all tasks this task started, at every level
 - Submission Data: all information used to process the task
 - Process: the command that was executed and its arguments
 - Downloads and transfers: progress of fetching store paths from caches and copying them to the target device, summed over all processes of the task

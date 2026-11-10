@@ -141,6 +141,7 @@ class TaskShort(BaseModel):
     exception: Optional[str]
     task_submission_data: Optional["TaskSubmissionData"]
     nix_status: Optional[NixProcessStatus]
+    parent_task_id: Optional[uuid.UUID]
 
     @field_serializer("submitted_time", "start_time", "end_time")
     def _ser_dt(self, dt: datetime.datetime | None) -> str | None:
@@ -171,6 +172,7 @@ class TaskShort(BaseModel):
             end_time=task.end_time,
             exception=task.exception,
             task_submission_data=submission_data,
+            parent_task_id=task.parent_task_id,
             nix_status=next(
                 (p.nix_status for p in reversed(task.processes) if p.nix_status), None
             ),
