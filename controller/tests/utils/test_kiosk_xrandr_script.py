@@ -10,6 +10,7 @@ import os
 import pathlib
 import re
 import subprocess
+import sys
 import time
 
 import pytest
@@ -37,8 +38,15 @@ current = open(mode_file).read().strip()
 
 if args == ["--query"]:
     width, height = (current.split("x") + ["0"])[:2]
+    # Real `xrandr --query` output: a rotation swaps the geometry, the current
+    # rotation is only printed bare when it is not normal, otherwise the line
+    # carries the "(" prefixed rotation list.
+    rotation = os.environ.get("FAKE_XRANDR_ROTATION", "normal")
+    if rotation in ("left", "right"):
+        width, height = height, width
+    bare = "" if rotation == "normal" else f" {rotation}"
     print(f"Screen 0: minimum 320 x 200, current {width} x {height}, maximum 2048 x 2048")
-    print(f"HDMI-1 connected primary {current}+0+0 (0x197) normal (normal left inverted right x axis y axis) 1054mm x 592mm")
+    print(f"HDMI-1 connected primary {width}x{height}+0+0{bare} (normal left inverted right x axis y axis) 1054mm x 592mm")
     print("   1920x1080     60.00 +  50.00")
     print("   1366x768      59.79")
     print("   1360x768      60.02")
@@ -47,6 +55,30 @@ elif args[:2] == ["--output", "HDMI-1"] and "--mode" in args:
     if not fail:
         with open(mode_file, "w") as f:
             f.write(mode)
+"""
+
+FAKE_FLOCK = r"""#!/usr/bin/env python3
+import fcntl
+import sys
+import time
+
+args = sys.argv[1:]
+timeout = 0.0
+if args and args[0] == "-n":
+    args = args[1:]
+elif args and args[0] == "-w":
+    timeout = float(args[1])
+    args = args[2:]
+fd = int(args[0])
+deadline = time.time() + timeout
+while True:
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        break
+    except BlockingIOError:
+        if time.time() >= deadline:
+            sys.exit(1)
+        time.sleep(0.1)
 """
 
 FAKE_SYSTEMCTL = r"""#!/usr/bin/env bash
@@ -64,10 +96,6 @@ while true; do
     echo RRScreenChangeNotify
     sleep 0.2
 done
-"""
-
-FAKE_FLOCK = r"""#!/usr/bin/env bash
-exit 0
 """
 
 
@@ -92,7 +120,7 @@ def _render_script(tmp_path: pathlib.Path, mode: str, rotation: str = "normal") 
 
 
 def _prepare(
-    tmp_path: pathlib.Path, fail: bool
+    tmp_path: pathlib.Path, fail: bool, rotation: str = "normal"
 ) -> tuple[pathlib.Path, pathlib.Path, dict]:
     state = tmp_path / "fake-state"
     state.mkdir()
@@ -106,7 +134,7 @@ def _prepare(
         ("systemctl", FAKE_SYSTEMCTL),
         ("cvt", FAKE_CVT),
         ("xev", FAKE_XEV),
-        ("flock", FAKE_FLOCK),
+        ("flock", FAKE_FLOCK.replace("#!/usr/bin/env python3", f"#!{sys.executable}")),
     ]:
         path = bindir / name
         path.write_text(body)
@@ -117,6 +145,7 @@ def _prepare(
     env["HOME"] = str(home)
     env["FAKE_XRANDR_STATE"] = str(state)
     env["FAKE_XRANDR_FAIL"] = "1" if fail else "0"
+    env["FAKE_XRANDR_ROTATION"] = rotation
     env["THYMIS_XRANDR_RESTART_MARKER"] = str(tmp_path / "display-manager-restarted")
     return state, tmp_path, env
 
@@ -173,7 +202,7 @@ def test_native_mode_is_used_without_cvt(tmp_path):
     state, work, env = _prepare(tmp_path, fail=False)
     proc = _start(_install_script(script, work), work, env)
     try:
-        time.sleep(5)
+        time.sleep(12)
     finally:
         _stop(proc)
 
@@ -181,6 +210,38 @@ def test_native_mode_is_used_without_cvt(tmp_path):
     assert "--mode 1360x768" in calls
     assert "cvt" not in calls
     assert "--newmode" not in calls
+    assert "systemctl" not in calls
+
+
+def test_healthy_normal_display_does_not_restart_display_manager(tmp_path):
+    """A normal xrandr output carries the "(" prefixed rotation list, which the
+    health check must strip before comparing against the configured rotation.
+    Reading it as a bare token reported every healthy display unhealthy and
+    restarted display-manager about once per minute."""
+    script = _render_script(tmp_path / "nix", "1920x1080")
+    state, work, env = _prepare(tmp_path, fail=False)
+    proc = _start(_install_script(script, work), work, env)
+    try:
+        time.sleep(12)
+    finally:
+        _stop(proc)
+
+    calls = (state / "calls.log").read_text()
+    assert "--mode 1920x1080" in calls
+    assert "systemctl" not in calls
+
+
+def test_rotated_display_matches_the_configured_rotation(tmp_path):
+    script = _render_script(tmp_path / "nix", "1920x1080", rotation="left")
+    state, work, env = _prepare(tmp_path, fail=False, rotation="left")
+    proc = _start(_install_script(script, work), work, env)
+    try:
+        time.sleep(12)
+    finally:
+        _stop(proc)
+
+    calls = (state / "calls.log").read_text()
+    assert "--rotate left" in calls
     assert "systemctl" not in calls
 
 
@@ -205,7 +266,7 @@ def test_fail_safe_falls_back_and_restarts_only_once(tmp_path):
     (state / "calls.log").unlink()
     proc = _start(path, work, env)
     try:
-        time.sleep(8)
+        time.sleep(12)
     finally:
         _stop(proc)
 
@@ -219,7 +280,7 @@ def test_custom_mode_is_generated_when_edid_lacks_it(tmp_path):
     state, work, env = _prepare(tmp_path, fail=False)
     proc = _start(_install_script(script, work), work, env)
     try:
-        time.sleep(5)
+        time.sleep(12)
     finally:
         _stop(proc)
 
@@ -227,3 +288,135 @@ def test_custom_mode_is_generated_when_edid_lacks_it(tmp_path):
     assert "cvt 1600 900 60" in calls
     assert "--newmode 1600x900_60.00" in calls
     assert "--mode 1600x900_60.00" in calls
+
+
+FAKE_STALE_HOLDER = r"""#!/usr/bin/env python3
+import fcntl
+import os
+import time
+
+lock = os.environ["LOCK_FILE"]
+f = open(lock, "w")
+fcntl.flock(f, fcntl.LOCK_EX)
+time.sleep(60)
+"""
+
+
+def _lock_holders(lock: pathlib.Path) -> set[int]:
+    holders = set()
+    for proc in pathlib.Path("/proc").iterdir():
+        if not proc.name.isdigit():
+            continue
+        try:
+            for fd in (proc / "fd").iterdir():
+                if os.readlink(fd) == str(lock):
+                    holders.add(int(proc.name))
+                    break
+        except (FileNotFoundError, PermissionError):
+            continue
+    return holders
+
+
+def test_stale_watchdog_of_a_previous_session_is_taken_over(tmp_path):
+    """A watchdog (or its orphaned xev child) from a previous X session keeps
+    the lock fd. The next session must take the lock over instead of silently
+    running without a watchdog."""
+    script = _render_script(tmp_path / "nix", "1920x1080")
+    state, work, env = _prepare(tmp_path, fail=False)
+    lock = pathlib.Path(env["HOME"]) / ".cache" / "thymis-xrandr.lock"
+    lock.parent.mkdir(parents=True, exist_ok=True)
+
+    stale_path = tmp_path / "stale-xev"
+    stale_path.write_text(FAKE_STALE_HOLDER)
+    stale_path.chmod(0o755)
+    stale = subprocess.Popen(
+        [str(stale_path), "-root", "-event", "randr"],
+        env={**os.environ, "LOCK_FILE": str(lock)},
+        start_new_session=True,
+    )
+    deadline = time.time() + 5
+    while time.time() < deadline and not _lock_holders(lock):
+        time.sleep(0.1)
+    assert _lock_holders(lock)
+
+    proc = _start(_install_script(script, work), work, env)
+    try:
+        time.sleep(12)
+        assert proc.poll() is None, "watchdog exited on the stale lock"
+    finally:
+        _stop(proc)
+        stale.kill()
+        stale.wait(timeout=5)
+
+    calls = (state / "calls.log").read_text()
+    assert "--mode 1920x1080" in calls
+    assert "systemctl" not in calls
+
+
+def test_xev_child_does_not_inherit_the_lock_fd(tmp_path):
+    """The xev child outlives the watchdog; if it inherited the lock fd it
+    would keep the lock held after the session ended."""
+    script = _render_script(tmp_path / "nix", "1920x1080")
+    state, work, env = _prepare(tmp_path, fail=False)
+    lock = pathlib.Path(env["HOME"]) / ".cache" / "thymis-xrandr.lock"
+
+    proc = _start(_install_script(script, work), work, env)
+    try:
+        time.sleep(6)
+        holders = _lock_holders(lock)
+        assert proc.pid in holders
+        leaked = {
+            pid
+            for pid in holders
+            if pid != proc.pid
+            and (
+                "xev"
+                in pathlib.Path(f"/proc/{pid}/cmdline")
+                .read_bytes()
+                .decode(errors="replace")
+                or "RRScreenChangeNotify"
+                in pathlib.Path(f"/proc/{pid}/cmdline")
+                .read_bytes()
+                .decode(errors="replace")
+            )
+        }
+        assert not leaked, f"lock fd leaked to xev children {leaked}"
+    finally:
+        _stop(proc)
+
+
+def test_stale_lock_of_a_plain_child_is_waited_out(tmp_path):
+    """A killed watchdog leaves a sleep child that holds the lock for its
+    remaining runtime; the next session must wait it out instead of exiting."""
+    script = _render_script(tmp_path / "nix", "1920x1080")
+    state, work, env = _prepare(tmp_path, fail=False)
+    lock = pathlib.Path(env["HOME"]) / ".cache" / "thymis-xrandr.lock"
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    stale = subprocess.Popen(
+        [
+            sys.executable,
+            "-c",
+            "import fcntl, sys, time; f = open(sys.argv[1], 'w'); "
+            "fcntl.flock(f, fcntl.LOCK_EX); time.sleep(16)",
+            str(lock),
+        ],
+        start_new_session=True,
+    )
+    try:
+        deadline = time.time() + 5
+        while time.time() < deadline and not _lock_holders(lock):
+            time.sleep(0.1)
+        assert _lock_holders(lock)
+
+        proc = _start(_install_script(script, work), work, env)
+        try:
+            time.sleep(24)
+            assert proc.poll() is None, "watchdog exited on the stale lock"
+        finally:
+            _stop(proc)
+        calls = (state / "calls.log").read_text()
+        assert "--mode 1920x1080" in calls
+        assert "systemctl" not in calls
+    finally:
+        stale.kill()
+        stale.wait(timeout=5)
