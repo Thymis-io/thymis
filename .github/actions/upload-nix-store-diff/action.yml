@@ -1,5 +1,5 @@
 name: "Upload Nix Store Diff"
-description: "Upload all store paths added since the last snapshot-nix-store step."
+description: "Upload the store paths built since the last snapshot-nix-store step, plus whatever of their closure the cache is missing."
 inputs:
   aws_access_key_id:
     description: "Hetzner S3 access key ID."
@@ -23,53 +23,77 @@ runs:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
         AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
       run: |
-        KEY_FILE=$(mktemp)
-        _CAND=$(mktemp)
-        trap 'rm -f "$KEY_FILE" "$_CAND"' EXIT
+        WORK=$(mktemp -d)
+        trap 'rm -rf "$WORK"' EXIT
+        KEY_FILE="$WORK/key"
         echo "${{ inputs.signing_key }}" > "$KEY_FILE"
+        # zstd: xz took ~2 min per 300 MB path on the runners; zstd takes seconds.
+        CACHE="s3://thymis-nix-cache?endpoint=nix-cache-s3.thymis.io&region=garage&compression=zstd&secret-key=${KEY_FILE}"
 
         nix path-info --all 2>/dev/null | sort > /tmp/nix-store-after.txt
-        NEW_PATHS=$(comm -13 /tmp/nix-store-before.txt /tmp/nix-store-after.txt)
-
-        if [ -z "$NEW_PATHS" ]; then
-          echo "No new store paths to upload."
-          exit 0
-        fi
-
-        # Build candidate list: filter by name pattern (and optional result
-        # exclusion), then size-check all paths in one batched du pass.
-        # The old serial per-path du loop was the main source of the ~10-30 s
-        # collection hang when there were thousands of candidate paths.
-        MAX_SIZE=$((1024 * 1024 * 1024))  # 1 GiB
+        comm -13 /tmp/nix-store-before.txt /tmp/nix-store-after.txt > "$WORK/new"
 
         EXCL_RESULT=''
         if [ "${{ inputs.exclude_result }}" = "true" ] && [ -L ./result ]; then
           EXCL_RESULT=$(readlink -f ./result)
         fi
 
-        printf '%s\n' "$NEW_PATHS" \
-          | grep -vE '(fill-image-with-secrets|\.img$|nixos-vm)' \
-          | { [ -n "$EXCL_RESULT" ] && grep -vxF "$EXCL_RESULT" || cat; } \
-          | xargs -r du -sb 2>/dev/null \
-          | awk -v max="$MAX_SIZE" '$1 < max { print $2 }' \
-          > "$_CAND"
-
-        if [ ! -s "$_CAND" ]; then
-          echo "No new store paths to upload (all filtered out)."
+        # Roots: new paths this runner built itself (`ultimate` in --sigs). This skips
+        # everything substituted (signed by cache.nixos.org / cache.thymis.io), all .drv
+        # files and fetched or `path:` sources (content-addressed, shown as `ca:...`),
+        # e.g. the per-run copies of the checkout including node_modules.
+        MAX_SIZE=$((1024 * 1024 * 1024))  # 1 GiB NAR size
+        xargs -r nix path-info -s --sigs < "$WORK/new" \
+          | awk -v max="$MAX_SIZE" -v excl="$EXCL_RESULT" '
+              $3 == "ultimate" && $2 < max && $1 != excl \
+                && $1 !~ /(fill-image-with-secrets|\.img$|nixos-vm)/ { print $1 }' \
+          > "$WORK/roots"
+        if [ ! -s "$WORK/roots" ]; then
+          echo "No newly built store paths to upload."
           exit 0
         fi
 
-        COUNT=$(wc -l < "$_CAND")
-        echo "Uploading ${COUNT} new store paths to cache..."
-        # nix copy checks the destination narinfo before uploading each path, so
-        # already-cached paths are skipped automatically without any help from us.
-        # Empirically, a single `nix copy` process is far slower overall than N
-        # parallel processes (~2x slower with none) — whatever internally bounds
-        # per-process copy/substitution concurrency, it's well below what N
-        # external processes achieve, so we fan out via xargs -P despite the
-        # redundant per-process closure computation this costs at startup.
+        # The cache refuses a path whose references it does not have, so the closure has
+        # to be there too. Paths substituted from cache.thymis.io are known to be present;
+        # check the rest with many parallel lookups. Unlike `nix path-info`,
+        # `nix-store --check-validity` does not abort at the first missing path, and its
+        # lookups land in nix's shared narinfo cache, so the uploads below do not repeat them.
+        xargs nix path-info -r < "$WORK/roots" | sort -u \
+          | xargs nix path-info --sigs | awk '!/cache\.thymis\.io-1:/ { print $1 }' > "$WORK/closure"
+        xargs -a "$WORK/closure" -P 32 -n 40 nix-store --store "$CACHE" --check-validity --print-invalid \
+          > "$WORK/missing" \
+          || echo "Warning: some cache lookups failed; their paths are not uploaded."
+        echo "$(wc -l < "$WORK/roots") newly built paths, $(wc -l < "$WORK/closure") closure paths checked, $(wc -l < "$WORK/missing") missing from the cache."
+        if [ ! -s "$WORK/missing" ]; then
+          exit 0
+        fi
+
+        # One `nix copy` uses only one thread per CPU (4 on the arm runners) and every
+        # upload is several round trips, so fan out over processes. Fanned-out
+        # `--no-recursive` copies fail when a reference is not uploaded yet, hence upload
+        # by level: a path's level is 1 + the highest level of its missing references.
+        xargs -a "$WORK/missing" nix-store -q --graph | awk '
+          FNR == NR { missing[$0] = 1; next }
+          / -> / {
+            gsub(/"/, "")
+            ref = "/nix/store/" $1; user = "/nix/store/" $3
+            if (ref != user && (ref in missing) && (user in missing)) { refs[++n] = ref; users[n] = user }
+          }
+          END {
+            for (p in missing) level[p] = 0
+            do {
+              changed = 0
+              for (i = 1; i <= n; i++)
+                if (level[users[i]] <= level[refs[i]]) { level[users[i]] = level[refs[i]] + 1; changed = 1 }
+            } while (changed)
+            for (p in missing) print level[p], p
+          }' "$WORK/missing" - | sort -n > "$WORK/levels"
+
         # Cache upload is best-effort: transient S3 errors must not fail the job.
-        xargs -a "$_CAND" -P 16 -n 16 nix copy \
-          --to "s3://thymis-nix-cache?endpoint=nix-cache-s3.thymis.io&region=garage&secret-key=${KEY_FILE}" \
-          --no-check-sigs \
-          || echo "Warning: nix copy exited $? — transient S3 error likely; some paths may not have been cached. Non-fatal."
+        for lvl in $(cut -d' ' -f1 "$WORK/levels" | uniq); do
+          awk -v l="$lvl" '$1 == l { print $2 }' "$WORK/levels" > "$WORK/level"
+          count=$(wc -l < "$WORK/level")
+          echo "Uploading level $lvl: $count paths"
+          xargs -a "$WORK/level" -P 16 -n $(( (count + 15) / 16 )) nix copy --to "$CACHE" --no-recursive \
+            || echo "Warning: nix copy failed for some paths of level $lvl; they (and paths referencing them) may not be cached. Non-fatal."
+        done
