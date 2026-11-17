@@ -37,6 +37,7 @@
 		"@zerodevx/svelte-toast": "^0.9.6",
 		"autoprefixer": "^10.5.0",
 		"chart.js": "^4.5.1",
+		"dompurify": "^3.4.18",
 		"eslint": "^10.2.1",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.17.1",
