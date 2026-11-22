@@ -8,7 +8,8 @@
     "enabled": false
   },
   "automerge": true,
-  "automergeType": "squash",
+  "automergeType": "pr",
+  "automergeStrategy": "squash",
   "schedule": ["* 0-6 * * 1"],
   "timezone": "Europe/Berlin",
   "rebaseWhen": "auto",
