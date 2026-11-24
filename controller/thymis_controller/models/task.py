@@ -89,7 +89,6 @@ class Task(BaseModel):
     task_submission_data_raw: Optional[JsonValue]
 
     parent_task_id: Optional[uuid.UUID] = None
-    children: Optional[list[uuid.UUID]] = None
 
     processes: list[TaskProcess] = []
 
@@ -126,7 +125,6 @@ class Task(BaseModel):
             task_submission_data=submission_data,
             task_submission_data_raw=submission_data_raw,
             parent_task_id=task.parent_task_id,
-            children=task.children,
             processes=[TaskProcess.from_orm_task(tp) for tp in task.processes],
         )
 
@@ -141,6 +139,7 @@ class TaskShort(BaseModel):
     exception: Optional[str]
     task_submission_data: Optional["TaskSubmissionData"]
     nix_status: Optional[NixProcessStatus]
+    parent_task_id: Optional[uuid.UUID]
 
     @field_serializer("submitted_time", "start_time", "end_time")
     def _ser_dt(self, dt: datetime.datetime | None) -> str | None:
@@ -171,6 +170,7 @@ class TaskShort(BaseModel):
             end_time=task.end_time,
             exception=task.exception,
             task_submission_data=submission_data,
+            parent_task_id=task.parent_task_id,
             nix_status=next(
                 (p.nix_status for p in reversed(task.processes) if p.nix_status), None
             ),
@@ -300,7 +300,6 @@ class RunNixOSVMTaskSubmission(BaseModel):
     type: Literal["run_nixos_vm_task"] = "run_nixos_vm_task"
     configuration_id: str
     project_path: str
-    parent_task_id: Optional[uuid.UUID] = None
 
 
 class AutoUpdateTaskSubmission(BaseModel):

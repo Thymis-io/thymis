@@ -2,11 +2,15 @@
 	import { t } from 'svelte-i18n';
 	import ResizableColumns from 'svelte-resizable-columns/src/ResizableColumns';
 	import 'svelte-resizable-columns/src/resizableColumns.css';
+	import { SvelteSet } from 'svelte/reactivity';
 	import { taskStatus } from '#lib/taskstatus.js';
+	import { buildTaskTree, flattenTaskTree } from '#lib/taskTree.js';
 	import TaskbarActions from './TaskbarActions.svelte';
 	import TaskbarStatus from './TaskbarStatus.svelte';
 	import TaskbarMinimize from './TaskbarMinimize.svelte';
 	import TaskbarName from './TaskbarName.svelte';
+	import TaskTreeIndent from './TaskTreeIndent.svelte';
+	import TaskTreeMore from './TaskTreeMore.svelte';
 	import RenderTimeAgo from '#lib/components/RenderTimeAgo.svelte';
 	import RenderTimeDuration from '#lib/components/RenderTimeDuration.svelte';
 	import type { GlobalState } from '#lib/state.svelte.js';
@@ -21,11 +25,14 @@
 	// The taskbar only ever shows the most recent tasks; the live store can grow
 	// past that via websocket updates, so cap the rendered list here.
 	const taskbarTaskLimit = 20;
-	let taskList = $derived(
-		Object.values($taskStatus)
-			.sort((a, b) => (a.submitted_time < b.submitted_time ? 1 : -1))
-			.slice(0, taskbarTaskLimit)
+	const expanded = new SvelteSet<string>();
+	let rows = $derived(
+		flattenTaskTree(buildTaskTree(Object.values($taskStatus)).slice(0, taskbarTaskLimit), expanded)
 	);
+
+	const toggle = (parentId: string) => {
+		if (!expanded.delete(parentId)) expanded.add(parentId);
+	};
 
 	let headers = $derived([
 		{ name: $t('taskbar.task-type') },
@@ -56,23 +63,37 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#each taskList as task (task.id)}
+			{#each rows as row (row.kind === 'task' ? row.task.id : `more-${row.parentId}`)}
 				<tr>
-					<td class={tdClass}>
-						<TaskbarName {globalState} {task} />
-					</td>
-					<td class={tdClass}>
-						<TaskbarStatus {task} />
-					</td>
-					<td class={tdClass}>
-						<RenderTimeAgo class="block" timestamp={task.start_time} minSeconds={1} />
-					</td>
-					<td class={tdClass}>
-						<RenderTimeDuration class="block" start={task.start_time} end={task.end_time} />
-					</td>
-					<td class={tdClass}>
-						<TaskbarActions {task} />
-					</td>
+					{#if row.kind === 'more'}
+						<td class={tdClass} colspan={headers.length}>
+							<TaskTreeMore
+								depth={row.depth}
+								hidden={row.hidden}
+								expanded={row.expanded}
+								ontoggle={() => toggle(row.parentId)}
+							/>
+						</td>
+					{:else}
+						{@const task = row.task}
+						<td class={tdClass}>
+							<TaskTreeIndent depth={row.depth}>
+								<TaskbarName {globalState} {task} />
+							</TaskTreeIndent>
+						</td>
+						<td class={tdClass}>
+							<TaskbarStatus {task} />
+						</td>
+						<td class={tdClass}>
+							<RenderTimeAgo class="block" timestamp={task.start_time} minSeconds={1} />
+						</td>
+						<td class={tdClass}>
+							<RenderTimeDuration class="block" start={task.start_time} end={task.end_time} />
+						</td>
+						<td class={tdClass}>
+							<TaskbarActions {task} />
+						</td>
+					{/if}
 				</tr>
 			{/each}
 		</tbody>

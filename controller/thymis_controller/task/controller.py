@@ -78,7 +78,6 @@ class TaskController:
         subtasks: list[db_models.Task] = []
 
         if task.type == "deploy_devices_task":
-            children_uids = []
             for device in task.devices:
                 access_client_token = get_or_create_access_client_token(
                     db_session,
@@ -108,10 +107,7 @@ class TaskController:
                 access_client_token.deploy_device_task_id = subtask.id
                 db_session.add(access_client_token)
                 db_session.commit()
-                children_uids.append(str(subtask.id))
                 subtasks.append(subtask)
-            task_db.children = children_uids
-            db_session.commit()
         elif task.type == "reboot_devices_task":
             for device in task.devices:
                 subtasks.append(
@@ -123,8 +119,6 @@ class TaskController:
                         db_session,
                     )
                 )
-            task_db.children = [str(subtask.id) for subtask in subtasks]
-            db_session.commit()
 
         self.executor.submit(TaskSubmission(id=task_db.id, data=task))
 
@@ -183,6 +177,9 @@ class TaskController:
     def retry_task(self, task_id: str, db_session: Session):
         task = crud.task.get_task_by_id(db_session, task_id)
         task_data = TaskSubmission.from_orm_task(task).data
+        # A retry is a new top-level task, even when retrying a subtask.
+        if hasattr(task_data, "parent_task_id"):
+            task_data = task_data.model_copy(update={"parent_task_id": None})
         self.submit(task_data, task.user_session_id, db_session)
 
     if "RUNNING_IN_PLAYWRIGHT" in os.environ:

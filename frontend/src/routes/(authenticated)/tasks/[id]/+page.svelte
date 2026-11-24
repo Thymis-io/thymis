@@ -5,6 +5,7 @@
 	import RenderTimeAgo from '#lib/components/RenderTimeAgo.svelte';
 	import RenderTimeDuration from '#lib/components/RenderTimeDuration.svelte';
 	import {
+		taskStatus,
 		subscribedTask,
 		subscribeTask,
 		cancelTask,
@@ -20,6 +21,8 @@
 	import Section from '#lib/components/layout/Section.svelte';
 	import TaskbarName from '#lib/taskbar/TaskbarName.svelte';
 	import TaskbarStatus from '#lib/taskbar/TaskbarStatus.svelte';
+	import TaskTable from '#lib/taskbar/TaskTable.svelte';
+	import { withLiveDescendants } from '#lib/taskTree.js';
 	import Copy from 'lucide-svelte/icons/copy';
 	import Check from 'lucide-svelte/icons/check';
 	import AlertTriangle from 'lucide-svelte/icons/triangle-alert';
@@ -35,7 +38,10 @@
 
 	let { data }: Props = $props();
 
-	let task: Task | undefined = $derived(!$subscribedTask ? data.task : $subscribedTask);
+	// Until the subscription for this page's task arrives, the store still holds the previous task.
+	let task: Task | undefined = $derived(
+		$subscribedTask?.id === data.task.id ? $subscribedTask : data.task
+	);
 
 	const cleanStdOut = (stdoutorerr: string) => stdoutorerr.replaceAll('\r[K', '');
 	const escapeForDoubleQuotes = (str: string) => str.replaceAll(/["`\\$]/g, '\\$&');
@@ -102,6 +108,8 @@
 	);
 
 	let transfers = $derived(aggregateTransfers(task?.processes));
+
+	let subtasks = $derived(withLiveDescendants(data.subtasks, $taskStatus, [data.task_id]));
 
 	$effect(() => {
 		subscribeTask(data.task_id);
@@ -251,18 +259,14 @@
 						</span>
 					</div>
 				{/if}
-				{#if task.children && task.children.length > 0}
-					<div class="meta-item">
-						<span class="meta-key">{$t('task-details.subtasks')}</span>
-						<span class="meta-val mono flex flex-col gap-1">
-							{#each task.children as child (child)}
-								<a class="ds-link" href="/tasks/{child}">{child}</a>
-							{/each}
-						</span>
-					</div>
-				{/if}
 			</div>
 		</Section>
+
+		{#if subtasks.length > 0}
+			<Section title={$t('task-details.subtasks')}>
+				<TaskTable tasks={subtasks} parent={task as TaskShort} globalState={data.globalState} />
+			</Section>
+		{/if}
 
 		{#if task.exception}
 			<Section title={$t('task-details.exception')} class="exception-card">
