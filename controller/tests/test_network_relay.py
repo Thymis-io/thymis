@@ -1,3 +1,10 @@
+import asyncio
+import uuid
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from thymis_controller import db_models
+from thymis_controller.database.base import Base
 from thymis_controller.network_relay import NetworkRelay
 
 PUBLIC_KEY = (
@@ -54,3 +61,52 @@ def test_release_unknown_connection_is_noop():
 
     assert relay.public_key_to_connection_id[PUBLIC_KEY] == "live"
     assert relay.connection_id_to_public_key == {"live": PUBLIC_KEY}
+
+
+def _make_engine(tmp_path):
+    engine = create_engine(f"sqlite:///{tmp_path / 'relay.sqlite'}")
+    Base.metadata.create_all(engine)
+    return engine
+
+
+def test_access_client_unknown_target_returns_none(tmp_path):
+    relay = make_relay()
+    relay.db_engine = _make_engine(tmp_path)
+
+    assert (
+        asyncio.run(relay.get_agent_connection_id_for_access_client(str(uuid.uuid4())))
+        is None
+    )
+
+
+def test_access_client_malformed_target_returns_none(tmp_path):
+    relay = make_relay()
+    relay.db_engine = _make_engine(tmp_path)
+
+    assert (
+        asyncio.run(relay.get_agent_connection_id_for_access_client("not-a-uuid"))
+        is None
+    )
+
+
+def test_access_client_offline_device_returns_none_then_live_id(tmp_path):
+    engine = _make_engine(tmp_path)
+    with Session(engine) as session:
+        deployment = db_models.DeploymentInfo(ssh_public_key=PUBLIC_KEY)
+        session.add(deployment)
+        session.commit()
+        deployment_id = deployment.id
+
+    relay = make_relay()
+    relay.db_engine = engine
+
+    assert (
+        asyncio.run(relay.get_agent_connection_id_for_access_client(str(deployment_id)))
+        is None
+    )
+
+    register(relay, "live")
+    assert (
+        asyncio.run(relay.get_agent_connection_id_for_access_client(str(deployment_id)))
+        == "live"
+    )

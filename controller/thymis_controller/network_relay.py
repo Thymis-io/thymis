@@ -715,18 +715,36 @@ class NetworkRelay(nr.NetworkRelay):
         return True
 
     async def get_agent_connection_id_for_access_client(self, connection_target):
-        with sqlalchemy.orm.Session(self.db_engine) as db_session:
-            deployment_info = crud_deployment_info.get_by_id(
-                db_session, uuid.UUID(connection_target)
+        """Resolve an access client's target to a live agent connection.
+
+        The relay base class treats a falsy result as "agent not registered" and
+        sends a clean error to the access client. Raising here instead escapes
+        ``ws_for_access_clients`` as an ASGI 500, so a device that is merely
+        offline produces a traceback for every SSH/VNC attempt.
+        """
+        try:
+            target_id = uuid.UUID(connection_target)
+        except ValueError:
+            logger.warning(
+                "Access client requested invalid connection target %r",
+                connection_target,
             )
+            return None
+        with sqlalchemy.orm.Session(self.db_engine) as db_session:
+            deployment_info = crud_deployment_info.get_by_id(db_session, target_id)
             if not deployment_info:
-                raise ValueError("No deployment info found for connection target")
+                logger.warning(
+                    "No deployment info found for connection target %s",
+                    connection_target,
+                )
+                return None
             public_key = deployment_info.ssh_public_key
             if not public_key:
-                raise ValueError("No public key found for deployment info")
-            if public_key not in self.public_key_to_connection_id:
-                raise ValueError("No connection found for public key")
-            return self.public_key_to_connection_id[public_key]
+                logger.warning(
+                    "No public key found for deployment info %s", connection_target
+                )
+                return None
+            return self.public_key_to_connection_id.get(public_key)
 
     async def edge_agent_connection_close(self, edge_agent_connection_id: str):
         public_key = self.connection_id_to_public_key.get(edge_agent_connection_id)
