@@ -11,6 +11,7 @@ from thymis_controller.crud.agent_token import check_token_validity
 from thymis_controller.dependencies import (
     DBSessionAD,
     EngineAD,
+    LogIngestorAD,
     NetworkRelayAD,
     ProjectAD,
 )
@@ -108,15 +109,16 @@ async def relay_for_clients(
 async def logs(
     request: Request,
     db_session: DBSessionAD,
+    log_ingestor: LogIngestorAD,
     x_thymis_ssh_pubkey: Annotated[str | None, Header()] = None,
     x_thymis_token: Annotated[str | None, Header()] = None,
 ):
-    """Ingest a batch of syslog entries from a device.
+    """Accept a batch of syslog entries from a device.
 
-    Parsing and the SQLite upsert run in a worker thread: a device streams logs
-    continuously, and doing this work on the event loop lets one ingest batch
-    stall every other request until the device's rsyslog omhttp action times
-    out (5 s) and retries.
+    The request only validates the payload and enqueues it: SQLite work happens
+    in the LogIngestor's worker, merged with other pending batches. Ingest must
+    not wait on a write lock or a large commit, or the device's rsyslog omhttp
+    action times out and retries.
     """
     if x_thymis_ssh_pubkey is None:
         logger.warning(f"No SSH public key from {request.client.host}")
@@ -124,7 +126,10 @@ async def logs(
     if x_thymis_token is None:
         logger.warning(f"No token from {request.client.host}")
         raise HTTPException(status_code=404)
-    if not check_token_validity(db_session, x_thymis_token):
+    valid_token = await run_in_threadpool(
+        check_token_validity, db_session, x_thymis_token
+    )
+    if not valid_token:
         logger.warning(f"Invalid token from {request.client.host}")
         raise HTTPException(status_code=404)
     try:
@@ -135,6 +140,4 @@ async def logs(
         )
         raise HTTPException(status_code=408) from e
     log_entries = await run_in_threadpool(ta.validate_json, data)
-    await run_in_threadpool(
-        crud.logs.create_batch, db_session, log_entries, x_thymis_ssh_pubkey
-    )
+    log_ingestor.submit(x_thymis_ssh_pubkey, log_entries)

@@ -32,6 +32,7 @@ from thymis_controller.database.connection import (
     create_sqlalchemy_engine,
     periodic_cleanup_loop,
 )
+from thymis_controller.log_ingest import LogIngestor
 from thymis_controller.network_relay import NetworkRelay
 from thymis_controller.notifications import NotificationManager
 from thymis_controller.project import Project
@@ -174,6 +175,8 @@ async def lifespan(app: FastAPI):
     notification_manager.start()
     host, port = detect_host_port()
     db_engine = create_sqlalchemy_engine()
+    log_ingestor = LogIngestor(db_engine)
+    log_ingestor.start()
     db_cleanup_task = asyncio.create_task(periodic_cleanup_loop(db_engine))
     network_relay = NetworkRelay(db_engine, notification_manager)
     logger.info("Loading project from %s", global_settings.PROJECT_PATH / "repository")
@@ -205,6 +208,7 @@ async def lifespan(app: FastAPI):
             "project": project,
             "engine": db_engine,
             "network_relay": network_relay,
+            "log_ingestor": log_ingestor,
             "host": host,
             "port": port,
         }
@@ -225,6 +229,7 @@ async def lifespan(app: FastAPI):
         "%d connected agents marked as disconnected",
         len(connected_agents),
     )
+    await log_ingestor.stop()
     db_cleanup_task.cancel()
     notification_manager.stop()
     logger.info("stopping frontend")

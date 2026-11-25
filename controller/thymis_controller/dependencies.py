@@ -12,6 +12,7 @@ from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 from thymis_controller.config import global_settings
 from thymis_controller.crud import web_session
+from thymis_controller.log_ingest import LogIngestor
 from thymis_controller.models.auth import UserInfo
 from thymis_controller.network_relay import NetworkRelay
 from thymis_controller.notifications import NotificationManager
@@ -33,6 +34,13 @@ def get_network_relay(connection: HTTPConnection) -> NetworkRelay:
 
 
 NetworkRelayAD = Annotated[NetworkRelay, Depends(get_network_relay)]
+
+
+def get_log_ingestor(connection: HTTPConnection) -> LogIngestor:
+    return connection.state.log_ingestor
+
+
+LogIngestorAD = Annotated[LogIngestor, Depends(get_log_ingestor)]
 
 
 def get_state(project: Project = Depends(get_project)):

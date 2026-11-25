@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from thymis_controller import crud, db_models
 from thymis_controller.dependencies import (
     get_db_session,
+    get_log_ingestor,
     get_project,
     require_valid_user_session,
 )
@@ -69,4 +70,10 @@ def test_client(db_session, project) -> TestClient:
     app.dependency_overrides[get_db_session] = override_get_db
     app.dependency_overrides[get_project] = override_get_project
     app.dependency_overrides[require_valid_user_session] = override_authenticate
+
+    class ImmediateLogIngestor:
+        def submit(self, ssh_public_key, entries):
+            crud.logs.create_batch(db_session, entries, ssh_public_key)
+
+    app.dependency_overrides[get_log_ingestor] = ImmediateLogIngestor
     return TestClient(app)
