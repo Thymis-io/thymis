@@ -9,10 +9,9 @@ merges queued entries into few transactions.
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import itertools
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
@@ -22,6 +21,9 @@ if TYPE_CHECKING:
     from thymis_controller import models
 
 logger = logging.getLogger(__name__)
+
+_SENTINEL = object()
+_QueueItem = tuple[str, "list[models.LogEntry]"]
 
 
 class LogIngestor:
@@ -38,10 +40,11 @@ class LogIngestor:
         self.max_batch = max_batch
         self.max_entries = max_entries
         self.max_delay = max_delay
-        self.queue: asyncio.Queue[tuple[str, list[models.LogEntry]]] = asyncio.Queue(
+        self.queue: asyncio.Queue[_QueueItem | object] = asyncio.Queue(
             maxsize=max_queue
         )
         self._task: asyncio.Task | None = None
+        self._stopping = False
         self._dropped = 0
 
     def start(self) -> None:
@@ -60,29 +63,47 @@ class LogIngestor:
                 )
 
     async def stop(self) -> None:
+        self._stopping = True
         if self._task is not None:
-            self._task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await self._task
+            self._wake()
+            await self._task
             self._task = None
 
-        pending: list[tuple[str, list[models.LogEntry]]] = []
+        pending: list[_QueueItem] = []
         while True:
             try:
-                pending.append(self.queue.get_nowait())
+                item = self.queue.get_nowait()
             except asyncio.QueueEmpty:
                 break
+            if item is not _SENTINEL:
+                pending.append(cast(_QueueItem, item))
         for chunk in itertools.batched(pending, self.max_batch):
             await asyncio.to_thread(self._flush_batch, list(chunk))
+
+    def _wake(self) -> None:
+        while True:
+            try:
+                self.queue.put_nowait(_SENTINEL)
+                return
+            except asyncio.QueueFull:
+                try:
+                    self.queue.get_nowait()
+                except asyncio.QueueEmpty:
+                    pass
 
     async def _run(self) -> None:
         loop = asyncio.get_running_loop()
         while True:
             first = await self.queue.get()
-            batch = [first]
+            if first is _SENTINEL:
+                break
+            first = cast(_QueueItem, first)
+            batch: list[_QueueItem] = [first]
             entry_count = len(first[1])
             deadline = loop.time() + self.max_delay
-            while len(batch) < self.max_batch and entry_count < self.max_entries:
+            while not self._stopping and len(batch) < self.max_batch:
+                if entry_count >= self.max_entries:
+                    break
                 remaining = deadline - loop.time()
                 if remaining <= 0:
                     break
@@ -90,16 +111,24 @@ class LogIngestor:
                     item = await asyncio.wait_for(self.queue.get(), remaining)
                 except TimeoutError:
                     break
+                if item is _SENTINEL:
+                    break
+                item = cast(_QueueItem, item)
                 if entry_count + len(item[1]) > self.max_entries:
                     self.queue.put_nowait(item)
                     break
                 batch.append(item)
                 entry_count += len(item[1])
-            while len(batch) < self.max_batch and entry_count < self.max_entries:
+            while not self._stopping and len(batch) < self.max_batch:
+                if entry_count >= self.max_entries:
+                    break
                 try:
                     item = self.queue.get_nowait()
                 except asyncio.QueueEmpty:
                     break
+                if item is _SENTINEL:
+                    break
+                item = cast(_QueueItem, item)
                 if entry_count + len(item[1]) > self.max_entries:
                     self.queue.put_nowait(item)
                     break
@@ -111,8 +140,10 @@ class LogIngestor:
                 logger.exception(
                     "Failed to persist %d ingested log batches", len(batch)
                 )
+            if self._stopping:
+                break
 
-    def _flush_batch(self, batch: list[tuple[str, list[models.LogEntry]]]) -> None:
+    def _flush_batch(self, batch: list[_QueueItem]) -> None:
         grouped: dict[str, list[models.LogEntry]] = {}
         for ssh_public_key, entries in batch:
             grouped.setdefault(ssh_public_key, []).extend(entries)

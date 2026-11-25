@@ -55,3 +55,18 @@ def test_full_queue_drops_without_raising(tmp_path):
     asyncio.run(ingestor.stop())
 
     assert _count(engine) == 1
+
+
+def test_running_writer_flushes_submitted_entries(tmp_path):
+    engine = _engine(tmp_path)
+    ingestor = LogIngestor(engine)
+
+    async def scenario():
+        ingestor.start()
+        ingestor.submit(PUBKEY, [_entry()])
+        await asyncio.sleep(0.1)
+        await ingestor.stop()
+
+    asyncio.run(scenario())
+
+    assert _count(engine) == 1
