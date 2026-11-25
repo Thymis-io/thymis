@@ -2,10 +2,8 @@ import asyncio
 import logging
 import os
 import pathlib
-import time
 from urllib.parse import urlparse
 
-import sqlalchemy
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
@@ -33,7 +31,14 @@ def create_sqlalchemy_engine():
         parent = path.parent
         if not parent.exists():
             os.makedirs(parent)
-    engine = create_engine(get_db_url(), pool_size=20, max_overflow=40)
+    # The hourly retention delete can hold the write lock for a while on a
+    # multi-GB log table. Waiting is much better than failing a log batch.
+    engine = create_engine(
+        get_db_url(),
+        pool_size=20,
+        max_overflow=40,
+        connect_args={"timeout": 60},
+    )
     return engine
 
 
@@ -50,29 +55,6 @@ def set_sqlite_pragma(dbapi_connection, _connection_record):
     cursor.close()
 
 
-def enable_auto_vacuum(db_session: Session) -> bool:
-    """Turn on auto_vacuum, returning True when a VACUUM is required to apply it."""
-    auto_vacuum = db_session.execute(sqlalchemy.text("PRAGMA auto_vacuum")).scalar()
-    if auto_vacuum == 0:
-        db_session.execute(sqlalchemy.text("PRAGMA auto_vacuum = 1"))
-        db_session.commit()
-        logger.info("Enabled auto_vacuum for the database")
-        return True
-    return False
-
-
-def compact_database(db_engine: Engine):
-    logger.info("Running VACUUM to compact the database...")
-    start_time = time.monotonic()
-    with Session(db_engine) as db_session:
-        db_session.execute(sqlalchemy.text("VACUUM"))
-        db_session.execute(sqlalchemy.text("PRAGMA wal_checkpoint(TRUNCATE)"))
-        db_session.commit()
-    logger.info(
-        "Vacuum and WAL checkpoint completed in %.2fs", time.monotonic() - start_time
-    )
-
-
 def _delete_expired_metrics(session: Session) -> None:
     from datetime import datetime, timedelta, timezone
 
@@ -86,13 +68,6 @@ def _delete_expired_metrics(session: Session) -> None:
 
 async def initialize_cleanup(db_engine: Engine):
     with Session(db_engine) as session:
-        # Only VACUUM when auto_vacuum was just enabled and the database is
-        # still fresh. Running it on every start rewrote the whole multi-GB log
-        # table while holding the write lock, which stalled ingest long enough
-        # for every device's rsyslog omhttp action to time out and retry; with
-        # temp_store=MEMORY it also left multi-GB anonymous mappings behind.
-        if await asyncio.to_thread(enable_auto_vacuum, session):
-            await asyncio.to_thread(compact_database, db_engine)
         await crud.logs.remove_expired_logs(session)
         await asyncio.to_thread(_delete_expired_metrics, session)
     # Also do initial image cleanup

@@ -157,7 +157,9 @@ def _remove_expired_logs(session: Session) -> int:
     cutoff_date = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(
         days=global_settings.LOG_RETENTION_DAYS
     )
-    batch_count = 10_000
+    # Small batches keep each write-lock hold short; the writer queue absorbs
+    # the remaining contention.
+    batch_count = 1_000
     delete_count = (
         session.query(db_models.LogEntry)
         .filter(db_models.LogEntry.timestamp < cutoff_date)
@@ -173,7 +175,7 @@ def _remove_expired_logs(session: Session) -> int:
     )
     total_deleted = 0
     while True:
-        time.sleep(0.05)  # let concurrent ingest acquire the write lock
+        time.sleep(0.2)  # let concurrent ingest acquire the write lock
         deleted = delete_expired_log_batch(session, cutoff_date, limit=batch_count)
         total_deleted += deleted
         if deleted == 0:

@@ -14,6 +14,7 @@ import logging
 from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import Engine
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 from thymis_controller import crud
 
@@ -134,12 +135,23 @@ class LogIngestor:
                     break
                 batch.append(item)
                 entry_count += len(item[1])
-            try:
-                await asyncio.to_thread(self._flush_batch, batch)
-            except Exception:  # noqa: BLE001 - keep the writer alive
-                logger.exception(
-                    "Failed to persist %d ingested log batches", len(batch)
-                )
+            for attempt in range(3):
+                try:
+                    await asyncio.to_thread(self._flush_batch, batch)
+                    break
+                except OperationalError:
+                    if attempt == 2:
+                        logger.exception(
+                            "Failed to persist %d ingested log batches",
+                            len(batch),
+                        )
+                    else:
+                        await asyncio.sleep(1)
+                except Exception:  # noqa: BLE001 - keep the writer alive
+                    logger.exception(
+                        "Failed to persist %d ingested log batches", len(batch)
+                    )
+                    break
             if self._stopping:
                 break
 
