@@ -4,6 +4,7 @@ from typing import Annotated, List
 from fastapi import APIRouter, Header, HTTPException, Request, WebSocket
 from pydantic import TypeAdapter
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 from starlette.requests import ClientDisconnect
 from thymis_controller import crud, models
 from thymis_controller.crud.agent_token import check_token_validity
@@ -106,24 +107,26 @@ async def relay_for_clients(
 @router.post("/logs")
 async def logs(
     request: Request,
-    network_relay: NetworkRelayAD,
-    project: ProjectAD,
     db_session: DBSessionAD,
     x_thymis_ssh_pubkey: Annotated[str | None, Header()] = None,
     x_thymis_token: Annotated[str | None, Header()] = None,
 ):
-    # if token is invalid, reject
+    """Ingest a batch of syslog entries from a device.
+
+    Parsing and the SQLite upsert run in a worker thread: a device streams logs
+    continuously, and doing this work on the event loop lets one ingest batch
+    stall every other request until the device's rsyslog omhttp action times
+    out (5 s) and retries.
+    """
     if x_thymis_ssh_pubkey is None:
         logger.warning(f"No SSH public key from {request.client.host}")
         raise HTTPException(status_code=404)  # don't leak information
     if x_thymis_token is None:
         logger.warning(f"No token from {request.client.host}")
         raise HTTPException(status_code=404)
-    # check if token is valid
     if not check_token_validity(db_session, x_thymis_token):
         logger.warning(f"Invalid token from {request.client.host}")
         raise HTTPException(status_code=404)
-    # token is valid
     try:
         data = await request.body()
     except ClientDisconnect as e:
@@ -131,6 +134,7 @@ async def logs(
             f"Client disconnected before sending logs: {request.client.host}"
         )
         raise HTTPException(status_code=408) from e
-    # parse as json
-    log_entries = ta.validate_json(data)
-    crud.logs.create_batch(db_session, log_entries, x_thymis_ssh_pubkey)
+    log_entries = await run_in_threadpool(ta.validate_json, data)
+    await run_in_threadpool(
+        crud.logs.create_batch, db_session, log_entries, x_thymis_ssh_pubkey
+    )

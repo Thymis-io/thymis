@@ -43,16 +43,22 @@ def set_sqlite_pragma(dbapi_connection, _connection_record):
     cursor.execute("PRAGMA journal_mode=WAL")
     cursor.execute("PRAGMA synchronous=normal")
     cursor.execute("PRAGMA cache_size = -2000")
-    cursor.execute("PRAGMA temp_store = MEMORY")
+    # FILE, not MEMORY: large sorts and VACUUM would otherwise grow anonymous
+    # memory in proportion to the database size (a 3 GB log table pushed the
+    # controller into its cgroup's MemoryHigh).
+    cursor.execute("PRAGMA temp_store = FILE")
     cursor.close()
 
 
-def enable_auto_vacuum(db_session: Session):
+def enable_auto_vacuum(db_session: Session) -> bool:
+    """Turn on auto_vacuum, returning True when a VACUUM is required to apply it."""
     auto_vacuum = db_session.execute(sqlalchemy.text("PRAGMA auto_vacuum")).scalar()
     if auto_vacuum == 0:
         db_session.execute(sqlalchemy.text("PRAGMA auto_vacuum = 1"))
         db_session.commit()
         logger.info("Enabled auto_vacuum for the database")
+        return True
+    return False
 
 
 def compact_database(db_engine: Engine):
@@ -80,12 +86,15 @@ def _delete_expired_metrics(session: Session) -> None:
 
 async def initialize_cleanup(db_engine: Engine):
     with Session(db_engine) as session:
-        enable_auto_vacuum(session)
+        # Only VACUUM when auto_vacuum was just enabled and the database is
+        # still fresh. Running it on every start rewrote the whole multi-GB log
+        # table while holding the write lock, which stalled ingest long enough
+        # for every device's rsyslog omhttp action to time out and retry; with
+        # temp_store=MEMORY it also left multi-GB anonymous mappings behind.
+        if await asyncio.to_thread(enable_auto_vacuum, session):
+            await asyncio.to_thread(compact_database, db_engine)
         await crud.logs.remove_expired_logs(session)
-        _delete_expired_metrics(session)
-    # VACUUM takes seconds on larger databases; keep it off the event loop so it
-    # doesn't stall startup (e.g. the frontend launch) and request handling
-    await asyncio.to_thread(compact_database, db_engine)
+        await asyncio.to_thread(_delete_expired_metrics, session)
     # Also do initial image cleanup
     await images.periodic_image_cleanup()
 
@@ -97,6 +106,6 @@ async def periodic_cleanup_loop(db_engine: Engine):
         await asyncio.sleep(global_settings.LOG_CLEANUP_INTERVAL_SECONDS)
         with Session(db_engine) as session:
             await crud.logs.remove_expired_logs(session)
-            _delete_expired_metrics(session)
+            await asyncio.to_thread(_delete_expired_metrics, session)
         # Clean up old images periodically
         await images.periodic_image_cleanup()

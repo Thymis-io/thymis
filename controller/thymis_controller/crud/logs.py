@@ -1,5 +1,7 @@
 import asyncio
+import itertools
 import logging
+import time
 from datetime import datetime, timedelta, timezone
 from typing import List
 
@@ -44,22 +46,25 @@ def create_batch(
         for entry in log_entries
     ]
 
-    stmt = sqlite_insert(db_models.LogEntry).values(rows)
-    stmt = stmt.on_conflict_do_update(
-        index_elements=["id"],
-        set_={
-            "timestamp": stmt.excluded.timestamp,
-            "message": stmt.excluded.message,
-            "hostname": stmt.excluded.hostname,
-            "facility": stmt.excluded.facility,
-            "severity": stmt.excluded.severity,
-            "programname": stmt.excluded.programname,
-            "syslogtag": stmt.excluded.syslogtag,
-            "deployment_info_id": stmt.excluded.deployment_info_id,
-            "ssh_public_key": stmt.excluded.ssh_public_key,
-        },
-    )
-    session.execute(stmt)
+    # Chunk the upsert so a single statement stays well below SQLite's bound
+    # parameter limit and never holds the write lock for a huge batch.
+    for chunk in itertools.batched(rows, 500):
+        stmt = sqlite_insert(db_models.LogEntry).values(chunk)
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["id"],
+            set_={
+                "timestamp": stmt.excluded.timestamp,
+                "message": stmt.excluded.message,
+                "hostname": stmt.excluded.hostname,
+                "facility": stmt.excluded.facility,
+                "severity": stmt.excluded.severity,
+                "programname": stmt.excluded.programname,
+                "syslogtag": stmt.excluded.syslogtag,
+                "deployment_info_id": stmt.excluded.deployment_info_id,
+                "ssh_public_key": stmt.excluded.ssh_public_key,
+            },
+        )
+        session.execute(stmt)
     session.commit()
 
 
@@ -147,8 +152,11 @@ def delete_expired_log_batch(
     return result.rowcount
 
 
-async def remove_expired_logs(session: Session) -> int:
-    cutoff_date = datetime.now() - timedelta(days=global_settings.LOG_RETENTION_DAYS)
+def _remove_expired_logs(session: Session) -> int:
+    # Stored timestamps are naive UTC; compare against the same clock.
+    cutoff_date = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(
+        days=global_settings.LOG_RETENTION_DAYS
+    )
     batch_count = 10_000
     delete_count = (
         session.query(db_models.LogEntry)
@@ -165,7 +173,7 @@ async def remove_expired_logs(session: Session) -> int:
     )
     total_deleted = 0
     while True:
-        await asyncio.sleep(0.1)  # avoid blocking the database and event loop
+        time.sleep(0.05)  # let concurrent ingest acquire the write lock
         deleted = delete_expired_log_batch(session, cutoff_date, limit=batch_count)
         total_deleted += deleted
         if deleted == 0:
@@ -175,6 +183,12 @@ async def remove_expired_logs(session: Session) -> int:
                 "Deleted %d/%d expired log entries", total_deleted, delete_count
             )
     logger.info("Deleted a total of %d expired log entries", total_deleted)
+    return total_deleted
+
+
+async def remove_expired_logs(session: Session) -> int:
+    """Delete expired entries in a worker thread so ingest keeps flowing."""
+    return await asyncio.to_thread(_remove_expired_logs, session)
 
 
 def get_program_names(

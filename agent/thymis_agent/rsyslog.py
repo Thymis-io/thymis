@@ -46,6 +46,9 @@ def render_rsyslog_config(
                 constant(value=",")   property(name="uuid"         outname="uuid"      format="jsonfr")
                 constant(value="}}")
             }}
+            # omhttp feeds rendered messages (the JSON objects produced above)
+            # into the retry ruleset, so the retry action must echo them
+            # verbatim instead of re-rendering a JSON envelope.
             template(name="tpl_echo" type="string" string="%msg%")
             ruleset(name="rs_retry_forever") {{
                 action(
@@ -62,6 +65,10 @@ def render_rsyslog_config(
                     useHttps="{use_https}"
                     batch="on"
                     batch.format="jsonarray"
+                    # Do not post one request per syslog line: each request
+                    # commits to the controller's SQLite database. Flush at
+                    # most 200 entries per HTTP request.
+                    batch.maxsize="200"
                     retry="on"
                     retry.ruleset="rs_omhttp_retry"
                     restpathtimeout="5000"
@@ -82,7 +89,7 @@ def render_rsyslog_config(
                     useHttps="{use_https}"
                     batch="on"
                     batch.format="jsonarray"
-                    batch.maxsize="1"
+                    batch.maxsize="100"
                     action.resumeRetryCount="3"
                     action.resumeInterval="20"
                     errorfile="/var/log/rsyslog-error.log"
