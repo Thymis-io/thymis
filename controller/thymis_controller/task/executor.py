@@ -22,7 +22,7 @@ from pyrage import ssh
 from thymis_agent import messages
 from thymis_controller.notifier import Notifier
 from thymis_controller.reboot import reboot_targets, should_reboot_after_deploy
-from thymis_controller.task.worker import worker_run_task
+from thymis_controller.task.worker import warm_up_worker, worker_run_task
 
 if TYPE_CHECKING:
     from thymis_controller.task.controller import TaskController
@@ -76,6 +76,13 @@ class TaskWorkerPoolManager:
 
     async def start(self, db_engine: sqlalchemy.Engine):
         self._db_engine = db_engine
+
+        # Pay forkserver/worker-import cost now instead of on the first deploy.
+        warmups = [
+            self.pool.submit(warm_up_worker) for _ in range(min(2, os.cpu_count() or 1))
+        ]
+        if warmups:
+            await asyncio.to_thread(concurrent.futures.wait, warmups, 30)
 
         with (sqlalchemy.orm.Session(bind=self.db_engine) as db_session,):
             amount_running_when_shut_down = crud_task.fail_running_tasks(db_session)

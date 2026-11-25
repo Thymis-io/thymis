@@ -146,6 +146,15 @@ def pick_task(task: models_task.TaskSubmission, conn: Connection):
     print("Task picked")
 
 
+def warm_up_worker():
+    """No-op used to start workers and import this module before the first task.
+
+    ProcessPoolExecutor + forkserver pays the worker spawn/import cost on the
+    first submitted call. Submitting this at controller startup keeps the first
+    deploy from queuing for that cost.
+    """
+
+
 def reject_task(reason: str, task: models_task.TaskSubmission, conn: Connection):
     conn.send(
         models_task.RunnerToControllerTaskUpdate(
