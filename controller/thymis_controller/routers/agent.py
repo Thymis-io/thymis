@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 from starlette.requests import ClientDisconnect
 from thymis_controller import crud, models
+from thymis_controller.crud import agent_token as agent_token_crud
 from thymis_controller.crud.agent_token import check_token_validity
 from thymis_controller.dependencies import (
     DBSessionAD,
@@ -126,12 +127,13 @@ async def logs(
     if x_thymis_token is None:
         logger.warning(f"No token from {request.client.host}")
         raise HTTPException(status_code=404)
-    valid_token = await run_in_threadpool(
-        check_token_validity, db_session, x_thymis_token
-    )
-    if not valid_token:
-        logger.warning(f"Invalid token from {request.client.host}")
-        raise HTTPException(status_code=404)
+    if not agent_token_crud.is_token_cached_valid(x_thymis_token):
+        valid_token = await run_in_threadpool(
+            check_token_validity, db_session, x_thymis_token
+        )
+        if not valid_token:
+            logger.warning(f"Invalid token from {request.client.host}")
+            raise HTTPException(status_code=404)
     try:
         data = await request.body()
     except ClientDisconnect as e:
@@ -139,5 +141,10 @@ async def logs(
             f"Client disconnected before sending logs: {request.client.host}"
         )
         raise HTTPException(status_code=408) from e
-    log_entries = await run_in_threadpool(ta.validate_json, data)
+    # Devices post a few entries per request; parsing those on the loop is
+    # cheaper than a thread handoff. Keep oversized payloads off the loop.
+    if len(data) <= 256 * 1024:
+        log_entries = ta.validate_json(data)
+    else:
+        log_entries = await run_in_threadpool(ta.validate_json, data)
     log_ingestor.submit(x_thymis_ssh_pubkey, log_entries)

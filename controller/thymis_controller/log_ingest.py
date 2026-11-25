@@ -34,8 +34,8 @@ class LogIngestor:
         *,
         max_queue: int = 50_000,
         max_batch: int = 500,
-        max_entries: int = 2_000,
-        max_delay: float = 0.5,
+        max_entries: int = 200,
+        max_delay: float = 0.2,
     ) -> None:
         self.engine = engine
         self.max_batch = max_batch

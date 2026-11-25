@@ -1,9 +1,31 @@
 import secrets
+import threading
 import uuid
 from typing import Optional
 
 from sqlalchemy.orm import Session
 from thymis_controller import db_models
+
+# Tokens are long-lived and every log request validates one. Keep the hot set
+# in memory; create/revoke update it explicitly, and unknown tokens still hit
+# the database.
+_valid_token_cache: set[str] = set()
+_valid_token_lock = threading.Lock()
+
+
+def _remember_valid(token: str) -> None:
+    with _valid_token_lock:
+        _valid_token_cache.add(token)
+
+
+def _forget(token: str) -> None:
+    with _valid_token_lock:
+        _valid_token_cache.discard(token)
+
+
+def is_token_cached_valid(token: str) -> bool:
+    with _valid_token_lock:
+        return token in _valid_token_cache
 
 
 def create(
@@ -20,11 +42,17 @@ def create(
     session.add(new_agent_token)
     session.commit()
     session.refresh(new_agent_token)
+    _remember_valid(new_agent_token.token)
     return new_agent_token
 
 
 def check_token_validity(session: Session, token: str) -> bool:
-    return get_valid_token(session, token) is not None
+    if is_token_cached_valid(token):
+        return True
+    valid = get_valid_token(session, token) is not None
+    if valid:
+        _remember_valid(token)
+    return valid
 
 
 def get_valid_token(session: Session, token: str) -> db_models.AgentToken | None:
@@ -103,3 +131,4 @@ def revoke_access_client_token(session: Session, token: str):
 def revoke_agent_token(session: Session, token: str):
     session.query(db_models.AgentToken).filter_by(token=token).update({"revoked": True})
     session.commit()
+    _forget(token)
