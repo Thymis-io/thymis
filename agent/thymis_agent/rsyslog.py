@@ -71,7 +71,10 @@ def render_rsyslog_config(
                     batch.maxsize="200"
                     retry="on"
                     retry.ruleset="rs_omhttp_retry"
-                    restpathtimeout="5000"
+                    # omhttp maps this to CURLOPT_TIMEOUT_MS. The previous 5 s
+                    # turned controller restarts and slow DNS into error logs
+                    # and retry storms; 30 s is omhttp's own default.
+                    restpathtimeout="30000"
                 )
             }}
             ruleset(name="rs_omhttp_retry") {{
@@ -93,7 +96,10 @@ def render_rsyslog_config(
                     action.resumeRetryCount="3"
                     action.resumeInterval="20"
                     errorfile="/var/log/rsyslog-error.log"
-                    restpathtimeout="5000"
+                    # omhttp maps this to CURLOPT_TIMEOUT_MS. The previous 5 s
+                    # turned controller restarts and slow DNS into error logs
+                    # and retry storms; 30 s is omhttp's own default.
+                    restpathtimeout="30000"
                 )
             }}
 
