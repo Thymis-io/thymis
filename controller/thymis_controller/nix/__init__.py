@@ -21,6 +21,24 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+_BUILDER_UNAVAILABLE_MARKERS = (
+    "cannot connect to",
+    "Failed to find a machine for remote build",
+    "Connection refused",
+    "No route to host",
+    "Connection timed out",
+    "Failed to start any build",
+    "Host key verification failed",
+    "Permission denied (publickey)",
+)
+
+
+def builder_unavailable(stderr: bytes | str) -> bool:
+    """True when a nix build failed because the remote builder was unreachable."""
+    if isinstance(stderr, bytes):
+        stderr = stderr.decode("utf-8", "replace")
+    return any(marker in stderr for marker in _BUILDER_UNAVAILABLE_MARKERS)
+
 
 def nix_subprocess_env(**extra: str) -> dict[str, str]:
     env: dict[str, str] = {
@@ -132,7 +150,25 @@ def get_build_output(flake_path, identifier):
             e.returncode,
             nix_parser.msg_output,
         )
-        return None
+        if not builder_unavailable(e.stderr):
+            return None
+        logger.warning("Remote aarch64 builder unavailable; building locally")
+        local_cmd = cmd + ["--max-jobs", "2", "--cores", "1"]
+        try:
+            result = subprocess.run(
+                local_cmd,
+                check=True,
+                cwd=flake_path,
+                capture_output=True,
+                env={
+                    **os.environ,
+                    "NIX_REMOTE": "local",
+                    "NIX_CONFIG": "builders =\nextra-platforms = aarch64-linux i686-linux",
+                },
+            )
+        except subprocess.CalledProcessError as local_error:
+            logger.error("Local fallback build failed: %s", local_error.stderr)
+            return None
 
     result = json.loads(result.stdout)
     # should be a dict

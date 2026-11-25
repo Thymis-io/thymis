@@ -2,6 +2,7 @@ import base64
 import datetime
 import glob
 import json
+import logging
 import os
 import pathlib
 import platform
@@ -23,9 +24,11 @@ import thymis_controller.models.task as models_task
 from pydantic import BaseModel
 from thymis_agent import messages
 from thymis_controller.config import global_settings
-from thymis_controller.nix import NIX_CMD, nix_subprocess_env
+from thymis_controller.nix import NIX_CMD, builder_unavailable, nix_subprocess_env
 from thymis_controller.nix.log_parse import NixParser
 from thymis_controller.repo import git_commit_cmd
+
+logger = logging.getLogger(__name__)
 
 
 def no_new_privs() -> bool:
@@ -261,7 +264,9 @@ def deploy_device_task(
                 else {}
             ),
         )
+        build_target = f'git+file:{repo_path}?rev={task_data.config_commit}#nixosConfigurations."{task_data.device.identifier}".config.system.build.toplevel'
         toplevel_path = f"{tmpdir}/toplevel"
+        build_stderr = bytearray()
         returncode = run_command(
             task,
             conn,
@@ -269,7 +274,7 @@ def deploy_device_task(
             [
                 *NIX_CMD,
                 "build",
-                f'git+file:{repo_path}?rev={task_data.config_commit}#nixosConfigurations."{task_data.device.identifier}".config.system.build.toplevel',
+                build_target,
                 "--out-link",
                 toplevel_path,
                 "--allow-dirty-locks",
@@ -277,7 +282,39 @@ def deploy_device_task(
             env,
             cwd=tmpdir,
             process_index=0,
+            stderr_sink=build_stderr,
         )
+
+        if returncode != 0 and builder_unavailable(build_stderr):
+            logger.warning(
+                "Remote aarch64 builder unavailable; retrying the build locally"
+            )
+            toplevel_path = f"{tmpdir}/toplevel-local"
+            local_env = dict(env)
+            local_env["NIX_REMOTE"] = "local"
+            local_env[
+                "NIX_CONFIG"
+            ] = "builders =\nextra-platforms = aarch64-linux i686-linux"
+            returncode = run_command(
+                task,
+                conn,
+                process_list,
+                [
+                    *NIX_CMD,
+                    "build",
+                    build_target,
+                    "--out-link",
+                    toplevel_path,
+                    "--allow-dirty-locks",
+                    "--max-jobs",
+                    "2",
+                    "--cores",
+                    "1",
+                ],
+                local_env,
+                cwd=tmpdir,
+                process_index=2,
+            )
 
         if returncode != 0:
             report_task_finished(task, conn, False, "Build failed")
@@ -919,6 +956,7 @@ def run_command(
     input: AnyStr = None,
     stderr_read_size: int = 1024,
     process_index: int = 0,
+    stderr_sink: bytearray | None = None,
 ):
     if process_list.terminated:
         return -1
@@ -979,6 +1017,10 @@ def run_command(
                     stderr = stderr_buffer.copy()
                     stderr_buffer.clear()
 
+            if stderr_sink is not None and stderr:
+                room = 65_536 - len(stderr_sink)
+                if room > 0:
+                    stderr_sink.extend(stderr[:room])
             has_processed_nix_lines = nix_parser.process_buffer(stderr)
             if has_processed_nix_lines:
                 conn.send(
