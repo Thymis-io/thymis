@@ -31,10 +31,12 @@ class LogIngestor:
         *,
         max_queue: int = 50_000,
         max_batch: int = 500,
+        max_entries: int = 2_000,
         max_delay: float = 0.5,
     ) -> None:
         self.engine = engine
         self.max_batch = max_batch
+        self.max_entries = max_entries
         self.max_delay = max_delay
         self.queue: asyncio.Queue[tuple[str, list[models.LogEntry]]] = asyncio.Queue(
             maxsize=max_queue
@@ -76,21 +78,33 @@ class LogIngestor:
     async def _run(self) -> None:
         loop = asyncio.get_running_loop()
         while True:
-            batch = [await self.queue.get()]
+            first = await self.queue.get()
+            batch = [first]
+            entry_count = len(first[1])
             deadline = loop.time() + self.max_delay
-            while len(batch) < self.max_batch:
+            while len(batch) < self.max_batch and entry_count < self.max_entries:
                 remaining = deadline - loop.time()
                 if remaining <= 0:
                     break
                 try:
-                    batch.append(await asyncio.wait_for(self.queue.get(), remaining))
+                    item = await asyncio.wait_for(self.queue.get(), remaining)
                 except TimeoutError:
                     break
-            while len(batch) < self.max_batch:
+                if entry_count + len(item[1]) > self.max_entries:
+                    self.queue.put_nowait(item)
+                    break
+                batch.append(item)
+                entry_count += len(item[1])
+            while len(batch) < self.max_batch and entry_count < self.max_entries:
                 try:
-                    batch.append(self.queue.get_nowait())
+                    item = self.queue.get_nowait()
                 except asyncio.QueueEmpty:
                     break
+                if entry_count + len(item[1]) > self.max_entries:
+                    self.queue.put_nowait(item)
+                    break
+                batch.append(item)
+                entry_count += len(item[1])
             try:
                 await asyncio.to_thread(self._flush_batch, batch)
             except Exception:  # noqa: BLE001 - keep the writer alive
